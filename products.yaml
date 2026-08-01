@@ -1,0 +1,164 @@
+# Authoritative machine-readable product registry.
+# Status vocabulary: PLANNED RESEARCHING SPECIFYING DEVELOPING TESTING VALIDATING
+#   SECURITY REVIEW DOCUMENTING REVIEW REQUIRED READY FOR APPROVAL APPROVED
+#   PUBLISHED NEEDS HARDENING BLOCKED ARCHIVED
+# Names are provisional until per-product conflict checks (mission spec §32).
+
+mission:
+  total_products: 100
+  batches: 10
+  ai_minimum: 70
+  validation_targets: {level_1: 10, level_2: 60, level_3: 25, level_4: 5}
+
+products:
+  - id: P001
+    name: BeamTwin          # provisional
+    batch: 1
+    class: flagship
+    category: optical-link-engineering
+    summary: FSO link digital twin — link budget engine, atmospheric channel (scintillation, fog/aerosol attenuation), ML fade-prediction surrogate with uncertainty output.
+    ai_enabled: true
+    validation_level: 3
+    status: DEVELOPING
+    license: AGPL-3.0 (open-core)
+    repository: null
+    local_path: products/P001
+    approved_for_publish: false
+    published: false
+
+  - id: P002
+    name: TrackForge        # provisional
+    batch: 1
+    class: flagship
+    category: pointing-acquisition-tracking
+    summary: PAT simulation suite — spiral/raster acquisition scans, uncertainty cone, coarse/fine tracking loops, gimbal dynamics, jitter injection; RL reacquisition policy benchmarked against PID/LQR baselines.
+    ai_enabled: true
+    validation_level: 3
+    status: DEVELOPING
+    license: AGPL-3.0 (open-core)
+    repository: null
+    local_path: products/P002
+    approved_for_publish: false
+    published: false
+
+  - id: P003
+    name: ScintiNet         # provisional
+    batch: 1
+    class: medium
+    category: atmospheric-propagation
+    summary: Learned scintillation surrogate — neural model trained on split-step phase-screen simulation data, benchmarked against Rytov-theory analytic baseline with error analysis.
+    ai_enabled: true
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P003
+    approved_for_publish: false
+    published: false
+
+  - id: P004
+    name: PassPlanner       # provisional
+    batch: 1
+    class: medium
+    category: space-operations
+    summary: Optical ground-station contact planner — SGP4 propagation, visibility windows, cloud-availability weighting, greedy + ILP downlink scheduling optimizer.
+    ai_enabled: true
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P004
+    approved_for_publish: false
+    published: false
+
+  - id: P005
+    name: JitterScope       # provisional
+    batch: 1
+    class: medium
+    category: airborne-systems
+    summary: Platform jitter and vibration characterization — PSD analysis, pointing-loss integration, autoencoder anomaly detection on pointing telemetry.
+    ai_enabled: true
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P005
+    approved_for_publish: false
+    published: false
+
+  - id: P006
+    name: LinkBudgetX       # provisional
+    batch: 1
+    class: compact
+    category: optical-link-engineering
+    summary: Deterministic FSO link-budget library — unit-aware quantities, geometric/pointing/atmospheric losses, uncertainty propagation, validated hand calculations.
+    ai_enabled: false
+    validation_level: 1
+    status: DEVELOPING
+    license: MIT
+    repository: null
+    local_path: products/P006
+    approved_for_publish: false
+    published: false
+
+  - id: P007
+    name: QuatKit           # provisional
+    batch: 1
+    class: compact
+    category: aerospace-gnc
+    summary: Quaternion and attitude toolbox — kinematics, error angles, frame conversions, property-based tests against analytic identities.
+    ai_enabled: false
+    validation_level: 1
+    status: DEVELOPING
+    license: MIT
+    repository: null
+    local_path: products/P007
+    approved_for_publish: false
+    published: false
+
+  - id: P008
+    name: CentroidNet       # provisional
+    batch: 1
+    class: compact
+    category: pointing-acquisition-tracking
+    summary: Quadrant-detector centroid estimation — CNN estimator vs analytic centroid baseline on synthetic noisy spot images, with confidence output.
+    ai_enabled: true
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P008
+    approved_for_publish: false
+    published: false
+
+  - id: P009
+    name: FogCast           # provisional
+    batch: 1
+    class: compact
+    category: atmospheric-propagation
+    summary: Fog/aerosol attenuation prediction — ML regression with confidence intervals benchmarked against Kim and Kruse empirical models.
+    ai_enabled: true
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P009
+    approved_for_publish: false
+    published: false
+
+  - id: P010
+    name: BERBench          # provisional
+    batch: 1
+    class: compact
+    category: optical-modulation
+    summary: BER/modulation benchmark — OOK, PPM, BPSK over AWGN and lognormal fading channels, validated against analytic BER curves.
+    ai_enabled: false
+    validation_level: 2
+    status: DEVELOPING
+    license: MIT
+    repository: null
+    local_path: products/P010
+    approved_for_publish: false
+    published: false
+
+# P011–P100: unallocated. Defined per-batch at batch specification time.
