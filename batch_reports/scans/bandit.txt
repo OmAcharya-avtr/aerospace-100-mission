@@ -1,0 +1,51 @@
+Run started:2026-08-06 07:47:50.595292+00:00
+
+Test results:
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: products/P001/scripts/train_surrogate.py:53:8
+52	        print("dataset missing; generating (seed 42)...")
+53	        import subprocess
+54	
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: products/P001/scripts/train_surrogate.py:55:8
+54	
+55	        subprocess.run([sys.executable, str(ROOT / "scripts" / "generate_dataset.py")], check=True)
+56	    payload = np.load(data_file)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: products/P004/validation/validate_scheduler.py:113:10
+112	    w("")
+113	    rng = random.Random(20260306)
+114	    w(f"  {'#':>3} {'n':>3} {'brute [Gbit]':>13} {'ILP [Gbit]':>12} {'greedy [Gbit]':>14} "
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 14488
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 3
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 3
+Files skipped (0):
