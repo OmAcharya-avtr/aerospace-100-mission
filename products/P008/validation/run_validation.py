@@ -130,7 +130,8 @@ log(f"    thresholded CoG uses threshold = B + R = {thr:.1f} e-; frames where th
 log("    threshold removes all flux fall back to plain CoG (count reported)")
 log("")
 hdr = (f"    {'S [e-]':>8} {'SNR':>6} | {'RMS CoG':>8} {'RMS CoG-thr':>11} "
-      f"{'RMS quad':>8} {'RMS ML':>7} | {'bias ML':>8} {'mean std':>8}")
+      f"{'RMS quad':>8} {'RMS ML':>7} | {'bias CoG':>8} {'bias thr':>8} "
+      f"{'bias quad':>9} {'bias ML':>8} | {'mean std':>8}")
 log(hdr)
 log("    " + "-" * (len(hdr) - 4))
 rows = []
@@ -153,13 +154,16 @@ for i, s in enumerate(signals):
     pred, std = model.predict(im, return_std=True)
     row = dict(
         s=s, snr=snr, rms_cog=rms(cog, tr), rms_cogt=rms(cogt, tr),
-        rms_quad=rms(quad, tr), rms_ml=rms(pred, tr), bias_ml=bias(pred, tr),
+        rms_quad=rms(quad, tr), rms_ml=rms(pred, tr),
+        bias_cog=bias(cog, tr), bias_cogt=bias(cogt, tr),
+        bias_quad=bias(quad, tr), bias_ml=bias(pred, tr),
         std=float(std.mean()), n_fallback=n_fallback,
     )
     rows.append(row)
     fb = f" (thr fallback: {n_fallback})" if n_fallback else ""
     log(f"    {s:8.0f} {snr:6.1f} | {row['rms_cog']:8.3f} {row['rms_cogt']:11.3f} "
-        f"{row['rms_quad']:8.3f} {row['rms_ml']:7.3f} | {row['bias_ml']:8.3f} "
+        f"{row['rms_quad']:8.3f} {row['rms_ml']:7.3f} | {row['bias_cog']:8.3f} "
+        f"{row['bias_cogt']:8.3f} {row['bias_quad']:9.3f} {row['bias_ml']:8.3f} | "
         f"{row['std']:8.3f}{fb}")
 log("")
 low = rows[0]
@@ -171,6 +175,14 @@ if cross is not None:
         f"(S = {cross['s']:.0f} e-) upward -- honest finding, documented in README")
 else:
     log("    no crossover observed: ML best at every tested SNR")
+log("")
+log("    uncertainty calibration: mean ensemble std vs actual RMS error")
+for r in rows:
+    ratio = r["std"] / r["rms_ml"] if r["rms_ml"] > 0 else float("nan")
+    log(f"      SNR {r['snr']:6.1f}: mean std {r['std']:.3f} px, RMS err "
+        f"{r['rms_ml']:.3f} px, std/RMS = {ratio:.2f}")
+log("    -> ensemble spread tracks initialization variance only and")
+log("       UNDER-estimates the true error at every SNR: NOT a calibrated 1-sigma")
 log("")
 
 fig, ax = plt.subplots(figsize=(6.5, 4.5))

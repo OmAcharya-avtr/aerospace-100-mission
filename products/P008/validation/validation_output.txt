@@ -17,21 +17,31 @@ grid=16x16, sigma=1.5 px, background=2.0 e-/px, read_noise=3.0 e-
     plot -> validation/quadcell_bias_curve.png
 
 [3] ML vs CoG bias/RMS vs SNR on held-out seeded data
-    training: 5 x MLP(64,) on 4200 frames in 71.6 s (budget 120 s)  PASS
+    training: 5 x MLP(64,) on 4200 frames in 24.6 s (budget 120 s)  PASS
     held-out test: 500 frames per SNR, seed=9000+i (never seen in training)
     thresholded CoG uses threshold = B + R = 5.0 e-; frames where the
     threshold removes all flux fall back to plain CoG (count reported)
 
-      S [e-]    SNR |  RMS CoG RMS CoG-thr RMS quad  RMS ML |  bias ML mean std
-    ---------------------------------------------------------------------------
-         100    1.9 |    1.466       1.382    1.447   0.788 |    0.066    0.073
-         200    3.6 |    1.302       0.901    1.319   0.438 |    0.014    0.048
-         500    8.7 |    0.968       0.401    1.040   0.242 |    0.006    0.034
-        1000   16.2 |    0.656       0.208    0.771   0.153 |    0.015    0.029
-        3000   39.3 |    0.305       0.075    0.493   0.079 |    0.007    0.027
-       10000   88.3 |    0.107       0.030    0.340   0.066 |    0.006    0.029
+      S [e-]    SNR |  RMS CoG RMS CoG-thr RMS quad  RMS ML | bias CoG bias thr bias quad  bias ML | mean std
+    ---------------------------------------------------------------------------------------------------------
+         100    1.9 |    1.466       1.382    1.447   0.788 |    0.050    0.078     0.054    0.066 |    0.073
+         200    3.6 |    1.302       0.901    1.319   0.438 |    0.021    0.030     0.018    0.014 |    0.048
+         500    8.7 |    0.968       0.401    1.040   0.242 |    0.033    0.010     0.037    0.006 |    0.034
+        1000   16.2 |    0.656       0.208    0.771   0.153 |    0.063    0.022     0.076    0.015 |    0.029
+        3000   39.3 |    0.305       0.075    0.493   0.079 |    0.014    0.003     0.018    0.007 |    0.027
+       10000   88.3 |    0.107       0.030    0.340   0.066 |    0.008    0.002     0.027    0.006 |    0.029
 
     lowest SNR (1.9): ML RMS 0.788 px vs plain CoG 1.466 px vs thresholded CoG 1.382 px
     crossover: thresholded CoG matches/beats ML from SNR ~ 39.3 (S = 3000 e-) upward -- honest finding, documented in README
+
+    uncertainty calibration: mean ensemble std vs actual RMS error
+      SNR    1.9: mean std 0.073 px, RMS err 0.788 px, std/RMS = 0.09
+      SNR    3.6: mean std 0.048 px, RMS err 0.438 px, std/RMS = 0.11
+      SNR    8.7: mean std 0.034 px, RMS err 0.242 px, std/RMS = 0.14
+      SNR   16.2: mean std 0.029 px, RMS err 0.153 px, std/RMS = 0.19
+      SNR   39.3: mean std 0.027 px, RMS err 0.079 px, std/RMS = 0.34
+      SNR   88.3: mean std 0.029 px, RMS err 0.066 px, std/RMS = 0.44
+    -> ensemble spread tracks initialization variance only and
+       UNDER-estimates the true error at every SNR: NOT a calibrated 1-sigma
 
     plot -> validation/ml_vs_baseline_snr.png
