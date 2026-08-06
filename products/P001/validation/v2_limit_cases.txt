@@ -1,0 +1,56 @@
+V2 — Monte Carlo limit cases and combined-case sanity
+==============================================================
+
+V2a — Scintillation-only limit vs closed-form lognormal baseline
+     (jitter = 0, bias = 0; Cn2 = 5e-16, 10 km, 1550 nm)
+     MC n = 400000, seed = 2024
+
+ margin_dB   sigma_ln         P_MC     CI95 low    CI95 high   P_analytic   in CI
+       2.0     0.7195   3.8899e-01   3.8748e-01   3.9050e-01   3.8964e-01     yes
+       4.0     0.7195   1.7906e-01   1.7788e-01   1.8025e-01   1.7871e-01     yes
+       6.0     0.7195   5.9443e-02   5.8714e-02   6.0179e-02   5.9345e-02     yes
+       8.0     0.7195   1.4185e-02   1.3823e-02   1.4556e-02   1.3892e-02     yes
+      10.0     0.7195   2.2700e-03   2.1272e-03   2.4223e-03   2.2533e-03     yes
+
+V2a STATUS: PASS
+
+V2b — Jitter-only limit vs closed-form mean pointing loss
+     (Cn2 = 0, bias = 0); E[L_p] = 1/(1 + 4*sigma_d^2/w^2)
+
+ jitter_urad   sigma_d/w    E[L_p] MC   E[L_p] exact     rel err       tol
+         2.0      0.0808     0.974463       0.974545    8.38e-05  1.62e-04
+         5.0      0.2020     0.859288       0.859661    4.34e-04  9.00e-04
+        10.0      0.4040     0.604351       0.604962    1.01e-03  2.72e-03
+        20.0      0.8081     0.276612       0.276856    8.79e-04  6.63e-03
+
+V2b STATUS: PASS
+
+V2c — Combined-case monotonicity sanity checks
+
+  (i) P_fade vs Cn2 (jitter = 5 urad, margin fixed):
+      Cn2=1.0e-16 -> P_fade=2.5000e-06
+      Cn2=5.0e-16 -> P_fade=9.6750e-04
+      Cn2=1.0e-15 -> P_fade=1.0750e-02
+      Cn2=5.0e-15 -> P_fade=1.3769e-01
+      Cn2=1.0e-14 -> P_fade=2.2107e-01
+      monotone non-decreasing: yes
+
+  (ii) P_fade vs pointing jitter (Cn2 = 5e-16):
+      jitter=0.0 urad -> P_fade=2.6500e-04
+      jitter=2.0 urad -> P_fade=3.1750e-04
+      jitter=5.0 urad -> P_fade=9.6750e-04
+      jitter=10.0 urad -> P_fade=3.9685e-02
+      jitter=20.0 urad -> P_fade=3.9850e-01
+      monotone non-decreasing: yes
+
+  (iii) P_fade vs margin (Cn2 = 5e-16, jitter = 5 urad):
+      margin=2.0 dB -> P_fade=4.7749e-01
+      margin=4.0 dB -> P_fade=2.4826e-01
+      margin=6.0 dB -> P_fade=9.7185e-02
+      margin=8.0 dB -> P_fade=2.8090e-02
+      margin=12.0 dB -> P_fade=9.6750e-04
+      monotone non-increasing: yes
+
+V2c STATUS: PASS
+
+OVERALL V2 STATUS: PASS

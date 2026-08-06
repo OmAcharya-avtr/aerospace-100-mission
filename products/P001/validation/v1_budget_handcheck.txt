@@ -1,0 +1,44 @@
+V1 — Deterministic link budget hand-check (10 km, 1550 nm)
+==============================================================
+
+Step 1  Rayleigh range  z_R = pi*w0^2/lambda
+        = pi * (0.02 m)^2 / 1.55e-6 m = pi * 4.0e-4 / 1.55e-6
+        = 810.7336 m
+
+Step 2  Beam radius at Rx  w(L) = w0*sqrt(1+(L/z_R)^2)
+        L/z_R = 10000 / 810.7336 = 12.334508
+        w = 0.02 * sqrt(1 + 12.334508^2) = 0.247500 m
+        code: 0.247500 m   delta = 0.000e+00 m
+
+Step 3  Geometric capture  eta = 1 - exp(-2a^2/w^2)
+        2a^2/w^2 = 2*(0.05)^2/(0.247500)^2 = 0.081625
+        eta = 1 - exp(-0.081625) = 0.078382
+        loss = -10*log10(0.078382) = 11.057829 dB
+        code: 11.057829 dB   delta = 0.000e+00 dB
+
+Step 4  Static pointing loss  d = theta_bias*L, L_p = exp(-2d^2/w^2)
+        d = 2e-6 rad * 10000 m = 0.0200 m
+        L_p = exp(-2*0.0200^2/0.247500^2) = 0.987025
+        loss = 0.056719 dB
+        code: 0.056719 dB   delta = 0.000e+00 dB
+
+Step 5  Optics losses  -10*log10(0.8) = 0.969100 dB each (Tx and Rx)
+        code Tx: 0.969100 dB, Rx: 0.969100 dB
+
+Step 6  Atmospheric loss  alpha*L = 2.5 dB/km * 10 km = 25.000000 dB
+        code: 25.000000 dB
+
+Step 7  Received power  P_rx = 20 - 0.9691 - 11.0578 - 0.0567 - 25.0000 - 0.9691
+        = -18.052748 dBm
+        code: -18.052748 dBm   delta = 0.000e+00 dB
+        Margin = -18.052748 - (-30) = 11.947252 dB
+        code: 11.947252 dB   delta = 0.000e+00 dB
+
+Step 8  Kim model spot-check (Kim et al. 2001, SPIE 4214), V = 7 km, 1550 nm
+        6 < V <= 50 km  ->  q = 1.3
+        beta = (3.91/7)*(1550/550)^-1.3 = 0.558571 * 0.260040 = 0.145251 1/km
+        alpha = 4.343 * 0.145251 = 0.630817 dB/km
+        code: 0.630817 dB/km   delta = 0.000e+00 dB/km
+
+RESULT: max |hand - code| = 0.000e+00 (tolerance 1e-09)
+STATUS: PASS

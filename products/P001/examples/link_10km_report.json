@@ -1,0 +1,59 @@
+{
+  "analytic_baseline": {
+    "fade_probability_scintillation_only": 0.0002666137026738942,
+    "note": "closed-form lognormal, scintillation only (no jitter)"
+  },
+  "beamtwin_version": "0.1.0",
+  "budget": {
+    "atmospheric_loss_db": 25.0,
+    "beam_radius_at_rx_m": 0.24749956752523658,
+    "divergence_half_angle_rad": 2.466901617924378e-05,
+    "geometric_loss_db": 11.057828865024398,
+    "margin_db": 11.947252286960218,
+    "margin_negative": false,
+    "pointing_loss_db": 0.056718587854260455,
+    "received_power_dbm": -18.052747713039782,
+    "rx_optics_loss_db": 0.969100130080564,
+    "rx_sensitivity_dbm": -30.0,
+    "tx_optics_loss_db": 0.969100130080564,
+    "tx_power_dbm": 20.0
+  },
+  "channel": {
+    "cn2": 5e-16,
+    "pointing_jitter_rad": 4.9999999999999996e-06,
+    "rytov_variance": 0.6782107162167273,
+    "scintillation_index": 0.6782107162167273,
+    "sigma_disp_m": 0.049999999999999996,
+    "sigma_ln": 0.7195333042851663,
+    "weak_regime_valid": true
+  },
+  "monte_carlo": {
+    "fade_ci95_high": 0.0012285171019726965,
+    "fade_ci95_low": 0.0009406485283285538,
+    "fade_probability": 0.001075,
+    "margin_moments": {
+      "mean_db": 10.108895091558777,
+      "std_db": 3.2145055414604715,
+      "variance_db2": 10.33304587608008
+    },
+    "margin_percentiles_db": {
+      "p01": 2.512615179855949,
+      "p05": 4.810382693886664,
+      "p50": 10.122797213713227,
+      "p95": 15.36588986654509,
+      "p99": 17.55736921493076
+    },
+    "n_fades": 215,
+    "n_samples": 200000,
+    "seed": 1
+  },
+  "name": "terrestrial-10km",
+  "surrogate": {
+    "extrapolating": false,
+    "fade_probability": 0.0011908197951516805,
+    "log10_std": 0.069690360909882,
+    "note": "GradientBoosting ensemble; interval = +/-2 ensemble std in log10 space",
+    "p_high": 0.0016414466320593991,
+    "p_low": 0.0008639036791259963
+  }
+}

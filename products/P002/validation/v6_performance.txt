@@ -1,0 +1,31 @@
+V6 - performance benchmark
+python 3.11.15, numpy 2.4.4, scipy 1.17.1
+platform: Linux-6.18.5-fc-v18-x86_64-with-glibc2.39, machine x86_64
+CPU count (os.cpu_count): 2
+
+A) closed-loop tracking throughput (sim.sim_steps_per_second)
+     sim duration [s]     steps   wall [s]      steps/s  x realtime
+                  0.2      1000     0.0270        36972        7.39
+                  1.0      5000     0.1378        36284        7.26
+                  4.0     20000     0.5513        36275        7.25
+   median throughput: 36284 steps/s
+
+B) component wall times (single run each)
+                            operation   wall [s]
+               spiral_scan (9987 pts)     0.0034
+      coverage_fraction (2e5 samples)     0.1174
+     synthesize_jitter (2^20 samples)     0.0781
+       run_episode (default scenario)     0.3171
+        run_monte_carlo (20 episodes)     3.0073
+         train_q_learning (20 000 ep)     2.9665
+           evaluate_policy (2 000 ep)     0.7251
+                                TOTAL     7.2149
+
+C) compute-budget check (mission limit: 3 min = 180 s per training
+   or Monte Carlo run)
+   Q-learning training (20 000 episodes): 2.97 s (1.6% of budget)
+   Monte Carlo evaluation (2 000 episodes): 0.73 s (0.4% of budget)
+   full V5 benchmark (3 trainings + 5 evaluations): ~12.5 s
+
+PASS criteria: training < 180 s, MC evaluation < 180 s, throughput > 5 000 steps/s
+RESULT: PASS

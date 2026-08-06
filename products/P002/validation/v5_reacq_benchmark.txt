@@ -1,0 +1,40 @@
+V5 - reacquisition benchmark (learned vs scripted baselines)
+config: sigma0 = 5.00e-05 rad, drift = 1.00e-04 rad/s, cone = 1.00e-03 rad
+        coverage rate = 6.00e-07 rad^2/s, p_detect = 0.85, max_time = 30.0 s
+        LOCAL disc = 3.0 sigma(t), RING width = 2.0 sigma(t), kappa = 10.0
+evaluation: 2000 episodes, common random numbers, seeds 999..2998
+
+BASELINES FIRST
+                policy  mean [s]         95% CI [s]    median      p90  success attempts  action mix
+----------------------------------------------------------------------------------------------------------------------
+  baseline-always-full    8.6485 [ 8.2926,  9.0044]    5.2360   30.000    0.877    1.685  LOCAL:0% FULL:100% RING:0%
+ baseline-always-local    6.4395 [ 5.9612,  6.9179]    0.5762   30.000    0.838    4.716  LOCAL:100% FULL:0% RING:0%
+(baseline evaluation wall time: 0.93 s)
+
+LEARNED (tabular Q-learning, 20000 training episodes)
+                policy  mean [s]         95% CI [s]    median      p90  success attempts  action mix
+----------------------------------------------------------------------------------------------------------------------
+ q-learning seed 12345    4.1480 [ 3.7752,  4.5209]    0.5001    8.814    0.909    3.427  LOCAL:17% FULL:20% RING:63%
+ q-learning seed 20260    4.2095 [ 3.8162,  4.6028]    0.5001   30.000    0.898    3.865  LOCAL:15% FULL:12% RING:73%
+   q-learning seed 777    4.4380 [ 4.0432,  4.8328]    0.3969   30.000    0.896    3.847  LOCAL:33% FULL:17% RING:50%
+(training wall times: 2.83 s, 2.97 s, 2.97 s)
+
+learned mean over 3 training seeds: 4.2652 s (spread 4.1480-4.4380 s)
+baseline always-full : 8.6485 s [8.2926, 9.0044]
+baseline always-local: 6.4395 s [5.9612, 6.9179]
+   vs baseline-always-full  : 50.7% REDUCTION in mean time-to-reacquire, 95% CIs disjoint = True
+   vs baseline-always-local : 33.8% REDUCTION in mean time-to-reacquire, 95% CIs disjoint = True
+
+reproducibility check (same seed twice, bitwise)
+   Q tables identical: True
+   evaluation identical: True
+
+confidence output (uncertainty exposed by the learned policy)
+   states visited during training: 64 / 320
+   confidence on visited states: mean 0.204, min 0.000, max 1.000
+   unvisited states (policy defers to the FULL baseline action): 256
+   visited states with confidence < 0.1 (acts greedily but flags low confidence): 37
+
+PASS criteria: learned 95% CI strictly below BOTH baseline CIs, and
+               training bitwise reproducible
+RESULT: PASS

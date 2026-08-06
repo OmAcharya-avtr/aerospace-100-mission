@@ -1,0 +1,75 @@
+PassPlanner validation 2 -- scheduler optimality and greedy gap
+run: 2026-08-06T04:16:08+00:00
+solver: PuLP + CBC (bundled)
+
+PART A -- hand-solved instances (rate 1 Gbit/s, so value [Gbit] = duration [s])
+
+  A greedy trap: 1 station, 1 satellite; A=[0,1000] v1000, B=[0,600] v600, C=[700,1400] v700
+    hand solution : feasible sets: {A}=1000, {B}=600, {C}=700, {B,C}=1300 (B ends 600 < 700 = C rise); A conflicts with both -> optimum {B,C} = 1300
+    hand optimum  : 1300.0 Gbit
+    brute force   : 1300.0 Gbit
+    ILP           : 1300.0 Gbit  (2 pass(es))  -> MATCH
+    greedy        : 1000.0 Gbit  (gap 23.0769 %)
+
+  B satellite constraint across stations: D=S1[0,500] v500, E=S2[100,900] v800
+    hand solution : same satellite, intervals overlap on [100,500] -> only one may be used; max(500, 800) = 800
+    hand optimum  : 800.0 Gbit
+    brute force   : 800.0 Gbit
+    ILP           : 800.0 Gbit  (1 pass(es))  -> MATCH
+    greedy        : 800.0 Gbit  (gap 0.0000 %)
+
+  C mixed constraints: F=SAT-A@S1[0,400] v400, G=SAT-B@S1[200,900] v700, H=SAT-A@S2[0,300] v300
+    hand solution : conflicts F-G (station S1, overlap 200-400) and F-H (satellite SAT-A, overlap 0-300); G-H share nothing -> {G,H} = 700 + 300 = 1000 > {F} = 400
+    hand optimum  : 1000.0 Gbit
+    brute force   : 1000.0 Gbit
+    ILP           : 1000.0 Gbit  (2 pass(es))  -> MATCH
+    greedy        : 1000.0 Gbit  (gap 0.0000 %)
+
+  D setup time 120 s: I=[0,200] v200, J=[260,500] v240 (60 s raw gap)
+    hand solution : padding by 120 s makes [0,320] and [260,620] overlap -> only one; max(200,240) = 240
+    hand optimum  : 240.0 Gbit
+    brute force   : 240.0 Gbit
+    ILP           : 240.0 Gbit  (1 pass(es))  -> MATCH
+    greedy        : 240.0 Gbit  (gap 0.0000 %)
+
+PART B -- randomized instances vs exhaustive enumeration (seed 20260306)
+
+    #   n  brute [Gbit]   ILP [Gbit]  greedy [Gbit]   gap [%]
+    0   7        3360.9       3360.9         2721.0    19.040
+    1   9        2919.4       2919.4         2919.4     0.000
+    2   5        2349.1       2349.1         2349.1     0.000
+    3   5        2207.7       2207.7         2207.7     0.000
+    4  12        4219.4       4219.4         4219.4     0.000
+    5  12        3218.6       3218.6         2691.8    16.367
+    6   8        3647.5       3647.5         3611.3     0.994
+    7  11        3808.5       3808.5         3808.5     0.000
+    8  12        3583.9       3583.9         3454.2     3.618
+    9   8        3080.6       3080.6         3080.6     0.000
+   10  12        4372.9       4372.9         3882.8    11.207
+   11   8        4014.5       4014.5         3696.9     7.911
+   12   9        4289.3       4289.3         4289.3     0.000
+   13  10        3524.9       3524.9         3035.9    13.871
+   14  11        4898.3       4898.3         4898.3     0.000
+   15  11        4064.9       4064.9         4064.9     0.000
+   16  10        3904.5       3904.5         3904.5     0.000
+   17   8        3260.5       3260.5         3260.5     0.000
+   18   5        2351.5       2351.5         2351.5     0.000
+   19   8        2771.8       2771.8         2771.8     0.000
+
+  ILP == exhaustive optimum on all 20 instances: True
+  greedy gap: mean 3.650 %, max 19.040 %, instances with gap > 0: 7/20
+
+PART C -- realistic instances: ISS fixture TLE over an 8-station synthetic network
+  (stations are fictional placeholders; monthly clear-sky priors 0.50-0.64)
+
+  candidate passes in 24 h: 27
+
+   setup [s]  conflicts  greedy [Gbit]   ILP [Gbit]   gap [%]  ILP t [s]
+           0          0        45568.6      45568.6     0.000       0.01
+         300          4        40717.5      40717.5     0.000       0.01
+         600          6        39312.5      39312.5     0.000       0.01
+        1200         10        34417.8      34417.8     0.000       0.01
+        1800         12        32552.6      32552.6     0.000       0.01
+        3600         33        22075.8      23732.6     6.981       0.01
+
+VERDICT: PASS  (A hand optima True, B exhaustive True, C greedy <= ILP True)

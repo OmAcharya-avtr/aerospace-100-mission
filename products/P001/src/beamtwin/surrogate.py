@@ -172,7 +172,17 @@ class FadeSurrogate:
         return len(self._members) == self.n_members
 
     def fit(self, x: np.ndarray, y: np.ndarray) -> "FadeSurrogate":
-        """Fit the ensemble. x shape (n, 5), y = log10 fade probability."""
+        """Fit the ensemble on bootstrap resamples. x shape (n, 5), y = log10 P_fade.
+
+        Each member sees an independent bootstrap resample (sampling with
+        replacement, same size) plus its own random_state. Bootstrap
+        resampling makes the member spread reflect data-sampling variability
+        as well as fitting variability; training all members on the identical
+        set gives a spread that is far too narrow (measured 21.6 % coverage of
+        the +/-2 std band vs 39.9 % with bootstrap). Even with bootstrap the
+        band remains UNDER-dispersed - it captures model variance but not the
+        Monte Carlo label noise or systematic bias. See MODEL_CARD.md.
+        """
         x = np.asarray(x, dtype=float)
         y = np.asarray(y, dtype=float)
         if x.ndim != 2 or x.shape[1] != len(FEATURE_NAMES):
@@ -180,7 +190,10 @@ class FadeSurrogate:
         if y.shape != (x.shape[0],):
             raise ValueError(f"y must have shape ({x.shape[0]},), got {y.shape}")
         self._members = []
+        n = x.shape[0]
         for m in range(self.n_members):
+            boot_rng = np.random.default_rng(self.random_state + m)
+            idx = boot_rng.integers(0, n, size=n)
             model = GradientBoostingRegressor(
                 n_estimators=300,
                 learning_rate=0.05,
@@ -188,7 +201,7 @@ class FadeSurrogate:
                 subsample=0.8,
                 random_state=self.random_state + m,
             )
-            model.fit(x, y)
+            model.fit(x[idx], y[idx])
             self._members.append(model)
         return self
 

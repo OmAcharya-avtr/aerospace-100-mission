@@ -1,0 +1,33 @@
+PassPlanner validation 1 -- rise/set vs independent dense-grid recomputation
+run: 2026-08-06T04:16:00+00:00
+reference method: brute-force elevation sampling at 1.0 s for detection, local sweep at 0.002 s (+- 3.0 s) for the crossings
+code under test: coarse scan (30 s) + bisection to 0.05 s
+NOTE: this is an internal numerical-method check; SGP4 and the frame code are
+      shared between the two paths. No external service was consulted.
+
+--- ISS (ZARYA) @ Alpengipfel OGS (mask 20 deg, 2008-09-20 +1 d)
+    passes: code-under-test 5, dense-grid reference 5  [runtime 0.07 s vs 2.4 s]
+     #   rise ref [s]  d_rise [s]  d_set [s]  d_dur [s]  maxEl test  maxEl ref
+     0      22890.151      0.0105     0.0005    -0.0100     23.6350    23.6349
+     1      28546.240      0.0053     0.0098     0.0044     60.1854    60.1830
+     2      34311.301      0.0123     0.0088    -0.0036     31.0236    31.0236
+     3      40031.375      0.0064     0.0069     0.0005     53.0963    53.0958
+     4      45776.493      0.0058    -0.0095    -0.0153     27.8317    27.8315
+
+--- ISS (ZARYA) @ Cerro Ficticio OGS (mask 10 deg, 2008-09-20 +1 d)
+    passes: code-under-test 2, dense-grid reference 2  [runtime 0.06 s vs 2.0 s]
+     #   rise ref [s]  d_rise [s]  d_set [s]  d_dur [s]  maxEl test  maxEl ref
+     0      26858.867     -0.0048     0.0051     0.0099     62.3236    62.3208
+     1      80031.062     -0.0123    -0.0073     0.0050     79.5394    79.5276
+
+--- NOAA 14 @ Karoo Vlakte OGS (mask 5 deg, 1997-11-17 +1 d)
+    passes: code-under-test 4, dense-grid reference 4  [runtime 0.07 s vs 2.4 s]
+     #   rise ref [s]  d_rise [s]  d_set [s]  d_dur [s]  maxEl test  maxEl ref
+     0       1517.073     -0.0076     0.0111     0.0187     74.9106    74.9106
+     1       7753.815     -0.0020     0.0002     0.0022     10.1395    10.1395
+     2      46376.125     -0.0066    -0.0146    -0.0080     50.8590    50.8589
+     3      52477.528     -0.0131     0.0071     0.0202     17.5693    17.5693
+
+worst |delta| on any rise/set time: 0.0146 s
+tolerance (bisection refine_tol_s):  0.0500 s
+VERDICT: PASS
