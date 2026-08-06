@@ -1,0 +1,24 @@
+M-PPM exact vs union bound (berbench 0.1.0)
+==============================================================================
+M=2 identity max |exact - Q(sqrt(g))| : 5.551e-17
+
+  M  Eb/N0 dB    BER exact    BER union  ratio U/E  quad SER xcheck rel
+  4       0.0   1.1814e-01   1.5730e-01     1.3315             0.00e+00
+  4       4.0   2.1824e-02   2.5002e-02     1.1456             3.18e-16
+  4       8.0   3.7102e-04   3.8182e-04     1.0291             1.02e-15
+  4      12.0   1.7997e-08   1.8012e-08     1.0008             7.35e-16
+ 16       0.0   8.9859e-02   1.8200e-01     2.0254             3.77e-12
+ 16       4.0   4.8190e-03   6.1020e-03     1.2663             2.60e-10
+ 16       8.0   1.9921e-06   2.0266e-06     1.0173             6.50e-12
+ 16      12.0   6.7632e-15   6.7634e-15     1.0000             1.87e-15
+ 64       0.0   7.7245e-02   2.2889e-01     2.9632             3.10e-07
+ 64       4.0   1.2484e-03   1.6564e-03     1.3268             1.37e-07
+ 64       8.0   1.2085e-08   1.2177e-08     1.0076             1.21e-09
+ 64      12.0   2.9055e-21   2.9055e-21     1.0000             3.50e-15
+
+M=2 reduces to closed form           : True
+union bound >= exact everywhere      : True
+bound ratio -> 1 at high SNR (all M) : True
+exact matches independent quad <1e-6 : True
+
+ALL CHECKS PASS: True

@@ -1,0 +1,12 @@
+RK4 vs analytic closed form, constant ω = [0.10, 0.20, -0.15] rad/s
+|ω| = 0.2693 rad/s, t ∈ [0, 60] s, q0 = identity
+========================================================================
+  dt =  0.40 s : max attitude angle error = 1.131e-06 rad
+  dt =  0.20 s : max attitude angle error = 7.075e-08 rad
+  dt =  0.10 s : max attitude angle error = 4.422e-09 rad
+  dt =  0.05 s : max attitude angle error = 2.764e-10 rad
+  observed convergence order (log2 error ratios): 4.00, 4.00, 4.00 (theory: 4 for global RK4 error)
+  norm drift over 60 s, dt=0.05 s : 7.735e-13 (renormalize=False)
+                                    2.220e-16 (renormalize=True)
+
+Criteria: err(dt=0.05) < 1e-9 rad, order > 3.5, renormalized drift < 1e-14 -> ALL PASS

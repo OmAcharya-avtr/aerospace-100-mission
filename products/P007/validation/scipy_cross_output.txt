@@ -1,0 +1,9 @@
+scipy cross-check, N = 1000 random unit quaternions, seed = 20260801
+numpy 2.4.4, scipy Rotation reference
+========================================================================
+1. quat_to_dcm vs Rotation.as_matrix : max|dR|      = 9.992e-16
+2. dcm_to_quat(R_scipy) vs original  : max angle err = 5.011e-16 rad
+3. quat_rotate vs Rotation.apply     : max|dv|      = 2.665e-15
+4. quat_to_euler_zyx vs as_euler('ZYX'): max|dangle|  = 1.998e-15 rad (986/1000 samples outside lock margin)
+
+Tolerance: 1e-12 on every check -> ALL PASS

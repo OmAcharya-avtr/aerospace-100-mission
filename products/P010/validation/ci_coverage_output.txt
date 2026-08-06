@@ -1,0 +1,11 @@
+Wilson 95% CI empirical coverage, R=200 replicates/case (berbench 0.1.0)
+======================================================================
+ bpsk {}                                            snr=4 dB  coverage 185/200 = 0.925
+  ook {}                                            snr=6 dB  coverage 185/200 = 0.925
+  ppm {'M': 4}                                      snr=4 dB  coverage 180/200 = 0.900
+  ppm {'M': 16}                                     snr=4 dB  coverage 181/200 = 0.905
+  ook {'channel': 'lognormal', 'sigma_i2': 0.3}     snr=8 dB  coverage 190/200 = 0.950
+
+nominal: 0.95; binomial 2-sigma band for R=200: +/-0.031
+PPM cases are expected ~0.92-0.94 (documented residual CI narrowing; see montecarlo.py).
+wall time: 4.6 s
