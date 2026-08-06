@@ -16,9 +16,10 @@ Expected delivered data for a pass is modelled as
 i.e. an all-or-nothing cloud outcome sampled once per pass at culmination.
 This ignores partial-pass cloud transits and rate variation with elevation;
 it is the standard first-order site-availability treatment used in optical
-ground-network studies (see e.g. Fuchs & Moll 2015, IEEE ICSOS,
-"Ground station network optimization for space-to-ground optical
-communication links" -- methodology reference only, no numbers reused).
+ground-network studies (see e.g. Fuchs & Moll 2015, Journal of Optical Communications and
+Networking, "Ground station network optimization for space-to-ground
+optical communication links" -- methodology reference only, no numbers
+reused).
 """
 
 from __future__ import annotations

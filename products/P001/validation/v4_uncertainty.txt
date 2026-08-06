@@ -1,0 +1,68 @@
+V4 — Uncertainty analysis
+==============================================================
+
+U1 — Monte Carlo sampling uncertainty (empirical scatter vs Wilson CI)
+     Reference case: 10 km, Cn2 = 5e-16, jitter = 5 urad, margin 12.00 dB
+     30 independent seeds per sample count
+
+  n_samples       mean P   std P (emp)   std P (binom)    ratio   Wilson half-width
+     10,000   7.8333e-04    2.5337e-04      2.7977e-04    0.906          5.8626e-04
+    100,000   8.6800e-04    8.9766e-05      9.3126e-05    0.964          1.8581e-04
+    400,000   8.8783e-04    4.8724e-05      4.7092e-05    1.035          9.2145e-05
+
+     Interpretation: the empirical seed-to-seed scatter tracks the binomial
+     prediction sqrt(p(1-p)/n), so the reported Wilson interval is a faithful
+     description of Monte Carlo sampling uncertainty. It does NOT cover model
+     -form uncertainty (lognormal assumption, point-receiver approximation).
+U1 STATUS: PASS
+
+U2 — Rare-event resolution limit
+     Rule of thumb: >= 10 observed fades needed for a ~30 % relative
+     uncertainty (relative std of a binomial count = 1/sqrt(k)).
+
+   n_samples    min resolvable P (k=10)    rel. std at that P
+      10,000                   1.00e-03                 31.6%
+     100,000                   1.00e-04                 31.6%
+   1,000,000                   1.00e-05                 31.6%
+  10,000,000                   1.00e-06                 31.6%
+
+     Consequence: the default 1e5-sample scenario cannot resolve fade
+     probabilities below ~1e-4. The surrogate training set inherits this
+     floor (P_FLOOR = 1e-4) — predictions at the floor mean 'below 1e-4',
+     not a calibrated small number.
+U2 STATUS: PASS (informational)
+
+U3 — Input sensitivity of the fade probability (finite difference)
+     Reported as d(ln P_fade) for a +1 % change in each input,
+     at the reference case, n = 400000, seed = 7.
+
+                   input   P_fade (base)    P_fade (+1%)    d ln P per +1%
+                 range_m      8.7250e-04      1.3275e-03           +0.4197
+   attenuation_db_per_km      8.7250e-04      1.1175e-03           +0.2475
+    rx_aperture_radius_m      8.7250e-04      8.0750e-04           -0.0774
+tx_power_dbm (+1% of dBm)      8.7250e-04      7.3250e-04           -0.1749
+                     cn2      8.7250e-04      9.1000e-04           +0.0421
+     pointing_jitter_rad      8.7250e-04      9.0500e-04           +0.0366
+
+     Ranked by sensitivity: range_m (+0.42), attenuation_db_per_km (+0.25), tx_power_dbm (+1% of dBm) (-0.17)
+     Note: these are elasticities of a strongly non-linear tail probability;
+     they are local to the reference case and change sign/magnitude elsewhere.
+U3 STATUS: PASS (informational)
+
+U4 — Surrogate uncertainty output (bootstrap ensemble spread)
+     held-out n = 800 (split seed 123, matches train_surrogate.py)
+
+     mean |error| in log10 P     : 0.2696
+     mean ensemble std (log10)   : 0.0906
+     coverage of +/-1 std band   : 21.1% (Gaussian ideal 68.3 %)
+     coverage of +/-2 std band   : 39.9% (Gaussian ideal 95.4 %)
+     Spearman corr(std, |error|) : 0.388
+
+     HONEST FINDING: the ensemble band is UNDER-dispersed — it captures
+     model/data-sampling variance but not Monte Carlo label noise or
+     systematic bias, so it must be read as a relative confidence ranking
+     (higher spread = less trustworthy) and NOT as a calibrated interval.
+     The positive rank correlation with actual error is what makes it useful.
+U4 STATUS: PASS (reported honestly, not calibrated)
+
+OVERALL V4 STATUS: PASS

@@ -1,0 +1,49 @@
+# TrackForge scenario: high-jitter platform with an LQR pointing loop and a
+# sensor that occasionally drops samples. Stresses disturbance rejection and
+# the failure-mode paths. Illustrative numbers only (see README Limitations).
+
+name: high-jitter-lqr
+seed: 4242
+
+dt: 2.0e-4
+track_duration: 2.5
+
+sigma_uncertainty: 5.0e-4
+beam_radius: 2.5e-5
+overlap: 0.30
+containment: 0.99
+dwell_time: 8.0e-4
+step_fraction: 0.5
+p_dwell: 0.85
+pattern: spiral
+
+inertia: 0.08
+damping: 0.05
+torque_max: 3.0
+rate_max: 0.8
+accel_max: 25.0
+
+controller: lqr
+bandwidth_hz: 8.0
+damping_ratio: 0.707
+integral_alpha: 0.1
+lqr_q_angle: 1.0
+lqr_q_rate: 0.0
+lqr_r_torque: null
+
+jitter_s0: 2.5e-11
+jitter_f_corner: 8.0
+jitter_order: 2.0
+spike_time: 1.5
+spike_amplitude: 3.0e-4
+spike_width: 0.015
+nea: 2.0e-6
+sensor_dropout: 0.02
+quantization: 2.0e-7
+
+track_threshold: 6.0e-5
+loss_hold_s: 0.008
+
+reacq_policy: always_full
+reacq:
+  max_time: 25.0

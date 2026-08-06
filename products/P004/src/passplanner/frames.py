@@ -9,8 +9,9 @@ Earth-rotation model (documented simplification)
 ------------------------------------------------
 SGP4 outputs positions in the TEME frame.  This module converts TEME to an
 Earth-fixed frame (ECEF) using a single rotation about the Z axis by the
-Greenwich Mean Sidereal Time (GMST, IAU 1982 model; Vallado 2013,
-"Fundamentals of Astrodynamics and Applications", 4th ed., Eq. 3-45).
+Greenwich Mean Sidereal Time (GMST, IAU 1982 model; Aoki et al. 1982,
+Astron. Astrophys. 105, 359; see also Vallado 2013, "Fundamentals of
+Astrodynamics and Applications", 4th ed., sidereal-time section).
 The simplification neglects:
 
 * polar motion (< ~1 arcsec, sub-metre-level ground displacement),
@@ -21,7 +22,7 @@ The simplification neglects:
 Accuracy class: the induced along-track timing error on LEO pass rise/set
 times is well below one second, which is negligible for contact scheduling
 (coarse scan steps are tens of seconds).  This is the standard "GMST-only"
-reduction described in Vallado 2013 Sec. 3.7 for scheduling-class work.
+reduction commonly used for scheduling-class work (Vallado 2013, Ch. 3).
 It is NOT suitable for precision pointing or orbit determination.
 """
 
@@ -52,8 +53,8 @@ def to_utc(t: datetime) -> datetime:
 def datetime_to_jd(t: datetime) -> tuple[float, float]:
     """Convert a UTC datetime to Julian date as (whole, fraction).
 
-    Uses the algorithm shipped with the ``sgp4`` package (valid 1900-2100,
-    Vallado 2013 Alg. 14).  UTC is used in place of UT1 (see module notes).
+    Uses the ``jday`` routine shipped with the ``sgp4`` package (valid
+    1900-2100).  UTC is used in place of UT1 (see module notes).
     """
     t = to_utc(t)
     jd, fr = jday(t.year, t.month, t.day, t.hour, t.minute,
@@ -64,8 +65,8 @@ def datetime_to_jd(t: datetime) -> tuple[float, float]:
 def gmst_rad(jd: float, fr: float = 0.0) -> float:
     """Greenwich Mean Sidereal Time [rad] for Julian date jd + fr (UT1~UTC).
 
-    IAU 1982 GMST polynomial (Vallado 2013 Eq. 3-45; equivalently Meeus 1998,
-    "Astronomical Algorithms", 2nd ed., Eq. 12.4)::
+    IAU 1982 GMST polynomial (Aoki et al. 1982; given in this exact form by
+    Meeus 1998, "Astronomical Algorithms", 2nd ed., Eq. 12.4)::
 
         GMST[deg] = 280.46061837 + 360.98564736629 * d
                     + 0.000387933 * T^2 - T^3 / 38 710 000
@@ -84,7 +85,7 @@ def gmst_rad(jd: float, fr: float = 0.0) -> float:
 
 
 def teme_to_ecef(r_teme_km: np.ndarray, jd: float, fr: float = 0.0) -> np.ndarray:
-    """Rotate a TEME position vector [km] into ECEF via GMST (Vallado Sec. 3.7).
+    """Rotate a TEME position vector [km] into ECEF via GMST (Vallado 2013, Ch. 3).
 
     r_ECEF = R3(theta_GMST) . r_TEME, where R3 is the standard rotation about
     +Z.  See module docstring for the neglected terms and accuracy class.
@@ -102,9 +103,9 @@ def teme_to_ecef(r_teme_km: np.ndarray, jd: float, fr: float = 0.0) -> np.ndarra
 def geodetic_to_ecef(lat_deg: float, lon_deg: float, alt_km: float) -> np.ndarray:
     """WGS-84 geodetic coordinates to ECEF position [km].
 
-    Standard ellipsoidal formulae (Vallado 2013 Alg. 51; WGS-84 constants from
-    NIMA TR8350.2).  lat in [-90, 90] deg (geodetic), lon in deg east, alt in
-    km above the ellipsoid.
+    Standard ellipsoidal formulae (site-position algorithm, Vallado 2013
+    Ch. 3; WGS-84 constants from NIMA TR8350.2, 3rd ed., 2000).  lat in
+    [-90, 90] deg (geodetic), lon in deg east, alt in km above the ellipsoid.
     """
     if not -90.0 <= lat_deg <= 90.0:
         raise ValueError(f"latitude must be in [-90, 90] deg, got {lat_deg}")
@@ -128,13 +129,20 @@ def ecef_to_azel(r_sat_ecef_km: np.ndarray,
     """Topocentric azimuth/elevation/range of a satellite from a ground site.
 
     Transforms the site->satellite ECEF vector into the SEZ (south-east-zenith)
-    frame using the geodetic latitude (Vallado 2013 Alg. 27 'RAZEL')::
+    frame using the geodetic latitude (the 'RAZEL' algorithm, Vallado 2013
+    Ch. 4)::
 
-        el = asin(rho_Z / |rho|),   az = atan2(rho_E, -rho_S)  (from north, CW)
+        el = atan2(rho_Z, hypot(rho_S, rho_E)),  az = atan2(rho_E, -rho_S)
+
+    with azimuth measured from north, clockwise.  The two-argument form of the
+    elevation is used instead of the equivalent asin(rho_Z / |rho|) because
+    asin is ill-conditioned near the zenith (double-precision error there grows
+    as sqrt(eps), ~1e-6 deg, versus ~1e-13 deg for atan2).
 
     Returns (az_deg in [0, 360), el_deg in [-90, 90], range_km > 0).
-    Assumptions: no atmospheric refraction (adds <= ~0.5 deg near the horizon,
-    Vallado 2013 Sec. 4.1); geodetic latitude used for the local vertical.
+    Assumptions: no atmospheric refraction (adds up to roughly half a degree
+    near the horizon; see Vallado 2013 Ch. 4 or Meeus 1998 Ch. 16); geodetic
+    latitude used for the local vertical.
     """
     r_sat = np.asarray(r_sat_ecef_km, dtype=float)
     if r_sat.shape != (3,):
@@ -151,6 +159,6 @@ def ecef_to_azel(r_sat_ecef_km: np.ndarray,
     rho_s = sin_lat * cos_lon * rho[0] + sin_lat * sin_lon * rho[1] - cos_lat * rho[2]
     rho_e = -sin_lon * rho[0] + cos_lon * rho[1]
     rho_z = cos_lat * cos_lon * rho[0] + cos_lat * sin_lon * rho[1] + sin_lat * rho[2]
-    el = np.rad2deg(np.arcsin(np.clip(rho_z / rng, -1.0, 1.0)))
+    el = np.rad2deg(np.arctan2(rho_z, np.hypot(rho_s, rho_e)))
     az = np.rad2deg(np.arctan2(rho_e, -rho_s)) % 360.0
     return float(az), float(el), rng

@@ -1,0 +1,20 @@
+=== jitterscope PSD known-answer validation ===
+numpy 2.4.4; fs = 1000.0 Hz
+
+Case A: pure sinusoid A = 2.0e-6 rad, f0 = 80.000 Hz, 20 s record
+  Welch: nperseg = 4096, hann, 50% overlap, resolution df = 0.2441 Hz
+  peak frequency        : measured 80.0781 Hz   expected 80.0000 Hz   |err| 0.0781 Hz (0.320 bins)
+  integrated power      : measured 2.000001e-12 rad^2   expected 2.000000e-12 rad^2   rel err 5.241e-07
+  band RMS 70-90 Hz     : measured 1.414214e-06 rad   expected 1.414214e-06 rad   rel err 8.374e-11
+  band RMS 200-400 Hz   : measured 2.547916e-14 rad   expected ~0 (leakage floor; ratio to tone band 1.802e-08)
+  PASS criteria: peak within 1 bin, power rel err < 1e-2  ->  PASS
+
+Case B: white Gaussian noise sigma = 1.0e-6 rad, 200000 samples (200 s), seed 20260806
+  Welch: nperseg = 4096, hann, 50% overlap, 96 averaged segments
+  PSD level (median)    : measured 1.987657e-15 rad^2/Hz   expected 2.000000e-15   rel err 6.171e-03
+  PSD level (mean)      : measured 1.991950e-15 rad^2/Hz   rel err 4.025e-03
+  flatness (std/mean over bins): 0.1048 (chi^2_2k estimator: expected ~0.1021)
+  integral of PSD       : measured 9.956535e-13 rad^2   sample variance 9.958205e-13 rad^2   rel err 1.677e-04
+  cumulative RMS (total): 9.978244e-07 rad   sample std 9.979081e-07 rad
+  PASS criteria: level and Parseval rel err < 5e-2  ->  PASS
+

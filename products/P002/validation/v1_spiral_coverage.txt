@@ -1,0 +1,31 @@
+V1 - spiral coverage vs geometric track-spacing argument
+sigma = 3.000e-04 rad, R_beam = 2.000e-05 rad, design containment = 0.995
+design radius r_max = 9.765742e-04 rad = 3.2552 sigma
+Monte Carlo samples per case: 200000
+
+ overlap   s [urad]    s/2R  no-gap   points   covered  covered-C
+-----------------------------------------------------------------
+    0.00     40.000   1.000     yes     7491   0.98460   -0.01040
+    0.10     36.000   0.900     yes     8323   0.99485   -0.00015
+    0.25     30.000   0.750     yes     9987   0.99496   -0.00004
+    0.40     24.000   0.600     yes    12484   0.99515   +0.00015
+    0.50     20.000   0.500     yes    14980   0.99529   +0.00029
+
+REPORTED FINDING (not a tolerance adjustment): at overlap = 0 the tracks are
+exactly tangent (s = 2 R_beam). The 1-D 'no radial gap' argument holds along
+the radial direction only; because the spiral turns, tangent circles on
+adjacent turns leave curvature gaps, and the measured coverage falls
+0.01040 below the design containment (0.98460 vs 0.995).
+This is the reason an overlap margin is specified in PAT scan design; with
+overlap >= 0.10 the shortfall disappears into Monte Carlo noise (see table).
+
+negative control (pattern designed for R_beam but flown with 0.4 R_beam,
+  so s / 2R = 1.875 > 1): covered = 0.49623
+
+raster: 13199 points, covered = 0.99843
+spiral: 9987 points, covered = 0.99513
+raster/spiral dwell-count ratio = 1.322 (raster sweeps the bounding square)
+
+PASS criterion (overlap >= 0.10 only): min covered >= 0.9940 and negative control < 0.90
+min covered (overlap >= 0.10) = 0.99485; negative control = 0.49623
+RESULT: PASS

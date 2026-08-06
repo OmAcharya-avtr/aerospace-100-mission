@@ -1,0 +1,72 @@
+# Eight-station example optical network for passplanner.
+#
+# IMPORTANT: FICTIONAL-BUT-PLAUSIBLE ILLUSTRATIVE PLACEHOLDERS. Names,
+# coordinates and monthly clear-sky probabilities are invented for
+# demonstration. They are NOT real sites and NOT real site statistics.
+# The spread of priors (0.20 to 0.88) is deliberately wide so that
+# availability weighting visibly changes the schedule.
+
+stations:
+  - name: OGS-A Atacama-like
+    lat_deg: -24.5
+    lon_deg: -70.2
+    alt_km: 2.6
+    min_elevation_deg: 20.0
+    data_rate_gbps: 10.0
+    monthly_clear_prob: [0.88, 0.86, 0.85, 0.84, 0.82, 0.80, 0.81, 0.83, 0.85, 0.87, 0.88, 0.89]
+
+  - name: OGS-B Maritime NW
+    lat_deg: 55.0
+    lon_deg: -5.0
+    alt_km: 0.1
+    min_elevation_deg: 20.0
+    data_rate_gbps: 10.0
+    monthly_clear_prob: [0.20, 0.22, 0.25, 0.30, 0.34, 0.36, 0.35, 0.34, 0.30, 0.25, 0.21, 0.19]
+
+  - name: OGS-C Alpine
+    lat_deg: 47.1
+    lon_deg: 10.9
+    alt_km: 2.0
+    min_elevation_deg: 20.0
+    data_rate_gbps: 10.0
+    monthly_clear_prob: [0.38, 0.40, 0.44, 0.46, 0.50, 0.54, 0.58, 0.56, 0.52, 0.46, 0.38, 0.35]
+
+  - name: OGS-D Karoo-like
+    lat_deg: -31.5
+    lon_deg: 21.0
+    alt_km: 1.6
+    min_elevation_deg: 20.0
+    data_rate_gbps: 10.0
+    monthly_clear_prob: [0.62, 0.60, 0.64, 0.70, 0.76, 0.80, 0.82, 0.80, 0.74, 0.68, 0.64, 0.62]
+
+  - name: OGS-E Desert SW
+    lat_deg: 32.5
+    lon_deg: -110.5
+    alt_km: 2.1
+    min_elevation_deg: 20.0
+    data_rate_gbps: 10.0
+    monthly_clear_prob: [0.72, 0.72, 0.76, 0.80, 0.84, 0.82, 0.62, 0.60, 0.72, 0.80, 0.78, 0.72]
+
+  - name: OGS-F Subtropical E
+    lat_deg: 26.0
+    lon_deg: 128.0
+    alt_km: 0.3
+    min_elevation_deg: 20.0
+    data_rate_gbps: 10.0
+    monthly_clear_prob: [0.36, 0.38, 0.40, 0.42, 0.38, 0.32, 0.44, 0.42, 0.46, 0.50, 0.46, 0.40]
+
+  - name: OGS-G Highland S
+    lat_deg: -16.5
+    lon_deg: 145.0
+    alt_km: 1.2
+    min_elevation_deg: 20.0
+    data_rate_gbps: 10.0
+    monthly_clear_prob: [0.30, 0.30, 0.36, 0.50, 0.62, 0.70, 0.72, 0.72, 0.68, 0.58, 0.46, 0.36]
+
+  - name: OGS-H Plateau N
+    lat_deg: 38.0
+    lon_deg: 100.0
+    alt_km: 3.0
+    min_elevation_deg: 20.0
+    data_rate_gbps: 10.0
+    monthly_clear_prob: [0.70, 0.68, 0.66, 0.64, 0.60, 0.52, 0.48, 0.52, 0.62, 0.72, 0.74, 0.72]

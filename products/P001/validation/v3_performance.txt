@@ -1,0 +1,25 @@
+V3 — Performance benchmark
+==============================================================
+platform: Linux-6.18.5-fc-v18-x86_64-with-glibc2.39
+python:   3.11.15   numpy: 2.4.4
+cpu_count: 2
+timing: best of 3 runs
+
+Monte Carlo sampling throughput
+   n_samples     wall_s       samples/s
+      10,000     0.0006      17,245,869
+     100,000     0.0080      12,557,140
+   1,000,000     0.0861      11,608,913
+
+peak throughput: 17,245,869 samples/s
+
+End-to-end scenario report (examples/link_10km.yaml, n=200,000 MC samples)
+  wall time: 0.0170 s
+
+Surrogate vs Monte Carlo, per fade-probability query
+  surrogate (batch of 1000):           7.69 us/query (129,964 queries/s)
+  Monte Carlo (1e5 samples):        5605.83 us/query (178 queries/s)
+  speed-up: 729x
+
+R13 bound: end-to-end report < 5 s  ->  measured 0.0170 s  PASS
+STATUS: PASS

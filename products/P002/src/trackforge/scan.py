@@ -379,7 +379,15 @@ def expected_acquisition_time_spiral(
     scan_speed : float
         Along-track angular speed v [rad/s], > 0.
     p_pass : float
-        Probability the target is detected on a pass that crosses it, (0, 1].
+        Probability the target is detected on a pass that CROSSES it, (0, 1].
+        This is a per-crossing probability, not a per-dwell probability. A
+        crossing of the footprint contains roughly
+        ``n_dwell = 2 * beam_radius / (step_fraction * beam_radius)`` dwells,
+        so for independent per-dwell detections
+        ``p_pass = 1 - (1 - p_dwell)**n_dwell``. Passing ``p_dwell`` here
+        directly overestimates the acquisition time; validation script
+        ``validation/v2_acquisition_time.py`` quantifies that error
+        (-38 % vs -0.6 % relative deviation for p_dwell = 0.9).
 
     Returns
     -------
@@ -398,8 +406,8 @@ def expected_acquisition_time_spiral(
     # E[t(r) | r <= r_max] = (pi/(s v)) E[r^2 | r <= r_max], Rayleigh truncated moment
     r = np.linspace(0.0, r_max, 20001)
     f = (r / sigma**2) * np.exp(-(r**2) / (2.0 * sigma**2))
-    num = np.trapz(math.pi * r**2 / rate * f, r)
-    den = np.trapz(f, r)
+    num = np.trapezoid(math.pi * r**2 / rate * f, r)
+    den = np.trapezoid(f, r)
     t_single = num / den
     t_full = math.pi * r_max**2 / rate
     return float(t_single + (1.0 / p_pass - 1.0) * t_full)

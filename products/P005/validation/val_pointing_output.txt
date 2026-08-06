@@ -1,0 +1,27 @@
+=== jitterscope pointing-loss validation: closed form vs Monte Carlo ===
+<L> = 1 / (1 + 4 (sigma_theta/theta_div)^2)   [point receiver, far field,
+       zero-mean isotropic Gaussian jitter on two axes]
+theta_div = 12.0 urad, N_MC = 1000000 draws/axis, base seed 20260806
+
+sigma/theta_div  sigma [urad]   closed form   Monte Carlo  MC std err    rel err  |err|/SE
+           0.00         0.000      1.000000      1.000000    0.00e+00  0.000e+00      0.00
+           0.10         1.200      0.961538      0.961488    3.71e-05  5.266e-05      1.37
+           0.25         3.000      0.800000      0.799911    1.63e-04  1.114e-04      0.55
+           0.50         6.000      0.500000      0.499917    2.89e-04  1.659e-04      0.29
+           0.75         9.000      0.307692      0.307627    2.95e-04  2.123e-04      0.22
+           1.00        12.000      0.200000      0.199940    2.67e-04  3.020e-04      0.23
+           1.50        18.000      0.100000      0.100241    2.07e-04  2.405e-03      1.16
+           2.00        24.000      0.058824      0.058584    1.64e-04  4.068e-03      1.46
+
+maximum relative error across cases: 4.068e-03
+PASS criterion: max relative error < 1e-2 (MC standard error ~1e-3 relative)
+RESULT: PASS
+
+Worked example (dB form): -10 log10(<L>)
+  sigma/theta_div = 0.10  ->  <L> = 0.9615  =   0.17 dB loss
+  sigma/theta_div = 0.25  ->  <L> = 0.8000  =   0.97 dB loss
+  sigma/theta_div = 0.50  ->  <L> = 0.5000  =   3.01 dB loss
+  sigma/theta_div = 1.00  ->  <L> = 0.2000  =   6.99 dB loss
+
+Validity: no static boresight bias, isotropic jitter, unobscured TEM00 beam,
+point receiver in the far field, no atmospheric scintillation.

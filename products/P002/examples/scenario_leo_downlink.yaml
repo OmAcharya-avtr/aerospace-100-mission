@@ -1,0 +1,58 @@
+# TrackForge scenario: LEO-to-ground optical downlink, coarse pointing stage.
+#
+# All angles are in radians, times in seconds, Hz for frequencies.
+# The numbers below are ILLUSTRATIVE ORDERS OF MAGNITUDE for a small optical
+# terminal; they are NOT taken from any specific mission and must not be used
+# as design data. See README "Limitations".
+
+name: leo-downlink-coarse
+seed: 2026
+
+# --- simulation timing -------------------------------------------------
+dt: 2.0e-4            # control-loop sample period [s] -> 5 kHz
+track_duration: 2.0   # tracking-phase length [s]
+
+# --- acquisition -------------------------------------------------------
+sigma_uncertainty: 3.0e-4   # 1-sigma per-axis pointing knowledge [rad] (300 urad)
+beam_radius: 2.0e-5         # beam footprint half-angle [rad] (20 urad)
+overlap: 0.25               # track overlap factor (s = 2 R (1 - overlap))
+containment: 0.995          # probability mass the scan must cover
+dwell_time: 1.0e-3          # detector dwell per scan point [s]
+step_fraction: 0.5          # along-track step as a fraction of beam_radius
+p_dwell: 0.9                # per-dwell detection probability
+pattern: spiral             # spiral | raster
+
+# --- gimbal ------------------------------------------------------------
+inertia: 0.05        # axis inertia J [kg m^2]
+damping: 0.02        # viscous damping b [N m s/rad] -> tau_m = J/b = 2.5 s
+torque_max: 2.0      # motor torque limit [N m] -> 40 rad/s^2 max acceleration
+rate_max: 1.0        # slew-rate limit [rad/s]
+accel_max: null      # optional extra acceleration clip [rad/s^2]
+
+# --- control -----------------------------------------------------------
+controller: pid      # pid | lqr
+bandwidth_hz: 5.0    # target closed-loop natural frequency
+damping_ratio: 0.707
+integral_alpha: 0.1  # Ki = integral_alpha * wn * Kp
+lqr_q_angle: 1.0
+lqr_q_rate: 0.0
+lqr_r_torque: null   # null -> derived from bandwidth_hz via eq. (10)
+
+# --- disturbance and sensor -------------------------------------------
+jitter_s0: 1.0e-12       # platform-jitter PSD plateau [rad^2/Hz]
+jitter_f_corner: 3.0     # jitter corner frequency [Hz]
+jitter_order: 2.0        # roll-off order
+spike_time: 1.2          # loss-of-lock disturbance spike centre [s]
+spike_amplitude: 1.5e-4  # spike peak angular displacement [rad]
+spike_width: 0.02        # spike Gaussian width [s]
+nea: 1.0e-6              # sensor noise-equivalent angle, 1 sigma [rad]
+sensor_dropout: 0.0      # per-sample dropout probability
+quantization: null       # sensor LSB [rad]
+
+# --- lock logic --------------------------------------------------------
+track_threshold: 4.0e-5  # |LOS error| above which lock is at risk [rad]
+loss_hold_s: 0.01        # dwell above threshold before declaring loss [s]
+
+# --- reacquisition -----------------------------------------------------
+reacq_policy: always_local   # always_local | always_full | learned
+reacq: {}                    # overrides for ReacqConfig fields

@@ -1,0 +1,46 @@
+=== jitterscope anomaly detector benchmark ===
+records: 60 s @ 1000 Hz; windows 1.0 s, 50% overlap; 24 log-spaced PSD bins (1 Hz - Nyquist)
+training: 4 nominal records, seeds [1000, 1001, 1002, 1003]
+test set: 6 records each of nominal / new_tone / band_shift / transient (seeds 2000+)
+threshold rule (both models): q0.995 of held-out nominal scores
+
+training feature matrix: (476, 24) (windows x bins)
+baseline fit: 0.001 s, threshold = 3.9906 (max |z|)
+MLP fit:      2.452 s, threshold = 1.0099 (reconstruction MSE)
+MLP architecture: MLPRegressor(24 -> 16 -> 6 -> 16 -> 24), tanh, adam, alpha=1e-3, max_iter=3000, random_state=0
+
+test windows: 2856 total, 952 faulty, 1904 nominal
+
+--- Overall metrics at the fixed q0.995 threshold ---
+                 model  precision   recall       F1     TP    FP    FN   ROC AUC
+ baseline band z-score     0.9900   0.9401   0.9644    895     9    57    0.9797
+       MLP autoencoder     0.9751   0.9454   0.9600    900    23    52    0.9784
+
+--- Per-fault-type recall (fraction of faulty windows detected) ---
+    fault type  faulty windows  baseline recall   MLP recall
+      new_tone             360           1.0000       1.0000
+    band_shift             360           1.0000       1.0000
+     transient             232           0.7543       0.7759
+
+--- False-alarm rate on the 6 purely nominal test records ---
+  nominal windows: 714 (all labeled 0)
+  baseline false alarms: 4 (0.56 %)
+  MLP false alarms:      10 (1.40 %)
+  (design expectation at q0.995 on unseen nominal data: ~0.5 %, higher if the
+   held-out calibration set under-represents nominal variability)
+
+--- Confidence output (MLP empirical nominal-CDF) ---
+  mean confidence, nominal windows : 0.5066
+  mean confidence, faulty windows  : 0.9781
+
+--- Verdict ---
+The CLASSICAL BASELINE WINS on F1: 0.9644 vs 0.9600 for the MLP (delta +0.0044).
+ROC AUC: baseline 0.9797, MLP 0.9784 (baseline better by 0.0013).
+Interpretation: the synthetic faults are additive-energy signatures that raise
+log-PSD in specific bins, which is exactly the alternative hypothesis the z-score
+baseline is built for. The MLP has no structural advantage on this dataset and
+carries extra fit cost and hyperparameters. It is retained for the case of
+correlated multi-band shape changes that a per-bin marginal test cannot see;
+that case is NOT demonstrated here.
+
+total benchmark runtime: 6.4 s on 2 CPU cores

@@ -1,0 +1,37 @@
+V4 - synthesised jitter PSD vs target PSD
+fs = 2000.0 Hz, N = 262144 samples (131.1 s), Welch nperseg = 8192 (K = 63 segments)
+expected per-bin relative scatter ~ 1/sqrt(K) = 0.126
+
+case: flat->f^-2 (S0=1e-12, fc=3 Hz)
+          band [Hz]   bins    median      mean       std
+             1 - 10     36    0.9834    0.9924    0.0336
+           10 - 100    369    1.0014    1.0026    0.0412
+          100 - 900   3277    1.0022    1.0012    0.0411
+   variance: measured 4.699574e-12 rad^2, target integral 4.703389e-12 rad^2, deviation -0.081%
+   RMS: measured 2.1679e-06 rad, target 2.1687e-06 rad
+
+case: flat->f^-4 (S0=4e-12, fc=10 Hz)
+          band [Hz]   bins    median      mean       std
+             1 - 10     36    0.9924    0.9961    0.0414
+           10 - 100    369    1.0057    1.0030    0.0414
+          100 - 900   3277    1.0014    1.0005    0.0418
+   variance: measured 3.140065e-11 rad^2, target integral 3.141591e-11 rad^2, deviation -0.049%
+   RMS: measured 5.6036e-06 rad, target 5.6050e-06 rad
+
+case: wideband  (S0=2e-11, fc=200 Hz)
+          band [Hz]   bins    median      mean       std
+             1 - 10     36    0.9958    0.9939    0.0323
+           10 - 100    369    1.0018    0.9996    0.0404
+          100 - 900   3277    1.0014    1.0006    0.0412
+   variance: measured 5.493524e-09 rad^2, target integral 5.493603e-09 rad^2, deviation -0.001%
+   RMS: measured 7.4118e-05 rad, target 7.4119e-05 rad
+
+ensemble convergence of the band-median ratio (case 1, 1-10 Hz band)
+     M realisations   mean ratio   std of ratio
+                  1       1.0405            nan
+                  4       1.0206         0.0201
+                 16       1.0157         0.0290
+
+PASS criteria: worst |band median - 1| < 10% -> 1.660%
+               worst |variance deviation| < 10% -> 0.081%
+RESULT: PASS

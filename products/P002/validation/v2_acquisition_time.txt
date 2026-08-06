@@ -1,0 +1,30 @@
+V2 - MC acquisition time vs uniform-coverage analytic approximation
+sigma = 3.000e-04 rad, R_beam = 2.000e-05 rad, overlap = 0.25, dwell = 1.0 ms
+trials drawn = 20000, containment = 0.995
+
+ p_dwell   p_cross   n_det  MC mean [s]   +/- SEM   naive [s]  naive dev   corrected  corr dev
+------------------------------------------------------------------------------------------------
+    1.00   1.00000   19903       1.8226    0.0123      1.8344     -0.65%      1.8344    -0.65%
+    0.90   0.99990   19909       1.8252    0.0124      2.9439    -38.00%      1.8354    -0.56%
+
+REPORTED FINDING: passing the PER-DWELL probability to the analytic model
+as if it were a per-crossing probability overestimates the acquisition time
+by 38.0% at p_dwell = 0.9. The simulated beam covers the
+target for ~2/step_fraction = 4 consecutive dwells, so the per-crossing
+detection probability is 1 - (1-p_dwell)^4 = 0.99990, not 0.9. With that
+correction the analytic model agrees with Monte Carlo to 0.56%.
+The scan.py docstring now states this explicitly.
+
+single-pass scan time  = 9.9870 s
+mean along-track speed = 0.010002 rad/s
+
+Interpretation: the analytic model assumes area is swept uniformly from
+radius 0 at rate s*v. The simulated spiral covers a disc of radius R_beam
+around every dwell point, i.e. an effective swath wider than s whenever
+overlap > 0, so it acquires SOONER than the uniform-coverage model
+predicts. The deviation is therefore expected to be negative and of order
+the overlap factor.
+
+PASS criterion: |relative deviation| < 5% for both cases (corrected p_pass)
+max |deviation| = 0.645%
+RESULT: PASS
