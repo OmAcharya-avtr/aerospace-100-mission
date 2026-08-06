@@ -1,0 +1,24 @@
+Lognormal GH average vs scipy.integrate.quad (berbench 0.1.0)
+==============================================================================
+sigma_I^2=0.1: E[I]=1.000000000000 (want 1), Var[I]=0.100000000000 (want 0.1)
+sigma_I^2=0.3: E[I]=1.000000000000 (want 1), Var[I]=0.300000000000 (want 0.3)
+sigma_I^2=0.8: E[I]=1.000000000000 (want 1), Var[I]=0.800000000000 (want 0.8)
+
+case                                           quad           GH   rel diff
+ook s2=0.1 snr=6.0 (adaptive)          4.148001e-02 4.148001e-02   3.35e-16
+ook s2=0.1 snr=12.0 (adaptive)         2.081740e-03 2.081740e-03   4.58e-15
+bpsk s2=0.1 snr=6.0 (adaptive)         1.190954e-02 1.190954e-02   1.46e-15
+bpsk s2=0.1 snr=10.0 (adaptive)        1.011151e-03 1.011151e-03   7.51e-15
+ook s2=0.3 snr=6.0 (adaptive)          6.794421e-02 6.794421e-02   4.02e-12
+ook s2=0.3 snr=12.0 (adaptive)         1.120752e-02 1.120752e-02   1.28e-10
+bpsk s2=0.3 snr=6.0 (adaptive)         3.085710e-02 3.085710e-02   2.79e-11
+bpsk s2=0.3 snr=10.0 (adaptive)        7.518905e-03 7.518905e-03   1.99e-10
+ook s2=0.3 snr=12.0 (FIXED t=0.5)      7.548982e-02 7.548982e-02   7.88e-13
+ook s2=0.3 snr=20.0 (FIXED t=0.5)      6.935888e-02 6.935888e-02   1.65e-10
+ook s2=0.3 snr=30.0 (FIXED t=0.5)      6.826821e-02 6.795069e-02   4.65e-03
+
+adaptive-threshold cases agree with quad to < 1e-8: True
+fixed-threshold cases within documented limits (<1% at <=20 dB, <5% at 30 dB): True
+NOTE: the fixed-threshold integrand approaches a step function as SNR -> inf; GH-256 accuracy degrades there (documented limitation; at 30 dB rel err ~5e-3).
+
+ALL CHECKS PASS: True

@@ -1,0 +1,16 @@
+Surrogate benchmark — held-out Monte Carlo truth (log10 P_fade, floor 1e-4)
+dataset: 1500 scenarios, train 1200 / test 300 (split seed 123)
+training time: 4.4 s (5-member GradientBoosting ensemble)
+
+subset                           n   MAE surr   MAE base   RMSE surr   RMSE base
+all test                       300      0.292      0.318       0.412       0.721
+low jitter (ratio < 0.05)       30      0.352      0.011       0.497       0.027
+high jitter (ratio >= 0.05)    270      0.286      0.352       0.401       0.760
+
+ensemble +/-2 std coverage of truth: 24.7% (spread estimate, not calibrated)
+surrogate throughput: 22,809 predictions/s (vs ~1 Monte Carlo query of 1e5 samples in ~5 ms + Python overhead)
+
+Baseline = closed-form lognormal, scintillation-only: exact when jitter -> 0,
+biased low when jitter is significant. The surrogate's value is the combined
+jitter+scintillation regime; in the scintillation-only limit the analytic
+baseline is the reference and the surrogate must only match it.

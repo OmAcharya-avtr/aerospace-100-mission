@@ -1,0 +1,16 @@
+Surrogate vs Rytov analytic baseline on held-out simulation points
+dataset: 54 rows; train 40, test 14 (shuffle split, seed 0)
+surrogate: 5-member MLP ensemble (32,32), lbfgs; fit time 2.0 s
+
+model              RMSE(log10)  median|rel|   max|rel|
+MLP surrogate           0.0781       0.1665     0.2824
+Rytov baseline          0.0429       0.0700     0.2276
+
+winner on RMSE(log10): Rytov baseline
+mean ensemble std on test set: 2.9747e-03 (mean prediction 1.7698e-02)
+surrogate prediction cost: 0.269 ms/point (vs ~1-10 s/point for the split-step simulation)
+
+Note: the baseline is exact Rytov theory evaluated in its own validity
+regime, so the surrogate is not expected to beat it here; the surrogate's
+value is speed vs full simulation and extensibility outside analytic
+validity (see MODEL_CARD.md).

@@ -1,0 +1,16 @@
+linkbudgetx 0.1.0 — Monte Carlo cross-check (seed=2026, n=20000)
+
+Scenario 1 — nominal pointing error 0.25 mrad (linear regime)
+  nominal margin        = 13.9002 dB
+  first-order sigma     = 0.7879 dB
+  Monte Carlo std       = 0.7850 dB
+  Monte Carlo mean      = 13.8897 dB
+  relative discrepancy  = 0.37 %   [PASS, tol 5 %]
+
+Scenario 2 — nominal pointing error 0 (documented breakdown case)
+  margin is quadratic in pointing error; derivative at 0 is ~0, so
+  first-order propagation misses the jitter contribution entirely:
+  first-order sigma     = 0.0000 dB
+  Monte Carlo std       = 0.1221 dB
+  Monte Carlo mean shift= -0.0877 dB (bias also invisible to first order)
+  EXPECTED disagreement — use monte_carlo_margin() in this regime.
