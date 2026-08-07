@@ -1,18 +1,19 @@
 # Mission Status
 
 **Last updated:** 2026-08-01
-**Phase:** Batch 01 complete — READY FOR APPROVAL
-**Products registered:** 10 / 100
-**Products built to completion gate:** 10 / 100
+**Phase:** Batch 01 APPROVED · Batch 02 in progress (5 of 10 built)
+**Products registered:** 20 / 100
+**Products built to completion gate:** 15 / 100
 **Products published:** 0 / 100
-**Automated tests passing:** 1,041
+**Automated tests passing:** 1,693
 
 ## Batch Progress
 
 | Batch | Status | Flagship | Medium | Compact | AI | Tests | Report |
 |---|---|---:|---:|---:|---:|---:|---|
-| 01 | READY FOR APPROVAL | 2 | 3 | 5 | 7 | 1041 | batch_reports/BATCH_01_READINESS.md |
-| 02–10 | PLANNED | — | — | — | — | — | — |
+| 01 | APPROVED | 2 | 3 | 5 | 7 | 1041 | batch_reports/BATCH_01_READINESS.md |
+| 02 | DEVELOPING (5/10) | 0/2 | 0/3 | 5/5 | 3/7 | 652 | batch_reports/BATCH_02_SPEC.md |
+| 03–10 | PLANNED | — | — | — | — | — | — |
 
 ## Cumulative Against Mission Targets
 
