@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "estimkit"
+version = "0.1.0"
+description = "Compact, dependency-light Kalman filter family (KF/EKF/UKF/RTS) for aerospace estimation (educational)."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = ["kalman", "ekf", "ukf", "rts-smoother", "state-estimation", "aerospace"]
+dependencies = ["numpy"]
+
+[project.optional-dependencies]
+dev = ["pytest", "hypothesis", "ruff", "matplotlib", "scipy"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]

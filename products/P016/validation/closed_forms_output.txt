@@ -1,0 +1,49 @@
+ZernKit validation 2 -- low-order closed forms and index conventions
+==============================================================================
+Evaluation point: rho = 0.5, theta = 0.523598775598299 rad (30 deg)
+Reference: closed forms as printed in Noll (1976), JOSA 66(3), 207-211
+
+   j mode                                             hand                library        diff
+   1 piston                              1.000000000000000      1.000000000000000    0.00e+00
+   2 horizontal tilt (x)                 0.866025403784439      0.866025403784439    0.00e+00
+   3 vertical tilt (y)                   0.500000000000000      0.500000000000000    5.55e-17
+   4 defocus                            -0.866025403784439     -0.866025403784439    0.00e+00
+   5 oblique astigmatism                 0.530330085889911      0.530330085889911    0.00e+00
+   6 vertical astigmatism                0.306186217847897      0.306186217847897    1.11e-16
+   7 vertical coma                      -0.883883476483184     -0.883883476483184    1.11e-16
+   8 horizontal coma                    -1.530931089239486     -1.530931089239487    2.22e-16
+   9 oblique trefoil                     0.353553390593274      0.353553390593274    5.55e-17
+  10 vertical trefoil                    0.000000000000000      0.000000000000000    9.24e-33
+  11 primary spherical                  -0.279508497187474     -0.279508497187474    0.00e+00
+  12 vertical secondary astigmatism     -0.790569415042095     -0.790569415042095    2.22e-16
+
+Cross-check of the Z12 literal recomputed in code: -0.790569415042095
+Worst |library - hand| over the 12 cases: 2.220e-16
+Tolerance 1e-15 -> PASS
+
+R_n^m(1) = 1 for every legal (n, m) up to n = 20:
+  worst |R_n^m(1) - 1| = 0.000e+00  (float round-off in the
+  alternating factorial sum; grows with n)
+  Tolerance 1e-8 -> PASS
+
+Noll index -> (n, m) against Noll's own listing of Z1..Z15:
+ Noll j   expected (n,m)          library   OSA j  name
+      1           (0, 0)           (0, 0)       0  piston
+      2           (1, 1)           (1, 1)       2  horizontal tilt (x)
+      3          (1, -1)          (1, -1)       1  vertical tilt (y)
+      4           (2, 0)           (2, 0)       4  defocus
+      5          (2, -2)          (2, -2)       3  oblique astigmatism
+      6           (2, 2)           (2, 2)       5  vertical astigmatism
+      7          (3, -1)          (3, -1)       7  vertical coma
+      8           (3, 1)           (3, 1)       8  horizontal coma
+      9          (3, -3)          (3, -3)       6  oblique trefoil
+     10           (3, 3)           (3, 3)       9  vertical trefoil
+     11           (4, 0)           (4, 0)      12  primary spherical
+     12           (4, 2)           (4, 2)      13  vertical secondary astigmatism
+     13          (4, -2)          (4, -2)      11  oblique secondary astigmatism
+     14           (4, 4)           (4, 4)      14  vertical quadrafoil
+     15          (4, -4)          (4, -4)      10  oblique quadrafoil
+  -> PASS
+
+OSA/ANSI closed form j = (n(n+2) + m)/2 verified up to n = 30:
+  -> PASS (496 pairs)

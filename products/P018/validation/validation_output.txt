@@ -1,0 +1,167 @@
+shacksim 0.1.0 — Level 2 validation run
+numpy 2.4.4, matplotlib 3.10.9, python 3.11.15
+
+==============================================================================
+1. Known global tilt -> analytically predicted uniform slope vector
+==============================================================================
+Geometry: 8x8 lenslets, pitch 500 um, f = 50 mm, 16 px/subap, lambda = 633 nm
+Derived: pixel 31.250 um, pixel angle 625.0 urad, spot FWHM 65.12 um = 2.084 px, sigma 0.8850 px
+Illuminated subapertures: 52 of 64
+
+Wavefront W(X,Y) = gx*X + gy*Y  =>  dW/dX = gx everywhere (a constant),
+so every subaperture must report exactly (gx, gy) and the spot must sit at
+d = gx * f / p pixels.  Hand check for gx = 1.000e-03 rad:
+  d = 1.000e-03 * 50.0e-3 m / 31.25e-6 m = 1.600000 px  (exact: 1.6)
+
+Noise-free frames (no shot noise, no read noise, no background):
+    gx [rad]     gy [rad]   max|CoG-true| [rad]       [px]  max|corr-true| [px]
+   0.000e+00    0.000e+00             0.000e+00   0.00e+00               0.0000
+   1.000e-03    0.000e+00             2.261e-11   3.62e-08               0.0151
+   0.000e+00   -1.500e-03             2.213e-11   3.54e-08               0.0272
+   2.000e-03    1.000e-03             5.998e-11   9.60e-08               0.0281
+  -2.500e-03   -2.500e-03             8.702e-09   1.39e-05               0.0040
+
+Worst-case noise-free CoG slope error: 8.702e-09 rad = 1.392e-05 px (tolerance 1e-8 rad) -> PASS
+Worst-case noise-free correlation error: 0.0281 px (tolerance 0.05 px) -> PASS
+
+Uniformity across the pupil, noisy frame (N = 3000 e-/subap, B = 1.0, R = 3.0):
+  true    (gx, gy) = (1.000000e-03, -5.000000e-04) rad
+  mean    (gx, gy) = (1.000508e-03, -4.985945e-04) rad
+  bias             = (+5.076e-07, +1.406e-06) rad = (+0.0008, +0.0022) px
+  subap-to-subap std = (1.532e-05, 1.171e-05) rad = (0.0245, 0.0187) px
+  linear-CoG noise prediction (un-thresholded) = 5.252e-05 rad = 0.0840 px (thresholding beats it, see section 3)
+
+==============================================================================
+2. Zero wavefront -> zero slopes; correlation S-curve bias
+==============================================================================
+Noise-free zero wavefront: max|CoG| = 0.000e+00 rad, max|corr| = 6.149e-20 rad -> PASS (tolerance 1e-12 rad)
+
+Sub-pixel S-curve of the 3-point parabolic correlation interpolator
+(noise-free, round diffraction-limited spot, matched template):
+  max |error| over |d| <= 1 px: 0.0302 px
+  RMS error                  : 0.0185 px
+  error at d = 0             : 0.000e+00 px
+  same sweep, CoG max |error|: 6.154e-08 px
+  => the correlation estimator carries a systematic sub-pixel bias that the
+     centre of gravity does not; it is the price of peak interpolation.
+  figure -> /home/claude/aerospace-100-mission/products/P018/validation/scurve_bias.png
+
+==============================================================================
+3. Slope error vs photon count vs the standard noise-propagation expression
+==============================================================================
+Expression (Hardy 1998 ch. 5; Thomas et al. 2006, MNRAS 371, 323; photon-limited
+form also in Winick 1986, JOSA A 3, 1809), derived in slopes.cog_noise_sigma:
+    Var(x) = M2/N + (B + R^2)/N^2 * [p^2(p^2-1)/12 + p^2 d^2]   [px^2]
+    sigma_g = sqrt(Var(x)) * p_pix / f                          [rad]
+M2 is evaluated numerically from the pixel-integrated spot profile.
+It describes the LINEAR (un-thresholded, un-clipped) CoG on background-
+subtracted data, which is the estimator measured in the first table.
+
+B = 1.0 e-/px, R = 3.0 e- RMS, 4000 stamps per point, slopes uniform over +/- 0.6 of the field.
+
+  N [e-]  measured sx [px]  predicted [px]   ratio  measured sg [rad]  predicted [rad]
+     100           95.8584          2.7202  35.240          5.991e-02        1.700e-03
+     300            0.9670          0.9069   1.066          6.044e-04        5.668e-04
+    1000            0.2772          0.2738   1.012          1.733e-04        1.712e-04
+    3000            0.0923          0.0921   1.002          5.768e-05        5.758e-05
+   10000            0.0292          0.0288   1.015          1.824e-05        1.797e-05
+   30000            0.0104          0.0105   0.990          6.528e-06        6.594e-06
+
+Agreement for N >= 300 e-: ratio in [0.990, 1.066] (tolerance 0.85-1.15) -> PASS
+At N = 100 e- the measured error is 35.2x the prediction: the first-order
+linearization assumes the CoG denominator does not fluctuate, and at this flux
+it can approach zero. This is the documented validity boundary of the
+expression, reported as measured, not tuned away.
+
+Same sweep for the practical estimators (RMS over both slope axes, px):
+  N [e-]  linear CoG  thresh CoG  threshold  correlation
+      30    122.0770      2.5337        4.0       2.7915
+      50    180.5022      1.9081        7.0       0.9227
+     100   2966.3178      0.4342       10.0       0.1944
+     300      0.9740      0.0906       13.0       0.0864
+    1000      0.2729      0.0370       13.0       0.0448
+    3000      0.0954      0.0191       10.0       0.0299
+   10000      0.0287      0.0100       13.0       0.0233
+
+==============================================================================
+4. Centre-of-gravity bias under an unsubtracted background offset
+==============================================================================
+Analytic prediction. With a uniform background B added to every pixel and no
+threshold, the CoG numerator gains B*sum(x_i) = 0 (the pixel grid is centred)
+and the denominator gains B*p^2, so
+    x_hat = S*d / (S + B*p^2) = d * kappa,   kappa = S / (S + B p^2)
+i.e. a pure multiplicative shrinkage of every measured slope toward zero — a
+gain error on the whole wavefront, not a random error. Noise-free frames.
+
+p^2 = 256 pixels per subaperture
+  S [e-]  B [e-/px]  kappa pred  d=4 px: pred   measured  |err| [px]  kappa meas
+    1000        0.0      1.0000        4.0000     4.0000    1.39e-05      1.0000
+    1000        0.5      0.8865        3.5461     3.5461    1.36e-05      0.8865
+    1000        2.0      0.6614        2.6455     2.6455    1.20e-05      0.6614
+    1000       10.0      0.2809        1.1236     1.1236    6.41e-06      0.2809
+    1000       50.0      0.0725        0.2899     0.2899    1.84e-06      0.0725
+    5000        0.0      1.0000        4.0000     4.0000    1.39e-05      1.0000
+    5000        0.5      0.9750        3.9002     3.9001    1.39e-05      0.9750
+    5000        2.0      0.9071        3.6284     3.6284    1.37e-05      0.9071
+    5000       10.0      0.6614        2.6455     2.6455    1.20e-05      0.6614
+    5000       50.0      0.2809        1.1236     1.1236    6.41e-06      0.2809
+
+Worst deviation from the analytic shrinkage: 1.39e-05 px (tolerance 1e-3 px) -> PASS
+Magnitude of the effect, quoted as measured-slope / true-slope:
+  S =  1000 e-, B =  0.5 e-/px ->  88.7 % of truth, i.e. a 11.3 % wavefront gain error
+  S =  1000 e-, B =  2.0 e-/px ->  66.1 % of truth, i.e. a 33.9 % wavefront gain error
+  S =  1000 e-, B = 10.0 e-/px ->  28.1 % of truth, i.e. a 71.9 % wavefront gain error
+  S =  5000 e-, B =  2.0 e-/px ->  90.7 % of truth, i.e. a  9.3 % wavefront gain error
+  S =  5000 e-, B = 10.0 e-/px ->  66.1 % of truth, i.e. a 33.9 % wavefront gain error
+Subtracting B, or thresholding at B, removes it (see the threshold column in
+section 3). This is why an uncorrected background offset is a systematic
+wavefront error and not merely extra noise.
+figure -> /home/claude/aerospace-100-mission/products/P018/validation/background_bias.png
+
+==============================================================================
+5. Learned slope estimator vs thresholded centre of gravity
+==============================================================================
+Training set: 9000 single-subaperture stamps, photons log-uniform in
+[30, 30000] e-, elongation uniform in [1, 3] along x, B = 1.0 e-/px, R = 3.0 e- RMS,
+seed = 100. Test sets use disjoint seeds (9000+N) and are never
+seen during training or threshold tuning (tuning seeds are 300+N).
+Data generation 0.4 s; training 5 x MLP(96,48) 39.9 s on 2 CPU cores.
+
+--- round diffraction-limited spot (elongation = 1.0) ---
+  N [e-]   thr  CoG [px]  corr [px]  ML [px]  ML/CoG  ML std [px]  std/err
+      30     4    2.5705     2.8780   2.2600   0.879       0.3798    0.168
+      50     7    1.9161     0.9630   1.6591   0.866       0.3247    0.196
+     100    10    0.3852     0.1944   0.7842   2.036       0.2177    0.278
+     300    13    0.0891     0.0842   0.3118   3.501       0.1395    0.448
+    1000    13    0.0367     0.0446   0.1382   3.766       0.1017    0.736
+    3000    10    0.0193     0.0301   0.1160   6.010       0.1188    1.024
+   10000    13    0.0098     0.0235   0.1027  10.494       0.1149    1.119
+  ML beats the thresholded CoG at N = ['30', '50'] e- of ['30', '50', '100', '300', '1000', '3000', '10000'] tested.
+  ensemble-spread / actual-RMS ratio spans 0.17 to 1.12 — NOT a calibrated 1-sigma bound.
+
+--- spot elongated 3x along x (elongation = 3.0) ---
+  N [e-]   thr  CoG [px]  corr [px]  ML [px]  ML/CoG  ML std [px]  std/err
+      30     4    2.6674     4.0164   2.5594   0.960       0.3961    0.155
+      50     4    2.5064     3.0531   2.1165   0.844       0.3538    0.167
+     100     7    1.6310     1.0323   1.1840   0.726       0.2484    0.210
+     300    10    0.3053     0.4541   0.4344   1.423       0.1397    0.322
+    1000    13    0.1040     0.1999   0.2304   2.215       0.0973    0.422
+    3000    30    0.0622     0.1133   0.1706   2.742       0.0896    0.525
+   10000    30    0.0970     0.0662   0.1756   1.810       0.0966    0.550
+  ML beats the thresholded CoG at N = ['30', '50', '100'] e- of ['30', '50', '100', '300', '1000', '3000', '10000'] tested.
+  ensemble-spread / actual-RMS ratio spans 0.15 to 0.55 — NOT a calibrated 1-sigma bound.
+
+Crossover summary (thresholded CoG is the baseline):
+  elongation 1x: crossover between N = 50 and 100 e- — ML wins below, CoG above.
+  elongation 1x: best ML/CoG ratio 0.87 at N = 50 e-, worst 10.49 at N = 10000 e-.
+  elongation 3x: crossover between N = 100 and 300 e- — ML wins below, CoG above.
+  elongation 3x: best ML/CoG ratio 0.73 at N = 100 e-, worst 2.74 at N = 3000 e-.
+  Against the CORRELATION estimator the picture differs — see the table above:
+    elongation 1x: ML beats correlation at 1 of 7 flux levels.
+    elongation 3x: ML beats correlation at 3 of 7 flux levels.
+figure -> /home/claude/aerospace-100-mission/products/P018/validation/ml_vs_classical.png
+
+Classical-only curves from section 3 (round spot, for cross-reference):
+  tuned thresholds [4.0, 7.0, 10.0, 13.0, 13.0, 10.0, 13.0]
+
+Total wall-clock: 56.1 s

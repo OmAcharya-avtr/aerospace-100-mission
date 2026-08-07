@@ -1,0 +1,40 @@
+Zenith-angle scaling vs analytic sec(zeta) powers (atmoprofile 0.1.0)
+==============================================================================
+lambda = 500 nm; zenith grid = [0.0, 10.0, 20.0, 30.0, 40.0, 50.0, 60.0] deg
+
+--- HV5/7 ---------------------------------------------------------------------
+quantity              p (analytic)   p (fitted)   max |dev|  result
+r0                       -0.600000 -0.600000000    2.22e-16  PASS
+theta0                   -1.600000 -1.600000000    2.22e-16  PASS
+f_greenwood               0.600000  0.600000000    2.22e-16  PASS
+rytov_plane               1.833333  1.833333333    2.22e-16  PASS
+rytov_spherical           1.833333  1.833333333    2.22e-16  PASS
+scintillation_index       1.833333  1.833333333    2.22e-16  PASS
+
+--- SLC-Day -------------------------------------------------------------------
+quantity              p (analytic)   p (fitted)   max |dev|  result
+r0                       -0.600000 -0.600000000    1.11e-16  PASS
+theta0                   -1.600000 -1.600000000    2.22e-16  PASS
+f_greenwood               0.600000  0.600000000    2.22e-16  PASS
+rytov_plane               1.833333  1.833333333    2.22e-16  PASS
+rytov_spherical           1.833333  1.833333333    2.22e-16  PASS
+scintillation_index       1.833333  1.833333333    2.22e-16  PASS
+
+--- SLC-Night -----------------------------------------------------------------
+quantity              p (analytic)   p (fitted)   max |dev|  result
+r0                       -0.600000 -0.600000000    2.22e-16  PASS
+theta0                   -1.600000 -1.600000000    2.22e-16  PASS
+f_greenwood               0.600000  0.600000000    2.22e-16  PASS
+rytov_plane               1.833333  1.833333333    2.22e-16  PASS
+rytov_spherical           1.833333  1.833333333    2.22e-16  PASS
+scintillation_index       1.833333  1.833333333    2.22e-16  PASS
+
+Worked example (HV5/7, 500 nm), sec(45 deg) = 1.41421356:
+  r0(0)  = 4.96245 cm ; r0(45) = 4.03076 cm ; ratio = 0.81225240 ; sec^(-3/5) = 0.81225240
+  sigma_R^2(0) = 0.232619 ; (45) = 0.439125 ; ratio = 1.88774863 ; sec^(11/6) = 1.88774863
+  f_G(0) = 71.8705 Hz ; f_G(45) = 88.4830 Hz ; ratio = 1.23114441 ; sec^(3/5) = 1.23114441
+
+Weak-fluctuation boundary for HV5/7 at 500 nm: sigma_R^2 = 1 at sec(zeta) = (1/0.232619)^(6/11) = 2.2155, i.e. zeta = 63.17 deg.
+  (Beyond that angle the package warns and the weak-regime scintillation index must not be used.)
+
+FAILURES: 0

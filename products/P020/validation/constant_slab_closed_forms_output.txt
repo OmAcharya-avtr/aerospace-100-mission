@@ -1,0 +1,37 @@
+Constant-Cn^2 slab: closed forms vs code (atmoprofile 0.1.0)
+========================================================================
+Cn^2 = 1e-15 m^-2/3, slab 0 to 1000 m, lambda = 500 nm, zenith 0 deg
+k        = 2 pi / lambda      = 1.2566370614e+07 rad/m
+k^2                            = 1.5791367042e+14 m^-2
+k^(7/6)                        = 1.9160706038e+08 m^-7/6
+
+Moments (analytic integration of a constant integrand):
+mu_0 = Cn^2 H                      hand=1.0000000000e-12  code=1.0000000000e-12  rel=0.00e+00  PASS
+mu_5/3 = Cn^2 (3/8) H^(8/3)        hand=3.7500000000e-08  code=3.7500000000e-08  rel=1.24e-15  PASS
+mu_5/6 = Cn^2 (6/11) H^(11/6)      hand=1.7248787237e-10  code=1.7248787237e-10  rel=5.99e-16  PASS
+
+Fried parameter r0 = [0.423 k^2 mu_0]^(-3/5):
+  bracket = 0.423 * 1.579137e+14 * 1.000000e-12 = 66.797483; ln = 4.201665; x(-0.6) -> 0.08037925 m
+r0 (plane)                         hand=8.0379248737e-02  code=8.0379248737e-02  rel=0.00e+00  PASS
+r0 (spherical)                     hand=1.4478553729e-01  code=1.4478553729e-01  rel=0.00e+00  PASS
+r0 (spherical, uplink)             hand=1.4478553729e-01  code=1.4478553729e-01  rel=1.92e-16  PASS
+
+Isoplanatic angle theta0 = [2.914 k^2 mu_5/3]^(-3/5):
+  bracket = 2.914 * 1.579137e+14 * 3.750000e-08 = 1.725602e+07; -> 4.548159e-05 rad = 45.4816 urad
+theta0                             hand=4.5481593687e-05  code=4.5481593687e-05  rel=8.94e-16  PASS
+h_bar = [mu_5/3/mu_0]^(3/5)        hand=5.5516075873e+02  code=5.5516075873e+02  rel=8.19e-16  PASS
+theta0 = 0.3141 r0 / h_bar         hand=4.5481593687e-05  code=4.5481593687e-05  rel=8.94e-16  PASS
+
+Rytov variance sigma_R^2 = 2.25 k^(7/6) mu_5/6:
+  2.25 * 1.916071e+08 * 1.724879e-10 = 0.07436226 (dimensionless)
+sigma_R^2 (plane)                  hand=7.4362261899e-02  code=7.4362261899e-02  rel=7.46e-16  PASS
+  B(11/6,11/6) = Gamma(11/6)^2/Gamma(11/3) = 0.22053566; spherical hand value 0.03006581
+sigma_R^2 (spherical)              hand=3.0065805300e-02  code=3.0065805300e-02  rel=5.77e-16  PASS
+
+Textbook homogeneous-path coefficients implied by 2.25:
+  plane      2.25 * 6/11        = 1.227273  (textbook 1.23, delta = 0.22 %)
+  spherical  2.25 * B(11/6,11/6) = 0.496205  (textbook 0.50, delta = 0.76 %)
+  ratio sph/plane                = 0.404315  (textbook 0.40, delta = 1.08 %)
+code ratio sph/plane               hand=4.0431536821e-01  code=4.0431536821e-01  rel=1.37e-16  PASS
+
+FAILURES: 0

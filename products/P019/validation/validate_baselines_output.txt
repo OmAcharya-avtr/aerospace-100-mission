@@ -1,0 +1,118 @@
+CnCast baseline validation — all values computed in this run
+numpy 2.4.4
+
+==============================================================================
+1.1  HV 5/7 Cn^2 at reference altitudes (m^-2/3)
+==============================================================================
+    h [m]   ground term    tropo term     high term         total
+        0    1.7000e-14    2.7000e-16    0.0000e+00    1.7270e-14
+       10    1.5382e-14    2.6821e-16    3.5576e-43    1.5650e-14
+      100    6.2540e-15    2.5259e-16    3.2514e-33    6.5065e-15
+      500    1.1455e-16    1.9346e-16    2.1284e-26    3.0801e-16
+     1000    7.7180e-19    1.3862e-16    1.3219e-23    1.3939e-16
+     5000    3.2789e-36    9.6320e-18    2.3644e-18    1.1996e-17
+    10000    6.3241e-58    3.4361e-19    1.6314e-17    1.6657e-17
+    15000    1.2198e-79    1.2258e-20    6.3386e-18    6.3509e-18
+    20000   2.3526e-101    4.3729e-22    7.5842e-19    7.5885e-19
+
+==============================================================================
+1.2  HV 5/7 defining property: r0 ~ 5 cm and theta0 ~ 7 urad @ 500 nm, zenith
+==============================================================================
+mu_0   = int Cn^2 dh          = 2.233985e-12 m^(1/3)
+mu_5/3 = int Cn^2 h^(5/3) dh  = 8.461974e-07 m^(2)
+r0     = 4.9624 cm      (published nickname value: 5 cm,  err 0.75%)
+theta0 = 7.0109 urad   (published nickname value: 7 urad, err 0.16%)
+seeing FWHM = 2.0367 arcsec
+
+grid convergence of r0 (relative to the 200001-point value):
+  n =     201  step =  100.000 m  r0 = 4.78532 cm  rel.diff = 3.57e-02
+  n =    2001  step =   10.000 m  r0 = 4.96056 cm  rel.diff = 3.81e-04
+  n =   20001  step =    1.000 m  r0 = 4.96243 cm  rel.diff = 3.77e-06
+  n =  200001  step =    0.100 m  r0 = 4.96245 cm  rel.diff = 0.00e+00
+
+==============================================================================
+1.3  SLC-Day / SLC-Night: branch values and branch-boundary continuity
+==============================================================================
+SLC-Day and SLC-Night Cn^2 at reference altitudes (m above the AMOS site):
+    h [m]       SLC-Day     SLC-Night  day/night
+        1    1.7000e-14    8.4000e-15       2.02
+       10    1.7000e-14    8.4000e-15       2.02
+       50    5.1478e-15    1.1480e-15       4.48
+      100    2.4862e-15    2.8700e-16       8.66
+      200    1.2008e-15    2.5000e-16       4.80
+      500    1.3000e-15    2.5000e-16       5.20
+     1000    8.8700e-16    2.5000e-16       3.55
+     2000    1.1088e-16    1.1088e-16       1.00
+     5000    7.0960e-18    7.0960e-18       1.00
+    10000    2.0000e-18    2.0000e-18       1.00
+    19000    1.4510e-18    1.4510e-18       1.00
+
+published-branch spot checks (hand-evaluable closed forms):
+  SLC-Day  h=100 m  -> 3.13e-13/h^1.05       got 2.486247e-15  expect 2.486247e-15  rel.err 0.0e+00
+  SLC-Day  h=2000 m -> 8.87e-7/h^3           got 1.108750e-16  expect 1.108750e-16  rel.err 0.0e+00
+  SLC-Day  h=10000 m-> 2.0e-16/h^0.5         got 2.000000e-18  expect 2.000000e-18  rel.err 0.0e+00
+  SLC-Night h=50 m  -> 2.87e-12/h^2          got 1.148000e-15  expect 1.148000e-15  rel.err 0.0e+00
+  SLC-Night h=500 m -> 2.5e-16 (constant)    got 2.500000e-16  expect 2.500000e-16  rel.err 0.0e+00
+  SLC-Night h=3000 m-> 8.87e-7/h^3           got 3.285185e-17  expect 3.285185e-17  rel.err 0.0e+00
+
+branch-boundary discontinuity of the PUBLISHED fits (not an implementation bug):
+  SLC-Day    h =     18.5 m: below 1.7000e-14  above 1.4622e-14  jump  -14.0%
+  SLC-Day    h =    240.0 m: below 9.9157e-16  above 1.3000e-15  jump  +31.1%
+  SLC-Day    h =    880.0 m: below 1.3000e-15  above 1.3016e-15  jump   +0.1%
+  SLC-Day    h =   7220.0 m: below 2.3567e-18  above 2.3538e-18  jump   -0.1%
+  SLC-Night  h =     18.5 m: below 8.4000e-15  above 8.3857e-15  jump   -0.2%
+  SLC-Night  h =    110.0 m: below 2.3719e-16  above 2.5000e-16  jump   +5.4%
+  SLC-Night  h =   1500.0 m: below 2.5000e-16  above 2.6281e-16  jump   +5.1%
+  SLC-Night  h =   7200.0 m: below 2.3764e-18  above 2.3570e-18  jump   -0.8%
+
+SLC ceilings (the fits are defined as identically zero above them):
+  SLC-Day    Cn^2(20499) = 1.3969e-18   Cn^2(20501) = 0.0000e+00
+  SLC-Night  Cn^2(19999) = 1.4142e-18   Cn^2(20001) = 0.0000e+00
+
+==============================================================================
+1.4  Integrated seeing quantities for each published baseline @ 500 nm, zenith
+==============================================================================
+       model    r0 [cm]  theta0 [urad]   f_G [Hz]  FWHM arcsec
+      HV 5/7      4.962          7.011      71.98      2.037
+     SLC-Day      4.773         11.986      59.02      2.118
+   SLC-Night      8.904         13.229      36.90      1.135
+
+Greenwood frequency of HV 5/7 vs ground wind speed (Bufton profile):
+  ground wind   0.0 m/s -> rms high-altitude wind  18.68 m/s, f_G =   39.62 Hz
+  ground wind   5.0 m/s -> rms high-altitude wind  22.96 m/s, f_G =   71.98 Hz
+  ground wind  10.0 m/s -> rms high-altitude wind  27.49 m/s, f_G =  111.68 Hz
+  ground wind  21.0 m/s -> rms high-altitude wind  37.87 m/s, f_G =  203.61 Hz
+
+==============================================================================
+2  Analytic cross-checks with closed forms
+==============================================================================
+2.1 constant-Cn^2 slab, Cn^2 = 1.0e-15 m^-2/3 from 0 to 10 km, lambda = 1.55 um
+  mu_0 (closed form 1e-15*1e4)   = 1.000000e-11   code 1.000000e-11
+  r0 closed form                 = 7.848343 cm
+  r0 from cncast.seeing          = 7.848343 cm   rel.err 0.00e+00
+  mu_5/3 closed form Cn^2 H^(8/3)/(8/3) = 1.740596e-05   code 1.740596e-05   rel.err 3.70e-11
+
+2.2 wavelength scaling r0 ~ lambda^(6/5) on HV 5/7
+  lambda    850 nm: r0 =   9.381 cm, scaling prediction   9.381 cm, rel.err 1.48e-16
+  lambda   1550 nm: r0 =  19.290 cm, scaling prediction  19.290 cm, rel.err 1.44e-16
+
+2.3 zenith scaling: r0 ~ cos(z)^(3/5), theta0 ~ cos(z)^(8/5)
+  zeta   30 deg: r0  4.5521 cm (pred  4.5521, err 0.0e+00);  theta0  5.5696 urad (pred  5.5696, err 1.5e-16)
+  zeta   60 deg: r0  3.2740 cm (pred  3.2740, err 0.0e+00);  theta0  2.3127 urad (pred  2.3127, err 0.0e+00)
+
+==============================================================================
+3  Physical-plausibility properties of the baselines
+==============================================================================
+  Claim under test: Cn^2 falls with altitude through the free troposphere,
+  EXCEPT for the jet-stream bump that the H-V high-altitude term exists to
+  produce.  A naive 'monotone everywhere above the boundary layer' test is
+  therefore WRONG for these models; the ranges below are the honest claim.
+  HV 5/7     decreasing on 300 m .. 5908 m (first altitude where the model rises again); Cn^2(300 m)/Cn^2(19 km) = 864.2
+  SLC-Day    decreasing on 300 m .. nowhere (first altitude where the model rises again); Cn^2(300 m)/Cn^2(19 km) = 896.0
+  SLC-Night  decreasing on 300 m .. 1499 m (first altitude where the model rises again); Cn^2(300 m)/Cn^2(19 km) = 172.3
+  HV 5/7 pre-bump minimum on 300 m..8 km at h = 5908 m (Cn^2 = 1.032e-17); jet-stream bump peak at h = 9847 m (Cn^2 = 1.667e-17)
+  HV 5/7 strictly decreasing on 300 m .. 5 km: True
+  HV tropopause bump grows with pseudowind: v=40 5.953e-17 > v=10 4.043e-18  ratio 14.73 (expected (40/10)^2 = 16 for the high-altitude term alone)
+  HV 5/7 is NOT monotone overall: Cn^2(9 km) = 1.613e-17 vs Cn^2(11 km) = 1.574e-17 — the jet-stream bump peaks near 10 km
+
+OK — validation script completed without assertion failure.

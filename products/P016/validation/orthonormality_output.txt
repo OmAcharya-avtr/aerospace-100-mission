@@ -1,0 +1,38 @@
+ZernKit validation 1 -- orthonormality on the unit disc
+========================================================================
+Modes tested: Noll j = 1..36 (radial orders 0..7)
+Reference: analytic Kronecker delta, Noll 1976 JOSA 66(3) Eq. 3
+
+A. Gauss-Legendre(rho) x uniform(theta) quadrature
+   n_rho  n_theta    max|G-I| diag    max|G| off-diag
+      20       64        1.266e-14          1.077e-14
+      40      128        2.442e-14          2.309e-14
+      80      256        2.109e-15          1.091e-15
+     120      512        5.218e-14          5.115e-14
+
+Worst absolute deviation from the identity (finest rule): 5.218e-14
+Tolerance 1e-12 -> PASS
+
+Per-mode diagonal at the finest rule (should be exactly 1):
+  j=  1  (n=0, m=+0)  piston                         <Z,Z> = 1.000000000000001
+  j=  2  (n=1, m=+1)  horizontal tilt (x)            <Z,Z> = 1.000000000000007
+  j=  4  (n=2, m=+0)  defocus                        <Z,Z> = 1.000000000000014
+  j=  6  (n=2, m=+2)  vertical astigmatism           <Z,Z> = 1.000000000000014
+  j=  8  (n=3, m=+1)  horizontal coma                <Z,Z> = 1.000000000000022
+  j= 11  (n=4, m=+0)  primary spherical              <Z,Z> = 1.000000000000030
+  j= 15  (n=4, m=-4)  oblique quadrafoil             <Z,Z> = 1.000000000000029
+  j= 22  (n=6, m=+0)  Z(6, 0)                        <Z,Z> = 1.000000000000045
+  j= 36  (n=7, m=+7)  Z(7, 7)                        <Z,Z> = 1.000000000000050
+
+B. Uniform Cartesian pupil grid with circular mask (discretisation error)
+   n_pix  points in pupil    max|G-I| diag    max|G| off-diag
+      32              740        1.637e-01          1.702e-01
+      64             3096        7.911e-02          5.273e-02
+     128            12644        2.527e-02          2.319e-02
+     256            51040        8.058e-03          7.519e-03
+     512           205012        3.328e-03          3.117e-03
+
+Note: B does not converge to machine precision. A masked square grid is
+a first-order-accurate quadrature of a disc (the boundary is jagged), so
+orthogonality is only approximate on sampled data. This is why
+zernkit.fitting uses least squares rather than projection integrals.

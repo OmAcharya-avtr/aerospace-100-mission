@@ -1,0 +1,41 @@
+ZernKit validation 3 -- analytic gradients vs high-accuracy finite differences
+==================================================================================
+Sample points: 400 uniform on the disc rho <= 0.9, seed 20260807
+Reference: Richardson-extrapolated central differences, base h = 1e-2, O(h^6)
+
+ Noll j     (n, m)   max|dZ/dx err|   max|dZ/dy err|  mode
+      1     (0, 0)        0.000e+00        0.000e+00  piston
+      3    (1, -1)        1.212e-13        1.721e-13  vertical tilt (y)
+      2     (1, 1)        9.881e-14        1.099e-13  horizontal tilt (x)
+      5    (2, -2)        1.117e-13        7.625e-14  oblique astigmatism
+      4     (2, 0)        5.290e-14        6.595e-14  defocus
+      6     (2, 2)        8.507e-14        1.765e-13  vertical astigmatism
+      9    (3, -3)        1.255e-13        1.368e-13  oblique trefoil
+      7    (3, -1)        3.804e-14        5.060e-14  vertical coma
+      8     (3, 1)        5.379e-14        3.094e-14  horizontal coma
+     10     (3, 3)        1.059e-13        1.461e-13  vertical trefoil
+     15    (4, -4)        9.833e-14        1.813e-13  oblique quadrafoil
+     13    (4, -2)        6.913e-14        4.397e-14  oblique secondary astigmatism
+     11     (4, 0)        6.781e-14        5.937e-14  primary spherical
+     12     (4, 2)        4.970e-14        4.980e-14  vertical secondary astigmatism
+     14     (4, 4)        9.211e-14        6.622e-14  vertical quadrafoil
+  ... (orders 5..10 evaluated, not printed individually)
+
+Worst scaled deviation over all 66 modes: 2.884e-11
+Tolerance 1e-09 -> PASS
+
+Closed-form hand checks:
+check                                               library                exact       diff
+j=2  dZ/dx (exact 2)                      2.000000000000000    2.000000000000000   0.00e+00
+j=2  dZ/dy (exact 0)                      0.000000000000000    0.000000000000000   0.00e+00
+j=4  dZ/dx (exact 4*sqrt3*0.37)           2.563435195201938    2.563435195201938   0.00e+00
+j=4  dZ/dy (exact 4*sqrt3*-0.21)         -1.454922678357857   -1.454922678357857   2.22e-16
+j=6  dZ/dx (exact 2*sqrt6*0.37)           1.812622409659552    1.812622409659552   0.00e+00
+j=6  dZ/dy (exact -2*sqrt6*-0.21)         1.028785691968935    1.028785691968935   2.22e-16
+j=7  dZ/dx at origin (exact 0)            0.000000000000000    0.000000000000000   0.00e+00
+j=7  dZ/dy at origin (exact -2*sqrt8)    -5.656854249492381   -5.656854249492381   0.00e+00
+Worst |library - exact|: 2.220e-16
+Tolerance 1e-15 -> PASS
+
+No non-finite gradients at the pupil centre (the 1/rho factor cancels):
+  modes with nan/inf at rho = 0: 0 -> PASS

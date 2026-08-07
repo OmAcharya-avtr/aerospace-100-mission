@@ -1,0 +1,67 @@
+ZernKit validation 4 -- Noll residual variance coefficients
+======================================================================================
+Published reference: Noll (1976), JOSA 66(3), 207-211, residual mean-square
+error Delta_J after removal of the first J Zernike terms, in (D/r0)^(5/3).
+
+C_psd = 0.023 (Noll Eq. 4, rounded)
+C_psd = 0.0229032 (unrounded, 0.490/(2 pi)^(5/3))
+
+   J   published   computed(0.023)       rel   computed(0.02290)       rel
+   1      1.0299          1.037130   +0.70%            1.032765   +0.28%
+   2      0.5820          0.586204   +0.72%            0.583737   +0.30%
+   3      0.1340          0.135278   +0.95%            0.134709   +0.53%
+   4      0.1110          0.111954   +0.86%            0.111483   +0.44%
+   5      0.0880          0.088630   +0.72%            0.088257   +0.29%
+   6      0.0648          0.065307   +0.78%            0.065032   +0.36%
+   7      0.0587          0.059087   +0.66%            0.058838   +0.24%
+   8      0.0525          0.052867   +0.70%            0.052645   +0.28%
+   9      0.0463          0.046648   +0.75%            0.046451   +0.33%
+  10      0.0401          0.040428   +0.82%            0.040258   +0.39%
+  11      0.0377          0.037963   +0.70%            0.037803   +0.27%
+  12      0.0352          0.035498   +0.85%            0.035348   +0.42%
+  13      0.0328          0.033033   +0.71%            0.032893   +0.29%
+  14      0.0304          0.030567   +0.55%            0.030439   +0.13%
+  15      0.0279          0.028102   +0.73%            0.027984   +0.30%
+  16      0.0267          0.026906   +0.77%            0.026793   +0.35%
+  17      0.0255          0.025711   +0.83%            0.025602   +0.40%
+  18      0.0243          0.024515   +0.88%            0.024412   +0.46%
+  19      0.0232          0.023319   +0.51%            0.023221   +0.09%
+  20      0.0220          0.022123   +0.56%            0.022030   +0.14%
+  21      0.0208          0.020927   +0.61%            0.020839   +0.19%
+
+Worst relative deviation with C_psd = 0.023   : 0.954%
+Worst relative deviation with C_psd = 0.022904: 0.529%
+Tolerance 1 % -> PASS
+
+Per-mode coefficient variances <a_j^2> (units (D/r0)^(5/3)),
+compared with differences of consecutive published Delta_J:
+  n  modes     computed   from table       rel  from
+  1      2     0.449028     0.447950   +0.24%  (D1 - D3)/2
+  2      3     0.023226     0.023067   +0.69%  (D3 - D6)/3
+  3      4     0.006193     0.006175   +0.30%  (D6 - D10)/4
+  4      5     0.002455     0.002440   +0.60%  (D10 - D15)/5
+  5      6     0.001191     0.001183   +0.63%  (D15 - D21)/6
+
+Independent cross-check of Delta_1 (no Zernike series involved):
+  structure-function integral      : 1.032422 (D/r0)^(5/3)
+  Zernike series, C_psd = 0.022904 : 1.032765
+  Zernike series, C_psd = 0.023    : 1.037130
+  published Noll Delta_1           : 1.029900
+  |series - structure function| / sf = 0.033%
+  Tolerance 0.5 % -> PASS
+
+  Both independent routes land ~0.3 % above Noll's published 1.0299, so the
+  residual gap is in the published rounding, not in this implementation.
+
+Large-J asymptote Delta_J ~ 0.2944 J^(-sqrt(3)/2) (Noll 1976):
+   J   published   asymptotic       rel
+  10      0.0401     0.040079   -0.05%
+  15      0.0279     0.028211   +1.11%
+  20      0.0220     0.021989   -0.05%
+  21      0.0208     0.021080   +1.34%
+
+Numerical convergence of the residual sum (J = 5, C_psd = 0.023):
+  n_max =       100: 0.088424149174  (delta vs n_max=1e6: -2.061e-04)
+  n_max =      1000: 0.088625749651  (delta vs n_max=1e6: -4.541e-06)
+  n_max =     20000: 0.088630259445  (delta vs n_max=1e6: -3.084e-08)
+  n_max =    200000: 0.088630289666  (delta vs n_max=1e6: -6.200e-10)

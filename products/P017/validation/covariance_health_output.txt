@@ -1,0 +1,45 @@
+==============================================================================
+CHECK 1 - symmetry and positive definiteness over a long Joseph-form run
+==============================================================================
+steps                        : 200000
+max |P - P^T| over the run   : 0.000e+00  (exact symmetry => 0)
+min eigenvalue over the run  : 2.659427e-02  (must stay > 0)
+max condition number         : 51.0215
+final trace(P)               : 0.635146
+verdict                      : PASS
+
+==============================================================================
+CHECK 2 - Joseph vs short form, ill-conditioned H, float32 arithmetic
+==============================================================================
+H = [[1, 1], [1, 1+0.001]], R = 1e-08 I, float32 (eps = 1.19e-07),
+500 updates with 1e-05 I re-inflation between updates.
+
+          form |   min eigenvalue |  max |P - P^T|
+----------------------------------------------------
+        Joseph |     1.992004e-09 |      9.313e-10
+ short (I-KH)P |    -2.778614e-01 |      2.634e-02
+
+Joseph form stayed positive definite : True
+Short form stayed positive definite  : False
+verdict (Joseph stays PD)            : PASS
+
+==============================================================================
+CHECK 3 - sub-optimal gain K = 1.5 K_opt, double precision
+==============================================================================
+P = [[1.0, 0.2], [0.2, 0.5]], H = [[1.0, 0.0]], R = [[0.01]]
+optimal gain K_opt = [0.99009901 0.1980198 ], applied gain = [1.48514851 0.2970297 ] (1.5 x optimal)
+
+          form |   min eigenvalue |  max |P - P^T|
+----------------------------------------------------
+        Joseph |     2.456274e-01 |      0.000e+00
+ short (I-KH)P |    -4.952091e-01 |      2.776e-17
+
+Joseph stays positive definite for a gain the short form cannot handle:
+  Joseph min eig > 0 : True
+  short  min eig < 0 : True   (K H > I along the measured direction,
+                        so (I - K H) P has a negative eigenvalue)
+verdict                              : PASS
+
+==============================================================================
+OVERALL: PASS
+==============================================================================
