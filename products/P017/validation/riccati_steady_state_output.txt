@@ -1,0 +1,62 @@
+========================================================================
+CASE A - scalar random walk, hand-solved algebraic Riccati equation
+========================================================================
+
+  q = 1.0, r = 1.0   (converged in 19 iterations)
+               hand  P^-_inf : 1.618033988749895
+              filter P^-_inf : 1.618033988749895   |diff| = 2.220e-16
+                 hand  K_inf : 0.618033988749895
+                filter K_inf : 0.618033988749895   |diff| = 0.000e+00
+               hand  P^+_inf : 0.618033988749895
+              filter P^+_inf : 0.618033988749895   |diff| = 0.000e+00
+         verdict (tol 1e-12) : PASS
+
+  q = 0.25, r = 4.0   (converged in 69 iterations)
+               hand  P^-_inf : 1.132782218537319
+              filter P^-_inf : 1.132782218537317   |diff| = 1.776e-15
+                 hand  K_inf : 0.220695554634330
+                filter K_inf : 0.220695554634329   |diff| = 2.498e-16
+               hand  P^+_inf : 0.882782218537319
+              filter P^+_inf : 0.882782218537318   |diff| = 1.110e-15
+         verdict (tol 1e-12) : PASS
+
+  q = 2.0, r = 0.5   (converged in 11 iterations)
+               hand  P^-_inf : 2.414213562373095
+              filter P^-_inf : 2.414213562373095   |diff| = 4.441e-16
+                 hand  K_inf : 0.828427124746190
+                filter K_inf : 0.828427124746190   |diff| = 0.000e+00
+               hand  P^+_inf : 0.414213562373095
+              filter P^+_inf : 0.414213562373095   |diff| = 1.665e-16
+         verdict (tol 1e-12) : PASS
+
+========================================================================
+CASE B/C - 2-state constant velocity (DWNA): Kalata alpha-beta and DARE
+========================================================================
+
+  dt = 1.0 s, sigma_a = 0.1 m/s^2, sigma_v = 2.0 m   (converged in 110 iterations)
+       tracking index Lambda : 0.050000000000000
+     Kalata K_inf = [a, b/T] : [0.270867118992629, 0.042694639037219]
+                filter K_inf : [0.270867118992628, 0.042694639037219]
+             max |diff| gain : 3.331e-16
+      max |P^- - scipy DARE| : 1.088e-14
+ verdict (tol 1e-12 / 1e-10) : PASS
+
+  dt = 0.5 s, sigma_a = 1.0 m/s^2, sigma_v = 0.5 m   (converged in 34 iterations)
+       tracking index Lambda : 0.500000000000000
+     Kalata K_inf = [a, b/T] : [0.628373457204967, 0.609611796797792]
+                filter K_inf : [0.628373457204967, 0.609611796797792]
+             max |diff| gain : 4.441e-16
+      max |P^- - scipy DARE| : 2.554e-15
+ verdict (tol 1e-12 / 1e-10) : PASS
+
+  dt = 2.0 s, sigma_a = 0.02 m/s^2, sigma_v = 10.0 m   (converged in 281 iterations)
+       tracking index Lambda : 0.008000000000000
+     Kalata K_inf = [a, b/T] : [0.118799444828764, 0.003754891327687]
+                filter K_inf : [0.118799444828764, 0.003754891327687]
+             max |diff| gain : 1.505e-16
+      max |P^- - scipy DARE| : 1.377e-12
+ verdict (tol 1e-12 / 1e-10) : PASS
+
+========================================================================
+OVERALL: PASS
+========================================================================

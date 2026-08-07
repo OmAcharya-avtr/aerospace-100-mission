@@ -1,0 +1,29 @@
+========================================================================
+RTS smoother vs forward Kalman filter - constant-velocity tracking
+========================================================================
+dt = 1.0 s, acceleration PSD = 0.01 m^2/s^3, measurement sigma = 2.0 m, 300 steps
+x0 = [0, 0], P0 = diag(100, 100), seed = 2026
+
+Single seed (seed = 2026):
+  RMS position  filter   : 1.078105 m
+  RMS position  smoother : 0.629825 m   (41.58 % reduction)
+  RMS velocity  filter   : 0.399002 m/s
+  RMS velocity  smoother : 0.133870 m/s   (66.45 % reduction)
+  verdict position       : PASS
+  verdict velocity       : PASS
+
+Covariance ordering P^+_k - P_{k|T} >= 0 at every step:
+  worst minimum eigenvalue : 0.000e+00  (PASS, tol -1e-12)
+
+Filter consistency: mean NIS = 1.0260 for m = 1 dof (expectation 1.0)
+
+Monte Carlo over 300 seeds (0 ... 299):
+  mean RMS position  filter / smoother : 1.053928 / 0.567928 m
+  mean RMS velocity  filter / smoother : 0.420932 / 0.129166 m/s
+  smoother wins on position : 300/300
+  smoother wins on velocity : 300/300
+  verdict (ensemble means)  : PASS
+
+========================================================================
+OVERALL: PASS
+========================================================================

@@ -1,0 +1,24 @@
+============================================================================================
+UKF -> KF reduction on a linear-Gaussian system
+============================================================================================
+2-state constant velocity, dt = 1.0 s, acceleration PSD = 0.05 m^2/s^3,
+measurement sigma = 3.0 m, 200 steps, seed = 7.
+KF state at final step: [3120.34543899   13.57274628]
+Normalisation scales (peak |value| over the run): x = 3120, P = 52.18, K = 0.9569, S = 209, xs = 3120, Ps = 2.883
+Relative tolerance: 1e-09;  machine eps = 2.220e-16
+
+   alpha  beta  kappa |     abs dx     abs dP     abs dK     abs dS   abs dx_s   abs dP_s |  worst rel    eps/a^2 | verdict
+---------------------------------------------------------------------------------------------------------------------------
+       1     2      0 |  9.095e-13  3.944e-13  7.777e-14  1.515e-12  9.095e-13  8.065e-13 |  2.798e-13  2.220e-16 | PASS
+       1     0      1 |  4.547e-13  3.837e-13  3.053e-14  5.969e-13  9.095e-13  9.543e-13 |  3.311e-13  2.220e-16 | PASS
+     0.5     2      1 |  1.364e-12  1.349e-12  8.044e-14  1.567e-12  2.274e-12  1.436e-12 |  4.981e-13  8.882e-16 | PASS
+     0.1     2      0 |  4.684e-11  4.138e-12  4.156e-13  8.098e-12  4.229e-11  9.599e-12 |  3.330e-12  2.220e-14 | PASS
+    0.01     2      0 |  5.175e-09  3.386e-11  4.725e-12  9.204e-11  4.655e-09  2.845e-11 |  9.871e-12  2.220e-12 | PASS
+   0.001     2      0 |  4.880e-07  4.771e-10  3.556e-11  6.924e-10  5.118e-07  1.228e-09 |  4.259e-10  2.220e-10 | PASS
+
+Worst relative deviation over the whole grid: 4.259e-10 (tolerance 1e-09)
+Observation: the relative deviation tracks the predicted eps/alpha^2 round-off amplification of the scaled transform; the algebra is exact, the arithmetic is not.
+
+============================================================================================
+OVERALL: PASS
+============================================================================================

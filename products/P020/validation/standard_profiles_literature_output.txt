@@ -1,0 +1,40 @@
+Standard Cn^2 models vs literature (atmoprofile 0.1.0)
+==============================================================================
+
+1) HV 5/7 definitional check (r0 = 5 cm, theta0 = 7 urad at 0.5 um, zenith)
+   r0 [cm]          computed    4.9624   named value   5.00   rel  0.75 %   PASS (tol 2 %)
+   theta0 [urad]    computed    7.0109   named value   7.00   rel  0.16 %   PASS (tol 2 %)
+
+2) r0 and derived quantities at 500 nm and 1550 nm (vertical path)
+
+model      lambda[nm]   r0[cm]  seeing["] theta0[urad]  h_bar[m]  f_G[Hz]  sig2R,pl  weak?
+------------------------------------------------------------------------------------------
+HV5/7             500    4.962      2.037        7.011    2223.5    71.87    0.2326   True
+HV5/7            1550   19.290      1.624       27.252    2223.5    18.49    0.0621   True
+SLC-Day           500    4.339      2.329       10.829    1258.7    65.03    0.2879   True
+SLC-Day          1550   16.867      1.858       42.096    1258.7    16.73    0.0769   True
+SLC-Night         500    7.602      1.329       12.553    1902.4    41.59    0.1561   True
+SLC-Night        1550   29.551      1.060       48.795    1902.4    10.70    0.0417   True
+
+3) Literature-band check at 500 nm (quoted band 5-20 cm for ground sites; Hardy 1998, Roddier 1981, Andrews & Phillips 2005)
+   HV5/7      r0 =  4.962 cm  -> BELOW the quoted band; HV5/7 is *defined* to give 5 cm, i.e. it sits exactly on the floor of the band; the 0.75 % shortfall is the model's own arithmetic, not a band excursion
+   SLC-Day    r0 =  4.339 cm  -> BELOW the quoted band; a daytime sea-level model dominated by surface convection - a stronger regime than the good-astronomical-site statistics the band describes, so a value below the floor is the expected result, not an error
+   SLC-Night  r0 =  7.602 cm  -> inside the quoted band; night-time model, expected to sit inside the band
+   ordering SLC-Day < HV5/7 < SLC-Night : PASS
+
+4) Wavelength scaling between the two bands: must equal (1550/500)^(6/5) = 3.88717446
+   HV5/7      r0(1550)/r0(500) = 3.88717446   rel dev 2.22e-16   PASS
+   SLC-Day    r0(1550)/r0(500) = 3.88717446   rel dev 2.22e-16   PASS
+   SLC-Night  r0(1550)/r0(500) = 3.88717446   rel dev 0.00e+00   PASS
+
+5) Bufton wind rms over 5-20 km vs the HV 5/7 pseudowind (21 m/s)
+   v_rms(Bufton, v_g = 5 m/s) = 22.9637 m/s vs 21 m/s -> 9.35 %   FAIL (tol 2 %)
+   For reference, the ground-wind value that would give exactly 21 m/s: 2.7541 m/s (not used anywhere in the package).
+
+NOTES / KNOWN DISCREPANCIES:
+  - HV5/7: r0 = 4.962 cm is below the 5 cm floor - HV5/7 is *defined* to give 5 cm, i.e. it sits exactly on the floor of the band; the 0.75 % shortfall is the model's own arithmetic, not a band excursion. Reported, not tuned.
+  - SLC-Day: r0 = 4.339 cm is below the 5 cm floor - a daytime sea-level model dominated by surface convection - a stronger regime than the good-astronomical-site statistics the band describes, so a value below the floor is the expected result, not an error. Reported, not tuned.
+  - Bufton rms wind over 5-20 km evaluates to 22.9637 m/s for v_g = 5 m/s, not the 21 m/s pseudowind of HV 5/7. The convention behind the literature's 21 m/s (band limits, treatment of the ground term, or an added slew-rate term) could not be established in this build. The 21 m/s value is retained in hv57() because it is the published model parameter; the mismatch is reported here.
+
+BLOCKING FAILURES (self-consistency checks 1-4): 0
+REPORTED FAILURES (check 5, external claim not reproduced): 1
