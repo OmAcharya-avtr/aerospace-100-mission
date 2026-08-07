@@ -17,22 +17,22 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from trackforge.control import (  # noqa: E402
+from trackbench.control import (  # noqa: E402
     LQRController,
     PIDController,
     lqr_weights_from_bandwidth,
     pid_gains_from_bandwidth,
     step_response,
 )
-from trackforge.dynamics import GimbalAxis, JitterPSD, synthesize_jitter  # noqa: E402
-from trackforge.reacq import (  # noqa: E402
+from trackbench.dynamics import GimbalAxis, JitterPSD, synthesize_jitter  # noqa: E402
+from trackbench.reacq import (  # noqa: E402
     AlwaysFullPolicy,
     AlwaysLocalPolicy,
     ReacqConfig,
     evaluate_policy,
     train_q_learning,
 )
-from trackforge.scan import (  # noqa: E402
+from trackbench.scan import (  # noqa: E402
     GaussianUncertainty,
     coverage_fraction,
     expected_acquisition_time_spiral,
@@ -40,7 +40,7 @@ from trackforge.scan import (  # noqa: E402
     simulate_acquisition,
     spiral_scan,
 )
-from trackforge.sim import DEFAULT_SCENARIO, run_episode  # noqa: E402
+from trackbench.sim import DEFAULT_SCENARIO, run_episode  # noqa: E402
 
 
 def collect() -> dict:

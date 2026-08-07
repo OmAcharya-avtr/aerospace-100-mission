@@ -8,9 +8,9 @@ import math
 import numpy as np
 import pytest
 
-from trackforge.__main__ import main
-from trackforge.reacq import AlwaysFullPolicy, AlwaysLocalPolicy, train_q_learning
-from trackforge.sim import (
+from trackbench.__main__ import main
+from trackbench.reacq import AlwaysFullPolicy, AlwaysLocalPolicy, train_q_learning
+from trackbench.sim import (
     DEFAULT_SCENARIO,
     Scenario,
     load_scenario,
@@ -177,7 +177,7 @@ def test_cli_version(capsys):
     with pytest.raises(SystemExit) as e:
         main(["--version"])
     assert e.value.code == 0
-    assert "trackforge 0.1.0" in capsys.readouterr().out
+    assert "trackbench 0.1.0" in capsys.readouterr().out
 
 
 def test_cli_unknown_scenario_file():

@@ -20,7 +20,7 @@ import numpy as np  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from trackforge.reacq import (  # noqa: E402
+from trackbench.reacq import (  # noqa: E402
     ACTIONS,
     AlwaysFullPolicy,
     AlwaysLocalPolicy,
@@ -114,7 +114,7 @@ def main() -> int:
     ax.legend(fontsize=8)
     ax.grid(alpha=0.25, axis="y")
 
-    fig.suptitle("TrackForge - reacquisition policy benchmark "
+    fig.suptitle("TrackBench - reacquisition policy benchmark "
                  f"(tabular Q-learning, {TRAIN_EPISODES} training episodes, seed 12345)",
                  fontsize=12)
     fig.tight_layout(rect=(0, 0, 1, 0.93))

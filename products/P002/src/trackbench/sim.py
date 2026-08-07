@@ -2,16 +2,16 @@
 
 An episode chains the four modules:
 
-1. **Acquire** (``trackforge.scan``): a spiral (or raster) scan sweeps the
+1. **Acquire** (``trackbench.scan``): a spiral (or raster) scan sweeps the
    2-D Gaussian uncertainty region until the target falls inside the beam
    footprint and a per-dwell detection trial succeeds.
-2. **Track** (``trackforge.dynamics`` + ``trackforge.control``): a two-axis
+2. **Track** (``trackbench.dynamics`` + ``trackbench.control``): a two-axis
    gimbal closes a pointing loop on a noisy angle sensor while platform
    jitter, synthesised from a target PSD, perturbs the line of sight.
 3. **Lose lock**: a disturbance spike (a scaled, windowed transient added
    to the jitter series) drives the LOS error past ``track_threshold`` for
    longer than ``loss_hold_s``; the tracker declares loss of lock.
-4. **Reacquire** (``trackforge.reacq``): a scripted or learned policy
+4. **Reacquire** (``trackbench.reacq``): a scripted or learned policy
    chooses re-scan strategies until the target is re-found.
 
 Every stage is driven by one seeded ``numpy.random.Generator`` chain, so a
@@ -30,15 +30,15 @@ from typing import Any
 import numpy as np
 import yaml
 
-from trackforge import reacq as _reacq
-from trackforge import scan as _scan
-from trackforge.control import (
+from trackbench import reacq as _reacq
+from trackbench import scan as _scan
+from trackbench.control import (
     LQRController,
     PIDController,
     lqr_weights_from_bandwidth,
     pid_gains_from_bandwidth,
 )
-from trackforge.dynamics import AngleSensor, GimbalAxis, JitterPSD, synthesize_jitter
+from trackbench.dynamics import AngleSensor, GimbalAxis, JitterPSD, synthesize_jitter
 
 __all__ = [
     "Scenario",

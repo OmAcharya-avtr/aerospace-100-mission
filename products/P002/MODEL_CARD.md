@@ -1,8 +1,8 @@
-# Model Card — TrackForge reacquisition policy (`trackforge.reacq`)
+# Model Card — TrackBench reacquisition policy (`trackbench.reacq`)
 
 **Model:** tabular Q-learning policy for post-loss-of-lock reacquisition
 strategy selection
-**Package:** `trackforge` 0.1.0 (product P002)
+**Package:** `trackbench` 0.1.0 (product P002)
 **Date:** 2026 · **Owner:** OPTIMA Organisation · **License:** AGPL-3.0-only
 
 > **This model is not certified for operational flight use.**
@@ -89,7 +89,7 @@ this simulator, not a published or measured model**.
 Exact command:
 
 ```bash
-python -m trackforge reacq --episodes 20000 --seed 12345 \
+python -m trackbench reacq --episodes 20000 --seed 12345 \
                            --eval-episodes 2000 --eval-seed 999
 ```
 
@@ -177,7 +177,7 @@ a probability of successful reacquisition.
 cd products/P002
 python -m pytest tests/ -q                       # 295 tests
 python validation/v5_reacq_benchmark.py          # full benchmark, ~25 s
-python -m trackforge reacq --episodes 20000 --seed 12345
+python -m trackbench reacq --episodes 20000 --seed 12345
 ```
 
 Seeds: training 12345 (also 20260, 777 for the seed sweep); evaluation base

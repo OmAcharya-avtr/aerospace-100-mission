@@ -17,22 +17,22 @@ import math
 import numpy as np
 import pytest
 
-from trackforge.control import (
+from trackbench.control import (
     LQRController,
     PIDController,
     lqr_weights_from_bandwidth,
     pid_gains_from_bandwidth,
     step_response,
 )
-from trackforge.dynamics import GimbalAxis, JitterPSD, synthesize_jitter
-from trackforge.reacq import (
+from trackbench.dynamics import GimbalAxis, JitterPSD, synthesize_jitter
+from trackbench.reacq import (
     AlwaysFullPolicy,
     AlwaysLocalPolicy,
     ReacqConfig,
     evaluate_policy,
     train_q_learning,
 )
-from trackforge.scan import (
+from trackbench.scan import (
     GaussianUncertainty,
     coverage_fraction,
     expected_acquisition_time_spiral,
@@ -40,7 +40,7 @@ from trackforge.scan import (
     simulate_acquisition,
     spiral_scan,
 )
-from trackforge.sim import DEFAULT_SCENARIO, run_episode
+from trackbench.sim import DEFAULT_SCENARIO, run_episode
 
 PINNED = {
     "spiral_n_points": 9987,

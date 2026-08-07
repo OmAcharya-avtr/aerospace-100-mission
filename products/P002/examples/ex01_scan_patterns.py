@@ -21,7 +21,7 @@ import numpy as np  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from trackforge.scan import (  # noqa: E402
+from trackbench.scan import (  # noqa: E402
     GaussianUncertainty,
     coverage_fraction,
     raster_scan,
@@ -98,7 +98,7 @@ def main() -> int:
     h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1 + h2, l1 + l2, fontsize=7, loc="lower right")
 
-    fig.suptitle("TrackForge - acquisition scan patterns over a 2-D Gaussian "
+    fig.suptitle("TrackBench - acquisition scan patterns over a 2-D Gaussian "
                  f"uncertainty region ($\\sigma$ = {SIGMA * 1e6:.0f} $\\mu$rad)",
                  fontsize=12)
     fig.tight_layout(rect=(0, 0, 1, 0.95))

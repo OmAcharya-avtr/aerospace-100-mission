@@ -20,19 +20,19 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 import scipy  # noqa: E402
 
-from trackforge.dynamics import JitterPSD, synthesize_jitter  # noqa: E402
-from trackforge.reacq import (  # noqa: E402
+from trackbench.dynamics import JitterPSD, synthesize_jitter  # noqa: E402
+from trackbench.reacq import (  # noqa: E402
     AlwaysLocalPolicy,
     ReacqConfig,
     evaluate_policy,
     train_q_learning,
 )
-from trackforge.scan import (  # noqa: E402
+from trackbench.scan import (  # noqa: E402
     GaussianUncertainty,
     coverage_fraction,
     spiral_scan,
 )
-from trackforge.sim import (  # noqa: E402
+from trackbench.sim import (  # noqa: E402
     DEFAULT_SCENARIO,
     Scenario,
     run_episode,

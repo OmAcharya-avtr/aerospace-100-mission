@@ -33,7 +33,7 @@ Actions
 Scan-time model
 ---------------
 Each action's duration uses the uniform-coverage approximation of
-``trackforge.scan``: a spiral of track spacing s scanned at along-track
+``trackbench.scan``: a spiral of track spacing s scanned at along-track
 speed v covers area at rate s*v, so covering an area A costs A / (s v) [s].
 Disc of radius R -> pi R^2 / (s v); annulus r1->r2 -> pi (r2^2 - r1^2)/(s v).
 

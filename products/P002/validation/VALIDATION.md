@@ -1,6 +1,6 @@
-# TrackForge — Validation Evidence
+# TrackBench — Validation Evidence
 
-**Product:** P002 TrackForge · **Version:** 0.1.0 · **Validation level:** 3 (Professional, at v0.1 MVP depth)
+**Product:** P002 TrackBench · **Version:** 0.1.0 · **Validation level:** 3 (Professional, at v0.1 MVP depth)
 **Environment:** Python 3.11.15, numpy 2.4.4, scipy 1.17.1, Linux x86_64, 2 CPU cores
 **All numbers below were produced by running the scripts in this directory during the build session.**
 Raw output is saved next to each script as `vN_*.txt`.

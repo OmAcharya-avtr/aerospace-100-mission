@@ -12,17 +12,17 @@ import math
 import numpy as np
 import pytest
 
-from trackforge.control import (
+from trackbench.control import (
     LQRController,
     PIDController,
     disturbance_rejection_rms,
     pid_gains_from_bandwidth,
     step_response,
 )
-from trackforge.dynamics import AngleSensor, GimbalAxis, JitterPSD, synthesize_jitter
-from trackforge.reacq import AlwaysLocalPolicy, ReacqConfig, ReacqEnv, evaluate_policy
-from trackforge.scan import GaussianUncertainty, simulate_acquisition, spiral_scan
-from trackforge.sim import Scenario, run_episode
+from trackbench.dynamics import AngleSensor, GimbalAxis, JitterPSD, synthesize_jitter
+from trackbench.reacq import AlwaysLocalPolicy, ReacqConfig, ReacqEnv, evaluate_policy
+from trackbench.scan import GaussianUncertainty, simulate_acquisition, spiral_scan
+from trackbench.sim import Scenario, run_episode
 
 J, WN = 0.05, 2.0 * math.pi * 5.0
 

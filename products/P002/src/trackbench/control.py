@@ -1,7 +1,7 @@
 """Pointing-loop controllers (PID, LQR) and a benchmark harness.
 
 Controllers act on a single gimbal axis modelled by
-``trackforge.dynamics.GimbalAxis`` (eq. 1-2 there):
+``trackbench.dynamics.GimbalAxis`` (eq. 1-2 there):
 
     J theta_ddot + b theta_dot = tau
 
@@ -69,7 +69,7 @@ from dataclasses import dataclass, field
 import numpy as np
 from scipy.linalg import solve_continuous_are, solve_discrete_are
 
-from trackforge.dynamics import GimbalAxis
+from trackbench.dynamics import GimbalAxis
 
 __all__ = [
     "PIDController",
