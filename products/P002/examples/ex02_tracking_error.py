@@ -20,8 +20,8 @@ import numpy as np  # noqa: E402
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from trackforge.dynamics import JitterPSD, welch_psd  # noqa: E402
-from trackforge.sim import Scenario, run_episode  # noqa: E402
+from trackbench.dynamics import JitterPSD, welch_psd  # noqa: E402
+from trackbench.sim import Scenario, run_episode  # noqa: E402
 
 OUT = Path(__file__).resolve().parents[1] / "screenshots" / "ex02_tracking_error.png"
 SEED = 2026
@@ -104,7 +104,7 @@ def main() -> int:
     ax.legend(fontsize=7)
     ax.grid(alpha=0.25, which="both")
 
-    fig.suptitle("TrackForge - closed-loop pointing under synthesised platform jitter",
+    fig.suptitle("TrackBench - closed-loop pointing under synthesised platform jitter",
                  fontsize=12)
     fig.tight_layout(rect=(0, 0, 1, 0.96))
     OUT.parent.mkdir(exist_ok=True)

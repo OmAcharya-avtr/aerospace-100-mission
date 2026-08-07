@@ -1,4 +1,4 @@
-"""Command-line interface: ``python -m trackforge run|benchmark|reacq``.
+"""Command-line interface: ``python -m trackbench run|benchmark|reacq``.
 
 Subcommands
 -----------
@@ -18,23 +18,23 @@ import sys
 
 import numpy as np
 
-from trackforge import __version__
-from trackforge.control import (
+from trackbench import __version__
+from trackbench.control import (
     LQRController,
     PIDController,
     benchmark_controllers,
     lqr_weights_from_bandwidth,
     pid_gains_from_bandwidth,
 )
-from trackforge.dynamics import GimbalAxis, JitterPSD, synthesize_jitter
-from trackforge.reacq import (
+from trackbench.dynamics import GimbalAxis, JitterPSD, synthesize_jitter
+from trackbench.reacq import (
     AlwaysFullPolicy,
     AlwaysLocalPolicy,
     ReacqConfig,
     evaluate_policy,
     train_q_learning,
 )
-from trackforge.sim import DEFAULT_SCENARIO, load_scenario, run_episode, sim_steps_per_second
+from trackbench.sim import DEFAULT_SCENARIO, load_scenario, run_episode, sim_steps_per_second
 
 
 def _fmt_table(rows: list[dict], keys: list[str]) -> str:
@@ -137,10 +137,10 @@ def cmd_reacq(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     """Build the argparse CLI parser."""
     p = argparse.ArgumentParser(
-        prog="python -m trackforge",
-        description="TrackForge: PAT simulation suite for optical links",
+        prog="python -m trackbench",
+        description="TrackBench: PAT simulation suite for optical links",
     )
-    p.add_argument("--version", action="version", version=f"trackforge {__version__}")
+    p.add_argument("--version", action="version", version=f"trackbench {__version__}")
     sub = p.add_subparsers(dest="command", required=True)
 
     r = sub.add_parser("run", help="run one end-to-end episode from a YAML scenario")

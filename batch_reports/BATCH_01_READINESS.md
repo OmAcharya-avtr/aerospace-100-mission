@@ -11,22 +11,22 @@ All ten Batch 01 products are built, tested, validated, documented, and scanned.
 
 Every product carries working code, a README following the mission template, a license, a changelog, validation evidence produced by scripts actually executed in-session, and screenshots rendered by actually running the examples. All seven AI-enabled products additionally carry a model card and a dataset card.
 
-The batch is recommended for publication with one naming decision outstanding (§14).
+The batch was **approved for publication by Om Acharya on 2026-08-01**. The one outstanding naming decision (§14) was resolved by owner instruction: P002 is renamed TrackBench.
 
 ## 2. Product list
 
 | ID | Name | Class | AI | Level | License | Tests | Status |
 |---|---|---|---|---|---|---:|---|
-| P001 | BeamTwin | flagship | yes | 3 | AGPL-3.0 | 251 | READY FOR APPROVAL |
-| P002 | TrackForge | flagship | yes | 3 | AGPL-3.0 | 295 | READY FOR APPROVAL (name conflict, §14) |
-| P003 | ScintiNet | medium | yes | 2 | Apache-2.0 | 50 | READY FOR APPROVAL |
-| P004 | PassPlanner | medium | yes | 2 | Apache-2.0 | 106 | READY FOR APPROVAL |
-| P005 | JitterScope | medium | yes | 2 | Apache-2.0 | 53 | READY FOR APPROVAL |
-| P006 | LinkBudgetX | compact | no | 1 | MIT | 54 | READY FOR APPROVAL |
-| P007 | QuatKit | compact | no | 1 | MIT | 89 | READY FOR APPROVAL |
-| P008 | CentroidNet | compact | yes | 2 | Apache-2.0 | 41 | READY FOR APPROVAL |
-| P009 | FogCast | compact | yes | 2 | Apache-2.0 | 34 | READY FOR APPROVAL |
-| P010 | BERBench | compact | no | 2 | MIT | 68 | READY FOR APPROVAL |
+| P001 | BeamTwin | flagship | yes | 3 | AGPL-3.0 | 251 | APPROVED |
+| P002 | TrackBench | flagship | yes | 3 | AGPL-3.0 | 295 | APPROVED (renamed from TrackForge, §14) |
+| P003 | ScintiNet | medium | yes | 2 | Apache-2.0 | 50 | APPROVED |
+| P004 | PassPlanner | medium | yes | 2 | Apache-2.0 | 106 | APPROVED |
+| P005 | JitterScope | medium | yes | 2 | Apache-2.0 | 53 | APPROVED |
+| P006 | LinkBudgetX | compact | no | 1 | MIT | 54 | APPROVED |
+| P007 | QuatKit | compact | no | 1 | MIT | 89 | APPROVED |
+| P008 | CentroidNet | compact | yes | 2 | Apache-2.0 | 41 | APPROVED |
+| P009 | FogCast | compact | yes | 2 | Apache-2.0 | 34 | APPROVED |
+| P010 | BERBench | compact | no | 2 | MIT | 68 | APPROVED |
 | | | | | | **Total** | **1041** | |
 
 ## 3. Class distribution — meets spec
@@ -50,10 +50,10 @@ Against the whole-mission target of 10/60/25/5, Batch 01 contributes 2/6/2/0. Th
 
 ## 6. Repository plan
 
-Publication layout, to be executed only after approval:
+Approved publication layout:
 
 - `flagship-beamtwin` — P001, AGPL-3.0
-- `flagship-trackforge` — P002, AGPL-3.0 (repo name subject to §14 decision)
+- `flagship-trackbench` — P002, AGPL-3.0
 - `batch-01-suite` — P003–P010, mixed Apache-2.0 and MIT, each product independently licensed and documented in its own subdirectory
 
 Repo creation from the build environment is blocked by the session permission layer (ADR-004). Publication is therefore owner-executed: create the three empty repositories, then push from the synced git bundle.
@@ -130,18 +130,18 @@ Answered for all ten products:
 
 **No product is marked BLOCKED — IP REVIEW REQUIRED.**
 
-**One naming decision is outstanding.** PyPI conflict checks were run for all ten names. Nine are free. **`trackforge` is taken** on PyPI by an unrelated computer-vision tracking library at version 0.3.0. Because the conflicting package is also in the tracking domain, §32's rule against names that create package-name conflicts applies. Verified-free alternatives, in recommended order: **PATForge**, **TrackBench** (which appears as a suggested name in the mission specification itself), **TrackScope**, **PATBench**, **BeamTrack**. The rename is a mechanical refactor of the package identifier and its imports across the product's 295 tests. This decision is deferred to the owner; nothing else in the batch depends on it.
+**One naming decision is outstanding.** PyPI conflict checks were run for all ten names. Nine are free. **`trackforge` is taken** on PyPI by an unrelated computer-vision tracking library at version 0.3.0. Because the conflicting package is also in the tracking domain, §32's rule against names that create package-name conflicts applies. Verified-free alternatives, in recommended order: **PATForge**, **TrackBench** (which appears as a suggested name in the mission specification itself), **TrackScope**, **PATBench**, **BeamTrack**. The rename is a mechanical refactor of the package identifier and its imports across the product's 295 tests. **RESOLVED 2026-08-01:** the owner instructed the rename. P002 is now **TrackBench**, package `trackbench`, verified free on PyPI. The refactor was applied across all 42 referencing files and all 295 tests still pass with ruff clean.
 
 ## 15. Publication recommendation
 
-**Recommend publication of all ten products**, subject to the §14 naming decision for P002 and to the owner's own review of this report.
+**Recommend publication of all ten products.** The §14 naming decision is resolved. The owner approved the batch on 2026-08-01.
 
 The batch meets every §17 completion-gate item and every §11 AI-product requirement. No product claims to be flight-safe, certified, mission-ready, or production-ready. Every product is labeled research-grade or educational with an explicit statement that it is not flight-qualified and not approved for operational aerospace use.
 
 ## 16. Commit plan (≤5 pushed commits, §6)
 
 1. `release: BeamTwin v0.1.0 — FSO link digital twin with fade-probability surrogate`
-2. `release: TrackForge v0.1.0 — PAT acquisition, tracking, and reacquisition suite`
+2. `release: TrackBench v0.1.0 — PAT acquisition, tracking, and reacquisition suite`
 3. `release: batch-01 medium suite — ScintiNet, PassPlanner, JitterScope`
 4. `release: batch-01 compact suite — LinkBudgetX, QuatKit, CentroidNet, FogCast, BERBench`
 5. `docs: batch-01 validation evidence, security scans, and tracker updates`
@@ -149,7 +149,7 @@ The batch meets every §17 completion-gate item and every §11 AI-product requir
 ## 17. Approval decision
 
 ```text
-APPROVAL STATUS: PENDING
-APPROVED BY:
-DATE:
+APPROVAL STATUS: APPROVED
+APPROVED BY: Om Acharya
+DATE: 2026-08-01
 ```

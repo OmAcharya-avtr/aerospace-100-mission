@@ -1,4 +1,4 @@
-"""Unit tests for trackforge.dynamics (plant, jitter synthesis, sensor)."""
+"""Unit tests for trackbench.dynamics (plant, jitter synthesis, sensor)."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from trackforge.dynamics import (
+from trackbench.dynamics import (
     AngleSensor,
     GimbalAxis,
     JitterPSD,

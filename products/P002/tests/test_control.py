@@ -1,4 +1,4 @@
-"""Unit and known-answer tests for trackforge.control."""
+"""Unit and known-answer tests for trackbench.control."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import math
 import numpy as np
 import pytest
 
-from trackforge.control import (
+from trackbench.control import (
     LQRController,
     PIDController,
     bandwidth_estimate,
@@ -18,7 +18,7 @@ from trackforge.control import (
     step_response,
     zoh_discretize,
 )
-from trackforge.dynamics import GimbalAxis, JitterPSD, synthesize_jitter
+from trackbench.dynamics import GimbalAxis, JitterPSD, synthesize_jitter
 
 J, B = 0.05, 0.02
 WN = 2.0 * math.pi * 5.0  # 5 Hz design bandwidth [rad/s]

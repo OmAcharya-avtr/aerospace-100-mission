@@ -5,16 +5,16 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from trackforge.dynamics import JitterPSD, synthesize_jitter
-from trackforge.reacq import (
+from trackbench.dynamics import JitterPSD, synthesize_jitter
+from trackbench.reacq import (
     AlwaysFullPolicy,
     ReacqConfig,
     ReacqEnv,
     evaluate_policy,
     train_q_learning,
 )
-from trackforge.scan import GaussianUncertainty, simulate_acquisition, spiral_scan
-from trackforge.sim import DEFAULT_SCENARIO, Scenario, run_episode, run_monte_carlo
+from trackbench.scan import GaussianUncertainty, simulate_acquisition, spiral_scan
+from trackbench.sim import DEFAULT_SCENARIO, Scenario, run_episode, run_monte_carlo
 
 
 def test_scan_pattern_is_deterministic():

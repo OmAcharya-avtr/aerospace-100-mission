@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to TrackForge are documented here.
+All notable changes to TrackBench are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -11,7 +11,7 @@ Status: **TESTING**.
 
 ### Added
 
-**`trackforge.scan` — acquisition**
+**`trackbench.scan` — acquisition**
 - `GaussianUncertainty`: isotropic 2-D Gaussian uncertainty region with
   Rayleigh containment radius and quantile round-trip.
 - `spiral_scan`: Archimedean spiral with radial pitch tied to beam overlap
@@ -23,7 +23,7 @@ Status: **TESTING**.
 - `expected_acquisition_time_spiral`: analytic uniform-coverage expectation
   (internal derivation, validated against Monte Carlo to −0.65 %).
 
-**`trackforge.dynamics` — plant, disturbance, sensor**
+**`trackbench.dynamics` — plant, disturbance, sensor**
 - `GimbalAxis`: second-order axis `J θ̈ + b θ̇ = τ` with torque, rate and
   optional acceleration limits; RK4 with zero-order-hold torque.
 - `TwoAxisGimbal`: two decoupled axes with a config constructor.
@@ -33,7 +33,7 @@ Status: **TESTING**.
 - `AngleSensor`: NEA noise, optional quantisation, optional dropout with a
   validity flag.
 
-**`trackforge.control` — controllers and benchmark harness**
+**`trackbench.control` — controllers and benchmark harness**
 - `PIDController`: derivative-on-measurement, conditional-integration
   anti-windup, output clipping.
 - `pid_gains_from_bandwidth`, `lqr_weights_from_bandwidth`: documented tuning
@@ -44,7 +44,7 @@ Status: **TESTING**.
 - `step_response`, `disturbance_rejection_rms`, `bandwidth_estimate`,
   `benchmark_controllers`: measured metrics, no asserted numbers.
 
-**`trackforge.reacq` — reacquisition (AI)**
+**`trackbench.reacq` — reacquisition (AI)**
 - `ReacqConfig`, `ReacqEnv`: episodic MDP with the specified state
   (time since loss, last-known offset, uncertainty growth) plus a searched-radius
   feature for Markov consistency; three actions (LOCAL / FULL / RING).
@@ -56,14 +56,14 @@ Status: **TESTING**.
 - `evaluate_policy`, `compare_policies`: Monte Carlo evaluation with common
   random numbers and 95 % confidence intervals.
 
-**`trackforge.sim` — end-to-end simulator**
+**`trackbench.sim` — end-to-end simulator**
 - `Scenario`: validated configuration dataclass; `load_scenario` rejects
   unknown YAML keys.
 - `run_episode`: acquire → track → lose lock → reacquire, with metrics and
   optional time series.
 - `run_monte_carlo`, `sim_steps_per_second`.
 
-**CLI** — `python -m trackforge run | benchmark | reacq` (argparse, `--json`,
+**CLI** — `python -m trackbench run | benchmark | reacq` (argparse, `--json`,
 `--version`).
 
 **Examples and screenshots**
@@ -109,4 +109,4 @@ only (PyTorch unavailable in the build environment); uncalibrated confidence
 output; no policy serialisation; single-threaded. See README "Limitations"
 for the complete list.
 
-[0.1.0]: https://github.com/OPTIMA-Organisation/trackforge/releases/tag/v0.1.0
+[0.1.0]: https://github.com/OPTIMA-Organisation/trackbench/releases/tag/v0.1.0

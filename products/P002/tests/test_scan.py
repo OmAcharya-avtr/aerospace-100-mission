@@ -1,4 +1,4 @@
-"""Unit and property tests for trackforge.scan."""
+"""Unit and property tests for trackbench.scan."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from trackforge.scan import (
+from trackbench.scan import (
     GaussianUncertainty,
     coverage_fraction,
     expected_acquisition_time_spiral,

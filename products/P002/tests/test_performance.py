@@ -13,10 +13,10 @@ import time
 import numpy as np
 import pytest
 
-from trackforge.dynamics import JitterPSD, synthesize_jitter
-from trackforge.reacq import AlwaysLocalPolicy, ReacqConfig, evaluate_policy, train_q_learning
-from trackforge.scan import GaussianUncertainty, coverage_fraction, spiral_scan
-from trackforge.sim import DEFAULT_SCENARIO, Scenario, run_episode, sim_steps_per_second
+from trackbench.dynamics import JitterPSD, synthesize_jitter
+from trackbench.reacq import AlwaysLocalPolicy, ReacqConfig, evaluate_policy, train_q_learning
+from trackbench.scan import GaussianUncertainty, coverage_fraction, spiral_scan
+from trackbench.sim import DEFAULT_SCENARIO, Scenario, run_episode, sim_steps_per_second
 
 
 def test_closed_loop_throughput_above_floor():
@@ -89,8 +89,8 @@ def test_short_scenario_episode_scales_linearly_in_duration():
 
 def test_step_metrics_do_not_allocate_quadratically():
     """A 10x longer run must not cost more than 30x the wall time."""
-    from trackforge.control import PIDController, pid_gains_from_bandwidth, step_response
-    from trackforge.dynamics import GimbalAxis
+    from trackbench.control import PIDController, pid_gains_from_bandwidth, step_response
+    from trackbench.dynamics import GimbalAxis
 
     kp, ki, kd = pid_gains_from_bandwidth(0.05, 31.4, 0.707)
 

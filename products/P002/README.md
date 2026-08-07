@@ -1,4 +1,4 @@
-# TrackForge
+# TrackBench
 
 **Status:** TESTING · **Class:** flagship · **Validation level:** 3 · **AI:** yes
 
@@ -14,7 +14,7 @@ benchmarked against two scripted baselines.
 
 Free-space optical links must first *find* the far terminal inside a pointing
 uncertainty cone, then *hold* it against platform jitter, and — when a
-disturbance breaks the lock — *find it again*, fast. TrackForge simulates that
+disturbance breaks the lock — *find it again*, fast. TrackBench simulates that
 whole chain end to end and makes each stage measurable:
 
 - **Acquire.** Archimedean-spiral and serpentine-raster scan generators whose
@@ -53,7 +53,7 @@ terminal coincide. The engineering questions are:
    line of sight far. The right answer depends on state — which is a
    sequential decision problem, not a fixed rule.
 
-TrackForge lets these be traded quantitatively, before any hardware exists.
+TrackBench lets these be traded quantitatively, before any hardware exists.
 
 ## Intended users
 
@@ -253,20 +253,20 @@ described in `DATASET_CARD.md`, not a published model.
 
 ```
                      ┌──────────────────────────────────────────────────┐
-                     │             python -m trackforge                 │
+                     │             python -m trackbench                 │
                      │      run <scenario.yaml> | benchmark | reacq     │
                      └───────────────────────┬──────────────────────────┘
                                              │ argparse CLI
                                              v
   scenario.yaml ───────────>┌───────────────────────────────────┐
-   (validated, unknown      │        trackforge.sim             │
+   (validated, unknown      │        trackbench.sim             │
     keys rejected)          │  Scenario · run_episode           │
                             │  run_monte_carlo · steps/sec      │
                             └───┬───────┬───────────┬───────┬───┘
               ┌─────────────────┘       │           │       └────────────────┐
               v                         v           v                        v
   ┌────────────────────┐  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐
-  │ trackforge.scan    │  │trackforge.dynamics│ │trackforge.control│ │ trackforge.reacq │
+  │ trackbench.scan    │  │trackbench.dynamics│ │trackbench.control│ │ trackbench.reacq │
   │                    │  │                  │ │                  │ │      (AI)        │
   │ GaussianUncertainty│  │ GimbalAxis       │ │ PIDController    │ │ ReacqEnv         │
   │ spiral_scan        │  │ TwoAxisGimbal    │ │  (anti-windup)   │ │ AlwaysFullPolicy │
@@ -298,7 +298,7 @@ Package layout:
 
 ```
 products/P002/
-├── src/trackforge/     scan.py  dynamics.py  control.py  reacq.py  sim.py  __main__.py
+├── src/trackbench/     scan.py  dynamics.py  control.py  reacq.py  sim.py  __main__.py
 ├── tests/              10 modules, 295 tests
 ├── examples/           3 runnable scripts + 2 YAML scenarios
 ├── screenshots/        3 PNGs, produced by running the examples
@@ -321,13 +321,13 @@ Or run in place without installing:
 
 ```bash
 export PYTHONPATH=src
-python -m trackforge --version
+python -m trackbench --version
 ```
 
 ## Quick start
 
 ```python
-from trackforge.sim import Scenario, run_episode
+from trackbench.sim import Scenario, run_episode
 
 res = run_episode(Scenario(name="demo", controller="lqr"), seed=99)
 print(res.summary())
@@ -338,10 +338,10 @@ print(res.summary())
 Command line:
 
 ```bash
-python -m trackforge run examples/scenario_leo_downlink.yaml
-python -m trackforge run examples/scenario_high_jitter.yaml --json
-python -m trackforge benchmark
-python -m trackforge reacq --episodes 20000 --seed 12345
+python -m trackbench run examples/scenario_leo_downlink.yaml
+python -m trackbench run examples/scenario_high_jitter.yaml --json
+python -m trackbench benchmark
+python -m trackbench reacq --episodes 20000 --seed 12345
 ```
 
 ## Configuration
@@ -410,7 +410,7 @@ hardware or mission telemetry.
 
 ## Benchmark results
 
-Controller comparison, from `python -m trackforge benchmark` (J = 0.05 kg m²,
+Controller comparison, from `python -m trackbench benchmark` (J = 0.05 kg m²,
 b = 0.02 N m s/rad, τ_max = 2 N m, 5 Hz design bandwidth, dt = 2·10⁻⁴ s,
 open-loop disturbance RMS 2.112·10⁻⁶ rad):
 
@@ -477,7 +477,7 @@ Full details: [`MODEL_CARD.md`](MODEL_CARD.md) and
   state aliasing at bin boundaries; 80 % of the tabulated states unvisited;
   censored objective; ±3.4 % training-seed variance; no safety envelope.
   Detailed in `MODEL_CARD.md` §9.
-- **Reproducibility.** `python -m trackforge reacq --episodes 20000 --seed
+- **Reproducibility.** `python -m trackbench reacq --episodes 20000 --seed
   12345 --eval-episodes 2000 --eval-seed 999` reproduces the table; identical
   seeds give bitwise identical Q-tables.
 
@@ -505,7 +505,7 @@ Full details: [`MODEL_CARD.md`](MODEL_CARD.md) and
    Coulomb friction, no cogging, no backlash, no motor electrical dynamics.
 4. **No optical physics.** Detection is an abstract per-dwell Bernoulli trial:
    no link budget, detector noise, background light, atmospheric turbulence or
-   scintillation. TrackForge deliberately does not model channel effects.
+   scintillation. TrackBench deliberately does not model channel effects.
 5. **Illustrative parameters.** Every default (inertia, PSD level, beam
    radius, drift rate) is an order-of-magnitude placeholder, not design data
    for any terminal. Nothing has been compared against hardware or telemetry.
@@ -583,8 +583,8 @@ This is under reserved rights obtained by OPTIMA Organisation.
 ## Citation
 
 ```bibtex
-@software{trackforge_2026,
-  title        = {TrackForge: a pointing-acquisition-tracking simulation suite
+@software{trackbench_2026,
+  title        = {TrackBench: a pointing-acquisition-tracking simulation suite
                   for optical links},
   author       = {{OPTIMA Organisation}},
   version      = {0.1.0},

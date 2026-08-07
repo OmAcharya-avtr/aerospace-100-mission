@@ -35,7 +35,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from trackforge.control import (  # noqa: E402
+from trackbench.control import (  # noqa: E402
     LQRController,
     PIDController,
     bandwidth_estimate,
@@ -44,7 +44,7 @@ from trackforge.control import (  # noqa: E402
     pid_gains_from_bandwidth,
     step_response,
 )
-from trackforge.dynamics import (  # noqa: E402
+from trackbench.dynamics import (  # noqa: E402
     GimbalAxis,
     JitterPSD,
     synthesize_jitter,

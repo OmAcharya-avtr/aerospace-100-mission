@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 import yaml
 
-from trackforge.sim import DEFAULT_SCENARIO, Scenario, load_scenario
+from trackbench.sim import DEFAULT_SCENARIO, Scenario, load_scenario
 
 
 def write(tmp_path, data: dict, name: str = "s.yaml"):

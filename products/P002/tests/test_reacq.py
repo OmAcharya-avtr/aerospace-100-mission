@@ -1,4 +1,4 @@
-"""Unit tests for trackforge.reacq (environment, baselines, Q-learning)."""
+"""Unit tests for trackbench.reacq (environment, baselines, Q-learning)."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import math
 import numpy as np
 import pytest
 
-from trackforge.reacq import (
+from trackbench.reacq import (
     ACTIONS,
     AlwaysFullPolicy,
     AlwaysLocalPolicy,
