@@ -1,0 +1,121 @@
+Run started:2026-08-29 08:41:45.477300+00:00
+
+Test results:
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: products/P001/scripts/train_surrogate.py:53:8
+52	        print("dataset missing; generating (seed 42)...")
+53	        import subprocess
+54	
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: products/P001/scripts/train_surrogate.py:55:8
+54	
+55	        subprocess.run([sys.executable, str(ROOT / "scripts" / "generate_dataset.py")], check=True)
+56	    payload = np.load(data_file)
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: products/P004/validation/validate_scheduler.py:113:10
+112	    w("")
+113	    rng = random.Random(20260306)
+114	    w(f"  {'#':>3} {'n':>3} {'brute [Gbit]':>13} {'ILP [Gbit]':>12} {'greedy [Gbit]':>14} "
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: products/P012/examples/adaptive_q_tuning.py:133:4
+132	    ax = axes[1, 1]
+133	    assert trace_run is not None
+134	    steps = np.arange(N_STEPS)
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: products/P012/src/navbench/adaptive.py:401:8
+400	        scale = float(np.clip(10.0**mean, self.min_scale, self.max_scale))
+401	        assert self._lo is not None and self._hi is not None
+402	        extrap = bool(np.any(f < self._lo) or np.any(f > self._hi))
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: products/P012/src/navbench/adaptive.py:522:20
+521	                else:
+522	                    assert model is not None
+523	                    feats = innovation_features(w_innov, w_cov)
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: products/P012/validation/v4_mekf_quaternion.py:185:8
+184	        n = int(round(10.0 / dt))
+185	        assert abs(n * dt - 10.0) < 1e-12, "dt must divide the 10 s span exactly"
+186	        tr3 = attitude_trajectory(
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: products/P015/examples/policy_comparison.py:82:4
+81	    print(f"\nHighest mean throughput: {best}")
+82	    assert np.isfinite(results[best]["throughput_mbps"].mean)
+83	
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: products/P016/validation/validate_orthonormality.py:82:4
+81	        best = (diag, off)
+82	    assert best is not None
+83	    worst_a = max(best)
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: products/P019/validation/validate_baselines.py:61:8
+60	        print(f"{h:9.0f} {ground:13.4e} {tropo:13.4e} {high:13.4e} {total:13.4e}")
+61	        assert abs(total - (ground + tropo + high)) <= 1e-24, "term decomposition mismatch"
+62	
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 43061
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 10
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 10
+Files skipped (0):
