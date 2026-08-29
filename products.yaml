@@ -3,6 +3,9 @@
 #   SECURITY REVIEW DOCUMENTING REVIEW REQUIRED READY FOR APPROVAL APPROVED
 #   PUBLISHED NEEDS HARDENING BLOCKED ARCHIVED
 # Names are provisional until per-product conflict checks (mission spec §32).
+# Last corrected: 2026-08-29 (orchestration recovery). This file is the single
+# machine-readable source of truth; MISSION_STATUS.md totals are derived from it
+# (ADR-009) and must not be hand-maintained.
 
 mission:
   total_products: 100
@@ -12,154 +15,154 @@ mission:
 
 products:
   - id: P001
-    name: BeamTwin          # provisional
+    name: BeamTwin
     batch: 1
     class: flagship
     category: optical-link-engineering
     summary: FSO link digital twin — link budget engine, atmospheric channel (scintillation, fog/aerosol attenuation), ML fade-prediction surrogate with uncertainty output.
     ai_enabled: true
     validation_level: 3
-    status: APPROVED
+    status: PUBLISHED
     license: AGPL-3.0 (open-core)
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/flagship-beamtwin
     local_path: products/P001
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P002
-    name: TrackBench        # renamed 2026-08-01: "trackforge" is taken on PyPI by an unrelated computer-vision library
+    name: TrackBench          # renamed from TrackForge 2026-08-01 (PyPI conflict); resolved, name verified free
     batch: 1
     class: flagship
     category: pointing-acquisition-tracking
     summary: PAT simulation suite — spiral/raster acquisition scans, uncertainty cone, coarse/fine tracking loops, gimbal dynamics, jitter injection; RL reacquisition policy benchmarked against PID/LQR baselines.
     ai_enabled: true
     validation_level: 3
-    status: APPROVED
+    status: PUBLISHED
     license: AGPL-3.0 (open-core)
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/flagship-trackbench
     local_path: products/P002
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P003
-    name: ScintiNet         # provisional
+    name: ScintiNet
     batch: 1
     class: medium
     category: atmospheric-propagation
     summary: Learned scintillation surrogate — neural model trained on split-step phase-screen simulation data, benchmarked against Rytov-theory analytic baseline with error analysis.
     ai_enabled: true
     validation_level: 2
-    status: APPROVED
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/batch-01-suite
     local_path: products/P003
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P004
-    name: PassPlanner       # provisional
+    name: PassPlanner
     batch: 1
     class: medium
     category: space-operations
     summary: Optical ground-station contact planner — SGP4 propagation, visibility windows, cloud-availability weighting, greedy + ILP downlink scheduling optimizer.
     ai_enabled: true
     validation_level: 2
-    status: APPROVED
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/batch-01-suite
     local_path: products/P004
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P005
-    name: JitterScope       # provisional
+    name: JitterScope
     batch: 1
     class: medium
     category: airborne-systems
     summary: Platform jitter and vibration characterization — PSD analysis, pointing-loss integration, autoencoder anomaly detection on pointing telemetry.
     ai_enabled: true
     validation_level: 2
-    status: APPROVED
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/batch-01-suite
     local_path: products/P005
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P006
-    name: LinkBudgetX       # provisional
+    name: LinkBudgetX
     batch: 1
     class: compact
     category: optical-link-engineering
     summary: Deterministic FSO link-budget library — unit-aware quantities, geometric/pointing/atmospheric losses, uncertainty propagation, validated hand calculations.
     ai_enabled: false
     validation_level: 1
-    status: APPROVED
+    status: PUBLISHED
     license: MIT
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/batch-01-suite
     local_path: products/P006
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P007
-    name: QuatKit           # provisional
+    name: QuatKit
     batch: 1
     class: compact
     category: aerospace-gnc
     summary: Quaternion and attitude toolbox — kinematics, error angles, frame conversions, property-based tests against analytic identities.
     ai_enabled: false
     validation_level: 1
-    status: APPROVED
+    status: PUBLISHED
     license: MIT
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/batch-01-suite
     local_path: products/P007
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P008
-    name: CentroidNet       # provisional
+    name: CentroidNet
     batch: 1
     class: compact
     category: pointing-acquisition-tracking
     summary: Quadrant-detector centroid estimation — MLP ensemble vs analytic centroid and quad-cell baselines on synthetic noisy spot images, with ensemble-spread confidence output. (Specified as CNN; MLP substituted because PyTorch is unavailable in the build environment — disclosed in the product's model card.)
     ai_enabled: true
     validation_level: 2
-    status: APPROVED
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/batch-01-suite
     local_path: products/P008
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P009
-    name: FogCast           # provisional
+    name: FogCast
     batch: 1
     class: compact
     category: atmospheric-propagation
     summary: Fog/aerosol attenuation prediction — ML regression with confidence intervals benchmarked against Kim and Kruse empirical models.
     ai_enabled: true
     validation_level: 2
-    status: APPROVED
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/batch-01-suite
     local_path: products/P009
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P010
-    name: BERBench          # provisional
+    name: BERBench
     batch: 1
     class: compact
     category: optical-modulation
     summary: BER/modulation benchmark — OOK, PPM, BPSK over AWGN and lognormal fading channels, validated against analytic BER curves.
     ai_enabled: false
     validation_level: 2
-    status: APPROVED
+    status: PUBLISHED
     license: MIT
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/batch-01-suite
     local_path: products/P010
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P011
     name: WaveForge
@@ -244,9 +247,9 @@ products:
     summary: Zernike polynomial toolkit — Noll and OSA/ANSI indexing with explicit conversion, orthonormality, gradients, wavefront fitting, Noll residual variances.
     ai_enabled: false
     validation_level: 1
-    status: TESTING
+    status: REVIEW REQUIRED
     license: MIT
-    repository: null
+    repository: null            # source present in aerospace-100-mission; not released
     local_path: products/P016
     approved_for_publish: true
     published: false
@@ -259,9 +262,9 @@ products:
     summary: Compact Kalman family — linear KF, EKF, UKF, RTS smoother, Joseph-form covariance update, with documented numerical-stability guidance.
     ai_enabled: false
     validation_level: 1
-    status: TESTING
+    status: REVIEW REQUIRED
     license: MIT
-    repository: null
+    repository: null            # source present in aerospace-100-mission; not released
     local_path: products/P017
     approved_for_publish: true
     published: false
@@ -274,9 +277,9 @@ products:
     summary: Shack-Hartmann sensor simulator — lenslet geometry, per-subaperture spot formation with diffraction and noise, centre-of-gravity and correlation slope extraction; learned low-flux slope estimator with confidence.
     ai_enabled: true
     validation_level: 2
-    status: TESTING
+    status: REVIEW REQUIRED
     license: Apache-2.0
-    repository: null
+    repository: null            # source present in aerospace-100-mission; not released
     local_path: products/P018
     approved_for_publish: true
     published: false
@@ -289,9 +292,9 @@ products:
     summary: Vertical Cn2 profile prediction — Hufnagel-Valley and SLC baselines plus a learned profile-shape model with prediction intervals; synthetic training data disclosed as model-derived.
     ai_enabled: true
     validation_level: 2
-    status: TESTING
+    status: REVIEW REQUIRED
     license: Apache-2.0
-    repository: null
+    repository: null            # source present in aerospace-100-mission; not released
     local_path: products/P019
     approved_for_publish: true
     published: false
@@ -304,9 +307,9 @@ products:
     summary: Turbulence integral toolkit — Fried parameter, isoplanatic angle, Greenwood frequency, slant-path Rytov variance and scintillation index from any Cn2 profile, with explicit zenith-angle scaling. Deterministic reference implementation.
     ai_enabled: false
     validation_level: 2
-    status: TESTING
+    status: REVIEW REQUIRED
     license: MIT
-    repository: null
+    repository: null            # source present in aerospace-100-mission; not released
     local_path: products/P020
     approved_for_publish: true
     published: false

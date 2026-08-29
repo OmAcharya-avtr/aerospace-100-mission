@@ -22,11 +22,21 @@ Validation distribution: 10 × Level 1 (Educational), 60 × Level 2 (Research), 
 - `batch_reports/` — batch specifications and readiness reports
 - `nightly_reports/` — per-session development reports
 - `templates/` — nightly report, batch readiness, product README templates
-- `system/` — build environment profile
+- `system/` — build environment profile and `AUTOMATION.md`, the automated-session operating procedure
+- `scripts/` — `quota_report.py`, which derives mission totals from `products.yaml`
+
+## Status
+
+15 of 100 products built · 1,693 tests passing · Batch 01 published · Batch 02 at 5 of 10.
+Current figures: `MISSION_STATUS.md`. Totals are derived, not hand-maintained — run `python3 scripts/quota_report.py`.
 
 ## Development Cadence
 
-Work is performed in discrete automated sessions in a cloud build environment. Each session: restore state from this repository → develop → test → validate → scan → report → push (≤5 public commits per session). Each batch stops at `READY FOR APPROVAL` and is published only after explicit owner approval.
+Work is performed in discrete automated sessions, 10:00 PM – 7:00 AM America/New_York. Each session recovers state
+from this repository on GitHub, then develops → tests → validates → scans → documents → reports, checkpointing after
+every phase so an interrupted session resumes rather than restarts. Each batch stops at `READY FOR APPROVAL` and is
+published only after explicit owner approval. Maximum 5 pushed commits per night; local commits unlimited.
+Procedure: `system/AUTOMATION.md`. Decisions: `tracking/ARCHITECTURE_DECISIONS.md`.
 
 ## Honesty Rules
 

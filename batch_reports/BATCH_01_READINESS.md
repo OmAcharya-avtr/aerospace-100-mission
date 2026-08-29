@@ -58,6 +58,14 @@ Approved publication layout:
 
 Repo creation from the build environment is blocked by the session permission layer (ADR-004). Publication is therefore owner-executed: create the three empty repositories, then push from the synced git bundle.
 
+> **Correction, 2026-08-29.** The sentence above was true of one execution environment and wrong as a general
+> statement. ADR-004 has been replaced. GitHub writes are available from the owner's local environment — verified
+> by capability probe on 2026-08-29 — and may also be available to a build session that has the mission
+> repositories in its authorized set. Publication is no longer defined as owner-executed; it is executed by
+> whichever environment passes the capability test, subject to the approval gate in ADR-012. The three
+> repositories named above were created and are public. This paragraph is retained as the record of what was
+> believed at the time.
+
 ## 7. Test results
 
 1,041 passed, 0 failed, 0 skipped. Independently re-run by the coordinating session rather than accepted from build-agent self-reports.
