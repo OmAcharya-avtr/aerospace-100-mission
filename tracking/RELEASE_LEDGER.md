@@ -39,7 +39,7 @@ described as one.
 | 2026-08-07 | `b35afa5` | Batch 02 compact products — P016–P020, 652 tests |
 | 2026-08-07 | `22d96d2` | ADR-004 revised (incorrectly — see 2026-08-29 correction) |
 | 2026-08-08 – 2026-08-28 | — | **No commits. Nightly automation stalled.** |
-| 2026-08-29 | this commit | Orchestration recovery — ADRs rewritten, trackers corrected, GitHub-first recovery, checkpointing, approval gate restored |
+| 2026-08-29 | 9bae6f0 | Orchestration recovery — ADRs rewritten, trackers corrected, GitHub-first recovery, checkpointing, approval gate restored |
 
 ## Push accounting
 
@@ -49,4 +49,4 @@ push night records its commit count in this table.
 
 | Night | Repository | Commits pushed | Running total |
 |---|---|---:|---|
-| 2026-08-29 | pending credential rotation | 0 | 0 of 5 |
+| 2026-08-29 | aerospace-100-mission | 2 | 2 of 5 |
