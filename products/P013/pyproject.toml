@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "turbscope"
+version = "0.1.0"
+description = "Path-averaged Cn^2 inference from scintillation and differential-image-motion measurements, with closed-form inversion, saturation diagnostics and a learned multi-sensor model with prediction intervals."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "optical-turbulence",
+    "Cn2",
+    "scintillometer",
+    "DIMM",
+    "scintillation",
+    "free-space-optics",
+]
+dependencies = [
+    "numpy",
+    "scipy",
+    "scikit-learn",
+    "matplotlib",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis", "ruff"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W"]

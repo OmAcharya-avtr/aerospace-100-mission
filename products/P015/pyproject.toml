@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "linkswitch"
+version = "0.1.0"
+description = "Hybrid RF-optical link switching: lognormal optical fading, ITU-R rain-fade RF channel, and fixed-threshold, hysteresis and learned switching policies with confidence output"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.11"
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = ["free-space-optics", "hybrid-rf-optical", "link-switching", "rain-fade", "aerospace"]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "scikit-learn>=1.3",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]

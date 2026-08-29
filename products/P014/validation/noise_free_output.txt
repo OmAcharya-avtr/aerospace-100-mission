@@ -1,0 +1,29 @@
+WaveLab validation 1 -- noise-free exactness
+geometry: n_sub = 8, D = 1.0 m, pitch = 0.125 m
+illuminated subapertures = 52, slopes = 104
+Southwell phase points = 52
+Fried phase points     = 69
+modes estimated (Noll)  = 2..21 (20 modes)
+
+[1] Modal least squares: pure Zernike in, same Zernike out
+  PASS  worst |a_hat - a| over 200 random vectors [rad] = 1.7208e-14  (tolerance 1.0e-12)
+
+[2] Southwell zonal: quadratic phase (Noll j = 2,3,4,5,6)
+  true phase RMS over the points = 1.8969 rad
+  PASS  max |p_hat - p| [rad] = 7.5495e-15  (tolerance 1.0e-12)
+
+[3] Fried zonal: same phase, reported modulo its null space
+  null-space dimension = 2 (piston + waffle)
+  unobservable component of the residual = [1.49291094 1.26020422] rad
+  PASS  max |observable part of p_hat - p| [rad] = 1.3822e-14  (tolerance 1.0e-12)
+
+[4] Singular spectra of the geometry operators A
+  southwell  shape (88, 52) sigma_max = 2.7661  sigma_min(nonzero) = 4.3488e-01  condition = 6.36  #(sigma <= 1e-9 sigma_max) = 1
+  fried      shape (104, 69) sigma_max = 1.9330  sigma_min(nonzero) = 3.3224e-01  condition = 5.82  #(sigma <= 1e-9 sigma_max) = 2
+
+[5] Model error from point-sampled versus area-averaged subaperture slopes
+  max |u_area - u_point| / max |u_point| = 2.6044e-16
+  resulting modal residual wavefront RMS = 2.3389e-15 rad
+  as a fraction of the input wavefront RMS (1.8735 rad) = 1.2484e-15
+
+SUMMARY: 3 passed, 0 failed

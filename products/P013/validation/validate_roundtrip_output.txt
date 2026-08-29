@@ -1,0 +1,65 @@
+TurbScope validation 2 - round-trip recovery and interval coverage
+seed 20260829, 4000 Monte-Carlo trials
+
+==============================================================================
+1. Noise-free round trip: does the inversion return the weighted average exactly?
+==============================================================================
+The estimator is defined to return <Cn2>_W, not the plain path average.
+     profile      <Cn2>_Wsc      recovered      rel err      plain avg  plain rel err
+     uniform   1.000000e-15   9.999974e-16    -2.57e-06   1.000000e-15      -2.57e-06
+        ramp   1.000000e-15   9.999974e-16    -2.57e-06   1.000000e-15      -2.57e-06
+   hot-patch   1.497906e-15   1.497903e-15    -2.57e-06   1.451186e-15       3.22e-02
+
+The last column is not an error of the estimator: it is the weighting bias
+of the sensor, which is what a single-sensor inversion cannot remove.
+
+==============================================================================
+2. Monte-Carlo round trip in the weak regime (4000 trials)
+==============================================================================
+true beta_0^2 = 0.02409  (weak-regime limit 0.3)
+true <Cn2>_Wsc = 2.995813e-15 m^-2/3
+true <Cn2>_Wco = 2.246435e-15 m^-2/3
+kernel-mismatch ratio <Cn2>_Wsc/<Cn2>_Wco = 1.3336
+
+Monte Carlo wall time: 12.2 s on 2 CPU cores
+
+scintillometer -> <Cn2>_Wsc   (target = scintillation kernel)
+    mean relative error   -0.00052
+    RMS relative error    0.04531
+    median |rel err|      0.03004
+    p95 |rel err|         0.08820
+    90 % interval coverage (nominal 0.900): 0.9018
+    bias tolerance |mean| < 0.02: PASS
+    coverage tolerance 0.90 +/- 0.02:       PASS
+
+DIMM           -> <Cn2>_Wco   (target = coherence kernel)
+    mean relative error   -0.00090
+    RMS relative error    0.06415
+    median |rel err|      0.04341
+    p95 |rel err|         0.12748
+    90 % interval coverage (nominal 0.900): 0.8945
+    bias tolerance |mean| < 0.02: PASS
+    coverage tolerance 0.90 +/- 0.02:       PASS
+
+
+==============================================================================
+3. DIMM failure mode: turbulence below the centroid-noise floor
+==============================================================================
+  Cn2 (m^-2/3)     SNR    sigma_l^2        noise   invalid  med |rel err|  p95 |rel err|
+       1.0e-19    0.01    3.653e-16    5.876e-14     0.463         6.7060        19.0294
+       3.0e-19    0.02    1.096e-15    5.876e-14     0.423         1.7445         7.6918
+       1.0e-18    0.06    3.653e-15    5.876e-14     0.183         0.5790         2.1235
+       3.0e-18    0.19    1.096e-14    5.876e-14     0.000         0.2720         0.7251
+       1.0e-17    0.62    3.653e-14    5.876e-14     0.000         0.1175         0.3409
+       3.0e-17    1.87    1.096e-13    5.876e-14     0.000         0.0635         0.1811
+       1.0e-16    6.22    3.653e-13    5.876e-14     0.000         0.0466         0.1329
+       1.0e-15   62.18    3.653e-12    5.876e-14     0.000         0.0427         0.1246
+
+The 0.05 arcsec centroid-noise floor is 5.876e-14 rad^2 on this path.  Above
+SNR ~ 6 the inversion is accurate to ~4.7 % (median); at SNR 0.62 the median
+error is 11.8 % and the p95 is 34 %; at SNR 0.19 the median is 27 %; and below
+SNR ~ 0.06 more than 18 % of readings fall at or under the floor and return
+valid=False rather than a number, rising to 46 % at SNR 0.01.  This is a real
+instrument limit, reproduced rather than engineered away.
+
+Done.

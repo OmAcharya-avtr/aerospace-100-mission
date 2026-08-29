@@ -1,0 +1,114 @@
+TurbScope validation 3 - saturation of scintillation (documented failure regime)
+
+==============================================================================
+1. Bias of the weak-regime linear inversion vs true beta_0^2
+==============================================================================
+The textbook inversion assumes sigma_I^2 = beta_0^2.  Below is the Cn2 it
+returns, relative to the truth, using the exact forward model to generate
+the (noise-free) reading.
+
+  beta_0^2   sigma_I^2    Cn2_weak/Cn2_true    error %
+      0.01     0.01003              1.00256       0.26
+       0.1     0.10106              1.01062       1.06
+       0.3     0.29970              0.99900      -0.10
+       0.5     0.48413              0.96826      -3.17
+         1     0.86083              0.86083     -13.92
+         2     1.30628              0.65314     -34.69
+         5     1.66381              0.33276     -66.72
+     7.297     1.69210              0.23190     -76.81
+        10     1.67700              0.16770     -83.23
+        20     1.57939              0.07897     -92.10
+        50     1.42299              0.02846     -97.15
+       100     1.32326              0.01323     -98.68
+
+Inside the weak regime the linear inversion is good to ~1 % (its largest
+deviation there is +1.06 % near beta_0^2 = 0.1, and it is -0.10 % at the
+beta_0^2 = 0.3 limit).  Beyond it the bias is one-sided and severe: -13.9 %
+at beta_0^2 = 1, -66.7 % at 5, -92.1 % at 20 and -98.7 % at 100, i.e. nearly
+two orders of magnitude of under-estimate.  This is why WEAK_REGIME_BETA0_SQ
+is set to 0.3 and why the package warns above it.
+
+==============================================================================
+2. The inversion is multi-valued: quantifying the ambiguity
+==============================================================================
+peak of sigma_I^2(beta_0^2):  beta_0^2 = 7.296562, sigma_I^2 = 1.692103
+large-beta asymptote:         sigma_I^2 -> 1.052378
+multi-valued reading range:   1.052378 < sigma_I^2 < 1.692103
+unexplainable readings:       sigma_I^2 > 1.692103
+
+For a 2 km path at 850 nm, the two solutions and the Cn2 ambiguity they imply:
+ sigma_I^2  beta_0^2 (low)  beta_0^2 (high)       Cn2 low      Cn2 high    ratio
+     1.060          1.3582        6998.7964    2.3519e-14    1.2119e-10   5153.1x
+     1.100          1.4433        1879.7124    2.4993e-14    3.2550e-11   1302.3x
+     1.200          1.6840         331.0094    2.9162e-14    5.7319e-12    196.6x
+     1.300          1.9791         120.6637    3.4271e-14    2.0895e-12     61.0x
+     1.400          2.3597          57.9349    4.0861e-14    1.0032e-12     24.6x
+     1.500          2.8936          31.5421    5.0108e-14    5.4620e-13     10.9x
+     1.600          3.7842          17.6933    6.5529e-14    3.0639e-13      4.7x
+     1.650          4.6259          12.7099    8.0105e-14    2.2009e-13      2.7x
+     1.690          6.5499           8.1671    1.1342e-13    1.4142e-13      1.2x
+
+9 of 9 test readings admit two solutions.  At sigma_I^2 = 1.06 the
+two branches differ by a factor of 5153 in Cn2; at sigma_I^2 = 1.50 by a factor
+of 10.9; and even at sigma_I^2 = 1.69, one part in a thousand below the peak,
+by a factor of 1.2.  No estimator, and no amount of averaging, resolves this
+from a single point-receiver scintillometer reading -- the information is not
+in the measurement.  (The upper branch above beta_0^2 ~ 1e3 is a root of the
+Andrews-Phillips fit far outside the range over which it was validated; it is
+reported because it is a genuine solution of the model the package uses, not
+because such turbulence is expected on a real path.)
+
+==============================================================================
+3. Sensitivity collapse: the propagated uncertainty diverges at the peak
+==============================================================================
+Relative standard deviation of the recovered Cn2 from N = 1000 irradiance
+samples, as the true turbulence approaches the peak.
+
+  beta_0^2  beta/beta_pk   d sigma/d beta   rel sigma (Cn2)  beta recovered  recovery err
+    0.0730         0.010        1.014e+00            0.0482          0.0730      2.22e-16
+    0.3648         0.050        9.382e-01            0.0656          0.3648     -4.84e-14
+    0.7297         0.100        7.628e-01            0.0921          0.7297      2.22e-16
+    2.1890         0.300        2.580e-01            0.2508          2.1890     -2.22e-16
+    3.6483         0.500        8.807e-02            0.5560          3.6483     -2.22e-16
+    5.8372         0.800        1.495e-02            2.2162          5.8372     -2.07e-13
+    6.9317         0.950        2.641e-03           10.5995          6.9317     -4.24e-14
+    7.2236         0.990        4.849e-04           55.3508          7.2236     -7.55e-15
+    7.2893         0.999        4.758e-05          558.8395             nan           nan
+
+The sensitivity d(sigma_I^2)/d(beta_0^2) falls by five orders of magnitude
+between 1 % and 99.9 % of the peak, so the delta-method uncertainty on Cn2
+grows without bound: 4.8 % at beta_0^2 = 0.073 becomes 222 % at 5.84 and
+55880 % at 7.29.  Away from the peak the root-finder is exact (recovery error
+<= 2e-13 in every row up to 99 % of the peak), but within 0.1 % of the peak it
+fails completely: sigma_I^2 is flat there to within the scan resolution, no
+bracketing sign change exists, and the inversion returns no branch at all (NaN
+in the last row).  The package reports the widening interval, and then the
+absence of a solution, rather than returning a confident number.
+
+==============================================================================
+4. End-to-end failure rate on simulated strong-turbulence observations
+==============================================================================
+path 2 km at 850 nm, receiver D = 0.25 m -> aperture d^2 = 57.75
+point-channel peak sigma_I^2 = 1.6921; aperture-channel peak = 0.1925 at beta_0^2 = 26.2
+
+   Cn2 true   beta_0^2  invalid %  ambiguous %   median Cn2_hat/Cn2   p95 ratio
+    1.0e-15       0.06        0.0          0.0               1.0029      1.0600
+    3.0e-15       0.17        0.0          0.0               1.0027      1.0767
+    1.0e-14       0.58        0.0          0.0               1.0001      1.0951
+    3.0e-14       1.73        0.0         99.5               0.9761      1.2733
+    1.0e-13       5.77       39.0         61.0               0.6582      0.9121
+
+RESULT: the analytic point-receiver inversion degrades sharply above
+beta_0^2 ~ 1.7 and is unusable at beta_0^2 ~ 5.8, where 39.0 % of readings
+exceed the attainable maximum and are refused outright, 61.0 % are flagged
+ambiguous, and the surviving estimates have a median Cn2_hat/Cn2 of 0.658.
+At beta_0^2 = 1.73 essentially every reading (99.5 %) is already formally
+ambiguous even though the low branch is still the right one (median ratio
+0.976) -- the ambiguity flag fires well before the point estimate fails.
+Note that aperture averaging only postpones the problem: the aperture channel
+here peaks at sigma_I^2 = 0.1925 at beta_0^2 = 26.2 and is multi-valued above
+that.  TurbScope documents all of this as a limit of the measurement, not a
+defect of the software.  validation/benchmark_ml.py reports how much of the
+gap the learned multi-sensor model closes, and how much it does not.
+
+Done.
