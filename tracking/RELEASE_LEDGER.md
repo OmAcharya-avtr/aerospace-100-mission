@@ -20,11 +20,20 @@ recorded when the pushes happened; the commit dates are recorded instead.
 2026-08-01; readiness report `batch_reports/BATCH_01_READINESS.md`; 1,041 tests
 passing at publication.
 
-**Batch 02 (P016–P020): source present in the mission repository, NOT
-released.** These five products were committed to `aerospace-100-mission` as
-work in progress in commit `b35afa5`. Batch 02 is incomplete (5 of 10),
-unapproved, and has no readiness report. It is not a release and must not be
-described as one.
+**Batch 02 (P011–P020): APPROVED 2026-08-29, NOT YET PUSHED.** All ten products reached the completion gate on 2026-08-29 with
+2,505 tests passing, ruff clean, and no critical security finding. Approved by
+Om Acharya in chat ("Go ahead and push") after
+`batch_reports/BATCH_02_READINESS.md` was delivered. Squashed to the five signed
+commits in §16 of that report and gated with the full ADR-015 pre-push check,
+which passed on all seven items. **The push itself did not happen:** no
+credential was available in any permitted store in either reachable environment
+(see §18 of the readiness report). The commits exist locally and in a bundle
+delivered to the owner.
+
+**Also outstanding:** the three per-product repositories named in §6 of the
+readiness report — `flagship-waveforge`, `flagship-navbench` and
+`batch-02-suite` — have not been created. Repository creation needs GitHub API
+access that neither reachable environment has.
 
 ## Local milestones
 
@@ -40,6 +49,11 @@ described as one.
 | 2026-08-07 | `22d96d2` | ADR-004 revised (incorrectly — see 2026-08-29 correction) |
 | 2026-08-08 – 2026-08-28 | — | **No commits. Nightly automation stalled.** |
 | 2026-08-29 | 9bae6f0 | Orchestration recovery — ADRs rewritten, trackers corrected, GitHub-first recovery, checkpointing, approval gate restored |
+| 2026-08-29 | `665363d` | Approved, staged — WaveForge v0.1.0 (P011) |
+| 2026-08-29 | `745bcea` | Approved, staged — NavBench v0.1.0 (P012) |
+| 2026-08-29 | `400b0bf` | Approved, staged — Batch 02 medium suite: TurbScope, WaveLab, LinkSwitch (P013–P015) |
+| 2026-08-29 | `387cafc` | Approved, staged — Batch 02 validation evidence, security scans, readiness report |
+| 2026-08-29 | (head) | Approved, staged — Batch 02 approved: trackers, mission status and ledger |
 
 ## Push accounting
 
@@ -49,4 +63,5 @@ push night records its commit count in this table.
 
 | Night | Repository | Commits pushed | Running total |
 |---|---|---:|---|
-| 2026-08-29 | aerospace-100-mission | 2 | 2 of 5 |
+| 2026-08-29 (session 1) | aerospace-100-mission | 2 | 2 of 5 |
+| 2026-08-29 (session 2) | aerospace-100-mission | **0** | Batch 02 approved and five commits staged and gated, but no credential was available in either reachable environment. 5 of 5 remain for the night the push happens. |

@@ -16,10 +16,15 @@ with their status changed; they are not deleted.
 | 2026-08-29 | Per-batch approval gate restored for Batches 02–10 | APPROVED | Om Acharya | Develop → test → validate → security review → document → readiness report → `READY FOR APPROVAL` → **stop** → owner approval → publish. ADR-012. |
 | 2026-08-29 | Model tiering policy | APPROVED | Om Acharya | Strongest reasoning model for architecture, derivations, validation, debugging, final review; strong coding models for parallel implementation; lighter models only for non-critical repetitive work. Implementer is never the sole validator of its own critical numerical claims. ADR-008. |
 
+| 2026-08-29 | Batch 02 (P011–P020) publication | APPROVED | Om Acharya | "Go ahead and push", given in chat during the automated session after `batch_reports/BATCH_02_READINESS.md` was delivered. Ten products, 2,505 tests passing, ruff clean, no critical security finding, §28 IP gate answered. ADR-012 gate satisfied. |
+
 ## Pending owner approvals
 
 | Item | Blocked on | Gate |
 |---|---|---|
-| Batch 02 publication | P011–P015 not built; batch readiness report not written | ADR-012 — batch must reach `READY FOR APPROVAL` first |
 | Resumption of pushes to GitHub | Owner rotation of the PAT and account password | ADR-014 — replacement credential must come from secure storage |
+| GitHub write access for the build session | Mission repositories are not attached as sources to the build session, so Environment A could not reach the GitHub API on 2026-08-29 | ADR-004 — attach the four mission repositories to the build session |
 | Batch 03 specification | Batch 02 approval | ADR-012 — no batch N+1 specification before batch N is approved |
+
+Batch 02 was approved 2026-08-29 and is being published under the §16 commit
+plan. Batch 03 may now be specified.
