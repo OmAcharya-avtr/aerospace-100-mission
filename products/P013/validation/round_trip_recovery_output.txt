@@ -1,0 +1,41 @@
+TurbScope round-trip recovery -- all values computed in this run
+numpy 2.4.4
+
+==============================================================================
+1.1 Noiseless closed-form round trip, scintillometer only, vs sigma_R^2 (quantifies where the weak-theory approximation itself costs accuracy, independent of any sensor noise)
+==============================================================================
+  target sigma_R^2     Cn2_true [m^-2/3]     Cn2_recovered    rel. error
+            0.0001          2.274774e-17      2.274920e-17       0.0064% <= WEAK_REGIME_MAX
+            0.0010          2.274774e-16      2.276232e-16       0.0641% <= WEAK_REGIME_MAX
+            0.0100          2.274774e-15      2.289109e-15       0.6302% <= WEAK_REGIME_MAX
+            0.0500          1.137387e-14      1.170584e-14       2.9187% <= WEAK_REGIME_MAX
+            0.1000          2.274774e-14      2.394872e-14       5.2795% <= WEAK_REGIME_MAX
+            0.2000          4.549548e-14      4.935650e-14       8.4866% <= WEAK_REGIME_MAX
+            0.3000          6.824322e-14      7.502884e-14       9.9433% <= WEAK_REGIME_MAX
+            0.5000          1.137387e-13      1.237688e-13       8.8185%  (beyond threshold)
+            1.0000          2.274774e-13      2.121977e-13      -6.7170%  (beyond threshold)
+
+==============================================================================
+1.2 DIMM noiseless closed-form round trip (exact by construction, both channels)
+==============================================================================
+  target sigma_R^2=0.001, longitudinal : rel. error = 2.167e-16
+  target sigma_R^2=0.001, transverse   : rel. error = 2.167e-16
+  target sigma_R^2=0.05, longitudinal : rel. error = 1.387e-16
+  target sigma_R^2=0.05, transverse   : rel. error = 1.387e-16
+  target sigma_R^2=0.2, longitudinal : rel. error = 0.000e+00
+  target sigma_R^2=0.2, transverse   : rel. error = 0.000e+00
+
+==============================================================================
+2. Round-trip recovery WITH realistic measurement noise (scintillometer 8%, DIMM 10% relative 1-sigma), single canonical weak-regime scenario, N=1000 independent noisy draws
+==============================================================================
+true Cn2_path = 1.160622e-14 m^-2/3, L = 300 m, target sigma_R^2 = 0.02
+scintillometer weak inversion            mean rel. error +1.6229%   std 8.0293%   RMSE 8.1916%   median |err| 5.4099%
+DIMM longitudinal inversion              mean rel. error -0.1828%   std 9.8328%   RMSE 9.8345%   median |err| 6.6076%
+multi-sensor fused (inverse-variance)    mean rel. error -0.2753%   std 5.4180%   RMSE 5.4249%   median |err| 3.6397%
+
+==============================================================================
+3. Round-trip recovery across MANY independent weak-regime scenarios (one noisy draw each) -- the headline aggregate number
+==============================================================================
+1639 of 3000 drawn scenarios are weak-regime (sigma_R^2 <= 0.3)
+multi-sensor fused    : median |rel err| 3.8562%, mean 4.6296%, p90 9.8271%
+scintillometer alone  : median |rel err| 5.8850%, mean 7.0533%, p90 14.4724%

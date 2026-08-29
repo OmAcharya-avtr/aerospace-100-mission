@@ -1,0 +1,19 @@
+Scenario: sigma_i2=0.4, margin_db=4.0, coherence=4.0, downtime_steps=1, window=6, confidence_threshold=0.5
+n_steps=1500, n_reps=120 per horizon (paired Monte Carlo, 95% CI)
+ horizon             throughput Mb/s               outage frac      switches
+       1   888.240 [884.970, 891.510]      0.0820 [0.0798, 0.0843]   60.54
+       2   881.636 [878.131, 885.141]      0.0826 [0.0804, 0.0849]   73.49
+       3   874.992 [871.395, 878.588]      0.0841 [0.0819, 0.0863]   87.34
+       5   840.825 [836.984, 844.666]      0.1012 [0.0990, 0.1035]  139.05
+       8   789.972 [785.726, 794.219]      0.1266 [0.1243, 0.1290]  189.88
+      12   625.345 [621.166, 629.523]      0.2005 [0.1981, 0.2028]  300.62
+      20   168.406 [167.383, 169.430]      0.0794 [0.0777, 0.0811]  118.81
+
+Horizon maximising throughput : H=1
+Horizon minimising outage      : H=20
+Horizon minimising switches    : H=1
+
+Switch count monotonically non-decreasing in H across the full sweep: False
+(expected per the module docstring: a longer horizon labels more steps as 'imminent outage', so the trained model triggers preemptive switches more often; whether this is monotone in practice, given RandomForest training noise, is reported as measured above, not assumed.)
+
+Wall time: 8.3 s
