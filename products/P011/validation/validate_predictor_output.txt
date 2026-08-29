@@ -1,0 +1,71 @@
+==============================================================================
+WaveForge validation 6 — learned predictive control vs the baselines
+==============================================================================
+aperture / r0        : 0.5 m / 0.1 m (D/r0 = 5.0)
+wind / frame rate    : 10.0 m/s / 1000 Hz
+sensor / mirror      : 8x8 SH, 9x9 DM
+training screens     : seeds [101, 102, 103], 400 frames each
+held-out screens     : seeds [901] (open loop), [901, 902] (closed loop)
+gain-tuning screen   : seed 555 (used for no reported number)
+Train and test screens are different atmospheric realisations, never
+different slices of one sequence.
+
+dataset              : 1200 training frames, 400 test frames, 104 slopes
+
+--- 1. Open-loop forecast accuracy on held-out screens ---
+Root-mean-square slope error [rad/m] of a forecast h frames ahead.
+  h  ridge alpha    ML RMSE   delay RMSE    ratio     winner
+  1         0.01     1.4384       4.3191    0.333    learned
+  2          0.1     2.8387       8.2481    0.344    learned
+  3            1     4.2849      11.6673    0.367    learned
+  4           10     5.8890      14.5840    0.404    learned
+
+--- 2. Uncertainty calibration on held-out screens ---
+The predictor reports sigma = sqrt(ensemble variance + out-of-bag
+residual variance). Nominal coverage is the Gaussian value; measured
+coverage is the fraction of held-out slopes inside k sigma.
+  h   1 sigma   (68.3%)   2 sigma   (95.4%)   3 sigma   (99.7%)  mean sigma     RMSE
+  1     82.7%     68.3%     99.2%     95.4%    100.0%     99.7%      1.7244   1.4384
+  2     76.2%     68.3%     97.7%     95.4%     99.9%     99.7%      2.3823   2.8387
+  3     67.4%     68.3%     94.6%     95.4%     99.5%     99.7%      2.1099   4.2849
+  4     62.3%     68.3%     91.9%     95.4%     99.0%     99.7%      2.6805   5.8890
+
+Reading: the intervals are NOT calibrated Gaussian sigmas, and they
+miscalibrate in both directions. At h = 1 and h = 2 they are
+conservative (measured coverage above nominal, the safe direction);
+at h = 3 and especially h = 4 they become optimistic - 62% inside one
+sigma at h = 4 against a nominal 68%, with the mean sigma well below
+the actual RMSE. The out-of-bag residual term is estimated on the
+training screens and does not grow enough to cover the extra error
+the model makes further ahead on unseen turbulence. Treat the output
+as a relative confidence signal only, and never as a probability.
+
+--- 3. Closed loop: classical integrator vs pure delay vs learned ---
+Gains are tuned separately for each controller on the tuning screen,
+then frozen; the numbers below are from the evaluation screens.
+  d  g_int  g_del   g_ml  integrator  pure delay    learned   S_int   S_del    S_ml    winner
+  1   0.40   0.40   0.30      0.6728      0.6728     0.5361  0.5434  0.5434  0.6085   learned
+  2   0.30   0.40   0.30      0.9274      0.8637     0.5354  0.4308  0.4519  0.6093   learned
+  3   0.20   0.60   0.30      1.2798      1.0669     0.5444  0.3040  0.3848  0.6042   learned
+  4   0.20   0.40   0.40      1.7085      1.3736     0.4958  0.2124  0.2818  0.6384   learned
+
+--- 4. Failure mode: wind speed different from training ---
+The model was trained at 10.0 m/s only.
+ v [m/s]  integrator    learned    ratio      winner
+     5.0      0.9465     0.6178    0.653     learned
+    10.0      1.0351     0.5861    0.566     learned
+    15.0      1.2202     0.9440    0.774     learned
+    20.0      1.5356     1.8005    1.173  INTEGRATOR
+
+--- 5. Failure mode: measurement noise, trained clean vs noise-matched ---
+A predictor trained on noise-free slopes and then deployed on a noisy
+sensor amplifies the noise. Retraining at the deployed noise level
+fixes it, and is the only supported way to use the model under noise.
+ flux [e-]    sigma  integrator   ML clean  ML matched      winner
+       inf     0.00      0.9578     0.5352      0.5352    ML clean
+      1000     7.79      1.5164     1.6065      0.6318  ML matched
+       300    16.91      2.4786     5.7542      1.0090  ML matched
+       100    39.70      5.0277    29.7540      3.8755  ML matched
+
+elapsed: 98.2 s
+==============================================================================

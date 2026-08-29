@@ -1,0 +1,66 @@
+==============================================================================
+WaveForge validation 4 — Strehl ratio vs the Marechal approximation
+==============================================================================
+pupil            : 64 x 64 over 0.5 m (3228 illuminated samples)
+ensemble         : 200 Kolmogorov screens per variance, seeds 60000 + 13 k
+Strehl definition: S = |mean over the pupil of exp(i phi)|^2
+
+--- 1. Kolmogorov residual phase scaled to a target variance ---
+  sigma^2   S numerical    exp(-s2)   rel. err     1 - s2   rel. err
+     0.01       0.99004     0.99005      0.00%    0.99000     -0.00%
+     0.05       0.95111     0.95123      0.01%    0.95000     -0.12%
+     0.10       0.90439     0.90484      0.05%    0.90000     -0.48%
+     0.25       0.77636     0.77880      0.31%    0.75000     -3.40%
+     0.50       0.59890     0.60653      1.27%    0.50000    -16.51%
+     1.00       0.34979     0.36788      5.17%    0.00000   -100.00%
+     1.50       0.20032     0.22313     11.39%    0.00000   -100.00%
+     2.00       0.11474     0.13534     17.95%    0.00000   -100.00%
+     3.00       0.04698     0.04979      5.97%    0.00000   -100.00%
+     5.00       0.04046     0.00674    -83.35%    0.00000   -100.00%
+
+extended form within 5%  up to sigma^2 = 0.5
+quadratic form within 5% up to sigma^2 = 0.25
+Engineering rule of thumb, confirmed: the extended form is the one to
+use, and the quadratic form is only good for sigma^2 well below 0.5.
+
+--- 2. Significance of the gap, and where the form breaks entirely ---
+The extended form is exact only for a zero-mean Gaussian phase of
+uniform variance over the pupil. Neither condition holds here: each
+screen is rescaled to a fixed SPATIAL variance rather than drawn from
+the free ensemble, and Kolmogorov phase on a finite pupil is not
+spatially stationary. The measured gap is small but far larger than
+the Monte-Carlo error, so it is reported rather than dismissed.
+  sigma^2 = 0.10  S = 0.90439 +/- 0.00003 (s.e.), exp(-s2) = 0.90484, gap = -16.5 standard errors
+  sigma^2 = 0.50  S = 0.59890 +/- 0.00051 (s.e.), exp(-s2) = 0.60653, gap = -14.9 standard errors
+  sigma^2 = 1.00  S = 0.34979 +/- 0.00142 (s.e.), exp(-s2) = 0.36788, gap = -12.8 standard errors
+  sigma^2 = 2.00  S = 0.11474 +/- 0.00270 (s.e.), exp(-s2) = 0.13534, gap = -7.6 standard errors
+
+Beyond sigma^2 ~ 2.5 the numerical Strehl stops falling and saturates
+near the speckle floor set by the number of independent coherence
+cells in the pupil: at sigma^2 = 5 the measured value is 0.040 against
+exp(-5) = 0.0067, a factor of six. The extended Marechal form must not
+be used there, in either direction.
+
+--- 3. Genuine closed-loop residuals ---
+The same comparison on residual phase produced by the full AO loop,
+which is what a user of this package will actually have.
+  gain  delay   sigma^2   S numerical    exp(-s2)   rel. err
+  0.60      1    0.8388       0.51083     0.43223    -15.39%
+  0.40      2    1.1873       0.39491     0.30506    -22.75%
+  0.20      2    1.1583       0.35028     0.31402    -10.35%
+  0.30      3    1.5258       0.28761     0.21745    -24.39%
+  0.10      3    1.9432       0.19545     0.14324    -26.71%
+
+worst relative difference on closed-loop residuals : 26.7%
+Honest reading: on real closed-loop residuals the extended Marechal
+form UNDERESTIMATES the Strehl, by tens of percent once sigma^2
+approaches 1 rad^2. Two reasons, both physical: the residual variance
+fluctuates from frame to frame and the mean of exp(-sigma^2) over
+those fluctuations exceeds exp(-mean sigma^2) by Jensen's inequality;
+and the residual is dominated by high-order modes at the pupil edge,
+so its variance is not uniform over the pupil. Use the numerical
+Strehl from LoopResult.strehl for performance claims, and the
+Marechal form only for sizing.
+
+elapsed: 5.9 s
+==============================================================================

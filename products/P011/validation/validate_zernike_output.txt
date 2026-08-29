@@ -1,0 +1,131 @@
+==============================================================================
+WaveForge validation 1 — Zernike orthonormality and Noll statistics
+==============================================================================
+numpy 2.4.4
+
+--- 1a. Orthonormality by exact quadrature (unit disc, 1/pi weight) ---
+Reference: Noll (1976) JOSA 66(3), Eq. 3 -> Gram matrix = identity.
+modes checked                : j = 1..21
+quadrature                   : 64 Gauss-Legendre radial x 128 angular
+worst |Gram_ii - 1|          : 6.217e-15
+worst |Gram_ij|, i != j      : 3.478e-15
+tolerance                    : 1e-12
+result                       : PASS
+
+--- 1b. Orthonormality on the Cartesian grids the package uses ---
+This is the error a user actually incurs when fitting on a pixel grid.
+   n_pix    worst |Gii-1|      worst |Gij|
+      32        4.561e-02        4.150e-02
+      64        2.468e-02        1.660e-02
+     128        9.186e-03        8.955e-03
+     256        1.863e-03        2.204e-03
+Note: the discrete grid is NOT exactly orthonormal; the deviation
+falls roughly as 1/n_pix and is the dominant error in modal fitting.
+
+--- 2. Noll residual variances Delta_J vs Noll (1976) Table IV ---
+Delta_J = total piston-removed variance - sum_{j=2}^{J} <a_j^2>,
+in units of (D/r0)^(5/3) [rad^2].
+total piston-removed variance (computed) : 1.032765
+total piston-removed variance (Noll)     : 1.029900
+
+   J      (n,m)     computed    published   rel. diff
+   1     (0, 0)     1.032765     1.029900      0.278%
+   2     (1, 1)     0.583737     0.582000      0.298%
+   3    (1, -1)     0.134708     0.134000      0.529%
+   4     (2, 0)     0.111483     0.111000      0.435%
+   5    (2, -2)     0.088257     0.088000      0.292%
+   6     (2, 2)     0.065032     0.064800      0.358%
+   7    (3, -1)     0.058838     0.058700      0.235%
+   8     (3, 1)     0.052645     0.052500      0.276%
+   9    (3, -3)     0.046451     0.046300      0.327%
+  10     (3, 3)     0.040258     0.040100      0.393%
+  11     (4, 0)     0.037803     0.037700      0.273%
+  12     (4, 2)     0.035348     0.035200      0.421%
+  13    (4, -2)     0.032893     0.032800      0.285%
+  14     (4, 4)     0.030439     0.030400      0.127%
+  15    (4, -4)     0.027984     0.027900      0.301%
+  16     (5, 1)     0.026793     0.026700      0.349%
+  17    (5, -1)     0.025602     0.025500      0.401%
+  18     (5, 3)     0.024412     0.024300      0.459%
+  19    (5, -3)     0.023221     0.023200      0.089%
+  20     (5, 5)     0.022030     0.022000      0.136%
+  21    (5, -5)     0.020839     0.020800      0.188%
+
+worst relative difference   : 0.529%
+tolerance                   : 1.0% (Noll's table is quoted to 3 s.f.)
+result                      : PASS
+
+--- 3. Per-mode variances implied by the table ---
+<a_j^2> must equal Delta_{j-1} - Delta_j from the published table.
+Differencing two rounded table entries loses precision, so the test
+is |computed - implied| <= the rounding half-width of the two entries,
+computed from the number of decimals Noll printed. This is a stricter
+statement than any fixed percentage: it asks whether the computed
+value is consistent with what the table can resolve.
+   j     computed   from table      |diff|  round. tol   ok
+   2     0.449028     0.447900    0.001128    0.000275   NO
+   3     0.449028     0.448000    0.001028    0.000500   NO
+   4     0.023226     0.023000    0.000226    0.000500  yes
+   5     0.023226     0.023000    0.000226    0.000500  yes
+   6     0.023226     0.023200    0.000026    0.000275  yes
+   7     0.006193     0.006100    0.000093    0.000050   NO
+   8     0.006193     0.006200    0.000007    0.000050  yes
+   9     0.006193     0.006200    0.000007    0.000050  yes
+  10     0.006193     0.006200    0.000007    0.000050  yes
+  11     0.002455     0.002400    0.000055    0.000050   NO
+  12     0.002455     0.002500    0.000045    0.000050  yes
+  13     0.002455     0.002400    0.000055    0.000050   NO
+  14     0.002455     0.002400    0.000055    0.000050   NO
+  15     0.002455     0.002500    0.000045    0.000050  yes
+  16     0.001191     0.001200    0.000009    0.000050  yes
+  17     0.001191     0.001200    0.000009    0.000050  yes
+  18     0.001191     0.001200    0.000009    0.000050  yes
+  19     0.001191     0.001100    0.000091    0.000050   NO
+  20     0.001191     0.001200    0.000009    0.000275  yes
+  21     0.001191     0.001200    0.000009    0.000275  yes
+
+entries consistent with table rounding : 13 / 20
+direction of every inconsistent entry  : high
+result                      : DOCUMENTED DEVIATION, not a pass.
+All inconsistent entries are high, and by an amount consistent with
+the +0.25% systematic offset between this package's Kolmogorov
+normalisation and Noll's published third significant figure, which
+is established independently in check 3b below. The tolerance has
+not been widened to absorb it.
+
+--- 3b. Independent cross-check of the total variance ---
+The piston-removed variance over a circular aperture can also be
+obtained without Zernikes at all:
+    sigma^2 = (1/2) <D_phi(|r1 - r2|)> over two independent points
+with the analytic separation density of a disc,
+    f(s) = (2 s / R^2)(2/pi)[arccos(s/2R) - (s/2R) sqrt(1 - (s/2R)^2)].
+separation density normalisation : 0.999999999995  (must be 1)
+structure-function route         : 1.032422 (D/r0)^(5/3)
+Zernike-variance-sum route       : 1.032765 (D/r0)^(5/3)
+difference between the two routes: 0.033%
+Noll (1976) published Delta_1    : 1.029900 (D/r0)^(5/3)
+both routes exceed the published value by 0.24% and 0.28%.
+Reported, not tuned away: two independent derivations inside this
+package agree with each other to 0.04% and sit ~0.25% above Noll's
+published third significant figure.
+result (routes agree to 0.1%)    : PASS
+
+--- 4. Noll's large-J asymptote, Delta_J ~ 0.2944 J^(-sqrt(3)/2) ---
+      J     computed    asymptote   rel. diff  local slope
+     10     0.040258     0.040079     -0.445%       0.8698
+     21     0.020839     0.021080      1.154%       0.8462
+     50     0.009988     0.009945     -0.434%       0.8501
+    100     0.005541     0.005456     -1.528%       0.8411
+    500     0.001436     0.001354     -5.718%       0.8345
+   2000     0.000452     0.000408     -9.778%       0.8339
+  20000     0.000066     0.000055    -16.249%       0.8339
+
+Honest finding: near J = 21, where the asymptote is customarily used,
+it agrees with the exact sum to 1.2%. At larger J the two drift apart:
+the exact sum falls with a local log-slope tending to 0.834, close to
+the 5/6 = 0.8333 implied by mode counting (J ~ n^2/2, per-order
+variance ~ n^(-8/3)), whereas Noll's asymptote uses sqrt(3)/2 = 0.8660.
+This package uses the exact sum everywhere; the asymptote is provided
+as published reference data only.
+
+==============================================================================
