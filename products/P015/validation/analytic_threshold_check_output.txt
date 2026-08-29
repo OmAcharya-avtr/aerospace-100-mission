@@ -1,0 +1,46 @@
+==============================================================================
+V1a: Zero switch-cost limit -- closed form vs grid search
+==============================================================================
+z_phys (physical outage threshold, standardised) = -2.44110146
+rho (AR(1) lag-1 correlation)                     = 0.77880078
+bounded optimizer: z_th* = -2.44110147  tau* = 0.25118864
+grid search:       z_th* = -2.44160000  tau* = 0.25112451
+|z_th_optimizer - z_th_grid|  = 4.985e-04
+|z_th_optimizer - z_phys|     = 1.257e-08
+PASS (tolerance 1e-4 vs z_phys, 1e-2 vs grid): True
+
+==============================================================================
+V1b: Zero switch-cost -- Monte Carlo argmax cross-check (independent code path)
+==============================================================================
+  tau=0.125594  mean_throughput=992.3863
+  tau=0.175832  mean_throughput=992.5100
+  tau=0.213510  mean_throughput=992.8213
+  tau=0.233605  mean_throughput=993.1250
+  tau=0.251189  mean_throughput=993.5187  <-- tau_phys
+  tau=0.268772  mean_throughput=990.8342
+  tau=0.288867  mean_throughput=987.1083
+  tau=0.326545  mean_throughput=976.9425
+  tau=0.376783  mean_throughput=957.1079
+  tau=0.502377  mean_throughput=882.8033
+MC argmax tau = 0.251189  (tau_phys = 0.251189)
+relative difference vs tau_phys = 0.0000
+PASS (MC argmax within 1 grid point of tau_phys): True
+
+==============================================================================
+V1c: Realistic switch cost (downtime_steps=1) -- direction of the shift
+==============================================================================
+closed-form optimum with downtime=1: z_th* = -7.990347  tau* = 0.014641
+(compare to zero-cost optimum tau* = 0.251189 = tau_phys)
+closed form predicts the optimum moves to tau* << tau_phys (deep-tail, i.e. near 'never proactively switch')
+  tau=0.012559  mean_throughput=992.6167
+  tau=0.050238  mean_throughput=992.6167
+  tau=0.125594  mean_throughput=992.5775
+  tau=0.200951  mean_throughput=991.7258
+  tau=0.251189  mean_throughput=987.9838
+  tau=0.301426  mean_throughput=971.0279
+MC throughput is highest at the smallest tau tested: True
+MC throughput decreases (or is flat) approaching tau_phys from below: True
+PASS (direction matches closed-form prediction): True
+
+Wall time: 6.6 s
+OVERALL: PASS

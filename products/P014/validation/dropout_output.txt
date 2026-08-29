@@ -1,0 +1,23 @@
+n_sub = 32, n_modes = 14
+trained on 1800 samples at flux=800.0, dropout=0.25 in 24.1 s
+
+=== Sweep A: reconstruction error vs photon flux (dropout fixed at 0.0) ===
+    flux   baseline RMS      ML RMS   ML/base     winner   calib.
+     100       0.051059    0.061532     1.205   baseline    0.763
+     300       0.029479    0.045635     1.548   baseline    0.683
+    1000       0.016146    0.040083     2.483   baseline    0.666
+    3000       0.009322    0.038526     4.133   baseline    0.663
+   10000       0.005106    0.038023     7.447   baseline    0.662
+
+=== Sweep B: reconstruction error vs subaperture-dropout rate (flux fixed at 800.0) ===
+ dropout   baseline RMS      ML RMS   ML/base     winner   calib.
+    0.00       0.017650    0.040279     2.282   baseline    0.675
+    0.15       0.020060    0.039633     1.976   baseline    0.590
+    0.30       0.023773    0.043301     1.821   baseline    0.573
+    0.45       0.034274    0.050117     1.462   baseline    0.627
+    0.60       0.816562    0.060425     0.074         ML    0.686
+
+Summary: baseline wins 9/10 operating points, ML wins 1/10.
+This is the measured result and is reported as-is (README, MODEL_CARD.md) regardless of which model wins where.
+
+total wall time: 53.6 s

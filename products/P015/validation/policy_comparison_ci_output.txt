@@ -1,0 +1,23 @@
+
+--- Scenario: mild (package defaults) (sigma_i2=0.25, margin_db=6.0, coherence=5.0, downtime_steps=1, horizon=5) ---
+n_steps=2000, n_reps=200 (paired Monte Carlo, 95% CI)
+policy                         throughput Mb/s               outage frac      switches
+fixed_threshold      994.321 [993.896, 994.746]      0.0046 [0.0043, 0.0050]    9.25
+hysteresis           995.495 [995.126, 995.865]      0.0036 [0.0033, 0.0038]    3.08
+learned              995.514 [995.163, 995.865]      0.0038 [0.0035, 0.0041]    4.16
+Highest mean throughput : learned
+Lowest mean outage      : hysteresis
+Fewest mean switches    : hysteresis
+
+--- Scenario: moderate (tighter margin, more turbulence) (sigma_i2=0.4, margin_db=4.0, coherence=4.0, downtime_steps=1, horizon=5) ---
+n_steps=2000, n_reps=200 (paired Monte Carlo, 95% CI)
+policy                         throughput Mb/s               outage frac      switches
+fixed_threshold      867.045 [864.702, 869.387]      0.0891 [0.0877, 0.0905]  178.16
+hysteresis           876.905 [874.568, 879.242]      0.0770 [0.0757, 0.0782]   99.34
+learned              856.796 [854.327, 859.265]      0.0871 [0.0858, 0.0885]  158.65
+Highest mean throughput : hysteresis
+Lowest mean outage      : hysteresis
+Fewest mean switches    : hysteresis
+HONEST RESULT: the learned policy does NOT win on throughput in this scenario ('hysteresis' does).
+
+Wall time: 3.7 s

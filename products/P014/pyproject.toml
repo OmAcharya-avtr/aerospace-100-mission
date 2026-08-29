@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wavelab"
+version = "0.1.0"
+description = "Slope-to-phase wavefront reconstruction: Hudgin/Fried zonal geometry matrices and modal Zernike least squares, regularized, plus a learned slopes-to-Zernike reconstructor with ensemble uncertainty"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.11"
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = ["wavefront-reconstruction", "adaptive-optics", "zernike", "shack-hartmann", "aerospace"]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "scikit-learn>=1.3",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]

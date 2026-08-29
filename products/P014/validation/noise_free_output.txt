@@ -1,0 +1,16 @@
+=== 1. Modal (Zernike) least-squares, noise-free ===
+n_sub = 32, n_modes = 14
+trials = 20, worst max-abs-coefficient-error = 4.996e-16 rad
+PASS (tolerance 1e-6 rad): True
+
+=== 2. Hudgin zonal geometry, noise-free ===
+n_grid = 11, n_active = 81, n_used = 81
+trials = 20, worst max-abs-phase-error = 1.410e-14 rad
+PASS (tolerance 1e-5 rad): True
+
+=== 3. Fried zonal geometry, noise-free (modulo waffle) ===
+n_grid = 11, n_active = 81, n_used = 77
+null space dimension = 2 (expect 2: piston + waffle)
+trials = 20, worst |residual_norm - |true waffle component|| = 4.576e-04 rad
+PASS (residual explained exactly by the true waffle component, tol 1e-3 rad): True
+

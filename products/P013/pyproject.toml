@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "turbscope"
+version = "0.1.0"
+description = "Path-averaged Cn^2 estimation from scintillometer and DIMM forward models, with a learned multi-sensor regressor and calibrated prediction intervals, baselined against the classical closed-form single-sensor inversion."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = ["turbulence", "Cn2", "scintillometer", "DIMM", "seeing", "atmospheric-propagation"]
+dependencies = [
+    "numpy",
+    "scipy",
+    "scikit-learn",
+    "matplotlib",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis", "ruff"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W"]

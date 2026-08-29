@@ -1,0 +1,19 @@
+n_sub = 32, n_modes = 14
+mean per-mode noise propagation coefficient = 0.002608 (1/slope-unit^2)
+
+    flux  sigma_slope  predicted var  empirical var    ratio
+     100     1.000000   2.608212e-03   2.631635e-03    1.009
+     300     0.577350   8.694040e-04   8.822801e-04    1.015
+    1000     0.316228   2.608212e-04   2.665681e-04    1.022
+    3000     0.182574   8.694040e-05   8.560450e-05    0.985
+   10000     0.100000   2.608212e-05   2.567092e-05    0.984
+
+worst |empirical/predicted - 1| over all flux levels = 0.022
+PASS (agreement within 25%, 800 trials/point): True
+
+Direct sigma(N) propto 1/sqrt(N) check on aggregate RMS coefficient error:
+  flux=     100  measured RMS=0.051348  predicted RMS=0.051348  rel.err=0.000
+  flux=     300  measured RMS=0.029713  predicted RMS=0.029646  rel.err=0.002
+  flux=    1000  measured RMS=0.016346  predicted RMS=0.016238  rel.err=0.007
+  flux=    3000  measured RMS=0.009257  predicted RMS=0.009375  rel.err=0.013
+  flux=   10000  measured RMS=0.005069  predicted RMS=0.005135  rel.err=0.013
