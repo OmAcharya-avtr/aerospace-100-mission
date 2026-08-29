@@ -1,0 +1,40 @@
+==============================================================================
+PART A - near-linear regime: EKF and UKF must agree
+==============================================================================
+  mean range 11107.2 m, sigma_range 20.0 m, sigma_bearing 0.005 rad
+  cross-range measurement resolution r*sigma_b = 55.5 m
+  EKF position RMSE                : 14.606708082 m
+  UKF position RMSE                : 14.607395092 m
+  relative RMSE difference         : 4.703e-05   (tolerance 1e-2)
+  max |x_EKF - x_UKF| / sigma_pos  : 1.780e-03   (tolerance 1e-2)
+  max |P_EKF - P_UKF| / max|P_EKF| : 8.159e-06
+  verdict: PASS
+
+==============================================================================
+PART B - strongly nonlinear regime: UKF must degrade more gracefully
+==============================================================================
+  closest approach of the truth to the sensor: 206.1 m
+  sigma_bearing 0.35 rad => cross-range error at closest approach ~72 m, comparable with the range itself
+  40 independent runs x 60 steps; divergence threshold chi2_4(0.9999) = 23.51
+
+  filter     mean RMSE      median         p90   mean NEES  diverged
+  ------------------------------------------------------------------
+  EKF           72.358      43.170     106.044      33.657         3
+  UKF           50.047      40.409      57.271      12.504         1
+
+  RMSE ratio EKF/UKF = 1.446, NEES ratio EKF/UKF = 2.692
+  NOTE: both filters are inconsistent here (mean NEES >> 4). The claim under
+  test is comparative degradation, not consistency; neither filter should be
+  trusted in this regime.
+  verdict: PASS (UKF lower on both RMSE and NEES)
+
+==============================================================================
+PART C - control: on a LINEAR measurement both reduce to the linear KF
+==============================================================================
+  EKF vs KF: max relative |dx| = 0.000e+00, |dP| = 0.000e+00
+  UKF vs KF: max relative |dx| = 3.558e-16, |dP| = 4.824e-15
+  verdict (tolerance 1e-11 relative): PASS
+
+==============================================================================
+OVERALL v3: PASS
+==============================================================================

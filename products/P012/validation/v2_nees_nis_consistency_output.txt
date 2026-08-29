@@ -1,0 +1,61 @@
+==============================================================================
+v2 - NEES / NIS chi-squared consistency
+==============================================================================
+  60 independent runs x 200 steps, dt = 1.0 s, q_psd_true = 0.05 m^2/s^3, sigma_z = 3.0 m, burn-in 30
+  single-sample 95 % NEES band (dof 2): (0.05063561596857975, 7.377758908227871)
+  ensemble 95 % NEES band  (M = 60): (1.5262106983335755, 2.536856712085859)
+  ensemble 95 % NIS  band  (M = 60): (0.6746958007140305, 1.38829458128622)
+
+------------------------------------------------------------------------------
+PART A - correctly specified filter (must be INSIDE the bounds)
+------------------------------------------------------------------------------
+
+  correct: Q_filter = Q_true, R_filter = R_true
+    Q factor 1, R factor 1
+    ANEES: mean 2.0223  (dof 2, expectation 2.0), bounds [1.5262, 2.5369],  98.2 % of steps inside
+    ANIS : mean 1.0241  (dof 1, expectation 1.0), bounds [0.6747, 1.3883],  92.4 % of steps inside
+    verdict: PASS (both averages inside their bounds)
+
+------------------------------------------------------------------------------
+PART B - deliberately mis-specified filters (must LEAVE the bounds)
+------------------------------------------------------------------------------
+
+  Q too small by 25x  -> expect OPTIMISTIC (ANEES above)
+    Q factor 0.04, R factor 1
+    ANEES: mean 26.6001  (dof 2, expectation 2.0), bounds [1.5262, 2.5369],   0.0 % of steps inside
+    ANIS : mean 2.0903  (dof 1, expectation 1.0), bounds [0.6747, 1.3883],   1.8 % of steps inside
+    verdict: PASS (left the bounds in the high direction)
+
+  Q too large by 25x  -> expect PESSIMISTIC (ANEES below)
+    Q factor 25, R factor 1
+    ANEES: mean 1.1354  (dof 2, expectation 2.0), bounds [1.5262, 2.5369],   2.4 % of steps inside
+    ANIS : mean 0.8150  (dof 1, expectation 1.0), bounds [0.6747, 1.3883],  82.9 % of steps inside
+    verdict: PASS (left the bounds in the low direction)
+
+  R too small by 9x   -> expect OPTIMISTIC (ANIS above)
+    Q factor 1, R factor 0.111111
+    ANEES: mean 10.5989  (dof 2, expectation 2.0), bounds [1.5262, 2.5369],   0.0 % of steps inside
+    ANIS : mean 7.8740  (dof 1, expectation 1.0), bounds [0.6747, 1.3883],   0.0 % of steps inside
+    verdict: PASS (left the bounds in the high direction)
+
+  R too large by 9x   -> expect PESSIMISTIC (ANIS below)
+    Q factor 1, R factor 9
+    ANEES: mean 1.1287  (dof 2, expectation 2.0), bounds [1.5262, 2.5369],   0.6 % of steps inside
+    ANIS : mean 0.1649  (dof 1, expectation 1.0), bounds [0.6747, 1.3883],   0.0 % of steps inside
+    verdict: PASS (left the bounds in the low direction)
+
+------------------------------------------------------------------------------
+PART C - innovation whiteness (Bar-Shalom et al. Eq. 5.4.3-2)
+------------------------------------------------------------------------------
+
+  correct filter: whiteness: max |rho| = 0.0984 at lag 10, band +/-0.1503 over N = 170 -> PASS
+    rho(1..5) = -0.0303, -0.0696, +0.0460, -0.0730, +0.0144
+    expected white -> PASS
+
+  Q too small by 25x: whiteness: max |rho| = 0.4113 at lag 3, band +/-0.1503 over N = 170 -> FAIL
+    rho(1..5) = +0.3922, +0.3588, +0.4113, +0.3211, +0.3489
+    expected correlated -> PASS
+
+==============================================================================
+OVERALL v2: PASS
+==============================================================================
