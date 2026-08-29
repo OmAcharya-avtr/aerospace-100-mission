@@ -1,0 +1,79 @@
+==============================================================================
+WaveForge validation 5 — Kolmogorov phase-screen statistics
+==============================================================================
+screen           : 128 x 128, d = 0.02 m, r0 = 0.1 m
+ensemble         : 60 screens, seeds 41000 + 31 k
+lags examined    : 1 .. 16 samples (estimator degrades beyond ~N/8 on a finite window)
+grid Nyquist     : 25.0 cycles/m
+lowest frequency : 0.3906 cycles/m
+
+--- 1. Implementation check: measured vs the exact discrete expectation ---
+Screens without subharmonics, whose expectation is known in closed form.
+   r [m]     measured        exact    ratio
+   0.020      0.33627      0.33652   0.9993
+   0.060      2.00263      2.00514   0.9987
+   0.100      4.34651      4.34972   0.9993
+   0.140      7.12274      7.12448   0.9998
+   0.180     10.18918     10.19577   0.9994
+   0.220     13.45394     13.47442   0.9985
+   0.260     16.84798     16.89493   0.9972
+   0.300     20.31885     20.40635   0.9957
+
+worst deviation from the exact expectation : 0.50%
+Monte-Carlo standard error at 60 screens : ~12.9%
+tolerance                                  : 5%
+result                                     : PASS
+
+--- 2. Method bias: exact discrete expectation vs continuous theory ---
+   r [m]    r/r0   band-limited   6.8839(r/r0)^(5/3)    ratio
+   0.020   0.200        0.33652              0.47085   0.7147
+   0.060   0.600        2.00514              2.93823   0.6824
+   0.100   1.000        4.34972              6.88388   0.6319
+   0.140   1.400        7.12448             12.06090   0.5907
+   0.180   1.800       10.19577             18.33527   0.5561
+   0.220   2.200       13.47442             25.61755   0.5260
+   0.260   2.600       16.89493             33.84195   0.4992
+   0.300   3.000       20.40635             42.95712   0.4750
+
+The Fourier screen is short of the continuous theory at every
+separation: it carries no power below 1/(N d) or above the grid
+Nyquist. The deficit grows with separation because the missing power
+is at low frequency. This is the method, not the implementation.
+
+--- 3. Effect of subharmonic augmentation ---
+Measured structure function relative to the CONTINUOUS theory, for
+increasing numbers of Lane et al. (1992) subharmonic levels.
+ levels     r=0.02     r=0.10     r=0.18     r=0.32
+      0      0.736      0.667      0.597      0.507
+      1      0.793      0.766      0.717      0.652
+      2      0.841      0.848      0.817      0.774
+      3      0.847      0.857      0.828      0.784
+      4      0.886      0.925      0.911      0.887
+      6      0.929      1.000      1.003      1.000
+
+Subharmonics recover a large part of the deficit and the recovery is
+strongest at the largest separations, which is what they are for. The
+remaining shortfall at small r is the high-frequency truncation at the
+grid Nyquist and cannot be fixed by subharmonics.
+
+--- 4. Modal content of pupil-sized cut-outs vs the analytic variances ---
+pupil 64 x 64 over 0.5 m, D/r0 = 5.0, 150 screens (512^2, 6 subharmonic levels)
+   j     measured     analytic    ratio   MC s.e.
+   2      5.40898      6.56483    0.824     0.115
+   3      5.39542      6.56483    0.822     0.115
+   4      0.29052      0.33956    0.856     0.115
+   6      0.38959      0.33956    1.147     0.115
+   8      0.09662      0.09055    1.067     0.115
+  11      0.03973      0.03589    1.107     0.115
+  15      0.03863      0.03589    1.077     0.115
+  21      0.01506      0.01741    0.865     0.115
+
+mean ratio over j = 4..21 (tip/tilt excluded) : 1.046
+ratio for tip and tilt (j = 2, 3)             : 0.824, 0.822
+The higher-order modes agree with the analytic Kolmogorov variances,
+while tip and tilt carry the whole of the low-frequency deficit. Any
+study of overall tip/tilt magnitude with these screens should use a
+larger generating screen or a von Karman outer scale.
+
+elapsed: 11.6 s
+==============================================================================
