@@ -1,0 +1,101 @@
+==============================================================================
+CASE A - scalar random walk, hand-solved algebraic Riccati equation
+==============================================================================
+
+  q = 1.0, r = 1.0   (converged in 19 iterations)
+                   hand  P^-_inf : 1.618033988749895e+00
+                  filter P^-_inf : 1.618033988749895e+00   |diff| = 2.220e-16
+                     hand  K_inf : 6.180339887498949e-01
+                    filter K_inf : 6.180339887498948e-01   |diff| = 1.110e-16
+                   hand  P^+_inf : 6.180339887498949e-01
+                  filter P^+_inf : 6.180339887498949e-01   |diff| = 0.000e+00
+        worst relative deviation : 1.796e-16
+         verdict (rel tol 1e-12) : PASS
+
+  q = 0.25, r = 4.0   (converged in 70 iterations)
+                   hand  P^-_inf : 1.132782218537319e+00
+                  filter P^-_inf : 1.132782218537318e+00   |diff| = 1.110e-15
+                     hand  K_inf : 2.206955546343297e-01
+                    filter K_inf : 2.206955546343295e-01   |diff| = 1.665e-16
+                   hand  P^+_inf : 8.827822185373186e-01
+                  filter P^+_inf : 8.827822185373181e-01   |diff| = 5.551e-16
+        worst relative deviation : 9.801e-16
+         verdict (rel tol 1e-12) : PASS
+
+  q = 2.0, r = 0.5   (converged in 11 iterations)
+                   hand  P^-_inf : 2.414213562373095e+00
+                  filter P^-_inf : 2.414213562373095e+00   |diff| = 0.000e+00
+                     hand  K_inf : 8.284271247461901e-01
+                    filter K_inf : 8.284271247461901e-01   |diff| = 0.000e+00
+                   hand  P^+_inf : 4.142135623730949e-01
+                  filter P^+_inf : 4.142135623730951e-01   |diff| = 1.665e-16
+        worst relative deviation : 4.020e-16
+         verdict (rel tol 1e-12) : PASS
+
+  q = 0.001, r = 1000.0   (converged in 14489 iterations)
+                   hand  P^-_inf : 1.000500124999992e+00
+                  filter P^-_inf : 1.000500124999442e+00   |diff| = 5.498e-13
+                     hand  K_inf : 9.995001249999921e-04
+                    filter K_inf : 9.995001249994435e-04   |diff| = 5.486e-16
+                   hand  P^+_inf : 9.995001249999921e-01
+                  filter P^+_inf : 9.995001249994432e-01   |diff| = 5.489e-13
+        worst relative deviation : 5.495e-13
+         verdict (rel tol 1e-12) : PASS
+
+==============================================================================
+CASE B/C - 2-state constant velocity (DWNA): Kalata alpha-beta and SciPy DARE
+==============================================================================
+
+  dt = 1.0 s, sigma_a = 0.1 m/s^2, sigma_v = 2.0 m   (converged in 110 iterations)
+           tracking index Lambda : 0.050000000000000
+         Kalata K_inf = [a, b/T] : [0.270867118992629, 0.042694639037219]
+                    filter K_inf : [0.270867118992628, 0.042694639037219]
+                 max |diff| gain : 3.331e-16
+          max |P^- - scipy DARE| : 1.088e-14
+     verdict (tol 1e-12 / 1e-10) : PASS
+
+  dt = 0.5 s, sigma_a = 1.0 m/s^2, sigma_v = 0.5 m   (converged in 35 iterations)
+           tracking index Lambda : 0.500000000000000
+         Kalata K_inf = [a, b/T] : [0.628373457204967, 0.609611796797792]
+                    filter K_inf : [0.628373457204967, 0.609611796797792]
+                 max |diff| gain : 6.661e-16
+          max |P^- - scipy DARE| : 2.109e-15
+     verdict (tol 1e-12 / 1e-10) : PASS
+
+  dt = 2.0 s, sigma_a = 0.02 m/s^2, sigma_v = 10.0 m   (converged in 282 iterations)
+           tracking index Lambda : 0.008000000000000
+         Kalata K_inf = [a, b/T] : [0.118799444828764, 0.003754891327687]
+                    filter K_inf : [0.118799444828764, 0.003754891327687]
+                 max |diff| gain : 1.509e-16
+          max |P^- - scipy DARE| : 1.377e-12
+     verdict (tol 1e-12 / 1e-10) : PASS
+
+==============================================================================
+CASE D - a RUNNING KalmanFilter converges to the steady-state solution
+==============================================================================
+
+  dt = 1.0 s, q_psd = 0.05 m^2/s^3, sigma_z = 3.0 m, 600 steps
+            steady-state P^+_inf : [[2.882656460286 0.553052598751]
+ [0.553052598751 0.235613228   ]]
+      filter P^+ after 600 steps : [[2.882656460286 0.553052598751]
+ [0.553052598751 0.235613228   ]]
+           max |diff| (relative) : 1.332e-15 (4.622e-16)
+              steady-state K_inf : [0.320295162254 0.06145028875 ]
+        filter K after 600 steps : [0.320295162254 0.06145028875 ]
+      max |diff| gain (relative) : 1.110e-16 (3.466e-16)
+         verdict (rel tol 1e-12) : PASS
+
+  dt = 0.1 s, q_psd = 2.0 m^2/s^3, sigma_z = 0.5 m, 600 steps
+            steady-state P^+_inf : [[0.086221711768 0.180985241515]
+ [0.180985241515 0.85280378716 ]]
+      filter P^+ after 600 steps : [[0.086221711768 0.180985241515]
+ [0.180985241515 0.85280378716 ]]
+           max |diff| (relative) : 1.887e-15 (2.213e-15)
+              steady-state K_inf : [0.344886847072 0.723940966062]
+        filter K after 600 steps : [0.344886847072 0.723940966062]
+      max |diff| gain (relative) : 9.992e-16 (1.380e-15)
+         verdict (rel tol 1e-12) : PASS
+
+==============================================================================
+OVERALL v1: PASS
+==============================================================================

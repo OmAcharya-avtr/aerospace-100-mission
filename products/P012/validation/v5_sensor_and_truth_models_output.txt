@@ -1,0 +1,75 @@
+==============================================================================
+PART A - gyro Allan deviation vs IEEE Std 952-2020 analytic form
+==============================================================================
+  400000 samples at dt = 0.01 s (4000 s), sigma_v = 1.000e-03 rad/s^0.5, sigma_u = 1.000e-03 rad/s^1.5
+  predicted Allan minimum at tau* = sqrt(3) sigma_v/sigma_u = 1.7321 s
+
+     tau [s]      measured        theory     ratio
+        0.02  7.062799e-03  7.071539e-03    0.9988
+        0.05  4.471187e-03  4.473999e-03    0.9994
+        0.10  3.167281e-03  3.167544e-03    0.9999
+        0.20  2.254510e-03  2.250926e-03    1.0016
+        0.50  1.471757e-03  1.471960e-03    0.9999
+        1.00  1.152806e-03  1.154701e-03    0.9984
+        2.00  1.069784e-03  1.080123e-03    0.9904
+        5.00  1.350323e-03  1.366260e-03    0.9883
+       10.00  1.841294e-03  1.852926e-03    0.9937
+       20.00  2.544398e-03  2.591653e-03    0.9818
+       50.00  3.754053e-03  4.084932e-03    0.9190
+
+  log-log slope over tau = 0.02-0.10 s : -0.4983  (ARW theory -0.5)
+  log-log slope over tau = 10-50 s     : +0.4417  (RRW theory +0.5)
+  verdict: PASS
+
+==============================================================================
+PART B - sensor noise statistics vs specification
+==============================================================================
+  star tracker: E|p x b|^2 measured 5.006432e-09, theory 2*sigma^2 = 5.000000e-09, ratio 1.0013
+    (2 observable components per line of sight)  PASS
+  star tracker quaternion output: measured per-axis sigma [4.98193216e-05 5.03659186e-05 4.97892070e-05] vs spec 5.000e-05
+    PASS
+  sun sensor eclipse_prob = 0.3: measured valid fraction 0.7006 (expect 0.700 +/- 0.0097)
+    PASS
+  GPS: dropout measured 0.0487 (spec 0.05), position sigma [2.4981 2.4972 2.4879] (spec 2.5), velocity sigma [0.10028 0.10017 0.10114] (spec 0.1)
+    PASS
+  accelerometer: max |mean - (R^T a + b)| = 0.00018 m/s^2 (3*sigma/sqrt(N) = 0.00030), max relative sigma error 0.0059
+    PASS
+
+==============================================================================
+PART C - two-body orbit propagator
+==============================================================================
+
+  altitude 500 km, inclination 0.0 rad, a = 6878.1 km, period = 5676.98 s, dt = 5.6770 s
+    specific energy: -2.897590160e+07 J/kg vs -mu/(2a) = -2.897590160e+07 (relative 0.000e+00)
+    relative energy drift over 1 revolution : 1.708e-12  (tol 1e-9)
+    relative |h| drift over 1 revolution    : 8.539e-13  (tol 1e-9)
+    closure |r(T) - r(0)|/a after 1 rev     : 2.325e-10  (tol 1e-7)
+    PASS
+
+  altitude 800 km, inclination 0.9 rad, a = 7178.1 km, period = 6052.41 s, dt = 6.0524 s
+    specific energy: -2.776489511e+07 J/kg vs -mu/(2a) = -2.776489511e+07 (relative 1.342e-16)
+    relative energy drift over 1 revolution : 1.713e-12  (tol 1e-9)
+    relative |h| drift over 1 revolution    : 8.562e-13  (tol 1e-9)
+    closure |r(T) - r(0)|/a after 1 rev     : 2.325e-10  (tol 1e-7)
+    PASS
+
+  altitude 35786 km, inclination 0.1 rad, a = 42164.1 km, period = 86163.99 s, dt = 86.1640 s
+    specific energy: -4.726771021e+06 J/kg vs -mu/(2a) = -4.726771021e+06 (relative 0.000e+00)
+    relative energy drift over 1 revolution : 1.710e-12  (tol 1e-9)
+    relative |h| drift over 1 revolution    : 8.553e-13  (tol 1e-9)
+    closure |r(T) - r(0)|/a after 1 rev     : 2.325e-10  (tol 1e-7)
+    PASS
+
+  Earth constants used: mu = 3.986004418e+14 m^3/s^2 (IERS 2010 Table 1.1), R_E = 6378137.0 m (WGS-84)
+
+==============================================================================
+PART D - airborne coordinated turn
+==============================================================================
+  speed 200.0 m/s, turn rate 0.02 rad/s -> radius |v|/Omega = 10000.0000 m
+  max relative radius error over one full circle : 7.094e-15  (tol 1e-12)
+  max relative ground-speed error                 : 7.674e-15  (tol 1e-12)
+  PASS
+
+==============================================================================
+OVERALL v5: PASS
+==============================================================================

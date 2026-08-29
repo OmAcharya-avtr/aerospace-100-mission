@@ -1,0 +1,98 @@
+==============================================================================
+v6 - adaptive process-noise tuning: learned vs fixed vs classical
+==============================================================================
+  q_nom = 0.05 m^2/s^3, sigma_z = 3.0 m, dt = 1.0 s, 400 steps/run, burn-in 60
+  true log10 scale u ~ U(-1.5, 1.5)  =>  q_true in [0.00158, 1.58114] m^2/s^3
+  window 40 steps, re-estimation every 20 steps
+
+  dataset: 2550 windows from 150 runs (150 distinct), 6 features, generated in 9.14 s
+  model: 5-member bootstrap GradientBoostingRegressor ensemble, fitted in 2.26 s
+  60 held-out runs x 3 tuners evaluated in 14.50 s
+
+------------------------------------------------------------------------------
+RESULTS on the held-out runs (mean over runs)
+------------------------------------------------------------------------------
+  tuner       pos RMSE [m]  vel RMSE [m/s]   ANEES (2)   ANIS (1)  |log10 lam - u|
+  --------------------------------------------------------------------------------
+  fixed            2.09982        0.728119      5.5935     1.3330      n/a (fixed)
+  mehra            2.27394        1.254886      1.1778     0.7396           1.8164
+  learned          1.92299        0.671698      4.4935     1.1691           0.5586
+
+  ANEES 95 % acceptance band over 60 runs (dof 2): [1.5262, 2.5369]
+  ANIS  95 % acceptance band over 60 runs (dof 1): [0.6747, 1.3883]
+    fixed      NEES ABOVE (optimistic)   NIS inside
+    mehra      NEES BELOW (pessimistic)  NIS inside
+    learned    NEES ABOVE (optimistic)   NIS inside
+
+------------------------------------------------------------------------------
+PAIRED comparison, run by run (position RMSE)
+------------------------------------------------------------------------------
+  learned beats fixed on 44/60 runs; mean RMSE difference -0.17683 m +/- 0.09361 (95 % CI on the paired mean)
+  learned beats mehra on 47/60 runs; mean RMSE difference -0.35094 m +/- 0.14531 (95 % CI on the paired mean)
+  mehra beats fixed on 14/60 runs; mean RMSE difference +0.17411 m +/- 0.20862 (95 % CI on the paired mean)
+
+------------------------------------------------------------------------------
+STRATIFIED by |u| (size of the Q mis-specification)
+------------------------------------------------------------------------------
+  |u| <= 0.5  (within ~3x)  (n = 20)
+    fixed      pos RMSE  1.80124 m, mean NEES  2.5307
+    mehra      pos RMSE  2.27280 m, mean NEES  1.1310
+    learned    pos RMSE  1.86642 m, mean NEES  3.4732
+  0.5 < |u| <= 1.0 (3x-10x)  (n = 18)
+    fixed      pos RMSE  1.77850 m, mean NEES  2.8652
+    mehra      pos RMSE  2.23129 m, mean NEES  1.1018
+    learned    pos RMSE  1.69454 m, mean NEES  3.1482
+  |u| > 1.0   (>10x)  (n = 22)
+    fixed      pos RMSE  2.63417 m, mean NEES 10.6102
+    mehra      pos RMSE  2.30986 m, mean NEES  1.2826
+    learned    pos RMSE  2.16133 m, mean NEES  6.5218
+
+------------------------------------------------------------------------------
+IS EACH METHOD ACTUALLY ADAPTING? (lambda in force at the last step)
+------------------------------------------------------------------------------
+  mehra:
+    lambda  min 64.0000  median 64.0000  max 64.0000
+    fraction pinned at the UPPER clip (64)   : 1.0000
+    fraction pinned at the LOWER clip (1/64) : 0.0000
+    correlation( log10 lambda , true u )     : -0.0000
+  learned:
+    lambda  min 0.1460  median 0.5439  max 19.5782
+    fraction pinned at the UPPER clip (64)   : 0.0000
+    fraction pinned at the LOWER clip (1/64) : 0.0000
+    correlation( log10 lambda , true u )     : +0.5943
+
+  READ THIS BEFORE BELIEVING THE CONSISTENCY COLUMN. A method pinned at a
+  clip is not adapting: it is applying a constant inflation. Its NEES then
+  reflects that constant inflation, not any inference about the true Q.
+
+------------------------------------------------------------------------------
+CONFIDENCE OUTPUT of the learned tuner
+------------------------------------------------------------------------------
+  mean confidence exp(-std) over held-out runs : 0.9206
+  range                                        : [0.9001, 0.9534]
+  correlation(confidence, |log10 lambda - u|)  : +0.2206
+  mean |log10 lam - u| in the high-confidence half : 0.6419
+  mean |log10 lam - u| in the low-confidence half  : 0.4752
+  A useful confidence output should be NEGATIVELY correlated with the error
+  (more confident -> smaller error). The measured sign and magnitude are
+  reported above and repeated verbatim in MODEL_CARD.md.
+
+==============================================================================
+VERDICT (stated as measured, not as hoped)
+==============================================================================
+  lowest mean position RMSE : learned  (1.92299 m)
+  NEES closest to dof = 2   : mehra  (1.1778)
+  The learned tuner wins at least one of the two criteria.
+  NOTE: the RMSE winner and the consistency winner are NOT the same method.
+  Reporting only RMSE would have hidden that.
+
+  IMPORTANT CAVEAT ON THE CONSISTENCY WINNER: the Mehra scheme is pinned at
+  its upper clip on essentially every held-out run, and its correlation with
+  the true scale is zero. It is therefore NOT adapting - it is applying a
+  constant 64x inflation of Q. That makes the filter pessimistic (ANEES below
+  the lower bound), which happens to land nearer dof = 2 than the optimistic
+  alternatives. Calling it 'the consistency winner' without this sentence
+  would be misleading, so the sentence is printed here and repeated in
+  MODEL_CARD.md and README.md.
+
+  total wall time: 25.9 s

@@ -1,0 +1,27 @@
+==============================================================================
+v7 - performance benchmark (single-threaded)
+==============================================================================
+  numpy 2.4.4, python 3.11.15
+
+  benchmark                                            time     throughput
+  --------------------------------------------------------------------------
+  linear KF, 2 states, 20000 steps                 2.4420 s         8190.0 steps/s
+  EKF, 4 states, analytic Jacobians, 5000 steps    0.6400 s         7812.5 steps/s
+  EKF, 4 states, NUMERICAL Jacobians, 2000 steps   0.3845 s         5202.2 steps/s
+  UKF, 4 states, 9 sigma points, 5000 steps        1.2393 s         4034.5 steps/s
+  MEKF, 6 error states, 5000 steps                 0.7178 s         6966.2 steps/s
+  rigid-body RK4 attitude, 20000 steps             5.7074 s         3504.2 steps/s
+  two-body RK4 orbit, 20000 steps                  0.3472 s        57596.3 steps/s
+  NEES over 50000 samples, 4 states                0.5040 s        99199.2 samples/s
+  steady-state Riccati, 2 states, 200 solves       1.4046 s          142.4 solves/s
+
+  ML pipeline (the compute-budget item):
+    dataset generation (150 runs, 2550 windows): 10.22 s
+    ensemble fit (5 x GradientBoostingRegressor)      : 1.88 s
+    TOTAL train pipeline                              : 12.10 s
+    budget stated in the build guide                  : 180 s
+    PASS
+
+==============================================================================
+OVERALL v7: PASS
+==============================================================================

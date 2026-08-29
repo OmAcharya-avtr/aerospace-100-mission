@@ -1,0 +1,73 @@
+==============================================================================
+PART A - quaternion algebra
+==============================================================================
+  DCM vs scipy Rotation (2000 random q)        6.661e-16  (tol 1e-14)  PASS
+  quat -> DCM -> quat round trip               2.220e-16  (tol 1e-13)  PASS
+  DCM orthogonality max|R Rt - I|              8.882e-16  (tol 1e-14)  PASS
+  |det(R) - 1|                                 1.110e-15  (tol 1e-14)  PASS
+  R(a (x) b) = R(a) R(b)                       7.772e-16  (tol 1e-14)  PASS
+  rotvec exp/log RELATIVE round trip (1e-14..3 rad) 2.168e-16  (tol 1e-14)  PASS
+  axis-angle round trip                        4.441e-16  (tol 1e-14)  PASS
+
+==============================================================================
+PART B - rigid-body integrator (RK4)
+==============================================================================
+  B1 principal-axis spin vs analytic (200 s): max |1 - |q.q_exact|| = 2.220e-16  (tol 1e-14)  PASS
+  B2 torque-free 300 s, dt = 0.1 s: relative energy drift 5.948e-13 (tol 1e-12), inertial |H| drift 2.923e-11 (tol 1e-9)  PASS
+     dt [s]     final attitude error [rad]     ratio to previous
+     0.10000    5.956265e-07                     nan
+     0.05000    3.711760e-08                   16.05
+     0.02500    2.315924e-09                   16.03
+     0.01250    1.446139e-10                   16.01
+  B3 observed order ratios ['16.05', '16.03', '16.01'] vs RK4 ideal 16 (band 12-20)  PASS
+
+==============================================================================
+PART C - quaternion normalization
+==============================================================================
+  C1 quat_propagate, 200000 steps: max ||q| - 1| = 2.220e-16  (tol 1e-14)
+  C2 contrast: 20000 steps of un-normalised first-order Euler integration gives ||q| - 1| = 1.184e-01
+     (this is why quat_propagate and the MEKF renormalise every step)
+  verdict: PASS
+
+==============================================================================
+PART D - MEKF multiplicative reset
+==============================================================================
+  D1 reference after reset equals q_before (x) dq(a_hat): max |diff| = 0.000e+00  (tol 1e-15)  PASS
+     estimated attitude error a_hat = [ 0.001  -0.002   0.0005] rad
+     |q| after reset = 1.00000000000000000
+  D2 innovation norm before reset 2.291288e-03 rad, after reset 9.165115e-09 rad (ratio 0.0000)  PASS
+  D3 neglected covariance reset Jacobian G = I - 0.5*[a_hat x]:
+     max reset angle over the run  : 4.296e-02 rad
+     median reset angle after step 100: 0.000e+00 rad
+     worst relative change |G P Gt - P|/max|P| over the 20 largest resets: 4.613e-04
+     Interpretation: the neglected term is second order in the reset angle;
+     at the sub-milliradian resets this filter operates at it is far below
+     the covariance itself. It would NOT be negligible after a large
+     attitude acquisition manoeuvre, and that limit is stated in the README.
+     max ||q| - 1| over 600 steps = 2.220e-16
+
+==============================================================================
+PART E - MEKF Monte Carlo consistency (NEES dof 6, NIS dof 3)
+==============================================================================
+  30 independent runs x 300 steps of 0.5 s, burn-in 50
+  star tracker sigma 3.0e-05 rad, gyro ARW 0.05 deg/sqrt(hr), RRW 0.5 deg/hr^1.5, update every 4 steps
+  ANEES (dof 6): mean 6.1472, bounds [4.8247, 7.3015], 99.2 % of steps inside
+  NIS  (dof 3): mean over 1890 pooled updates 2.9768, bounds [2.8906, 3.1114]
+  verdict: PASS
+
+==============================================================================
+PART F - rate discretisation: why AttitudeTruth.interval_rate() exists
+==============================================================================
+  max |omega(end of interval)   - omega_effective| = 6.469e-05 rad/s
+  max |omega(start of interval) - omega_effective| = 6.469e-05 rad/s
+  deterministic attitude error injected per step if an endpoint sample is used: 3.234e-05 rad
+  compare with the per-step gyro angle noise sigma_v*sqrt(dt) = 1.028e-05 rad
+  The bias is of the same order as the noise, so it is invisible in RMSE but
+  accumulates coherently between star-tracker updates and shows up as a NEES
+  failure. Measured before the fix: attitude RMS 1.26e-04 rad, mean NEES 1925
+  (dof 6). After using interval_rate(): 4.2e-05 rad, ANEES 6.15 (PART E).
+  verdict (informational): PASS
+
+==============================================================================
+OVERALL v4: PASS
+==============================================================================
