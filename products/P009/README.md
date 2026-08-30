@@ -144,6 +144,25 @@ Any 2-core CPU; ~200 MB RAM; no GPU. Training < 1 minute, full test suite ~10 s.
 
 ## Limitations
 
+### Known limitation — non-monotonicity below 550 nm
+
+Both baselines scale attenuation as `(lambda / 550)^(-q)` with `q` piecewise in
+visibility. `q` steps **upward** at the band boundaries (V = 50 km for Kim,
+V = 6 km for Kruse). For `lambda < 550 nm` the base is below 1, so an upward step
+in `q` is an upward step in attenuation: improving visibility across that
+boundary *increases* predicted attenuation by roughly 3% (Kim, 0.3846 to 0.3958
+dB/km at 500 nm) and 2% (Kruse, 3.134 to 3.205 dB/km at 500 nm).
+
+This is a property of the published empirical fits, which take 550 nm as the
+reference wavelength, not a defect in this implementation. It is left in place
+and pinned by `tests/test_baselines.py::TestMonotonicity::test_band_boundary_reversal_below_550nm`.
+Do not use these baselines below 550 nm without accounting for it.
+
+Found on 2026-08-30 by a Hypothesis property test after the product was already
+published; the original property asserted monotonicity from 500 nm, which the
+models do not satisfy.
+
+
 - **Synthetic ground truth**: the ML model is trained on Kim-model-derived data;
   reported accuracy is relative to that synthetic process, not to real fog
   measurements. Field-measured attenuation may differ systematically.

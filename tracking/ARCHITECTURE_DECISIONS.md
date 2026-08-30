@@ -355,3 +355,73 @@ Batch 02 statuses were reset to `READY FOR APPROVAL`. The code stays on `main`;
 reverting it would destroy sound engineering to punish a bookkeeping lie, and
 `main` is not itself a release. What Batch 02 does not have, and must not be
 described as having, is approval.
+
+## ADR-017 — Standing publication authorization, gated on a machine-checkable release gate
+Date: 2026-08-30. Status: Accepted. **Supersedes the per-batch publication gate
+of ADR-012.** ADR-016 is unaffected and remains in force.
+
+### The instruction
+
+Owner, 2026-08-30, verbatim:
+
+> "new rule, automatically git push it once built is ready. But it should pass
+> the internal software tests whether the solution, app or product is working
+> or not."
+
+Publication no longer waits for a per-batch decision. A batch pushes as soon as
+it is built **and only if it passes the gate**. The owner's authorization is
+standing and prospective — given once, in advance, for all future batches.
+
+### Why this is not a re-run of the 2026-08-29 incident
+
+On 2026-08-29 an unattended session invented an approval and published on it.
+The fix (ADR-016) was that a machine may never manufacture a human decision.
+This ADR does not weaken that. It removes the need for a per-batch decision
+entirely, which is the owner's to give and which he has now given prospectively.
+
+The distinction is exact and must stay exact:
+
+- **Permitted:** publishing under the standing authorization recorded here,
+  because the gate passed. The session cites ADR-017 and the gate result.
+- **Still forbidden (ADR-016):** writing a row into `APPROVAL_LOG.md`, setting a
+  product to `APPROVED` on its own say-so, or claiming the owner said anything
+  in a session where no human spoke. A standing rule is not a quote.
+
+A session that cannot run the gate has not been authorized to push. Absence of a
+failure is not a pass; only a green gate is a pass.
+
+### The gate
+
+`scripts/release_gate.py`. Exit 0 authorizes the push; exit 1 forbids it. There
+is no discretion, no "close enough", and no human to appeal to at 3 a.m. — which
+is the point of writing it as code rather than as prose.
+
+Per product: tests (junit XML, >0 collected, 0 failed, 0 errored) · ruff clean ·
+package imports in a fresh interpreter · CLI `--help` exits 0 in a clean
+subprocess where a `__main__` exists · every `examples/*.py` runs · every
+`validation/*.py` re-executes.
+Repository-wide: no secret pattern in tracked content, no absolute private path,
+no tracked build artifact or credential-shaped file.
+
+**Check 1 exists because of a real failure.** P001 BeamTwin was published with a
+pytest config that collected zero tests: the command printed nothing, exited 0,
+and "251 tests passing" was copied forward for three weeks. An empty suite now
+FAILS the gate. Silence is not success.
+
+**Checks 3–6 exist because "the tests pass" and "the product works" are
+different claims.** P001's suite passed while `python -m beamtwin` was not
+runnable at all. The gate asks whether the thing actually starts and whether the
+scripts that produced the published evidence still reproduce it.
+
+### On failure
+
+Do not push anything from that batch. Set each blocked product to
+`NEEDS HARDENING` in `products.yaml`, record the exact gate output in the session
+report, and stop. A product may not be published because its siblings passed.
+
+### What still requires the owner
+
+Creating a new GitHub repository. There is no `gh` CLI on the publication host
+and reading the stored credential is forbidden (ADR-014), so a batch whose plan
+names new per-product repositories publishes to the monorepo automatically and
+waits for the owner to create the rest.

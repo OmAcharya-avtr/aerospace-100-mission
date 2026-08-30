@@ -61,4 +61,4 @@ Seed base: 20260801; Wilson 95% CI; per-point n sized for >= ~150 expected error
 
 **Coverage: 49/54 points (90.7%) have the analytic BER inside the 95% Wilson CI.** Expected coverage for a correct implementation is ~95% (binomial: 54 trials, p=0.95 => 2-sigma range 48-54 points).
 
-Total Monte Carlo wall time: 8.8 s (budget: < 180 s).
+Total Monte Carlo wall time: 7.3 s (budget: < 180 s).

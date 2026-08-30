@@ -49,6 +49,14 @@ from shacksim import (  # noqa: E402
 )
 
 HERE = Path(__file__).resolve().parent
+
+# Figures are reported by file name only. Printing the absolute path bakes the
+# build machine's directory layout into committed evidence (this file previously
+# carried the build container's absolute home path), which leaks the build
+# environment and makes the output non-reproducible across machines for no
+# benefit. The release gate rejects such a path anywhere in tracked content --
+# including in a comment like this one, which is why the path is described
+# rather than quoted.
 OUT = HERE / "validation_output.txt"
 
 ARRAY = LensletArray()
@@ -197,7 +205,7 @@ def check_zero_and_scurve() -> None:
     fig.tight_layout()
     fig.savefig(HERE / "scurve_bias.png", dpi=130)
     plt.close(fig)
-    print(f"  figure -> {HERE / 'scurve_bias.png'}")
+    print("  figure -> scurve_bias.png")
 
 
 # --------------------------------------------------------------------------- 3
@@ -339,7 +347,7 @@ def check_background_bias() -> None:
     fig.tight_layout()
     fig.savefig(HERE / "background_bias.png", dpi=130)
     plt.close(fig)
-    print(f"figure -> {HERE / 'background_bias.png'}")
+    print("figure -> background_bias.png")
 
 
 # --------------------------------------------------------------------------- 5
@@ -461,7 +469,7 @@ def check_ml_benchmark(classical: dict[str, list[float]]) -> None:
     fig.tight_layout()
     fig.savefig(HERE / "ml_vs_classical.png", dpi=130)
     plt.close(fig)
-    print(f"figure -> {HERE / 'ml_vs_classical.png'}")
+    print("figure -> ml_vs_classical.png")
     print()
     print("Classical-only curves from section 3 (round spot, for cross-reference):")
     print(f"  tuned thresholds {classical['threshold']}")
