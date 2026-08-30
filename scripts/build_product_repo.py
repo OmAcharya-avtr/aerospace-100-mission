@@ -174,10 +174,13 @@ def build(pid: str, out_root: Path) -> Path:
 
 
 if __name__ == "__main__":
-    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    argv = sys.argv[1:]
     out = Path("/home/claude/repos")
-    if "--out" in sys.argv:
-        out = Path(sys.argv[sys.argv.index("--out") + 1])
+    if "--out" in argv:
+        i = argv.index("--out")
+        out = Path(argv[i + 1])
+        del argv[i:i + 2]
+    args = [a for a in argv if not a.startswith("--")]
     out.mkdir(parents=True, exist_ok=True)
     ids = args or [p.name for p in sorted((ROOT / "products").glob("P0*"))]
     for pid in ids:
