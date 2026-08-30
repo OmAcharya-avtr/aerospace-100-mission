@@ -1,420 +1,424 @@
 # ScintiNet
 
-**Status:** TESTING · **Class:** medium · **Validation level:** 2 (Research) · **AI:** yes
-
-## Executive overview
-
-ScintiNet estimates optical scintillation — the fluctuation of received
-irradiance caused by atmospheric turbulence — for free-space optical (FSO)
-link planning. It provides three layers that can be compared against one
-another on identical inputs:
-
-1. **Analytic core** — weak-fluctuation Rytov theory with circular-aperture
-   averaging (the classical baseline, implemented first).
-2. **Split-step phase-screen simulator** — angular-spectrum wave-optics
-   propagation through Kolmogorov phase screens, used as the data generator
-   and validated against the analytic core.
-3. **Learned surrogate** — a small MLP ensemble trained on simulation output,
-   predicting the scintillation index with an uncertainty estimate ~5000×
-   faster than running the simulation.
-
-The headline validation result: the simulator reproduces Rytov theory to a
-mean ratio of **0.980** for a point receiver across the weak regime, and the
-surrogate **does not beat** the analytic baseline in-regime (RMSE log10
-0.0781 vs 0.0429). Both numbers are reported as measured. See
-[Benchmark results](#benchmark-results).
-
-## Aerospace problem
-
-Free-space optical links — ground-to-ground, ground-to-air, and
-satellite-to-ground downlinks — carry high data rates but suffer deep,
-fast irradiance fades from refractive-index turbulence along the path. The
-scintillation index σ_I² = ⟨I²⟩/⟨I⟩² − 1 sets the required link margin, the
-fade statistics, and ultimately the achievable availability.
-
-Link planners face a gap: closed-form Rytov theory is instant but valid only
-under weak fluctuations for idealised geometries, while wave-optics
-simulation is general but far too slow for the parametric sweeps, Monte Carlo
-availability studies, and optimisation loops that planning requires. ScintiNet
-is a research vehicle for closing that gap with a learned surrogate — and for
-honestly measuring whether the surrogate is actually worth it.
-
-## Intended users
-
-- Atmospheric-propagation and FSO researchers evaluating surrogate modelling
-  for link-budget tools.
-- Optical communications engineers building parametric link-planning studies
-  who need a reproducible reference implementation of Rytov theory and a
-  split-step simulator.
-- Graduate students and instructors in atmospheric optics who want a
-  documented, tested, runnable implementation of textbook results.
-
-Not intended for operational link certification, availability guarantees, or
-any flight or mission-critical decision.
-
-## Engineering theory
-
-All results assume a **Kolmogorov** refractive-index spectrum with no inner or
-outer scale, a **horizontally homogeneous** path (constant Cn²), and **weak
-fluctuations**.
-
-### Rytov variance
-
-Plane wave:
-
-    σ_R² = 1.23 · Cn² · k^(7/6) · L^(11/6)
-
-Spherical wave:
-
-    β_0² = 0.50 · Cn² · k^(7/6) · L^(11/6)
-
-- **Source:** L. C. Andrews and R. L. Phillips, *Laser Beam Propagation
-  through Random Media*, 2nd ed., SPIE Press, 2005 — standard
-  Kolmogorov-spectrum results.
-- **Units:** Cn² [m^(−2/3)], k = 2π/λ [rad/m], L [m]; σ_R² dimensionless.
-- **Assumptions:** Kolmogorov spectrum, constant Cn², paraxial propagation,
-  first-order Rytov (weak scattering).
-- **Validity range:** σ_R² < ~1 (best below ~0.5). Beyond this the Rytov
-  approximation breaks down; σ_I² rises to a focusing peak near σ_R² ≈ 2–4
-  and then saturates toward 1. ScintiNet does **not** model that regime.
-
-### Weak-fluctuation scintillation index
-
-In the weak regime the point scintillation index equals the Rytov variance:
-
-    σ_I² = σ_R²
-
-- **Source:** Andrews & Phillips 2005. **Validity:** σ_R² < ~1 only.
-
-### Aperture averaging (circular aperture)
-
-    A = [1 + 1.062 · k D² / (4 L)]^(−7/6),   σ_I²(D) = A · σ_R²
-
-- **Source:** L. C. Andrews, "Aperture-averaging factor for optical
-  scintillations of plane and spherical waves in the atmosphere,"
-  *J. Opt. Soc. Am. A* **9**(4), 597–600, 1992; also Andrews & Phillips 2005.
-- **Units:** D [m], L [m], k [rad/m]; A dimensionless, in (0, 1].
-- **Assumptions:** plane-wave illumination, Kolmogorov spectrum, weak
-  fluctuations, inner scale ≪ Fresnel scale √(L/k) ≪ outer scale.
-- **Validity range:** A → 1 for D ≪ √(L/k) (point receiver) and decreases
-  monotonically with D. This is an **approximation** to the exact
-  aperture-averaging integral; a few-percent to ~10 % discrepancy against the
-  exact form is expected, and ScintiNet's measured aperture bias
-  (see Validation) partly reflects this. It is implemented for plane waves
-  only — requesting it with `wave="spherical"` raises `ValueError`.
-
-### Phase-screen synthesis
-
-Kolmogorov phase power spectral density for a screen of thickness Δz:
-
-    Φ_φ(κ) = 2π · k² · (Cn² Δz) · 0.033 · κ^(−11/3)
-
-- **Source:** Andrews & Phillips 2005 (Kolmogorov phase spectrum); FFT
-  synthesis recipe per J. D. Schmidt, *Numerical Simulation of Optical Wave
-  Propagation with Examples in MATLAB*, SPIE Press, 2010.
-- **Units:** κ [rad/m], Cn²Δz [m^(1/3)]; Φ_φ [rad² m²].
-
-### Angular-spectrum propagation
-
-    H(κ) = exp[ −i (κ_x² + κ_y²) Δz / (2k) ]
-
-- **Source:** J. W. Goodman, *Introduction to Fourier Optics*, 3rd ed., 2005;
-  Schmidt 2010. **Assumptions:** paraxial (Fresnel) approximation, scalar
-  field. The operator is unitary — total energy Σ|U|² is preserved exactly,
-  which is asserted in the test suite to rel 1e-12.
-
-### Sampling rules (enforced at run time)
-
-The simulator raises `ValueError` on violation of any of:
-
-1. **Fresnel resolution:** dx ≤ √(λL)/4 — the speckle scale √(λL) must span
-   at least 4 samples.
-2. **Domain size:** N·dx ≥ 4√(λL) — the grid must hold several speckle cells
-   for meaningful statistics.
-3. **Screen phase resolution:** r₀ ≥ 2·dx per screen, where
-   r₀ = (0.423 k² Cn² Δz)^(−3/5) is the plane-wave Fried parameter.
-
-Additionally, requested aperture diameters must not exceed grid_width/4.
-
-## Architecture
-
-```
-src/scintinet/
-├── rytov.py       analytic core: rytov_variance, aperture_averaging_factor,
-│                  scintillation_index_weak  (no dependencies beyond numpy)
-├── simulator.py   SimParams, SimResult, kolmogorov_phase_screen,
-│                  angular_spectrum_propagate, simulate_scintillation
-└── surrogate.py   Surrogate (MLP ensemble + uncertainty), rytov_baseline
-```
-
-Dependency direction is strictly one-way: `surrogate` → `rytov`,
-`simulator` → `rytov`. The analytic core has no knowledge of the simulator or
-the ML layer, so the baseline can never be contaminated by the model it is
-benchmarking. No cross-product imports.
-
-Data flow: `run_campaign.py` → `validation/dataset.csv` → `Surrogate.fit` →
-benchmark against `rytov_baseline` on held-out rows.
-
-## Installation
-
-Requires Python 3.11+, numpy, scikit-learn (matplotlib for the examples).
-
-```bash
-cd products/P003
-pip install -e .            # or: pip install -e ".[examples]"
-```
-
-No installation is strictly necessary — the tests and scripts add `src/` to
-`sys.path` themselves. Nothing outside the pre-installed environment is
-needed.
-
-## Quick start
-
-```python
-from scintinet import rytov_variance, scintillation_index_weak
-from scintinet import SimParams, simulate_scintillation, Surrogate
-
-# 1. Analytic: 2 km link at 1550 nm through Cn2 = 1e-15 m^(-2/3)
-sigma_r2 = rytov_variance(1e-15, 1.55e-6, 2000.0)          # 0.070950
-sigma_i2 = scintillation_index_weak(1e-15, 1.55e-6, 2000.0,
-                                    aperture_diameter=0.1)  # 0.008164
-
-# 2. Wave-optics simulation of the same link (~1.3 s)
-params = SimParams(cn2=1e-15, wavelength=1.55e-6, path_length=2000.0,
-                   aperture_diameters=(0.1,), grid_size=256,
-                   grid_width=0.5, n_screens=8, n_realizations=8)
-result = simulate_scintillation(params, seed=42)
-print(result.sigma_i2_point)          # 0.063972
-print(result.sigma_i2_aperture[0.1])  # aperture-averaged
-
-# 3. Surrogate with uncertainty (columns: Cn2, L, lambda, D)
-import csv
-import numpy as np
-
-rows = list(csv.DictReader(open("validation/dataset.csv")))
-X_train = np.array([[float(r["cn2"]), float(r["path_length_m"]),
-                     float(r["wavelength_m"]), float(r["aperture_d_m"])]
-                    for r in rows])
-y_train = np.array([float(r["sigma_i2_sim"]) for r in rows])
-
-surrogate = Surrogate(n_members=5, random_state=0).fit(X_train, y_train)
-mean, std = surrogate.predict(np.array([[1e-15, 2000.0, 1.55e-6, 0.1]]),
-                              return_std=True)
-```
-
-Reminder: in this regime `rytov_baseline` is more accurate than the
-surrogate — see [Benchmark results](#benchmark-results).
-
-## Configuration
-
-`SimParams` (all units SI):
-
-| Field | Default | Meaning |
-|---|---|---|
-| `cn2` | — | Refractive-index structure parameter [m^(−2/3)], ≥ 0 |
-| `wavelength` | — | Wavelength [m], > 0 |
-| `path_length` | — | Path length L [m], > 0 |
-| `aperture_diameters` | `()` | Receiver diameters [m] to evaluate |
-| `grid_size` | 256 | Samples per side (power of 2 recommended) |
-| `grid_width` | 0.5 | Physical grid side [m] |
-| `n_screens` | 8 | Phase screens (applied at segment midpoints) |
-| `n_realizations` | 8 | Independent turbulence realizations averaged |
-
-`Surrogate`: `n_members` (≥ 2, default 5), `hidden_layer_sizes`
-(default `(32, 32)`), `max_iter` (default 2000), `random_state` (default 0;
-member *i* uses `random_state + i`).
-
-Cost scales as `n_realizations × n_screens × grid_size² log(grid_size)`.
-The defaults are sized for the 2-core, sub-3-minute budget.
-
-## Examples
-
-Both scripts run standalone and write PNGs to `screenshots/`.
-
-```bash
-python examples/sweep_sigma_i2.py         # ~11 s
-python examples/phase_screen_speckle.py   # ~5 s
-```
-
-- **`screenshots/sweep_sigma_i2.png`** — σ_I² versus Rytov variance σ_R²
-  across a 7-point Cn² sweep at λ = 1550 nm, L = 2000 m: split-step
-  simulation, analytic theory, and the surrogate with its ±2σ ensemble band.
-  Simulation points track the theory line closely and fall slightly below it
-  at the top of the range.
-- **`screenshots/phase_screen_speckle.png`** — one Kolmogorov phase screen
-  (Cn²Δz = 2.5e-13 m^(1/3)) beside the resulting intensity speckle field
-  after 2 km through 8 screens (σ_I² = 0.074), showing the characteristic
-  Fresnel-scale irradiance structure.
-
-## Validation
-
-Full evidence, criteria and raw script outputs: **`validation/VALIDATION.md`**,
-with `sim_vs_theory.txt`, `benchmark_results.txt`, `campaign_log.txt` and
-`dataset.csv` committed alongside. Every number below came from running those
-scripts in this build session.
-
-| ID | Check | Result |
-|---|---|---|
-| V1 | Analytic core vs textbook closed forms (5 hand-checked known answers, rel 1e-4) | PASS |
-| V2 | Simulator sanity: energy conservation (rel < 1e-12), zero turbulence → σ_I² < 1e-12, seeded reproducibility | PASS |
-| V3 | Simulated σ_I² vs Rytov theory, point receiver, 18 sweep points | PASS — mean ratio 0.980 (0.907–1.041) |
-| V3b | Simulated σ_I² vs Rytov + Andrews aperture averaging, 36 points | Reported: mean ratio 0.850 (0.689–1.036) |
-| V4 | Surrogate vs analytic baseline, 14 held-out points | Baseline wins — reported as measured |
-
-The pass criterion for V3 was fixed before the run (point-like mean ratio
-within [0.6, 1.4], every point within [0.5, 1.6]) and is stated in the
-validation script itself.
-
-The V3b aperture bias is a genuine, documented limitation: FFT phase screens
-without subharmonics lack sub-fundamental spatial frequency power, which most
-affects the large-scale intensity structure that survives aperture averaging;
-the Andrews factor is itself an approximation. The two contributions cannot
-be separated with this dataset. Tolerances were not adjusted to hide it.
-
-Test suite: **50 passed, 0 failed, 0 skipped** (`python -m pytest tests/ -q`,
-8.2 s), including Hypothesis property tests, an end-to-end integration test
-(generate → train → predict), and a fixed-seed regression test
-(σ_I² = 0.0639720889 at seed 42) that guards the screen and propagator
-normalisation.
-
-## Benchmark results
-
-Surrogate versus analytic baseline on the same 14 held-out simulation points
-(54-row dataset, 40/14 shuffle split, seed 0):
+Scintillation index for free-space optical links: Rytov theory, a split-step simulator, and an MLP surrogate.
+
+![tests](https://img.shields.io/badge/tests-50%20passing-brightgreen)
+![python](https://img.shields.io/badge/python-3.11%2B-blue)
+![licence](https://img.shields.io/badge/licence-Apache--2.0-lightgrey)
+![validation](https://img.shields.io/badge/validation-level%202%20research-yellow)
+![status](https://img.shields.io/badge/status-research--grade%2C%20not%20flight--qualified-orange)
+
+## The problem
+
+A free-space optical link fades because refractive-index turbulence along the
+path scrambles the wavefront, and the scintillation index
+σ_I² = ⟨I²⟩/⟨I⟩² − 1 is the number that sets required link margin and outage
+probability. Closed-form Rytov theory gives σ_I² instantly but only for weak
+fluctuations on idealised geometries; split-step wave-optics simulation is
+general but costs order a second per parameter point on this machine, which
+kills the parametric sweeps and Monte Carlo availability studies that link
+planning actually needs. ScintiNet implements all three layers — theory,
+simulation, and a learned surrogate — on identical inputs so the trade can be
+measured rather than asserted.
+
+## The headline result: the analytic baseline beats the surrogate
+
+On the held-out test split, the MLP surrogate **loses** to the analytic Rytov
+baseline on every metric (`validation/benchmark_results.txt`, 14 held-out rows):
 
 | Model | RMSE (log10 σ_I²) | median \|rel err\| | max \|rel err\| |
 |---|---|---|---|
 | MLP surrogate (5-member ensemble) | 0.0781 | 0.1665 | 0.2824 |
 | **Rytov analytic baseline** | **0.0429** | **0.0700** | **0.2276** |
 
-**The analytic baseline wins on every metric.** This is the honest outcome
-and it is not a defect: the benchmark runs entirely inside the baseline's own
-validity regime, where Rytov theory is a near-exact closed form, and 40
-training rows carrying ~5–10 % statistical noise cannot support a network
-that rediscovers that closed form more accurately. The surrogate's 16.7 %
-median error is comparable to the noise on its own training targets.
+This is reported as measured. It was not tuned away, and it is the expected
+outcome: the benchmark runs entirely inside the baseline's own validity
+regime, where the baseline is a near-exact closed form, and 40 training rows
+carrying ~5–10 % statistical noise are nowhere near enough for a neural
+network to rediscover that closed form more accurately. The surrogate's
+16.7 % median error is roughly the noise floor of its own training targets.
 
-Where a surrogate *does* earn its place: regimes with no closed form (strong
-fluctuations, non-Kolmogorov spectra, slant paths with Cn²(h) profiles,
-Gaussian beams), and speed against **simulation** rather than against algebra
-— 0.269 ms per surrogate prediction versus ~1.3 s per split-step point here,
-a ~5000× speedup that makes Monte Carlo availability studies feasible.
-In-regime for a horizontal Kolmogorov plane-wave link, use `rytov_baseline`.
+**The surrogate's argument is speed, not accuracy.** Prediction cost measured
+at 0.269 ms/point against ~1.3 s/point for the split-step simulation at this
+grid size — a ~5000× speedup (`MODEL_CARD.md`, "When is a surrogate actually
+worthwhile?"; the later run in `validation/benchmark_results.txt` measured
+0.046 ms/point, which would put the ratio higher still). That gap is what
+makes Monte Carlo and optimisation loops possible at all. It is also what
+makes the surrogate approach worth building *before* the regimes where no
+closed form exists — strong fluctuations, non-Kolmogorov spectra,
+inner/outer-scale effects, slant paths with Cn²(h) profiles.
 
-Runtime budget (2 CPU cores): campaign 22.6 s, surrogate fit 2.0 s, test
-suite 8.2 s, examples ~16 s. All well inside the 3-minute limit.
+If you need the weak-fluctuation scintillation index for a horizontal
+Kolmogorov plane-wave link, call `scintinet.rytov` and ignore the surrogate.
+That recommendation is in the model card too.
 
-## AI model details
+## What this does
 
-Full detail in **`MODEL_CARD.md`** and **`DATASET_CARD.md`**.
+- **Analytic core**, hand-checked against textbook closed forms to relative
+  1e-4 on 5 known-answer cases, plus Hypothesis property tests
+  (`validation/VALIDATION.md` §V1).
+- **Split-step phase-screen simulator** — angular-spectrum propagation
+  between FFT-synthesised Kolmogorov screens, unitary to relative 1e-12,
+  reproducing Rytov theory to a mean sim/theory ratio of **0.980** for a
+  point receiver over 18 weak-regime points (`validation/sim_vs_theory.txt`).
+- **Seeded 54-row simulation campaign** covering Cn² 1e-16 → 1e-15 m^(−2/3),
+  L 1000 → 3000 m, λ 850/1550 nm, D 2/50/100 mm; σ_R² spans 4.0e-3 → 3.0e-1;
+  15.4 s wall time on 2 cores (`validation/campaign_log.txt`).
+- **MLP-ensemble surrogate** with a deep-ensemble uncertainty output: mean
+  ensemble std 2.9747e-03 against a mean prediction of 1.7698e-02 (≈17 %
+  spread), which tracks the measured 16.7 % median error.
+- **A benchmark that publishes its own negative result** — surrogate vs
+  baseline on the same held-out rows, with the baseline winning.
 
-- **Baseline (implemented first):** `rytov_baseline` — aperture-averaged
-  weak-fluctuation Rytov index, benchmarked on the identical held-out split.
-- **Architecture:** 5-member ensemble of scikit-learn `MLPRegressor`,
-  hidden (32, 32), L-BFGS, `StandardScaler` pipeline. Features
-  `[log10 Cn², log10 L, log10 λ, D]`; target `log10 σ_I²` (exponentiated back,
-  guaranteeing positive output). ~1200 parameters per member.
-- **Dataset:** 54 rows from a **reduced-scale** seeded simulation campaign
-  (256² grid, 8 screens, 8 realizations, 22.6 s). Weak regime only
-  (σ_R² ≤ 0.30), plane wave, horizontal homogeneous path. Regenerate with
-  `python validation/run_campaign.py` (seeds 2026 + i).
-- **Training:** 40 train / 14 test shuffle split, seed 0; fit time 2.0 s. No
-  hyperparameter search against the test set.
-- **Test split caveat:** the three aperture rows from one simulation run share
-  a seed and are correlated, so the random row split leaks mildly. A group
-  split by simulation point would be stricter. Documented, not corrected.
-- **Metrics:** see [Benchmark results](#benchmark-results). The baseline wins.
-- **Uncertainty output:** `Surrogate.predict(X, return_std=True)` returns the
-  ensemble-member standard deviation (deep-ensemble style; Lakshminarayanan
-  et al., NeurIPS 2017). Measured 2.97e-03 mean std against 1.77e-02 mean
-  prediction (≈17 %), tracking the 16.7 % median error. This is epistemic
-  disagreement only — **not a calibrated predictive interval**, and not to be
-  used as a confidence bound for link margin sizing.
-- **Failure cases:** silent extrapolation outside the training box
-  (Cn² > 1e-15, L > 3000 m, λ outside 850–1550 nm); strong fluctuations
-  (σ_R² > 1) where the true σ_I² peaks and saturates; non-plane-wave sources;
-  slant paths; inherited simulator low-bias on finite apertures;
-  unconstrained interpolation between the three trained D values.
-- **Reproducibility:** every command and seed is listed in `MODEL_CARD.md`;
-  identical `(data, random_state)` gives bit-identical predictions.
+## Who it's for
 
-**This model is not certified for operational flight use.**
+- Atmospheric-propagation and FSO researchers evaluating whether a surrogate
+  is worth the trouble for link-budget tooling.
+- Optical communications engineers who want a tested, referenced
+  implementation of the Rytov variance and the Andrews aperture-averaging
+  factor they can read in an afternoon.
+- Instructors and graduate students in atmospheric optics who want a runnable
+  split-step simulator small enough to understand end to end.
 
-## Hardware requirements
+## Who it's not for
 
-- CPU only. Developed and validated on 2 cores; no GPU, no PyTorch.
-- Peak memory < 500 MB (dominated by 256² complex FFT working arrays).
-  A 1024² grid would need roughly 16× that per array.
-- Disk: < 1 MB including the committed dataset and PNGs.
-- Python 3.11 with numpy and scikit-learn; matplotlib for examples only.
+- Anyone sizing link margin, predicting availability, or making a go/no-go
+  decision for a real optical link. Nothing here has been compared against
+  measured scintillometer data.
+- Anyone working outside weak fluctuations (σ_R² ≳ 1), on slant or
+  satellite-downlink geometries, with Gaussian beams, or with non-Kolmogorov
+  spectra. None of that is modelled.
+- Anyone needing a maintained general-purpose wave-optics framework. See the
+  next section — several exist and are better at that job.
+
+## Alternatives, honestly
+
+Every package below was checked to exist on PyPI at the version shown.
+
+| Alternative | What it does better | When to use it instead |
+|---|---|---|
+| [HCIPy](https://github.com/ehpor/hcipy) (`hcipy` 0.7.0) | Mature, general optical-propagation framework: `AngularSpectrumPropagator`, `FresnelPropagator`, `MultiLayerAtmosphere`, von Kármán phase statistics, site atmosphere profiles, coronagraphy, AO. | You want a maintained, general wave-optics framework rather than a 3-module research vehicle; you need von Kármán rather than pure Kolmogorov; you need multi-layer atmospheres or anything high-contrast-imaging. This is the default recommendation. |
+| [AOtools](https://github.com/AOtools/aotools) (`aotools` 1.0.8) | Peer-reviewed toolbox of AO building blocks — finite and infinite phase screens, slope covariance matrices, temporal power spectra, atmospheric parameter conversions, optical propagation. | You want well-tested primitives to compose your own pipeline, especially infinite (endlessly extensible) phase screens, which ScintiNet does not have. |
+| [Soapy](https://github.com/AOtools/soapy) (`soapy` 0.15.0) | End-to-end Monte Carlo AO system simulation: wavefront sensors, deformable mirrors, reconstructors, laser guide stars with realistic propagation. | You are simulating a closed-loop AO system rather than an open-path link budget. Its own README describes it as under heavy development and advises care before publishing from it. |
+| [POPPY](https://github.com/spacetelescope/poppy) (`poppy` 1.2.0) | Fraunhofer and Fresnel physical-optics propagation for telescope PSF simulation; the propagation engine behind JWST PSF tooling. | You are modelling an instrument's pupil, optical train and PSF. It has no atmospheric turbulence-along-path model at all. |
+| [prysm](https://github.com/brandondube/prysm) (`prysm` 0.21.1) | Physical and first-order optical modelling: polynomials and Zernikes, multi-plane diffraction, interferogram processing, detector models, optional GPU. | You are doing optical design, wavefront or interferogram analysis, or a full image-chain simulation. No atmospheric propagation. |
+| [LightPipes](https://github.com/opticspy/lightpipes) (`LightPipes` 2.1.5) | General scalar beam-propagation toolbox with a broad library of optical elements and a gentle learning curve. | You want interactive beam-propagation experiments through defined optical elements rather than turbulent-path statistics. |
+| [COMPASS](https://github.com/COSMIC-RTC/compass) | GPU-accelerated end-to-end AO simulation platform built for ELT-scale systems. | You need large-scale GPU AO simulation. **Caution:** the name `compass` on PyPI is an unrelated geolocation API client library, not this platform; COMPASS is installed from its own repository, not from `pip install compass`. |
+
+Bottom line: for the weak-fluctuation, horizontal, Kolmogorov, plane-wave
+case that ScintiNet actually covers, the honest answer is that the closed
+form is three lines of numpy — `scintinet.rytov` just gives you a version
+with the references, the units and the validity checks written down.
+ScintiNet's reason to exist is the measured surrogate-vs-baseline comparison,
+not a claim of unique capability.
+
+## Install and first run
+
+```bash
+git clone https://github.com/OmAcharya-avtr/scintinet.git
+cd scintinet
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[examples]" pytest hypothesis
+python -m pytest tests/ -q
+python examples/phase_screen_speckle.py
+```
+
+`pyproject.toml` declares one extra, `examples` (matplotlib); `pytest` and
+`hypothesis` are the test-only dependencies and are named explicitly above.
+Runtime dependencies are numpy and scikit-learn. No GPU, no PyTorch.
+
+Expected output:
+
+```
+..................................................                       [100%]
+50 passed in 5.44s
+saved /path/to/scintinet/screenshots/phase_screen_speckle.png
+```
+
+The test run takes about 5 s and the example about 5 s on 2 CPU cores.
+
+## Worked example
+
+All three layers on one link: Cn² = 1e-15 m^(−2/3), λ = 1550 nm, L = 2000 m,
+D = 50 mm.
+
+```python
+import csv
+import numpy as np
+from scintinet import (
+    SimParams, Surrogate, rytov_baseline,
+    scintillation_index_weak, simulate_scintillation,
+)
+
+CN2, LAM, L, D = 1e-15, 1.55e-6, 2000.0, 0.05      # m^-2/3, m, m, m
+
+# 1. Analytic weak-fluctuation theory: closed form, microseconds.
+print(f"Rytov + Andrews aperture averaging : {scintillation_index_weak(CN2, LAM, L, D):.4e}")
+
+# 2. Split-step wave optics: the ground truth the surrogate is trained on.
+#    seed 2041 is the campaign seed for this point, so it reproduces dataset.csv.
+sim = simulate_scintillation(
+    SimParams(cn2=CN2, wavelength=LAM, path_length=L, aperture_diameters=(D,),
+              grid_size=256, grid_width=0.5, n_screens=8, n_realizations=8),
+    seed=2041,
+)
+print(f"split-step simulation (256^2)      : {sim.sigma_i2_aperture[D]:.4e} "
+      f"(mean I = {sim.mean_intensity:.4f})")
+
+# 3. Surrogate, fitted on the committed campaign dataset.
+rows = list(csv.DictReader(open("validation/dataset.csv")))
+X = np.array([[float(r["cn2"]), float(r["path_length_m"]),
+               float(r["wavelength_m"]), float(r["aperture_d_m"])] for r in rows])
+y = np.array([float(r["sigma_i2_sim"]) for r in rows])
+surrogate = Surrogate(n_members=5, hidden_layer_sizes=(32, 32), random_state=0).fit(X, y)
+
+# Query an interpolated Cn2 that is not on the campaign grid.
+q = np.array([[5e-16, L, LAM, D]])
+mu, sd = surrogate.predict(q, return_std=True)
+print(f"\nCn2 = 5e-16 (off-grid interpolation)")
+print(f"MLP surrogate (5-member ensemble)  : {mu[0]:.4e} +/- {sd[0]:.2e} (ensemble spread)")
+print(f"rytov_baseline() analytic          : {rytov_baseline(q)[0]:.4e}")
+```
+
+Actual output:
+
+```
+Rytov + Andrews aperture averaging : 2.6245e-02
+split-step simulation (256^2)      : 2.3704e-02 (mean I = 1.0006)
+
+Cn2 = 5e-16 (off-grid interpolation)
+MLP surrogate (5-member ensemble)  : 1.2298e-02 +/- 4.36e-04 (ensemble spread)
+rytov_baseline() analytic          : 1.3123e-02
+```
+
+Two things to read off this. The simulated value 2.3704e-02 is bit-identical
+to the corresponding row of `validation/dataset.csv` — the campaign is fully
+seeded and regenerable. And the simulation sits 9.7 % below theory at
+D = 50 mm, which is the documented finite-aperture low bias (§V3b below); the
+surrogate, trained on simulation, inherits it and lands 6.3 % below the
+analytic baseline at the off-grid query.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    subgraph sim["split-step simulation — src/scintinet/simulator.py"]
+        KPS["kolmogorov_phase_screen()<br/>FFT-synthesised Kolmogorov screen"]
+        ASP["angular_spectrum_propagate()<br/>paraxial transfer function"]
+        SS["simulate_scintillation(SimParams, seed)<br/>8 screens x 8 realizations, 256^2 grid"]
+        KPS --> SS
+        ASP --> SS
+    end
+
+    subgraph theory["analytic core — src/scintinet/rytov.py"]
+        RV["rytov_variance()<br/>1.23 Cn2 k^(7/6) L^(11/6)"]
+        AAF["aperture_averaging_factor()<br/>Andrews 1992"]
+        SIW["scintillation_index_weak()"]
+        RV --> SIW
+        AAF --> SIW
+    end
+
+    CAMP["validation/run_campaign.py<br/>18 points x 3 apertures, seeds 2026+i"]
+    DATA[("validation/dataset.csv<br/>54 rows, sigma_I^2 targets")]
+    FIT["src/scintinet/surrogate.py<br/>Surrogate.fit() — 5x MLPRegressor (32,32)"]
+    PRED["Surrogate.predict(X, return_std=True)"]
+    BASE["surrogate.rytov_baseline()<br/>analytic prediction on the same X"]
+    BENCH["validation/benchmark_surrogate.py<br/>40 train / 14 test, split seed 0"]
+    RESULT["validation/benchmark_results.txt<br/>RMSE log10: baseline 0.0429 vs surrogate 0.0781"]
+    VAL["validation/validate_simulator.py<br/>sim_vs_theory.txt — point ratio 0.980"]
+
+    SS --> CAMP --> DATA --> FIT --> PRED --> BENCH
+    SIW --> BASE --> BENCH
+    SIW --> VAL
+    SS --> VAL
+    BENCH --> RESULT
+```
+
+Dependency direction is strictly one-way: `surrogate` → `rytov` and
+`simulator` → `rytov`. The analytic core imports neither the simulator nor
+the ML layer, so the baseline cannot be contaminated by the model it is
+benchmarking.
+
+## Screenshots
+
+Both images are produced by the scripts in `examples/`, so they cannot drift
+from the code.
+
+![Kolmogorov phase screen and the resulting intensity speckle](screenshots/phase_screen_speckle.png)
+
+Notice that the phase screen (left, ±0.7 rad) has almost all its power at
+large scales — the visible structure is tens of centimetres across — while the
+intensity field it produces after 2 km (right, σ_I² = 0.074) has fine-grained
+speckle at the Fresnel scale √(λL) ≈ 5.6 cm, with peaks above 2.5× and nulls
+below 0.4× the mean.
+
+![Scintillation index versus Rytov variance, simulation vs theory vs surrogate](screenshots/sweep_sigma_i2.png)
+
+Notice that the simulation points (blue) sit on the σ_I² = σ_R² line at the
+low end and drift a few percent below it at the top of the sweep, and that
+the surrogate (orange, with its ±2σ ensemble band) tracks the simulation
+rather than the theory — it was trained on simulation, so it inherits the
+simulator's low bias by construction.
+
+## Validation evidence
+
+Level 2 (Research). Every figure below comes from a script in `validation/`;
+raw outputs are committed. Failures and baseline wins are included, because
+those are the credible entries.
+
+| ID | Check | Reference | Result | Tolerance / gate |
+|---|---|---|---|---|
+| V1 | Plane-wave σ_R², Cn²=1e-15, λ=1.55 µm, L=2000 m | Andrews & Phillips 2005 | 7.09495e-2 vs hand calc 7.09495e-2 | rel 1e-4 — PASS |
+| V1 | Plane-wave σ_R², Cn²=5e-16, λ=850 nm, L=1000 m | Andrews & Phillips 2005 | 2.00646e-2 vs 2.00646e-2 | rel 1e-4 — PASS |
+| V1 | Spherical-wave σ_R² | Andrews & Phillips 2005 | 2.88413e-2 vs 2.88413e-2 | rel 1e-4 — PASS |
+| V1 | Aperture factor A, λ=1.55 µm, L=2000 m, D=0.1 m | Andrews, JOSA A 9(4) 597, 1992 | 0.115065 vs 0.115065 | rel 1e-4 — PASS |
+| V1 | σ_I²(D), same inputs | Andrews 1992 | 8.1638e-3 vs 8.1638e-3 | rel 1e-3 — PASS |
+| V2 | Angular-spectrum propagation is unitary over 500 m | Goodman 2005; Schmidt 2010 | rel error < 1e-12 | PASS |
+| V2 | Zero turbulence ⇒ no scintillation | — | \|σ_I²\| < 1e-12, ⟨I⟩ = 1 ± 1e-12 | PASS |
+| V2 | Energy conservation with turbulence, Cn²=5e-16, L=1000 m | — | ⟨I⟩ within 0.02 of 1 | PASS |
+| V2 | Screen variance linear in Cn²·Δz | Schmidt 2010 | ratio 4.0 for 4× increase | rel 1e-9 — PASS |
+| V2 | Seeded reproducibility | — | bit-identical σ_I² | exact — PASS |
+| V3 | Simulated vs Rytov, point receiver (D = 2 mm), n = 18 | Andrews & Phillips 2005 | mean ratio **0.980**, min 0.907, max 1.041 | mean in [0.6, 1.4], all in [0.5, 1.6] — PASS |
+| V3b | Simulated vs Rytov + Andrews averaging, D = 50/100 mm, n = 36 | Andrews 1992 | mean ratio **0.850**, min 0.689, max 1.036 | no pass gate — **reported bias, 15 % low** |
+| V4 | MLP surrogate on 14 held-out rows | `benchmark_surrogate.py` | RMSE(log10) 0.0781, median rel 0.1665, max rel 0.2824 | — |
+| V4 | Rytov baseline on the same 14 rows | `benchmark_surrogate.py` | RMSE(log10) **0.0429**, median rel **0.0700**, max rel **0.2276** | — **baseline wins on every metric** |
+| V4 | Ensemble spread as an error indicator | `benchmark_surrogate.py` | mean std 2.9747e-03 vs mean prediction 1.7698e-02 (≈17 %) | informative, **not calibrated** |
+| — | Test suite | `tests/` | 50 passed, 0 failed, 0 skipped, 5.44 s | — |
+
+Two biases are reported rather than tuned away. The point-receiver index runs
+~2 % low on average and up to 9 % low at the largest σ_R² = 0.30, because FFT
+screens carry no power below the fundamental frequency 2π/(N·dx) and the
+highest points begin to leave the strictly weak regime. The finite-aperture
+index runs 15 % low on average and 31 % low at D = 100 mm, L = 3000 m; the
+missing low-frequency screen power and the approximate nature of the Andrews
+(1992) factor both contribute and cannot be separated with this dataset.
+
+**Not validated:** strong fluctuations (σ_R² > 1), non-Kolmogorov spectra,
+inner/outer-scale effects, slant or vertical paths with Cn²(h) profiles,
+Gaussian-beam or spherical-wave simulation, beam wander, temporal statistics,
+and any comparison against field measurement. No experimental data was used
+anywhere in this validation.
+
+## API reference
+
+<details>
+<summary><code>scintinet.rytov</code> — analytic core</summary>
+
+| Function | Returns |
+|---|---|
+| `rytov_variance(cn2, wavelength, path_length, wave="plane")` | σ_R² [dimensionless]. `cn2` [m^(−2/3)], `wavelength` [m], `path_length` [m]; `wave` is `"plane"` (1.23) or `"spherical"` (0.50). |
+| `aperture_averaging_factor(wavelength, path_length, aperture_diameter)` | A ∈ (0, 1] [dimensionless]. All arguments in metres. Plane-wave Andrews (1992) approximation. |
+| `scintillation_index_weak(cn2, wavelength, path_length, aperture_diameter=None, wave="plane")` | σ_I² [dimensionless]. `aperture_diameter` [m] or `None` for a point receiver; aperture averaging requires `wave="plane"`. |
+
+</details>
+
+<details>
+<summary><code>scintinet.simulator</code> — split-step wave optics</summary>
+
+| Object | Meaning |
+|---|---|
+| `SimParams(cn2, wavelength, path_length, aperture_diameters=(), grid_size=256, grid_width=0.5, n_screens=8, n_realizations=8)` | Frozen dataclass. `cn2` [m^(−2/3)] ≥ 0, `wavelength`/`path_length`/`grid_width`/`aperture_diameters` [m], `grid_size` samples per side. |
+| `SimResult` | `sigma_i2_point` [dimensionless], `sigma_i2_aperture` (dict, D [m] → σ_I²), `mean_intensity` (1.0 for a lossless unit plane wave), `params`, `seed`. |
+| `kolmogorov_phase_screen(rng, n, dx, cn2_dz, wavelength)` | (n, n) phase screen [rad]. `dx` [m], `cn2_dz` [m^(1/3)]. Piston removed. |
+| `angular_spectrum_propagate(u, wavelength, dx, dz)` | Propagated complex field. `dz` [m]. Unitary to rel 1e-12. |
+| `simulate_scintillation(params, seed)` | `SimResult`. Raises `ValueError` if the sampling rules are violated: dx ≤ √(λL)/4, N·dx ≥ 4√(λL), r₀ ≥ 2·dx per screen, and D ≤ grid_width/4. |
+
+</details>
+
+<details>
+<summary><code>scintinet.surrogate</code> — learned model and analytic baseline</summary>
+
+| Object | Meaning |
+|---|---|
+| `rytov_baseline(X)` | (n,) σ_I² [dimensionless] from `X` of shape (n, 4), columns `[Cn² (m^(−2/3)), L (m), λ (m), D (m)]`; `D = 0` means point receiver. |
+| `Surrogate(n_members=5, hidden_layer_sizes=(32, 32), max_iter=2000, random_state=0)` | Ensemble of scikit-learn `MLPRegressor` in a `StandardScaler` pipeline. `n_members` ≥ 2. Member *i* uses seed `random_state + i`. ~1200 parameters per member. |
+| `Surrogate.fit(X, y)` | Fits on the same 4-column `X`; `y` is σ_I² > 0. Features `[log10 Cn², log10 L, log10 λ, D]`; target `log10 σ_I²`. Returns `self`. |
+| `Surrogate.predict(X, return_std=False)` | Mean σ_I² [dimensionless], and ensemble standard deviation in linear σ_I² space if `return_std=True`. Epistemic disagreement only. |
+
+</details>
 
 ## Limitations
 
-1. **Weak-fluctuation regime only.** Everything here — theory, simulation
-   validation, training data, surrogate — is confined to σ_R² ≲ 1
-   (max 0.30 in the dataset). The focusing peak and saturation regime are not
-   modelled and will be silently wrong if queried.
-2. **No subharmonics in the phase screens.** FFT synthesis provides no power
-   below 2π/(N·dx). Measured consequence: σ_I² ~2 % low (point) and ~15 % low
-   (50–100 mm apertures). Do not use this simulator for beam-wander, tilt, or
-   long-exposure phase statistics, which are dominated by exactly the
-   missing low frequencies.
-3. **Plane wave only.** No Gaussian-beam or spherical-wave simulation; the
-   analytic core has spherical-wave σ_R² but aperture averaging is
-   plane-wave only.
-4. **Horizontal homogeneous path only.** Constant Cn²; no Cn²(h) altitude
-   profile, so no slant-path or satellite downlink capability.
-5. **Kolmogorov spectrum with no inner or outer scale.** No
-   von Kármán / modified-atmospheric-spectrum options.
-6. **Reduced-scale dataset (54 rows).** Not converged; ~5–10 % statistical
-   noise per target from only 8 realizations. See `DATASET_CARD.md` for what
-   a full campaign would require.
-7. **Surrogate does not beat the analytic baseline in-regime** and has no
-   extrapolation guard rails.
-8. **Ensemble std is not calibrated** as a predictive interval.
-9. **No experimental validation.** Nothing here has been compared against
-   measured scintillometer or field-trial data. Level 2 (Research) evidence
-   is analytic and self-consistency only.
-10. **No temporal modelling.** No wind, frozen flow, fade duration, fade rate,
-    or outage-probability statistics.
-11. **No CLI.** The spec names no CLI for this product; use the Python API
-    and the committed scripts.
+1. **The surrogate loses to the analytic baseline in-regime** (0.0781 vs
+   0.0429 RMSE in log10). Its only measured advantage is speed. See the
+   headline section above.
+2. **Compute budget: 2 CPU cores, scikit-learn only.** No GPU, no PyTorch,
+   no JAX. Peak memory below 500 MB, dominated by 256² complex FFT arrays; a
+   1024² grid would need roughly 16× that per array. Everything in this repo
+   — campaign 15.4 s, surrogate fit ~0.1–2 s depending on run, test suite
+   5.44 s, examples ~16 s — was sized to fit that budget, which is why the
+   dataset is 54 rows rather than 10³–10⁴.
+3. **Rytov theory's own validity range.** The first-order Rytov approximation
+   holds for σ_R² ≲ 1 and is best below ~0.5. Beyond that the true σ_I²
+   rises to a focusing peak near σ_R² ≈ 2–4 and then saturates toward 1.
+   ScintiNet models none of that, and neither the baseline nor the surrogate
+   will warn you: they return a confident, wrong number.
+4. **Training-domain bounds, with no guard rails.** The surrogate saw only
+   Cn² ∈ [1e-16, 1e-15] m^(−2/3), L ∈ [1000, 3000] m, λ ∈ {850 nm, 1550 nm},
+   D ∈ {2, 50, 100} mm, σ_R² ≤ 0.30. Queries outside that box are silent
+   extrapolation. D in particular was trained on three discrete values, so
+   anything between 2 mm and 50 mm is unconstrained by data.
+5. **The training data is synthetic throughout.** Every target is simulator
+   output, not measurement, so the surrogate learns the simulator's biases —
+   including the ~15 % finite-aperture low bias — by construction. No
+   scintillometer or field-trial data was used anywhere.
+6. **The dataset is not converged.** 8 realizations per point gives ~5–10 %
+   statistical noise per target; 8 screens and a 256² grid over 0.5 m are far
+   below production practice. `DATASET_CARD.md` tabulates what a converged
+   campaign would need.
+7. **No subharmonics in the phase screens.** FFT synthesis provides no power
+   below 2π/(N·dx). Do not use this simulator for beam wander, tilt, or
+   long-exposure phase statistics, which are dominated by exactly the missing
+   low frequencies.
+8. **Plane wave, horizontal path, Kolmogorov spectrum only.** No Gaussian
+   beams, no spherical-wave aperture averaging, no Cn²(h) altitude profile,
+   no inner or outer scale, no von Kármán option.
+9. **The train/test split leaks mildly.** The three aperture rows from one
+   simulation run share a seed and are correlated; the random row split does
+   not account for it, so held-out aperture rows are slightly optimistic. A
+   group split by simulation point would be stricter. Documented, not
+   corrected.
+10. **The ensemble std is not a calibrated predictive interval.** It captures
+    model disagreement only — not simulation noise, phase-screen bias, or
+    physics-model error. Do not use it as a confidence bound for link margin.
+11. **No temporal modelling and no CLI.** No wind, frozen flow, fade
+    duration, fade rate or outage probability; use the Python API and the
+    committed scripts.
 
 ## Safety statement
 
 This software is research-grade. It is not flight-qualified, not certified,
-and not approved for operational aerospace use.
+and not approved for operational aerospace use. Predictions must not be used
+to size link margin, certify availability, or make go/no-go decisions for any
+operational optical link, terrestrial or space-to-ground.
 
-## Roadmap
+## Reproducing every number
 
-- Subharmonic phase-screen augmentation (Lane et al. 1992) to correct the
-  low-frequency deficit and the finite-aperture bias.
-- Gaussian-beam and spherical-wave sources; exact aperture-averaging integral
-  alongside the Andrews approximation.
-- Extension into the strong-fluctuation regime with comparison against the
-  Andrews–Phillips gamma-gamma / effective-spectrum models — the regime where
-  a surrogate has a real accuracy argument.
-- Cn²(h) altitude profiles (e.g. Hufnagel–Valley) for slant and downlink
-  geometries.
-- Converged campaign at 1024² with 500+ realizations per point and a
-  group-wise train/test split, plus surrogate recalibration.
-- Temporal frozen-flow simulation for fade-duration and outage statistics.
+All randomness is seeded (`BASE_SEED = 2026`, split seed 0, surrogate
+`random_state=0`), so reruns reproduce these figures exactly.
 
-## License
+```bash
+python validation/run_campaign.py         # ~15 s  -> dataset.csv, campaign_log.txt
+python validation/validate_simulator.py   # <1 s   -> sim_vs_theory.txt  (V3, ratio 0.980)
+python validation/benchmark_surrogate.py  # ~3 s   -> benchmark_results.txt (V4, baseline wins)
+python -m pytest tests/ -q                # 50 tests, ~5 s (V1, V2)
+python examples/sweep_sigma_i2.py         # ~11 s  -> screenshots/sweep_sigma_i2.png
+python examples/phase_screen_speckle.py   # ~5 s   -> screenshots/phase_screen_speckle.png
+```
+
+| Where the number in this README came from | File |
+|---|---|
+| V1 known-answer figures, V2/V3 summary, V4 table | `validation/VALIDATION.md` |
+| Point and finite-aperture sim/theory ratios, per-point table | `validation/sim_vs_theory.txt` |
+| RMSE, median/max relative error, ensemble std, prediction cost | `validation/benchmark_results.txt` |
+| Campaign wall time, grid, screens, realizations | `validation/campaign_log.txt` |
+| The 54 training rows and their seeds | `validation/dataset.csv` |
+| Architecture, ~5000× speedup, failure cases | `MODEL_CARD.md` |
+| Coverage, statistical noise, what a full campaign needs | `DATASET_CARD.md` |
+
+## Licence
 
 Apache-2.0. See `LICENSE`. Copyright © 2026 OPTIMA Organisation.
-
-## Credits
-
-This is under reserved rights obtained by OPTIMA Organisation.
-
-Theory references: L. C. Andrews and R. L. Phillips, *Laser Beam Propagation
-through Random Media*, 2nd ed., SPIE Press, 2005; L. C. Andrews,
-*J. Opt. Soc. Am. A* **9**(4), 597 (1992); J. D. Schmidt, *Numerical
-Simulation of Optical Wave Propagation with Examples in MATLAB*, SPIE Press,
-2010; J. W. Goodman, *Introduction to Fourier Optics*, 3rd ed., 2005;
-B. Lakshminarayanan, A. Pritzel and C. Blundell, NeurIPS 2017 (deep
-ensembles).
 
 ## Citation
 
@@ -428,3 +432,15 @@ ensembles).
   note    = {Research-grade software; not certified for operational aerospace use}
 }
 ```
+
+## Credits
+
+This is under reserved rights obtained by OPTIMA Organisation.
+
+Theory references: L. C. Andrews and R. L. Phillips, *Laser Beam Propagation
+through Random Media*, 2nd ed., SPIE Press, 2005; L. C. Andrews,
+*J. Opt. Soc. Am. A* **9**(4), 597 (1992); J. D. Schmidt, *Numerical
+Simulation of Optical Wave Propagation with Examples in MATLAB*, SPIE Press,
+2010; J. W. Goodman, *Introduction to Fourier Optics*, 3rd ed., 2005;
+B. Lakshminarayanan, A. Pritzel and C. Blundell, NeurIPS 2017 (deep
+ensembles).

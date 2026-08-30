@@ -1,474 +1,456 @@
 # JitterScope
 
-**Status:** TESTING · **Class:** medium · **Validation level:** 2 (Research) · **AI:** yes
+Platform jitter PSD analysis, pointing-loss budgeting, and telemetry anomaly detection.
 
-## Executive overview
+![tests](https://img.shields.io/badge/tests-53%20passing-brightgreen)
+![python](https://img.shields.io/badge/python-3.11%2B-blue)
+![licence](https://img.shields.io/badge/licence-Apache--2.0-lightgrey)
+![validation](https://img.shields.io/badge/validation-level%202%20research-yellow)
+![status](https://img.shields.io/badge/status-testing-orange)
 
-JitterScope characterizes platform jitter and vibration for optical pointing
-applications, and screens the same telemetry for spectral anomalies.
+## The problem
 
-It does four things:
+An optical payload misses its pointing budget and the disturbance is somewhere in
+the platform: reaction wheels, a cryocooler, a gimbal, a thermal snap. You have a
+single-channel jitter record and you need to know which frequency band spends the
+budget, and what that band costs the link in dB. Separately, you need to know
+whether the platform is still behaving the way it did last month, because a new
+tone or a shifted band appears in the spectrum long before it appears in a
+peak-to-peak limit check.
 
-1. **Spectral characterization** — Welch PSD estimation with the windowing and
-   averaging parameters exposed and documented, not hidden behind defaults.
-2. **Jitter budgets** — band-limited RMS jitter by integrating the PSD
-   (σ² = ∫S df), plus the cumulative RMS curve that shows which bands actually
-   spend the error budget.
-3. **Link impact** — conversion of RMS jitter to average Gaussian-beam pointing
-   loss via a closed form verified against Monte Carlo to within 1.5 sampling
-   standard errors.
-4. **Anomaly detection** — a per-band z-score baseline and an
-   autoencoder-equivalent neural model, both producing a score, a flag, and a
-   confidence value, benchmarked head-to-head on labeled synthetic faults.
+## What this does
 
-On the benchmark in this package **the classical baseline beats the neural
-model** (F1 0.9644 vs 0.9600). That result is reported as measured; see
-[AI model details](#ai-model-details).
+- **Welch PSD with the knobs exposed** — `nperseg`, window, overlap, detrend and
+  averaging are arguments, not hidden defaults. Parseval holds to a relative
+  error of 1.677e-04 on a 200 s white-noise record (`validation/val_psd.py`).
+- **Band-limited and cumulative RMS jitter** — σ = √(∫S df) per band, and the
+  cumulative curve that shows where the budget goes. On the shipped example
+  record, 0.5–10 Hz carries 0.6832 µrad and 40–100 Hz carries 0.5791 µrad of a
+  1.0191 µrad total (`examples/psd_cumulative_rms.py`).
+- **Jitter to Gaussian-beam pointing loss** — closed form
+  `⟨L⟩ = 1/(1 + 4(σ_θ/θ_div)²)`, agreeing with a 10⁶-draw Monte Carlo to a
+  maximum relative error of 4.068e-03 across 8 cases, every deviation inside
+  1.5 Monte Carlo standard errors (`validation/val_pointing.py`).
+- **Two anomaly detectors on identical features** — a per-bin log-PSD z-score
+  baseline and an autoencoder-equivalent MLP, benchmarked head to head on 2856
+  labeled synthetic windows (`validation/val_detector.py`).
+- **Seeded synthetic telemetry with labeled faults** — wheel harmonics over
+  colored and white noise, plus `new_tone`, `band_shift` and `transient`
+  injections with a per-sample fault mask for benchmarking.
 
-## Aerospace problem
+## Headline result: the classical baseline beats the neural model
 
-Optical payloads — laser communication terminals, imaging instruments, optical
-metrology — fail their pointing budget because of platform micro-vibration.
-Reaction wheels, cryocoolers, gimbals, and thermal snap inject disturbance that
-reaches the line of sight as jitter. Two questions follow, and this package
-answers both:
+The autoencoder lost. On the package's own benchmark — 2856 test windows, 952
+faulty, identical features, identical q0.995 threshold rule, identical test set —
+the classical per-bin z-score baseline scores higher than the MLP autoencoder:
 
-- **How much does it cost the link?** A jitter budget is only meaningful once it
-  becomes an optical penalty. RMS jitter that is a quarter of the beam divergence
-  costs about 1 dB; jitter equal to the divergence costs about 7 dB. Which
-  frequency band is responsible determines whether the fix is a fine-steering
-  mirror, an isolator, or a wheel speed restriction.
-- **Is the platform still behaving the way it did?** Vibration signatures drift
-  as bearings wear, isolators degrade, and mechanisms age. A new tone or a shift
-  in band energy is an early indicator, and it appears in the spectrum well
-  before it appears in a mean or a peak-to-peak limit check.
+| Model | Precision | Recall | F1 | ROC AUC | False alarms on nominal |
+|---|---|---|---|---|---|
+| **Band z-score baseline** | **0.9900** | 0.9401 | **0.9644** | **0.9797** | **4 / 714 (0.56 %)** |
+| MLP autoencoder | 0.9751 | **0.9454** | 0.9600 | 0.9784 | 10 / 714 (1.40 %) |
 
-## Intended users
+Source: `validation/val_detector_output.txt`.
 
-- **Optomechanical / pointing engineers** building line-of-sight jitter budgets
-  and allocating between structure, isolation, and active control.
-- **Laser communication link engineers** converting a pointing budget into a
-  link-budget penalty.
-- **Telemetry and spacecraft operations analysts** screening vibration channels
-  for spectral change over a mission.
-- **Students and researchers** in spacecraft dynamics and free-space optics.
+The baseline also hits its design false-alarm rate (0.56 % against a 0.5 % target
+at q0.995) where the MLP runs about 2.8× hot, and it fits in a time that rounds
+to zero against seconds for the MLP. `MODEL_CARD.md` §6 records 0.001 s for the
+baseline against 2.452 s for the MLP, a ratio of roughly 2400×; the archived raw
+run in `validation/val_detector_output.txt` recorded 1.632 s for the MLP against
+a baseline fit printing as 0.000 s. The two runs disagree on wall-clock timing,
+so treat the speed advantage as three orders of magnitude rather than as a
+precise figure. The accuracy numbers are identical across both runs.
 
-Users are assumed to understand PSD estimation and to treat every output as an
-engineering input requiring review, not an answer.
+**The CLI therefore defaults to `--detector baseline`.** Shipping the classical
+method as the default is the correct engineering call when the classical method
+won the benchmark, and this package makes that call rather than defending the
+neural model.
 
-## Engineering theory
+Two caveats, stated because they cut both ways. The margin is small: ΔF1 =
+0.0044 and ΔAUC = 0.0013, both well under 1 %. And the entire difference lives in
+the `transient` class, where the MLP recovers slightly more true positives
+(0.7759 vs 0.7543 recall) at the cost of 14 extra false alarms; on `new_tone` and
+`band_shift` both models score 1.0000 recall. The honest reading is that the two
+are near-equivalent on this data and the baseline is preferable on cost,
+calibration and the absence of hyperparameters.
 
-### Power spectral density (Welch's method)
+Why the baseline wins is not mysterious: the injected faults are additive-energy
+signatures that raise log-PSD in specific bins, which is exactly the alternative
+hypothesis a per-bin z-score is optimal against. The MLP is retained for the case
+of correlated multi-band shape changes that a per-bin marginal test cannot see.
+**That case is not demonstrated in this benchmark and remains an untested
+claim.**
 
-For a zero-mean wide-sense-stationary process `x(t)`, the one-sided PSD `S(f)`
-satisfies the Wiener–Khinchin / Parseval relation
+## Who this is for
 
-```
-σ² = var(x) = ∫₀^∞ S(f) df
-```
+- Optomechanical and pointing engineers building line-of-sight jitter budgets.
+- Laser communication link engineers turning a pointing budget into a dB penalty.
+- Telemetry analysts screening a vibration channel for spectral change.
+- Students and researchers in spacecraft dynamics and free-space optics.
 
-**Source:** Bendat & Piersol 2010, *Random Data: Analysis and Measurement
-Procedures*, 4th ed., ch. 5.
-**Units:** if `x` is a pointing angle in rad, `S(f)` is rad²/Hz.
-**Method:** Welch 1967, *IEEE Trans. Audio Electroacoust.* 15(2):70–73 — the
-record is split into overlapping segments, each windowed and periodogram-averaged,
-trading frequency resolution (`Δf = f_s/nperseg`) for estimator variance. With
-`k` averaged segments the estimator scatter falls as `1/√k`; this is verified in
-[Validation](#validation) (measured 0.1048 against the 0.1021 χ² prediction for
-k = 96).
-**Window:** Hann by default, −31.5 dB first sidelobe (Harris 1978,
-*Proc. IEEE* 66(1):51–83); 50 % overlap is the standard variance/efficiency
-compromise for Hann.
-**Assumptions and validity:** stationarity over the record and adequate sampling
-(no aliasing). Accuracy degrades for strongly nonstationary data — a slew or a
-wheel run-up violates the premise.
+## Who this is not for
 
-### Band-limited and cumulative RMS jitter
+- Anyone who needs a bare PSD. Call `scipy.signal.welch` directly; this package
+  calls it too.
+- Anyone processing real flight or ground-test telemetry expecting the benchmark
+  numbers to transfer. Every number here comes from synthetic, stationary,
+  single-axis, Gaussian data (`DATASET_CARD.md`).
+- Anyone needing multi-axis, cross-spectral, or input-output (FRF) analysis.
+  None of that is implemented.
+- Anyone needing streaming or online detection. This is batch only.
+- Anyone needing flight-qualified or certified software. See
+  [Safety](#safety-statement).
 
-```
-σ_band = √( ∫_{f₁}^{f₂} S(f) df )          σ_c(f) = √( ∫₀^{f} S(ν) dν )
-```
+## Alternatives, honestly
 
-**Source:** same Parseval relation (Bendat & Piersol 2010, ch. 5); standard
-practice in jitter budgeting. **Units:** rad RMS for a rad input.
-Integration is trapezoidal on the PSD grid with band edges included by linear
-interpolation, so accuracy is bounded by the Welch resolution `f_s/nperseg`.
-The cumulative curve is the diagnostic: its plateaus and steps identify which
-bands own the budget.
+PSD estimation is a solved problem. `scipy.signal.welch` does it, this package
+calls it, and if a Welch PSD is all you need then this package adds a dependency
+and nothing else. The contribution here is the chain that sits around the PSD —
+band-RMS integration, the cumulative-RMS budget curve, the closed-form
+pointing-loss conversion validated against Monte Carlo, and a detector benchmark
+with an honest baseline — not the spectral estimation itself.
 
-### Jitter → Gaussian-beam pointing loss
+| Alternative | What it does better | Use this instead when |
+|---|---|---|
+| [`scipy.signal.welch`](https://github.com/scipy/scipy) | The actual PSD estimator, with more windows, more averaging modes, and no extra dependency. JitterScope wraps it. | You want band RMS, the cumulative-RMS curve, and the pointing-loss conversion on top, without writing the integration yourself. |
+| [PyOD](https://github.com/yzhao062/pyod) | Dozens of outlier detectors behind a common API, actively maintained, far broader model coverage than one baseline plus one MLP. | You want the vibration-specific feature extraction (log-spaced log-PSD bins over overlapping windows) and a calibrated held-out threshold rather than a model zoo. PyOD is a good next step once you have the feature matrix from `FeatureExtractor`. |
+| [sktime](https://github.com/sktime/sktime) | A real time-series ML framework: pipelines, proper cross-validation, segmentation and annotation estimators. | Your problem is spectral jitter budgeting rather than general time-series ML, and you want the pointing-loss chain. |
+| [tsfresh](https://github.com/blue-yonder/tsfresh) | Automatic extraction of hundreds of time-series features with statistical relevance filtering. | You specifically want physically interpretable band energies whose units trace back to rad²/Hz. |
+| [river](https://github.com/online-ml/river) | Online and streaming learning, with drift detection and incremental models. | Your telemetry arrives as complete records rather than as a stream. JitterScope has no online path at all. |
+| [STUMPY](https://github.com/stumpy-dev/stumpy) | Matrix profile and discord discovery: finds shape anomalies, including short bursts, without a designated nominal training period. | Your anomalies are spectral rather than shape-based. Note that STUMPY is a genuinely better fit for the `transient` class, where both detectors here reach only 0.75–0.78 recall. |
+| [ObsPy](https://github.com/obspy/obspy) | A full observatory framework: instrument response removal, real data formats, spectrograms, event handling, long production history. | You are not working with seismological data or formats and you want the optical pointing-loss link. |
+| [AllanTools](https://github.com/aewallin/allantools) | Allan and overlapping Allan deviation — the time-domain stability statistic for clocks and gyros, which this package does not compute. | You need frequency-domain band budgets rather than a time-domain stability curve. The two are complementary, not competing. |
+| [pyFRF](https://github.com/ladisk/pyFRF) | Frequency response functions for structural dynamics: input-output transfer estimation with coherence. | You have output-only telemetry and no measured input. JitterScope does no FRF estimation. |
 
-Far-field intensity of a fundamental Gaussian beam versus off-axis angle θ:
+Discarded during this survey: `adtk` (last PyPI release 0.6.2, April 2020,
+effectively unmaintained) and `pyvib` (no such project on PyPI).
 
-```
-I(θ) = I₀ exp(−2θ² / θ_div²)      →      L(θ) = exp(−2θ² / θ_div²)
-```
-
-where `θ_div` is the **1/e² half-angle divergence** in rad
-(**source:** Siegman 1986, *Lasers*, ch. 17).
-
-For zero-mean Gaussian jitter with per-axis standard deviation `σ_θ` on two
-independent axes, the radial error θ is Rayleigh distributed,
-`p(θ) = (θ/σ²)exp(−θ²/2σ²)`, and the Gaussian integral gives the closed form
-
-```
-⟨L_p⟩ = ∫₀^∞ exp(−2θ²/θ_div²) p(θ) dθ  =  1 / (1 + 4 (σ_θ / θ_div)²)
-```
-
-**Source:** this is the point-receiver limit of the pointing-error model of
-Farid & Hranilovic 2007, *J. Lightwave Technol.* 25(7):1702–1710; see also
-Andrews & Phillips 2005, *Laser Beam Propagation through Random Media*, 2nd ed.,
-ch. 12 on pointing-error statistics.
-**Units:** `σ_θ` and `θ_div` in rad; `⟨L_p⟩` is dimensionless mean normalized
-received power in (0, 1]. dB penalty is `−10 log₁₀⟨L_p⟩`.
-**Verified:** against 10⁶-draw Monte Carlo at eight jitter ratios; every case
-agrees within 1.5 MC standard errors, max relative error 4.068e-03. See
-[Validation](#validation).
-**Assumptions and validity range:** unobscured TEM00 beam; far field; point
-receiver (aperture ≪ beam footprint); zero static boresight bias; isotropic,
-equal-variance jitter on both axes; no atmospheric scintillation or beam wander.
-**Biased or anisotropic jitter breaks the closed form** and requires numerical
-integration — the function does not detect this and will return a wrong answer if
-misapplied.
-
-### Anomaly detection
-
-Both detectors reduce a 1 s window to a 24-element log-PSD feature vector
-(log-spaced bins, 1 Hz → Nyquist). Log-energy band features are standard in
-vibration condition monitoring (Randall 2011, *Vibration-based Condition
-Monitoring*, Wiley, ch. 3).
-
-- **Baseline** — per-bin Gaussian z-score, window score `max_b |(x_b−μ_b)/σ_b|`;
-  the control-chart limit check of Randall 2011, ch. 3, in the spirit of the
-  fixed band limits of ISO 10816.
-- **Neural model** — reconstruction error of a bottleneck `MLPRegressor`
-  autoencoder (Hinton & Salakhutdinov 2006, *Science* 313:504–507; reconstruction
-  -error scoring per Sakurada & Yairi 2014, MLSDA workshop).
-
-Both threshold at the 0.995 quantile of **held-out** nominal scores.
-
-## Architecture
-
-```
-src/jitterscope/
-├── psd.py         Welch PSD, band_rms, cumulative_rms, input/NaN policy
-├── pointing.py    pointing_loss_avg (closed form) + pointing_loss_avg_mc (MC check)
-├── telemetry.py   seeded synthetic vibration generator + fault injection
-├── detect.py      FeatureExtractor, BandZScoreBaseline, NominalModel, detect
-└── __main__.py    argparse CLI: python -m jitterscope analyze
-```
-
-Data flows one way: `telemetry → psd → features → model → DetectionResult`.
-`psd.py` and `pointing.py` are pure numeric functions with no ML dependency, so
-the signal core is usable on its own. No cross-product imports.
-
-## Installation
-
-Requires Python 3.11 with numpy, scipy, scikit-learn, and matplotlib.
+## Install and first run
 
 ```bash
-cd products/P005
-pip install -e .            # or: export PYTHONPATH=$PWD/src
-pip install -e ".[test]"    # adds pytest + hypothesis
+git clone https://github.com/OmAcharya-avtr/jitterscope.git
+cd jitterscope
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[test]"
+python -m pytest tests/ -q
+python examples/psd_cumulative_rms.py
 ```
 
-## Quick start
+Expected output of the test run:
 
-```python
-import numpy as np
-from jitterscope import (generate_telemetry, psd, band_rms, cumulative_rms,
-                         pointing_loss_avg, FeatureExtractor,
-                         BandZScoreBaseline, detect)
-
-# 60 s of synthetic nominal telemetry at 1 kHz (wheel tones at 45/90/135 Hz)
-t, x, _ = generate_telemetry(duration_s=60.0, fs=1000.0, seed=2026)
-
-# Spectrum and jitter budget
-f, pxx = psd(x, fs=1000.0, nperseg=4096)          # Welch knobs are yours
-rms = band_rms((f, pxx), [(0.5, 10), (10, 40), (40, 100), (100, 500)])
-_, cum = cumulative_rms((f, pxx))
-print(rms * 1e6, "µrad per band;  total", cum[-1] * 1e6, "µrad")
-
-# Link impact for a 10 µrad divergence beam (per-axis sigma)
-loss = pointing_loss_avg(cum[-1] / np.sqrt(2), theta_div=10e-6)
-print(f"pointing loss {loss:.4f} = {-10 * np.log10(loss):.2f} dB")
-
-# Anomaly detection: fit on nominal, score a faulty record
-ext = FeatureExtractor(fs=1000.0)
-model = BandZScoreBaseline().fit(ext.transform(x)[0])
-_, x_bad, _ = generate_telemetry(60.0, 1000.0, seed=777, faults=[
-    {"kind": "new_tone", "t_start": 20.0, "freq_hz": 137.0, "rms": 1e-6}])
-res = detect(x_bad, model=model, extractor=ext)
-print(f"{res.n_anomalous}/{res.scores.size} windows flagged")
+```
+.....................................................                    [100%]
+53 passed in 14.75s
 ```
 
-### CLI
+Expected output of the first example, which also writes
+`screenshots/psd_cumulative_rms.png`:
+
+```
+Band-limited RMS jitter (sigma = sqrt(int PSD df)):
+         band [Hz]   RMS [urad]
+     0.5-    10.0       0.6832
+    10.0-    40.0       0.2700
+    40.0-   100.0       0.5791
+   100.0-   250.0       0.2433
+   250.0-   500.0       0.2159
+  total (Parseval)       1.0191
+
+Gaussian-beam average pointing loss for theta_div = 10 urad: 0.9797 (0.09 dB)
+
+saved .../screenshots/psd_cumulative_rms.png
+```
+
+### Command line
 
 ```bash
 python -m jitterscope analyze --input telemetry.csv --fs 1000
 ```
 
-Actual output on a 30 s record with a 310 Hz tone injected at t = 20 s:
+The CSV's last numeric column is taken as the telemetry channel. The leading
+`--train-frac` (default 0.5) of the record is **assumed nominal** and used to fit
+the detector; verifying that assumption is the operator's job. Output on a 60 s
+record with a 137 Hz tone injected at t = 40 s:
 
 ```
 jitterscope analyze: telemetry.csv
-  samples: 30000  fs: 1000 Hz  duration: 30.00 s
-  mean: -8.4833e-08  std: 1.5519e-06 (signal units)
+  samples: 60000  fs: 1000 Hz  duration: 60.00 s
+  mean: 3.3939e-08  std: 1.1837e-06 (signal units)
 
 PSD (Welch, hann, nperseg=1024, 50% overlap)
-  resolution: 0.977 Hz   total RMS (Parseval): 1.5099e-06
-  dominant peak: 309.57 Hz at 6.777e-13 u^2/Hz
+  resolution: 0.977 Hz   total RMS (Parseval): 1.1391e-06
+  dominant peak: 136.72 Hz at 2.023e-13 u^2/Hz
 
 Band-limited RMS (sigma = sqrt(int PSD df)):
   band [Hz]          RMS
-      0.0-   10.0   6.8034e-07
-     10.0-   50.0   5.8193e-07
-     50.0-  200.0   3.6139e-07
-    200.0-  500.0   1.1609e-06
+      0.0-   10.0   6.7294e-07
+     10.0-   50.0   5.7353e-07
+     50.0-  200.0   6.7770e-07
+    200.0-  500.0   2.3753e-07
 
-Anomaly report (baseline detector, threshold = q0.995 of nominal scores = 3.508)
+Anomaly report (baseline detector, threshold = q0.995 of nominal scores = 3.245)
   training on first 50% of record (ASSUMED nominal)
-  windows: 59   flagged: 21
+  windows: 119   flagged: 41
   t_center [s]    score        confidence
-       12.50    3.599       0.966
-       20.00    49.08       1.000
-       20.50    57.49       1.000
+       14.50    3.257       0.983
+       40.00    15.47       1.000
+       40.50    20.64       1.000
+       41.00    20.42       1.000
        ...
 ```
 
-The CLI assumes the leading `--train-frac` of the record is nominal. **That
-assumption is the operator's to verify** — a fault present during the training
-window is learned as normal and never flagged.
+The 14.50 s flag is a false alarm, 26 s before the injected fault. At a q0.995
+threshold roughly one nominal window in 200 will do this.
 
-## Configuration
+## Worked example
 
-| API | Key parameters |
-|---|---|
-| `psd(x, fs, **welch_kw)` | `nperseg` (resolution `fs/nperseg`), `window` (`"hann"`), `noverlap` (50 %), `detrend` (`"constant"`), `average` (`"mean"`, or `"median"` for robustness to transients) — all forwarded to `scipy.signal.welch` |
-| `band_rms(psd, bands)` | `bands` as a list of `(f_lo, f_hi)` in Hz |
-| `pointing_loss_avg(sigma_theta, theta_div)` | both in rad; `theta_div` is the 1/e² **half**-angle |
-| `FeatureExtractor` | `fs`, `window_s` (1.0), `overlap` (0.5), `n_bins` (24), `f_min` (1.0) |
-| `NominalModel` | `hidden` ((16,6,16)), `quantile` (0.995), `seed`, `max_iter`, `calib_frac` (0.3), `alpha` |
-| `BandZScoreBaseline` | `quantile` (0.995) |
-| `detect(telemetry, threshold, *, model, extractor)` | `threshold=None` uses the model's calibrated `threshold_` |
+```python
+import numpy as np
+from jitterscope import (BandZScoreBaseline, FeatureExtractor, band_rms,
+                         cumulative_rms, detect, generate_telemetry,
+                         pointing_loss_avg, psd)
 
-CLI flags: `--input`, `--fs`, `--bands`, `--nperseg`, `--detector {baseline,mlp}`,
-`--train-frac`, `--window-s`, `--quantile`.
+FS = 1000.0
+_, x_nom, _ = generate_telemetry(duration_s=60.0, fs=FS, seed=2026)
+_, x_test, mask = generate_telemetry(
+    duration_s=60.0, fs=FS, seed=777,
+    faults=[{"kind": "new_tone", "t_start": 20.0, "freq_hz": 137.0, "rms": 1.0e-6}],
+)
 
-**NaN policy (explicit):** non-finite samples raise `ValueError` at every entry
-point. Nothing is imputed or silently dropped, because interpolating over a
-telemetry dropout fabricates spectral content and can hide the very event worth
-detecting. Callers must clean gaps deliberately. Tested in
-`tests/test_psd.py::TestInputValidation`.
+f, pxx = psd(x_nom, FS, nperseg=4096)                      # rad^2/Hz
+sigma_lo, sigma_wheel = band_rms((f, pxx), [(0.5, 10.0), (40.0, 100.0)])
+_, cum = cumulative_rms((f, pxx))
+print(f"0.5-10 Hz RMS   : {sigma_lo * 1e6:.4f} urad")
+print(f"40-100 Hz RMS   : {sigma_wheel * 1e6:.4f} urad")
+print(f"total RMS       : {cum[-1] * 1e6:.4f} urad")
 
-## Examples
+loss = pointing_loss_avg(sigma_theta=cum[-1] / np.sqrt(2), theta_div=10e-6)
+print(f"pointing loss   : {loss:.4f} ({-10 * np.log10(loss):.2f} dB) at theta_div = 10 urad")
 
-Both scripts run standalone and write PNGs to `screenshots/`.
-
-```bash
-cd examples
-python psd_cumulative_rms.py     # -> ../screenshots/psd_cumulative_rms.png
-python anomaly_timeline.py       # -> ../screenshots/anomaly_timeline.png
+ext = FeatureExtractor(fs=FS, window_s=1.0, n_bins=24)
+model = BandZScoreBaseline(quantile=0.995).fit(ext.transform(x_nom)[0])
+res = detect(x_test, model=model, extractor=ext)
+print(f"threshold       : {res.threshold:.4f} (max |z|)")
+print(f"flagged windows : {res.n_anomalous} of {res.scores.size}")
+before = res.flags[res.window_centers_s < 20.0].sum()   # tone starts at t = 20 s
+after = res.flags[res.window_centers_s >= 20.0].sum()
+print(f"flags before 20s: {before} (false alarms)")
+print(f"flags after  20s: {after} of {(res.window_centers_s >= 20.0).sum()}")
 ```
 
-**`psd_cumulative_rms.py`** — PSD with the 45/90/135 Hz wheel harmonics marked,
-plus the cumulative RMS curve. Measured output: band RMS 0.683 / 0.270 / 0.579 /
-0.243 / 0.216 µrad across 0.5–10, 10–40, 40–100, 100–250, 250–500 Hz; total
-1.019 µrad; pointing loss 0.9797 (0.09 dB) for a 10 µrad divergence. The
-cumulative curve steps visibly at each wheel harmonic — that is the diagnostic.
+Printed output:
 
-**`anomaly_timeline.py`** — anomaly-score timelines for both detectors against a
-record with three injected faults (new tone at 20 s, band shift at 35 s,
-transients from 48 s), with onsets marked and flagged windows highlighted.
+```
+0.5-10 Hz RMS   : 0.6832 urad
+40-100 Hz RMS   : 0.5791 urad
+total RMS       : 1.0191 urad
+pointing loss   : 0.9797 (0.09 dB) at theta_div = 10 urad
+threshold       : 3.4668 (max |z|)
+flagged windows : 82 of 119
+flags before 20s: 2 (false alarms)
+flags after  20s: 80 of 80
+```
 
-## Validation
+Every window after fault onset is caught; two of the 39 pre-onset windows are
+false alarms.
 
-Full evidence, method, and raw script output: **[`validation/VALIDATION.md`](validation/VALIDATION.md)**.
-All numbers below come from running the scripts in this session; raw output is
-saved in `validation/*_output.txt`. Nothing was tuned after seeing a result.
+## Architecture
 
-| Check | Result | Reference |
+```mermaid
+flowchart TD
+    subgraph budget["Jitter budget and link penalty"]
+        A["pointing telemetry<br/>1-D array, rad at fs Hz"] --> B["psd.psd<br/>scipy.signal.welch, one-sided"]
+        B --> C["psd.band_rms<br/>sigma = sqrt of integral S df"]
+        B --> D["psd.cumulative_rms<br/>sigma_c(f) budget curve"]
+        C --> E["pointing.pointing_loss_avg<br/>1 / (1 + 4 (sigma/theta_div)^2)"]
+        D --> E
+        E --> F["mean received power, 0 to 1<br/>and -10 log10 L in dB"]
+        E -.->|"seeded cross-check"| G["pointing.pointing_loss_avg_mc"]
+    end
+
+    subgraph detection["Telemetry anomaly detection"]
+        H["pointing telemetry"] --> I["detect.FeatureExtractor<br/>1 s windows, 50 percent overlap,<br/>24 log-spaced log-PSD bins"]
+        I --> J["detect.BandZScoreBaseline<br/>max abs z over bins<br/>CLI default, wins the benchmark"]
+        I --> K["detect.NominalModel<br/>MLPRegressor 24-16-6-16-24<br/>reconstruction MSE"]
+        J --> L["detect.detect"]
+        K --> L
+        L --> M["detect.DetectionResult<br/>scores, threshold, flags,<br/>confidence, n_anomalous"]
+    end
+
+    N["telemetry.generate_telemetry<br/>seeded synthetic plus fault mask"] --> A
+    N --> H
+```
+
+## Screenshots
+
+![Welch PSD and cumulative RMS](screenshots/psd_cumulative_rms.png)
+
+Notice the three reaction-wheel harmonics at 45, 90 and 135 Hz standing two to
+three decades above the broadband floor in the top panel, and the matching step
+in the cumulative-RMS curve below: the 45 Hz fundamental alone lifts the running
+total from about 0.78 to about 0.92 µrad, which is where the budget is actually
+spent. Produced by `examples/psd_cumulative_rms.py`.
+
+![Anomaly score timeline](screenshots/anomaly_timeline.png)
+
+Notice that both detectors jump roughly an order of magnitude at the 20 s
+`new_tone` onset and stay above threshold, that only the MLP panel shows a
+visible further step at the 35 s `band_shift`, and that the pre-fault segment
+contains a handful of points above the dashed q0.995 threshold — the design false
+alarms. Baseline flags 82 of 119 windows, MLP flags 80. Produced by
+`examples/anomaly_timeline.py`.
+
+## Validation evidence
+
+Level 2 (Research). Full write-up in
+[`validation/VALIDATION.md`](validation/VALIDATION.md); raw script output is
+archived verbatim beside each script.
+
+| Check | Reference | Result | Tolerance |
+|---|---|---|---|
+| Sinusoid peak frequency | analytic f₀ = 80.0000 Hz | 80.0781 Hz, a 0.320-bin offset | within 1 bin |
+| Sinusoid integrated power | A²/2 = 2.000000e-12 rad² | rel err 5.241e-07 | < 1e-2 |
+| Sinusoid band RMS 70–90 Hz | A/√2 = 1.414214e-06 rad | rel err 8.374e-11 | < 1e-2 |
+| White-noise PSD level | σ²/(f_s/2) = 2.000000e-15 rad²/Hz | median rel err 6.171e-03 | < 5e-2 |
+| Parseval on white noise | sample variance 9.958205e-13 rad² | rel err 1.677e-04 | < 5e-2 |
+| Welch estimator scatter | χ²₂ₖ prediction 0.1021 for k = 96 | measured 0.1048, rel 2.6e-02 | reported, not gated |
+| Pointing loss vs Monte Carlo | 8 cases, 10⁶ draws per axis | max rel err 4.068e-03; every case within 1.46 MC standard errors | < 1e-2 |
+| Detector F1 | 2856 windows, 952 faulty | **baseline 0.9644 beats MLP 0.9600** | none; reported as measured |
+| Detector ROC AUC | same test set | **baseline 0.9797 beats MLP 0.9784** | none; reported as measured |
+| `new_tone` and `band_shift` recall | 360 faulty windows each | 1.0000 for both models | none; reported as measured |
+| `transient` recall | 232 faulty windows | baseline 0.7543, MLP 0.7759 — **both miss about one in four** | none; reported as measured |
+| False-alarm rate on nominal | 0.5 % design target at q0.995 | baseline 0.56 %, on target; **MLP 1.40 %, 2.8× target, a miss** | none; reported as measured |
+| MLP confidence separation | empirical nominal CDF | 0.5066 nominal vs 0.9781 faulty | none; reported as measured |
+
+Not validated: any real flight or ground-test telemetry; any published
+reaction-wheel microvibration dataset; the physical adequacy of the
+point-receiver far-field pointing model for a specific link; detector behaviour
+under nonstationary nominal conditions; the MLP's claimed advantage on correlated
+multi-band anomalies.
+
+## API reference
+
+| Function or class | What it returns | Units |
 |---|---|---|
-| Sinusoid integrated power | 2.000001e-12 vs 2.000000e-12 rad² — **rel err 5.24e-07** | Parseval, Bendat & Piersol 2010 ch. 5 |
-| Sinusoid peak frequency | 80.0781 Hz vs 80.0000 Hz — **0.320 bins** (Δf = 0.2441 Hz) | Welch 1967 |
-| White-noise PSD level | 1.987657e-15 vs 2.000000e-15 rad²/Hz — **rel err 6.17e-03** | σ²/(f_s/2) |
-| White-noise Parseval | ∫S df 9.956535e-13 vs variance 9.958205e-13 rad² — **rel err 1.68e-04** | Bendat & Piersol 2010 |
-| Estimator scatter | measured 0.1048 vs χ² prediction 0.1021 (k = 96) | Welch variance theory |
-| **Pointing loss vs Monte Carlo** | **max rel err 4.068e-03** over 8 ratios, 10⁶ draws each; every case **within 1.5 MC standard errors** | Farid & Hranilovic 2007; Andrews & Phillips 2005 ch. 12 |
-| Detector F1 (baseline / MLP) | **0.9644 / 0.9600** on 2856 labeled windows | `val_detector.py` |
+| `psd(x, fs, **welch_kw)` | One-sided Welch PSD as `(f, Pxx)`. | `x` in u, `fs` in Hz → `f` in Hz, `Pxx` in u²/Hz |
+| `band_rms(psd_result, bands)` | RMS per `(f_lo, f_hi)` band by trapezoidal PSD integration with interpolated edges. | bands in Hz → RMS in u |
+| `cumulative_rms(psd_result)` | Cumulative RMS curve as `(f, sigma_c)`. | Hz → u |
+| `pointing_loss_avg(sigma_theta, theta_div)` | Closed-form mean Gaussian-beam pointing loss `1/(1 + 4(σ/θ)²)`. | rad, rad → dimensionless in (0, 1] |
+| `pointing_loss_avg_mc(sigma_theta, theta_div, n_samples=200000, seed=0)` | Seeded Monte Carlo cross-check of the same quantity. | rad, rad → dimensionless |
+| `generate_telemetry(duration_s, fs, seed, wheel_hz, n_harmonics, tone_rms, base_rms, colored_rms, faults)` | Seeded synthetic record as `(t, x, fault_mask)`. | s, Hz, rad → s, rad, bool |
+| `FeatureExtractor(fs, window_s=1.0, overlap=0.5, n_bins=24, f_min=1.0)` | `.transform(x)` → `(features[n_win, n_bins], centers[n_win])`. | Hz, s, Hz → log₁₀(u²/Hz), s |
+| `BandZScoreBaseline(quantile=0.995)` | `.fit`, `.score` (max abs z over bins), `.confidence`; sets `.threshold_`. | dimensionless z |
+| `NominalModel(hidden=(16, 6, 16), quantile=0.995, seed=0, max_iter=3000, calib_frac=0.3, alpha=1e-3)` | Autoencoder-equivalent `MLPRegressor`; `.fit`, `.score` (reconstruction MSE), `.confidence`. | standardized MSE |
+| `detect(telemetry, *, model, extractor, threshold=None)` | Windows, scores and flags a record. | → `DetectionResult` |
+| `DetectionResult` | `window_centers_s`, `scores`, `threshold`, `flags`, `confidence`, `n_anomalous`. | s, model units, bool, [0, 1], count |
 
-Pointing-loss closed form against Monte Carlo, `θ_div = 12 µrad`:
-
-| σ/θ_div | Closed form | Monte Carlo | Rel. error | \|err\|/SE |
-|---|---|---|---|---|
-| 0.25 | 0.800000 | 0.799911 | 1.114e-04 | 0.55 |
-| 0.50 | 0.500000 | 0.499917 | 1.659e-04 | 0.29 |
-| 1.00 | 0.200000 | 0.199940 | 3.020e-04 | 0.23 |
-| 2.00 | 0.058824 | 0.058584 | 4.068e-03 | 1.46 |
-
-Every deviation is consistent with pure sampling noise, so the closed form is
-confirmed rather than merely approximated.
-
-**Not validated:** no comparison against real flight or ground-test telemetry; no
-comparison against a published reaction-wheel disturbance dataset; no validation
-under nonstationary conditions; the neural model's claimed advantage on
-correlated multi-band anomalies is untested. See VALIDATION.md §4.
-
-## Benchmark results
-
-Detector benchmark on 24 labeled synthetic records (2856 windows, 952 faulty;
-train seeds 1000–1003, test seeds 2000–2023, disjoint):
-
-| Model | Precision | Recall | F1 | TP | FP | FN | ROC AUC | Fit time |
-|---|---|---|---|---|---|---|---|---|
-| **Baseline band z-score** | **0.9900** | 0.9401 | **0.9644** | 895 | 9 | 57 | **0.9797** | **0.001 s** |
-| MLP autoencoder | 0.9751 | **0.9454** | 0.9600 | 900 | 23 | 52 | 0.9784 | 2.452 s |
-
-Per-fault recall — `new_tone` 1.000/1.000, `band_shift` 1.000/1.000,
-`transient` 0.7543/0.7759 (baseline/MLP). False alarms on 714 nominal windows:
-baseline 4 (0.56 %), MLP 10 (1.40 %).
-
-Runtime: full benchmark 6.4 s; end-to-end pipeline (generate 60 s + fit + score
-40 s) ~3 s; PSD of 10⁶ samples ~50 ms. All on 2 CPU cores, no GPU, far inside the
-3-minute budget. A regression test guards a 30 s pipeline ceiling.
-
-## AI model details
-
-Full card: **[`MODEL_CARD.md`](MODEL_CARD.md)** · Dataset: **[`DATASET_CARD.md`](DATASET_CARD.md)**
-
-> **This model is not certified for operational flight use.**
-
-- **Baseline first.** `BandZScoreBaseline` (per-band log-energy z-score,
-  Randall 2011 ch. 3) was implemented and calibrated before the neural model, and
-  both are benchmarked on identical features, threshold rule, and held-out data.
-- **Architecture.** `MLPRegressor(24 → 16 → **6** → 16 → 24)`, tanh, Adam,
-  `alpha=1e-3`, `max_iter=3000` — an autoencoder-equivalent construction
-  (PyTorch is unavailable in this environment). Score = reconstruction MSE on
-  standardized log-PSD features. ~1000 parameters.
-- **Dataset.** Entirely synthetic, generated by committed seeded code; no data
-  files committed. 4 nominal training records; 24 test records across 4 classes.
-  Unmodeled effects — nonstationarity, multi-axis coupling, structural transfer
-  functions, sensor dropouts, control-loop shaping, non-Gaussian statistics — are
-  enumerated in the dataset card. **Performance here does not transfer to real
-  telemetry.**
-- **Test split.** Three-way by seed. Within training, a seeded 70/30 split holds
-  out 30 % of nominal windows purely for threshold calibration, because in-sample
-  reconstruction error underestimates unseen error and would set an optimistically
-  low threshold. Test records (2000–2023) are never seen in fitting or calibration.
-- **Metrics.** See [Benchmark results](#benchmark-results).
-- **Uncertainty output.** `confidence()` returns the empirical CDF of the score
-  under the held-out nominal distribution, in [0, 1]; measured mean 0.5066 on
-  nominal windows vs 0.9781 on faulty ones. It is a calibrated *how abnormal*
-  measure, **not** a probability of failure, and it saturates at 1.0 so it cannot
-  rank severity among strong anomalies.
-- **Failure cases.** Transients under-detected (recall ~0.75–0.78; a 0.25 s burst
-  is diluted by a 1 s window); MLP false-alarm rate ~2.8× its design target;
-  nonstationary nominal operation (slews, wheel run-ups, thermal snap) is flagged
-  as anomalous; a fault present during training is learned as nominal; faults that
-  preserve band energy distribution are invisible; single channel only.
-- **Reproducibility.** `python validation/val_detector.py` (~6 s). Seeds:
-  train 1000–1003, test 2000–2023, `random_state=0` (fixes both weight init and
-  the calibration split). Environment: Python 3.11, numpy 2.4.4, scipy 1.17.1,
-  scikit-learn 1.8.0.
-
-### The honest result
-
-**The classical baseline wins:** F1 0.9644 vs 0.9600, ROC AUC 0.9797 vs 0.9784,
-2400× faster to fit, and it hits its design false-alarm rate (0.56 % against a
-0.5 % target) where the MLP runs hot at 1.40 %. The margin is under 1 % on both
-metrics, and both models detect `new_tone` and `band_shift` perfectly — the
-entire difference sits in the `transient` class, where the MLP buys 0.02 recall
-with 14 extra false alarms.
-
-The reason is structural: the injected faults are additive-energy signatures that
-raise log-PSD in specific bins, which is exactly the alternative hypothesis a
-per-bin z-score is optimal against. The autoencoder has no advantage to exploit
-here. It is retained for correlated multi-band shape changes that a per-bin
-marginal test cannot see — **an untested claim on this dataset**. The CLI
-therefore defaults to `--detector baseline`.
-
-## Hardware requirements
-
-CPU-only; no GPU. Developed and validated on 2 cores. Peak memory under ~200 MB
-for a 10⁶-sample record. Python 3.11 with numpy ≥ 1.26, scipy ≥ 1.11,
-scikit-learn ≥ 1.3, matplotlib ≥ 3.8. Full test suite ~16 s; full validation
-suite ~30 s.
+`confidence` is the empirical CDF of the score under the held-out nominal
+distribution — a calibrated measure of how abnormal a window is. It is not a
+probability that a fault is present, and it saturates at 1.0, so it cannot rank
+strong anomalies against each other. Use the raw score for that.
 
 ## Limitations
 
-- **Synthetic data only.** Nothing here has been checked against real flight,
-  ground-test, or laboratory vibration telemetry. Every performance number
-  describes behaviour on idealized synthetic signals.
-- **Stationarity is assumed everywhere.** Welch estimation and both detectors
-  assume the nominal spectrum is stationary. Slews, wheel speed sweeps, thermal
-  transients, and mode changes violate this and will be misread — this is the
-  dominant expected failure mode on real telemetry.
-- **Single channel.** No multi-axis processing, no cross-spectra, no coherence,
-  no structural transfer function from disturbance source to line of sight.
-- **Pointing loss is point-receiver and unbiased-jitter only.** Static boresight
-  bias, anisotropic jitter, aperture averaging, beam truncation, obscuration, and
-  atmospheric effects are outside the model. The function cannot detect misuse.
-- **Transient detection is weak** (recall ~0.75–0.78) because sub-second bursts
-  are averaged away in 1 s windows. No kurtosis or crest-factor feature is
-  implemented.
-- **The neural model does not beat the baseline** on the available evidence, and
-  its motivating case (correlated multi-band anomalies) is untested.
-- **Confidence is not a failure probability** and saturates at 1.0.
-- **No gap handling.** NaN/Inf raises rather than imputing — deliberate, but it
-  means real telemetry with dropouts needs preprocessing this package does not
-  provide.
-- **The CLI's nominal-training assumption is unverified by the tool.** It trusts
-  the operator that the leading `--train-frac` is fault-free.
-- Deviations from the build guide: none.
+**Compute budget.** Everything runs on 2 CPU cores with no GPU. PyTorch is not
+available and is not a dependency; the autoencoder is a
+`sklearn.neural_network.MLPRegressor` with a 6-unit bottleneck, about 1000
+weights, trained to reconstruct its own input. That is an autoencoder-equivalent
+construction, not a deep model, and this README does not claim otherwise. The
+full detector benchmark takes single-digit seconds.
+
+**All data is synthetic.** No real flight or ground-test telemetry has ever been
+processed by this package. The generator is stationary, single-axis and Gaussian,
+with no structural transfer function, no sensor artifacts or dropouts, no
+control-loop shaping, no multi-axis coupling, and clean step-onset faults. The
+wheel harmonic amplitudes are illustrative, not fitted to hardware. Benchmark
+performance does not transfer to real telemetry.
+
+**Regimes the detector was tested in.** Stationary nominal operation; additive
+`new_tone` faults (recall 1.0000); `band_shift` faults (recall 1.0000); Poisson
+transients (recall 0.7543 baseline, 0.7759 MLP).
+
+**Regimes it was not tested in, and where it is expected to fail.**
+
+- Nonstationary nominal operation — a slew, a wheel-speed change, a thermal
+  transient. Both models will flag the whole segment. This is the dominant
+  expected failure mode on real telemetry.
+- A fault present during the assumed-nominal training period is learned as
+  nominal and will never be flagged.
+- Faults that preserve the band energy distribution, such as a phase-only change
+  or a tone shifting within a single bin, are invisible to both models.
+- Cross-axis-only anomalies. Input is single channel.
+- Correlated multi-band shape changes, the one case for which the MLP is
+  retained. Untested.
+
+**Transients are under-detected by both models**, at 0.75–0.78 recall. A burst of
+about 0.25 s is diluted by the 1 s window average. Shorter windows or a kurtosis
+or crest-factor feature would help; neither is implemented.
+
+**Pointing-loss validity range.** The closed form assumes no static boresight
+bias, isotropic equal-variance Gaussian jitter on both axes, an unobscured TEM00
+beam, a point receiver in the far field, and no atmospheric scintillation or beam
+wander. Biased or anisotropic jitter breaks the closed form and requires
+numerical integration, which is not implemented.
+
+**Feature configuration is not portable.** The same `FeatureExtractor`
+configuration must be used at fit and detect time; changing sample rate, window
+length or bin count silently changes what the features mean. The API requires
+passing the extractor explicitly for this reason.
+
+**Non-finite input raises.** NaN or Inf in a telemetry record raises
+`ValueError`. Nothing is imputed and nothing is silently dropped.
+
+## Reproducing every number
+
+```bash
+python validation/val_psd.py         # PSD known-answer tests
+python validation/val_pointing.py    # closed form vs 10^6-draw Monte Carlo
+python validation/val_detector.py    # detector benchmark, baseline vs MLP
+python -m pytest tests/ -q           # 53 tests
+python examples/psd_cumulative_rms.py
+python examples/anomaly_timeline.py
+```
+
+Each validation script writes its raw output to `validation/<name>_output.txt`.
+Environment for the archived runs: Python 3.11, numpy 2.4.4, scipy 1.17.1,
+scikit-learn 1.8.0, 2 CPU cores. Seeds: training records 1000–1003, test records
+2000–2023, MLP `random_state = 0`, PSD and pointing validation 20260806, examples
+2026 and 777. Bit-identical scores depend on the BLAS build; metrics are stable
+to the reported precision on the same machine.
 
 ## Safety statement
 
 This software is research-grade. It is not flight-qualified, not certified, and
-not approved for operational aerospace use. Outputs are engineering aids for human
-review, never a basis for autonomous action, fault declaration, safe-mode entry,
-or hardware disposition.
+not approved for operational aerospace use. Outputs are engineering aids for
+human review, never a basis for autonomous action, fault declaration, safe-mode
+entry, or hardware disposition.
 
-## Roadmap
-
-- Multi-axis input with cross-spectral density and coherence.
-- Time-frequency features (spectrogram, kurtosis, crest factor) to fix transient
-  recall.
-- Nonstationarity handling: wheel-speed-conditioned nominal models, order tracking.
-- Validation against a published reaction-wheel microvibration dataset.
-- Aperture-averaged and biased-jitter pointing loss by numerical integration.
-- Sequential detection (CUSUM) over window scores to reduce false alarms.
-
-## License
+## Licence
 
 Apache-2.0. See [`LICENSE`](LICENSE). Copyright © 2026 OPTIMA Organisation.
-
-## Credits
-
-This is under reserved rights obtained by OPTIMA Organisation.
 
 ## Citation
 
 ```bibtex
 @software{jitterscope_2026,
-  title  = {JitterScope: platform jitter and vibration characterization
-            for optical pointing with telemetry anomaly detection},
-  author = {{OPTIMA Organisation}},
-  year   = {2026},
+  title   = {JitterScope: platform jitter and vibration characterization
+             for optical pointing with telemetry anomaly detection},
+  author  = {{OPTIMA Organisation}},
+  year    = {2026},
   version = {0.1.0},
   license = {Apache-2.0}
 }
 ```
 
-Key references implemented in this package:
+Methods implemented here follow: Welch 1967, *IEEE Trans. Audio Electroacoust.*
+15(2):70–73; Bendat & Piersol 2010, *Random Data: Analysis and Measurement
+Procedures*, 4th ed.; Harris 1978, *Proc. IEEE* 66(1):51–83; Siegman 1986,
+*Lasers*, ch. 17; Farid & Hranilovic 2007, *J. Lightwave Technol.*
+25(7):1702–1710; Andrews & Phillips 2005, *Laser Beam Propagation through Random
+Media*, 2nd ed., ch. 12; Kasdin 1995, *Proc. IEEE* 83(5):802–827; Masterson,
+Miller & Grogan 2002, *J. Sound Vib.* 249(3):575–598; Randall 2011,
+*Vibration-based Condition Monitoring*, ch. 3; Hinton & Salakhutdinov 2006,
+*Science* 313:504–507; Sakurada & Yairi 2014, MLSDA workshop.
 
-- Welch, P. D. (1967). *IEEE Trans. Audio Electroacoust.* 15(2):70–73.
-- Bendat, J. S. & Piersol, A. G. (2010). *Random Data: Analysis and Measurement Procedures*, 4th ed. Wiley.
-- Harris, F. J. (1978). *Proc. IEEE* 66(1):51–83.
-- Siegman, A. E. (1986). *Lasers*. University Science Books.
-- Farid, A. A. & Hranilovic, S. (2007). *J. Lightwave Technol.* 25(7):1702–1710.
-- Andrews, L. C. & Phillips, R. L. (2005). *Laser Beam Propagation through Random Media*, 2nd ed. SPIE Press.
-- Masterson, R. A., Miller, D. W. & Grogan, R. L. (2002). *J. Sound Vib.* 249(3):575–598.
-- Kasdin, N. J. (1995). *Proc. IEEE* 83(5):802–827.
-- Randall, R. B. (2011). *Vibration-based Condition Monitoring*. Wiley.
-- Hinton, G. E. & Salakhutdinov, R. R. (2006). *Science* 313:504–507.
-- Sakurada, M. & Yairi, T. (2014). *Proc. MLSDA 2014 Workshop*, ACM.
+## Credits
+
+This is under reserved rights obtained by OPTIMA Organisation.
