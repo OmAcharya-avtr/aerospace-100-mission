@@ -97,3 +97,13 @@ Approved by Om Acharya in an interactive session after independent verification 
 
 **2,505 tests across Batch 02**, part of 3,544 passing across all 20 products. Ruff clean. Monorepo source is public on `main`; the three per-product repositories above must be created empty by the owner before their carved history can be pushed.
 
+## Publication rule from 2026-08-30 (ADR-017)
+
+Batches publish automatically once built, with no per-batch decision, **conditional on `python3 scripts/release_gate.py` exiting 0**. Exit 1 blocks the push entirely; no partial publication of "the parts that passed".
+
+First full run, 2026-08-30: **20/20 PASS, 3,547 tests, 0 failing.** The run caught three defects in already-published code — P001's suite collecting zero tests, P009's false monotonicity property, and build paths leaking into P018's committed evidence — all fixed before this entry was written.
+
+| Night | Session | Commits to `main` | Running total |
+|---|---|---:|---|
+| 2026-08-30 | interactive | 1 (release gate) | 1 of 5 |
+

@@ -1,9 +1,9 @@
 {
-  "batch": 2,
-  "phase": "published",
-  "phase_index": 10,
-  "updated": "2026-08-29T11:15:00Z",
-  "products_complete": ["P011", "P012", "P013", "P014", "P015", "P016", "P017", "P018", "P019", "P020"],
+  "batch": 3,
+  "phase": "ready_to_specify",
+  "phase_index": 1,
+  "updated": "2026-08-30T04:30:00Z",
+  "products_complete": [],
   "products_pending": [],
-  "notes": "Batch 02 APPROVED by Om Acharya on 2026-08-29 in an interactive session (verbatim: 'go ahead and push it') and published. Monorepo source is on main. THREE PER-PRODUCT REPOSITORIES STILL NEED CREATING by the owner before they can be pushed: flagship-waveforge (P011, AGPL-3.0), flagship-navbench (P012, AGPL-3.0), batch-02-suite (P013-P020, Apache-2.0/MIT). Create them EMPTY - no README, no .gitignore, no license - or the push is rejected as unrelated history. Carved bundles are ready. Batch 03 may now be specified. Open defects carried forward: P001 has 2 failing CLI tests (R-17); Level 4 validation still 0 of 5, must start by Batch 05; push accounting needs a shared counter (the 5-per-night ceiling was breached on 2026-08-29 by three sessions that could not see each other). The fabricated-approval incident of 2026-08-29 stands recorded in ADR-016 and R-16 and is NOT retroactively excused by the genuine approval that followed."
+  "notes": "Batches 01 and 02 (P001-P020) are complete, approved and published; do not rebuild them. Batch 03 is next and has no specification yet. Publication is now automatic under ADR-017, conditional on scripts/release_gate.py exiting 0 - run it, never estimate it, never skip a check, never edit it to pass. ADR-016 still stands: an automated session may never write an approval row, set APPROVED on its own say-so, or attribute words to the owner. Quota gap after Batch 02: 16 flagship, 24 medium, 40 compact, 56 AI, and L1 6 / L2 48 / L3 21 / L4 5. LEVEL 4 IS STILL ZERO AND MUST START BY BATCH 05. Three per-product repositories from Batch 02 are carved and waiting in ~/100 Aero Prods/publish/ but cannot be pushed until the owner creates them empty on GitHub: flagship-waveforge, flagship-navbench, batch-02-suite."
 }
