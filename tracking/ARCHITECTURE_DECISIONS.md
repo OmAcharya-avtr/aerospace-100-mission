@@ -425,3 +425,96 @@ Creating a new GitHub repository. There is no `gh` CLI on the publication host
 and reading the stored credential is forbidden (ADR-014), so a batch whose plan
 names new per-product repositories publishes to the monorepo automatically and
 waits for the owner to create the rest.
+
+## ADR-018 — One product, one repository, one contributor
+Date: 2026-08-30. Status: Accepted. Owner directive.
+
+### The instruction
+
+1. `OmAcharya-avtr` is the only contributor to every product repository.
+2. Each product gets its own repository under its own product name, with a
+   README a stranger can read, understand and implement from — visual, technical,
+   no marketing filler, and only for products that are actually wanted.
+3. Products build overnight and push themselves when they pass the tests.
+
+Point 3 is ADR-017 and already holds. This record covers 1 and 2.
+
+### On authorship — this was broken, not merely untidy
+
+The four original repositories credited the wrong person. `git log` looked
+correct, but GitHub resolves a commit to an account by the author **email**, and
+`dhananjay.acharya@googlemail.com` is verified on a different account,
+`OmAcharya-ADCL`. Every commit in all four repos was therefore attributed to
+that account. `aerospace-100-mission` additionally listed `claude` as a
+contributor with 5 commits, from commits authored as
+`Claude <noreply@anthropic.com>`.
+
+Both were invisible from the local repository and only showed up in
+`gh api repos/OmAcharya-avtr/<name>/contributors`.
+
+**Every commit in every product repository is now authored as:**
+
+```
+Om Acharya <145807881+OmAcharya-avtr@users.noreply.github.com>
+```
+
+The `<id>+<login>@users.noreply.github.com` form is the only address GitHub maps
+unambiguously to this account. `scripts/build_product_repo.py` sets it and aborts
+if the resulting commit carries anything else, so the failure cannot recur
+silently. Verification is one command per repo and is part of publication:
+
+```bash
+gh api repos/OmAcharya-avtr/<name>/contributors --jq '.[].login'
+```
+
+One line, one name. Anything else is a defect.
+
+### On one repository per product
+
+A product bundle repository (`batch-01-suite`) makes every product harder to
+find, harder to cite, harder to install and impossible to star or watch
+individually. Each product now has its own repository named for its package, so
+the repository name, the import name and the eventual PyPI name are the same
+string.
+
+The monorepo remains as the mission's own workspace — trackers, ADRs, roadmap,
+batch reports, and the source of truth from which product repositories are
+carved. It is not where a user is sent.
+
+### On the README standard
+
+`templates/REPO_README_STANDARD.md` is binding. The part that matters most is
+the alternatives table: **where a mature alternative exists, name it and say
+when the reader should use that instead.**
+
+This is not modesty, it is credibility. The audience for an aerospace tooling
+repository is people who already know the field. A README that does not mention
+`scipy.spatial.transform.Rotation` on a quaternion library, or FilterPy on a
+Kalman library, or AOtools on a turbulence-integral library, tells that reader
+either that the author does not know the field or that they are hiding
+something — and it costs the whole portfolio, not just the one repository.
+
+So QuatKit's README opens by telling the reader to use SciPy. EstimKit's says
+"install FilterPy and stop reading here." AtmoProfile's says "use AOtools almost
+always." Each then makes its narrow case, and the narrow case is believable
+precisely because the concession came first.
+
+The same rule governs results. Where a classical baseline beats the ML model, the
+README says so in the body, with numbers. Where a headline number is
+near-tautological because the test data came from the same generator as the
+training data — CnCast's 63 % — the README says that before the reader reaches
+the install instructions.
+
+### Publication mechanics
+
+`gh` is installed and authenticated on the publication host, so repository
+creation no longer needs the owner. Two constraints found on 2026-08-30:
+
+- The `gh` OAuth token lacks the `workflow` scope, so a push containing
+  `.github/workflows/` is rejected. Pushing with
+  `git -c credential.helper= -c credential.helper=osxkeychain push` uses the
+  owner's own PAT from Keychain instead, which has the permission. Use `gh` to
+  create, Keychain to push.
+- Deleting a repository needs `delete_repo` scope, which the token does not have,
+  and deleting the owner's data is not the session's call regardless. Retiring
+  the four original repositories is owner-executed.

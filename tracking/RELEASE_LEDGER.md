@@ -107,3 +107,34 @@ First full run, 2026-08-30: **20/20 PASS, 3,547 tests, 0 failing.** The run caug
 |---|---|---:|---|
 | 2026-08-30 | interactive | 1 (release gate) | 1 of 5 |
 
+## Per-product repositories — 2026-08-30 (ADR-018)
+
+Twenty standalone public repositories, one per product, each named for its package. **Sole contributor `OmAcharya-avtr` on all twenty**, verified with `gh api repos/OmAcharya-avtr/<name>/contributors`.
+
+| Product | Repository | URL |
+|---|---|---|
+| P001 | `beamtwin` | https://github.com/OmAcharya-avtr/beamtwin |
+| P002 | `trackbench` | https://github.com/OmAcharya-avtr/trackbench |
+| P003 | `scintinet` | https://github.com/OmAcharya-avtr/scintinet |
+| P004 | `passplanner` | https://github.com/OmAcharya-avtr/passplanner |
+| P005 | `jitterscope` | https://github.com/OmAcharya-avtr/jitterscope |
+| P006 | `linkbudgetx` | https://github.com/OmAcharya-avtr/linkbudgetx |
+| P007 | `quatkit` | https://github.com/OmAcharya-avtr/quatkit |
+| P008 | `centroidnet` | https://github.com/OmAcharya-avtr/centroidnet |
+| P009 | `fogcast` | https://github.com/OmAcharya-avtr/fogcast |
+| P010 | `berbench` | https://github.com/OmAcharya-avtr/berbench |
+| P011 | `waveforge` | https://github.com/OmAcharya-avtr/waveforge |
+| P012 | `navbench` | https://github.com/OmAcharya-avtr/navbench |
+| P013 | `turbscope` | https://github.com/OmAcharya-avtr/turbscope |
+| P014 | `wavelab` | https://github.com/OmAcharya-avtr/wavelab |
+| P015 | `linkswitch` | https://github.com/OmAcharya-avtr/linkswitch |
+| P016 | `zernkit` | https://github.com/OmAcharya-avtr/zernkit |
+| P017 | `estimkit` | https://github.com/OmAcharya-avtr/estimkit |
+| P018 | `shacksim` | https://github.com/OmAcharya-avtr/shacksim |
+| P019 | `cncast` | https://github.com/OmAcharya-avtr/cncast |
+| P020 | `atmoprofile` | https://github.com/OmAcharya-avtr/atmoprofile |
+
+The four original repositories credited `OmAcharya-ADCL` — a different account that owns the commit email — and `aerospace-100-mission` also credited `claude` for 5 commits. Both are corrected in the new repositories by authoring as `145807881+OmAcharya-avtr@users.noreply.github.com`.
+
+**Owner action outstanding:** retire `flagship-beamtwin`, `flagship-trackbench` and `batch-01-suite`, whose contents are now superseded by the per-product repositories. Deleting a repository needs `delete_repo` scope the session does not hold, and is the owner's call in any case. `aerospace-100-mission` stays as the mission workspace.
+
