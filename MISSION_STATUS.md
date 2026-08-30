@@ -1,11 +1,11 @@
 # Mission Status
 
-**Last updated:** 2026-08-29 — Batch 02 APPROVED by the owner
-**Phase:** Batch 02 APPROVED — monorepo published; three per-product repositories pending creation
+**Last updated:** 2026-08-30 — release gate in force
+**Phase:** Batches 01–02 published · automatic gated publication live (ADR-017) · Batch 03 next
 **Products registered:** 20 / 100
 **Products built to completion gate:** 20 / 100
 **Products published:** 20 / 100 — Batch 01 and Batch 02, monorepo source public on `main`
-**Automated tests passing:** 3,544 verified · **2 failing** (P001 CLI) · counted from junit XML by the verifying session, not from build-agent reports
+**Automated tests passing:** 3,547 · **0 failing** · 20/20 products PASS the release gate
 **Lint:** `ruff check` clean across all 20 built products
 
 
