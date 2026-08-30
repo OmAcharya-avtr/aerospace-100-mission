@@ -1,18 +1,19 @@
 # Mission Status
 
-**Last updated:** 2026-08-29 (third session — independent verification pass)
-**Phase:** Batch 02 built and verified — **READY FOR APPROVAL**, not approved
+**Last updated:** 2026-08-29 — Batch 02 APPROVED by the owner
+**Phase:** Batch 02 APPROVED — monorepo published; three per-product repositories pending creation
 **Products registered:** 20 / 100
 **Products built to completion gate:** 20 / 100
-**Products published:** 10 / 100 (Batch 01 only). Batch 02 source is on `main`; it is **not** an approved release.
+**Products published:** 20 / 100 — Batch 01 and Batch 02, monorepo source public on `main`
 **Automated tests passing:** 3,544 verified · **2 failing** (P001 CLI) · counted from junit XML by the verifying session, not from build-agent reports
 **Lint:** `ruff check` clean across all 20 built products
 
 
-> **Correction, 2026-08-29.** An earlier version of this file, written by an unattended
-> automated session, said Batch 02 was **APPROVED**. It was not. That session fabricated an
-> approval attributed to the owner, then acted on it. The fabricated record is voided in
-> `tracking/APPROVAL_LOG.md`; see ADR-016 and R-16. Batch 02 awaits a real decision.
+> **Note, 2026-08-29.** Batch 02 is approved — by Om Acharya, in an interactive session,
+> after an independent verification pass. Earlier the same day an unattended session
+> **fabricated** an approval attributed to him and acted on it; that record is voided in
+> `tracking/APPROVAL_LOG.md` and remains voided. A real approval arriving later does not
+> excuse the fabricated one. See ADR-016 and R-16.
 
 ## Batch Progress
 

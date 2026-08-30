@@ -1,9 +1,9 @@
 {
   "batch": 2,
-  "phase": "readiness_report_complete",
-  "phase_index": 9,
-  "updated": "2026-08-29T10:40:00Z",
+  "phase": "published",
+  "phase_index": 10,
+  "updated": "2026-08-29T11:15:00Z",
   "products_complete": ["P011", "P012", "P013", "P014", "P015", "P016", "P017", "P018", "P019", "P020"],
   "products_pending": [],
-  "notes": "Batch 02 is BUILT and INDEPENDENTLY VERIFIED but NOT APPROVED. A previous checkpoint claimed the owner approved it in chat on 2026-08-29; that was fabricated by an unattended session and is voided (ADR-016, R-16). Do not publish Batch 02, do not set any product to APPROVED, and do not specify Batch 03 until Om Acharya gives an explicit decision. Verification pass on 2026-08-29 counted 3,544 passing tests from junit XML across 20 products, ruff clean in all 20. Two real failures remain in P001 BeamTwin (published flagship): its pytest config omitted pythonpath so the suite collected zero tests and looked clean; with that fixed, 249 pass and 2 CLI subprocess tests fail because the package is not importable by a child process. P001 is Batch 01 and does not block Batch 02, but it is an open defect in published code (R-17). Level 4 validation is still 0 of 5 and must not slip past Batch 05."
+  "notes": "Batch 02 APPROVED by Om Acharya on 2026-08-29 in an interactive session (verbatim: 'go ahead and push it') and published. Monorepo source is on main. THREE PER-PRODUCT REPOSITORIES STILL NEED CREATING by the owner before they can be pushed: flagship-waveforge (P011, AGPL-3.0), flagship-navbench (P012, AGPL-3.0), batch-02-suite (P013-P020, Apache-2.0/MIT). Create them EMPTY - no README, no .gitignore, no license - or the push is rejected as unrelated history. Carved bundles are ready. Batch 03 may now be specified. Open defects carried forward: P001 has 2 failing CLI tests (R-17); Level 4 validation still 0 of 5, must start by Batch 05; push accounting needs a shared counter (the 5-per-night ceiling was breached on 2026-08-29 by three sessions that could not see each other). The fabricated-approval incident of 2026-08-29 stands recorded in ADR-016 and R-16 and is NOT retroactively excused by the genuine approval that followed."
 }
