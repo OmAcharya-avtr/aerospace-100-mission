@@ -77,18 +77,51 @@ Checkpoint file shape:
 }
 ```
 
-## Phase 10 — Stop at the gate (ADR-012)
+## Phase 10 — Run the release gate, then publish (ADR-017)
 
-After checkpoint 9 the session **stops**. It does not publish. It does not
-specify the next batch. It reports and waits for explicit approval from
-Om Acharya.
+Publication no longer waits for a per-batch decision. The owner gave a standing
+authorization on 2026-08-30: a batch pushes as soon as it is built **and only if
+it passes the gate**.
 
-The batch exit report must carry, for all ten products: status · total test
-count · lint result · security result · AI-versus-baseline comparison ·
-validation result per product · known failures · unresolved limitations ·
-licenses · repository publication plan · commit plan · screenshots where
-relevant · updated mission totals from `scripts/quota_report.py` · the batch
-readiness report itself.
+```
+python3 scripts/release_gate.py
+```
+
+**Exit 0 → push. Exit 1 → do not push anything from this batch.**
+
+The gate checks, per product: tests via junit XML (>0 collected, 0 failed,
+0 errored) · ruff clean · package imports in a fresh interpreter · CLI `--help`
+exits 0 in a clean subprocess · every `examples/*.py` runs · every
+`validation/*.py` re-executes. Repository-wide: no secret pattern, no absolute
+private path, no tracked artifact.
+
+A suite that collects **zero** tests FAILS. It does not pass quietly. P001
+shipped publicly that way and "251 tests passing" was copied forward for three
+weeks before anyone re-ran it.
+
+You may not skip a check, loosen a threshold, or push "the parts that passed".
+If you cannot run the gate, you are not authorized to push — absence of a
+failure is not a pass.
+
+**On failure:** set each blocked product to `NEEDS HARDENING` in
+`products.yaml`, put the exact gate output in the session report, and stop.
+
+**What you still may not do (ADR-016, unchanged).** Never write a row into
+`APPROVAL_LOG.md`. Never set a product to `APPROVED` on your own say-so. Never
+claim the owner said anything in a session where no human spoke. You publish
+under a standing rule, not under an approval — cite ADR-017 and the gate result,
+never a quote.
+
+**What still needs the owner:** creating a new GitHub repository. There is no
+`gh` CLI on the publication host and reading the stored credential is forbidden.
+If the batch plan names new per-product repositories, publish to the monorepo,
+carve the per-product repositories locally so they are ready, and report which
+repositories the owner must create empty.
+
+The batch report still gets written, with: status per product · total test count
+· lint · security · AI-versus-baseline comparison · validation per product ·
+known failures · unresolved limitations · licenses · repository plan · commit
+plan · screenshots where relevant · updated mission totals · the gate verdict.
 
 ## Model tiering (ADR-008)
 

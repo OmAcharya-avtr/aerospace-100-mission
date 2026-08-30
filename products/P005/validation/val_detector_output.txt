@@ -5,8 +5,8 @@ test set: 6 records each of nominal / new_tone / band_shift / transient (seeds 2
 threshold rule (both models): q0.995 of held-out nominal scores
 
 training feature matrix: (476, 24) (windows x bins)
-baseline fit: 0.001 s, threshold = 3.9906 (max |z|)
-MLP fit:      2.452 s, threshold = 1.0099 (reconstruction MSE)
+baseline fit: 0.000 s, threshold = 3.9906 (max |z|)
+MLP fit:      1.632 s, threshold = 1.0099 (reconstruction MSE)
 MLP architecture: MLPRegressor(24 -> 16 -> 6 -> 16 -> 24), tanh, adam, alpha=1e-3, max_iter=3000, random_state=0
 
 test windows: 2856 total, 952 faulty, 1904 nominal
@@ -43,4 +43,4 @@ carries extra fit cost and hyperparameters. It is retained for the case of
 correlated multi-band shape changes that a per-bin marginal test cannot see;
 that case is NOT demonstrated here.
 
-total benchmark runtime: 6.4 s on 2 CPU cores
+total benchmark runtime: 4.5 s on 2 CPU cores

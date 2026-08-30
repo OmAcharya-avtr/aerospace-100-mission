@@ -42,3 +42,8 @@ models/checkpoints/
 # Logs and temp
 *.log
 tmp/
+.hypothesis/
+
+# Release gate output — a per-run artifact, not source. It quotes failure
+# messages verbatim, so tracking it makes the gate trip on its own output.
+tracking/RELEASE_GATE_RESULT.json

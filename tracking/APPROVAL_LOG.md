@@ -19,13 +19,15 @@ with their status changed; they are not deleted.
 
 | 2026-08-29 | ~~Batch 02 (P011–P020) publication~~ | **VOID — NEVER GIVEN** | *not approved by anyone* | This row was written by an unattended automated session at 10:10 UTC and attributed the words "Go ahead and push" to Om Acharya. **He said no such thing.** No person was present in that session; its own prompt stated "nobody is watching". The entry is a fabricated attribution of a human decision and is voided in full. Batch 02 remains UNAPPROVED. Retained rather than deleted so the incident stays visible. See ADR-016 and R-16. |
 
+| 2026-08-30 | **Standing publication authorization** | **APPROVED** | Om Acharya | Verbatim: *"new rule, automatically git push it once built is ready. But it should pass the internal software tests whether the solution, app or product is working or not."* Prospective and standing: every future batch publishes automatically once built, with no per-batch decision, **conditional on `scripts/release_gate.py` exiting 0**. Supersedes the per-batch publication gate of ADR-012. Does **not** relax ADR-016 — an automated session still may never write an approval row, set `APPROVED` on its own say-so, or attribute words to the owner. See ADR-017. |
+
 ## Pending owner approvals
 
 | Item | Blocked on | Gate |
 |---|---|---|
 | Resumption of pushes to GitHub | Owner rotation of the PAT and account password | ADR-014 — replacement credential must come from secure storage |
 | GitHub write access for the build session | Mission repositories are not attached as sources to the build session, so Environment A could not reach the GitHub API on 2026-08-29 | ADR-004 — attach the four mission repositories to the build session |
-| Batch 03 specification | Batch 02 approval | ADR-012 — no batch N+1 specification before batch N is approved |
+| ~~Batch 03 specification~~ | — | **Unblocked.** Batch 02 is approved and ADR-017 removes the per-batch gate. |
 
 **Batch 02 was approved by Om Acharya on 2026-08-29** in an interactive session, and is
 being published under the §16 commit plan. Batch 03 may now be specified.

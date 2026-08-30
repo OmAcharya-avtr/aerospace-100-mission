@@ -44,7 +44,7 @@ Sub-pixel S-curve of the 3-point parabolic correlation interpolator
   same sweep, CoG max |error|: 6.154e-08 px
   => the correlation estimator carries a systematic sub-pixel bias that the
      centre of gravity does not; it is the price of peak interpolation.
-  figure -> /home/claude/aerospace-100-mission/products/P018/validation/scurve_bias.png
+  figure -> scurve_bias.png
 
 ==============================================================================
 3. Slope error vs photon count vs the standard noise-propagation expression
@@ -116,7 +116,7 @@ Magnitude of the effect, quoted as measured-slope / true-slope:
 Subtracting B, or thresholding at B, removes it (see the threshold column in
 section 3). This is why an uncorrected background offset is a systematic
 wavefront error and not merely extra noise.
-figure -> /home/claude/aerospace-100-mission/products/P018/validation/background_bias.png
+figure -> background_bias.png
 
 ==============================================================================
 5. Learned slope estimator vs thresholded centre of gravity
@@ -125,7 +125,7 @@ Training set: 9000 single-subaperture stamps, photons log-uniform in
 [30, 30000] e-, elongation uniform in [1, 3] along x, B = 1.0 e-/px, R = 3.0 e- RMS,
 seed = 100. Test sets use disjoint seeds (9000+N) and are never
 seen during training or threshold tuning (tuning seeds are 300+N).
-Data generation 0.4 s; training 5 x MLP(96,48) 39.9 s on 2 CPU cores.
+Data generation 0.3 s; training 5 x MLP(96,48) 28.3 s on 2 CPU cores.
 
 --- round diffraction-limited spot (elongation = 1.0) ---
   N [e-]   thr  CoG [px]  corr [px]  ML [px]  ML/CoG  ML std [px]  std/err
@@ -159,9 +159,9 @@ Crossover summary (thresholded CoG is the baseline):
   Against the CORRELATION estimator the picture differs — see the table above:
     elongation 1x: ML beats correlation at 1 of 7 flux levels.
     elongation 3x: ML beats correlation at 3 of 7 flux levels.
-figure -> /home/claude/aerospace-100-mission/products/P018/validation/ml_vs_classical.png
+figure -> ml_vs_classical.png
 
 Classical-only curves from section 3 (round spot, for cross-reference):
   tuned thresholds [4.0, 7.0, 10.0, 13.0, 13.0, 10.0, 13.0]
 
-Total wall-clock: 56.1 s
+Total wall-clock: 39.4 s

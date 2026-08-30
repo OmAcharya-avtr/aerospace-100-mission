@@ -1,7 +1,7 @@
 # FogCast benchmark — ML vs Kim vs Kruse on held-out synthetic test data
 
 Dataset: n=6000, seed=42; split 70/15/15 (train 4200, val 900, test 900).
-Training time: 4.7 s (3x GradientBoostingRegressor, 300 estimators, depth 3, lr 0.05, 2 CPU cores).
+Training time: 3.0 s (3x GradientBoostingRegressor, 300 estimators, depth 3, lr 0.05, 2 CPU cores).
 
 Ground truth = synthetic generative process (Kim + perturbations); metrics measure fidelity to that process, NOT to field measurements.
 
