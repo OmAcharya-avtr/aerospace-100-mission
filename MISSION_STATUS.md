@@ -1,7 +1,7 @@
 # Mission Status
 
-**Last updated:** 2026-08-30 — release gate in force
-**Phase:** Batches 01–02 published · automatic gated publication live (ADR-017) · Batch 03 next
+**Last updated:** 2026-08-30 — 20 per-product repositories published
+**Phase:** Batches 01–02 published as 20 standalone repositories · Batch 03 next
 **Products registered:** 20 / 100
 **Products built to completion gate:** 20 / 100
 **Products published:** 20 / 100 — Batch 01 and Batch 02, monorepo source public on `main`
