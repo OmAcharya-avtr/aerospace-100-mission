@@ -1,251 +1,46 @@
-# CentroidNet
+# centroidnet
 
-**Status:** TESTING · **Class:** compact · **Validation level:** 2 (Research) · **AI:** yes
+Subpixel centroid estimation for one optical spot: classical baselines plus a benchmarked ML ensemble.
 
-> **Headline honest result — read this before using the ML model.** On held-out
-> synthetic data the ML ensemble beats the plain centre-of-gravity at every SNR
-> tested, and beats a well-tuned *thresholded* centre-of-gravity **only below
-> SNR ≈ 40**. Above that the thresholded CoG is better — 2.2× better at SNR 88
-> (0.030 px vs 0.066 px). Use the ML model in the photon-starved regime; use the
-> analytic estimator when the spot is bright. Full numbers in
-> [`validation/VALIDATION.md`](validation/VALIDATION.md).
+![tests](https://img.shields.io/badge/tests-41%20passing-brightgreen)
+![python](https://img.shields.io/badge/python-3.11%2B-blue)
+![licence](https://img.shields.io/badge/licence-Apache--2.0-lightgrey)
+![validation](https://img.shields.io/badge/validation-Level%202%20%28Research%29-blue)
+![status](https://img.shields.io/badge/status-TESTING-yellow)
 
-## Executive overview
+## The problem
 
-CentroidNet estimates the subpixel position of a single optical spot on a small
-detector window. It ships three things that belong together:
+Pointing and tracking error budgets are driven directly by centroid error: a star
+tracker, a fine-guidance sensor, a laser-communication acquisition camera and a
+Shack-Hartmann subaperture all reduce to "where, to a fraction of a pixel, is this
+spot?". The classical answer, the intensity-weighted first moment, sums noise over
+every pixel in the window, so it degrades badly once the target is faint; the other
+classical answer, the quad-cell, is only linear within a fraction of the spot width.
+This repository quantifies how much a small learned estimator buys you in the
+photon-starved regime, and measures exactly where it stops buying you anything.
 
-1. a **synthetic spot generator** — pixel-integrated Gaussian PSF with Poisson
-   shot noise, uniform background and Gaussian read noise, with exact labels;
-2. two **classical analytic baselines** — intensity-weighted centre of gravity
-   (plain and thresholded) and a calibrated quad-cell;
-3. an **ML ensemble** — 5 scikit-learn MLP regressors on the flux-normalized
-   pixel vector, returning a subpixel centroid **and an ensemble-spread
-   uncertainty**.
+## What this does
 
-The baselines were implemented first and the ML model is benchmarked against them
-on identical held-out frames. Everything is numpy/scipy/scikit-learn; no GPU, no
-network access, no committed data.
+- **Generates labelled synthetic frames** — pixel-integrated Gaussian spot (erf
+  model), Poisson shot noise, uniform background, Gaussian read noise, with exact
+  ground truth. Deterministic under a fixed seed; nothing is committed.
+- **Implements two classical baselines first** — centre of gravity (plain and
+  thresholded) and a calibrated quad-cell. Noise-free CoG recovery is exact to
+  **2.934e-04 px** worst case; the quad-cell matches its analytic erf response to
+  **5.538e-05 px** over d in [-4, +4] px.
+- **Trains a 5-member MLP ensemble** on the flux-normalized 256-pixel vector,
+  ~82 k parameters total, **19.2 s** to train 4200 frames on 2 CPU cores.
+- **Returns an uncertainty proxy** — the ensemble spread, measured at
+  **0.09 to 0.44** of the true RMS error, i.e. uncalibrated and documented as such.
+- **Scores all four estimators on the same 3000 held-out frames** across six signal
+  levels, detection SNR **1.9 to 88.3**, and reports the crossover.
 
-## Aerospace problem
+## Headline result: where each method wins
 
-Pointing and tracking error budgets are driven directly by centroid error. Star
-trackers, fine-guidance sensors, laser-communication acquisition and tracking
-sensors and Shack–Hartmann wavefront sensors all reduce to: *where, to a fraction
-of a pixel, is this spot?* Two classical answers dominate. The centre of gravity
-is unbiased and wide-range but sums noise over every pixel in the window, so it
-degrades badly when the star is faint or the beacon weak. The quad-cell is fast
-and cheap but only linear within a fraction of the spot width, so it works as a
-null-seeker and not as an absolute sensor. The photon-starved regime — faint
-target, short integration, high read noise — is where both hurt most and where a
-learned estimator has room to help. This product quantifies exactly how much
-room, and where the learned estimator stops helping.
+Measured on 500 held-out frames per point (`validation/validation_output.txt`,
+section 3). RMS radial error, pixels:
 
-## Intended users
-
-GNC, optical-sensor and payload engineers sizing centroid error budgets;
-researchers comparing classical and learned centroiding; students learning
-subpixel estimation and its noise limits. Not for flight software (see
-[Safety statement](#safety-statement)).
-
-## Engineering theory
-
-Coordinate convention throughout: positions are in **pixels** measured from the
-array geometric centre `(N−1)/2`; +x = increasing column index, +y = increasing
-row index.
-
-**Spot model** (Hardy 1998, *Adaptive Optics for Astronomical Telescopes*, Oxford
-Univ. Press, ch. 5 — Gaussian approximation to a diffraction-limited PSF core):
-
-```
-I(x, y) = S / (2πσ²) · exp( −((x−x₀)² + (y−y₀)²) / (2σ²) )
-```
-
-Units: `S` total signal [e⁻], `σ` spot RMS width [px], `x₀, y₀` centre [px].
-*Assumptions:* one unresolved, circular, unaberrated source. *Validity:* good near
-the PSF core; poor in the wings of a real diffraction pattern.
-
-**Pixel integration** — exact, separable, closed form in the error function:
-
-```
-P(i, j) = S · [F(x_c+½) − F(x_c−½)] · [F(y_c+½) − F(y_c−½)],  F(u) = ½(1 + erf((u−x₀)/(σ√2)))
-```
-
-*Assumptions:* 100 % fill factor, uniform pixel response. *Validity:* any σ; the
-point-sampled alternative (`pixelated=False`) is valid only for σ ≫ 1 px.
-
-**Centre of gravity** (first moment; Thomas et al. 2006, *MNRAS* **371**, 323):
-
-```
-x̂ = Σᵢ wᵢ xᵢ / Σᵢ wᵢ  [px],   wᵢ = max(Iᵢ − t, 0)
-```
-
-*Assumptions:* symmetric PSF fully inside the window, background removed.
-*Validity:* unbiased noise-free (verified to 2.9e-04 px, §Validation); variance
-grows with window area × noise, so it degrades quickly at low SNR. A threshold `t`
-trades noise sensitivity for a small bias.
-
-**Quad-cell** (Tyler & Fried 1982, *JOSA* **72**, 804; Hardy 1998 ch. 5):
-
-```
-x̂ = s · (I_right − I_left) / I_total  [px]
-```
-
-For a Gaussian spot the ideal response is `x̂ = s·erf(d/(σ√2))`, which is linear
-only for `|d| ≪ σ`, with small-signal slope `√(2/π)/σ`. Choosing
-`s = σ√(π/2) = 1.88 px` here calibrates that slope to unity. *Validity:* the
-estimate **saturates at ±s**; error is 14 % at `d = σ` and 40 % at `d = 2σ`.
-
-**Detection SNR** (standard CCD aperture photometry; Howell 2006, *Handbook of CCD
-Astronomy*, 2nd ed., Cambridge Univ. Press):
-
-```
-SNR = S / sqrt( S + N_pix·(B + R²) )   [dimensionless]
-```
-
-Units: `B` background [e⁻/px], `R` read noise [e⁻ RMS], `N_pix = N²`.
-*Assumptions:* whole spot inside the window, no dark current.
-
-**Photon-noise limit** on centroiding (Winick 1986, *JOSA A* **3**, 1809; Thomas
-et al. 2006): `σ_centroid ≈ σ_PSF/√N` per axis in the background-free limit — the
-floor no estimator beats. At S = 10⁴ e⁻, σ = 1.5 px this is 0.021 px radial.
-
-## Architecture
-
-```
-src/centroidnet/
-├── __init__.py      public API and __version__
-├── generator.py     spot_image, generate_spots, snr_estimate   (synthetic data)
-├── baselines.py     cog_centroid, quadcell_centroid            (analytic, implemented first)
-└── ml.py            MLCentroider                               (5 × MLPRegressor ensemble)
-```
-
-`MLCentroider` normalizes each frame to unit total flux (gain invariance),
-flattens it to a 256-vector and feeds 5 independently seeded MLPs with one hidden
-layer of 64 ReLU units. Prediction is the member mean; `return_std=True` adds the
-member standard deviation as an uncertainty proxy. No cross-product imports.
-
-## Installation
-
-Requires Python ≥ 3.11 with numpy, scipy, scikit-learn and matplotlib.
-
-```bash
-cd products/P008
-pip install -e .            # or: export PYTHONPATH=src
-```
-
-All commands below are run from `products/P008/`.
-
-## Quick start
-
-```python
-import numpy as np
-from centroidnet import (
-    MLCentroider, cog_centroid, generate_spots, quadcell_centroid, snr_estimate,
-)
-
-# 1. Analytic baselines on one noisy frame
-images, truths = generate_spots(
-    n_spots=1, grid_size=16, sigma=1.5, signal=1000.0,
-    background=2.0, read_noise=3.0, seed=42,
-)
-frame, truth = images[0], truths[0]
-print("true      ", truth)                                   # [px] from array centre
-print("CoG       ", cog_centroid(frame))
-print("CoG (thr) ", cog_centroid(frame, threshold=5.0))
-print("quad-cell ", quadcell_centroid(frame, scale=1.5 * np.sqrt(np.pi / 2)))
-print("SNR       ", snr_estimate(1000.0, 2.0, 3.0, 16))
-
-# 2. Train and predict with uncertainty
-train_x, train_y = generate_spots(2000, 16, 1.5, 1000.0, 2.0, 3.0, seed=100)
-model = MLCentroider(n_estimators=5, hidden_layer_sizes=(64,), random_state=0)
-model.fit(train_x, train_y)
-
-test_x, test_y = generate_spots(200, 16, 1.5, 1000.0, 2.0, 3.0, seed=9000)  # held out
-pred, std = model.predict(test_x, return_std=True)
-rms = np.sqrt(np.mean(np.sum((pred - test_y) ** 2, axis=1)))
-print(f"ML RMS {rms:.3f} px, mean ensemble spread {std.mean():.3f} px")
-```
-
-`std` is **not** a calibrated 1-σ error bar — see [Limitations](#limitations).
-
-## Configuration
-
-| Parameter | Default | Units | Meaning |
-|---|---|---|---|
-| `grid_size` | 16 | px | Square window side, ≥ 4 (quad-cell needs even) |
-| `sigma` | 1.5 | px | Spot RMS width, > 0 |
-| `signal` | 1000 | e⁻ | Total spot signal, ≥ 0 |
-| `background` | 0.5 | e⁻/px | Uniform background, ≥ 0 |
-| `read_noise` | 2.0 | e⁻ RMS | Gaussian read noise, ≥ 0 (0 disables) |
-| `shot_noise` | True | — | Poisson noise on spot + background |
-| `pixelated` | True | — | erf pixel integration vs point sampling |
-| `offset_range` | 2.0 | px | True offsets drawn U(−r, +r) in x and y |
-| `seed` | None | — | Fixed seed → bitwise reproducible output |
-| `threshold` (CoG) | None | e⁻ | Subtracted before weighting; `B + R` used here |
-| `scale` (quad-cell) | 1.0 | px | `σ√(π/2)` linearizes the small-offset slope |
-| `n_estimators` | 5 | — | Ensemble members, ≥ 2 |
-| `hidden_layer_sizes` | (64,) | — | MLP hidden widths |
-| `max_iter` / `alpha` / `random_state` | 300 / 1e-4 / 0 | — | Adam epochs, L2, base seed |
-
-Invalid input raises `ValueError`/`TypeError` with an actionable message
-(negative σ, odd dimensions for the quad-cell, non-finite pixels, zero total flux,
-`predict()` before `fit()`, …).
-
-## Examples
-
-Both save PNGs to `screenshots/` using the Agg backend.
-
-```bash
-PYTHONPATH=src python examples/error_vs_snr.py    # ~18 s
-PYTHONPATH=src python examples/spot_gallery.py    # ~15 s
-```
-
-**`error_vs_snr.py` → `screenshots/error_vs_snr.png`** — trains the ensemble and
-plots RMS radial error against detection SNR for all four estimators on held-out
-frames, with the mean ensemble spread as a band around the ML curve. The crossover
-where the thresholded CoG overtakes the ML model is directly visible.
-
-![Centroid error vs SNR](screenshots/error_vs_snr.png)
-
-**`spot_gallery.py` → `screenshots/spot_gallery.png`** — eight simulated frames at
-four signal levels (SNR 1.9 to 39.3) with the true centroid, the CoG, the
-quad-cell and the ML estimate (with its ensemble-spread error bars) overlaid, and
-the per-frame CoG and ML errors annotated. At SNR 1.9 the spot is barely visible
-by eye and the estimators visibly disagree; by SNR 39 they collapse onto the
-truth.
-
-![Synthetic spot gallery](screenshots/spot_gallery.png)
-
-## Validation
-
-Level 2 (Research). Full evidence, tolerances and raw output:
-[`validation/VALIDATION.md`](validation/VALIDATION.md), regenerated by
-
-```bash
-PYTHONPATH=src python validation/run_validation.py    # writes validation_output.txt + 2 PNGs
-```
-
-**1 — Noise-free CoG recovery against the analytic truth.** Over five offsets in a
-16×16 window the worst-case radial error is **2.934e-04 px** (tolerance 1e-3 px,
-**PASS**); at zero offset it is **3.2e-16 px**, i.e. round-off, as symmetry
-requires. The residual at ±2 px offset is genuine window truncation of the
-Gaussian tails, not a numerical defect.
-
-**2 — Quad-cell bias curve against the analytic erf response.** Swept over
-d ∈ [−4, 4] px, the implementation matches `σ√(π/2)·erf(d/(σ√2))` to
-**5.538e-05 px** (tolerance 1e-2 px, **PASS**). The curve quantifies the
-documented linear-range limitation: linearity error **0.0001 px at d = 0.1 px**,
-**0.217 px (14 %) at d = 1.5 px = σ**, **1.206 px (40 %) at d = 3.0 px = 2σ**,
-with hard saturation at ±1.88 px.
-
-![Quad-cell response](validation/quadcell_bias_curve.png)
-
-**3 — Bias and RMS error vs SNR, baselines against the ML ensemble.** 4200
-training frames (seeds 100–105), 3000 held-out test frames (seeds 9000–9005),
-500 per SNR point. RMS radial error [px]:
-
-| S [e⁻] | SNR | CoG plain | CoG thresholded | quad-cell | **ML ensemble** |
+| S [e-] | SNR | CoG (plain) | CoG (thresholded) | quad-cell | ML ensemble |
 |---|---|---|---|---|---|
 | 100 | 1.9 | 1.466 | 1.382 | 1.447 | **0.788** |
 | 200 | 3.6 | 1.302 | 0.901 | 1.319 | **0.438** |
@@ -254,150 +49,440 @@ training frames (seeds 100–105), 3000 held-out test frames (seeds 9000–9005)
 | 3000 | 39.3 | 0.305 | **0.075** | 0.493 | 0.079 |
 | 10000 | 88.3 | 0.107 | **0.030** | 0.340 | 0.066 |
 
-Bias ‖mean(est − truth)‖ stays ≤ 0.078 px for every estimator at every SNR (full
-table in VALIDATION.md), so all four are effectively unbiased over the symmetric
-±2 px offset distribution and RMS is the discriminating metric.
+**A thresholded centre of gravity beats the ML ensemble above roughly SNR 40.**
+The crossover falls between the SNR 16.2 point (ML 0.153 px vs 0.208 px, ML ahead
+by 1.36x) and the SNR 39.3 point (ML 0.079 px vs 0.075 px, thresholded CoG ahead by
+1.05x). At the highest signal tested, SNR 88.3, the thresholded CoG is **2.2x
+better** (0.030 px vs 0.066 px).
 
-![ML vs baselines](validation/ml_vs_baseline_snr.png)
+Where the ML ensemble wins:
 
-## Benchmark results
+- Against the **plain** CoG, at every tested SNR, by 1.6x to 3.0x.
+- Against the **thresholded** CoG, below SNR ~40 only: **1.75x** better at
+  SNR 1.9 (0.788 px vs 1.382 px), 1.66x at SNR 8.7, 1.36x at SNR 16.2.
 
-- ML ensemble vs **plain** CoG: **better at every tested SNR**, by 1.6×–3.0×.
-- ML ensemble vs **thresholded** CoG: better below SNR ≈ 40 (**1.8× at SNR 1.9**,
-  1.7× at SNR 8.7); **worse at and above SNR 39.3** (0.079 vs 0.075 px), and
-  **2.2× worse at SNR 88.3** (0.066 vs 0.030 px).
-- ML error floors at **≈ 0.066 px** and stops improving with signal. Cause: a
-  finite-capacity, L2-regularized, early-stopped network trained on 4200 frames
-  spanning six noise regimes carries an irreducible approximation error and shrinks
-  slightly toward the mean of the offset distribution. This costs nothing while
-  noise dominates and dominates once it does not.
-- Against the photon-noise limit (0.021 px radial at S = 10⁴ e⁻): thresholded CoG
-  reaches **1.4×** the limit, ML **3.1×**.
-- Quad-cell RMS plateaus at 0.340 px even at SNR 88 — nonlinearity over the ±2 px
-  offset range, not noise.
-- Compute: training 5 × MLP(64,) on 4200 frames takes **24.6 s** on 2 CPU cores
-  (budget 120 s); inference ≈ 0.1 ms/frame/member; test suite 11 s.
+Why it loses above the crossover: the ML error floors at **~0.066 px** and stops
+improving with signal, while the thresholded CoG keeps falling as 1/SNR. The floor
+is a property of a finite-capacity, L2-regularized, early-stopped network trained on
+4200 frames spanning six noise regimes; it shrinks slightly toward the mean of the
+offset distribution, which costs nothing while noise dominates and dominates once it
+does not. Against the shot-noise limit for this configuration (0.0212 px radial at
+S = 1e4 e-, sigma/sqrt(N), Winick 1986, hand-calculated in `validation/VALIDATION.md`
+section 3.5) the thresholded CoG reaches **1.4x** the limit and the ML ensemble
+**3.1x**.
 
-## AI model details
+The defensible operating rule for this sensor model: use the ML ensemble below
+SNR ~40, use the thresholded CoG above it. A method that wins only in the low-SNR
+regime is still useful — faint stars, short integrations and weak beacons are the
+cases that size a pointing budget — but it is not a replacement for the analytic
+estimator.
 
-Full card: [`MODEL_CARD.md`](MODEL_CARD.md). Data: [`DATASET_CARD.md`](DATASET_CARD.md).
+## Who it is for
 
-- **Baseline first.** `cog_centroid` and `quadcell_centroid` were implemented and
-  validated before the model, and every ML claim is made on identical held-out
-  frames (§Validation).
-- **Architecture.** 5 × `MLPRegressor(hidden_layer_sizes=(64,))`, ReLU, Adam,
-  `alpha=1e-4`, `max_iter=300`, `early_stopping=True`, on the flux-normalized
-  256-vector. ≈ 82 k parameters total.
-- **Dataset.** Entirely synthetic, generated by committed scripts, deterministic
-  under fixed seeds, not committed. Idealized sensor model; dead pixels, PRNU,
-  optical aberrations, stray light and detector nonlinearity are **not** modelled.
-- **Training procedure.** 6 signal levels × 700 frames (seeds 100–105); 10 % of
-  training frames held internally for early stopping; no hyperparameter search, so
-  no test information leaked into any choice.
-- **Test split.** Disjoint RNG streams, not a partition: train seeds 100–105, test
-  seeds 9000–9005 (3000 frames). Same distribution — this is an in-distribution
-  generalization test only, not a robustness test.
-- **Metrics.** See the table in §Validation and §Benchmark results.
-- **Uncertainty output.** `predict(..., return_std=True)` returns the ensemble
-  standard deviation. Measured std/RMS ratio ranges **0.09 to 0.44**, i.e. it
-  under-estimates the true error everywhere by 2.3×–11×. **Not a calibrated 1-σ
-  bound.** Useful only as a monotonic, qualitative degradation flag.
-- **Failure cases.** Silent degradation above SNR ≈ 40; extrapolation outside
-  ±2 px offsets or σ ≠ 1.5 px; dead/hot pixels and cosmic rays; multiple or
-  extended sources; saturated cores. Only input-validation errors are raised;
-  **every accuracy failure mode is silent.**
-- **Deviation.** The specification called for a small **CNN**; PyTorch is not
-  available in this build environment, so an **MLP ensemble** is used instead. The
-  model has no convolutional inductive bias. Recorded in
-  [Limitations](#limitations) and prominently in `MODEL_CARD.md`.
+- GNC, optical-sensor and payload engineers sizing centroid error budgets who need
+  a defensible low-SNR number rather than a rule of thumb.
+- Researchers who want a like-for-like classical-versus-learned centroiding
+  comparison on identical frames with the seeds committed.
+- Students learning subpixel estimation, quad-cell nonlinearity and the photon-noise
+  limit.
 
-**This model is not certified for operational flight use.**
+## Who it is not for
 
-## Hardware requirements
+- Anyone writing flight software. See [Safety](#safety).
+- Anyone who needs a production centroider for astronomical images — use photutils
+  (see [Alternatives](#alternatives-honestly)).
+- Anyone needing source detection, windowing, deblending or multi-frame tracking.
+  This assumes a window already centred on exactly one spot.
+- Anyone needing a calibrated 1-sigma error bar. The ensemble spread is not one.
+- Anyone working outside the tested envelope: 16x16 px window, circular Gaussian
+  spot of sigma = 1.5 px, offsets within +/-2 px, background 2 e-/px, read noise
+  3 e- RMS.
 
-CPU only. Developed and validated on 2 x86-64 cores with Python 3.11.15, numpy
-2.4.4, scipy 1.17.1, scikit-learn 1.8.0, matplotlib 3.10.9. Peak memory < 500 MB
-(4200 × 16 × 16 float64 ≈ 8.6 MB of image data). No GPU, no accelerator, no
-network access. Full validation run < 2 minutes.
+## Alternatives, honestly
+
+Thresholded centre of gravity is textbook (Thomas et al. 2006, *MNRAS* **371**, 323)
+and is implemented in at least four maintained packages. This repository does not
+offer a better centre of gravity, and nothing here should be read as a claim that it
+does. What it offers is the paired benchmark harness: one generator, four
+estimators, the same held-out frames, and the crossover measured rather than
+asserted.
+
+| Alternative | What it does better | When to use it instead of this |
+|---|---|---|
+| [photutils](https://pypi.org/project/photutils/) (`photutils.centroids`: `centroid_com`, `centroid_quadratic`, `centroid_1dg`, `centroid_2dg`, `centroid_sources`) | Maintained astropy-ecosystem centroiders including 1-D and 2-D Gaussian fitting and quadratic peak fitting, masking, error arrays, multi-source cutouts, and the surrounding detection and photometry stack. | Almost always, for astronomical images. `centroid_2dg` fits the actual spot model rather than a moment and is the estimator to beat at high SNR; this repo does not implement a fitting centroider at all. |
+| [scikit-image](https://pypi.org/project/scikit-image/) (`skimage.measure.centroid`, `skimage.measure.moments`, `regionprops(...).centroid_weighted`, `skimage.feature.peak_local_max`) | General n-dimensional image processing: labelling, segmentation, peak finding, arbitrary-order moments, all heavily tested. | When the task is "find and measure blobs in a general image" rather than "one known spot in a fixed window", or when you need peak detection before centroiding. |
+| [AOtools](https://pypi.org/project/aotools/) (`aotools.image_processing.centroiders`: `centre_of_gravity`, `brightest_pixel`, `correlation_centroid`, `quadCell`) | Ships the adaptive-optics centroider set, including brightest-pixel and correlation centroiding, applied directly to Shack-Hartmann subaperture stacks, alongside Zernikes, turbulence and WFS tooling. | For adaptive optics work. It has centroiders this repo does not (brightest-pixel, correlation) and a whole AO toolbox around them. |
+| [SEP](https://pypi.org/project/sep/) (Source Extractor core as a library) | Background estimation, source detection, deblending and windowed positions on large images, at C speed. | When you must detect sources in a wide field before centroiding anything, or need Source Extractor-compatible measurements. |
+| [opencv-python](https://pypi.org/project/opencv-python/) (`cv2.moments`, `cv2.connectedComponentsWithStats`) | Fast C++ moments and connected components with real-time throughput and no scientific-Python dependency chain. | Real-time embedded or machine-vision pipelines where frame rate matters more than a documented photometric noise model. |
+
+None of the five ships a learned centroider with an uncertainty output, which is the
+only thing here that is not already available elsewhere — and, as the headline result
+says, that learned estimator loses to a three-line thresholded moment above SNR 40.
+
+## Related work in this family
+
+**ShackSim** (product P018) is the sibling and solves a different problem. ShackSim
+simulates a whole Shack-Hartmann lenslet array and extracts the slope vector across
+all subapertures, including lenslet geometry, elongated spots, a correlation
+estimator and wavefront reconstruction. centroidnet is the single-spot centroiding
+problem in isolation: one window, one source, four estimators, one number. If you
+need array-level wavefront sensing, use ShackSim; if you need the per-spot estimator
+comparison, use this.
+
+## Install and first run
+
+```bash
+git clone https://github.com/OmAcharya-avtr/centroidnet.git
+cd centroidnet
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[test]"
+python -m pytest tests/ -q
+python examples/spot_gallery.py
+```
+
+Expected output of the last two commands:
+
+```
+.........................................                                [100%]
+=============================== warnings summary ===============================
+tests/test_ml.py::TestBenchmark::test_ml_beats_or_ties_plain_cog_at_low_snr
+tests/test_ml.py::TestReproducibility::test_same_seed_same_predictions
+  .../sklearn/neural_network/_multilayer_perceptron.py:785: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (200) reached and the optimization hasn't converged yet.
+    warnings.warn(
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+41 passed, 2 warnings in 12.06s
+
+saved /path/to/centroidnet/screenshots/spot_gallery.png
+```
+
+The `ConvergenceWarning` is expected: the ensemble members stop on the
+`early_stopping` criterion or the iteration cap, both by design. `spot_gallery.py`
+takes about 12 s on 2 CPU cores.
+
+## Worked example
+
+Reproduces the headline table from the public API. Runtime 28 s on 2 CPU cores.
+
+```python
+import numpy as np
+from centroidnet import (MLCentroider, cog_centroid, generate_spots,
+                         quadcell_centroid, snr_estimate)
+
+GRID, SIGMA, B, R = 16, 1.5, 2.0, 3.0          # px, px, e-/px, e- RMS
+SIGNALS = [100.0, 200.0, 500.0, 1000.0, 3000.0, 10000.0]   # e-
+
+# Train the ensemble across all six signal levels (seeds 100..105)
+xs, ys = zip(*(generate_spots(700, GRID, SIGMA, s, B, R, seed=100 + i)
+               for i, s in enumerate(SIGNALS)))
+model = MLCentroider(n_estimators=5, hidden_layer_sizes=(64,), random_state=0)
+model.fit(np.concatenate(xs), np.concatenate(ys))
+
+# Evaluate on held-out frames (seeds 9000..9005, never seen in training)
+for i, s in enumerate(SIGNALS):
+    img, truth = generate_spots(500, GRID, SIGMA, s, B, R, seed=9000 + i)
+    snr = snr_estimate(s, B, R, GRID)
+    cogt = np.array([cog_centroid(f, threshold=B + R) for f in img])
+    quad = np.array([quadcell_centroid(f, scale=SIGMA * np.sqrt(np.pi / 2)) for f in img])
+    pred, std = model.predict(img, return_std=True)
+    rms = lambda e: float(np.sqrt(np.mean(np.sum((e - truth) ** 2, axis=1))))
+    print(f"S={s:>7.0f} e-  SNR={snr:5.1f} | CoG(thr) {rms(cogt):.3f} px | "
+          f"quad {rms(quad):.3f} px | ML {rms(pred):.3f} px | "
+          f"ML spread {std.mean():.3f} px")
+```
+
+Actual printed output:
+
+```
+S=    100 e-  SNR=  1.9 | CoG(thr) 1.382 px | quad 1.447 px | ML 0.788 px | ML spread 0.073 px
+S=    200 e-  SNR=  3.6 | CoG(thr) 0.901 px | quad 1.319 px | ML 0.438 px | ML spread 0.048 px
+S=    500 e-  SNR=  8.7 | CoG(thr) 0.401 px | quad 1.040 px | ML 0.242 px | ML spread 0.034 px
+S=   1000 e-  SNR= 16.2 | CoG(thr) 0.208 px | quad 0.771 px | ML 0.153 px | ML spread 0.029 px
+S=   3000 e-  SNR= 39.3 | CoG(thr) 0.075 px | quad 0.493 px | ML 0.079 px | ML spread 0.027 px
+S=  10000 e-  SNR= 88.3 | CoG(thr) 0.030 px | quad 0.340 px | ML 0.066 px | ML spread 0.029 px
+```
+
+The crossover is visible in the last two rows, and the ML spread column never tracks
+the ML error column: 0.073 px against 0.788 px at SNR 1.9, 0.029 px against 0.066 px
+at SNR 88.3.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    P["sensor parameters<br/>S, sigma, B, R, offset range"]
+
+    subgraph gen["centroidnet.generator"]
+        G["generate_spots / spot_image<br/>erf pixel integration, Poisson,<br/>background, read noise"]
+        SNRF["snr_estimate<br/>S / sqrt(S + Npix (B + R^2))"]
+    end
+
+    FRAMES["spot images (M,16,16) [e-]<br/>true offsets (M,2) [px]"]
+
+    subgraph base["centroidnet.baselines"]
+        BL["cog_centroid(img, threshold = B + R)<br/>thresholded centre of gravity"]
+        QC["quadcell_centroid(img, scale = sigma sqrt(pi/2))"]
+    end
+
+    subgraph mlmod["centroidnet.ml, MLCentroider"]
+        FIT["fit<br/>5 x MLPRegressor(64,), Adam, early_stopping"]
+        FEAT["_features<br/>clip negatives, flatten to 256,<br/>divide by total flux"]
+        PRED["predict(return_std=True)<br/>member mean and member std"]
+    end
+
+    EST["centroid estimate (x, y) [px]"]
+    CONF["ensemble spread [px]<br/>confidence proxy, uncalibrated"]
+    ERR["RMS radial error vs detection SNR"]
+    OUT["validation/ml_vs_baseline_snr.png<br/>screenshots/error_vs_snr.png"]
+
+    P --> G
+    P --> SNRF
+    G --> FRAMES
+    FRAMES -->|"train seeds 100-105"| FIT
+    FRAMES -->|"held-out seeds 9000-9005"| BL
+    FRAMES -->|"held-out seeds 9000-9005"| QC
+    FRAMES -->|"held-out seeds 9000-9005"| FEAT
+    FIT --> PRED
+    FEAT --> PRED
+    BL --> EST
+    QC --> EST
+    PRED --> EST
+    PRED --> CONF
+    EST --> ERR
+    CONF --> ERR
+    SNRF --> ERR
+    ERR --> OUT
+```
+
+Package layout:
+
+```
+src/centroidnet/
+├── __init__.py      public API, __version__
+├── generator.py     spot_image, generate_spots, snr_estimate
+├── baselines.py     cog_centroid, quadcell_centroid   (implemented first)
+└── ml.py            MLCentroider                      (5 x MLPRegressor)
+```
+
+There are no cross-module imports beyond `__init__.py`; the baselines do not depend
+on scikit-learn.
+
+## Screenshots
+
+Both are produced by the scripts in `examples/`, so they cannot drift from the code.
+
+![Centroid error vs SNR](screenshots/error_vs_snr.png)
+
+`examples/error_vs_snr.py`. Notice the crimson ML curve flattening near 0.07 px on
+the right while the thresholded-CoG curve keeps descending and crosses under it —
+that crossing is the headline result, reproduced independently with different seeds
+(train 300-305, test 8800-8805, 300 frames per point) from the validation run.
+
+![Synthetic spot gallery](screenshots/spot_gallery.png)
+
+`examples/spot_gallery.py`. Notice the leftmost column at SNR 1.9, where the spot is
+barely visible and the four markers scatter across several pixels, against the
+rightmost column at SNR 39.3, where they collapse onto the magenta cross; the red
+error bars are the ensemble spread and are visibly too small for the actual error at
+low SNR.
+
+## Validation evidence
+
+Level 2 (Research). Full derivations, tolerances and the raw console log are in
+[`validation/VALIDATION.md`](validation/VALIDATION.md) and
+[`validation/validation_output.txt`](validation/validation_output.txt), both written
+by `validation/run_validation.py`.
+
+| # | Check | Reference | Result | Tolerance | Verdict |
+|---|---|---|---|---|---|
+| 1 | Noise-free CoG recovery, 5 offsets | Thomas et al. 2006, *MNRAS* **371**, 323 | worst 2.934e-04 px; 3.216e-16 px at zero offset | 1e-3 px | PASS |
+| 2 | Quad-cell response vs analytic erf, d in [-4, +4] px, 81 points | Tyler & Fried 1982, *JOSA* **72**, 804; Hardy 1998 ch. 5 | max deviation 5.538e-05 px | 1e-2 px | PASS |
+| 2b | Quad-cell linear range | Tyler & Fried 1982 | 0.0001 px at d = 0.1 px; 0.217 px (14 %) at d = sigma; 1.206 px (40 %) at d = 2 sigma; saturates at +/-1.880 px | none | limitation confirmed |
+| 3 | ML vs baselines, RMS vs SNR, 3000 held-out frames | own held-out data, seeds 9000-9005 | ML 1.75x better at SNR 1.9; **thresholded CoG 1.05x better at SNR 39.3 and 2.2x better at SNR 88.3** | none | **baseline wins above SNR ~40** |
+| 3b | Training compute, 4200 frames, 2 cores | build-guide budget | 19.2 s | < 120 s | PASS |
+| 4 | Ensemble spread as an error bar | Lakshminarayanan et al., NeurIPS 2017 | std/RMS 0.09 to 0.44 across the SNR range | none | **NOT calibrated** |
+
+Checks 3 and 4 are the credible ones: check 3 records the baseline beating the model
+in half the tested range, and check 4 records the uncertainty output failing to be an
+error bar.
+
+![Quad-cell response vs analytic erf](validation/quadcell_bias_curve.png)
+
+Simulated quad-cell output, the analytic erf response and the ideal unbiased line.
+Notice the simulated and analytic curves are indistinguishable while both peel away
+from the ideal line beyond |d| ~ sigma and saturate at +/-1.880 px.
+
+![ML vs baselines, RMS error vs SNR](validation/ml_vs_baseline_snr.png)
+
+Log-log RMS radial error against detection SNR for all four estimators from the
+validation run itself (500 frames per point). Notice the thresholded-CoG line
+crossing below the ML line between SNR 16.2 and 39.3.
+
+Bias, `‖mean(estimate − truth)‖`, stays at or below 0.078 px for every estimator at
+every SNR (full table in `validation/VALIDATION.md` section 3), so all four are
+effectively unbiased over the symmetric +/-2 px offset distribution and RMS is the
+discriminating metric. The one exception is the quad-cell's 0.027 px residual bias at
+SNR 88.3, which does not fall with signal because it is deterministic nonlinearity.
+
+Uncertainty calibration, measured, from `validation/validation_output.txt`:
+
+| SNR | mean ensemble std [px] | actual RMS error [px] | std / RMS |
+|---|---|---|---|
+| 1.9 | 0.073 | 0.788 | 0.09 |
+| 3.6 | 0.048 | 0.438 | 0.11 |
+| 8.7 | 0.034 | 0.242 | 0.14 |
+| 16.2 | 0.029 | 0.153 | 0.19 |
+| 39.3 | 0.027 | 0.079 | 0.34 |
+| 88.3 | 0.029 | 0.066 | 0.44 |
+
+The spread under-estimates the true error at every SNR, by 2.3x at best and 11x at
+worst. Members differ only in weight initialization and mini-batch shuffling, so the
+spread measures initialization variance and contains no shot-noise, read-noise or
+shared-systematic term. It is monotonic in SNR, so it works as a qualitative
+degradation flag and as nothing else.
+
+Not done, and required before any Level 3 claim: comparison against real detector
+data, and comparison against an independent flight-heritage implementation.
+
+## API reference
+
+Coordinates are pixels measured from the array geometric centre `(N-1)/2`;
++x is increasing column index, +y is increasing row index.
+
+<details>
+<summary>Public surface (7 entry points)</summary>
+
+| Signature | Returns | Units |
+|---|---|---|
+| `spot_image(x0, y0, grid_size=16, sigma=1.5, signal=1000.0, pixelated=True)` | noise-free frame, shape (N, N) | x0, y0, sigma in px; signal and output in e- |
+| `generate_spots(n_spots=100, grid_size=16, sigma=1.5, signal=1000.0, background=0.5, read_noise=2.0, shot_noise=True, pixelated=True, offset_range=2.0, offsets=None, seed=None)` | `(images (M, N, N), truths (M, 2))` | images in e- (may be negative from read noise); truths in px |
+| `snr_estimate(signal, background, read_noise, grid_size=16)` | detection SNR | dimensionless; S in e-, B in e-/px, R in e- RMS |
+| `cog_centroid(img, threshold=None)` | `(x, y)` | px; `threshold` in the same unit as `img` |
+| `quadcell_centroid(img, scale=1.0)` | `(x, y)` | units of `scale`; `scale = sigma*sqrt(pi/2)` gives px |
+| `MLCentroider(n_estimators=5, hidden_layer_sizes=(64,), max_iter=300, random_state=0, alpha=1e-4)` | estimator instance | n_estimators >= 2 |
+| `MLCentroider.fit(images, positions)` | `self` | images (M, N, N) in e-; positions (M, 2) in px |
+| `MLCentroider.predict(images, return_std=False)` | `mean (M, 2)`, or `(mean, std)` | px |
+
+Invalid input raises `ValueError` or `TypeError` with an actionable message: non-2-D
+or non-finite images, odd dimensions for the quad-cell, zero or negative total flux
+after clipping, a window size different from the fitted one, `predict()` before
+`fit()`.
+
+</details>
 
 ## Limitations
 
-1. **Deviation from spec: MLP ensemble instead of a CNN.** PyTorch is unavailable
-   in this build environment and scikit-learn has no convolutional layers. The
-   model therefore lacks weight sharing and translation equivariance, which is a
-   materially weaker inductive bias for this task. The reported accuracy — and
-   especially the high-SNR error floor — is a property of this substitute
-   architecture and is **not** evidence about CNN centroiding.
-2. **The ML model does not beat the best analytic estimator at high SNR.** Above
-   SNR ≈ 40 the thresholded CoG wins, by 2.2× at SNR 88. There is no regime above
-   the crossover in which the ML model is the right choice.
-3. **The uncertainty output is not calibrated** and under-estimates the true error
-   by 2.3×–11×. It must not be consumed as a 1-σ error bar by any downstream
-   filter or estimator.
-4. **All data is synthetic**, from an idealized sensor model. **Not modelled:**
-   dead/hot pixels, pixel-response and dark-signal nonuniformity, optical
-   aberrations beyond a Gaussian core, stray light and background gradients,
-   detector nonlinearity/saturation/ADC quantization; also absent are cosmic rays,
-   multiple or extended sources, jitter smear and thermal drift. Real-hardware
-   performance is unknown. Every unmodelled effect can only degrade results, so
-   these numbers are an optimistic bound.
-5. **Narrow operating envelope.** Everything is characterized at 16×16 px,
-   σ = 1.5 px, offsets ≤ 2 px, B = 2 e⁻/px, R = 3 e⁻. `MLCentroider` rejects a
-   different window size after fitting; a different σ or offset range requires
-   retraining and revalidation.
-6. **Quad-cell is a null-seeker, not an absolute sensor** — 14 % error at d = σ,
-   40 % at d = 2σ, saturating at ±1.88 px. Its RMS never falls below 0.34 px over
-   the ±2 px range no matter how bright the spot.
-7. **Single-frame, single-spot only.** No temporal filtering, no track association,
-   no multi-frame stacking, no detection or windowing stage — the window is assumed
-   already centred on one source.
-8. **Plain CoG uses no background estimation.** Background subtraction is left to
-   the caller via `threshold`; an adaptive/iterative background estimator would
-   likely narrow the ML advantage at low SNR further.
-9. Reported floats may shift in the last digits with a different BLAS or
-   scikit-learn version; the qualitative conclusions are robust.
+1. **The ML model loses to a three-line analytic estimator above SNR ~40**, by 2.2x
+   at SNR 88.3. There is no regime above the crossover in which it is the right
+   choice, and nothing in the ensemble output flags this.
+2. **Compute budget: 2 CPU cores, scikit-learn only, no PyTorch.** The product was
+   specified with a small CNN. PyTorch is unavailable in the build environment and
+   scikit-learn has no convolutional layers, so the model is an ensemble of dense
+   `MLPRegressor` networks on a flat 256-vector. It has no weight sharing and no
+   translation equivariance, which is a materially weaker inductive bias for a
+   translation-estimation task. The ~0.066 px high-SNR floor is a property of this
+   substitute architecture and is not evidence about CNN centroiding. Full statement
+   in [`MODEL_CARD.md`](MODEL_CARD.md).
+3. **The uncertainty output is not calibrated** and under-estimates true error by
+   2.3x to 11x. It must not be consumed as a 1-sigma bound by a downstream filter.
+4. **All data is synthetic**, from an idealized sensor model. Not simulated: dead and
+   hot pixels, PRNU and DSNU, optical aberrations beyond a Gaussian core, stray light
+   and background gradients, detector nonlinearity, saturation, ADC quantization,
+   cosmic rays, multiple or extended sources, jitter smear, thermal drift. Real
+   detector behaviour is unknown and unmeasured. Every unmodelled effect can only
+   degrade results, so these numbers are an optimistic bound.
+5. **Tested SNR range is 1.9 to 88.3** (S = 100 to 10000 e- with B = 2.0 e-/px,
+   R = 3.0 e- RMS, 16x16 window). Nothing outside that range is characterized.
+6. **Tested spot shape is one circular Gaussian of sigma = 1.5 px**, pixel-integrated,
+   with true offsets uniform in +/-2.0 px. Elongated, defocused, aberrated or
+   differently sampled spots are out of distribution; sigma is baked into training and
+   changing it invalidates the model without retraining. `MLCentroider` rejects a
+   window size different from the fitted one, but silently extrapolates for offsets
+   beyond +/-2 px.
+7. **The quad-cell is a null-seeker, not an absolute sensor**: 14 % error at d = sigma,
+   40 % at d = 2 sigma, hard saturation at +/-1.880 px. Its RMS never falls below
+   0.340 px over the +/-2 px range no matter how bright the spot.
+8. **Single frame, single spot.** No detection, no windowing, no track association,
+   no temporal filtering, no multi-frame stacking.
+9. **Plain CoG uses no background estimation.** Background removal is left to the
+   caller through `threshold`; an adaptive background estimator would narrow the ML
+   advantage at low SNR further than reported here.
+10. Reported floats may shift in the last digits with a different BLAS or
+    scikit-learn version. The qualitative conclusions — crossover near SNR 40, ML
+    error floor, uncalibrated spread — are robust.
 
-## Safety statement
+## Safety
 
-This software is **research-grade**. It is **not flight-qualified, not certified,
-and not approved for operational aerospace use.** No DO-178C or ECSS-E-ST-40C
-process was followed; there is no independent verification and no qualification
-testing. Do not place the ML model in any pointing, tracking or guidance control
-loop: its accuracy failure modes are silent and its uncertainty output is not
-calibrated, so a downstream consumer cannot detect or bound its errors.
+This software is **research-grade**. It is **not flight-qualified, not certified, and
+not approved for operational aerospace use.** No DO-178C or ECSS-E-ST-40C process was
+followed; there is no independent verification and no qualification testing. Do not
+place the ML model in a pointing, tracking or guidance control loop: its
+accuracy-related failure modes are silent and its uncertainty output is uncalibrated,
+so a downstream consumer cannot detect or bound its errors.
 
-## Roadmap
+## Reproducing every number
 
-- Re-implement the estimator as a CNN once a deep-learning framework is available,
-  and re-run the identical benchmark to test whether the 0.066 px floor is an
-  artefact of the MLP substitution.
-- Calibrate the uncertainty output (variance scaling or conformal prediction)
-  against held-out error and report coverage.
-- Add a maximum-likelihood / Gaussian-fit baseline and an explicit Cramér–Rao
-  bound curve (Winick 1986) to the error-vs-SNR comparison.
-- Extend the generator toward realism: PRNU, dead pixels, saturation, background
-  gradients — and measure how far the current results degrade under each.
-- Train across a range of σ and window sizes; add per-SNR specialist models or an
-  SNR-conditioned input to remove the mixed-regime compromise.
+From the repository root, with the package installed or `PYTHONPATH=src`:
 
-## License
+```bash
+# Every figure in "Headline result" and "Validation evidence"
+# -> validation/validation_output.txt
+#    validation/quadcell_bias_curve.png
+#    validation/ml_vs_baseline_snr.png
+PYTHONPATH=src python validation/run_validation.py
+
+# Screenshots, independent seeds from the validation run
+PYTHONPATH=src python examples/error_vs_snr.py     # -> screenshots/error_vs_snr.png
+PYTHONPATH=src python examples/spot_gallery.py     # -> screenshots/spot_gallery.png
+
+# The 41-test badge
+python -m pytest tests/ -q
+```
+
+Seeds: training `100+i` for i in 0..5, held-out test `9000+i`, model
+`random_state=0` with members 0..4. Example script: train `300+i`, test `8800+i`.
+Gallery: train `500+i`, frames `7700+col`. Unit tests: train 2024, test 777. The run
+is deterministic apart from wall-clock timings.
+
+Environment used for the reported numbers: Python 3.11.15, numpy 2.4.4, scipy 1.17.1,
+scikit-learn 1.8.0, matplotlib 3.10.9, Linux x86-64, 2 CPU cores. `validation/
+validation_output.txt` records 19.2 s of training time; `validation/VALIDATION.md`
+notes 24.6 s and 71.6 s for the same script on differently loaded machines. All are
+inside the 120 s budget.
+
+## References
+
+- K. A. Winick, "Cramér-Rao lower bounds on the performance of charge-coupled-device
+  optical position estimators", *J. Opt. Soc. Am. A* **3**, 1809-1815 (1986).
+- S. Thomas, T. Fusco, A. Tokovinin, M. Nicolle, V. Michau, G. Rousset, "Comparison of
+  centroid computation algorithms in a Shack-Hartmann sensor", *Mon. Not. R. Astron.
+  Soc.* **371**, 323-336 (2006).
+- G. A. Tyler, D. L. Fried, "Image-position error associated with a quadrant
+  detector", *J. Opt. Soc. Am.* **72**, 804-808 (1982).
+- J. W. Hardy, *Adaptive Optics for Astronomical Telescopes*, Oxford Univ. Press
+  (1998), ch. 5.
+- S. B. Howell, *Handbook of CCD Astronomy*, 2nd ed., Cambridge Univ. Press (2006).
+- B. Lakshminarayanan, A. Pritzel, C. Blundell, "Simple and scalable predictive
+  uncertainty estimation using deep ensembles", *NeurIPS* (2017).
+
+## Licence
 
 Apache-2.0. See [LICENSE](LICENSE). Copyright © 2026 OPTIMA Organisation.
-
-## Credits
-
-This is under reserved rights obtained by OPTIMA Organisation.
 
 ## Citation
 
 ```bibtex
 @software{centroidnet_2026,
-  title   = {CentroidNet: optical spot centroid estimation for pointing and
+  title   = {centroidnet: optical spot centroid estimation for pointing and
              tracking sensors},
   author  = {{OPTIMA Organisation}},
   year    = {2026},
   version = {0.1.0},
   license = {Apache-2.0},
-  note    = {Research-grade; not flight-qualified. Product P008.}
+  note    = {Research-grade; not flight-qualified.}
 }
 ```
+
+## Credits
+
+This is under reserved rights obtained by OPTIMA Organisation.
