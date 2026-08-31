@@ -172,12 +172,12 @@ products:
     summary: Adaptive optics simulation and sizing suite — Zernike/zonal wavefronts, Shack-Hartmann sensing, DM influence functions, closed-loop control, error budgeting; learned predictive controller benchmarked against the classical integrator.
     ai_enabled: true
     validation_level: 3
-    status: APPROVED
+    status: PUBLISHED
     license: AGPL-3.0 (open-core)
     repository: https://github.com/OmAcharya-avtr/waveforge
     local_path: products/P011
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P012
     name: NavBench
@@ -187,12 +187,12 @@ products:
     summary: Estimation workbench — truth trajectories, sensor models, KF/EKF/UKF/MEKF, NEES and NIS consistency diagnostics; learned adaptive process-noise tuning benchmarked against fixed and classical adaptive Q.
     ai_enabled: true
     validation_level: 3
-    status: APPROVED
+    status: PUBLISHED
     license: AGPL-3.0 (open-core)
     repository: https://github.com/OmAcharya-avtr/navbench
     local_path: products/P012
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P013
     name: TurbScope
@@ -202,12 +202,12 @@ products:
     summary: Path-averaged Cn2 estimation from scintillation and image-motion proxies with uncertainty; ML multi-sensor regression baselined against closed-form inversion, with the strong-turbulence saturation failure quantified.
     ai_enabled: true
     validation_level: 2
-    status: APPROVED
+    status: PUBLISHED
     license: Apache-2.0
     repository: https://github.com/OmAcharya-avtr/turbscope
     local_path: products/P013
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P014
     name: WaveLab
@@ -217,12 +217,12 @@ products:
     summary: Shack-Hartmann slope-to-phase reconstruction — regularized least-squares and Southwell/Fried baselines versus a learned reconstructor, benchmarked across photon flux and subaperture dropout.
     ai_enabled: true
     validation_level: 2
-    status: APPROVED
+    status: PUBLISHED
     license: Apache-2.0
     repository: https://github.com/OmAcharya-avtr/wavelab
     local_path: products/P014
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P015
     name: LinkSwitch
@@ -232,12 +232,12 @@ products:
     summary: Hybrid RF-optical failover policy evaluation — fading and rain-fade channel models, fixed-threshold and hysteresis baselines versus a learned outage-prediction policy, scored on throughput, outage time and switch count.
     ai_enabled: true
     validation_level: 2
-    status: APPROVED
+    status: PUBLISHED
     license: Apache-2.0
     repository: https://github.com/OmAcharya-avtr/linkswitch
     local_path: products/P015
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P016
     name: ZernKit
@@ -247,12 +247,12 @@ products:
     summary: Zernike polynomial toolkit — Noll and OSA/ANSI indexing with explicit conversion, orthonormality, gradients, wavefront fitting, Noll residual variances.
     ai_enabled: false
     validation_level: 1
-    status: APPROVED
+    status: PUBLISHED
     license: MIT
     repository: https://github.com/OmAcharya-avtr/zernkit
     local_path: products/P016
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P017
     name: EstimKit
@@ -262,12 +262,12 @@ products:
     summary: Compact Kalman family — linear KF, EKF, UKF, RTS smoother, Joseph-form covariance update, with documented numerical-stability guidance.
     ai_enabled: false
     validation_level: 1
-    status: APPROVED
+    status: PUBLISHED
     license: MIT
     repository: https://github.com/OmAcharya-avtr/estimkit
     local_path: products/P017
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P018
     name: ShackSim
@@ -277,12 +277,12 @@ products:
     summary: Shack-Hartmann sensor simulator — lenslet geometry, per-subaperture spot formation with diffraction and noise, centre-of-gravity and correlation slope extraction; learned low-flux slope estimator with confidence.
     ai_enabled: true
     validation_level: 2
-    status: APPROVED
+    status: PUBLISHED
     license: Apache-2.0
     repository: https://github.com/OmAcharya-avtr/shacksim
     local_path: products/P018
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P019
     name: CnCast
@@ -292,12 +292,12 @@ products:
     summary: Vertical Cn2 profile prediction — Hufnagel-Valley and SLC baselines plus a learned profile-shape model with prediction intervals; synthetic training data disclosed as model-derived.
     ai_enabled: true
     validation_level: 2
-    status: APPROVED
+    status: PUBLISHED
     license: Apache-2.0
     repository: https://github.com/OmAcharya-avtr/cncast
     local_path: products/P019
     approved_for_publish: true
-    published: false
+    published: true
 
   - id: P020
     name: AtmoProfile
@@ -307,11 +307,161 @@ products:
     summary: Turbulence integral toolkit — Fried parameter, isoplanatic angle, Greenwood frequency, slant-path Rytov variance and scintillation index from any Cn2 profile, with explicit zenith-angle scaling. Deterministic reference implementation.
     ai_enabled: false
     validation_level: 2
-    status: APPROVED
+    status: PUBLISHED
     license: MIT
     repository: https://github.com/OmAcharya-avtr/atmoprofile
     local_path: products/P020
     approved_for_publish: true
-    published: false
+    published: true
 
 # P021-P100: unallocated. Defined per-batch at batch specification time.
+
+  - id: P021
+    name: SlewForge
+    batch: 3
+    class: flagship
+    category: aerospace-gnc
+    summary: Constrained slew planning with keep-out cones, wheel saturation and a learned optimiser warm-start.
+    ai_enabled: true
+    validation_level: 3
+    status: PLANNED
+    license: AGPL-3.0 (open-core)
+    repository: null
+    local_path: products/P021
+    approved_for_publish: true
+    published: false
+
+  - id: P022
+    name: CMGSteer
+    batch: 3
+    class: flagship
+    category: aerospace-gnc
+    summary: CMG singularity analysis and steering laws with a learned null-motion policy.
+    ai_enabled: true
+    validation_level: 3
+    status: PLANNED
+    license: AGPL-3.0 (open-core)
+    repository: null
+    local_path: products/P022
+    approved_for_publish: true
+    published: false
+
+  - id: P023
+    name: AllocLab
+    batch: 3
+    class: medium
+    category: aerospace-gnc
+    summary: Control allocation across thrusters and wheels with saturation, failure handling and a learned QP surrogate.
+    ai_enabled: true
+    validation_level: 2
+    status: PLANNED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P023
+    approved_for_publish: true
+    published: false
+
+  - id: P024
+    name: DetumbleSim
+    batch: 3
+    class: medium
+    category: aerospace-gnc
+    summary: Magnetorquer detumbling with B-dot control and a learned gain scheduler.
+    ai_enabled: true
+    validation_level: 2
+    status: PLANNED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P024
+    approved_for_publish: true
+    published: false
+
+  - id: P025
+    name: FDIScope
+    batch: 3
+    class: medium
+    category: aerospace-assurance
+    summary: GNC fault detection and isolation with chi-squared and CUSUM baselines and a learned classifier.
+    ai_enabled: true
+    validation_level: 2
+    status: PLANNED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P025
+    approved_for_publish: true
+    published: false
+
+  - id: P026
+    name: WahbaKit
+    batch: 3
+    class: compact
+    category: aerospace-gnc
+    summary: Static attitude determination: TRIAD, q-method, QUEST and OLAE with attitude covariance.
+    ai_enabled: false
+    validation_level: 1
+    status: PLANNED
+    license: MIT
+    repository: null
+    local_path: products/P026
+    approved_for_publish: true
+    published: false
+
+  - id: P027
+    name: DisturbTorque
+    batch: 3
+    class: compact
+    category: aerospace-gnc
+    summary: Environmental disturbance torque models with momentum accumulation over an orbit.
+    ai_enabled: false
+    validation_level: 2
+    status: PLANNED
+    license: MIT
+    repository: null
+    local_path: products/P027
+    approved_for_publish: true
+    published: false
+
+  - id: P028
+    name: SkyMatch
+    batch: 3
+    class: compact
+    category: aerospace-gnc
+    summary: Lost-in-space star identification with triangle and pyramid matching and a learned candidate ranker.
+    ai_enabled: true
+    validation_level: 2
+    status: PLANNED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P028
+    approved_for_publish: true
+    published: false
+
+  - id: P029
+    name: MomentumMgr
+    batch: 3
+    class: compact
+    category: aerospace-gnc
+    summary: Reaction-wheel momentum management and desaturation scheduling.
+    ai_enabled: true
+    validation_level: 2
+    status: PLANNED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P029
+    approved_for_publish: true
+    published: false
+
+  - id: P030
+    name: KeepOut
+    batch: 3
+    class: compact
+    category: aerospace-gnc
+    summary: Celestial keep-out cone geometry and pointing-window computation.
+    ai_enabled: false
+    validation_level: 1
+    status: PLANNED
+    license: MIT
+    repository: null
+    local_path: products/P030
+    approved_for_publish: true
+    published: false
