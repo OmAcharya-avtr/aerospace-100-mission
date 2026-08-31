@@ -1,0 +1,63 @@
+Piecewise-exponential atmosphere: band-boundary continuity
+====================================================================================
+  h0 [km]  h1 [km]    rho0 [kg/m3]    H [km]   predicted rho(h1)   tabulated rho0       rel
+-------------------------------------------------------------------------------------------
+      0.0     25.0      1.2250e+00     7.249        3.893699e-02     3.899000e-02   1.4e-03
+     25.0     30.0      3.8990e-02     6.349        1.773925e-02     1.774000e-02   4.2e-05
+     30.0     40.0      1.7740e-02     6.682        3.971977e-03     3.972000e-03   5.7e-06
+     40.0     50.0      3.9720e-03     7.554        1.057035e-03     1.057000e-03   3.3e-05
+     50.0     60.0      1.0570e-03     8.382        3.205882e-04     3.206000e-04   3.7e-05
+     60.0     70.0      3.2060e-04     7.714        8.769369e-05     8.770000e-05   7.2e-05
+     70.0     80.0      8.7700e-05     6.549        1.904817e-05     1.905000e-05   9.6e-05
+     80.0     90.0      1.9050e-05     5.799        3.396114e-06     3.396000e-06   3.4e-05
+     90.0    100.0      3.3960e-06     5.382        5.296986e-07     5.297000e-07   2.6e-06
+    100.0    110.0      5.2970e-07     5.877        9.661774e-08     9.661000e-08   8.0e-05
+    110.0    120.0      9.6610e-08     7.263        2.438189e-08     2.438000e-08   7.8e-05
+    120.0    130.0      2.4380e-08     9.473        8.483570e-09     8.484000e-09   5.1e-05
+    130.0    140.0      8.4840e-09    12.636        3.845072e-09     3.845000e-09   1.9e-05
+    140.0    150.0      3.8450e-09    16.149        2.069983e-09     2.070000e-09   8.4e-06
+    150.0    180.0      2.0700e-09    22.523        5.463895e-10     5.464000e-10   1.9e-05
+    180.0    200.0      5.4640e-10    29.740        2.789009e-10     2.789000e-10   3.1e-06
+    200.0    250.0      2.7890e-10    37.105        7.248111e-11     7.248000e-11   1.5e-05
+    250.0    300.0      7.2480e-11    45.546        2.417984e-11     2.418000e-11   6.4e-06
+    300.0    350.0      2.4180e-11    53.628        9.517927e-12     9.518000e-12   7.7e-06
+    350.0    400.0      9.5180e-12    53.298        3.724987e-12     3.725000e-12   3.6e-06
+    400.0    450.0      3.7250e-12    58.515        1.585001e-12     1.585000e-12   6.9e-07
+    450.0    500.0      1.5850e-12    60.828        6.966965e-13     6.967000e-13   5.1e-06
+    500.0    600.0      6.9670e-13    63.822        1.454012e-13     1.454000e-13   8.5e-06
+    600.0    700.0      1.4540e-13    71.835        3.614033e-14     3.614000e-14   9.2e-06
+    700.0    800.0      3.6140e-14    88.667        1.169995e-14     1.170000e-14   3.9e-06
+    800.0    900.0      1.1700e-14   124.640        5.245015e-15     5.245000e-15   2.9e-06
+    900.0   1000.0      5.2450e-15   181.050        3.019048e-15     3.019000e-15   1.6e-05
+
+The 0-25 km band is a single coarse fit across the troposphere and lower
+stratosphere, so its endpoint mismatch is larger than the rest; every band above
+25 km closes to better than 1e-4 relative.
+  [PASS] worst relative mismatch over all 27 boundaries             value= 1.3597067139e-03 target= 0.0000000000e+00 abs_err=1.360e-03 tol=2.0e-03
+  [PASS] worst relative mismatch above 25 km (26 boundaries)        value= 9.5877091123e-05 target= 0.0000000000e+00 abs_err=9.588e-05 tol=1.0e-04
+
+Spot values used elsewhere in this validation set:
+  rho( 300.0 km) = 2.418000e-11 kg m^-3
+  rho( 400.0 km) = 3.725000e-12 kg m^-3
+  rho( 500.0 km) = 6.967000e-13 kg m^-3
+  rho( 600.0 km) = 1.454000e-13 kg m^-3
+  rho( 700.0 km) = 3.614000e-14 kg m^-3
+  rho( 800.0 km) = 1.170000e-14 kg m^-3
+
+Monotonicity and range behaviour:
+  non-monotonic steps on a 5 m grid over 0-1000 km: 1
+    at 24.995 -> 25.000 km, rho rises from 3.896385e-02 to 3.899000e-02 (0.0671 %)
+
+  This is a real property of the published table, not a coding defect: the 0-25 km band
+  is a coarse fit whose value at 25 km falls 0.14 % below the 25-30 km band's own base
+  density, so the piecewise function steps up by 0.067 % at that single boundary. It is
+  reported rather than smoothed away. The aerodynamic torque model is only valid in
+  free-molecular flow, above roughly 150 km, where the table is strictly decreasing.
+
+  [PASS] density is strictly decreasing above 25 km (the orbital range) 
+  [PASS] exactly one non-monotonic step over 0-1000 km, at the 25 km boundary (found 1)
+  [PASS] density is strictly positive everywhere                    
+  [PASS] above 1000 km raises without allow_extrapolation           (altitude_m must be <= 1000000.0 m for this m...)
+  [PASS] negative altitude raises                                   
+
+atmosphere_table_continuity.py: 7 passed, 0 failed

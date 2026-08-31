@@ -1,0 +1,65 @@
+========================================================================================
+KeepOut validation: low-precision Sun and Moon series
+========================================================================================
+Source: Vallado, Fundamentals of Astrodynamics and Applications, 4th ed.,
+        Algorithm 29 (Sun) and Algorithm 31 (Moon).
+NOT checked here: agreement with a numerical ephemeris (no ephemeris file
+        is available in this environment). No accuracy claim is made.
+
+1. Sun declination extremes vs the obliquity of the ecliptic
+   max declination = +23.435849 deg
+   min declination = -23.435784 deg
+   obliquity (IAU 2006 at J2000) = +23.4393 deg
+   |diff| = 0.003451 deg (max), 0.003516 deg (min)   tolerance 0.01 deg
+   PASS
+
+2. Sun ecliptic latitude (zero by construction in Algorithm 29)
+   max |latitude| = 3.181e-15 deg   tolerance 1e-9 deg
+   PASS
+
+3. Sun geocentric distance vs perihelion and aphelion
+   minimum = 0.983292 AU   published perihelion = 0.98329 AU
+   maximum = 1.016710 AU   published aphelion   = 1.01671 AU
+   |diff| = 0.000002 AU (perihelion), 0.000000 AU (aphelion)   tolerance 0.0005 AU
+   first perihelion after 2026-01-01 at JD 2461044.2600 = 2.760 days into the year
+   PASS
+
+4. Tropical year from successive northward equinox crossings
+   crossings at JD [2461120.1103 2461485.3526 2461850.595 ]
+   intervals [d] = [365.242319 365.24232 ]
+   mean = 365.242320 d   published tropical year = 365.2422 d
+   |diff| = 0.000120 d   tolerance 0.01 d
+   PASS
+
+5. Moon geocentric distance
+   mean    = 385012.805 km   published mean = 384400.0 km
+   minimum = 357377.390 km
+   maximum = 406018.624 km
+   relative |diff| of the mean = 1.594e-03   tolerance 1 %
+   PASS
+
+6. Moon sidereal period from the ecliptic-longitude advance
+   revolutions over 1095.75 d = 40.094933
+   period = 27.328765 d   published sidereal month = 27.321582 d
+   |diff| = 0.007183 d   tolerance 0.01 d
+   PASS
+
+7. Moon ecliptic latitude vs the lunar orbit inclination
+   max |latitude| = 5.324119 deg
+   published inclination to the ecliptic = 5.145 deg
+   the maximum latitude exceeds the mean inclination because the series carries three
+   further latitude terms of amplitude 0.28, 0.28 and 0.17 deg
+   tolerance: within [4.945, 5.945] deg   PASS
+
+Summary
+   Sun declination extremes                      PASS
+   Sun ecliptic latitude is zero                 PASS
+   Sun distance extremes and perihelion date     PASS
+   Tropical year                                 PASS
+   Moon mean distance                            PASS
+   Moon sidereal period                          PASS
+   Moon ecliptic latitude bound                  PASS
+
+========================================================================================
+OVERALL: PASS
+========================================================================================

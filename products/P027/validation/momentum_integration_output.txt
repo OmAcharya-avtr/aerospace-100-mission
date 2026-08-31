@@ -1,0 +1,128 @@
+Momentum accumulation over one orbit
+==============================================================================
+
+Reference case: 500 km, i = 51.6 deg, beta = 20 deg,
+5 deg pitch and 5 deg roll from nadir, reference smallsat.
+Period P = 5676.9780 s.
+
+A. Constant body-frame torques: dh = T * P exactly
+  [PASS] gravity_gradient: body torque is constant, max rel spread  value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-14
+   gravity_gradient: T_body = [ 6.332938e-07  1.907139e-06 -1.112353e-07] N m
+                     T*P    = [ 3.595195e-03  1.082678e-02 -6.314806e-04] N m s
+                     int T  = [ 3.595195e-03  1.082678e-02 -6.314806e-04] N m s
+  [PASS] gravity_gradient: |int T dt - T*P| / |T*P| over one orbit  value= 1.1328071976e-14 target= 0.0000000000e+00 abs_err=1.133e-14 tol=1.0e-13
+  [PASS] aerodynamic: body torque is constant, max rel spread       value= 7.6412710403e-16 target= 0.0000000000e+00 abs_err=7.641e-16 tol=1.0e-14
+   aerodynamic: T_body = [-3.615203e-08 -1.281033e-06  5.268739e-07] N m
+                T*P    = [-2.052343e-04 -7.272394e-03  2.991051e-03] N m s
+                int T  = [-2.052343e-04 -7.272394e-03  2.991051e-03] N m s
+  [PASS] aerodynamic: |int T dt - T*P| / |T*P| over one orbit       value= 7.9902437954e-15 target= 0.0000000000e+00 abs_err=7.990e-15 tol=1.0e-13
+
+B. Same torques in ECI: <T_eci> = -(T_lvlh)_y h_hat
+   gravity_gradient: T_lvlh = [ 6.357129e-07  1.909576e-06  2.764360e-24] N m
+                     <T>_ana = [-0.000000e+00  1.496522e-06 -1.186129e-06] N m
+                     <T>_num = [ 1.424365e-22  1.496522e-06 -1.186129e-06] N m
+  [PASS] gravity_gradient: <T_eci> numeric vs closed form, rel      value= 9.1748247660e-16 target= 0.0000000000e+00 abs_err=9.175e-16 tol=1.0e-09
+  [PASS] gravity_gradient: dh_eci over one orbit vs <T>_ana * P, rel value= 8.1935072291e-16 target= 0.0000000000e+00 abs_err=8.194e-16 tol=1.0e-09
+   aerodynamic: T_lvlh = [ 1.520320e-22 -1.322078e-06  4.147981e-07] N m
+                <T>_ana = [ 0.000000e+00 -1.036104e-06  8.212059e-07] N m
+                <T>_num = [ 7.713893e-23 -1.036104e-06  8.212059e-07] N m
+  [PASS] aerodynamic: <T_eci> numeric vs closed form, rel           value= 4.8404170248e-16 target= 0.0000000000e+00 abs_err=4.840e-16 tol=1.0e-09
+  [PASS] aerodynamic: dh_eci over one orbit vs <T>_ana * P, rel     value= 4.6592733409e-16 target= 0.0000000000e+00 abs_err=4.659e-16 tol=1.0e-09
+
+C. Full four-source profile: sampled trapezoid against independent references
+   (co-rotating atmosphere on, eclipse on)
+
+C1. The three continuous sources (gravity gradient, aerodynamic, magnetic). Their ECI
+    torque histories are smooth and exactly periodic over one orbit, so the trapezoidal
+    rule on the closed period is spectrally accurate and every grid must agree to
+    roundoff. Reference: the N = 11521 grid.
+
+    reference |dh_smooth| = 4.573122077267e-03 N m s
+          N          |dh| [N m s]   rel vs ref
+    ------------------------------------------
+        181    4.573122077267e-03     9.13e-15
+        361    4.573122077267e-03     8.56e-15
+        721    4.573122077267e-03     8.83e-15
+       1441    4.573122077267e-03     1.16e-14
+       2881    4.573122077267e-03     9.10e-15
+  [PASS] smooth-source momentum, worst error over N = 181..2881     value= 1.1593256091e-14 target= 0.0000000000e+00 abs_err=1.159e-14 tol=1.0e-12
+
+C2. The solar source, against an independent reference that does not use the sample grid
+    at all. The cylindrical shadow boundaries are solved in closed form: with
+    a = s.P_hat, b = s.Q_hat, A = sqrt(a^2+b^2) = cos(beta) and phi = atan2(b, a), the
+    vehicle is in shadow where A cos(u - phi) < -sqrt(1 - (Re/R)^2). The solar torque is
+    then integrated over the sunlit arc only, with adaptive Gauss-Kronrod (QUADPACK),
+    component by component.
+
+    cos(beta) = A = 0.9396926208   phi = 0.000000 deg
+    sqrt(1-(Re/R)^2) = 0.3743043862   half shadow arc = 66.526404 deg
+    shadow entry u = 113.473596 deg, exit u = 246.526404 deg
+    analytic eclipse fraction = 0.3695911346, sampled (N = 11521) = 0.3694991754
+  [PASS] analytic vs sampled eclipse fraction                       value= 3.6949917542e-01 target= 3.6959113462e-01 abs_err=9.196e-05 tol=2.0e-04
+
+    QUADPACK reference dh_solar = [-1.2065216122e-04 -1.2863853089e-04  3.7137042242e-04] N m s
+    |dh_solar| = 4.1112140090e-04 N m s (worst reported quad abs error 6.40e-18)
+
+    Derived error bound. The only error source is the two eclipse edges, each
+    misplaced by at most one sample interval dt = P/(N-1), during which the solar
+    torque magnitude is at most its peak 5.007208e-07 N m. Hence
+    err_rel <= 2 * T_peak * dt / |dh_solar|. That bound is asserted below; the
+    observed error is expected to be well inside it and is reported as measured.
+
+          N      |dh_solar| [N m s]   rel vs QUADPACK   derived bound
+    -----------------------------------------------------------------
+        181        4.1079220778e-04          7.46e-03        7.68e-02
+        361        4.1114280657e-04          4.04e-04        3.84e-02
+        721        4.1096096555e-04          3.51e-03        1.92e-02
+       1441        4.1105026529e-04          1.55e-03        9.60e-03
+       2881        4.1109528983e-04          5.67e-04        4.80e-03
+      11521        4.1112922279e-04          1.69e-04        1.20e-03
+
+    The solar error does not fall like a power of N. It cannot: the torque steps to and
+    from zero between two adjacent samples, and the error is governed by where the two
+    eclipse edges happen to fall inside their sample intervals, which changes
+    unpredictably with N. Only the edge bound above is guaranteed, and the observed
+    error at the coarsest grid tested, N = 181, is 0.75 % - roughly ten times better
+    than the bound but still an order of magnitude worse than any of the continuous
+    sources. At the package default N = 721 it is 0.35 %.
+
+  [PASS] solar momentum error is inside the derived edge bound at every N worst ratio observed/bound = 0.183
+  [PASS] solar momentum error at the default N = 721                value= 3.5086799263e-03 target= 0.0000000000e+00 abs_err=3.509e-03 tol=5.0e-03
+  [PASS] solar momentum error at the coarsest grid tested, N = 181  value= 7.4551882282e-03 target= 0.0000000000e+00 abs_err=7.455e-03 tol=1.0e-02
+
+C3. Total. The reference is the sum of the C1 smooth reference and the C2 QUADPACK
+    solar reference, so no part of it comes from the grid being tested.
+
+    reference dh_total = [-2.4484285744e-03  2.8372528957e-03 -2.2167544874e-03] N m s   |dh| = 4.3541712112e-03
+
+          N      |dh_total| [N m s]  rel vs reference
+    -------------------------------------------------
+        181        4.3534123027e-03          7.04e-04
+        361        4.3542107745e-03          3.81e-05
+        721        4.3538152233e-03          3.31e-04
+       1441        4.3540139172e-03          1.46e-04
+       2881        4.3541135637e-03          5.35e-05
+  [PASS] total momentum error at the default N = 721                value= 3.3129000598e-04 target= 0.0000000000e+00 abs_err=3.313e-04 tol=1.0e-03
+  [PASS] total momentum error, worst over N = 181..2881             value= 7.0391982301e-04 target= 0.0000000000e+00 abs_err=7.039e-04 tol=2.0e-03
+
+   Per-source momentum over one orbit at N = 11521 (ECI frame):
+   source                |dh| [N m s]     |<T>| [N m]   |<T>|*P [N m s]
+   --------------------------------------------------------------------
+   gravity_gradient      1.084062e-02    1.909576e-06      1.084062e-02
+  [PASS]    gravity_gradient: |dh| equals |<T>| P on the same grid  value= 1.0840622384e-02 target= 1.0840622384e-02 rel_err=0.000e+00 tol=1.0e-12
+   aerodynamic           6.911776e-03    1.217510e-06      6.911776e-03
+  [PASS]    aerodynamic: |dh| equals |<T>| P on the same grid       value= 6.9117755125e-03 target= 6.9117755125e-03 rel_err=1.255e-16 tol=1.0e-12
+   solar                 4.111292e-04    7.242044e-08      4.111292e-04
+  [PASS]    solar: |dh| equals |<T>| P on the same grid             value= 4.1112922279e-04 target= 4.1112922279e-04 rel_err=0.000e+00 tol=1.0e-12
+   magnetic              2.236218e-03    3.939099e-07      2.236218e-03
+  [PASS]    magnetic: |dh| equals |<T>| P on the same grid          value= 2.2362180824e-03 target= 2.2362180824e-03 rel_err=0.000e+00 tol=1.0e-12
+   total                 4.354188e-03    7.669905e-07      4.354188e-03
+  [PASS]    total: |dh| equals |<T>| P on the same grid             value= 4.3541884297e-03 target= 4.3541884297e-03 rel_err=0.000e+00 tol=1.0e-12
+
+   That last block is an identity, not evidence: the secular estimator is the same
+   trapezoidal sum divided by P. The evidence is C1, C2 and C3, whose references
+   are independent of the grid being tested.
+
+wall time 10.16 s
+
+momentum_integration.py: 20 passed, 0 failed

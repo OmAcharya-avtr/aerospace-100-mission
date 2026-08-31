@@ -1,0 +1,66 @@
+V2  Energy and angular-momentum monotonicity under ideal B-dot
+==============================================================================
+seed = 20260831, draws requested = 20000
+
+B1  Kinetic-energy rate, arbitrary inertia   (n = 16964)
+    max dT/dt                    = -1.505602e-10 J/s
+    max dT/dt normalised         = -6.486183e-05
+    number of draws with dT/dt>0 = 0
+    B1: PASS  (energy is never increased)
+
+B2  d|H|/dt for ISOTROPIC inertia J = 1.7 I   (n = 16964)
+    max H.L                      = -2.559524e-10 (N m s)(N m)/s
+    number of draws with H.L > 0 = 0
+    B2: PASS  (momentum magnitude never rises)
+
+B3  d|H|/dt for RANDOM ASYMMETRIC inertia   (n = 16964)
+    draws with H.L > 0           = 94 (0.55 % of draws)
+    max H.L                      = +6.931326e-04
+    max H.L normalised           = +9.120851e-02
+    worst draw: J = diag(1.5893, 1.3904, 0.6541), J_max/J_min = 2.430
+    B3: the stated property is FALSIFIED for asymmetric inertia.
+
+B3a Analytic counterexample, J = diag(1, 1, 4), omega = (1, 0, 1)
+    analytic maximum of the bracket = 0.415475947
+    numerical maximum over 200001 B directions = 0.415475947
+    relative difference             = 2.619e-11
+    attained at B_hat angle         = 60.4818 deg from x
+    discriminant identity check     = 9.000000000  vs  a^2 c^2 (1-J3)^2 = 9.000000000
+
+B4  Full simulator, unsaturated (dipole limit 500 A m^2)
+    Note: the simulator uses the flight-realistic law m = -k (B[i]-B[i-1])/dt,
+    not the ideal m = k (omega x B).  The backward difference also picks
+    up the field change caused by orbital motion, so the applied torque
+    is only approximately -k|B|^2 omega_perp and inequalities (1) and (2)
+    hold only approximately step by step.  The residual violations below
+    are that approximation error, not a dynamics defect; they are
+    reported rather than filtered out.
+    isotropic  J = diag(0.05, 0.05, 0.05)
+      saturated control steps      = 0.000 %
+      energy steps that increase   = 0 of 10000
+      |H| steps that increase      = 0 of 10000 (0.000 %)
+      |H| start / end              = 8.437814e-03 / 5.885317e-04 N m s
+      energy start / end           = 7.119671e-04 / 3.463696e-06 J
+
+    asymmetric J = diag(0.02, 0.03, 0.045)
+      saturated control steps      = 0.000 %
+      energy steps that increase   = 85 of 10000
+      |H| steps that increase      = 156 of 10000 (1.560 %)
+      largest single |H| rise      = 1.016541e-07 N m s (0.001818 % of |H0|)
+      total |H| gained on rises    = 1.240332e-06 N m s
+      |H| start / end              = 5.593018e-03 / 3.097665e-04 N m s
+      energy start / end           = 4.465768e-04 / 1.066557e-06 J
+
+B5  Full simulator WITH saturation (0.2 A m^2), asymmetric inertia
+    saturated control steps        = 3.150 %
+    |H| steps that increase        = 5106 of 10000 (51.060 %)
+    energy steps that increase     = 4961 of 10000 (49.610 %)
+    largest single energy rise     = 4.965286e-10 J
+    energy start / end             = 4.465768e-04 / 2.025163e-07 J
+
+    Under saturation the commanded dipole is clipped, so the applied
+    torque is no longer -k|B|^2 omega_perp and inequality (1) no longer
+    applies step by step.  The energy still falls overall.
+
+OVERALL V2: B1 PASS (energy monotone, any inertia); B2 PASS (|H| monotone, isotropic inertia); B3 the spec's |H| claim is FALSIFIED for asymmetric inertia and the
+            counterexample is verified analytically and numerically.

@@ -1,0 +1,60 @@
+V4  The magnetorquer controllability gap
+==============================================================================
+
+D4  Instantaneous rank of the achievable-torque map
+    B = [0.e+00 0.e+00 3.e-05]            rank(I - B_hat B_hat^T) = 2  trace = 2.000000000000
+    B = [ 1.e-05 -2.e-05  3.e-05]         rank(I - B_hat B_hat^T) = 2  trace = 2.000000000000
+    B = [4.e-05 0.e+00 0.e+00]            rank(I - B_hat B_hat^T) = 2  trace = 2.000000000000
+    The achievable torque set is always a plane, never all of R^3.
+
+D1  Orbit-averaged geometry factors, 500 km, 10-orbit span, 8000 samples
+
+  incl[deg]  B_rms[uT]   lam_min   lam_mid   lam_max     sum    aniso  deficit  unctrl
+        0.0     24.160   0.06050   0.96836   0.97114  2.0000   16.053   0.0907  0.9695
+        5.0     24.437   0.09230   0.95242   0.95529  2.0000   10.350   0.1384  0.9533
+       20.0     26.562   0.29975   0.84493   0.85532  2.0000    2.853   0.4496  0.8325
+       45.0     32.119   0.51393   0.65693   0.82914  2.0000    1.613   0.7709  0.5237
+       63.4     35.593   0.47859   0.58133   0.94008  2.0000    1.964   0.7179  0.5990
+       80.0     37.237   0.45642   0.55271   0.99087  2.0000    2.171   0.6846  0.6310
+       97.4     37.059   0.45882   0.55563   0.98554  2.0000    2.148   0.6882  0.6277
+
+  'deficit' is lam_min / (2/3): the smallest modal damping rate as a
+  fraction of the perfectly isotropic value.  'unctrl' is D2, the mean
+  of |omega . B_hat| / |omega| for a rate along the weakest direction.
+
+  Equatorial (i = 0 deg)  : lam_min = 0.06050, 11.02x slower than isotropic
+  Sun-sync   (i = 97.4 deg): lam_min = 0.45882, 1.45x slower than isotropic
+  Ratio of the two worst-axis time constants = 7.58
+  Weakest inertial direction, equatorial = [-0.0222  -0.02805  0.99936]
+  Weakest inertial direction, sun-sync   = [-0.04848  0.19394 -0.97981]
+  For the equatorial orbit the weak axis is the inertial z axis, i.e.
+  the direction the tilted dipole stays closest to along the track.
+
+D2  Instantaneous uncontrollable fraction along the track
+    inclination   0.0 deg: mean 0.9695, min 0.9443, max 0.9907, fraction of time above 0.9 = 1.0000
+    inclination  97.4 deg: mean 0.6278, min 0.0007, max 0.9999, fraction of time above 0.9 = 0.2650
+
+D3  Direct simulation, identical vehicle and gain, two orbits
+    inclination   0.0 deg
+      detumble time to 1 deg/s     = 31887.7 s
+      |omega| at 40000 s           = 0.66915 deg/s
+      rate about the WEAK axis     = 0.66621 deg/s
+      rate in the WELL-DAMPED plane = 0.03937 deg/s
+      weak-axis share of the final rate = 0.9956
+      saturated control steps      = 1.01 %
+    inclination  97.4 deg
+      detumble time to 1 deg/s     = 2676.5 s
+      |omega| at 40000 s           = 0.15703 deg/s
+      rate about the WEAK axis     = 0.02876 deg/s
+      rate in the WELL-DAMPED plane = 0.15436 deg/s
+      weak-axis share of the final rate = 0.1832
+      saturated control steps      = 1.32 %
+
+D5  Cross-check: geometry_factors() and controllability_report() agree
+    max |difference| between the two code paths = 5.551e-17
+    D5: PASS (tolerance 1e-12)
+
+OVERALL V4: the gap is real, always rank-2 instantaneously, and costs a
+            factor 11.0 in worst-axis damping rate on an equatorial orbit
+            against 1.45 on a sun-synchronous one.
+wall time 4.4 s

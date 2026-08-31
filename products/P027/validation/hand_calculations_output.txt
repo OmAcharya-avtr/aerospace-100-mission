@@ -1,0 +1,85 @@
+disturbtorque 0.1.0 - hand-checked closed forms
+==============================================================================
+mu    = 3.9860044180e+14 m^3 s^-2   (WGS-84)
+P_srp = 4.5398073356e-06 N m^-2  = 1361 / 299792458
+k_dip = 7.9600000000e+15 T m^3
+
+1. Gravity gradient, I = diag(10, 20, 30) kg m^2, R = 7.000000e6 m, 45 deg off nadir
+
+   T = (3 mu / R^3) u_hat x (I u_hat),  u_hat = (0, sin45, cos45) = (0, 0.70710678, 0.70710678)
+
+   R^3            = 3.43e20 m^3
+   3 mu / R^3     = 3 * 3.986004418e14 / 3.43e20 = 1.1958013254e15 / 3.43e20
+                  = 3.4863012402e-06 s^-2
+   I u_hat        = (0, 20*0.70710678, 30*0.70710678) = (0, 14.14213562, 21.21320344)
+   u_hat x I u    = ( 0.70710678*21.21320344 - 0.70710678*14.14213562, 0, 0 )
+                  = ( 0.70710678 * 7.07106781, 0, 0 ) = (5.0, 0, 0) kg m^2
+   T              = 3.4863012402e-06 * 5.0 = 1.7431506201e-05 N m about +x
+
+  [PASS] 3 mu / R^3 [s^-2]                                          value= 3.4863012402e-06 target= 3.4863012402e-06 rel_err=9.533e-12 tol=1.0e-09
+  [PASS] T_gg,x at 45 deg [N m]                                     value= 1.7431506201e-05 target= 1.7431506201e-05 rel_err=9.533e-12 tol=1.0e-09
+  [PASS] T_gg,y [N m]                                               value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-20
+  [PASS] T_gg,z [N m]                                               value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-20
+
+   Analytic maximum: T = (3 mu / 2R^3) |Iz - Iy| sin(2 theta), max at theta = 45 deg
+   (3 mu / 2R^3) * 10 = 1.7431506201e-06 * 10 = 1.7431506201e-05 N m
+  [PASS] gravity_gradient_max_magnitude [N m]                       value= 1.7431506201e-05 target= 1.7431506201e-05 rel_err=9.533e-12 tol=1.0e-09
+  [PASS] full tensor form at 45 deg equals the analytic max         value= 1.7431506201e-05 target= 1.7431506201e-05 rel_err=0.000e+00 tol=1.0e-14
+
+   Numerical argmax over 90001 samples in [0, 90] deg: theta = 45.000000 deg
+  [PASS] argmax theta [deg]                                         value= 4.5000000000e+01 target= 4.5000000000e+01 abs_err=7.105e-15 tol=1.0e-04
+  [PASS] max over sweep [N m]                                       value= 1.7431506201e-05 target= 1.7431506201e-05 rel_err=0.000e+00 tol=1.0e-12
+  [PASS] tensor form vs planar form, max diff / T_max               value= 5.8310482466e-16 target= 0.0000000000e+00 abs_err=5.831e-16 tol=1.0e-14
+  [PASS] torque vanishes when nadir is a principal axis             
+
+2. Aerodynamic, rho = 1e-12 kg m^-3, v = (7500, 0, 0) m s^-1, Cd = 2.2, A = 1.5 m^2,
+   cp offset = (0, 0, 0.1) m
+
+   F = -0.5 rho Cd A |v| v
+   0.5 * 2.2      = 1.1
+   1.1 * 1.5      = 1.65
+   1.65 * 1e-12   = 1.65e-12
+   |v|^2          = 5.625e7 m^2 s^-2
+   |F|            = 1.65e-12 * 5.625e7 = 9.28125e-05 N, along -x
+   T = r x F      = (0,0,0.1) x (-9.28125e-05, 0, 0) = (0, -9.28125e-06, 0) N m
+
+  [PASS] T_aero,y [N m]                                             value=-9.2812500000e-06 target=-9.2812500000e-06 rel_err=1.825e-16 tol=1.0e-12
+  [PASS] T_aero,x [N m]                                             value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-20
+  [PASS] T_aero,z [N m]                                             value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-20
+  [PASS] torque vanishes when the cp offset is parallel to the flow 
+
+3. Solar radiation pressure, sun along +z_body, A = 2.0 m^2, q = 0.6,
+   cp offset = (0.3, 0, 0) m, d = 1 AU
+
+   P   = Phi / c = 1361 / 299792458 = 4.5398073356e-06 N m^-2
+   |F| = P A (1+q) = 4.5398073356e-06 * 2.0 * 1.6 = 1.4527383474e-05 N, along -z
+   T   = (0.3,0,0) x (0,0,-|F|) = (0, +0.3*|F|, 0) = (0, 4.3582150422e-06, 0) N m
+
+  [PASS] P_srp at 1 AU [N m^-2]                                     value= 4.5398073356e-06 target= 4.5398073356e-06 rel_err=0.000e+00 tol=1.0e-15
+  [PASS] T_srp,y [N m]                                              value= 4.3582150422e-06 target= 4.3582150422e-06 rel_err=0.000e+00 tol=1.0e-12
+  [PASS] T_srp,x [N m]                                              value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-20
+  [PASS] 1/d^2 scaling at d = 2 AU                                  value= 1.0895537606e-06 target= 1.0895537606e-06 rel_err=0.000e+00 tol=1.0e-12
+  [PASS] torque is zero in eclipse                                  
+
+4. Residual magnetic dipole, m = (0.1, 0, 0) A m^2, B = (0, 3e-5, 0) T
+
+   T = m x B = (0.1, 0, 0) x (0, 3e-05, 0) = (0, 0, 0.1 * 3e-05) = (0, 0, 3e-06) N m
+   1 A m^2 * 1 T = 1 N m exactly, so no unit conversion appears.
+
+  [PASS] T_mag,z [N m]                                              value= 3.0000000000e-06 target= 3.0000000000e-06 rel_err=0.000e+00 tol=1.0e-14
+  [PASS] T_mag,x [N m]                                              value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-20
+  [PASS] torque vanishes for m parallel to B                        
+
+   Dipole field at the mean Earth radius:
+
+   k / Re^3 = 7.9600e+15 / 6.3712000e+06^3
+            = 3.0778634807e-05 T   (equatorial, northward)
+   at the pole the magnitude is twice that: 6.1557269614e-05 T
+
+  [PASS] |B| equator surface [T]                                    value= 3.0778634807e-05 target= 3.0778634807e-05 rel_err=0.000e+00 tol=1.0e-14
+  [PASS] B_z equator surface [T] (northward)                        value= 3.0778634807e-05 target= 3.0778634807e-05 rel_err=0.000e+00 tol=1.0e-14
+  [PASS] |B| north pole surface [T]                                 value= 6.1557269614e-05 target= 6.1557269614e-05 rel_err=0.000e+00 tol=1.0e-14
+  [PASS] B_z north pole surface [T] (into the Earth)                value=-6.1557269614e-05 target=-6.1557269614e-05 rel_err=0.000e+00 tol=1.0e-14
+  [PASS] vector vs closed-form |B| over declination, max rel diff   value= 1.1102230246e-15 target= 0.0000000000e+00 abs_err=1.110e-15 tol=1.0e-14
+
+hand_calculations.py: 27 passed, 0 failed

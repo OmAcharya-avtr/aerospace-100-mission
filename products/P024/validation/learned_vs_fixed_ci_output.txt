@@ -1,0 +1,108 @@
+V5  Learned B-dot gain scheduler vs classical gain rules
+==============================================================================
+training scenarios: seeds 1000-1019   held-out: seeds 5000-5039
+gain grid: [  10000.       19306.9773   37275.9372   71968.5673  138949.5494
+  268269.5795  517947.4679 1000000.    ]
+simulation: {'duration_s': 23000.0, 'control_dt_s': 2.0, 'substeps': 1}, target rate 1.0 deg/s
+ALL DATA IS SYNTHETIC.  No flight telemetry is used anywhere.
+
+E1  Fixed-gain tuning on the training set (mean cost per grid gain)
+      k = 1.0000e+04   mean cost =   2.6183
+      k = 1.9307e+04   mean cost =   1.7350
+      k = 3.7276e+04   mean cost =   0.8536
+      k = 7.1969e+04   mean cost =   0.6525
+      k = 1.3895e+05   mean cost =   0.6905
+      k = 2.6827e+05   mean cost =   1.0712
+      k = 5.1795e+05   mean cost =   1.3372
+      k = 1.0000e+06   mean cost =   2.1202
+    tuned fixed gain k_fixed        = 7.196857e+04 A m^2 s / T
+    training mean cost, fixed       = 0.6525
+    training mean cost, oracle      = 0.4926
+    headroom the oracle offers      = 24.51 %
+    per-scenario oracle log10 gains = [5.14 5.14 5.43 5.14 4.86 4.57 4.86 4.57 5.14 4.57 5.14 6.   5.43 5.71
+ 4.86 5.43 5.43 5.14 5.71 4.86]
+    distinct oracle gains used      = 6 of 8 grid values
+
+E2  Sized-gain baseline tuning on the training set
+    estimator max    : c=0.50->1.1004  c=0.84->0.7588  c=1.41->0.6016  c=2.38->0.5689  c=4.00->0.6783
+    estimator mean   : c=0.50->0.9780  c=0.84->0.7026  c=1.41->0.5810  c=2.38->0.5964  c=4.00->0.7328
+    estimator median : c=0.50->0.9852  c=0.84->0.7034  c=1.41->0.5792  c=2.38->0.5922  c=4.00->0.7279
+    tuned sized rule: estimator = max, c = 2.3784, training mean cost = 0.5689
+
+E3  Power-law baseline fitted to the training oracle gains
+    log10 k = 6.2816 + 0.6978 log10(m_max) + 0.4397 log10(j)
+    RMS residual = 0.3050 dex over 20 training scenarios
+    Sizing-rule expectation would be b = 1 (k proportional to m_max);
+    the fitted exponents are reported as measured, not imposed.
+
+E4  Learned scheduler training
+    feature rows = 1068, features = 8
+    label range  = [-0.2857, +1.1429] dex (log10 k_oracle / k_fixed)
+    model        = RandomForestRegressor(n_estimators=200, max_depth=6, min_samples_leaf=4, random_state=0)
+    impurity feature importances (indicative only):
+      log10_rate_proxy         0.0000
+      log10_mean_field_t       0.0000
+      rate_trend_per_1000s     0.0000
+      saturation_duty          0.0000
+      field_variability        0.0000
+      log10_max_dipole         0.7715
+      log10_inertia_scale      0.2284
+      log10_elapsed_s          0.0000
+
+E5  Held-out evaluation, 40 paired scenarios
+
+    Per-policy summary at the default energy weight w = 0.5
+       policy                      cost (95% CI)          time [orbits]          energy term  fails  sat[%]
+        fixed               1.170 [0.788, 1.552]   0.885 [0.637, 1.133] 0.285 [0.130, 0.441]      0   16.97
+        sized               1.422 [0.795, 2.050]   1.131 [0.585, 1.677] 0.292 [0.176, 0.408]      2   25.43
+     powerlaw               0.999 [0.622, 1.376]   0.601 [0.410, 0.793] 0.398 [0.205, 0.590]      0   42.60
+      learned               1.061 [0.690, 1.433]   0.680 [0.488, 0.871] 0.382 [0.193, 0.571]      0   32.46
+
+        fixed: mean detumble time over runs that finished = 5162.7 s  (n = 40)
+               mean gain actually used = 7.1969e+04 A m^2 s / T
+        sized: mean detumble time over runs that finished = 4579.4 s  (n = 38)
+               mean gain actually used = 2.3799e+05 A m^2 s / T
+     powerlaw: mean detumble time over runs that finished = 3521.6 s  (n = 40)
+               mean gain actually used = 1.8506e+05 A m^2 s / T
+      learned: mean detumble time over runs that finished = 3967.9 s  (n = 40)
+               mean gain actually used = 1.7415e+05 A m^2 s / T
+
+    learned-scheduler confidence over 2586 gain updates: mean 0.9799, min 0.6482, max 1.0000
+
+E6  Paired differences (negative favours the first policy)
+
+    Energy weight w = 0.0
+        learned - fixed          -0.206 [-0.308, -0.103]   A WINS
+       powerlaw - fixed          -0.284 [-0.402, -0.165]   A WINS
+          sized - fixed            0.246 [-0.208, 0.699]   NOT RESOLVED
+        learned - powerlaw          0.078 [0.010, 0.146]   B WINS
+        learned - sized          -0.451 [-0.898, -0.004]   A WINS
+
+    Energy weight w = 0.5
+        learned - fixed          -0.109 [-0.196, -0.021]   A WINS
+       powerlaw - fixed          -0.171 [-0.273, -0.069]   A WINS
+          sized - fixed            0.252 [-0.184, 0.688]   NOT RESOLVED
+        learned - powerlaw         0.063 [-0.010, 0.135]   NOT RESOLVED
+        learned - sized           -0.361 [-0.783, 0.061]   NOT RESOLVED
+
+    Energy weight w = 2.0
+        learned - fixed             0.181 [0.038, 0.324]   B WINS
+       powerlaw - fixed             0.166 [0.010, 0.322]   B WINS
+          sized - fixed            0.272 [-0.150, 0.694]   NOT RESOLVED
+        learned - powerlaw         0.016 [-0.094, 0.125]   NOT RESOLVED
+        learned - sized           -0.091 [-0.530, 0.349]   NOT RESOLVED
+
+E7  Findings, as measured
+    1. On detumble time alone (w = 0) the learned scheduler beats the
+       fixed gain: -0.206 [-0.308, -0.103] orbits, A WINS.
+    2. At the default weight the advantage shrinks to -0.109 [-0.196, -0.021], A WINS.
+    3. When energy is weighted heavily (w = 2) the ordering reverses: 0.181 [0.038, 0.324], B WINS.
+    4. Against the three-coefficient power-law fit of the SAME training
+       data the learned scheduler does not win at any weight tested: w=0 0.078 [0.010, 0.146] (B WINS), w=0.5 0.063 [-0.010, 0.135] (NOT RESOLVED).
+    5. 100.0 % of the RandomForest's impurity importance sits on
+       the two static vehicle features (dipole limit and inertia); the six
+       time-varying magnetometer features carry 0.0 %. The
+       'scheduler' is behaving as a static per-vehicle gain lookup, which
+       is exactly what the power-law baseline already is.
+
+wall time 101.2 s

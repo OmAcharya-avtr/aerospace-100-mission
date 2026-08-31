@@ -1,0 +1,76 @@
+========================================================================================
+KeepOut validation: hand-computed two-overlapping-cone case
+========================================================================================
+cone A: axis +x, half-angle 30 deg
+cone B: axis at 40 deg from +x in the x-y plane, half-angle 25 deg
+
+1. The hand arithmetic, printed term by term
+   cos r1 = 0.8660254037844387    sin r1 = 0.49999999999999994
+   cos r2 = 0.9063077870366499    sin r2 = 0.42261826174069944
+   cos d  = 0.766044443118978    sin d  = 0.6427876096865393
+
+   cos a1 = (cos r2 - cos r1 cos d) / (sin r1 sin d)
+          cos r1 cos d = 0.6634139481689384
+          numerator    = 0.9063077870366499 - 0.6634139481689384 = 0.24289383886771154
+          denominator  = 0.49999999999999994 * 0.6427876096865393 = 0.32139380484326957
+          cos a1 = 0.7557514650481854  ->  a1 = 0.713995443187023 rad = 40.90892548618917 deg
+          half-angle form (used by the library): a1 = 0.7139954431870232 rad (|diff| = 2.220e-16)
+
+   cos a2 = (cos r1 - cos r2 cos d) / (sin r2 sin d)
+          cos r2 cos d = 0.6942720440148838
+          numerator    = 0.8660254037844387 - 0.6942720440148838 = 0.17175335976955486
+          denominator  = 0.42261826174069944 * 0.6427876096865393 = 0.2716537822741844
+          cos a2 = 0.6322509421061604  ->  a2 = 0.8863412197824059 rad = 50.78361110200917 deg
+
+   cos g  = (cos d - cos r1 cos r2) / (sin r1 sin r2)
+          cos r1 cos r2 = 0.7848855672213958
+          numerator     = 0.766044443118978 - 0.7848855672213958 = -0.018841124102417783
+          denominator   = 0.49999999999999994 * 0.42261826174069944 = 0.2113091308703497
+          cos g  = -0.08916379535902733  ->  g  = 1.6600786915769774 rad = 95.1155026869607 deg
+
+   A = 2 (pi - g) - 2 a1 cos r1 - 2 a2 cos r2
+          2 (pi - g)  = 2.9630279240256314
+          2 a1 cos r1 = 1.236676383972582
+          2 a2 cos r2 = 1.6065958989207145
+          A           = 0.11975564113233483 sr
+
+2. Library vs the hand arithmetic
+   hand    A_intersection = 0.11975564113233483 sr
+   library A_intersection = 0.11975564113233417 sr
+   |diff| = 6.661e-16 sr   tolerance 1e-15   PASS
+
+3. Union and allowed sky
+   A1 = 2 pi (1 - cos 30 deg) = 0.8417872144769325 sr
+   A2 = 2 pi (1 - cos 25 deg) = 0.5886855358884618 sr
+   union (hand)    = 0.8417872144769325 + 0.5886855358884618 - 0.11975564113233483 = 1.3107171092330594 sr
+   union (library) = 1.31071710923306 sr   |diff| = 6.661e-16
+   allowed (hand)  = 4 pi - union = 11.255653505126112 sr
+   allowed (band quadrature) = 11.255653505126142 sr  (672 nodes)
+   |diff| = 3.020e-14 sr   tolerance 1e-10   PASS
+   allowed fraction of the sky = 0.8956964465352217 (89.569645 %)
+   Monte Carlo (n = 2000000) = 11.254498071 +/- 0.002717027 sr -> 0.43 sigma from the hand value
+
+4. Violation verdicts at hand-checkable boresights (all in the x-y plane)
+ azimuth [deg]                                       hand reasoning   expected    library       
+           0.0          0 < 30 inside A; |40-0| = 40 > 25 outside B        {A}        {A}     ok
+           5.0          5 < 30 inside A; |40-5| = 35 > 25 outside B        {A}        {A}     ok
+          20.0         20 < 30 inside A; |40-20| = 20 < 25 inside B      {A,B}      {A,B}     ok
+          25.0         25 < 30 inside A; |40-25| = 15 < 25 inside B      {A,B}      {A,B}     ok
+          35.0         35 > 30 outside A; |40-35| = 5 < 25 inside B        {B}        {B}     ok
+          64.0        64 > 30 outside A; |40-64| = 24 < 25 inside B        {B}        {B}     ok
+          66.0       66 > 30 outside A; |40-66| = 26 > 25 outside B         {}         {}     ok
+          70.0       70 > 30 outside A; |40-70| = 30 > 25 outside B         {}         {}     ok
+         -29.0        29 < 30 inside A; |40+29| = 69 > 25 outside B        {A}        {A}     ok
+         -31.0       31 > 30 outside A; |40+31| = 71 > 25 outside B         {}         {}     ok
+         180.0                                   opposite the union         {}         {}     ok
+   PASS
+
+5. Deepest-violation ordering at azimuth 25 deg
+   margin to A = 25 - 30 = -5 deg  -> library -5.0000000000 deg
+   margin to B = 15 - 25 = -10 deg -> library -10.0000000000 deg
+   worst-first order: expected ('B', 'A'), library ('B', 'A')
+   PASS
+
+========================================================================================
+OVERALL: PASS
+========================================================================================

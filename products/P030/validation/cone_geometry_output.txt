@@ -1,0 +1,69 @@
+==============================================================================
+KeepOut validation: cone geometry vs closed-form spherical geometry
+==============================================================================
+
+1. Cap solid angle vs adaptive quadrature of int 2 pi sin(theta) d(theta)
+ alpha [deg]     closed form [sr]      quadrature [sr]       |diff|
+         0.5    0.000239244443741    0.000239244443741    1.316e-16
+         1.0    0.000956959555575    0.000956959555575    1.911e-16
+         5.0    0.023909417039327    0.023909417039327    7.633e-17
+        15.0    0.214094347614811    0.214094347614811    1.388e-16
+        30.0    0.841787214476932    0.841787214476933    2.220e-16
+        45.0    1.840302369021220    1.840302369021220    0.000e+00
+        60.0    3.141592653589792    3.141592653589792    0.000e+00
+        90.0    6.283185307179585    6.283185307179586    8.882e-16
+       120.0    9.424777960769378    9.424777960769379    1.776e-15
+       150.0   11.724583399882240   11.724583399882240    0.000e+00
+       179.0   12.565413654803598   12.565413654803598    0.000e+00
+       180.0   12.566370614359172   12.566370614359172    0.000e+00
+   worst |diff| = 1.776e-15 sr   tolerance 1e-12   PASS
+
+2. Two-cap lens formula vs exactly known special cases
+                                                          case       library [sr]         exact [sr]      |diff|
+                          coincident caps r=10 deg -> cap area   0.09545570305674   0.09545570305674   0.000e+00
+                          coincident caps r=45 deg -> cap area   1.84030236902122   1.84030236902122   0.000e+00
+                          coincident caps r=80 deg -> cap area   5.19212162864422   5.19212162864422   0.000e+00
+                            disjoint r1=10 r2=15 d=30 deg -> 0   0.00000000000000   0.00000000000000   0.000e+00
+                            disjoint r1=20 r2=20 d=41 deg -> 0   0.00000000000000   0.00000000000000   0.000e+00
+                     two hemispheres d=5 deg -> lune 2(pi - d)   6.10865238198015   6.10865238198015   0.000e+00
+                    two hemispheres d=30 deg -> lune 2(pi - d)   5.23598775598299   5.23598775598299   0.000e+00
+                    two hemispheres d=90 deg -> lune 2(pi - d)   3.14159265358979   3.14159265358979   0.000e+00
+                   two hemispheres d=150 deg -> lune 2(pi - d)   1.04719755119660   1.04719755119660   4.441e-16
+                   two hemispheres d=175 deg -> lune 2(pi - d)   0.17453292519943   0.17453292519943   3.886e-16
+          complements disjoint r1=170 r2=170 d=30 -> A1+A2-4pi  12.37545920824570  12.37545920824570   0.000e+00
+         complements disjoint r1=175 r2=100 d=120 -> A1+A2-4pi   7.35033956867563   7.35033956867563   0.000e+00
+   worst |diff| = 4.441e-16 sr   tolerance 1e-13   PASS
+
+3. Lens formula (Gauss-Bonnet) vs band quadrature, 300 random configurations
+   worst case: r1 = 84.1298 deg, r2 = 93.5324 deg, separation = 38.2916 deg
+   closed form  = 5.035653126579215 sr
+   band quad    = 5.035653126605770 sr
+   worst |diff| = 2.655e-11 sr   tolerance 1e-10   PASS
+
+4. Band-quadrature convergence with node count (same 300 configurations)
+  nodes_per_band    worst |diff| [sr]
+              12            1.157e-04
+              24            1.910e-06
+              48            2.165e-08
+              64            2.407e-09
+              96            2.655e-11
+             128            1.108e-12
+
+5. Monte Carlo cross-check (independent sampling, binomial error bar)
+   two caps, 30/25 deg, 40 deg apart
+     band quadrature : 11.255653505 sr  (89.56964 % of the sky)
+     Monte Carlo     : 11.259254442 +/- 0.002712670 sr (n = 2000000)
+     discrepancy     : 3.601e-03 sr = 1.33 sigma
+   three caps, 50/45/40 deg, mutually overlapping
+     band quadrature : 8.518227685 sr  (67.78590 % of the sky)
+     Monte Carlo     : 8.518516445 +/- 0.004152211 sr (n = 2000000)
+     discrepancy     : 2.888e-04 sr = 0.07 sigma
+   Sun 45 deg + Earth 77 deg + Moon 15 deg, LEO-like
+     band quadrature : 5.952500686 sr  (47.36850 % of the sky)
+     Monte Carlo     : 5.952564096 +/- 0.004436728 sr (n = 2000000)
+     discrepancy     : 6.341e-05 sr = 0.01 sigma
+   all within 4 sigma: PASS
+
+==============================================================================
+OVERALL: PASS
+==============================================================================

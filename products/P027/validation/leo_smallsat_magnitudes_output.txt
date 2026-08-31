@@ -1,0 +1,114 @@
+Representative LEO smallsat: disturbance-torque magnitudes
+==============================================================================
+
+Vehicle (this package's own definition, in disturbtorque.presets; not taken from any
+published spacecraft):
+  mass                100 kg
+  inertia             diag(4.0, 8.0, 10.0) kg m^2
+  drag area / Cd      0.6 m^2 / 2.2
+  sunlit area / q     1.2 m^2 / 0.6
+  cp - cm offset      [0.02, 0.02, 0.05] m,
+                      |offset| = 0.057446 m
+  residual dipole     [0.05, 0.05, 0.1] A m^2,
+                      |m| = 0.122474 A m^2
+Attitude: nadir-pointing with 5 deg pitch and 5 deg roll offsets.
+Orbit: circular, inclination 51.6 deg, RAAN 0, Sun beta angle 0 deg.
+
+Comparison band: 1e-07 to 1e-04 N m. This is the order-of-magnitude
+envelope inside which the disturbance-torque estimates for small Earth-orbiting
+spacecraft fall in Wertz, *Spacecraft Attitude Determination and Control*, and Larson &
+Wertz, *Space Mission Analysis and Design*. It is a band and not a value because no page
+reference was verified; see the citation policy in this script's docstring.
+
+Peak torque magnitude over one orbit, body frame [N m]
+ alt [km]   gravity_gradient        aerodynamic              solar           magnetic              total
+--------------------------------------------------------------------------------------------------------
+      300         2.1989e-06         4.6186e-05         5.0072e-07         4.5123e-06         4.6802e-05
+      400         2.1030e-06         6.9993e-06         5.0072e-07         4.3155e-06         8.7054e-06
+      500         2.0126e-06         1.2881e-06         5.0072e-07         4.1300e-06         4.2051e-06
+      600         1.9273e-06         2.6455e-07         5.0072e-07         3.9550e-06         4.3051e-06
+      700         1.8468e-06         6.4726e-08         5.0072e-07         3.7897e-06         4.2919e-06
+      800         1.7707e-06         2.0630e-08         5.0072e-07         3.6335e-06         4.1406e-06
+     1000         1.6305e-06         5.1625e-09         5.0072e-07         3.3460e-06         3.7995e-06
+
+Band check, source by source and altitude by altitude:
+  3 value(s) outside the 1e-07 to 1e-04 N m band:
+    aerodynamic at 700 km = 6.4726e-08 N m, below the band by a factor 1.54
+    aerodynamic at 800 km = 2.0630e-08 N m, below the band by a factor 4.85
+    aerodynamic at 1000 km = 5.1625e-09 N m, below the band by a factor 19.37
+
+  Result: FAILED, and reported rather than adjusted. The aerodynamic torque for this
+  vehicle falls below the band's lower edge above roughly 700 km. Nothing was tuned to
+  bring it inside: the drag coefficient stays at 2.2, the areas and offsets stay as
+  defined above, and the density comes from the unmodified exponential table.
+
+  The physical reading is that the band is a statement about the *drag regime* of LEO,
+  and this vehicle at 800 km and above is no longer in it: the density there is
+  1.17e-14 kg m^-3, four orders of magnitude below the 300 km value, so aerodynamic
+  torque is genuinely negligible and the band's lower edge is not a meaningful floor for
+  it. That is a limitation of the comparison, not evidence of an error in the model, but
+  it is a failed check as stated and it is counted as one.
+
+  [FAIL] all four sources inside the band at every altitude from 300 to 1000 km (3 excursion(s), all aerodynamic at 700 km and above)
+  [PASS] all four sources inside the band at 300-600 km (the drag regime the band describes) (0 excursion(s))
+
+Sharper checks, which do not depend on any quoted band:
+
+  1. Gravity gradient at 45 deg roll reproduces the analytic worst case
+     3 mu / (2 R^3) |Izz - Iyy| = 3 * 3.986004e+14 / (2 * 6878137^3) * 2.0
+                                = 3.6749087912e-06 N m
+     from the full tensor sweep: 3.6749087912e-06 N m
+
+  [PASS] 45 deg roll gravity gradient vs analytic max [N m]         value= 3.6749087912e-06 target= 3.6749087912e-06 rel_err=0.000e+00 tol=1.0e-12
+  2. Aerodynamic/solar crossover altitude (peak torque magnitude, beta = 0):
+     the two are equal at 559.7 km for this vehicle, with aerodynamic torque
+     larger below and solar radiation pressure larger above. The crossover moves with
+     the area ratio, the offsets and above all with solar activity, which this density
+     model does not represent at all, so the number should be read as "somewhere in the
+     500-600 km decade for this configuration at mean activity", not as a constant.
+
+  [PASS] crossover altitude falls between 400 and 700 km            (559.7 km)
+  3. Aerodynamic scaling laws (exact consequences of the expression):
+     rho(600)/rho(500) = 0.2086981484
+     (v600/v500)^2     = 0.9856695276
+     product           = 0.2057074053
+     torque ratio      = 0.2057074053
+
+  [PASS] aero torque ratio equals rho ratio times v^2 ratio         value= 2.0570740535e-01 target= 2.0570740535e-01 rel_err=5.397e-16 tol=1.0e-12
+  4. Co-rotating atmosphere correction:
+     the co-rotating atmosphere reduces the relative speed by at most
+     omega_E * R * cos(i) = 7.292115e-5 * 6878137 * cos(51.6 deg)
+                          = 311.54 m s^-1 out of 7612.6 m s^-1,
+     i.e. 4.09 %, so the torque changes by at most about twice that.
+     measured rms torque ratio with / without co-rotation = 0.921252 (-7.87 %)
+
+  [PASS] co-rotation reduces the aerodynamic torque by 1 to 12 %    (ratio 0.921252)
+
+Inter-source discrepancies in the constants, reported not reconciled:
+
+  Solar constant. Modern TSI is 1361 W m^-2; the older textbook value used by
+  Wertz and by Larson & Wertz is 1367 W m^-2.
+    P = 1361 / 299792458 = 4.5398073356e-06 N m^-2   (this package's default)
+    P = 1367 / 299792458 = 4.5598211814e-06 N m^-2   (textbook)
+    difference = 0.441 %, propagating linearly into every SRP torque.
+
+  Earth dipole moment. This package defaults to the value used in the textbook
+  disturbance-torque estimate, k = 7.960e+15 T m^3, which implies an
+  equatorial surface field
+    B0 = k / Re^3 = 7.960e+15 / 6.3712000e+06^3 = 3.077863e-05 T = 30779 nT.
+  A centred-dipole reduction of a recent IGRF epoch gives an equatorial surface field
+  near 3.0e-05 T, i.e. k near 7.759e+15 T m^3. The two differ by
+  2.6 %, and the magnetic torque is linear in k, so a magnetic
+  torque quoted by this package carries at least that much systematic uncertainty on top
+  of the 20-30 % pointwise error of the centred-dipole approximation itself. Nothing is
+  averaged or split: the textbook value is used, and the spread is stated here, in
+  constants.py and in the README.
+
+  [PASS] P_srp consistency: 1361/c                                  value= 4.5398073356e-06 target= 4.5398073356e-06 rel_err=0.000e+00 tol=1.0e-15
+  [PASS] B0 implied by the default dipole moment [T]                value= 3.0778634807e-05 target= 3.0780000000e-05 rel_err=4.435e-05 tol=1.0e-03
+
+leo_smallsat_magnitudes.py: 7 passed, 1 failed
+
+Note: this script exits 0 even though a band check FAILED, because the failure is
+a documented finding rather than a regression. The failure is counted in the
+summary line above and repeated in VALIDATION.md section 5.

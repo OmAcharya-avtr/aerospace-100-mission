@@ -1,0 +1,97 @@
+Orbit geometry, Sun model, eclipse and orbit-averaged field
+==============================================================================
+
+1. Circular orbit kinematics at 500 km (R = 6378137 + 500000 = 6878137 m)
+
+   v = sqrt(mu/R) = sqrt(3.986004418e14 / 6878137) = sqrt(5.7951803e+07)
+                  = 7612.608173 m s^-1
+   T = 2 pi sqrt(R^3/mu) = 5676.9780 s = 94.6163 min
+
+  [PASS] period from 2 pi R / v [s]                                 value= 5.6769780285e+03 target= 5.6769780285e+03 rel_err=1.602e-16 tol=1.0e-14
+  [PASS] |r| constant, max rel deviation                            value= 2.2204460493e-16 target= 0.0000000000e+00 abs_err=2.220e-16 tol=1.0e-14
+  [PASS] |v| constant, max rel deviation                            value= 2.2204460493e-16 target= 0.0000000000e+00 abs_err=2.220e-16 tol=1.0e-14
+  [PASS] r . v = 0, max |cos angle|                                 value= 2.1856319666e-16 target= 0.0000000000e+00 abs_err=2.186e-16 tol=1.0e-15
+  [PASS] max declination [deg] equals inclination                   value= 5.1600000000e+01 target= 5.1600000000e+01 abs_err=7.105e-15 tol=1.0e-06
+  [PASS] h_hat = P_hat x Q_hat, max component error                 value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-15
+  [PASS] LVLH DCM orthonormality, max |C C^T - I|                   value= 4.4408920985e-16 target= 0.0000000000e+00 abs_err=4.441e-16 tol=1.0e-14
+  [PASS] LVLH DCM determinant, max |det - 1|                        value= 4.4408920985e-16 target= 0.0000000000e+00 abs_err=4.441e-16 tol=1.0e-14
+  [PASS] LVLH maps r_hat to (0, 0, -1), max error                   value= 2.2204460493e-16 target= 0.0000000000e+00 abs_err=2.220e-16 tol=1.0e-14
+
+2. Low-precision Sun model against externally checkable astronomical facts
+
+   Facts used (no page reference, none needed - these are definitional or annual):
+   * Earth perihelion occurs in the first days of January at about 0.9833 AU and
+     aphelion in early July at about 1.0167 AU.
+   * The Sun's geocentric declination reaches +/- the obliquity of the ecliptic,
+     about 23.44 deg, at the solstices, and passes through zero at the equinoxes.
+   * The Earth-Sun unit vector has unit length by construction.
+
+  [PASS] julian_date(2000-01-01 12:00 UTC) [d]                      value= 2.4515450000e+06 target= 2.4515450000e+06 abs_err=0.000e+00 tol=1.0e-12
+   over calendar year 2026, daily samples (JD 2461041.5 to 2461406.5):
+     perihelion  day-of-year   4  distance 0.983293 AU
+     aphelion    day-of-year 186  distance 1.016709 AU
+     declination range  -23.4357 deg to +23.4354 deg
+  [PASS] minimum Earth-Sun distance [AU]                            value= 9.8329255622e-01 target= 9.8330000000e-01 abs_err=7.444e-06 tol=5.0e-04
+  [PASS] maximum Earth-Sun distance [AU]                            value= 1.0167092815e+00 target= 1.0167000000e+00 abs_err=9.282e-06 tol=5.0e-04
+  [PASS] maximum solar declination [deg]                            value= 2.3435426284e+01 target= 2.3440000000e+01 abs_err=4.574e-03 tol=5.0e-02
+  [PASS] minimum solar declination [deg]                            value=-2.3435718135e+01 target=-2.3440000000e+01 abs_err=4.282e-03 tol=5.0e-02
+  [PASS] Sun unit vector norm, max |1 - |s||                        value= 1.1102230246e-16 target= 0.0000000000e+00 abs_err=1.110e-16 tol=1.0e-15
+  [PASS] perihelion falls in the first week of January              (day 4)
+  [PASS] aphelion falls in the first week of July                   (day 186)
+
+   sun_direction_for_beta reproduces the requested beta angle exactly:
+     requested  -80.00 deg -> recovered -80.000000000 deg
+     requested  -45.00 deg -> recovered -45.000000000 deg
+     requested   +0.00 deg -> recovered  -0.000000000 deg
+     requested  +12.50 deg -> recovered +12.500000000 deg
+     requested  +45.00 deg -> recovered +45.000000000 deg
+     requested  +80.00 deg -> recovered +80.000000000 deg
+  [PASS] beta round trip, worst error [deg]                         value= 2.8421709430e-14 target= 0.0000000000e+00 abs_err=2.842e-14 tol=1.0e-10
+
+3. Cylindrical eclipse fraction against its closed form
+
+   For a circular orbit of radius R about a sphere of radius Re, the umbra spans the
+   argument-of-latitude interval where the Sun-line distance is below Re. That gives
+
+       f_ecl(beta) = (1/pi) arccos( sqrt(R^2 - Re^2) / (R cos beta) ),
+
+   which at beta = 0 reduces to (1/pi) arcsin(Re/R), and which is zero above the
+   critical beta where the orbit never enters the shadow cylinder,
+   cos(beta_crit) = sqrt(1 - (Re/R)^2).
+
+   Re/R = 0.92730590   f_ecl(0) = arcsin(Re/R)/pi = 0.37788152
+   beta_crit = 68.0187 deg
+  [PASS] eclipse fraction at beta = 0 deg                           value= 3.7788500000e-01 target= 3.7788152119e-01 abs_err=3.479e-06 tol=2.0e-05
+  [PASS] eclipse fraction at beta = 20 deg                          value= 3.6959500000e-01 target= 3.6959113462e-01 abs_err=3.865e-06 tol=2.0e-05
+  [PASS] eclipse fraction at beta = 40 deg                          value= 3.3750500000e-01 target= 3.3750057181e-01 abs_err=4.428e-06 tol=2.0e-05
+  [PASS] eclipse fraction at beta = 60 deg                          value= 2.3072500000e-01 target= 2.3072217360e-01 abs_err=2.826e-06 tol=2.0e-05
+  [PASS] eclipse fraction at beta = 67 deg                          value= 9.2625000000e-02 target= 9.2626493210e-02 abs_err=1.493e-06 tol=2.0e-05
+  [PASS] eclipse fraction 1 deg above beta_crit                     value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-12
+
+4. Orbit-averaged dipole field: closed form vs numerical quadrature
+
+   With r_hat(u) = cos(u) P_hat + sin(u) Q_hat and sin(dec) = sin(i) sin(u),
+
+       <B> = (k/R^3) [ z_hat - 3 <sin(i) sin(u) r_hat(u)> ]
+           = (k/R^3) [ z_hat - (3/2) sin(i) Q_hat ]
+
+   because <sin u cos u> = 0 and <sin^2 u> = 1/2 over a revolution. The numerical
+   column is a trapezoidal average of the sampled field over one orbit. The tolerance
+   below is 1e-10 relative, set by the accumulated float64 roundoff of a 100001-term
+   trapezoidal sum, N * eps = 1e5 * 2.2e-16 = 2.2e-11, not by any modelling argument.
+
+   i =   0.0 deg  <B>_ana = [ 0.000000e+00  0.000000e+00  2.446249e-05] T
+  [PASS]   numerical vs closed form at i = 0.0 deg                  value= 1.6846139770e-12 target= 0.0000000000e+00 abs_err=1.685e-12 tol=1.0e-10
+   i =  28.5 deg  <B>_ana = [ 7.693488e-06 -1.332551e-05  1.610804e-05] T
+  [PASS]   numerical vs closed form at i = 28.5 deg                 value= 5.1712863091e-15 target= 0.0000000000e+00 abs_err=5.171e-15 tol=1.0e-10
+   i =  51.6 deg  <B>_ana = [ 8.931060e-06 -1.546905e-05  1.926099e-06] T
+  [PASS]   numerical vs closed form at i = 51.6 deg                 value= 5.6576775074e-15 target= 0.0000000000e+00 abs_err=5.658e-15 tol=1.0e-10
+   i =  90.0 deg  <B>_ana = [ 1.123421e-21 -1.945823e-21 -1.223124e-05] T
+  [PASS]   numerical vs closed form at i = 90.0 deg                 value= 7.7561771529e-15 target= 0.0000000000e+00 abs_err=7.756e-15 tol=1.0e-10
+   i =  97.8 deg  <B>_ana = [-2.466918e-06  4.272827e-06 -1.155539e-05] T
+  [PASS]   numerical vs closed form at i = 97.8 deg                 value= 6.6065819583e-15 target= 0.0000000000e+00 abs_err=6.607e-15 tol=1.0e-10
+
+   Equatorial field magnitude at 500 km: k/R^3 = 2.446249e-05 T = 24462 nT
+   Polar field magnitude at 500 km:      2k/R^3 = 4.892497e-05 T = 48925 nT
+
+orbit_geometry.py: 29 passed, 0 failed

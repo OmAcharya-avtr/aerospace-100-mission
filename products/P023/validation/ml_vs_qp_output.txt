@@ -1,0 +1,89 @@
+================================================================================================
+VALIDATION 5: learned allocator versus the exact QP
+================================================================================================
+effector set        : reference thruster cluster, m=8, u in [0,1] N, arm 0.5 m
+AMS boundary radius : 1.707107 N*m
+train / test        : 4000 / 2000 samples, seeds 1234 / 5678
+model               : 5 x MLPRegressor(64, 48), max_iter=300, random_state=0
+labels              : qp_allocate(u_pref=0, gamma=1e12), i.e. minimum total thrust
+/usr/local/lib/python3.11/dist-packages/sklearn/neural_network/_multilayer_perceptron.py:785: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (300) reached and the optimization hasn't converged yet.
+  warnings.warn(
+/usr/local/lib/python3.11/dist-packages/sklearn/neural_network/_multilayer_perceptron.py:785: ConvergenceWarning: Stochastic Optimizer: Maximum iterations (300) reached and the optimization hasn't converged yet.
+  warnings.warn(
+
+--- compute budget (2 CPU cores, no GPU) ---
+  training-set generation (4000 QP solves) :    4.10 s
+  test-set generation (2000 QP solves)      :    1.98 s
+  model fit (5 MLPs)                        :  115.22 s
+  total                                        :  121.29 s
+  train attainable fraction : 0.9550
+  test  attainable fraction : 0.9575
+
+================================================================================================
+5a: allocation error [N*m] and constraint satisfaction, all 2000 test samples
+================================================================================================
+allocator                           mean        median           p95           max % in bounds
+exact QP                    7.183888e-04  1.400865e-12  6.743076e-12  5.413941e-02      100.00        
+learned (raw)               1.043167e-02  7.605578e-03  2.704358e-02  8.937423e-02        4.85        
+learned (clipped)           1.538573e-02  8.987115e-03  4.674646e-02  3.361737e-01      100.00        
+
+--- restricted to the 'attainable' samples (QP meets the command exactly) ---
+allocator                           mean        median           p95           max % in bounds
+exact QP                    1.618039e-12  1.314036e-12  4.801879e-12  8.327863e-12      100.00        
+learned (raw)               1.011498e-02  7.389733e-03  2.592084e-02  8.937423e-02        5.01        
+learned (clipped)           1.392367e-02  8.627559e-03  4.215541e-02  3.208724e-01      100.00        
+
+--- bound violations of the raw learned output ---
+  samples violating at least one bound : 1903 / 2000 (95.15%)
+  max violation                        : 3.294447e-01 N (32.94% of max thrust)
+  mean violation over violating samples: 1.762133e-02 N
+  per-effector max violation [N]       : [0.0796 0.1971 0.1983 0.16   0.1765 0.1592 0.2273 0.3294]
+  QP violating samples                 : 0 / 2000
+
+================================================================================================
+5b: runtime
+================================================================================================
+  exact QP, single solve                    :     696.3 us
+  learned, single solve (batch of 1)        :    1417.4 us
+  learned, batched 2000 at once           :      64.0 us per sample
+  speed-up, single-solve                    :      0.49 x
+  speed-up, batched                         :     10.88 x
+
+================================================================================================
+5c: error by number of failed effectors
+================================================================================================
+n failed     count     QP mean err     ML mean err     ML/QP  ML % in bounds
+0              964    9.494661e-04    7.273390e-03       7.7            3.22
+1              495    5.312145e-04    1.256916e-02      23.7            8.28
+2              541    4.778948e-04    1.410363e-02      29.5            4.62
+
+================================================================================================
+5d: is the confidence output useful?
+================================================================================================
+  Pearson r(confidence, allocation error)   : -0.6245
+  Pearson r(ensemble spread, error)         : +0.7045
+  mean ensemble spread / rms command error  : 0.6333
+
+confidence decile      count      mean error   % in bounds
+1                        200    2.563590e-02          3.50
+2                        200    1.581155e-02          5.50
+3                        200    1.300535e-02          2.50
+4                        200    1.078942e-02          4.50
+5                        200    8.761695e-03          5.50
+6                        200    7.678611e-03          2.00
+7                        200    6.631749e-03          8.50
+8                        200    6.000610e-03          4.00
+9                        200    5.343445e-03          4.50
+10                       200    4.658391e-03          8.00
+
+================================================================================================
+5e: verdict
+================================================================================================
+  mean allocation error, learned / QP       : 14.52 x
+  learned predictions inside actuator bounds: 4.85 %
+  QP predictions inside actuator bounds     : 100.00 %
+  single-solve speed-up                     : 0.49 x
+
+  The QP wins on accuracy and on constraint satisfaction; the learned
+  allocator wins on runtime only when its output is batched. The exact
+  numbers above are the claim -- see MODEL_CARD.md sec. 7-9.
