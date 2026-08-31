@@ -1,0 +1,43 @@
+wahbakit validation 1 -- conventions and noise-free exactness
+==================================================================================
+
+[1] quaternion convention vs scipy.spatial.transform.Rotation
+    scipy version: 1.17.1, 500 random quaternions
+max |dcm_from_quat(q) - scipy as_matrix|                         5.5511e-16 <=  1.00e-14  PASS
+max |quat_from_dcm(dcm_from_quat(q)) - q|                        2.2204e-16 <=  1.00e-12  PASS
+
+[2] hand-checked closed forms
+    q = [1, 0, 0, 0] -> I                        max|diff| = 0.000e+00
+    q = [c45, 0, 0, s45] -> 90 deg about z       max|diff| = 2.220e-16
+    q = [0, 1, 0, 0] -> diag(1, -1, -1)          max|diff| = 0.000e+00
+worst hand-checked closed form                                   2.2204e-16 <=  1.00e-15  PASS
+
+[3] frame order: solvers return A with b = A r, not its transpose
+    angle to A_true      = 7.364e-16 rad
+    angle to A_true^T    = 3.062e+00 rad
+angle to A_true (the documented convention)                      7.3642e-16 <=  1.00e-12  PASS
+angle to A_true^T (must NOT be small)                            3.0624e+00 >=  1.00e-03  PASS
+
+[4] noise-free exactness, by method and observation count
+       n           triad        q-method           quest            olae
+       2       2.675e-16       1.980e-14       2.949e-15       3.304e-15
+       3             n/a       2.133e-15       9.626e-15       1.826e-15
+       4             n/a       1.541e-15       6.286e-16       7.260e-16
+       6             n/a       1.363e-15       6.264e-16       7.256e-16
+      12             n/a       1.083e-15       3.745e-16       5.737e-16
+worst noise-free attitude error, triad [rad]                     2.6749e-16 <=  1.00e-11  PASS
+worst noise-free attitude error, q-method [rad]                  1.9802e-14 <=  1.00e-11  PASS
+worst noise-free attitude error, quest [rad]                     9.6257e-15 <=  1.00e-11  PASS
+worst noise-free attitude error, olae [rad]                      3.3042e-15 <=  1.00e-11  PASS
+
+[5] output invariants over 200 noisy problems
+max |A^T A - I|                                                  8.8818e-16 <=  1.00e-13  PASS
+max |det A - 1|                                                  1.3323e-15 <=  1.00e-13  PASS
+max ||q| - 1|                                                    2.2204e-16 <=  1.00e-14  PASS
+max |dcm_from_quat(q) - A|                                       4.4409e-16 <=  1.00e-13  PASS
+    quaternions returned with w < 0: 0 (must be 0)
+
+[6] cross-check against scipy Rotation.align_vectors (Kabsch)
+max angle, q-method vs scipy align_vectors [rad]                 7.2793e-15 <=  1.00e-10  PASS
+
+RESULT: 15 / 15 checks passed

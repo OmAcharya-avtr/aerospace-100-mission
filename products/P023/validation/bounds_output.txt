@@ -1,0 +1,32 @@
+==============================================================================
+VALIDATION 3a: Monte-Carlo bound compliance
+seed=4242  300 random configurations x 8 random commands
+commands drawn at rho x the AMS boundary radius, rho ~ U(0, 2);
+membership is then decided by the hull itself, not by rho
+==============================================================================
+
+1505 commands evaluated, 642 of them inside the AMS
+
+method     max bound violation  n violating   % viol   max resid inside  n missed inside
+pinv              2.029687e+00         1444    95.95       2.113598e-14                0
+wpinv             1.879693e+00         1334    88.64       7.016278e-14                0
+rpi               0.000000e+00            0     0.00       7.656943e-01               23
+lp                0.000000e+00            0     0.00       1.609823e-15                0
+qp                2.220446e-16            0     0.00       1.473295e-11                0
+
+PASS criterion: max bound violation <= 1e-9 for lp, qp and rpi.
+  lp    : PASS (max violation 0.000000e+00)
+  qp    : PASS (max violation 2.220446e-16)
+  rpi   : PASS (max violation 0.000000e+00)
+pinv and wpinv are unconstrained by construction and are expected to
+violate; their numbers above quantify by how much.
+
+'n missed inside' counts attainable commands the method failed to meet
+to 1e-8 N*m while staying inside the box -- the interesting failure,
+because a solution existed. lp and qp must be 0 here. rpi is a
+heuristic and is expected to be non-zero: Bodson (2002) sec. V.A and
+Haerkegaard (2002) sec. 2.2.1 both say the redistributed pseudoinverse
+is not guaranteed to find a feasible command when one exists.
+
+==============================================================================
+VALIDATION 3b: the same claim as a Hypothesis property test

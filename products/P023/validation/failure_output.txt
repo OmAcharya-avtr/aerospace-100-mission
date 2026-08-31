@@ -1,0 +1,98 @@
+==============================================================================
+VALIDATION 4a: failed-effector reallocation, systematic sweep
+seed=90210  60 directions x 6 magnitudes per failure case
+==============================================================================
+
+--- thruster cluster (m=8), method='qp' ---
+failed       rank  met/attainable  missed  infeas reported/true    max resid   max viol
+[0]             3       180/180         0           180/180        3.525e-12  0.000e+00
+[1]             3       180/180         0           180/180        3.800e-12  0.000e+00
+[2]             3       180/180         0           180/180        3.714e-12  0.000e+00
+[3]             3       180/180         0           180/180        3.941e-12  7.112e-17
+[4]             3       180/180         0           180/180        2.114e-12  6.776e-21
+[5]             3       180/180         0           180/180        2.738e-12  0.000e+00
+[6]             3       180/180         0           180/180        3.056e-12  0.000e+00
+[7]             3       180/180         0           180/180        2.524e-12  0.000e+00
+[0, 1]          3       180/180         0           180/180        3.738e-12  0.000e+00
+[0, 2]          3       180/180         0           180/180        3.849e-12  3.469e-18
+[0, 3]          3        96/96          0            96/96         3.710e-12  0.000e+00
+[0, 4]          3       267/267         0            93/93         3.644e-12  0.000e+00
+[0, 5]          3       180/180         0           180/180        3.735e-12  0.000e+00
+[0, 6]          3       282/282         0            78/78         2.538e-12  0.000e+00
+[0, 7]          3       180/180         0           180/180        3.496e-12  0.000e+00
+[1, 2]          3       276/276         0            84/84         3.437e-12  0.000e+00
+
+--- pyramid wheels (m=4), method='qp' ---
+failed       rank  met/attainable  missed  infeas reported/true    max resid   max viol
+[0]             3       180/180         0           180/180        2.533e-13  0.000e+00
+[1]             3       180/180         0           180/180        2.576e-13  0.000e+00
+[2]             3       180/180         0           180/180        2.615e-13  0.000e+00
+[3]             3       180/180         0           180/180        2.515e-13  0.000e+00
+[0, 1]          2                    AMS degenerate (rank < 3): swept skipped
+[0, 2]          2                    AMS degenerate (rank < 3): swept skipped
+[0, 3]          2                    AMS degenerate (rank < 3): swept skipped
+[1, 2]          2                    AMS degenerate (rank < 3): swept skipped
+[1, 3]          2                    AMS degenerate (rank < 3): swept skipped
+[2, 3]          2                    AMS degenerate (rank < 3): swept skipped
+
+PASS criteria:
+  attainable commands missed by the QP        : 0   (PASS, must be 0)
+  unattainable commands not reported infeasible: 0   (PASS, must be 0)
+  feasibility verdicts disagreeing with the LP : 0   (PASS, must be 0)
+
+==============================================================================
+VALIDATION 4b: the same sweep for the redistributed pseudo-inverse
+==============================================================================
+failed        met/attainable  missed  infeas reported/true    max resid   max viol
+[0]                180/180         0           180/180        9.490e-16  0.000e+00
+[1]                180/180         0           180/180        8.158e-16  0.000e+00
+[2]                180/180         0           180/180        1.543e-15  0.000e+00
+[3]                180/180         0           180/180        2.038e-15  0.000e+00
+[4]                180/180         0           180/180        6.004e-16  0.000e+00
+[5]                180/180         0           180/180        7.468e-16  0.000e+00
+[6]                180/180         0           180/180        6.081e-16  0.000e+00
+[7]                180/180         0           180/180        5.103e-16  0.000e+00
+
+redistributed-pseudo-inverse attainable commands missed: 0
+This is a property of the heuristic, not a defect in this code; the
+report still says the command WAS attainable, so the caller is told.
+
+==============================================================================
+VALIDATION 4c: worked cases, printed in full
+==============================================================================
+
+[1] +x command of 0.05 N*m after t1 fails off -- expected: still met
+    attainable        : True
+    status            : saturated
+    commands [N]      : [0.       0.033333 0.433333 0.566667 0.633333 0.366667 0.594281 0.405719]
+    residual [N*m]    : 9.798418e-13
+    bound violation   : 0.000000e+00
+    AMS volume ratio  : 0.592350
+    failure margin    : 5.0000
+
+[2] +x command of 0.6 N*m after t1 fails off -- expected: NOT met
+    attainable        : False
+    status            : infeasible
+    commands [N]      : [0.       0.       0.179994 0.819994 1.       0.       0.905097 0.      ]
+    achieved [N*m]    : [ 3.200000e-01  6.399326e-13 -1.400000e-01]
+    residual [N*m]    : 3.130495e-01
+    bound violation   : 0.000000e+00
+    failure margin    : 0.4167
+    message           : command is NOT attainable by the degraded set (exact LP feasibility test: optimal weighted 1-norm torque error 3.500000e-01 N*m, which is zero only for an attainable command); best 2-norm residual from method 'qp' is 3.130495e-01 N*m
+
+[3] t1 stuck OPEN at 1 N, zero torque commanded -- must be cancelled
+    attainable        : True
+    status            : saturated
+    commands [N]      : [1.       0.888889 0.555556 0.444444 0.388889 0.611111 0.421433 0.578567]
+    achieved [N*m]    : [ 7.776002e-13 -1.110223e-13  2.220168e-13]
+    residual [N*m]    : 8.162595e-13
+
+[4] all four z-authority thrusters lost -- rank collapse
+    remaining rank    : 2
+    attainable        : False
+    status            : infeasible
+    residual [N*m]    : 2.000000e-01 (command was 0.2)
+    AMS volume ratio  : 0.000000
+
+[5] require_feasible=True must raise, not return a clipped command
+    InfeasibleAllocationError raised: torque [5.0, 0.0, 0.0] N*m cannot be allocated after failure of effectors [0, 1]: command is NOT attainable by the degraded set (exact LP feasibility test: optimal weighted 1-norm torque error 4.750000e+00 N*m, which is zero only for an attainable command); best 2-norm residual from method 'qp' is 4.651060e+00 N*m (bound violation 0.000e+00, remaining rank 3)

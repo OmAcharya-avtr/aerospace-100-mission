@@ -1,0 +1,72 @@
+==============================================================================
+VALIDATION 1: exact allocation inside the attainable moment set
+seed=20260831  n_samples=400  commands at 80% of the AMS boundary
+==============================================================================
+
+--- orthogonal triad (m=3, +/-1) ---
+method    max |residual| [N*m]    max bound viol  n infeasible   mean solve [us]
+pinv              0.000000e+00      0.000000e+00             0              53.3
+wpinv             0.000000e+00      0.000000e+00             0             117.9
+rpi               0.000000e+00      0.000000e+00             0             159.2
+lp                0.000000e+00      0.000000e+00             0            2036.8
+qp                1.363919e-12      0.000000e+00             0             122.1
+
+--- pyramid wheels (m=4, +/-0.1 N*m) ---
+method    max |residual| [N*m]    max bound viol  n infeasible   mean solve [us]
+pinv              1.144854e-16      1.914405e-02           100              65.7
+wpinv             8.946869e-17      1.914405e-02           100              94.6
+rpi               8.946869e-17      0.000000e+00             0             167.8
+lp                6.245005e-17      0.000000e+00             0            2999.7
+qp                1.765844e-13      0.000000e+00             0             225.7
+
+--- thruster cluster (m=8, [0,1] N, arm 0.5 m) ---
+method    max |residual| [N*m]    max bound viol  n infeasible   mean solve [us]
+pinv              6.479604e-16      5.614578e-01           400              57.3
+wpinv             7.153458e-16      6.145776e-02            94             158.9
+rpi               7.285508e-16      0.000000e+00             0             254.0
+lp                8.777084e-17      0.000000e+00             0            3578.8
+qp                2.105728e-12      0.000000e+00             0             211.8
+
+==============================================================================
+QP residual versus gamma (pyramid wheels, 200 interior commands)
+==============================================================================
+     gamma    max |residual| [N*m]   max bound violation
+     1e+04            1.744154e-05          0.000000e+00
+     1e+06            1.744672e-07          0.000000e+00
+     1e+08            1.744677e-09          0.000000e+00
+     1e+10            1.744677e-11          0.000000e+00
+     1e+12            1.744348e-13          0.000000e+00
+     1e+14            1.725001e-15          0.000000e+00
+     1e+16            9.557745e-17          0.000000e+00
+
+==============================================================================
+LP cross-check: scipy/HiGHS versus PuLP/CBC, min_error objective
+==============================================================================
+orthogonal triad (m=3, +/-1)
+  max |achieved torque difference|   : 5.720588e-09 N*m
+  max HiGHS residual                 : 0.000000e+00
+  max CBC residual                   : 5.720588e-09
+  mean solve time HiGHS / CBC        : 2.623 / 5.332 ms
+pyramid wheels (m=4, +/-0.1 N*m)
+  max |achieved torque difference|   : 6.603284e-10 N*m
+  max HiGHS residual                 : 3.704356e-17
+  max CBC residual                   : 6.603284e-10
+  mean solve time HiGHS / CBC        : 2.060 / 4.929 ms
+thruster cluster (m=8, [0,1] N, arm 0.5 m)
+  max |achieved torque difference|   : 5.104357e-09 N*m
+  max HiGHS residual                 : 1.000742e-16
+  max CBC residual                   : 5.104357e-09
+  mean solve time HiGHS / CBC        : 2.195 / 5.452 ms
+
+==============================================================================
+Commands OUTSIDE the AMS: bounds must still hold and the shortfall be reported
+==============================================================================
+method    min |residual| [N*m]    max bound viol  n reported bad
+pinv              2.081668e-17      1.059814e+00             200
+wpinv             4.857226e-17      5.598137e-01             200
+rpi               3.354102e-01      0.000000e+00             200
+lp                3.361275e-01      0.000000e+00             200
+qp                3.354102e-01      0.000000e+00             200
+
+All 200 commands here are at 150% of the boundary, so the correct
+count in the last column is 200 for every method.

@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "disturbtorque"
+version = "0.1.0"
+description = "Environmental disturbance torques for spacecraft attitude sizing: gravity gradient, aerodynamic, solar radiation pressure and residual magnetic dipole, with secular/cyclic split and momentum accumulation."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "spacecraft",
+    "attitude control",
+    "disturbance torque",
+    "gravity gradient",
+    "solar radiation pressure",
+    "momentum management",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis"]
+plot = ["matplotlib>=3.7"]
+dev = ["pytest>=7.4", "hypothesis>=6.80", "ruff>=0.4", "matplotlib>=3.7"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]

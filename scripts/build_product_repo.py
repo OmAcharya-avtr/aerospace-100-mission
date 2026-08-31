@@ -6,7 +6,11 @@ a standalone repo needs and that the monorepo did not: CI workflow, .gitignore,
 CITATION.cff. Initialises git with the authorship that GitHub actually maps to
 OmAcharya-avtr.
 
-    python3 scripts/build_product_repo.py P012 [--out /home/claude/repos]
+    python3 scripts/build_product_repo.py P012 [--out <output directory>]
+
+The default output directory is derived from $HOME rather than written out here:
+the release gate rejects an absolute private path anywhere in tracked content,
+including inside this file's own docstring.
 
 Authorship is not cosmetic: dhananjay.acharya@googlemail.com is verified on a
 DIFFERENT account (OmAcharya-ADCL), and Claude <noreply@anthropic.com> shows up
@@ -175,7 +179,7 @@ def build(pid: str, out_root: Path) -> Path:
 
 if __name__ == "__main__":
     argv = sys.argv[1:]
-    out = Path("/home/claude/repos")
+    out = Path.home() / "repos"
     if "--out" in argv:
         i = argv.index("--out")
         out = Path(argv[i + 1])

@@ -1,0 +1,42 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "keepout"
+version = "0.1.0"
+description = "Celestial keep-out geometry for spacecraft pointing: Sun, Earth and Moon exclusion cones, violation tests, allowed-attitude regions and pointing windows."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = ["spacecraft", "attitude", "keep-out", "exclusion-cone", "pointing", "astrodynamics"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+dependencies = [
+    "numpy",
+    "scipy",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis"]
+examples = ["matplotlib"]
+dev = ["pytest", "hypothesis", "ruff", "matplotlib"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]

@@ -1,0 +1,79 @@
+wahbakit validation 3 -- attitude covariance vs Monte Carlo
+==================================================================================
+trials = 10000, seed = 20260831, sampling error on a covariance entry ~ sqrt(2/10000) = 0.0141
+
+[1] Eq. V1, optimal covariance, q-method
+    equal sigmas 1e-3 rad
+      analytic [ 3.9641e-07  -6.7933e-09   8.0549e-08]   MC [ 3.8964e-07  -8.5603e-09   7.8650e-08]
+      analytic [-6.7933e-09   3.3406e-07  -8.6745e-09]   MC [-8.5603e-09   3.3862e-07  -1.1533e-08]
+      analytic [ 8.0549e-08  -8.6745e-09   4.3619e-07]   MC [ 7.8650e-08  -1.1533e-08   4.4131e-07]
+      diagonal relative deviation: [0.0171 0.0136 0.0118]
+    worst relative deviation, equal sigmas 1e-3 rad              1.5535e-02 <=  6.00e-02  PASS
+    unequal sigmas [1, 2, 5, 1] x 1e-3 rad
+      analytic [ 8.4013e-07   1.6841e-07   4.4347e-07]   MC [ 8.4687e-07   1.6750e-07   4.4137e-07]
+      analytic [ 1.6841e-07   6.7862e-07   2.4388e-07]   MC [ 1.6750e-07   6.6715e-07   2.3478e-07]
+      analytic [ 4.4347e-07   2.4388e-07   9.9621e-07]   MC [ 4.4137e-07   2.3478e-07   9.9383e-07]
+      diagonal relative deviation: [0.008  0.0169 0.0024]
+    worst relative deviation, unequal sigmas [1, 2, 5, 1] x 1e-3 rad   1.1513e-02 <=  6.00e-02  PASS
+
+[2] Eq. V2, TRIAD covariance, two observations, sigmas [1e-3, 5e-3] rad
+    primary = 0
+      analytic [ 4.2171e-06   6.8182e-06   4.5135e-06]   MC [ 4.2073e-06   6.7446e-06   4.4798e-06]
+      analytic [ 6.8182e-06   1.5451e-05   9.5659e-06]   MC [ 6.7446e-06   1.5176e-05   9.4197e-06]
+      analytic [ 4.5135e-06   9.5659e-06   7.3323e-06]   MC [ 4.4798e-06   9.4197e-06   7.2472e-06]
+      diagonal relative deviation: [0.0023 0.0178 0.0116]
+    worst relative deviation, primary = 0                        1.7757e-02 <=  6.00e-02  PASS
+    primary = 1
+      analytic [ 5.2519e-06   9.1603e-06   2.3793e-07]   MC [ 5.2675e-06   9.0515e-06   2.5133e-07]
+      analytic [ 9.1603e-06   2.0751e-05  -1.1036e-07]   MC [ 9.0515e-06   2.0497e-05   1.9671e-08]
+      analytic [ 2.3793e-07  -1.1036e-07   2.4997e-05]   MC [ 2.5133e-07   1.9671e-08   2.4732e-05]
+      diagonal relative deviation: [0.003  0.0122 0.0106]
+    worst relative deviation, primary = 1                        1.0588e-02 <=  6.00e-02  PASS
+
+[3] P_TRIAD - P_opt positive semi-definite (TRIAD is never better)
+    sigma1 = 1e-04, sigma2 = 1e-04: min eig = -2.0232e-24 (-2.02e-16 of max|P_TRIAD|), cond(P_opt) = 2.00e+00, excess variance =   20.000 %
+    sigma1 = 1e-04, sigma2 = 1e-03: min eig = -1.4081e-20 (-2.32e-14 of max|P_TRIAD|), cond(P_opt) = 1.01e+02, excess variance =    0.010 %
+    sigma1 = 1e-04, sigma2 = 1e-02: min eig = -2.2491e-16 (-3.74e-12 of max|P_TRIAD|), cond(P_opt) = 1.00e+04, excess variance =    0.000 %
+    sigma1 = 1e-03, sigma2 = 1e-04: min eig = -1.5973e-20 (-1.84e-14 of max|P_TRIAD|), cond(P_opt) = 1.01e+02, excess variance =   97.078 %
+    sigma1 = 1e-03, sigma2 = 1e-03: min eig = -4.3400e-23 (-4.34e-17 of max|P_TRIAD|), cond(P_opt) = 2.00e+00, excess variance =   20.000 %
+    sigma1 = 1e-03, sigma2 = 1e-02: min eig = -1.7969e-18 (-2.96e-14 of max|P_TRIAD|), cond(P_opt) = 1.01e+02, excess variance =    0.010 %
+    sigma1 = 1e-02, sigma2 = 1e-04: min eig = -1.7769e-16 (-2.05e-12 of max|P_TRIAD|), cond(P_opt) = 1.00e+04, excess variance =   99.970 %
+    sigma1 = 1e-02, sigma2 = 1e-03: min eig = -1.2477e-18 (-1.44e-14 of max|P_TRIAD|), cond(P_opt) = 1.01e+02, excess variance =   97.078 %
+    sigma1 = 1e-02, sigma2 = 1e-02: min eig = -6.7821e-21 (-6.78e-17 of max|P_TRIAD|), cond(P_opt) = 2.00e+00, excess variance =   20.000 %
+    Worst cond(P_opt) over the grid: 1.000e+04. The inverse in Eq. V1 carries a
+    relative error of order eps * cond, so the attainable numerical bound on a
+    zero eigenvalue is about 2e-16 * 1e4 = 2e-12, not 0. Gated at 1e-9 relative.
+most negative eigenvalue of P_TRIAD - P_opt, relative            3.7351e-12 <=  1.00e-09  PASS
+
+[4] OLAE against Eq. V1, which it only approximates
+    trace(P_MC, OLAE)     = 1.168621e-06 rad^2
+    trace(P_MC, q-method) = 1.167665e-06 rad^2
+    trace(P analytic)     = 1.166667e-06 rad^2
+    OLAE excess total variance over the optimum: 0.082 %
+    Eq. V1 is therefore an optimistic covariance for OLAE by that amount.
+OLAE excess variance (reported, gated at 10 %)                   8.1798e-04 <=  1.00e-01  PASS
+
+[5] where the first-order covariance stops describing reality
+     sigma [rad]   trace P analytic     trace P MC     ratio
+           1e-04       1.166667e-08   1.170736e-08    1.0035
+           1e-03       1.166667e-06   1.181041e-06    1.0123
+           1e-02       1.166667e-04   1.143564e-04    0.9802
+           3e-02       1.050000e-03   1.038019e-03    0.9886
+           1e-01       1.166667e-02   1.151535e-02    0.9870
+           3e-01       1.050000e-01   9.223586e-02    0.8784
+max |trace ratio - 1| for sigma <= 1e-2                          1.9803e-02 <=  6.00e-02  PASS
+    The ratio departs from 1 as sigma grows: Eq. V1 is a first-order result
+    and is reported, not gated, above 1e-2 rad.
+
+[6] cross-check against scipy align_vectors return_sensitivity
+    equal sigmas 1e-3 rad: max relative deviation from Eq. V1 = 2.4274e-16
+    unequal sigmas [1, 2, 5, 1] x 1e-3 rad: max relative deviation from Eq. V1 = 8.5025e-16
+    SciPy's sensitivity matrix, scaled by the harmonic mean of the variances
+    exactly as its Notes prescribe and with weights proportional to 1/sigma^2,
+    reproduces Eq. V1 to round-off for BOTH equal and unequal sigmas. The
+    optimal attitude covariance is therefore NOT something this package
+    provides and SciPy does not; it is the same number, returned directly in
+    rad^2 instead of requiring the scaling to be worked out. What SciPy has no
+    analogue for is the TRIAD covariance of Eq. V2 and the degeneracy gate.
+
+RESULT: 7 / 7 checks passed

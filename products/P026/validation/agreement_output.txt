@@ -1,0 +1,40 @@
+wahbakit validation 2 -- four-method agreement
+==================================================================================
+
+[1] QUEST lambda_max vs the largest eigenvalue of K, 500 random problems
+    n drawn from 2..8, sigma drawn log-uniform from 1e-5..1e-1 rad
+max |lambda_max(QUEST) - lambda_1(K)|                            1.4433e-15 <=  1.00e-12  PASS
+max |psi(lambda_i)| over all four eigenvalues                    2.4425e-15 <=  1.00e-12  PASS
+max angle, QUEST vs q-method eigenvector [rad]                   1.4889e-14 <=  1.00e-09  PASS
+    worst Newton iteration count from lambda_0 = 1: 5
+
+[2] noise-free agreement of all four methods (2 observations, 200 problems)
+worst pairwise disagreement, noise free [rad]                    9.0677e-13 <=  1.00e-11  PASS
+
+[3] departure from the Wahba optimum vs sensor noise
+    geometry: three axes plus the body diagonal; 400 trials per sigma
+     sigma [rad]   RMS |QUEST-qm|    RMS |OLAE-qm|  ratio to sigma   RMS err qm  RMS err OLAE
+           1e-01        5.637e-16        2.099e-01          2.0995    1.051e-01     2.351e-01
+           1e-02        5.437e-16        1.840e-03          0.1840    1.095e-02     1.112e-02
+           3e-03        5.453e-16        5.925e-04          0.1975    3.280e-03     3.349e-03
+           1e-03        5.319e-16        1.763e-04          0.1763    1.131e-03     1.145e-03
+           3e-04        5.353e-16        5.659e-05          0.1886    3.221e-04     3.263e-04
+           1e-04        5.542e-16        1.802e-05          0.1802    1.084e-04     1.095e-04
+max |QUEST - q-method| over all noise levels [rad]               2.0382e-15 <=  1.00e-09  PASS
+    OLAE gap / sigma over sigma <= 1e-2: 0.1763 to 0.1975 (spread 0.0212)
+    OLAE gap / sigma at sigma = 1e-1 rad: 2.0995 -- an order of
+    magnitude larger. Eq. L3's first-order argument assumes sigma << 1 rad and
+    5.7 deg of noise is outside that regime; the row is kept in the table as
+    evidence of where the linear description stops holding.
+    Within the regime a constant ratio confirms the OLAE departure is first
+    order in sigma, not second: a different estimator, not a numerical artefact.
+spread of the OLAE gap / sigma ratio, sigma <= 1e-2              2.1164e-02 <=  5.00e-02  PASS
+
+[4] the q-method attains the lowest Wahba loss (200 noisy 2-observation problems)
+    problems: 197
+    TRIAD loss > q-method loss in 197 / 197
+    OLAE  loss > q-method loss in 197 / 197
+    QUEST loss == q-method loss to 1e-15 in 197 / 197
+worst amount by which any method beat the q-method               5.5511e-16 <=  1.00e-15  PASS
+
+RESULT: 7 / 7 checks passed

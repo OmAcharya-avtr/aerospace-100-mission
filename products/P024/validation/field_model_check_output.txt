@@ -1,0 +1,59 @@
+V1  Tilted centred-dipole field model vs IGRF-14
+==============================================================================
+
+Model coefficients (IGRF-14 main field, epoch 2025.0, degree 1 only):
+  g(1,0) =   -29350.0 nT
+  g(1,1) =    -1410.3 nT
+  h(1,1) =     4545.5 nT
+  B0     = 29733.3654 nT   (derived: sqrt(g10^2+g11^2+h11^2))
+
+A3  Geomagnetic (dipole) north pole
+  derived from the coefficients : 80.7894 N, -72.7628 E
+  WDC Kyoto published IGRF-14 2025: 80.8 N, -72.8 E
+  difference                    : 0.0106 deg lat, 0.0372 deg lon
+  dipole tilt from rotation axis: 9.2106 deg
+  A3 (tolerance 0.05 deg): PASS
+
+A4  Analytic self-consistency on the reference sphere
+  |B| at geomagnetic pole    = 59466.730744 nT   (expected 2*B0 = 59466.730744)
+  |B| at geomagnetic equator = 29733.365372 nT   (expected   B0 = 29733.365372)
+  relative errors            = 2.999e-13, 2.999e-13
+  A4 (rtol 1e-9): PASS
+
+A1/A2  Dipole truncation error against IGRF-14 (BGS web service)
+
+ lat[N]  lon[E]  alt[km]  IGRF-14[nT]   dipole[nT]   error[nT]    rel[%]
+    0.0     0.0        0      31835.0      29833.5     -2001.5     -6.29
+    0.0     0.0      500      24172.0      23788.9      -383.1     -1.59
+    0.0   180.0      500      26925.0      23788.9     -3136.1    -11.65
+   45.0     0.0      500      37356.0      38269.3       913.3     +2.44
+  -45.0     0.0      500      21033.0      36147.3     15114.3    +71.86
+   80.0     0.0      500      45087.0      46720.8      1633.8     +3.62
+  -80.0     0.0      500      37254.0      46139.2      8885.2    +23.85
+    0.0    90.0      400      34445.0      25627.7     -8817.3    -25.60
+   30.0   270.0      400      38097.0      36539.9     -1557.1     -4.09
+   60.0   120.0      800      41591.0      34967.5     -6623.5    -15.93
+  -30.0   315.0      400      19625.0      29445.3      9820.3    +50.04
+   90.0     0.0        0      56879.0      58892.6      2013.6     +3.54
+
+  n points                    = 12
+  median |relative error|     =    8.967 %
+  mean   |relative error|     =   18.374 %
+  RMS    relative error       =   27.946 %
+  max    |relative error|     =   71.860 %  at lat -45 N, lon 0 E, 500 km
+
+  A1 median <= 15 %  : PASS  (measured 8.967 %)
+  A2 max    <= 25 %  : FAIL  (measured 71.860 %)
+
+  Worst three points, all in or near the South Atlantic Anomaly and the
+  Indian Ocean low, where the non-dipole field is largest:
+    lat  -45.0 N  lon    0.0 E    500 km  IGRF-14   21033 nT  |error|  71.86 %
+    lat  -30.0 N  lon  315.0 E    400 km  IGRF-14   19625 nT  |error|  50.04 %
+    lat   +0.0 N  lon   90.0 E    400 km  IGRF-14   34445 nT  |error|  25.60 %
+
+OVERALL V1: A1 PASS, A2 FAIL, A3 PASS, A4 PASS
+
+A2 FAILED and is reported as failed.  No coefficient was adjusted and
+no tolerance was widened.  The degree-1 truncation is simply not
+accurate to 25 % everywhere; the consequences for every detumble
+number in this package are set out in README 'Limitations'.

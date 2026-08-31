@@ -1,0 +1,78 @@
+==============================================================================
+VALIDATION 2a: the cube known answer
+==============================================================================
+  vertices computed / expected      : 8 / 8
+  max |vertex coordinate error|     : 0.000000e+00
+  volume computed / expected        : 8 / 8
+  |volume error|                    : 0.000000e+00
+  area computed / expected          : 24 / 24
+  |area error|                      : 0.000000e+00
+  boundary scale along +x           : 1 (exp 1)
+  boundary scale along (1,1,1)      : 1.73205080756888 (exp 1.73205080756888)
+  |diagonal scale error|            : 2.220446e-16
+
+==============================================================================
+VALIDATION 2b: hull volume against the closed-form zonotope volume
+==============================================================================
+configuration                                  hull volume       closed form     rel err
+orthogonal triad, bound 1.0                              8                 8    0.00e+00
+orthogonal triad, bound 2.0                             64                64    0.00e+00
+pyramid wheels, 4 x 0.1 N*m                0.0246336114854   0.0246336114854    4.23e-16
+pyramid wheels, 5 x 0.05 N*m, 35 deg      0.00463656224447  0.00463656224447    0.00e+00
+thruster cluster, 8 x 1 N, arm 0.5 m         3.82842712475     3.82842712475    5.80e-16
+thruster cluster, t1 failed off              2.26776695297     2.26776695297    5.87e-16
+thruster cluster, t1 stuck at 1 N            2.26776695297     2.26776695297    3.92e-16
+
+==============================================================================
+VALIDATION 2c: vertex count against g(g-1)+2 for g distinct generator lines
+==============================================================================
+configuration                               computed     formula     match
+orthogonal triad, bound 1.0                        8           8      True
+orthogonal triad, bound 2.0                        8           8      True
+pyramid wheels, 4 x 0.1 N*m                       14          14      True
+pyramid wheels, 5 x 0.05 N*m, 35 deg              22          22      True
+thruster cluster, 8 x 1 N, arm 0.5 m              14          14      True
+thruster cluster, t1 failed off                   14          14      True
+thruster cluster, t1 stuck at 1 N                 14          14      True
+
+The formula holds only in general position: no two generator lines
+parallel (parallel columns are merged before counting) and no three
+coplanar. Every configuration above is in general position after the
+merge, so all seven match. A configuration with three coplanar
+generator lines would have fewer vertices than the formula predicts,
+and expected_vertex_count is then an upper bound only.
+
+==============================================================================
+VALIDATION 2d: pairwise construction against brute-force box enumeration
+==============================================================================
+configuration                             v pair  v brute   vol rel err  t pair [ms]  t brute [ms]
+orthogonal triad, bound 1.0                    8        8      0.00e+00        1.052         0.377
+orthogonal triad, bound 2.0                    8        8      0.00e+00        1.168         0.377
+pyramid wheels, 4 x 0.1 N*m                   14       14      2.82e-16        1.960         0.341
+pyramid wheels, 5 x 0.05 N*m, 35 deg          22       22      5.61e-16        3.210         0.428
+thruster cluster, 8 x 1 N, arm 0.5 m          14       14      4.64e-16        3.140         0.711
+thruster cluster, t1 failed off               14       14      7.83e-16        3.245         0.613
+thruster cluster, t1 stuck at 1 N             14       14      7.83e-16        3.222         0.633
+
+==============================================================================
+VALIDATION 2e: a second closed form, the 2x3x5 box from scaled axes
+==============================================================================
+  vertices                          : 8 (expected 8)
+  volume                            : 30 (expected 30)
+  |volume error|                    : 0.000000e+00
+  area                              : 62 (expected 62)
+  |area error|                      : 0.000000e+00
+
+==============================================================================
+VALIDATION 2f: failure shrinks the AMS -- measured volume ratios
+==============================================================================
+  nominal AMS volume                : 3.82842712475 (N*m)^3
+failed effectors                    volume     ratio   rank
+[]                             3.828427125    1.0000      3
+[0]                            2.267766953    0.5923      3
+[0, 1]                        0.7071067812    0.1847      3
+[0, 2]                         1.310660172    0.3423      3
+[6]                            2.414213562    0.6306      3
+[6, 7]                                   1    0.2612      3
+[0, 1, 2, 3]                             0    0.0000      2
+[4, 5]                         1.414213562    0.3694      3

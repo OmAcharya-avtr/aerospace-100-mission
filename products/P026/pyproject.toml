@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wahbakit"
+version = "0.1.0"
+description = "Static attitude determination from vector observations: TRIAD, Davenport's q-method, QUEST and OLAE, with attitude covariance and explicit degeneracy handling."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = ["wahba", "attitude-determination", "quest", "triad", "olae", "quaternion"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+dependencies = ["numpy"]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis"]
+examples = ["matplotlib"]
+dev = ["pytest", "hypothesis", "ruff", "matplotlib", "scipy"]
+
+[project.scripts]
+wahbakit = "wahbakit.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["wahbakit", "helpers"]

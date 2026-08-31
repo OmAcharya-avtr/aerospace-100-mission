@@ -1,0 +1,41 @@
+========================================================================================
+KeepOut validation: rotational invariance and window-search consistency
+========================================================================================
+
+1. Margin invariance under 20000 random rotations from SO(3)
+   worst |margin change| = 1.110e-15 rad = 2.290e-07 milliarcsec
+   at margins (deg) before = [ 8.778592374 -4.906521087 37.498701866]
+                     after = [ 8.778592374 -4.906521087 37.498701866]
+   tolerance 1e-12 rad   PASS
+
+2 & 3. Verdict invariance under 20000 random rotations
+   boresights at least 1e-7 rad clear of every boundary: 20000 of 20000
+   verdict changes among those                         : 0
+   verdict changes over all 20000 trials              : 0
+   tolerance: 0 changes among cleared boresights   PASS
+
+4. Allowed solid angle invariance under 200 random rotations
+   unrotated     = 5.952500685656604 sr
+   rotated mean  = 5.952500685656433 sr
+   rotated range = [5.952500685623002, 5.952500685656723] sr
+   worst |change| = 3.360e-11 sr   tolerance 1e-9   PASS
+
+5. Window search: refined boundaries and agreement with a dense margin test
+   orbital period = 5738.993 s (95.650 min)
+   scan 0 to 11478.0 s at 20 s, 574 samples
+   3 windows found
+     start =     0.000000 s   (scan edge, not refined)
+       end =  3678.250250 s   |margin| = 3.593e-11 rad
+     duration = 3678.250 s
+     start =  5622.864135 s   |margin| = 8.523e-11 rad
+       end =  9417.243065 s   |margin| = 7.993e-11 rad
+     duration = 3794.379 s
+     start = 11361.856950 s   |margin| = 4.001e-11 rad
+       end = 11460.000000 s   (scan edge, not refined)
+     duration = 98.143 s
+   worst |margin| at a refined boundary = 8.523e-11 rad   tolerance 1e-7   PASS
+   dense 1 s check over 11461 samples: 0 disagreements   PASS
+
+========================================================================================
+OVERALL: PASS
+========================================================================================
