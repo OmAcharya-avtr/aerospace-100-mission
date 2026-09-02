@@ -181,3 +181,23 @@ autonomous aerospace systems · satellite communications · digital twins ·
 hardware-in-the-loop · testing · aerospace assurance.
 
 No expansion into unrelated generic aerospace applications.
+
+## Token accounting — required in every session report
+
+`templates/NIGHTLY_REPORT_TEMPLATE.md` carries an **Agent and token accounting**
+section. It is not optional and it is not satisfied by prose.
+
+Every `Agent` tool result returns `subagent_tokens`, `tool_uses` and
+`duration_ms` for that agent. Record them verbatim, one row per agent, plus the
+coordinating session's own usage and a session total.
+
+Rationale. Between 2026-08-01 and 2026-09-02 not one session report recorded
+token usage, so the mission has wall-clock and core counts for every night and
+no idea what any of it cost. Usage limits are the binding constraint on this
+programme — they killed five agents simultaneously on 2026-08-29 and terminated
+four of five builds on 2026-09-02 — and a constraint that is never measured
+cannot be planned against. Estimating the number defeats the purpose: an
+estimate is what the mission already had.
+
+If a run produces no agents, say so and record the coordinator's usage alone.
+
