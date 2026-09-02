@@ -1,0 +1,51 @@
+==============================================================================
+CMGSteer validation 1 -- Jacobian vs numerical differentiation
+==============================================================================
+seed 20260902, numpy 2.4.4
+
+## 1. pyramid: Jacobian vs central differences, step study
+  step [rad]    worst abs dev    worst rel dev
+       1e-03     1.666666e-07     1.666670e-07
+       1e-04     1.667076e-09     1.668759e-09
+       1e-05     4.061274e-11     4.190840e-11
+       1e-06     3.651611e-10     4.388628e-10
+       1e-07     3.787304e-09     4.764415e-09
+       1e-08     3.191703e-08     3.919230e-08
+best step 1e-05, worst absolute deviation 4.061274e-11 N*m*s/rad
+over 400 configurations drawn uniformly from [-pi, pi]^4
+
+## 2. pyramid: manipulability gradient vs central differences
+step 1e-06, worst absolute deviation 1.058439e-09
+worst relative deviation 8.493083e-09 over 400 configurations
+
+## 1. roof: Jacobian vs central differences, step study
+  step [rad]    worst abs dev    worst rel dev
+       1e-03     1.666666e-07     1.666670e-07
+       1e-04     1.668054e-09     1.668645e-09
+       1e-05     4.238054e-11     4.307769e-11
+       1e-06     3.662140e-10     3.736334e-10
+       1e-07     3.585553e-09     5.075612e-09
+       1e-08     3.537727e-08     3.725941e-08
+best step 1e-05, worst absolute deviation 4.238054e-11 N*m*s/rad
+over 400 configurations drawn uniformly from [-pi, pi]^4
+
+## 2. roof: manipulability gradient vs central differences
+step 1e-06, worst absolute deviation 1.041955e-09
+worst relative deviation 6.956285e-09 over 400 configurations
+
+## 3. Pyramid momentum map vs the published closed form
+skew angle 53.130102354 deg, sin = 0.800000000000000, cos = 0.600000000000000
+worst deviation over 2000 configurations: 8.881784e-16 N*m*s
+
+## 4. Torque convention: tau = -A ddelta round trip
+worst deviation over 2000 (configuration, rate) pairs: 0.000000e+00 N*m
+
+## Summary
+PASS  pyramid Jacobian vs central differences       4.061274e-11 < 1e-08
+PASS  roof Jacobian vs central differences          4.238054e-11 < 1e-08
+PASS  pyramid gradient vs central differences       1.058439e-09 < 1e-07
+PASS  roof gradient vs central differences          1.041955e-09 < 1e-07
+PASS  pyramid momentum map vs closed form           8.881784e-16 < 1e-13
+PASS  torque convention round trip                  0.000000e+00 < 1e-13
+
+OVERALL: PASS

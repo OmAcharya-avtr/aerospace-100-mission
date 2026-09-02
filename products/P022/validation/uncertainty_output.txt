@@ -1,0 +1,47 @@
+==============================================================================
+CMGSteer validation 4 -- uncertainty analysis
+==============================================================================
+seed 20260902, numpy 2.4.4, 30 states x 200 Monte Carlo trials per sigma
+
+## 1. Gimbal-angle measurement error -> torque error
+ratios are formed per state and then aggregated: pooling the Monte Carlo over
+states and comparing with a mean prediction would compare an rms with a mean
+ sigma [deg]   mean MC rms [N*m]   mean first order   mean ratio       p5      p95
+       0.001        9.298374e-06       9.195019e-06       0.9923   0.9297   1.0390
+       0.010        9.249416e-05       9.195019e-05       1.0088   0.9649   1.0556
+       0.100        8.893509e-04       9.195019e-04       0.9994   0.9476   1.0631
+       1.000        9.656653e-03       9.195019e-03       1.0185   0.9502   1.0689
+the mean ratio stays within 2% of 1 across four decades of sigma, so the
+first-order model is adequate over the whole range tested
+
+## 2. Rotor momentum error -> torque error
+ sigma [rel]   mean MC rms [N*m]   mean first order   mean ratio       p5      p95
+       1e-04        2.700990e-05       2.703781e-05       0.9982   0.9472   1.0529
+       1e-03        2.710551e-04       2.703781e-04       0.9998   0.9519   1.0537
+       1e-02        2.699231e-03       2.703781e-03       0.9973   0.9405   1.0523
+       5e-02        1.353661e-02       1.351891e-02       1.0000   0.9189   1.0786
+the error is exactly linear in sigma here: the momentum error enters the
+Jacobian linearly, so there is no second-order term at all
+
+## 3. Singularity-measure sensitivity to gimbal-angle error
+ sigma [deg]      MC std(m)   |grad m| sigma     ratio
+       0.001   1.688692e-05     1.727797e-05    0.9774
+       0.010   1.744023e-04     1.727797e-04    1.0094
+       0.100   1.751027e-03     1.727797e-03    1.0134
+       1.000   1.719061e-02     1.727797e-02    0.9949
+
+## 4. Manoeuvre-level effect of gimbal-angle noise
+ sigma [deg]    mean path err    mean net err        min m   vs noise-free
+       0.000     2.549712e-01    6.846035e-02 1.463964e-01          1.0000
+       0.001     2.550009e-01    6.848938e-02 1.463806e-01          1.0001
+       0.010     2.552861e-01    6.875814e-02 1.462402e-01          1.0012
+       0.100     2.591470e-01    7.187941e-02 1.449180e-01          1.0164
+       1.000     3.537793e-01    7.573297e-02 8.562432e-02          1.3875
+the steering law's own error dominates until the angle noise reaches about 0.1 deg; above that the noise dominates
+
+## Summary
+PASS  angle-error Monte Carlo vs first order (smallest sigma)    ratio 0.9923, |ratio-1| < 0.05
+PASS  rotor-error Monte Carlo vs first order (smallest sigma)    ratio 0.9982, |ratio-1| < 0.05
+PASS  measure-sensitivity Monte Carlo vs first order (smallest sigma) ratio 0.9774, |ratio-1| < 0.05
+
+OVERALL: PASS

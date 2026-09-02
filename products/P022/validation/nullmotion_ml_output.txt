@@ -1,0 +1,108 @@
+==============================================================================
+CMGSteer validation 5 -- learned null motion vs classical null motion
+==============================================================================
+array: 4-CMG pyramid, capacity 4.0 N*m*s
+seeds: train 1234, test 5678, benchmark 9012
+
+## 1. Dataset generation
+train 900 samples in 30.31 s
+test  300 samples in 8.93 s
+features 20, horizon 25 steps, candidates 9
+
+### Oracle headroom on the horizon objective [N*m*s]
+   split   k = 0 (plain SR)   best candidate   gradient policy   oracle gain
+   train       1.301202e-02     1.006399e-02      1.193082e-02       22.66%
+    test       2.502476e-02     1.922236e-02      2.279211e-02       23.19%
+classical gradient policy against plain SR on the same objective: +8.92%
+
+### Label distribution
+  train percentile   0: -1.0000
+  train percentile  10: -0.7499
+  train percentile  25: -0.2895
+  train percentile  50: +0.0245
+  train percentile  75: +0.4060
+  train percentile  90: +1.0000
+  train percentile 100: +1.0000
+  train mean +0.0363, std 0.5551
+  fraction of labels at a grid edge (|k| > 0.99): 0.1833
+
+## 2. Training
+5 x MLPRegressor(64, 32), early stopping, fitted in 1.23 s
+total dataset + training time: 40.47 s
+
+## 3. Label-level accuracy on the held-out set
+  mean absolute error   : 0.492465
+  rms error             : 0.623504
+  label standard deviation: 0.596145
+  R^2                   : -0.093893
+  predicted mean +0.1292, std 0.2976
+  sign agreement with the oracle label: 0.5833
+
+## 4. Oracle gap at the predicted coefficient
+the horizon score at the predicted k, by linear interpolation on the
+candidate grid, against the best and the k = 0 scores
+  mean score at predicted k : 2.241476e-02 N*m*s
+  mean score at k = 0       : 2.502476e-02 N*m*s
+  mean score at the oracle k: 1.922236e-02 N*m*s
+  fraction of the oracle gain captured: 44.98%
+  states where the policy is worse than k = 0: 52.33%
+
+### Oracle gap by confidence decile (lowest confidence first)
+ decile   mean confidence   mean |label error|   mean normalised gap
+      1          0.048236             0.633217              0.218464
+      2          0.081221             0.512168              0.523653
+      3          0.123856             0.479880              0.476096
+      4          0.177860             0.589435              0.385322
+      5          0.240016             0.450043              0.369183
+      6          0.303032             0.515195              0.251669
+      7          0.354079             0.529441              0.206651
+      8          0.414777             0.440458              0.320658
+      9          0.512346             0.413957              0.411999
+     10          0.645799             0.360858              0.270978
+Pearson r(confidence, |label error|) = -0.1661
+Pearson r(ensemble spread, |label error|) = +0.1599
+mean ensemble spread / rms label error = 0.2870
+
+## 5. Closed-loop benchmark on a held-out manoeuvre suite
+16 manoeuvres x 900 steps, dt 0.02 s, gimbal-rate limit 2.0 rad/s
+
+configuration   path err [N*m*s]   net err [N*m*s]      min m   rms tau err   sat steps   wall [s]
+        pinv       7.371954e-01      2.900413e-01   0.256271  1.818783e-01       30.94       3.90
+          sr       4.921487e-01      2.181053e-01   0.260340  1.141659e-01       22.94       3.72
+         gsr       4.920096e-01      2.192314e-01   0.260342  1.140798e-01       22.94       3.82
+     sr+grad       4.571102e-01      3.025358e-01   0.234056  1.168396e-01       18.00      10.19
+  sr+learned       4.793887e-01      2.926328e-01   0.230814  1.142026e-01       20.06      60.96
+
+### Paired differences against the plain SR inverse, bootstrap 95% confidence intervals
+configuration       metric    mean difference                         95% CI    wins            verdict
+        pinv         path       2.450466e-01     [+7.7848e-02, +4.4834e-01]    1/16      worse than SR
+        pinv          net       7.193604e-02     [+1.7733e-02, +1.4087e-01]    0/16      worse than SR
+        pinv  min_measure      -4.068397e-03     [-9.3699e-03, -3.5470e-04]    4/16      worse than SR
+         gsr         path      -1.391912e-04     [-3.8615e-03, +3.3893e-03]    9/16  indistinguishable
+         gsr          net       1.126072e-03     [-4.4682e-04, +3.8641e-03]    8/16  indistinguishable
+         gsr  min_measure       2.077834e-06     [-4.8725e-05, +5.1948e-05]    9/16  indistinguishable
+     sr+grad         path      -3.503851e-02     [-2.0949e-01, +1.6292e-01]   10/16  indistinguishable
+     sr+grad          net       8.443053e-02     [-9.5878e-03, +2.1718e-01]    7/16  indistinguishable
+     sr+grad  min_measure      -2.628385e-02     [-1.2153e-01, +6.1568e-02]    8/16  indistinguishable
+  sr+learned         path      -1.276004e-02     [-2.2962e-01, +2.3460e-01]    9/16  indistinguishable
+  sr+learned          net       7.452750e-02     [-4.2746e-02, +2.2013e-01]    9/16  indistinguishable
+  sr+learned  min_measure      -2.952585e-02     [-1.3701e-01, +6.8000e-02]    7/16  indistinguishable
+
+## 6. Runtime per steering step
+configuration    us per step      vs sr
+        pinv          271.2       1.05x
+          sr          258.3       1.00x
+         gsr          265.1       1.03x
+     sr+grad          707.6       2.74x
+  sr+learned         4233.1      16.39x
+
+## 7. Verdict
+oracle headroom on the horizon objective (test split): 23.19%
+fraction of that headroom the learned policy captures: 44.98%
+closed-loop path-error change, sr+learned vs sr: -2.59% (indistinguishable)
+closed-loop path-error change, sr+grad vs sr:    -7.12% (indistinguishable)
+closed-loop net-error change, sr+learned vs sr:  +34.17% (indistinguishable)
+closed-loop net-error change, sr+grad vs sr:     +38.71% (indistinguishable)
+pinv path error vs sr: +49.79%
+
+This is the measured outcome, reported as it came out; see MODEL_CARD.md.

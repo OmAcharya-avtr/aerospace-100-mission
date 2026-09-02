@@ -1,0 +1,112 @@
+==============================================================================
+CMGSteer validation 3 -- steering-law exactness and the SR closed form
+==============================================================================
+seed 20260902, numpy 2.4.4
+
+## 1. pyramid: pseudo-inverse reproduces the commanded torque
+            m band      n   worst |err| [N*m]   worst rate [rad/s]
+        [0.5, inf)   1818        1.665614e-14         2.363123e+00
+        [0.1, 0.5)    571        3.204519e-14         9.172053e+00
+       [0.01, 0.1)    561        6.241461e-13         8.797790e+01
+    [0.0001, 0.01)   1031        8.060199e-12         9.360398e+03
+       [0, 0.0001)     19        7.471545e-11         9.889665e+03
+worst error over the two bands with m >= 0.1: 3.204519e-14 N*m
+4000 states: 2000 uniform plus perturbed analytic singularities
+
+## 1. roof: pseudo-inverse reproduces the commanded torque
+            m band      n   worst |err| [N*m]   worst rate [rad/s]
+        [0.5, inf)   1590        1.403642e-14         1.987408e+00
+        [0.1, 0.5)    691        3.332901e-14         5.946735e+00
+       [0.01, 0.1)    550        5.362313e-13         8.746074e+01
+    [0.0001, 0.01)   1056        2.459046e-11         9.492796e+03
+       [0, 0.0001)    113        8.588138e-11         2.409328e+04
+worst error over the two bands with m >= 0.1: 3.332901e-14 N*m
+4000 states: 2000 uniform plus perturbed analytic singularities
+
+## 2. pyramid: SR-inverse torque error vs the closed form
+closed form: tau_err = sum_k [lam / (sigma_k^2 + lam)] (u_k . tau) u_k
+       lam   mean |err| [N*m]        closed form   worst deviation   mean rel err
+     1e-10    1.738473840e-10    1.738473817e-10      1.313280e-15   4.029548e-10
+     1e-08    1.738472357e-08    1.738472358e-08      1.747485e-15   4.029545e-08
+     1e-06    1.738326471e-06    1.738326471e-06      2.123911e-15   4.029198e-06
+     1e-05    1.737003064e-05    1.737003064e-05      3.128357e-15   4.026052e-05
+     1e-04    1.724043709e-04    1.724043709e-04      2.331468e-15   3.995229e-04
+     1e-03    1.616628445e-03    1.616628445e-03      1.502271e-15   3.738669e-03
+     1e-02    1.216936786e-02    1.216936786e-02      5.342948e-16   2.765351e-02
+     1e-01    6.870827669e-02    6.870827669e-02      4.163336e-16   1.502308e-01
+     1e+00    2.331821083e-01    2.331821083e-01      3.885781e-16   5.061955e-01
+     1e+01    4.073907215e-01    4.073907215e-01      6.661338e-16   8.858226e-01
+worst componentwise deviation across all 10 values of lam and 200 states: 1.240235e-14 N*m
+
+## 2. roof: SR-inverse torque error vs the closed form
+closed form: tau_err = sum_k [lam / (sigma_k^2 + lam)] (u_k . tau) u_k
+       lam   mean |err| [N*m]        closed form   worst deviation   mean rel err
+     1e-10    3.737379229e-10    3.737375704e-10      5.160070e-14   8.234513e-10
+     1e-08    3.737358436e-08    3.737358429e-08      1.615779e-14   8.234464e-08
+     1e-06    3.735633041e-06    3.735633041e-06      3.510071e-15   8.230340e-06
+     1e-05    3.720132741e-05    3.720132741e-05      4.408930e-14   8.193295e-05
+     1e-04    3.581411762e-04    3.581411762e-04      1.681641e-14   7.861902e-04
+     1e-03    2.916916793e-03    2.916916793e-03      3.094747e-15   6.281422e-03
+     1e-02    1.951395671e-02    1.951395671e-02      2.498002e-15   4.074034e-02
+     1e-01    9.145402911e-02    9.145402911e-02      5.967449e-16   1.909183e-01
+     1e+00    2.508291568e-01    2.508291568e-01      7.771561e-16   5.374307e-01
+     1e+01    4.087228734e-01    4.087228734e-01      4.440892e-16   8.868344e-01
+worst componentwise deviation across all 10 values of lam and 200 states: 4.430958e-14 N*m
+
+## 3. SR-inverse error at an exact singularity, as a function of lam
+commanded torque is along the singular direction, so the error is exactly |tau| for every lam > 0
+       lam      |err| [N*m]      closed form   peak rate [rad/s]
+     1e-10  1.000000000e-01  1.000000000e-01        4.898587e-08
+     1e-08  1.000000000e-01  1.000000000e-01        4.898587e-10
+     1e-06  1.000000000e-01  1.000000000e-01        4.898587e-12
+     1e-05  1.000000000e-01  1.000000000e-01        4.898587e-13
+     1e-04  1.000000000e-01  1.000000000e-01        4.898587e-14
+     1e-03  1.000000000e-01  1.000000000e-01        4.898587e-15
+     1e-02  1.000000000e-01  1.000000000e-01        4.898587e-16
+     1e-01  1.000000000e-01  1.000000000e-01        4.898587e-17
+     1e+00  1.000000000e-01  1.000000000e-01        4.898587e-18
+     1e+01  1.000000000e-01  1.000000000e-01        4.898587e-19
+the same command rotated into the plane the array can still act in:
+  lam 1e-08: |err| 4.999999997e-10 N*m
+  lam 1e-04: |err| 4.999750013e-06 N*m
+  lam 1e-02: |err| 4.975124378e-04 N*m
+
+## 4. Gimbal-rate growth approaching a singularity
+  offset [rad]              m    pinv peak rate    SR peak rate   SR |err| [N*m]
+         1e-01   2.868062e-01      9.619349e-01    9.370982e-01     5.947419e-03
+         1e-02   2.892523e-02      9.620343e+00    2.697782e-01     2.207104e-01
+         1e-03   2.892939e-03      9.635462e+01    3.541091e-02     2.268709e-01
+         1e-04   2.892960e-04      9.636962e+02    1.725728e-02     2.269130e-01
+         1e-05   2.892962e-05      9.637112e+03    1.568492e-02     2.269128e-01
+         1e-06   2.892962e-06      9.637127e+04    1.579710e-02     2.269127e-01
+
+## 5. GSR inverse
+eps0 = 0 reduces GSR to SR: worst rate deviation 0.000000e+00 rad/s over 500 states
+  time [s]         e1         e2         e3     |err| [N*m]
+      0.00    0.00000    0.05000    0.00000 4.881227479e-02
+      0.50    0.03536    0.03536   -0.03536 4.881229599e-02
+      1.00    0.05000    0.00000   -0.05000 4.881227480e-02
+      1.50    0.03536   -0.03536   -0.03536 4.881225359e-02
+      2.00    0.00000   -0.05000   -0.00000 4.881227479e-02
+      2.50   -0.03536   -0.03536    0.03536 4.881225359e-02
+
+## 6. Momentum-error convergence with the integration step
+the gimbal angles are integrated by explicit Euler, so the momentum error
+of an otherwise exact law is first order in dt
+    dt [s]   net mom err [N*m*s]   ratio to previous   max |tau err| [N*m]
+   0.10000          1.006766e-02                   -          5.711852e-16
+   0.05000          5.018896e-03              2.0060          6.472541e-16
+   0.02500          2.505703e-03              2.0030          6.575861e-16
+   0.01250          1.251914e-03              2.0015          6.026860e-16
+   0.00625          6.257226e-04              2.0007          6.748944e-16
+the instantaneous torque error stays at round-off throughout: the whole of
+the momentum error here is integration, not steering
+
+## Summary
+PASS  pyramid pseudo-inverse exactness (m >= 0.1)   3.204519e-14 < 1e-12
+PASS  roof pseudo-inverse exactness (m >= 0.1)      3.332901e-14 < 1e-12
+PASS  pyramid SR error vs closed form               1.240235e-14 < 1e-13
+PASS  roof SR error vs closed form                  4.430958e-14 < 1e-13
+PASS  GSR reduces to SR at eps0 = 0                 0.000000e+00 < 1e-13
+
+OVERALL: PASS
