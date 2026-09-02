@@ -1,0 +1,56 @@
+==============================================================================
+CMGSteer validation 6 -- performance benchmark
+==============================================================================
+3.11.15 on x86_64, numpy 2.4.4
+2 CPU cores, no GPU
+
+## 1. Per-call cost of the primitives (4-CMG pyramid)
+                 operation    us per call   calls per second
+            array.momentum          92.71             10,786
+            array.jacobian         112.37              8,899
+       singularity_measure          36.76             27,207
+   manipulability_gradient         456.91              2,189
+          unit_null_vector         705.61              1,417
+      classify_singularity         519.11              1,926
+      pseudo_inverse_steer         554.96              1,802
+          sr_inverse_steer         517.83              1,931
+         gsr_inverse_steer         539.30              1,854
+
+## 2. Scaling with the number of CMGs
+  n CMGs   jacobian [us]   measure [us]   sr steer [us]   gradient [us]
+       4          112.54          34.07          536.21          432.67
+       6          111.23          34.42          519.82          415.28
+       8          108.73          33.29          509.53          419.16
+      12          110.24          33.25          521.87          445.29
+      16          132.58          33.30          526.05          352.18
+
+## 3. Per-call cost of the null-motion policies
+                    policy    us per call
+        GradientNullMotion         533.49
+  PreferredAngleNullMotion         206.43
+         LearnedNullMotion        3234.94
+the learned policy is dominated by five scikit-learn predict calls on a
+single sample; it cannot be batched inside a sequential control loop
+
+## 4. Whole-run throughput
+profile: 1000 steps of 0.02 s
+             configuration   wall [s]    us per step   steps per second
+                      pinv      0.544          543.6              1,840
+                        sr      0.591          590.9              1,692
+                       gsr      0.600          600.2              1,666
+             sr + gradient      1.123         1122.6                891
+
+## 5. Surface mapping and dataset generation
+momentum_envelope(  500) :   0.128 s, 500 points, 256.7 us/point
+momentum_envelope( 2000) :   0.513 s, 2000 points, 256.7 us/point
+momentum_envelope( 8000) :   2.175 s, 8000 points, 271.9 us/point
+rollout of 100 steps, fused single-SVD path :    20085.8 us (200.9 us/step)
+rollout of 100 steps, public path           :   107401.9 us (1074.0 us/step)
+speedup of the fused path: 5.35x
+
+## 6. Memory footprint of a recorded run
+   500 steps:     121.7 KiB (249.2 bytes per step)
+  2000 steps:     486.4 KiB (249.0 bytes per step)
+  8000 steps:    1945.4 KiB (249.0 bytes per step)
+
+OVERALL: measurements only, no pass/fail criterion

@@ -1,0 +1,104 @@
+==============================================================================
+CMGSteer validation 2 -- singularity measure and classification
+==============================================================================
+seed 20260902, numpy 2.4.4
+
+## 1. pyramid: measure on the analytic singular set
+       sign vector   count        worst m   worst sigma_min
+              ++++     500   9.237113e-16      4.826926e-16
+              +++-     500   8.188846e-16      4.207359e-16
+              ++-+     500   9.462344e-16      4.925674e-16
+              ++--     500   9.408267e-16      4.916364e-16
+              +-++     500   7.617523e-16      3.953736e-16
+              +-+-     500   1.009474e-15      5.143823e-16
+              +--+     500   8.166363e-16      4.088076e-16
+              +---     500   9.217494e-16      4.708390e-16
+              -+++     500   8.700798e-16      4.546671e-16
+              -++-     500   9.395605e-16      4.833071e-16
+              -+-+     500   9.238361e-16      4.752185e-16
+              -+--     500   9.625733e-16      5.010727e-16
+              --++     500   9.745176e-16      5.080073e-16
+              --+-     500   9.362708e-16      4.909917e-16
+              ---+     500   9.745176e-16      5.080073e-16
+              ----     500   9.654516e-16      5.025711e-16
+16 sign vectors x 500 directions, 8000 usable points
+worst singularity measure anywhere on the analytic set: 1.009474e-15
+
+## 2. pyramid: measure away from the singular set (reference scale)
+  percentile   0: 1.472012e-02
+  percentile   1: 1.648394e-01
+  percentile   5: 3.601416e-01
+  percentile  25: 7.443584e-01
+  percentile  50: 1.009224e+00
+  percentile  75: 1.205470e+00
+  percentile 100: 1.536094e+00
+  mean 9.581813e-01
+
+## 3. pyramid: classification of the singular set
+      kind    passability    count   fraction
+  external       elliptic      400     0.1250
+  internal       elliptic      738     0.2306
+  internal     hyperbolic     2062     0.6444
+total classified points: 3200
+external singularities that are elliptic: 400 of 400 (1.0000)
+
+## 1. roof: measure on the analytic singular set
+       sign vector   count        worst m   worst sigma_min
+              ++++     500   7.129969e-16      4.104248e-16
+              +++-     500   7.129969e-16      4.127170e-16
+              ++-+     500   7.129969e-16      4.104248e-16
+              ++--     500   5.679568e-16      3.148350e-16
+              +-++     500   9.204783e-16      5.034834e-16
+              +-+-     500   7.733190e-16      4.229902e-16
+              +--+     500   9.258832e-16      5.064398e-16
+              +---     500   7.107302e-16      3.910725e-16
+              -+++     500   9.936793e-16      5.671167e-16
+              -++-     500   8.173886e-16      4.665033e-16
+              -+-+     500   8.173886e-16      4.665033e-16
+              -+--     500   8.173886e-16      4.665033e-16
+              --++     500   5.326310e-16      2.952529e-16
+              --+-     500   6.598904e-16      4.545674e-16
+              ---+     500   6.598904e-16      3.739362e-16
+              ----     500   5.832089e-16      3.555040e-16
+16 sign vectors x 500 directions, 8000 usable points
+worst singularity measure anywhere on the analytic set: 9.936793e-16
+
+## 4. Hand-computable configurations of the standard pyramid
+                     configuration              m        |h|       kind   passability
+              all gimbals at 0 deg   1.152000e+00   0.000000       none          none
+            all gimbals at +90 deg   1.959435e-16   3.200000   external      elliptic
+           hand-computed h [N*m*s] [0.  0.  3.2]  deviation 4.441e-16
+  gimbals at (90, 90, 90, -90) deg   3.989069e-16   2.000000   internal    degenerate
+           hand-computed h [N*m*s] [ 0.  -1.2  1.6]  deviation 2.220e-16
+m at delta = 0 is sqrt(0.72 * 0.72 * 2.56) = 1.152 by hand; computed 1.152000000000001
+
+## 5. Singular surfaces in momentum space
+outer (saturation) envelope: 4000 points
+  min radius 2.975341090, max radius 3.298439824 N*m*s
+  capacity sum(h0) = 4.000000 N*m*s
+  sphericity (min/max) 0.902045
+   sign vector   points      min |h|      max |h|
+          ++++      800     2.980002     3.298425
+          +++-      800     1.045042     3.015232
+          ++-+      800     1.047568     2.998582
+          ++--      800     0.033599     1.907607
+          +-++      800     0.985175     2.975548
+          +-+-      800     0.124950     1.849440
+          +--+      800     0.160849     1.810015
+          +---      800     1.026450     2.976699
+          -+++      800     1.026450     2.976699
+          -++-      800     0.160849     1.810015
+          -+-+      800     0.124950     1.849440
+          -+--      800     0.985175     2.975548
+          --++      800     0.033599     1.907607
+          --+-      800     1.047568     2.998582
+          ---+      800     1.045042     3.015232
+          ----      800     2.980002     3.298425
+
+## Summary
+PASS  pyramid m on the analytic singular set         1.009474e-15 < 1e-13
+PASS  roof m on the analytic singular set            9.936793e-16 < 1e-13
+PASS  hand-computed momenta at known singularities   4.440892e-16 < 1e-12
+reference: mean m over random pyramid configurations is 9.581813e-01, so the singular-set values are 13 orders of magnitude below the regular scale
+
+OVERALL: PASS
