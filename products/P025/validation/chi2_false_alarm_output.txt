@@ -1,0 +1,50 @@
+V1 -- chi-squared false-alarm rate, measured against design
+==============================================================================
+60 fault-free closed-loop runs of 6000 samples, burn-in 300,
+seeds 20000..20059.  All data SIMULATED.
+
+-- A1  is the normalised residual N(0, I) and white?
+samples                 : 342000
+channel means           : [-0.004025  0.000452]   (expect 0)
+channel std             : [1.000934 1.000831]   (expect 1)
+mean NIS                : 2.003549  expected 2.0, 95 % band [1.993303, 2.006708]
+lag-1 autocorrelation   : [-0.000412  0.001251]   5 % band +/-0.003352, 4-sigma +/-0.006840
+lag-2 autocorrelation   : [0.001052 0.001283]   5 % band +/-0.003352, 4-sigma +/-0.006840
+lag-3 autocorrelation   : [ 0.000356 -0.000199]   5 % band +/-0.003352, 4-sigma +/-0.006840
+A1: PASS
+
+-- A2  non-overlapping windows: measured false-alarm rate vs design alpha
+ window    alpha   threshold    measured       95 % Wilson interval       n  verdict
+     25    1e-01     63.1671    0.099123       [0.094227, 0.104243]   13680  PASS
+     25    1e-02     76.1539    0.009211       [0.007742, 0.010955]   13680  PASS
+     25    1e-03     86.6608    0.001096       [0.000665, 0.001808]   13680  PASS
+    100    1e-01    226.0210    0.102632       [0.092902, 0.113252]    3420  PASS
+    100    1e-02    249.4451    0.009064       [0.006393, 0.012837]    3420  PASS
+    100    1e-03    267.5405    0.000292       [0.000052, 0.001654]    3420  PASS
+A2: PASS
+
+-- A3  overlapping windows: per-sample alarm fraction, as a ratio to alpha
+(measurement, no pass/fail: overlapping windows are correlated, so the
+ per-sample alarm fraction is NOT the per-test design level)
+ window    alpha   per-sample rate   ratio to alpha
+     25    1e-01          0.100599            1.006
+     25    1e-02          0.010327            1.033
+     25    1e-03          0.000825            0.825
+    100    1e-01          0.104776            1.048
+    100    1e-02          0.009915            0.991
+    100    1e-03          0.000905            0.905
+
+-- A3b round trip: chi2_false_alarm_rate(chi2_threshold(alpha, dof), dof)
+worst relative round-trip error : 7.806e-15   (tolerance 1e-9)
+A3b: PASS
+
+-- A4  CUSUM average run length under H0, reset on alarm
+ threshold   analytic ARL0   measured ARL0    ratio   alarms  verdict
+    4.0000          337.81          335.95   0.9945     1018  PASS
+    5.7500         1999.11         2150.94   1.0759      159  PASS
+    8.0000        19096.94        16285.71   0.8528       21  PASS
+A4: PASS  (tolerance: factor 1.5)
+
+==============================================================================
+V1 summary: A1 PASS, A2 PASS, A3 measurement, A3b PASS, A4 PASS
+wall time 3.7 s

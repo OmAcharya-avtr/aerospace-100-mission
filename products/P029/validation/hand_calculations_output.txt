@@ -1,0 +1,128 @@
+Hand calculations
+==========================================================================================
+
+0. Derived constants.
+   P_1AU = Phi / c = 1361 / 299792458 = 4.5398073...e-06 N m^-2
+   B0(surface, equator) = 7.96e15 / 6371200^3
+       6371200^3 = 2.5859...e20 m^3, so B0 = 3.0778635...e-05 T
+
+  [PASS] solar radiation pressure at 1 AU                               value= 4.5398073356e-06 target= 4.5398073356e-06 rel_err=0.000e+00 tol=1.0e-15
+  [PASS] SRP numeric value                                              value= 4.5398073356e-06 target= 4.5398073000e-06 rel_err=7.852e-09 tol=1.0e-08
+  [PASS] equatorial surface field from the reduced moment               value= 3.0778634807e-05 target= 3.0778635000e-05 rel_err=6.274e-09 tol=1.0e-07
+
+1. Orbital period at 500 km. R = 6378137 + 500000 = 6878137 m.
+   R^3 = 3.2539619...e20 m^3;  R^3 / mu = 3.25396e20 / 3.986004418e14 = 816355.3... s^2
+   sqrt = 903.5238... s;  T = 2 pi * 903.5238 = 5676.9780... s
+
+   R^3 = 3.253962e+20 m^3, T = 5676.978029 s
+  [PASS] orbital period at 500 km                                       value= 5.6769780285e+03 target= 5.6769780285e+03 rel_err=0.000e+00 tol=1.0e-15
+  [PASS] orbital period against the value P027 publishes                value= 5.6769780285e+03 target= 5.6769780000e+03 rel_err=5.025e-09 tol=1.0e-07
+
+2. Gravity gradient, I = diag(4, 8, 10) kg m^2, nadir 30 deg off the body z axis in the
+   y-z plane: u = (0, sin 30, cos 30) = (0, 0.5, 0.8660254038).
+   I u = (0, 4.0, 8.660254038)
+   u x (I u) = (0.5*8.660254038 - 0.8660254038*4.0, 0, 0) = (0.8660254038, 0, 0)
+   3 mu / R^3 = 3*3.986004418e14 / 3.2539619e20 = 3.6749088...e-06 s^-2
+   T = 3.6749088e-06 * 0.8660254038 = 3.1825644...e-06 N m about body x, zero elsewhere.
+   Cross-check on the same number from the planar closed form
+   T = (3 mu / 2R^3)(Izz - Iyy) sin 2 theta = 3.6749088e-06/2 * 2 * sin 60 deg. Same.
+
+   3 mu / R^3 = 3.674908791e-06 s^-2
+   hand  [ 3.182564370e-06  0.000000000e+00  0.000000000e+00] N m
+   code  [ 3.182564370e-06  0.000000000e+00  0.000000000e+00] N m
+  [PASS] gravity-gradient torque, x                                     value= 3.1825643698e-06 target= 3.1825643698e-06 rel_err=0.000e+00 tol=1.0e-14
+  [PASS] gravity-gradient torque, magnitude                             value= 3.1825643698e-06 target= 3.1825644000e-06 rel_err=9.487e-09 tol=1.0e-07
+  [PASS] gravity-gradient torque, y and z are zero                      value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-22
+  [PASS] planar closed form gives the same number                       value= 3.1825643698e-06 target= 3.1825643698e-06 rel_err=2.661e-16 tol=1.0e-14
+
+   Worst case: T_max = (3 mu / 2 R^3)|Izz - Iyy| = 3.6749088e-06 / 2 * 2 = 3.6749088e-06
+   N m, attained at 45 deg. The code's worst-case helper must return exactly that.
+
+  [PASS] worst-case gravity gradient                                    value= 3.6749087912e-06 target= 3.6749087912e-06 rel_err=0.000e+00 tol=1.0e-15
+
+3. Exponential density at 500 km is a table base altitude, so no exponential is involved:
+   rho(500 km) = 6.967e-13 kg m^-3 exactly. At 550 km,
+   rho = 6.967e-13 * exp(-50/63.822) = 6.967e-13 * 0.456654... = 3.18150...e-13.
+
+   rho(500 km) = 6.967000e-13 kg m^-3
+   rho(550 km) = 3.182782e-13 kg m^-3
+  [PASS] density at 500 km                                              value= 6.9670000000e-13 target= 6.9670000000e-13 rel_err=0.000e+00 tol=1.0e-15
+  [PASS] density at 550 km                                              value= 3.1827824688e-13 target= 3.1827824688e-13 rel_err=1.586e-16 tol=1.0e-15
+
+4. Aerodynamic torque. rho = 6.967e-13 kg m^-3, v_rel = (7600, 0, 0) m s^-1, Cd = 2.2,
+   A = 0.6 m^2, cp offset (0, 0, 0.05) m.
+   0.5 * rho * Cd * A = 0.5 * 6.967e-13 * 2.2 * 0.6 = 4.598220e-13
+   |F| = 4.598220e-13 * 7600^2 = 4.598220e-13 * 5.776e7 = 2.6559319...e-05 N, along -x
+   T = (0, 0, 0.05) x (-2.6559319e-05, 0, 0) = (0, -1.3279659...e-06, 0) N m
+
+   |F| = 2.655931872e-05 N
+   hand  [ 0.000000000e+00 -1.327965936e-06  0.000000000e+00] N m
+   code  [ 0.000000000e+00 -1.327965936e-06  0.000000000e+00] N m
+  [PASS] aerodynamic torque, y                                          value=-1.3279659360e-06 target=-1.3279659360e-06 rel_err=1.595e-16 tol=1.0e-14
+  [PASS] aerodynamic torque, y numeric                                  value=-1.3279659360e-06 target=-1.3279659000e-06 rel_err=2.711e-08 tol=1.0e-07
+
+5. Solar radiation pressure torque. P = 4.5398073e-06 N m^-2, A = 1.2 m^2, q = 0.6,
+   Sun along body +z, cp offset (0.02, 0, 0) m.
+   |F| = 4.5398073e-06 * 1.2 * 1.6 = 8.7164301...e-06 N, along -z
+   T = (0.02, 0, 0) x (0, 0, -8.7164301e-06) = (0, 1.7432860...e-07, 0) N m
+
+   |F| = 8.716430084e-06 N
+   hand  [ 0.000000000e+00  1.743286017e-07  0.000000000e+00] N m
+   code  [ 0.000000000e+00  1.743286017e-07  0.000000000e+00] N m
+  [PASS] SRP torque, y                                                  value= 1.7432860169e-07 target= 1.7432860169e-07 rel_err=0.000e+00 tol=1.0e-15
+  [PASS] SRP torque, y numeric                                          value= 1.7432860169e-07 target= 1.7432860000e-07 rel_err=9.688e-09 tol=1.0e-07
+  [PASS] SRP torque is zero in eclipse                                  value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-30
+
+6. Residual dipole torque. m = (0.05, 0.05, 0.10) A m^2, B = (0, 0, 3.0e-05) T.
+   T = m x B = (0.05*3e-05 - 0.10*0, 0.10*0 - 0.05*3e-05, 0.05*0 - 0.05*0)
+             = (1.5e-06, -1.5e-06, 0) N m
+
+   code  [ 1.500000000e-06 -1.500000000e-06  0.000000000e+00] N m
+  [PASS] dipole torque, x                                               value= 1.5000000000e-06 target= 1.5000000000e-06 rel_err=0.000e+00 tol=1.0e-15
+  [PASS] dipole torque, y                                               value=-1.5000000000e-06 target=-1.5000000000e-06 rel_err=0.000e+00 tol=1.0e-15
+  [PASS] dipole torque, z                                               value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-30
+
+7. Dipole field. m_hat = -z_hat, so at r = (7e6, 0, 0) m the dot product m_hat . r_hat is
+   zero and B = (k / r^3) z_hat with k / r^3 = 7.96e15 / 3.43e20 = 2.320699...e-05 T.
+   Over the north pole r = (0, 0, 7e6): m_hat . r_hat = -1, so
+   B = (k/r^3)(3(-1)(0,0,1) - (0,0,-1)) = (k/r^3)(0, 0, -2), magnitude twice the
+   equatorial value and pointing into the Earth.
+
+   equator  [ 0.000000e+00  0.000000e+00  2.320700e-05] T
+   pole     [ 0.000000e+00  0.000000e+00 -4.641399e-05] T
+  [PASS] equatorial field, z                                            value= 2.3206997085e-05 target= 2.3206997085e-05 rel_err=0.000e+00 tol=1.0e-15
+  [PASS] equatorial field numeric                                       value= 2.3206997085e-05 target= 2.3207000000e-05 rel_err=1.256e-07 tol=1.0e-06
+  [PASS] polar field is minus twice the equatorial                      value=-4.6413994169e-05 target=-4.6413994169e-05 rel_err=0.000e+00 tol=1.0e-15
+
+8. Isotropic four-wheel pyramid. Half-angle b = arctan sqrt 2, so sin b = sqrt(2/3) =
+   0.8164965809 and cos b = 1/sqrt 3 = 0.5773502692.
+   A A^T = diag(2 sin^2 b, 2 sin^2 b, 4 cos^2 b) = diag(4/3, 4/3, 4/3): isotropic.
+   A^+ = A^T (A A^T)^-1 = (3/4) A^T, so the largest row norm of A^+ is 3/4 and the
+   guaranteed body envelope is h_max / (3/4) = (4/3) h_max = 0.0666666... N m s for
+   0.05 N m s wheels.
+   For a request along body z the minimum-norm solution puts (3/4) cos b h on every wheel:
+   0.75 * 0.5773502692 * 0.02 = 8.660254...e-03 N m s each.
+
+   A A^T diagonal  [1.333333333333, 1.333333333333, 1.333333333333]
+   envelope        0.0666666667 N m s
+   min-norm wheels [0.008660254, 0.008660254, 0.008660254, 0.008660254] N m s
+  [PASS] A A^T is 4/3 on the diagonal                                   value= 1.3333333333e+00 target= 1.3333333333e+00 rel_err=0.000e+00 tol=1.0e-14
+  [PASS] A A^T is diagonal                                              value= 8.1643119943e-17 target= 0.0000000000e+00 abs_err=8.164e-17 tol=1.0e-16
+  [PASS] guaranteed body envelope                                       value= 6.6666666667e-02 target= 6.6666666667e-02 rel_err=2.082e-16 tol=1.0e-14
+  [PASS] min-norm wheel momentum for a z request                        value= 8.6602540378e-03 target= 8.6602540378e-03 rel_err=2.003e-16 tol=1.0e-14
+  [PASS] min-norm wheel momentum numeric                                value= 8.6602540378e-03 target= 8.6602540000e-03 rel_err=4.370e-09 tol=1.0e-06
+
+9. Thruster dump. dh = 0.05 N m s, moment arm 0.5 m, thruster couple (two jets),
+   Isp 220 s, efficiency 1.
+   I = 2 * 0.05 / 0.5 = 0.2 N s
+   m_p = 0.2 / (220 * 9.80665) = 0.2 / 2157.463 = 9.270147...e-05 kg
+
+   impulse 0.2000000000 N s, propellant 9.2701473907e-05 kg
+  [PASS] thruster impulse                                               value= 2.0000000000e-01 target= 2.0000000000e-01 rel_err=0.000e+00 tol=1.0e-15
+  [PASS] thruster propellant                                            value= 9.2701473907e-05 target= 9.2701473907e-05 rel_err=0.000e+00 tol=1.0e-15
+  [PASS] thruster propellant numeric                                    value= 9.2701473907e-05 target= 9.2701470000e-05 rel_err=4.215e-08 tol=1.0e-06
+  [PASS] a single jet costs half the propellant of a couple             value= 4.6350736954e-05 target= 4.6350736954e-05 rel_err=0.000e+00 tol=1.0e-15
+
+wall time 0.00 s
+
+hand_calculations.py: 32 passed, 0 failed

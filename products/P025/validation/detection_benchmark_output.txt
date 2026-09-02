@@ -1,0 +1,76 @@
+V3 -- detection benchmark: false-alarm rate, delay and ROC
+==========================================================================================
+campaign build 27.4 s
+training scenarios 240, held out 240, calibration runs 150, held-out fault-free runs 150
+windows: short 25, long 100 samples; design alpha 0.001; CUSUM design mu 1
+classifier: 1440 training rows x 16 features
+All data SIMULATED.
+
+-- thresholds
+      method   design formula     calibrated   note
+  chi2_short          86.6608        92.1187   closed form, needs no data
+   chi2_long         267.5405       270.8737   closed form, needs no data
+       cusum           5.7504         9.1133   closed form, needs no data
+         glr             none        17.3754   NO closed form: needs fault-free data to be usable at all
+     learned             none         0.7921   NO closed form: needs fault-free data to be usable at all
+
+The two columns above are the first result.  The chi-squared and CUSUM
+thresholds follow from a distribution and a target rate with no data; the
+GLR bank and the classifier have no such formula and cannot be operated
+without a fault-free calibration set.  Everything below is measured at the
+calibrated thresholds so that the delays are comparable.
+
+-- C1  false-alarm rate on held-out fault-free runs
+      method    per-run            95 % Wilson   target   per-sample     alarming/total  verdict
+  chi2_short     0.1167       [0.0776, 0.1718]     0.10     0.000281          86/306000  PASS
+   chi2_long     0.1222       [0.0821, 0.1781]     0.10     0.000526         161/306000  PASS
+       cusum     0.1389       [0.0959, 0.1970]     0.10     0.000493         151/306000  PASS
+         glr     0.0389       [0.0190, 0.0781]     0.10     0.000085          26/306000  FAIL
+     learned     0.1500       [0.1052, 0.2094]     0.10     0.000719         220/306000  FAIL
+C1: FAIL
+
+-- C2/C3  detection rate and delay, held-out faulted runs
+      method  det rate  censored  mean delay              95 % CI   median      p90  verdict
+  chi2_short    0.9857         3       71.42       [59.81, 83.02]     49.0    166.0  PASS
+   chi2_long    0.9857         3       75.76       [63.88, 87.64]     57.0    168.0  PASS
+       cusum    1.0000         0       54.33       [44.90, 63.76]     33.0    125.7  PASS
+         glr    1.0000         0       54.27       [46.85, 61.69]     41.0    117.1  PASS
+     learned    0.9952         1       56.58       [48.25, 64.90]     42.0    127.0  PASS
+C2: PASS  (detection rate >= 0.95)
+Delays are in samples at dt = 0.1 s; a censored run is one that never
+alarmed within 600 samples and is excluded from the mean, not zero-filled.
+
+-- C3  mean detection delay per fault class [samples]
+                     fault class   chi2_short    chi2_long        cusum          glr      learned
+                     sensor_bias          4.2          6.9          3.2         13.0          4.9
+                    sensor_drift         76.1         76.3         48.3         51.6         58.4
+                    sensor_stuck         38.7         45.1         26.2         33.2         35.5
+                  sensor_dropout          5.3          6.6          1.7          7.0          3.7
+  actuator_loss_of_effectiveness         91.5         96.5         62.5         61.1         70.6
+                  actuator_stuck         99.9        104.4         83.6         82.4         85.3
+                actuator_runaway        189.8        194.0        154.8        131.6        136.0
+Censored runs are NaN and are excluded from the class mean; the censored
+counts per method are in the C2 table above.
+
+-- C3  ROC over window-level scores
+positives 840 windows at offsets (0, 25, 50, 100) after onset; negatives 840 pre-onset windows
+      method       AUC   TPR@FPR=0.10   TPR@FPR=0.01   TPR@FPR=0.001
+   chi2_long    0.9411         0.8643         0.8167          0.7571
+       cusum    0.9459         0.9000         0.8643          0.8476
+         glr    0.9751         0.9417         0.9131          0.8821
+     learned    0.9695         0.9381         0.9024          0.8476
+highest AUC: glr (0.9751)
+
+-- C3  ROC restricted to each fault class (positives of that class only)
+                     fault class    chi2_long        cusum          glr      learned
+                     sensor_bias       0.9036       0.8650       0.9722       0.9702
+                    sensor_drift       0.9823       0.9928       0.9984       0.9959
+                    sensor_stuck       0.9878       0.9996       0.9971       1.0000
+                  sensor_dropout       1.0000       1.0000       1.0000       1.0000
+  actuator_loss_of_effectiveness       0.9204       0.9435       0.9824       0.9607
+                  actuator_stuck       0.9706       0.9683       0.9733       0.9756
+                actuator_runaway       0.8231       0.8522       0.9020       0.8843
+
+==========================================================================================
+V3 summary: C1 FAIL, C2 PASS, C3 measurements above
+wall time 62.8 s

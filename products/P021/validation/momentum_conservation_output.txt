@@ -1,0 +1,84 @@
+
+==============================================================================
+PART A -- torque-free conservation of the inertial angular momentum
+==============================================================================
+Euler's equation with tau_ext = 0 conserves L = R(q) J omega exactly.
+300 s at dt = 0.02 s, RK4, quaternion renormalised every step.
+
+case                         |L| drift [N*m*s]      relative   dir drift [rad]
+spin about max axis               1.332268e-15     3.331e-16      8.539566e-15
+spin about int axis               8.881784e-16     1.776e-16      1.193045e-14
+spin about min axis               3.552714e-15     5.921e-16      4.921288e-14
+tumble (0.03,0.04,0.02)           2.664535e-14     4.746e-15      1.354099e-14
+near-separatrix                   2.398082e-14     4.796e-15      3.124452e-14
+
+worst relative |L| drift  : 4.796144e-15   tolerance 1e-12
+worst direction drift     : 4.921288e-14 rad
+
+The two columns are not the same quantity and do not have the same
+error. |L| = |J omega| is an invariant of Euler's equation on its own,
+independent of the attitude, and RK4 preserves it to round-off. The
+*direction* of L in inertial space is L = R(q) J omega, so it inherits
+the attitude truncation error, which is O(dt^4) and shown in PART B.
+Reporting only the first number would be flattering and wrong.
+
+Direction drift against step size, tumble case, 300 s:
+    dt [s]     dir drift [rad]     ratio
+    0.3200        8.526614e-11          
+    0.1600        5.333952e-12     15.99
+    0.0800        3.359026e-13     15.88
+    0.0400        2.322158e-14     14.47
+
+==============================================================================
+PART B -- RK4 order by step halving
+==============================================================================
+Reference: the same tumble integrated at dt = 2.5e-3 s. Error is the
+eigenaxis angle between the final attitudes, via quat_angle(), which
+uses atan2 rather than arccos and so resolves angles below 1e-8 rad.
+
+    dt [s]    attitude error [rad]     ratio
+    0.3200            2.515869e-10          
+    0.1600            1.572678e-11     16.00
+    0.0800            0.000000e+00          
+    0.0400            0.000000e+00          
+expected ratio 16 for a fourth-order method
+
+==============================================================================
+PART C -- rotational kinetic energy, the second torque-free invariant
+==============================================================================
+2 T = omega . J omega is conserved independently of L.
+
+case                         relative energy drift
+spin about max axis                   0.000000e+00
+spin about int axis                   0.000000e+00
+spin about min axis                   0.000000e+00
+tumble (0.03,0.04,0.02)               9.436896e-15
+near-separatrix                       9.325799e-15
+
+worst relative energy drift: 9.436896e-15   tolerance 1e-11
+
+==============================================================================
+PART D -- wheels move momentum between body and wheels, not out of it
+==============================================================================
+80 s manoeuvre driven by the wheels alone, no external torque,
+starting from rest with unspun wheels, so the exact total L is zero.
+
+  peak |body momentum J omega|  : 2.465560121 N*m*s
+  peak per-wheel momentum       : 1.571024103 N*m*s
+  peak |A h| (wheel momentum in body) : 2.465560121 N*m*s
+  worst |total L| over the run  : 1.411977e-13 N*m*s   tolerance 1e-12
+  final body rate |omega|       : 1.903538e-06 rad/s
+  (equal and opposite torque pulses return the body to rest)
+  wheel torque saturation flagged   : False
+  wheel momentum saturation flagged : False
+
+==============================================================================
+PART E -- both invariants over 120 random torque-free initial states
+==============================================================================
+worst relative |L| drift over 120 runs      : 6.193738e-15   tolerance 1e-12
+worst relative energy drift over 120 runs   : 1.219968e-14   tolerance 1e-11
+
+==============================================================================
+SUMMARY
+==============================================================================
+failed checks: 0

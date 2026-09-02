@@ -1,0 +1,115 @@
+
+==============================================================================
+PART A -- hand-computed case
+==============================================================================
+Eigenaxis e = z. Boresight at psi = 0 is n0 = (sin 60, 0, cos 60),
+so the boresight traces a small circle of angular radius 60 deg about z.
+Cone axis c = x, half-angle gamma = 40 deg. Sweep 120 deg.
+
+f(psi) = n(psi) . c = A cos psi + B sin psi + C with
+  A = n0.c - (e.n0)(e.c),  B = (e x n0).c,  C = (e.n0)(e.c)
+  e.n0  = cos 60 deg      = 0.5000000000000001
+  e.c   = z . x           = 0.0
+  n0.c  = sin 60 deg      = 0.8660254037844386
+  A     = sqrt(3)/2       = 0.8660254037844386   (hand: 0.8660254037844386)
+  B                       = 0.0
+  C                       = 0.0
+  |A - sqrt(3)/2|         = 0.000e+00   tolerance 1e-15
+
+So f(psi) = (sqrt(3)/2) cos psi, maximised at psi = 0 with value
+sqrt(3)/2 = cos 30 deg. The boresight is therefore 30 deg from the cone
+axis at the start, and the cone is 40 deg, so the margin is exactly
+-10 deg and the arc starts 10 deg inside the cone.
+  library min margin      = -9.999999999999995 deg
+  hand                    = -10 deg
+  |difference|            = 5.329e-15 deg   tolerance 1e-13
+
+Violation ends where f = cos gamma, i.e. cos psi = cos 40 / cos 30:
+  cos 40 / cos 30         = 0.8845519308919177
+  psi_exit = arccos(.)    = 0.4852638035810586 rad = 27.80356789566002 deg
+  library intervals [deg] = [(0.0, 27.80356789566001)]
+  |difference|            = 2.220e-16 rad   tolerance 1e-14
+  reported depth          = 9.999999999999995 deg (hand: 10 deg)
+
+==============================================================================
+PART B -- closed form vs dense sampling, 4000 random geometries
+==============================================================================
+The sampled reference evaluates the margin at 20 001 points per arc.
+The closed form must never be larger than the sampled minimum (that
+would be a missed violation) and must agree to the sampling resolution.
+
+worst |closed form - sampled|   : 6.357903e-07 rad   tolerance 1e-6
+worst (closed form - sampled)   : 1.332268e-15 rad (positive means the closed form was optimistic)
+The sampled minimum can only be >= the true minimum, so a small positive
+value here is the sampling error, not a defect in the closed form.
+
+Verdict agreement (violates / does not) over the same 4000 geometries:
+disagreements away from tangency (|margin| > 1e-5 rad): 0 / 4000
+
+==============================================================================
+PART C -- interval endpoints are roots of the margin function
+==============================================================================
+Every interior endpoint returned by violation_intervals() must sit at a
+zero of the margin. Checked directly and refined with Brent's method.
+
+interior endpoints checked            : 745
+worst |margin| at an endpoint         : 2.622902e-15 rad   tolerance 1e-12
+worst |closed form - Brent root|      : 9.769963e-15 rad   tolerance 1e-9
+
+==============================================================================
+PART D -- degenerate geometries
+==============================================================================
+D1 boresight parallel to the eigenaxis: the small circle is a point.
+   margin over a 180 deg sweep = -20.000000000000 deg (hand: -20)
+
+D2 exact tangency: cone axis on the eigenaxis, half-angle equal to the
+   small-circle radius, so the boresight rides the boundary for the
+   whole slew.
+   margin        = 0.000e+00 rad (hand: exactly 0)
+   intervals     = () (hand: none -- the boundary is allowed)
+
+D3 cone containing the whole arc:
+   margin        = -20.000000000000 deg (hand: 60 - 80 = -20)
+   intervals     = [(0.0, 300.0)]
+
+D4 cone the arc never reaches:
+   margin        = 100.000000000000 deg (hand: 120 - 20 = 100)
+   intervals     = ()
+
+D5 zero sweep: the arc is a point, so the arc test reduces to the
+   point test.
+   arc margin 0.8845947000032295 vs point margin 0.8845947000032295, diff 0.000e+00   tolerance 1e-15
+
+==============================================================================
+PART E -- rotation invariance
+==============================================================================
+Rotating the boresight, the eigenaxis and the cone axis together must
+leave the margin unchanged. 20 000 Haar-uniform rotations.
+base margin                     : 0.9560741027327588 rad
+worst |change| over 20 000       : 8.881784e-16 rad   tolerance 1e-14
+verdict flips                    : 0
+
+==============================================================================
+PART F -- the sampling trap
+==============================================================================
+A planner that checks the path at N samples misses any violation
+narrower than the sample spacing. Constructed case: a 90 deg sweep
+whose boresight clips a cone for a stretch of the widths below.
+
+The cone is centred at psi = 0.3712345 of the sweep, deliberately not on
+a grid point of any of the sample counts below.
+
+ violation width [deg]      N=51     N=201    N=1001   closed form
+                 12.00    caught    caught    caught        caught
+                  4.00    caught    caught    caught        caught
+                  1.00    MISSED    caught    caught        caught
+                  0.25    MISSED    caught    caught        caught
+                  0.05    MISSED    MISSED    caught        caught
+
+The closed form catches every one. This is the reason the planner's
+constraint is analytic rather than sampled.
+
+==============================================================================
+SUMMARY
+==============================================================================
+failed checks: 0

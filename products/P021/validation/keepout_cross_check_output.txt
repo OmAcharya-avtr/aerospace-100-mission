@@ -1,0 +1,88 @@
+
+==============================================================================
+CROSS-CHECK AGAINST KEEPOUT (P030)
+==============================================================================
+KeepOut source        : /home/claude/aerospace-100-mission/products/P030/src/keepout/__init__.py
+KeepOut version       : 0.1.0
+
+The two cone implementations were written independently:
+  KeepOut    ExclusionCone.margin  = angular_separation(b, axis) - half_angle
+             with angular_separation = atan2(|a x b|, a . b)
+  SlewForge  KeepOutCone.margin     = the same definition, own code, plus a
+             closed-form arc test KeepOut does not have
+Agreement on the point test is therefore a check on two independent
+transcriptions of textbook geometry, not on shared code.
+
+==============================================================================
+PART A -- point-wise margins and verdicts, 20 000 random configurations
+==============================================================================
+configurations               : 20000
+worst |margin difference|    : 8.881784e-16 rad   tolerance 1e-14
+verdict disagreements        : 0   tolerance 0
+worst |solid angle diff|     : 0.000000e+00 sr   tolerance 1e-15
+
+The two are NOT bit-identical, and the tolerance above says so. The
+residual is floating-point association: KeepOut forms the separation as
+np.arctan2(np.linalg.norm(np.cross(a, b)), np.sum(a * b)) while SlewForge
+uses its own cross3 and math.sqrt, so the last bit of the cross-product
+norm can differ. 8.9e-16 rad is 1.8e-10 arcsec; it changes no verdict in
+20 000 trials, and claiming bit-equality would have been wrong.
+
+Multi-cone sets: worst-case margin and the violation list.
+worst |set margin difference|: 4.440892e-16 rad   tolerance 1e-14
+violation-list mismatches    : 0 / 4000   tolerance 0
+
+==============================================================================
+PART B -- datasheet conversion and the Earth's angular radius
+==============================================================================
+  altitude [km]     SlewForge [deg]     KeepOut [deg]      |diff|
+            0.0       90.0000000000     90.0000000000   0.000e+00
+          400.0       70.2179312813     70.2179312813   0.000e+00
+          550.0       67.0159484695     67.0159484695   0.000e+00
+          800.0       62.6916609107     62.6916609107   0.000e+00
+         1200.0       57.3147398022     57.3147398022   0.000e+00
+        35786.0        8.7004880880      8.7004880880   0.000e+00
+
+worst |difference|           : 0.000000e+00 rad   tolerance 0 (the same one-line formula, so bit-equality is expected here)
+both use R_E = 6378137.0 m (WGS-84 equatorial) and KeepOut uses 6378137.0 m
+
+Limb versus centre convention on a 10 deg Earth keep-out at 550 km:
+  limb     SlewForge 77.0159484695 deg, KeepOut 77.0159484695 deg, |diff| 0.000e+00
+  center   SlewForge 10.0000000000 deg, KeepOut 10.0000000000 deg, |diff| 0.000e+00
+
+==============================================================================
+PART C -- arc violation: SlewForge closed form vs a dense KeepOut scan
+==============================================================================
+KeepOut has no arc test, so the reference is KeepOut's point test
+evaluated at 40 001 points along the same eigenaxis arc. This is the
+check that matters operationally: does the analytic test agree with the
+thing an engineer would actually write?
+
+trials                             : 3000
+worst |closed form - KeepOut scan| : 9.082614e-08 rad   tolerance 1e-6
+verdict mismatches away from tangency: 0   tolerance 0
+verdict differences within 1e-5 rad of tangency: 0
+
+==============================================================================
+PART D -- the hand case from validate_cone_geometry.py PART A
+==============================================================================
+margin at psi = 0   SlewForge -9.99999999999999 deg
+                    KeepOut   -9.99999999999999 deg
+                    hand      -10 deg
+|difference|        0.000e+00 rad   tolerance 1e-14
+
+SlewForge says the violation ends at psi = 27.80356789566001 deg.
+KeepOut's margin there is 1.110e-16 rad, i.e. the cone boundary.
+Tolerance 1e-14 rad.
+
+==============================================================================
+SUMMARY
+==============================================================================
+failed checks: 0
+
+SlewForge and KeepOut agree on every cone-violation question asked
+here, to 8.9e-16 rad on the point test. That is a weaker statement than
+it looks: both implement the same textbook geometry with the same
+atan2 formulation, so agreement confirms the transcription, not the
+theory. The theory is checked against hand arithmetic in
+validate_cone_geometry.py PART A.

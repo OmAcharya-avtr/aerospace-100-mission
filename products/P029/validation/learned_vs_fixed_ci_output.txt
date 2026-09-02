@@ -1,0 +1,124 @@
+Learned scheduler vs tuned fixed-threshold baseline
+==========================================================================================
+
+Building episodes...
+  60 fitting, 25 knob-tuning, 80 held out; 56 windows of 600 s each (9.3 h per episode)
+
+1. Tuning the classical baseline on the 85 non-held-out episodes
+   grid searched: 28 (on, off) pairs
+       on     off   mean cost
+     0.60    0.48    0.074266
+     0.60    0.36    0.077573
+     0.50    0.40    0.080063
+     0.50    0.30    0.084220
+     0.60    0.24    0.085601
+   chosen: on = 0.60, off = 0.48, training mean cost 0.074266
+   the best five differ by 0.011335 in mean cost, so the surface is flat and
+   the baseline is not sensitive to the grid resolution.
+
+2. Training the learned scheduler
+   n_rows                   3413.000000
+   label_positive_rate      0.084676
+   search_mean_cost         0.045487
+   tune_split_mean_cost     0.047360
+   decision_threshold       0.050000
+   min_confidence           0.700000
+   training wall time       33.2 s on 2 cores
+   feature columns          h_fraction, sin_theta_now, b_norm_now, dh_last_window, sin_theta_next, b_norm_next, best_merit_next_3, merit_now, windows_since_dump, coast_h_fraction_3, coast_h_fraction_6
+   feature importances, descending:
+     coast_h_fraction_3     0.3080
+     coast_h_fraction_6     0.1320
+     merit_now              0.1099
+     h_fraction             0.0941
+     windows_since_dump     0.0931
+     b_norm_now             0.0851
+     sin_theta_now          0.0553
+     dh_last_window         0.0464
+     b_norm_next            0.0280
+     best_merit_next_3      0.0274
+     sin_theta_next         0.0208
+
+3. Held-out evaluation, 80 episodes, closed loop
+
+   metric                         baseline      learned    difference     95 % CI of the difference             verdict
+   --------------------------------------------------------------------------------------------------------------------
+   magnetorquer duty              0.070837     0.056150     -0.014687          [-0.01882, -0.01072]      learned better
+   time near saturation           0.000044     0.003586      0.003542          [+0.00035, +0.00883]     baseline better
+   dipole cost [A m^2 s]       3665.178230  2842.366787   -822.811443     [-1044.78937, -605.68485]      learned better
+   combined episode cost          0.070880     0.059736     -0.011145          [-0.01639, -0.00501]      learned better
+   peak |h| / envelope            0.653456     0.685692      0.032236          [+0.01965, +0.04561]     baseline better
+  [PASS] neither policy exceeded the wheel envelope on any held-out episode baseline 0/80, learned 0/80
+
+   Read the table honestly. The learned scheduler uses 20.7 % less magnetorquer
+   duty than the tuned baseline and that difference is outside its confidence interval,
+   so it is real. It pays for it in the other two columns: time near saturation rises
+   from 0.000044 to 0.003586 of the episode and the mean peak momentum rises from
+   0.6535 to 0.6857 of the envelope, both outside their intervals as well.
+   Envelope exceedances: baseline 0 of 80, learned 0 of 80.
+
+   So this is not "the learned scheduler wins". It is: it buys a real reduction in
+   magnetorquer duty by spending saturation margin, and whether that trade is worth
+   taking depends on a weight the mission sets, not on this script. Section 4 shows the
+   combined-cost verdict flipping to indistinguishable once time near saturation is
+   weighted twice as heavily as duty.
+
+  [PASS] duty difference is reported with a confidence interval and a verdict learned better, diff -0.014687
+  [PASS] combined-cost verdict                                          learned better, diff -0.011145 [-0.016392, -0.005014]
+4. Sensitivity of the combined-cost verdict to the saturation weight
+   The policies are NOT re-tuned; only the weight used to score their recorded
+   outcomes changes. A verdict that flips inside this range is a verdict about the
+   weight, not about the schedulers.
+
+     weight    baseline     learned   difference                       95 % CI             verdict
+   -----------------------------------------------------------------------------------------------
+       0.25    0.070848    0.057046    -0.013801          [-0.01795, -0.00990]      learned better
+       0.50    0.070859    0.057943    -0.012916          [-0.01720, -0.00866]      learned better
+       1.00    0.070880    0.059736    -0.011145          [-0.01646, -0.00503]      learned better
+       2.00    0.070924    0.063322    -0.007602          [-0.01543, +0.00356]   indistinguishable
+       4.00    0.071012    0.070495    -0.000517          [-0.01410, +0.02101]   indistinguishable
+
+5. Confidence output: is it calibrated?
+   The classifier is scored on 25 held-out episodes whose optimal schedules were
+   searched for the same way the training labels were. These rows were never
+   fitted on and never used to tune a knob.
+
+   held-out rows                       1426
+   positive rate                       0.0428
+   Brier score of the confidence       0.039862
+   Brier score of always predicting the base rate  0.040947
+   skill against that reference        +0.0265
+  [PASS] the confidence beats a constant base-rate predictor on Brier score 0.039862 < 0.040947
+
+       confidence bin       n   mean predicted   observed rate       gap
+   ---------------------------------------------------------------------
+         [0.00, 0.05)    1072           0.0192          0.0252   -0.0059
+         [0.05, 0.10)     178           0.0702          0.0337    0.0365
+         [0.10, 0.20)      95           0.1379          0.1053    0.0327
+         [0.20, 0.40)      56           0.2727          0.1607    0.1120
+         [0.40, 0.60)      17                -               -         -   (fewer than 20 rows, not scored)
+         [0.60, 0.80)       7                -               -         -   (fewer than 20 rows, not scored)
+         [0.80, 1.00)       1                -               -         -   (fewer than 20 rows, not scored)
+
+   worst calibration gap in a scored bin: 0.1120
+  [PASS] calibration gap is reported, not assumed small                 worst gap 0.1120; the confidence is a decision score, not a posterior
+
+6. Headroom: what the non-causal offline search achieves on the same 25 episodes
+   tuned baseline        0.061755
+   learned scheduler     0.045545
+   offline search        0.030835   (sees the whole episode; cannot fly)
+   fraction of the available headroom captured: 0.524
+  [PASS] the offline search beats both causal policies, as it must      0.030835 < 0.045545
+
+7. Integrator sensitivity: the same held-out evaluation at 10 substeps per window
+   metric                         baseline 5  baseline 10    learned 5   learned 10
+   --------------------------------------------------------------------------------
+   magnetorquer duty                0.070837     0.070679     0.056150     0.057298
+   time near saturation             0.000044     0.000044     0.003586     0.003265
+   peak |h| / envelope              0.653456     0.653087     0.685692     0.684732
+
+   worst absolute shift on halving the step: 0.001148
+  [PASS] halving the integration step moves no reported mean by more than 0.01 value= 1.1483806739e-03 target= 0.0000000000e+00 abs_err=1.148e-03 tol=1.0e-02
+
+wall time 73.5 s
+
+learned_vs_fixed_ci.py: 7 passed, 0 failed

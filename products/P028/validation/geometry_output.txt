@@ -1,0 +1,74 @@
+======================================================================================
+VALIDATION 1a: quaternion and DCM conventions
+======================================================================================
+    dcm_from_quat against scipy Rotation.from_quat([x, y, z, w]).as_matrix()
+max |dcm_from_quat - scipy as_matrix|                           6.6613e-16 <=  1.00e-14  PASS
+max |dcm_from_quat(quat_from_dcm(A)) - A|                       6.6613e-16 <=  1.00e-13  PASS
+max |A A^T - I| over random rotations                           8.8818e-16 <=  1.00e-14  PASS
+
+======================================================================================
+VALIDATION 1b: ra/dec round trip (Eq. G1)
+======================================================================================
+max |dec - dec_roundtrip| [rad]                                 2.4425e-15 <=  1.00e-14  PASS
+max |ra - ra_roundtrip| [rad]                                   8.8818e-16 <=  1.00e-13  PASS
+max |‖v‖ - 1|                                                   2.2204e-16 <=  1.00e-15  PASS
+
+======================================================================================
+VALIDATION 1c: angular separation (Eq. G2) against arccos
+======================================================================================
+    both forms are exact analytically; atan2 keeps its digits where arccos does not
+  true angle [rad]    atan2 err   arccos err   ratio
+           1.0e-08    8.665e-17    1.581e-08   182461892.3x
+           1.0e-06    1.576e-16    3.997e-10   2536583.2x
+           1.0e-04    1.159e-16    4.703e-12    40588.0x
+           1.0e-02    1.180e-16    3.475e-14      294.6x
+           1.0e+00    3.331e-16    3.331e-16        1.0x
+           3.0e+00    0.000e+00    2.665e-15        infx
+    The gate is on the ABSOLUTE error. The relative error at 1e-8 rad is 9e-9,
+    which is the precision of the test vectors themselves: two unit vectors
+    1e-8 rad apart differ only in their 8th significant digit, so no separation
+    function can beat that relatively. Eq. G2 is absolutely accurate to ~1e-16 at
+    every angle, and that is the property the matcher depends on.
+worst absolute error of Eq. G2 over 6 decades [rad]             3.3307e-16 <=  1.00e-15  PASS
+
+======================================================================================
+VALIDATION 1d: the attitude solve (Eq. G3)
+======================================================================================
+    noise-free observations: the q-method must reproduce the attitude exactly
+max attitude error, noise free, n = 2..10 [rad]                 1.3265e-13 <=  1.00e-12  PASS
+
+    the transpose regression: the solve must return A, not A^T
+angle to A [rad]                                                2.6641e-16
+angle to A^T [rad]                                              2.9607e+00
+angle to A [rad]                                                2.6641e-16 <=  1.00e-12  PASS
+angle to A^T [rad] (must be far)                                2.9607e+00 >=  1.00e-03  PASS
+
+    attitude error against measurement noise, 4 stars, 400 trials per level
+  sigma [arcsec]   RMS error [arcsec]   error / sigma
+             1.0                1.177           1.177
+             5.0                5.894           1.179
+            20.0               23.574           1.179
+            60.0               69.954           1.166
+    the ratio is constant because the estimator is linear in the noise to first order
+spread of error/sigma over 60x in sigma                         1.2934e-02 <=  5.00e-02  PASS
+
+    collinear observations must raise, not invent the missing rotation
+collinear cases raising ValueError                              1.0000e+00 >=  1.00e+00  PASS
+
+======================================================================================
+VALIDATION 1e: the camera projection (Eq. K1-K2)
+======================================================================================
+focal length [pixels]                                           4.8714e+03
+plate scale [arcsec/pixel]                                      4.2188e+01
+field solid angle [sq.deg]                                      1.4348e+02
+max |project(unproject(p)) - p| [pixels]                        1.1369e-13 <=  1.00e-09  PASS
+    corner angle from boresight 8.454534 deg (half-diagonal 8.454534 deg)
+corner angle vs half_diagonal_rad [rad]                         2.7756e-17 <=  1.00e-14  PASS
+boresight pixel maps to zero angle [rad]                        0.0000e+00 <=  1.00e-15  PASS
+
+    the on-axis plate scale understates the off-axis scale by 1/cos^2(r)
+      centre       local scale  42.3424 arcsec/pixel (1.0037 x nominal)
+      half width   local scale  42.1675 arcsec/pixel (0.9995 x nominal)
+      corner       local scale  41.6544 arcsec/pixel (0.9874 x nominal)
+
+RESULT: 15 / 15 checks passed

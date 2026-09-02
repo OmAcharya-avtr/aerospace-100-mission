@@ -1,0 +1,120 @@
+
+==============================================================================
+PART A -- bang-bang rest-to-rest time against hand arithmetic
+==============================================================================
+effective inertia J_e            = 100.0 kg m^2
+available torque  tau            = 0.15 N*m
+slew angle        Delta          = 1.5707963267948966 rad = 90 deg
+peak acceleration alpha = tau/J_e= 0.0015 rad/s^2
+
+Wie (2008) Sec. 5.3: a rest-to-rest bang-bang slew accelerates at
+alpha for T/2 then decelerates, so Delta = alpha (T/2)^2 and
+T = 2 sqrt(Delta / alpha).
+
+  Delta / alpha                  = 1047.1975511965977 s^2
+  sqrt(Delta / alpha)            = 32.36043187592832 s
+  T = 2 sqrt(Delta / alpha)      = 64.72086375185664 s
+  library duration               = 64.72086375185664 s
+  |difference|                   = 0.000e+00 s   tolerance 1e-12
+
+  omega_peak = sqrt(Delta alpha) = 0.04854064781389248 rad/s = 2.7811742546 deg/s
+  library peak_rate              = 0.04854064781389248 rad/s
+  h_peak = J_e omega_peak        = 4.854064781389248 N*m*s
+  library peak_momentum          = 4.854064781389248 N*m*s
+  worst |difference|             = 0.000e+00   tolerance 1e-12
+
+Rate-limited (trapezoidal): T = Delta/omega_max + omega_max/alpha
+  omega_max = 1.5 deg/s          = 0.026179938779914945 rad/s
+  hand T                         = 77.45329251994329 s
+  library T                      = 77.45329251994329 s  kind=trapezoidal
+  |difference|                   = 0.000e+00 s   tolerance 1e-12
+
+Smoothed (sinusoidal acceleration): T = sqrt(2 pi Delta / alpha)
+  hand T                         = 81.11557351947224 s
+  library T                      = 81.11557351947224 s
+  penalty vs bang-bang           = 1.2533141373155003
+  sqrt(2 pi) / 2                 = 1.2533141373155001
+  |difference|                   = 0.000e+00 s   tolerance 1e-12
+
+==============================================================================
+PART B -- closed forms against numerical integration of the profile
+==============================================================================
+profile                T [s]      int psi_dot dt           Delta       |err|
+bang_bang       64.720863752      1.570796326795  1.570796326795   2.220e-16
+trapezoidal     77.453292520      1.570796326796  1.570796326795   8.673e-13
+smoothed        81.115573519      1.570796326795  1.570796326795   0.000e+00
+tolerance 1e-8 rad on the swept angle
+
+Terminal rate is zero and the profile is monotone in angle:
+  bang_bang    psi(T)-Delta = +0.000e+00 rad, psi_dot(0) = 0.000e+00, psi_dot(T) = 0.000e+00, min d(psi) = +1.963e-07
+  trapezoidal  psi(T)-Delta = +0.000e+00 rad, psi_dot(0) = 0.000e+00, psi_dot(T) = 1.041e-17, min d(psi) = +2.812e-07
+  smoothed     psi(T)-Delta = +0.000e+00 rad, psi_dot(0) = 0.000e+00, psi_dot(T) = 0.000e+00, min d(psi) = +1.615e-10
+
+==============================================================================
+PART C -- momentum identity: integral |tau| dt = 2 J_e omega_peak
+==============================================================================
+profile          int |J_e psi_ddot| dt    2 J_e omega_peak       |err|
+bang_bang               9.708129562778      9.708129562778   0.000e+00
+trapezoidal             5.235987761038      5.235987755983   5.055e-09
+smoothed                7.745966692415      7.745966692415   0.000e+00
+tolerance 1e-6 N*m*s
+
+==============================================================================
+PART D -- open-loop simulation of a principal-axis slew
+==============================================================================
+inertia diag(120, 100, 80) kg m^2, eigenaxis [0.0, 0.0, 1.0] (principal)
+J_e = 80.0 kg m^2, alpha = 0.001875 rad/s^2, T = 57.88810036466141 s
+
+
+D1 -- smoothed profile (continuous torque): clean RK4 convergence
+    dt [s]    attitude error [rad]     error ratio
+     0.400            7.998611e-10                
+     0.200            7.504830e-11          10.658
+     0.100            1.713751e-11           4.379
+     0.050            7.279510e-12           2.354
+final attitude error at dt = 0.05 s: 7.279510e-12 rad = 0.000002 arcsec   tolerance 1e-6 rad
+
+D2 -- bang-bang: what phase splitting is worth
+The commanded torque jumps at T/2. A fixed-step RK4 that steps across
+that instant weights the pre-switch acceleration into a post-switch step
+and drops to first order. simulate_profile() therefore integrates each
+phase separately (SlewProfile.switch_times). The naive single-interval
+integration is run here for contrast; nothing in the library uses it.
+
+    dt [s]       split [rad]    ratio   single call [rad]    ratio
+     0.400      5.963863e-11                 8.402116e-03         
+     0.200      3.736900e-12    15.96        2.455922e-03     3.42
+     0.100      0.000000e+00                 2.973097e-03     0.83
+     0.050      0.000000e+00                 2.585877e-04    11.50
+
+phase-split bang-bang error at dt = 0.05 s: 0.000000e+00 rad   tolerance 1e-9 rad
+peak PER-WHEEL momentum simulated  : 1.879971206 N*m*s
+analytic BODY momentum J_e omega   : 4.341607527 N*m*s
+ratio                              : 2.309401077
+The four pyramid wheels share the body momentum, and for a +z slew the
+minimum-norm allocation puts 1 / (4 cos 54.7356 deg) = 0.4330 of it on
+each wheel, so 4.3416 / 1.8800 = 2.3094 = 4 cos(54.7356 deg).
+any wheel saturation flagged       : False
+
+==============================================================================
+PART E -- the gyroscopic term the scalar sizing model drops
+==============================================================================
+tau_exact = psi_ddot J e + psi_dot^2 (e x J e);  the scalar model keeps
+only the first term with |J e| replaced by e^T J e. The second term
+vanishes if and only if e is a principal axis.
+
+eigenaxis                       J_e     |J e|    |tau|max/J_e alpha   gyro fraction
+z (principal)                80.000    80.000              1.000000        0.000000
+x (principal)               120.000   120.000              1.000000        0.000000
+(1,1,0)/sqrt2               110.000   110.454              1.014227        0.140797
+(1,1,1)/sqrt3               100.000   101.325              1.045210        0.245415
+(3,1,2)/|.|                 107.143   108.628              1.047272        0.250581
+
+A slew about (1,1,0)/sqrt2 of this spacecraft therefore needs more
+torque than the rule of thumb budgets, at the middle of the slew,
+exactly where the rate is highest.
+
+==============================================================================
+SUMMARY
+==============================================================================
+failed checks: 0

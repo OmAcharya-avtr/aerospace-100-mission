@@ -1,0 +1,112 @@
+Magnetic desaturation: the direction you cannot dump
+==========================================================================================
+
+1. The constraint is the rank of the cross-product operator.
+   For any B the matrix [B x] has singular values (|B|, |B|, 0): two directions of torque
+   authority and one null direction, along B itself. This is exact linear algebra, not a
+   modelling choice, so no control law of any kind can escape it.
+
+   worst |sigma_3| / |B| over 200 random fields   1.557e-16
+   worst deviation of sigma_1, sigma_2 from |B|   8.882e-16
+  [PASS] third singular value of [B x] is zero                          value= 1.5569534496e-16 target= 0.0000000000e+00 abs_err=1.557e-16 tol=1.0e-15
+  [PASS] first two singular values of [B x] equal |B|                   value= 8.8817841970e-16 target= 0.0000000000e+00 abs_err=8.882e-16 tol=1.0e-14
+
+2. Every torque the dumping law can command is exactly perpendicular to B, and the
+   commanded dipole removes exactly the perpendicular part of the momentum:
+   T = m x B = -k [h - (h.B_hat) B_hat] before the dipole limit bites.
+
+   worst |T . B_hat| / |T| over 200 random cases   1.417e-16
+   worst deviation from -k h_perp                  1.043e-15
+  [PASS] commanded torque is perpendicular to B                         value= 1.4166038805e-16 target= 0.0000000000e+00 abs_err=1.417e-16 tol=1.0e-14
+  [PASS] cross-product law removes exactly h_perp                       value= 1.0427796690e-15 target= 0.0000000000e+00 abs_err=1.043e-15 tol=1.0e-14
+
+   Hand check. B = (0, 0, 3.0e-05) T, h = (0.01, 0, 0) N m s, gain k = 1 s^-1.
+   B x h = (0*0 - 3e-05*0, 3e-05*0.01 - 0*0, 0) = (0, 3e-07, 0)
+   m = -(k/|B|^2)(B x h) = -(1/9e-10)(0, 3e-07, 0) = (0, -333.3333... , 0) A m^2
+   T = m x B = (-333.333... * 3e-05, 0, 0) = (-0.01, 0, 0) N m = -k h, as it must be
+   because h is already perpendicular to B.
+
+  [PASS] hand check: m_y                                                value=-3.3333333333e+02 target=-3.3333333333e+02 rel_err=1.705e-16 tol=1.0e-14
+  [PASS] hand check: T_x                                                value=-1.0000000000e-02 target=-1.0000000000e-02 rel_err=1.735e-16 tol=1.0e-14
+  [PASS] hand check: uncontrollable fraction is zero                    value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-15
+   momentum along B: |m| = 0.000e+00 A m^2, |T| = 0.000e+00 N m, uncontrollable fraction = 1.000000
+  [PASS] momentum along B produces zero dipole                          value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-18
+  [PASS] momentum along B is 100 % uncontrollable                       value= 1.0000000000e+00 target= 1.0000000000e+00 rel_err=0.000e+00 tol=1.0e-15
+
+3. How bad is it on a real orbit? For a momentum fixed along ECI z (the worst case for a
+   dipole field, whose direction is dominated by z), the uncontrollable fraction is
+   sampled at 3601 points of one orbit, at 500 km, for a range of inclinations.
+
+     i [deg]   mean frac   max frac   orbit above 0.5   orbit above 0.9
+   --------------------------------------------------------------------
+         0.0      1.0000     1.0000            1.0000            1.0000
+        28.5      0.5952     1.0000            0.5618            0.2063
+        51.6      0.4627     1.0000            0.3119            0.1241
+        70.0      0.5811     1.0000            0.6279            0.1041
+        90.0      0.6367     1.0000            0.6668            0.2869
+        98.0      0.6275     1.0000            0.6612            0.2669
+
+   Read the first row. At zero inclination the field is exactly along -z everywhere on
+   the orbit, so a momentum along z is 100 % uncontrollable for 100 % of the orbit: an
+   equatorial spacecraft cannot magnetically dump momentum along the orbit normal at all.
+   That is not a defect of the law; it is the geometry, and it is why equatorial missions
+   carry thrusters for that axis.
+
+  [PASS] equatorial orbit: momentum along z is fully uncontrollable everywhere value= 1.0000000000e+00 target= 1.0000000000e+00 rel_err=0.000e+00 tol=1.0e-12
+  [PASS] the mean uncontrollable fraction is NOT monotone in inclination means: 1.000, 0.595, 0.463, 0.581, 0.637, 0.627
+
+   Finding, reported because it is a trap. The mean uncontrollable fraction for a
+   z-directed momentum is **not** monotone in inclination. It falls from 1.000 at 0 deg
+   to a minimum of 0.4627 at 51.6 deg and then rises again to
+   0.6367 at 90 deg. A near-polar orbit is *worse* than a mid-inclination one
+   for dumping momentum along the Earth's rotation axis, because near the poles the
+   dipole field is itself close to the z axis. Anyone who assumes "more inclination is
+   more magnetic authority" will size a polar mission wrongly.
+
+  [PASS] mid-inclination beats polar for a z-directed momentum          0.4627 at 51.6 deg vs 0.6367 at 90 deg
+
+4. The time-averaged Gramian G = <I - B_hat B_hat^T> over one orbit. Its trace is exactly
+   2 for any field history. Its eigenvalues are the fraction of the orbit for which each
+   principal direction is dumpable; the ratio of the largest to the smallest is how much
+   longer the worst direction takes than the best, for the same gain.
+
+     i [deg]     trace    eig_min    eig_mid    eig_max    max/min
+   ---------------------------------------------------------------
+         0.0  2.000000   0.000000   1.000000   1.000000        inf
+        28.5  2.000000   0.380764   0.805869   0.813367      2.136
+        51.6  2.000000   0.605071   0.616911   0.778018      1.286
+        70.0  2.000000   0.530333   0.530838   0.938829      1.770
+        90.0  2.000000   0.500000   0.500000   1.000000      2.000
+        98.0  2.000000   0.504872   0.504884   0.990245      1.961
+  [PASS] Gramian trace is exactly 2 at every inclination                value= 3.5527136788e-15 target= 0.0000000000e+00 abs_err=3.553e-15 tol=1.0e-12
+  [PASS] equatorial orbit: smallest Gramian eigenvalue is zero          value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-12
+  [PASS] every non-equatorial inclination tested has all three eigenvalues > 0 smallest eigenvalues: 0.3808, 0.6051, 0.5303, 0.5000, 0.5049
+
+   The 51.6 deg row is the case used everywhere else in this package: the worst direction
+   is dumpable for 60.5 % of the orbit and the best for 77.8 %, a ratio of 1.286. So the
+   averaged controllability is comfortable at that inclination, and the constraint shows
+   up as a scheduling opportunity (dump when sin(theta) is large) rather than as a
+   blocked axis. At zero inclination one axis is blocked outright.
+
+
+5. Closed-loop demonstration. Start with 0.02 N m s along the instantaneous field
+   direction and run the cross-product law for one orbit, with no disturbance torque and
+   no dipole limit, twice: once with the field frozen at its initial value, once with the
+   real field along the orbit. Gain 5e-4 s^-1.
+
+   frozen field           |h| 0.020000 -> 0.020000 N m s, component along initial B 0.020000 -> 0.020000 N m s
+  [PASS] frozen field: momentum along B is unchanged after a full orbit value= 2.0000000000e-02 target= 2.0000000000e-02 rel_err=0.000e+00 tol=1.0e-12
+  [PASS] frozen field: |h| is unchanged after a full orbit              value= 2.0000000000e-02 target= 2.0000000000e-02 rel_err=1.735e-16 tol=1.0e-12
+   real rotating field    |h| 0.020000 -> 0.002811 N m s, component along initial B 0.020000 -> 0.002702 N m s
+  [PASS] rotating field: the same momentum is reduced by at least a factor 3 |h| 2.810800e-03 N m s from 2.0e-02, ratio 0.1405
+   measured reduction over one orbit: factor 7.115 (85.9 % of the initial momentum removed) at gain 5e-4 s^-1
+
+   That pair is the whole point. Magnetic desaturation is not instantaneously
+   controllable in three axes and never will be; it is controllable on average because
+   the field direction sweeps. Any schedule that tries to dump a specific direction
+   inside a short window is fighting the geometry, and any budget that assumes three-axis
+   authority at every instant is wrong.
+
+wall time 1.12 s
+
+magnetic_controllability.py: 18 passed, 0 failed

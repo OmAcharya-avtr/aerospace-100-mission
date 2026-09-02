@@ -1,0 +1,121 @@
+Independent cross-check against P027 disturbtorque
+==========================================================================================
+
+Environment (identical inputs, independent code)
+  vehicle    inertia diag(4, 8, 10) kg m^2, drag 0.6 m^2 Cd 2.2, sunlit 1.2 m^2 q 0.6,
+             both centres of pressure at (0.02, 0.02, 0.05) m, residual dipole
+             (0.05, 0.05, 0.10) A m^2
+  orbit      circular 500 km, i = 51.6 deg, RAAN 0, nadir with 5 deg pitch and 5 deg roll
+  Sun        beta = 20 deg, in-plane phase 0
+  models     Vallado exponential density table, centred non-tilted dipole
+             B0 Re^3 = 7.96e15 T m^3, solar constant 1361 W m^-2, cylindrical umbra
+  period     5676.9780 s   (P027 published 5676.9780 s)
+
+  [PASS] orbital period against P027                                    value= 5.6769780285e+03 target= 5.6769780000e+03 rel_err=5.025e-09 tol=1.0e-07
+
+1. Orbit and eclipse geometry against P027's closed-form values
+   A = cos(beta)              0.9396926208   P027 0.9396926208
+   shadow entry u [deg]       113.473596    P027 113.473596
+   shadow exit  u [deg]       246.526404    P027 246.526404
+   eclipse fraction           0.3695911346   P027 0.3695911346
+  [PASS] cos(beta)                                                      value= 9.3969262079e-01 target= 9.3969262080e-01 rel_err=1.500e-11 tol=1.0e-10
+  [PASS] shadow entry [deg]                                             value= 1.1347359577e+02 target= 1.1347359600e+02 abs_err=2.318e-07 tol=1.0e-06
+  [PASS] shadow exit [deg]                                              value= 2.4652640423e+02 target= 2.4652640400e+02 abs_err=2.318e-07 tol=1.0e-06
+  [PASS] eclipse fraction                                               value= 3.6959113462e-01 target= 3.6959113460e-01 rel_err=5.654e-11 tol=1.0e-10
+
+2. Constant body-frame torques (P027 section A, co-rotating atmosphere off)
+  [PASS] gravity_gradient: body torque constant over the orbit (rel spread) value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-14
+   gravity_gradient  mine  [ 6.332938e-07  1.907139e-06 -1.112353e-07] N m
+                     P027  [ 6.332938e-07  1.907139e-06 -1.112353e-07] N m
+  [PASS] gravity_gradient: body torque vs P027 (7 printed figures)      value= 3.1915972911e-13 target= 0.0000000000e+00 abs_err=3.192e-13 tol=4.0e-12
+  [PASS] gravity_gradient: T*P vs P027 (7 printed figures)              value= 4.4077815442e-09 target= 0.0000000000e+00 abs_err=4.408e-09 tol=2.3e-08
+  [PASS] aerodynamic: body torque constant over the orbit (rel spread)  value= 7.6412710403e-16 target= 0.0000000000e+00 abs_err=7.641e-16 tol=1.0e-14
+   aerodynamic       mine  [-3.615203e-08 -1.281033e-06  5.268739e-07] N m
+                     P027  [-3.615203e-08 -1.281033e-06  5.268739e-07] N m
+  [PASS] aerodynamic: body torque vs P027 (7 printed figures)           value= 3.1204939251e-13 target= 0.0000000000e+00 abs_err=3.120e-13 tol=2.8e-12
+  [PASS] aerodynamic: T*P vs P027 (7 printed figures)                   value= 6.4600940597e-10 target= 0.0000000000e+00 abs_err=6.460e-10 tol=1.6e-08
+
+3. Momentum accumulated over one orbit in ECI (P027 section C and its table)
+   Mine: Gauss-Legendre, 96 nodes, solar split at the closed-form eclipse edges.
+   P027: its own reference values, which are a trapezoid on N = 11521 for the
+   three smooth sources and adaptive QUADPACK for the solar term.
+
+   source                 mine |dh| [N m s]    P027 N=11521 [N m s]    rel diff
+   ----------------------------------------------------------------------------
+   gravity_gradient        1.0840622384e-02            1.084062e-02    2.20e-07
+   aerodynamic             6.9117755125e-03            6.911776e-03    7.05e-08
+   solar                   4.1112140090e-04            4.111292e-04    1.90e-05
+   magnetic                2.2362180824e-03            2.236218e-03    3.68e-08
+   total                   4.3541712112e-03            4.354188e-03    3.86e-06
+  [PASS] gravity_gradient: |dh| vs P027's sampled table (7 printed figures) value= 1.0840622384e-02 target= 1.0840620000e-02 rel_err=2.200e-07 tol=2.0e-06
+  [PASS] aerodynamic: |dh| vs P027's sampled table (7 printed figures)  value= 6.9117755125e-03 target= 6.9117760000e-03 rel_err=7.053e-08 tol=2.0e-06
+  [PASS] magnetic: |dh| vs P027's sampled table (7 printed figures)     value= 2.2362180824e-03 target= 2.2362180000e-03 rel_err=3.684e-08 tol=2.0e-06
+
+   The solar and total rows differ from that table by 1.9e-05 and 3.9e-06 relative. That
+   is not a disagreement between the two implementations: it is P027's *sampled* solar
+   term against a reference. P027 publishes both, and the comparison below is against its
+   reference.
+
+   Full-precision vector comparisons, against P027's own reference values.
+   solar mine  [-1.2065216122e-04 -1.2863853089e-04  3.7137042242e-04]
+   solar P027  [-1.2065216122e-04 -1.2863853089e-04  3.7137042242e-04]  (QUADPACK)
+  [PASS] solar dh vector vs P027 QUADPACK reference, relative           value= 1.1781923331e-11 target= 0.0000000000e+00 abs_err=1.178e-11 tol=5.0e-10
+   total mine  [-2.4484285744e-03  2.8372528957e-03 -2.2167544874e-03]
+   total P027  [-2.4484285744e-03  2.8372528957e-03 -2.2167544874e-03]
+  [PASS] total dh vector vs P027 reference, relative                    value= 1.8117567761e-11 target= 0.0000000000e+00 abs_err=1.812e-11 tol=5.0e-10
+  [PASS] smooth-source |dh| vs P027 reference                           value= 4.5731220773e-03 target= 4.5731220773e-03 rel_err=5.368e-14 tol=5.0e-12
+
+   Distance of each code's solar |dh| from P027's own QUADPACK reference:
+     P027 sampled trapezoid, N = 11521   7.799091e-09 N m s (rel 1.90e-05)
+     this package, Gauss-Legendre        4.443332e-15 N m s (rel 1.08e-11)
+   P027's own output reports 1.69e-04 relative for that row and derives an
+   eclipse-edge bound of 1.20e-03 for it, so the gap is the documented
+   quadrature error of a uniform grid and nothing else.
+
+  [PASS] this package's solar dh is closer to P027's reference than P027's own sampled row 4.443e-15 < 7.799e-09 N m s
+
+4. Convergence of this package's own quadrature (so the agreement above is not
+   an accident of one node count). Reference: 384 nodes.
+     nodes            total |dh|   rel vs 384   solar rel vs 384
+   -------------------------------------------------------------
+         8    4.354184975445e-03     5.68e-06           5.46e-15
+        16    4.354171211170e-03     4.63e-14           5.18e-15
+        32    4.354171211170e-03     6.15e-14           5.38e-15
+        64    4.354171211170e-03     5.20e-14           4.73e-15
+        96    4.354171211170e-03     4.21e-14           4.08e-15
+       192    4.354171211170e-03     1.04e-13           9.41e-15
+  [PASS] worst quadrature self-convergence for n_nodes >= 16            value= 1.0431184593e-13 target= 0.0000000000e+00 abs_err=1.043e-13 tol=1.0e-12
+
+5. The sampled trapezoid this package also provides, against its own
+   Gauss-Legendre reference. This is the discretisation error a time-stepped
+   scheduler inherits, and for the solar term it does not fall as a power of N,
+   because the torque steps to and from zero at the eclipse edges.
+
+         N   total rel err   solar rel err   smooth rel err
+   --------------------------------------------------------
+       181        7.04e-04        7.46e-03         1.55e-14
+       361        3.81e-05        4.04e-04         1.54e-14
+       721        3.31e-04        3.51e-03         1.37e-14
+  [PASS] sampled trapezoid at the default N = 721, total                value= 3.3129000597e-04 target= 0.0000000000e+00 abs_err=3.313e-04 tol=1.0e-03
+  [PASS] sampled trapezoid at the default N = 721, smooth sources       value= 1.3730431532e-14 target= 0.0000000000e+00 abs_err=1.373e-14 tol=1.0e-12
+      1441        1.46e-04        1.55e-03         1.76e-14
+      2881        5.35e-05        5.67e-04         1.49e-14
+
+6. Internal consistency: integrating the body-frame wheel equation
+   dh_w/dt = T_dist - omega x (I omega + h_w) over one orbit must give the same
+   inertial momentum change as the ECI integral, because
+   H_eci = C_be^T (I omega + h_w) and dH_eci/dt = T_dist. This ties the scheduler's
+   dynamics to the cross-checked accumulation; the two are otherwise separate code.
+
+   wheel-equation dh_eci  [-2.4484292103e-03  2.8372489870e-03 -2.2167566048e-03] N m s
+   quadrature     dh_eci  [-2.4484285744e-03  2.8372528957e-03 -2.2167544874e-03] N m s
+  [PASS] wheel-equation momentum change vs ECI quadrature, relative     value= 1.0313411389e-06 target= 0.0000000000e+00 abs_err=1.031e-06 tol=2.0e-03
+   (the tolerance is 2e-3: the trapezoidal ODE integration inherits the same
+    eclipse-edge error as the sampled quadrature in section 5, and the C_bl
+    matrix is used only through the sweep, so this is a consistency check of the
+    dynamics, not a second measurement of the accumulation.)
+   unused reference: |C_bl| = 1.732051
+
+wall time 12.15 s
+
+p027_cross_check.py: 22 passed, 0 failed

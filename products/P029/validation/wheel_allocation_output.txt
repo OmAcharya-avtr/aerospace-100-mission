@@ -1,0 +1,92 @@
+Wheel allocation and zero-speed avoidance
+==========================================================================================
+
+1. Allocation exactness. 500 random body requests inside each array's guaranteed
+   envelope, allocated with and without biasing; the reconstructed body momentum must
+   equal the request.
+
+   pyramid_four       worst relative reconstruction error 9.337e-13
+  [PASS] pyramid_four: allocation reproduces the body request           value= 9.3372840160e-13 target= 0.0000000000e+00 abs_err=9.337e-13 tol=1.0e-12
+   tetrahedral_four   worst relative reconstruction error 2.194e-13
+  [PASS] tetrahedral_four: allocation reproduces the body request       value= 2.1938065374e-13 target= 0.0000000000e+00 abs_err=2.194e-13 tol=1.0e-12
+
+2. The exact maximiser against brute force. For 200 random requests the null coefficient
+   is scanned over 20001 uniformly spaced values inside the feasible interval and the best
+   scanned min |h_i| is compared with the value the exact enumeration returns. A positive
+   shortfall would mean the enumeration missed the optimum.
+
+   worst (brute force - exact) / h_max over 200 requests: 0.000e+00
+  [PASS] exact enumeration is never beaten by a 20001-point scan        value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=1.0e-12
+
+3. The trade, over 2000 directions uniformly sampled on the sphere at 40 % of the
+   envelope. 'min |h|' is the zero-speed margin (bigger is better) and 'max |h|' is what
+   is left of the saturation margin (smaller is better). Both as fractions of h_max.
+
+   mode                         mean min|h|   worst min|h|   mean max|h|   worst max|h|
+   ------------------------------------------------------------------------------------
+   minimum norm                      0.0707         0.0001        0.3457         0.4000
+   biased, envelope 1.0              0.4045         0.3468        1.0000         1.0000
+   biased, envelope 0.7              0.1757         0.1035        0.4013         0.7000
+   biased, envelope 0.5              0.1754         0.0976        0.3985         0.5000
+  [PASS] biasing never reduces the zero-speed margin                    means: minimum norm=0.0707, biased, envelope 1.0=0.4045, biased, envelope 0.7=0.1757, biased, envelope 0.5=0.1754
+  [PASS] biasing at envelope 1.0 costs saturation margin                worst max|h| 1.0000 vs 0.4000
+
+   The worst-case minimum-norm margin is 0.0001 of h_max, i.e. a wheel essentially at
+   rest: there are request directions for which the pseudo-inverse puts a wheel through
+   zero, and on a pyramid those directions are not exotic. Biasing at full envelope lifts
+   the worst case to 0.35 of h_max, at the price of pushing the worst wheel to the
+   saturation limit (max |h| = 1.00). The 0.7 and 0.5 rows are where a real system would
+   sit: worst-case zero-speed margin about 0.10 of h_max for a worst-case saturation of
+   0.70 and 0.50 respectively.
+
+
+4. Zero crossings on a real trajectory. The reference smallsat at 500 km, beta 20 deg,
+   three orbits with no desaturation: the wheel momentum is propagated from the
+   body-frame Euler equation and allocated at every sample. Crossings are counted per
+   wheel, and so is the time each wheel spends inside a 5 % of h_max low-speed band, where
+   bearing friction is least predictable.
+
+   peak |h_body| over three orbits 0.013339 N m s
+   pyramid, minimum norm    crossings [6, 6, 5, 2]  time in the low-speed band 47.70 %
+   pyramid, biased 0.7      crossings [5, 5, 5, 5]  time in the low-speed band 0.00 %
+  [PASS] biasing reduces the time wheels spend in the low-speed band    0.00 % against 47.70 %
+   orthogonal three         crossings [5, 2, 5]  time in the low-speed band 38.92 %
+  [PASS] three-wheel array has an empty null space                      value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=0.0e+00
+  [PASS] three-wheel allocation is identical with and without biasing   value= 0.0000000000e+00 target= 0.0000000000e+00 abs_err=0.000e+00 tol=0.0e+00
+
+   Note what did *not* change: the crossing counts are 20 in total without biasing and
+   20 with it. Biasing does not stop a wheel changing sign when the body momentum demands
+   it; what it removes is the *dwell*, the 47.7 % of the run that the minimum-norm
+   allocation spends inside the low-speed band. Dwell is the quantity that matters for
+   bearing friction, and quoting a crossing count alone would have hidden the entire
+   effect.
+
+   The three-wheel row is the honest control. With no redundancy the wheel momenta are
+   fixed by the body request and zero-speed avoidance is simply unavailable: the only
+   remedy is a momentum bias, which costs stored momentum and therefore saturation
+   margin. Nothing in this module can help a three-wheel array.
+
+
+5. What biasing breaks, measured. The null coefficient is chosen afresh at every sample
+   with no memory of the last one, and the maximiser of min |h_i| can switch between
+   symmetric branches. When it does, the commanded wheel momenta jump. The largest
+   single-sample change along the trajectory above is the size of that jump, in N m s,
+   and it is a defect of this implementation, not of the idea.
+
+   allocation                          largest single-step change [N m s]
+   ----------------------------------------------------------------------
+   pyramid, minimum norm                                         0.000060
+   pyramid, biased, full envelope                                0.095112
+   pyramid, biased, 70 % envelope                                0.065112
+  [PASS] biasing introduces discontinuous wheel-momentum steps; minimum norm does not 0.095112 against 0.000060 N m s per 7.9 s sample
+
+   Reported as a limitation, not fixed here. The 0.0951 N m s step at full envelope is
+   nearly two whole wheel limits in one 7.9 s sample, i.e. a torque demand of order
+   1e-02 N m against wheels whose useful torque is of order 1e-03 N m. A flight
+   implementation must rate-limit the null coefficient or add hysteresis to the branch
+   choice; this package leaves the raw behaviour visible so that a user cannot adopt the
+   allocator without meeting the problem. See README Limitations.
+
+wall time 5.24 s
+
+wheel_allocation.py: 9 passed, 0 failed

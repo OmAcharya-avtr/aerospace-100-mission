@@ -1,0 +1,17 @@
+momentummgr synthetic desaturation-scheduling dataset
+=====================================================
+
+Every row is simulated. No flight telemetry is used anywhere in this package.
+
+generator            momentummgr.episodes.sample_episode(seed)
+labels               momentummgr.learned.search_best_mask(episode, seed=0)
+fitting seeds        1000..1059 (60 episodes)
+knob-tuning seeds    2000..2024 (25 episodes)
+held-out seeds       5000..5079 (80 episodes)
+windows per episode  56..59
+feature rows         3413 x 11
+positive label rate  0.084676
+searched mean cost   0.045487
+columns              h_fraction,sin_theta_now,b_norm_now,dh_last_window,sin_theta_next,b_norm_next,best_merit_next_3,merit_now,windows_since_dump,coast_h_fraction_3,coast_h_fraction_6,label
+training_features.csv sha256 a5f3257c50e041ba6078980371b955000b9663ac068c11377b9842440d2fff59
+bytes                447986

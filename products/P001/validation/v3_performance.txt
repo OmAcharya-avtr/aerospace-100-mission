@@ -7,19 +7,19 @@ timing: best of 3 runs
 
 Monte Carlo sampling throughput
    n_samples     wall_s       samples/s
-      10,000     0.0005      18,598,250
-     100,000     0.0070      14,289,362
-   1,000,000     0.0672      14,885,116
+      10,000     0.0007      13,567,766
+     100,000     0.0134       7,447,901
+   1,000,000     0.1119       8,935,954
 
-peak throughput: 18,598,250 samples/s
+peak throughput: 13,567,766 samples/s
 
 End-to-end scenario report (examples/link_10km.yaml, n=200,000 MC samples)
-  wall time: 0.0164 s
+  wall time: 0.0280 s
 
 Surrogate vs Monte Carlo, per fade-probability query
-  surrogate (batch of 1000):           5.98 us/query (167,257 queries/s)
-  Monte Carlo (1e5 samples):        4937.59 us/query (203 queries/s)
-  speed-up: 826x
+  surrogate (batch of 1000):          12.81 us/query (78,044 queries/s)
+  Monte Carlo (1e5 samples):       10981.93 us/query (91 queries/s)
+  speed-up: 857x
 
-R13 bound: end-to-end report < 5 s  ->  measured 0.0164 s  PASS
+R13 bound: end-to-end report < 5 s  ->  measured 0.0280 s  PASS
 STATUS: PASS

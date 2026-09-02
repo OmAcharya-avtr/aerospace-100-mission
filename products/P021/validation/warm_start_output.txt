@@ -1,0 +1,138 @@
+
+==============================================================================
+PART A -- dataset and the cold baseline
+==============================================================================
+Problems are drawn Haar-uniformly on SO(3) with 1-3 Haar-uniform cones
+of 15-50 deg half-angle, and kept only when both endpoints clear every
+cone and the direct eigenaxis slew violates at least one. Labels are the
+via parameter vector the cold multi-start planner arrives at: seven
+deterministic SLSQP starts, best objective kept.
+
+train :  199 labelled of 200 attempted (label rate 0.9950), 56.3 s wall, 2 worker processes
+test  :  110 labelled of 110 attempted (label rate 1.0000), 29.3 s wall
+features 28, targets 3
+
+Cold baseline recorded during labelling (note: the labelling runs two
+worker processes on two cores, so these solve times are inflated by the
+contention. PART C re-times the cold planner single-process, and that is
+the number the benchmark uses):
+  mean solve time     : 509.52 ms (under 2-way parallelism)
+  mean path evals     : 1024
+  mean objective      : 86.4850 s
+
+Target distribution (via parameter, canonical frame, rad):
+  p1 (along eigenaxis)   mean -0.0628  sd 1.2205  min -3.1267  max +3.1186
+  p2 (boresight plane)   mean -0.0061  sd 0.4446  min -1.6418  max +1.2733
+  p3 (normal)            mean +0.0117  sd 0.3461  min -1.7454  max +1.2350
+  |p| mean 1.2573 rad, max 3.1341 rad
+
+==============================================================================
+PART B -- training and regression error
+==============================================================================
+ExtraTreesRegressor, 300 trees, min_samples_leaf 2, seed 0
+fit time            : 0.46 s
+train  |p_pred - p_label| : mean 0.2590 rad, median 0.1644, p90 0.5782
+test   |p_pred - p_label| : mean 0.8791 rad, median 0.5621, p90 1.8787
+predicting zero      : mean 1.2528 rad (the trivial baseline the model must beat)
+predicting the train mean: mean 1.2495 rad
+
+Regression error is not the quantity of interest -- a warm start only
+has to land in the right basin, not on the label -- but a model that
+cannot beat 'predict zero' has learned nothing, so it is reported.
+
+==============================================================================
+PART C -- the benchmark
+==============================================================================
+Three planners on the same held-out problems:
+  cold   the deterministic seven-start sweep, best objective kept
+  warm   one SLSQP start from the model's prediction, no fallback
+  zero   one SLSQP start from p = 0, no fallback -- the control that
+         separates 'the model helps' from 'one start is enough'
+  warm+  the model's start, falling back to the cold sweep on failure
+         (this is what plan(warm_start=...) does by default)
+
+planner     feasible   mean t [ms]   median t [ms]  mean evals   mean T [s]
+cold       110 / 110          458.83          444.94        1024      86.4850
+warm        86 / 110           68.46           66.00         150      89.8547
+zero        89 / 110           68.34           63.56         148      89.2037
+warm+      110 / 110          170.72           68.63         376      88.9235
+
+model inference time per problem : 44.20 ms (included in the warm timings above)
+warm start accepted without fallback : 86 / 110
+warm-start paths violating a cone    : 0   tolerance 0
+
+==============================================================================
+PART D -- paired differences, 95 % confidence intervals
+==============================================================================
+problems where both cold and warm found a path: 86 / 110
+
+solve time saved (cold - warm) : +387.30 +/- 13.94 ms
+  speed-up factor (mean cold / mean warm) : 6.754x
+path evaluations saved         : +875.4 +/- 17.6
+objective penalty (warm - cold): +3.1190 +/- 1.3533 s (+3.596 % of the mean)
+  warm strictly worse on 65 of 86 problems, strictly better on 21, equal on 0
+  worst single-problem penalty : +25.0017 s (+27.72 %)
+
+Against the zero-start control, which is the honest question -- does the
+model help, or is one start simply enough?
+  zero-start feasible          : 89 / 110
+  warm-start feasible          : 86 / 110
+  zero-start objective penalty : +3.5981 +/- 0.8924 s
+  problems solved by warm but not zero : 14
+  problems solved by zero but not warm : 17
+
+==============================================================================
+PART E -- the confidence output
+==============================================================================
+confidence range : 0.0303 to 0.4927, mean 0.1946
+extrapolation flags raised : 24 / 110
+
+Does confidence predict whether the warm start succeeds?
+  mean confidence when warm succeeded : 0.1965
+  mean confidence when warm failed    : 0.1878
+
+Does confidence predict the objective penalty?
+  Spearman rank correlation confidence vs penalty : -0.1983
+  confidence tercile          n    mean penalty [s]
+  low                        29              5.3544
+  middle                     28              2.7894
+  high                       29              1.2018
+
+Read this section as a measurement, not a guarantee. The confidence is
+the agreement of 300 extremely randomised trees, not a calibrated
+probability. The planner does not act on it.
+
+==============================================================================
+PART F -- compute budget
+==============================================================================
+train dataset generation (200 problems, 2 processes)       56.3 s   within the 180 s guide budget
+test dataset generation  (110 problems, 2 processes)       29.3 s   within the 180 s guide budget
+model fit                                                   0.5 s   within the 180 s guide budget
+benchmark (110 problems x 4 planners)                      84.3 s   within the 180 s guide budget
+total                                                     170.3 s
+
+The label cost is what makes the dataset small: every training example
+is a full cold solve. Peak resident memory is dominated by the 300-tree
+forest, a few megabytes.
+
+Process-pool efficiency: labelling took 281 ms
+per problem on 2 workers against a single-process cold solve of 459 ms
+(PART C). On a 2-core machine the pool buys little and sometimes nothing;
+the figure is reported rather than assumed.
+
+==============================================================================
+VERDICT
+==============================================================================
+solve time      : warm start is 6.75x faster than the cold sweep
+solution quality: warm start is +3.596 % on the objective (95 % CI +2.036 % to +5.156 %)
+feasibility     : warm 86/110, zero 89/110, cold 110/110
+
+The warm start significantly DEGRADES the objective; the confidence
+interval on the penalty excludes zero.
+
+MODEL_CARD.md carries the same numbers and the interpretation.
+
+==============================================================================
+SUMMARY
+==============================================================================
+failed checks: 0
