@@ -1,0 +1,138 @@
+
+==============================================================================
+PART A -- the planner never returns a violating path
+==============================================================================
+300 seeded problems whose direct eigenaxis slew violates at least one
+cone. For every feasible result, the closed-form minimum margin over
+the whole returned path must be >= 0.
+
+problems                       : 300
+feasible                       : 300 (100.0 %)
+infeasible, by reason          : none
+via points used  1 / 2         : 300 / 0
+worst margin on a returned path: 3.846923e-14 rad = 2.204124e-12 deg   tolerance >= 0
+paths with margin < 0          : 0   tolerance 0
+total planning time            : 189.49 s (631.6 ms per problem)
+
+How badly the direct eigenaxis slew violated, over the same problems:
+  median penetration : 12.563 deg
+  worst penetration  : 45.146 deg
+This is the number a spreadsheet does not produce: every one of these
+slews looks fine to an eigenaxis rule of thumb.
+
+Cost of the detour, feasible problems only:
+  median time penalty vs the (illegal) direct slew : 1.3210x
+  mean                                             : 1.3458x
+  worst                                            : 2.1521x
+  median momentum throughput                       : 20.9721 N*m*s
+
+==============================================================================
+PART B -- every infeasibility reason is reachable
+==============================================================================
+A planner that says 'infeasible' without saying which constraint failed
+cannot be used in a design loop. Each reason below is provoked on
+purpose and the returned detail is printed verbatim.
+
+  (blocked geometry: start margin 75.000 deg, goal margin 75.000 deg)
+  start_attitude_violates_keepout      reached
+      clearance at q_start is -30.0000 deg, required 0.0000 deg; violated: (('telescope', 'sun'),)
+  goal_attitude_violates_keepout       reached
+      clearance at q_goal is -30.0000 deg, required 0.0000 deg; violated: (('telescope', 'sun'),)
+  keepout_covers_all_directions        reached
+      a cone with half-angle >= pi excludes the whole sky
+  wheel_torque_unavailable             reached
+      no wheel torque available about axis [1.0, 0.0, 0.0]
+  wheel_torque_limit_exceeded          reached
+      segment 0 demands 0.167362 N*m per wheel against a 0.15 N*m limit (1.116 of the box); the gyroscopic term is 15.91 % of the total torque
+  wheel_momentum_limit_exceeded        reached
+      segment 0 demands 0.3023 N*m*s per wheel against a 0.3 N*m*s limit
+  time_limit_exceeded                  reached
+      best keep-out-feasible path takes 85.1135 s against a 10.0000 s budget
+  no_feasible_path_found               reached
+      14 optimiser starts up to 2 via point(s) found no path clearing every cone; the direct slew clears by -5.0000 deg (negative means it violates)
+
+8 of 8 documented reasons provoked.
+
+==============================================================================
+PART C -- the four required failure modes
+==============================================================================
+C1 infeasible geometry: a contiguous 15 deg band of cones around the
+   y-z great circle, with the boresight starting at +x and asked for -x.
+   Every continuous boresight path crosses the band, so no via point of
+   any number can help. Both endpoints are clear by 75 deg, so this is
+   genuinely a path-existence failure, not an endpoint failure.
+    feasible=False  reason=no_feasible_path_found
+    starts tried=0  path evaluations=0
+    direct slew margin=-5.0000 deg
+
+C2 wheel saturation mid-slew: sized with the scalar rule of thumb, the
+   exact torque leaves the box part-way through the first segment.
+    feasible=False  reason=wheel_torque_limit_exceeded
+    torque utilisation   = 1.115744
+    exact-envelope util  = 1.008464
+    gyroscopic fraction  = 0.159090
+    worst segment        = 0
+    with envelope sizing : feasible=True, utilisation=1.000000, T=85.113 s
+    the rule of thumb would have promised T=81.618 s, 4.11 % faster than is achievable
+
+C3 cone tangency: a cone placed exactly tangent to the direct slew arc.
+    offset -1.0e-06 deg: direct margin -0.000001000 deg, feasible=True, n_via=1
+    offset +0.0e+00 deg: direct margin -0.000000000 deg, feasible=True, n_via=1
+    offset +1.0e-06 deg: direct margin +0.000001000 deg, feasible=True, n_via=0
+    The planner does not have to decide the tangent case correctly to
+    be safe: a tangent arc has margin 0, which satisfies the >= 0
+    constraint, and any required_margin > 0 pushes it off the boundary.
+
+C4 the degenerate 180 deg slew: the eigenaxis is still unique, but the
+   quaternion scalar part is zero and slerp is at its least conditioned.
+     179.000 deg: slew angle 179.000000000 deg, feasible=True, T=53.721098 s, n_via=0
+     179.999 deg: slew angle 179.999000000 deg, feasible=True, T=53.870798 s, n_via=0
+     180.000 deg: slew angle 180.000000000 deg, feasible=True, T=53.870947 s, n_via=0
+     180.001 deg: slew angle 179.999000000 deg, feasible=True, T=53.870798 s, n_via=0
+
+   With a cone squarely across the 180 deg arc:
+    direct margin -30.0000 deg -> feasible=True, n_via=1, T=106.802 s, margin=60.000000 deg
+
+   A zero-angle slew (start == goal):
+    slew angle 0.000e+00 rad, feasible=True, T=0.000000 s, n_via=0
+
+==============================================================================
+PART D -- cost accounting against the closed forms
+==============================================================================
+For every segment of a returned path, the reported time and momentum
+must equal the profile closed forms for that segment's angle, sizing
+acceleration and rate cap.
+
+segments checked                        : 400
+worst |rebuilt - reported duration|     : 0.000e+00 s   tolerance 1e-12
+worst |peak momentum - J_e omega_peak|  : 0.000e+00 N*m*s   tolerance 1e-12
+
+Path totals are the sums of the segment values, e.g. for the first
+feasible problem:
+  segments        : [73.949646, 16.54184]
+  sum             : 90.49148634018616 s
+  reported total  : 90.49148634018616 s
+  peak momentum   : 8.489095985537551 N*m*s (max over segments: 8.489095985537551)
+  throughput      : 22.708419770671355 N*m*s (= 2 x sum of peaks: 22.708419770671355)
+
+==============================================================================
+PART E -- settings sensitivity
+==============================================================================
+The SLSQP iteration cap and the cold-start deviation magnitudes are the
+only tuning knobs in the planner. Measured over 14 seeded problems.
+
+  maxiter        magnitudes    s/plan  feasible   mean T [s]  relative    evals
+       40           (0.45,)     0.912  14 / 14         86.054    1.0000     1484
+       25           (0.45,)     0.699  14 / 14         86.950    1.0110     1097
+       15           (0.45,)     0.502  14 / 14         86.420    1.0042      719
+       25            (0.6,)     0.732  14 / 14         87.016    1.0110     1124
+       40        (0.3, 0.7)     1.500  14 / 14         85.521    0.9945     2869
+
+The default is maxiter = 25 with a single 0.45 rad magnitude: it costs
+about half the time of 40 iterations for a mean objective near 1 %
+worse. Nothing here is random, so these figures reproduce exactly.
+
+==============================================================================
+SUMMARY
+==============================================================================
+failed checks: 0

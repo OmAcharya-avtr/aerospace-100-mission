@@ -1,0 +1,191 @@
+======================================================================================
+VALIDATION 5a: the candidate dataset
+======================================================================================
+    catalogues and pair tables for magnitude limits [5.5, 6.0, 6.5]: 4.9 s
+      mag 5.5:   2637 stars,    75140 pairs,    5.4 MB
+      mag 6.0:   4799 stars,   249104 pairs,   17.9 MB
+      mag 6.5:   8734 stars,   823772 pairs,   59.3 MB
+
+   split   frames     rows  rows/frame   positive  solvable frames  seconds
+   train      600    21150       35.25     0.3664           0.8233     43.4
+    test      300    10600       35.33     0.3595           0.8333     15.9
+    The split is by frame and by seed: the two sets share the catalogues, which
+    is the split a star tracker faces (the catalogue is fixed, the sky is not).
+    'solvable frames' is the fraction whose candidate list contains the truth;
+    it is the ceiling on every decision rule and it is below 1 because the
+    training grid deliberately includes frames nothing can solve.
+test rows                                                       1.0600e+04 >=  3.00e+03  PASS
+test positive fraction is a minority class                      3.5953e-01 <=  5.00e-01  PASS
+
+======================================================================================
+VALIDATION 5b: training
+======================================================================================
+    HistGradientBoostingClassifier, 13 features, 21150 rows
+    full model         1.9 s
+    no-photometry      0.2 s   (11 features)
+    dataset + fit     50.1 s total training cost
+total training cost [s]                                         5.0145e+01 <=  1.80e+02  PASS
+
+======================================================================================
+VALIDATION 5c: row-level ranking on held-out frames
+======================================================================================
+             model    ROC AUC   average precision   base rate
+              full    1.00000             0.99999     0.35953
+     no photometry    0.99999             0.99998     0.35953
+ROC AUC, full model                                             1.0000e+00 >=  9.50e-01  PASS
+
+    permutation importance (drop in average precision when a column is shuffled),
+    computed on the held-out set
+      magnitude_resid_rms             0.00166
+      confirm_fraction                0.00032
+      log1p_rivals                    0.00010
+      confirm_resid_norm              0.00008
+      n_confirm                       0.00005
+      resid_max_norm                  0.00000
+      expected_stars_in_field         0.00000
+      log10_tolerance_arcsec          0.00000
+      resid_rms_norm                  0.00000
+      magnitude_rank_agreement        0.00000
+      mean_edge_rad                   0.00000
+      n_spots                         0.00000
+      min_edge_rad                   -0.00000
+    The photometric columns are flattered by the simulator, which gives the
+    instrument the catalogue's own magnitude scale plus Gaussian noise: no
+    colour term, no zero-point drift, no saturation. The ablated model above is
+    the honest lower bound on this feature set.
+
+======================================================================================
+VALIDATION 5d: is the confidence a probability?
+======================================================================================
+    reliability table on held-out candidates, 10 equal-width bins
+  mean predicted   observed    count        gap
+          0.0002     0.0000     6780     0.0002
+          0.1330     0.0000        3     0.1330
+          0.2257     0.0000        1     0.2257
+          0.4959     1.0000        1    -0.5041
+          0.5852     0.0000        1     0.5852
+          0.6799     1.0000        1    -0.3201
+          0.7578     1.0000        3    -0.2422
+          0.8976     1.0000        1    -0.1024
+          0.9997     0.9989     3809     0.0007
+Brier score (0 is perfect)                                      4.7058e-04
+Brier score of always predicting the base rate                  2.3027e-01
+expected calibration error                                      6.6454e-04
+expected calibration error                                      6.6454e-04 <=  5.00e-02  PASS
+Brier score vs the base-rate predictor                          4.7058e-04 <=  2.30e-01  PASS
+    A calibrated probability is what makes the threshold in 5f meaningful: it is
+    an operating point on a measured curve, not a knob with arbitrary units.
+
+======================================================================================
+VALIDATION 5e: frame-level rates, learned ranker against the Pyramid rule
+======================================================================================
+    identical candidate lists; only the decision differs
+
+  clean sky, sigma 5: ceiling 1.0000, 25.4 candidates/frame, 51 ms/frame
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     1.0000    0.0000   0.0000   [0.0000, 0.0250]  0/150
+  pyramid                      1.0000    0.0000   0.0000   [0.0000, 0.0250]  0/150
+  ranker@0.5                   1.0000    0.0000   0.0000   [0.0000, 0.0250]  0/150
+  ranker@0.9                   1.0000    0.0000   0.0000   [0.0000, 0.0250]  0/150
+
+  sigma 40, no false stars: ceiling 1.0000, 125.0 candidates/frame, 95 ms/frame
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     0.1867    0.0000   0.8133   [0.0000, 0.0250]  0/150
+  pyramid                      1.0000    0.0000   0.0000   [0.0000, 0.0250]  0/150
+  ranker@0.5                   1.0000    0.0000   0.0000   [0.0000, 0.0250]  0/150
+  ranker@0.9                   1.0000    0.0000   0.0000   [0.0000, 0.0250]  0/150
+
+  4 false stars: ceiling 1.0000, 8.1 candidates/frame, 33 ms/frame
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     0.9067    0.0933   0.0000   [0.0564, 0.1506]  14/150
+  pyramid                      1.0000    0.0000   0.0000   [0.0000, 0.0250]  0/150
+  ranker@0.5                   1.0000    0.0000   0.0000   [0.0000, 0.0250]  0/150
+  ranker@0.9                   1.0000    0.0000   0.0000   [0.0000, 0.0250]  0/150
+
+  8 false stars: ceiling 0.6133, 2.2 candidates/frame, 20 ms/frame
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     0.4667    0.3200   0.2133   [0.2506, 0.3983]  48/150
+  pyramid                      0.4333    0.0000   0.5667   [0.0000, 0.0250]  0/150
+  ranker@0.5                   0.5933    0.0000   0.4067   [0.0000, 0.0250]  0/150
+  ranker@0.9                   0.5667    0.0000   0.4333   [0.0000, 0.0250]  0/150
+
+  12 false stars: ceiling 0.2200, 1.0 candidates/frame, 22 ms/frame
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     0.1800    0.3867   0.4333   [0.3125, 0.4665]  58/150
+  pyramid                      0.1067    0.0000   0.8933   [0.0000, 0.0250]  0/150
+  ranker@0.5                   0.2000    0.0133   0.7867   [0.0037, 0.0473]  2/150
+  ranker@0.9                   0.1667    0.0000   0.8333   [0.0000, 0.0250]  0/150
+
+  gate 12x too wide + 4 false: ceiling 0.9067, 127.8 candidates/frame, 149 ms/frame
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     0.0000    0.0133   0.9867   [0.0037, 0.0473]  2/150
+  pyramid                      0.5400    0.4133   0.0467   [0.3377, 0.4933]  62/150
+  ranker@0.5                   0.9067    0.0067   0.0867   [0.0012, 0.0368]  1/150
+  ranker@0.9                   0.9067    0.0000   0.0933   [0.0000, 0.0250]  0/150
+
+  summary at threshold 0.5
+  case                            ceiling   pyr id  pyr fID    ML id   ML fID   id gain
+  clean sky, sigma 5               1.0000   1.0000   0.0000   1.0000   0.0000   +0.0000
+  sigma 40, no false stars         1.0000   1.0000   0.0000   1.0000   0.0000   +0.0000
+  4 false stars                    1.0000   1.0000   0.0000   1.0000   0.0000   +0.0000
+  8 false stars                    0.6133   0.4333   0.0000   0.5933   0.0000   +0.1600
+  12 false stars                   0.2200   0.1067   0.0000   0.2000   0.0133   +0.0933
+  gate 12x too wide + 4 false      0.9067   0.5400   0.4133   0.9067   0.0067   +0.3667
+    On a clean sky both rules are at 1.000 and there is nothing to gain. The
+    ranker earns its place only where the Pyramid rule's uniqueness test throws
+    away a frame it could have identified.
+identification gain on the hardest false-star case              3.6667e-01 >=  5.00e-02  PASS
+worst learned false-identification rate at threshold 0.5        1.3333e-02
+worst pyramid false-identification rate over the same cases     4.1333e-01
+
+======================================================================================
+VALIDATION 5f: the threshold curve
+======================================================================================
+    the classical rule is one point; the ranker is a curve, and the curve is the
+    result. Case: 8 false stars, sigma 5 arcsec.
+    ceiling 0.6767, 300 trials
+  rule                ident  false ID     none        false ID 95% CI
+  triangle           0.5467    0.2100   0.2433       [0.1677, 0.2596]
+  pyramid            0.4733    0.0000   0.5267       [0.0000, 0.0126]
+  ranker@0.02        0.6667    0.0067   0.3267       [0.0018, 0.0240]
+  ranker@0.05        0.6667    0.0033   0.3300       [0.0006, 0.0186]
+  ranker@0.1         0.6667    0.0033   0.3300       [0.0006, 0.0186]
+  ranker@0.2         0.6667    0.0033   0.3300       [0.0006, 0.0186]
+  ranker@0.3         0.6633    0.0000   0.3367       [0.0000, 0.0126]
+  ranker@0.5         0.6600    0.0000   0.3400       [0.0000, 0.0126]
+  ranker@0.7         0.6333    0.0000   0.3667       [0.0000, 0.0126]
+  ranker@0.9         0.5967    0.0000   0.4033       [0.0000, 0.0126]
+  ranker@0.99        0.4533    0.0000   0.5467       [0.0000, 0.0126]
+    thresholds beating the Pyramid rule's identification rate without exceeding
+    the upper end of its own false-ID interval: ['ranker@0.02', 'ranker@0.05', 'ranker@0.1', 'ranker@0.2', 'ranker@0.3', 'ranker@0.5', 'ranker@0.7', 'ranker@0.9']
+at least one threshold dominates the Pyramid rule               8.0000e+00 >=  1.00e+00  PASS
+
+======================================================================================
+VALIDATION 5g: runtime
+======================================================================================
+    the classical rule stops at the first confirmed triple; the ranker needs the
+    whole candidate list, so it pays for the full scan. Measured over 120 frames.
+   false stars  early exit [ms]   full scan [ms]   score [ms]   ratio
+             0             1.08            25.15         1.87   25.00
+             4             3.73            16.93         1.81    5.03
+             8             9.38            13.55         1.56    1.61
+    The learned path is slower per frame, not faster. Its argument is the
+    identification rate in 5e, not throughput.
+
+======================================================================================
+VALIDATION 5h: where the ranker fails
+======================================================================================
+    confidence of the accepted candidate, split by whether it was correct
+median confidence when correct                                  9.9730e-01
+median confidence when wrong                                    7.4696e-01
+max confidence when wrong                                       9.7251e-01
+    8 wrong acceptances out of 300 trials at
+    a threshold of 0.05; a high-confidence wrong answer is the failure that
+    matters, and the maximum above is how bad it gets on these frames.
+
+    Ceiling-limited frames: the ranker cannot identify what the search never
+    proposed. Ceiling here is 0.3867, learned identification rate is
+    0.3800, so the shortfall attributable to the decision
+    rule is 0.0067 and the rest is search.
+
+RESULT: 8 / 8 checks passed

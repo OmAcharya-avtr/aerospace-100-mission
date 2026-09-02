@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fdiscope"
+version = "0.1.0"
+description = "Residual-based fault detection and isolation for a GNC loop: chi-squared and CUSUM tests with designed false-alarm rates, GLR isolation, and a benchmarked learned classifier"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = ["fdi", "fault-detection", "fault-isolation", "cusum", "kalman-filter", "gnc", "residual"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "scikit-learn>=1.3",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis"]
+examples = ["matplotlib>=3.7"]
+dev = ["pytest", "hypothesis", "ruff>=0.4", "matplotlib>=3.7"]
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/fdiscope"
+Source = "https://github.com/OmAcharya-avtr/fdiscope"
+
+[project.scripts]
+fdiscope = "fdiscope.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "C4"]
+
+[tool.ruff.lint.per-file-ignores]
+# examples/ and validation/ scripts must put their sys.path bootstrap imports
+# (_plotstyle, _support) before the package imports, so import sorting and
+# module-level-import-not-at-top cannot apply there.
+"examples/*" = ["E402", "I001"]
+"validation/*" = ["E402", "I001"]
+"data/*" = ["E402"]

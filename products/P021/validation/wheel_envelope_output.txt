@@ -1,0 +1,100 @@
+
+==============================================================================
+PART A -- zonotope facet formula against linear programming
+==============================================================================
+cap(u) = max{t >= 0 : t u = A c, |c_i| <= bound} is a linear programme.
+Because {A c : |c| <= bound} is a zonotope, every facet is spanned by a
+pair of generators, so cap(u) = min_f bound h_f / |u . n_f| with
+n_f = a_i x a_j normalised and h_f = sum_k |a_k . n_f|. The two routes
+share no code: one is HiGHS simplex, the other is six dot products.
+
+array                     n dirs     worst |zono - LP|   zono [us]     LP [us]
+orthogonal triad             300          0.000000e+00       73.49     3504.30
+pyramid 54.7356 deg          300          1.110223e-16       26.77     2591.92
+pyramid 40 deg               300          1.665335e-16       30.06     2982.37
+5 random axes                300          2.220446e-16       31.33     3988.49
+6 random axes                300          3.330669e-16       59.17     4991.96
+
+worst over all arrays : 3.330669e-16 N*m   tolerance 1e-12
+
+==============================================================================
+PART B -- hand-checked capabilities
+==============================================================================
+Orthogonal triad, A = I, per-wheel torque 1 N*m. The reachable set is
+the cube [-1, 1]^3, so along +x the capability is 1 and along (1,1,1)
+it is sqrt(3) (the cube's corner).
+  +x         library 1.0  hand 1.0  |diff| 0.000e+00
+  (1,1,0)    library 1.4142135623730951  hand 1.4142135623730951  |diff| 0.000e+00
+  (1,1,1)    library 1.732050807568877  hand 1.7320508075688772  |diff| 2.220e-16
+
+Pyramid at arctan(sqrt 2) = 54.7356103172 deg, torque 0.15 N*m.
+Along +z all four wheels contribute cos(el) each, so the capability is
+4 * 0.15 * cos(el):
+  hand    0.3464101615137754
+  library 0.3464101615137754   |diff| 0.000e+00   tolerance 1e-12
+Along +x only the two wheels with an x component contribute, each
+sin(el) cos(0) or sin(el) cos(pi), so the capability is 2 * 0.15 * sin(el):
+  hand    0.2449489742783178
+  library 0.2449489742783178   |diff| 0.000e+00   tolerance 1e-12
+
+==============================================================================
+PART C -- the minimum-norm allocation is a lower bound on the envelope
+==============================================================================
+The planner sizes against the minimum-norm allocation, because that is
+what a controller using a plain pseudo-inverse delivers. The exact
+envelope is larger, and the ratio below is the headroom a bounded
+allocator (AllocLab, P023) would recover. It is reported, not assumed.
+
+array                      min ratio  mean ratio   max ratio   never > 1
+orthogonal triad            1.000000    1.000000    1.000000        True
+pyramid 54.7356 deg         0.669778    0.867036    0.999785        True
+pyramid 40 deg              0.672885    0.873439    0.999788        True
+5 random axes               0.672472    0.837788    0.992458        True
+6 random axes               0.625964    0.800960    0.985051        True
+
+==============================================================================
+PART D -- pyramid isotropy against elevation
+==============================================================================
+The four-wheel pyramid's momentum envelope is closest to a sphere at
+elevation arctan(sqrt 2) = 54.7356 deg (Wie 2008, Sec. 7.3). Measured
+as the ratio of the smallest to the largest directional capability over
+2000 near-equal-area directions:
+
+   elevation [deg]    min/max capability     min [N*m]     max [N*m]
+         30.000000              0.305256      0.150025      0.491473
+         40.000000              0.436088      0.192869      0.442271
+         50.000000              0.612356      0.229852      0.375357
+         54.735610              0.717946      0.244988      0.341235
+         60.000000              0.642820      0.232393      0.361522
+         70.000000              0.469429      0.182478      0.388725
+         80.000000              0.248175      0.101104      0.407387
+
+most isotropic of those sampled: 54.7356103172 deg, ratio 0.717946
+(The optimum over this grid is the textbook angle; a finer sweep would
+be needed to claim more than that.)
+
+==============================================================================
+PART E -- a failed wheel
+==============================================================================
+Removing one wheel from the pyramid leaves a rank-3 array with a much
+smaller envelope. The capability along each body axis, before and after:
+
+rank full 3, rank reduced 3
+direction       full [N*m]    3 wheels [N*m]     ratio
++x                0.244949          0.122474    0.5000
++y                0.244949          0.244949    1.0000
++z                0.346410          0.173205    0.5000
+-x                0.244949          0.122474    0.5000
+(1,1,1)           0.248528          0.124264    0.5000
+
+worst-direction capability: full 0.244988 N*m, 3 wheels 0.122494 N*m (50.00 %)
+The array is still rank 3, so no direction is unreachable, but the loss
+is strongly direction-dependent: exactly half along x, y and z but none
+along +y, where the surviving wheels already did all the work. That is
+why the planner sizes each segment against the direction that segment
+actually needs rather than against a single scalar torque budget.
+
+==============================================================================
+SUMMARY
+==============================================================================
+failed checks: 0

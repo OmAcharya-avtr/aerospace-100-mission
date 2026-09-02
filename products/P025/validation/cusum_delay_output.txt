@@ -1,0 +1,60 @@
+V2 -- CUSUM detection delay, measured against the analytic expectation
+==============================================================================
+All data SIMULATED.  Delays are in samples; the loop runs at dt = 0.1 s.
+
+-- B1  exact change-point model: p_k ~ N(mu, 1) from sample 0, CUSUM from 0
+4000 trials per cell, horizon 1200 samples, seed 31337.
+
+   mu       h        K   Wald h/K   Siegmund   measured                95 % CI     m/S     m/W  verdict
+  0.5   4.000   0.1250     32.000     28.743     29.260       [28.722, 29.798]  1.0180  0.9144  PASS
+  0.5   5.750   0.1250     46.000     42.675     42.270       [41.603, 42.937]  0.9905  0.9189  PASS
+  0.5   8.000   0.1250     64.000     60.662     60.521       [59.647, 61.395]  0.9977  0.9456  PASS
+  1.0   4.000   0.5000      8.000      8.342      8.390         [8.244, 8.536]  1.0058  1.0488  PASS
+  1.0   5.750   0.5000     11.500     11.832     11.954       [11.765, 12.143]  1.0103  1.0395  PASS
+  1.0   8.000   0.5000     16.000     16.331     16.529       [16.299, 16.759]  1.0121  1.0330  PASS
+  2.0   4.000   2.0000      2.000      2.666      2.744         [2.701, 2.788]  1.0294  1.3722  PASS
+  2.0   5.750   2.0000      2.875      3.540      3.629         [3.578, 3.680]  1.0250  1.2623  PASS
+  2.0   8.000   2.0000      4.000      4.665      4.716         [4.655, 4.778]  1.0110  1.1791  PASS
+B1a: 9 of 9 cells PASS -- overall PASS  (|measured/Siegmund - 1| <= 0.1)
+B1b: measurement -- the m/W column is the cost of ignoring the boundary
+     overshoot and the finite start.  Wald's h/K is pessimistic below
+     mu = 1/1.1652 = 0.858 and optimistic above it, which is exactly where
+     the two neglected terms change relative size; Siegmund's correction
+     removes both and lands within a few percent everywhere.
+
+-- B2  closed loop: step gyro bias, CUSUM on the model-derived direction
+400 runs per bias, onset sample 600, seeds 41000+
+threshold from cusum_threshold_for_arl0(ARL0 = 2000, mu)
+
+Run lengths, not index-based delays: a detector that alarms on the onset
+sample scores 1, not 0.
+    bias    mu_ss       h   Siegmund  mean-path  measured mean   median     m/S  path/med  verdict
+    1.0s   1.0000   5.750     11.833       25.0         19.845     17.0  1.6770    1.4706  FAIL
+    1.5s   1.5000   5.975      5.976       12.0         11.035     10.0  1.8465    1.2000  PASS
+    2.0s   2.0000   5.966      3.648        7.0          6.843      6.0  1.8755    1.1667  PASS
+    3.0s   3.0000   5.611      1.801        3.0          3.525      3.0  1.9568    1.0000  PASS
+B2a: 3 of 4 cells PASS  (|mean-path/median - 1| <= 0.25) -- overall FAIL
+     The failing cell is the smallest bias.  The mean-path recursion is
+     noise-free, so it cannot see that fluctuation lets the CUSUM cross
+     early; that help is largest when the drift per sample is smallest.
+     The ratio falls monotonically towards 1 as the bias grows, which is
+     the behaviour that explanation predicts.
+
+The m/S column is the price of the closed loop.  The Siegmund expression
+assumes the residual mean steps to mu_ss at onset; it does not, because the
+estimator absorbs part of the bias first, so the true delay is longer.  The
+mean-path column, which runs the same CUSUM on the noise-free residual
+profile, tracks the measurement far more closely.
+
+-- B3  warm start vs zero start (measurement, no criterion)
+bias 2.0 sigma, mu_ss = 2.0000, h = 5.966
+zero-started CUSUM run length : 6.843 samples  (n = 400)
+warm-started CUSUM run length : 6.700 samples  (n = 400)
+warm start is faster by       : 0.143 samples
+A warm CUSUM has usually accumulated some positive evidence already, so it
+beats the theory it is designed by.  The zero-started figures are the ones
+that match the published expressions, and the ones B1 and B2 use.
+
+==============================================================================
+V2 summary: B1a 9/9 cells PASS; B1b measurement; B2a 3/4 cells PASS; B3 measurement
+wall time 133.9 s

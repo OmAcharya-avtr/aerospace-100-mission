@@ -1,0 +1,160 @@
+reference catalogue: magnitude limit 6.0, 4799 stars, 249104 pairs, 17.9 MB
+reference camera: 12.0 deg, 1024 px, 42.19 arcsec/pixel, 120 trials per row
+
+======================================================================================
+VALIDATION 3a: noise-free exactness
+======================================================================================
+method                        ident  false ID     none    95% CI on false ID   count
+triangle                     1.0000    0.0000   0.0000   [0.0000, 0.0310]  0/120
+pyramid                      1.0000    0.0000   0.0000   [0.0000, 0.0310]  0/120
+triangle identification rate, no noise                          1.0000e+00 >=  1.00e+00  PASS
+pyramid identification rate, no noise                           1.0000e+00 >=  1.00e+00  PASS
+pyramid false identifications, no noise                         0.0000e+00 <=  0.00e+00  PASS
+median attitude error, noise free [arcsec]                      4.3245e-09
+    with no centroid noise the attitude error is the projection round-off only
+
+======================================================================================
+VALIDATION 3b: both error rates against centroid noise
+======================================================================================
+    magnitude limit 6.0, no false stars, tolerance matched to the true sigma
+
+  sigma = 1 arcsec (0.024 px), tolerance 4.2 arcsec, 24.8 candidates/frame, 31 ms/frame, 4 s
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     1.0000    0.0000   0.0000   [0.0000, 0.0310]  0/120
+  pyramid                      1.0000    0.0000   0.0000   [0.0000, 0.0310]  0/120
+
+  sigma = 2 arcsec (0.047 px), tolerance 8.5 arcsec, 24.8 candidates/frame, 34 ms/frame, 4 s
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     1.0000    0.0000   0.0000   [0.0000, 0.0310]  0/120
+  pyramid                      1.0000    0.0000   0.0000   [0.0000, 0.0310]  0/120
+
+  sigma = 5 arcsec (0.119 px), tolerance 21.2 arcsec, 25.4 candidates/frame, 66 ms/frame, 8 s
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     1.0000    0.0000   0.0000   [0.0000, 0.0310]  0/120
+  pyramid                      1.0000    0.0000   0.0000   [0.0000, 0.0310]  0/120
+
+  sigma = 10 arcsec (0.237 px), tolerance 42.4 arcsec, 28.9 candidates/frame, 82 ms/frame, 10 s
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     0.9917    0.0083   0.0000   [0.0015, 0.0457]  1/120
+  pyramid                      1.0000    0.0000   0.0000   [0.0000, 0.0310]  0/120
+
+  sigma = 20 arcsec (0.474 px), tolerance 84.9 arcsec, 54.2 candidates/frame, 122 ms/frame, 15 s
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     0.9917    0.0083   0.0000   [0.0015, 0.0457]  1/120
+  pyramid                      1.0000    0.0000   0.0000   [0.0000, 0.0310]  0/120
+
+  sigma = 40 arcsec (0.948 px), tolerance 169.7 arcsec, 125.0 candidates/frame, 102 ms/frame, 12 s
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     0.1500    0.0000   0.8500   [0.0000, 0.0310]  0/120
+  pyramid                      1.0000    0.0000   0.0000   [0.0000, 0.0310]  0/120
+
+  sigma = 60 arcsec (1.422 px), tolerance 254.6 arcsec, 126.7 candidates/frame, 162 ms/frame, 19 s
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     0.0083    0.0000   0.9917   [0.0000, 0.0310]  0/120
+  pyramid                      1.0000    0.0000   0.0000   [0.0000, 0.0310]  0/120
+
+  summary: identification rate and false-identification rate against sigma
+     sigma  tri ident  tri false  pyr ident  pyr false  pyr false 95% upper
+         1     1.0000     0.0000     1.0000     0.0000               0.0310
+         2     1.0000     0.0000     1.0000     0.0000               0.0310
+         5     1.0000     0.0000     1.0000     0.0000               0.0310
+        10     0.9917     0.0083     1.0000     0.0000               0.0310
+        20     0.9917     0.0083     1.0000     0.0000               0.0310
+        40     0.1500     0.0000     1.0000     0.0000               0.0310
+        60     0.0083     0.0000     1.0000     0.0000               0.0310
+worst pyramid identification rate over the sweep                1.0000e+00 >=  9.70e-01  PASS
+
+  pooled pyramid false identifications over the whole sweep: 0 / 840, 95% interval [0.00000, 0.00455]
+  A measured zero is not a zero. With this many trials the honest statement is
+  'below 0.005 at 95% confidence', not 'never'.
+pooled pyramid false-identification rate                        0.0000e+00 <=  1.00e-02  PASS
+
+  The triangle rule loses its identification rate as the tolerance widens with
+  sigma, because a unique catalogue triangle stops being unique. The Pyramid
+  rule does not, because the fourth star restores the discrimination the wider
+  window gave away. That is the qualitative behaviour the 2004 paper reports,
+  reproduced here on a synthetic sky:
+    triangle rule: 1.000 at 1 arcsec -> 0.008 at 60 arcsec
+    pyramid rule:  1.000 at 1 arcsec -> 1.000 at 60 arcsec
+
+======================================================================================
+VALIDATION 3c: attitude error of the correct identifications
+======================================================================================
+    the identification is a correspondence; the attitude that follows from it is
+    a Wahba solve over the matched stars and its error scales with sigma
+  sigma [as]  median err [as]  p95 err [as]  median/sigma  matched stars
+           1            2.956         8.494        2.9564           9.88
+           2            5.913        16.988        2.9565           9.88
+           5           14.783        42.470        2.9566           9.88
+          10           29.569        84.941        2.9569           9.88
+          20           59.147       169.883        2.9574           9.88
+          40          118.334       339.775        2.9583           9.88
+          60          180.144       505.573        3.0024           9.88
+    The ratio is roughly constant: the estimator is linear in the noise to first
+    order, and the number of matched stars barely changes across the sweep.
+ratio of the largest to smallest median-error/sigma             1.0155e+00 <=  1.60e+00  PASS
+
+======================================================================================
+VALIDATION 3d: both error rates against the catalogue magnitude limit
+======================================================================================
+    sigma = 5 arcsec, 2 false stars, tolerance matched
+     mag   stars     pairs  in field  ceiling  tri ident  tri false  pyr ident  pyr false     ms
+    5.00    1449     22917      4.84    0.842     0.8333     0.0083     0.7667     0.0000     13
+    5.50    2637     75140      7.27    0.983     0.9583     0.0250     0.9417     0.0000     27
+    6.00    4799    249104      8.29    1.000     0.9583     0.0417     1.0000     0.0000     48
+pyramid identification rate at mag 6.0 with 2 false stars       1.0000e+00 >=  9.00e-01  PASS
+    6.50    8734    823772      8.46    1.000     0.8750     0.1250     1.0000     0.0000    154
+    'ceiling' is the fraction of frames whose candidate list contained the truth
+    at all: the upper bound on any decision rule. At magnitude limit 5.0 it is
+    limited by frames with too few stars in the field (validation 2g).
+
+======================================================================================
+VALIDATION 3e: how wide should the tolerance be?
+======================================================================================
+    tau = k sqrt(2) sigma at a true sigma of 10 arcsec; k = 3 is the default
+    NOTE: the first version of this check asserted that k = 1 would lose true
+    matches. It does not, and the reason is combinatorial rather than statistical:
+    a single edge lands inside a 1-sigma gate about 68% of the time and all three
+    edges of one triangle about 32%, but 25 triples are scanned, so the truth
+    survives somewhere in the candidate list with probability 1 - (1 - 0.32)^25,
+    which rounds to 1. The gate had to go far narrower before the ceiling moved;
+    k = 0.25 is where it does. See validation/VALIDATION.md section 7.
+      k  tau [as]  cands/frame  ceiling  tri ident  tri false  pyr ident  pyr false
+   0.25      3.54          0.3    0.260     0.2600     0.0100     0.0300     0.0000
+ceiling at k = 0.25 (a quarter-sigma gate loses the truth)      2.6000e-01 <=  6.00e-01  PASS
+   0.50      7.07          2.2    0.780     0.7800     0.0100     0.4200     0.0000
+   1.00     14.14          9.7    1.000     0.9900     0.0100     0.9900     0.0000
+   2.00     28.28         23.6    1.000     1.0000     0.0000     1.0000     0.0000
+   3.00     42.43         29.6    1.000     1.0000     0.0000     1.0000     0.0000
+ceiling at the default k = 3                                    1.0000e+00 >=  9.99e-01  PASS
+   4.00     56.57         35.8    1.000     1.0000     0.0000     1.0000     0.0000
+   6.00     84.85         57.8    1.000     1.0000     0.0000     1.0000     0.0000
+    Narrow gates drop the truth out of the candidate list entirely (the ceiling
+    falls); wide gates keep it but bury it, which costs the triangle rule its
+    uniqueness and costs every rule compute.
+
+======================================================================================
+VALIDATION 3f: the regime that breaks the Pyramid rule
+======================================================================================
+    a tolerance sized for 60 arcsec of centroid noise on a frame that actually
+    has 5 arcsec: 12x too wide. This is a mis-sized gate, not a hard sky.
+
+  0 false star(s), ceiling 1.000, 127.8 candidates/frame, 221 ms/frame
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     0.0000    0.0000   1.0000   [0.0000, 0.0267]  0/140
+  pyramid                      1.0000    0.0000   0.0000   [0.0000, 0.0267]  0/140
+
+  4 false star(s), ceiling 0.893, 127.0 candidates/frame, 131 ms/frame
+  method                        ident  false ID     none    95% CI on false ID   count
+  triangle                     0.0000    0.0000   1.0000   [0.0000, 0.0267]  0/140
+  pyramid                      0.5429    0.3857   0.0714   [0.3092, 0.4684]  54/140
+pyramid false-identification rate, mis-sized gate + 4 false stars  3.8571e-01
+this regime produces a NON-ZERO pyramid false-ID rate           3.8571e-01 >=  5.00e-02  PASS
+
+  The Pyramid rule's low false-identification rate is a property of a correctly
+  sized gate, not of the algorithm alone. Widen the gate by 12x and add a few
+  false detections and the fourth star stops discriminating: several catalogue
+  stars fit inside the window, the 'unique confirmation' test passes on the
+  wrong triangle, and the rule reports a wrong attitude with no warning.
+
+RESULT: 10 / 10 checks passed
