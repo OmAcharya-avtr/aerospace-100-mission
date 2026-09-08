@@ -138,3 +138,42 @@ The four original repositories credited `OmAcharya-ADCL` — a different account
 
 **Owner action outstanding:** retire `flagship-beamtwin`, `flagship-trackbench` and `batch-01-suite`, whose contents are now superseded by the per-product repositories. Deleting a repository needs `delete_repo` scope the session does not hold, and is the owner's call in any case. `aerospace-100-mission` stays as the mission workspace.
 
+
+## Batch 03 — per-product repositories
+
+Published under ADR-017 on the gate verdict, never on an approval quote.
+
+| Product | Repository | URL | Published |
+|---|---|---|---|
+| P021 | `slewforge` | https://github.com/OmAcharya-avtr/slewforge | 2026-09-08 |
+| P022 | `cmgsteer` | https://github.com/OmAcharya-avtr/cmgsteer | 2026-09-08 |
+| P023 | `alloclab` | https://github.com/OmAcharya-avtr/alloclab | 2026-08-31 |
+| P024 | `detumblesim` | https://github.com/OmAcharya-avtr/detumblesim | 2026-08-31 |
+| P026 | `wahbakit` | https://github.com/OmAcharya-avtr/wahbakit | 2026-08-31 |
+| P027 | `disturbtorque` | https://github.com/OmAcharya-avtr/disturbtorque | 2026-08-31 |
+| P030 | `keepout` | https://github.com/OmAcharya-avtr/keepout | 2026-08-31 |
+
+Still unbuilt in Batch 03: P025 FDIScope, P028 SkyMatch, P029 MomentumMgr.
+
+`publish/flagship-waveforge`, `publish/flagship-navbench` and `publish/batch-02-suite`
+are superseded by the twenty per-product repositories and are NOT to be created;
+the note in `SESSION_CHECKPOINT.json` claiming they await empty repositories is
+stale as of 2026-09-08.
+
+### Session 2026-09-08 (owner-attended, interactive)
+
+Gate had been failing repository-wide since Batch 03 began: the tracked file
+`products/P021/validation/keepout_cross_check_output.txt` recorded the build
+machine's absolute path, which blocks publication of every product regardless of
+product state. Fixed at the source (the validation script now prints a
+repo-relative path) and the output regenerated. P021 also carried one test with
+an absolute tolerance below float resolution, and P021/P022 carried 18 ruff
+findings between them; all resolved with no behavioural change.
+
+Gate after the fix: P021 PASS 32 tests, P022 PASS 285 tests, repository PASS,
+exit 0. Two repositories created and pushed, sole contributor `OmAcharya-avtr`
+verified on both. Monorepo pushed commits this session: 2.
+
+Open for the owner: six consecutive nightly runs (2026-09-03 .. 2026-09-08) report
+SUCCEEDED and left no commit and no `nightly_reports/` entry, in breach of Rule
+Zero. Cause not established from the mission repository alone.
