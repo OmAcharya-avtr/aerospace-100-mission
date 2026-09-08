@@ -88,7 +88,13 @@ def main() -> int:
 
     failures = 0
     rule("CROSS-CHECK AGAINST KEEPOUT (P030)")
-    print(f"KeepOut source        : {spec.origin}")
+    _origin = Path(spec.origin)
+    _root = Path(__file__).resolve().parents[3]
+    try:
+        _shown = _origin.relative_to(_root)
+    except ValueError:
+        _shown = Path(*_origin.parts[-4:])
+    print(f"KeepOut source        : {_shown}")
     print(f"KeepOut version       : {getattr(ko, '__version__', 'unknown')}")
     print()
     print("The two cone implementations were written independently:")

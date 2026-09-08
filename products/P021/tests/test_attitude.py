@@ -73,8 +73,10 @@ class TestKnownAnswers:
     def test_ninety_degree_quaternion(self):
         # q = [cos 45, sin 45, 0, 0] = [0.7071067811865476, 0.7071067811865475, 0, 0]
         q = quat_from_axis_angle([1, 0, 0], math.pi / 2)
-        assert q[0] == pytest.approx(math.sqrt(0.5), abs=1e-16)
-        assert q[1] == pytest.approx(math.sqrt(0.5), abs=1e-16)
+        # sin(pi/4) rounds one ULP below sqrt(0.5); ULP at 0.707 is 1.1e-16, so
+        # a 1e-16 absolute tolerance is below representable resolution here.
+        assert q[0] == pytest.approx(math.sqrt(0.5), abs=1e-15)
+        assert q[1] == pytest.approx(math.sqrt(0.5), abs=1e-15)
 
     def test_axis_angle_round_trip(self):
         rng = np.random.default_rng(2)

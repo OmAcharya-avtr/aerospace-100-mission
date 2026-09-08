@@ -47,8 +47,8 @@ __all__ = [
     "condition_number",
     "fibonacci_directions",
     "manipulability_gradient",
-    "momentum_envelope",
     "min_singular_value",
+    "momentum_envelope",
     "null_space_basis",
     "singular_configuration",
     "singular_direction",
@@ -264,7 +264,7 @@ def classify_singularity(
         raise ValueError(f"tol must lie in (0, 1), got {tol}")
     d = np.asarray(deltas, dtype=float).reshape(-1)
     a = _as_jacobian(array.jacobian(d))
-    u_mat, sv, vt = np.linalg.svd(a)
+    u_mat, sv, _vt = np.linalg.svd(a)
     measure = float(np.prod(sv))
     sigma_min = float(sv[-1])
     cond = float(np.inf) if sigma_min == 0.0 else float(sv[0] / sigma_min)

@@ -85,17 +85,17 @@ from .steering import (
 __version__ = "0.1.0"
 
 __all__ = [
+    "METHODS",
+    "STANDARD_PYRAMID_SKEW_DEG",
     "CMGArray",
     "GradientNullMotion",
     "LearnedNullMotion",
-    "METHODS",
     "ManoeuvreSuite",
     "NoNullMotion",
     "NullMotionAction",
     "NullMotionPolicy",
     "PolicyDataset",
     "PreferredAngleNullMotion",
-    "STANDARD_PYRAMID_SKEW_DEG",
     "SingularityInfo",
     "SteeringHistory",
     "SteeringResult",

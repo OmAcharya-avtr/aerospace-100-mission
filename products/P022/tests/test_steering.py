@@ -1,5 +1,7 @@
 """Steering laws: exactness, the SR closed form, GSR dither, rate limiting."""
 
+import itertools
+
 import numpy as np
 import pytest
 
@@ -94,7 +96,7 @@ class TestSRInverse:
             sr_inverse_steer(array, d, TAU, lam=lam).torque_error_norm
             for lam in (1e-8, 1e-6, 1e-4, 1e-2, 1e-1, 1.0)
         ]
-        assert all(b > a for a, b in zip(errors, errors[1:]))
+        assert all(b > a for a, b in itertools.pairwise(errors))
 
     def test_lam_zero_reduces_to_the_pseudo_inverse(self):
         array = pyramid_array()
