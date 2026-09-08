@@ -1,5 +1,7 @@
 """Torque profiles and steering-run accounting."""
 
+import itertools
+
 import numpy as np
 import pytest
 
@@ -99,7 +101,7 @@ class TestRunSteering:
                 run_steering(array, np.zeros(4), profile, method="pinv")
                 .accumulated_momentum_error
             )
-        ratios = [a / b for a, b in zip(errors, errors[1:])]
+        ratios = [a / b for a, b in itertools.pairwise(errors)]
         assert all(1.8 < r < 2.2 for r in ratios)
 
     def test_momentum_returns_to_the_start_for_a_rest_to_rest_profile(self):

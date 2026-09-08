@@ -107,7 +107,7 @@ def constant_profile(
         raise ValueError(f"torque must have shape (3,), got {t.shape}")
     if duration <= 0.0 or dt <= 0.0:
         raise ValueError("duration and dt must be positive [s]")
-    n = max(1, int(round(duration / dt)))
+    n = max(1, round(duration / dt))
     return TorqueProfile(np.tile(t, (n, 1)), dt, name)
 
 
@@ -153,7 +153,7 @@ def rest_to_rest_profile(
         raise ValueError(f"momentum_change must be positive [N*m*s], got {momentum_change}")
     if duration <= 0.0 or dt <= 0.0:
         raise ValueError("duration and dt must be positive [s]")
-    n = max(2, int(round(duration / dt)))
+    n = max(2, round(duration / dt))
     t_mid = (np.arange(n) + 0.5) * dt
     if shape == "bang-bang":
         tau_max = 2.0 * momentum_change / duration

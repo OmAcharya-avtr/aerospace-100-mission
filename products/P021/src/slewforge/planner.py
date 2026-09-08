@@ -93,8 +93,8 @@ from .keepout import ArcViolation, KeepOutSet, min_margin_on_arc_raw
 from .profiles import PROFILE_NAMES, SlewProfile, make_profile
 
 __all__ = [
-    "ActuatorCheck",
     "INFEASIBILITY_REASONS",
+    "ActuatorCheck",
     "Instrument",
     "PlanResult",
     "SlewPath",

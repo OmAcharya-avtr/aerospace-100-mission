@@ -48,6 +48,7 @@ P. C. Hughes, *Spacecraft Attitude Dynamics*, Wiley (1986), Ch. 4.
 
 from __future__ import annotations
 
+import itertools
 import math
 from dataclasses import dataclass
 
@@ -351,7 +352,7 @@ def propagate(
             raise ValueError("wheel_momentum0 given but the body has no wheel array")
         h = np.asarray(wheel_momentum0, dtype=float).reshape(nw).copy()
 
-    n_steps = max(1, int(math.ceil(duration / dt - 1e-12)))
+    n_steps = max(1, math.ceil(duration / dt - 1e-12))
     times = [0.0]
     qs, ws, hs, taus = [q.copy()], [w.copy()], [h.copy()], []
 
@@ -471,7 +472,7 @@ def simulate_profile(
     results: list[SimulationResult] = []
     q, w = q0, 0.0 * e_b
     h = np.zeros(body.wheels.n_wheels) if body.wheels is not None else None
-    for a, b in zip(edges[:-1], edges[1:], strict=False):
+    for a, b in itertools.pairwise(edges):
         span = b - a
         if span <= 0.0:
             continue

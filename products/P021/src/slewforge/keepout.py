@@ -59,12 +59,12 @@ from .attitude import cross3, rotate_about_axis, unit_vector
 
 __all__ = [
     "ASTRONOMICAL_UNIT_M",
-    "ArcViolation",
     "EARTH_RADIUS_M",
-    "KeepOutSet",
-    "KeepOutCone",
     "MOON_RADIUS_M",
     "SUN_RADIUS_M",
+    "ArcViolation",
+    "KeepOutCone",
+    "KeepOutSet",
     "angular_radius",
     "arc_coefficients_raw",
     "body_keepout_cone",
@@ -320,8 +320,8 @@ class KeepOutCone:
         phi = math.atan2(b, a)
         delta = math.acos(d)
         out: list[tuple[float, float]] = []
-        kmin = int(math.floor((0.0 - phi - delta) / (2.0 * math.pi))) - 1
-        kmax = int(math.ceil((sw - phi + delta) / (2.0 * math.pi))) + 1
+        kmin = math.floor((0.0 - phi - delta) / (2.0 * math.pi)) - 1
+        kmax = math.ceil((sw - phi + delta) / (2.0 * math.pi)) + 1
         for k in range(kmin, kmax + 1):
             lo = phi - delta + 2.0 * math.pi * k
             hi = phi + delta + 2.0 * math.pi * k

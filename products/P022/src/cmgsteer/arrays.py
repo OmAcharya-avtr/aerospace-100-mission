@@ -59,11 +59,11 @@ import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
 __all__ = [
+    "STANDARD_PYRAMID_SKEW_DEG",
     "CMGArray",
     "general_array",
     "pyramid_array",
     "roof_array",
-    "STANDARD_PYRAMID_SKEW_DEG",
 ]
 
 #: Skew angle of the textbook four-CMG pyramid, in degrees.  ``arctan(4/3)``.
@@ -293,8 +293,8 @@ class CMGArray:
     def summary(self) -> str:
         """One-line-per-CMG human-readable description."""
         lines = [
-            f"CMGArray: {self.n_cmgs} CMGs ({self.n_free} free), "
-            f"capacity {self.total_momentum_capacity:.6g} N*m*s"
+            (f"CMGArray: {self.n_cmgs} CMGs ({self.n_free} free), "
+            f"capacity {self.total_momentum_capacity:.6g} N*m*s")
         ]
         for i in range(self.n_cmgs):
             g = self.gimbal_axes[i]

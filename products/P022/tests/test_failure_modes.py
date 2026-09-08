@@ -15,6 +15,8 @@ service rather than in a unit test:
    singular on a two-dimensional set.
 """
 
+import itertools
+
 import numpy as np
 import pytest
 
@@ -40,7 +42,7 @@ class TestExternalSingularity:
         for offset in (1e-1, 1e-2, 1e-3, 1e-4):
             d = np.full(4, np.pi / 2 - offset)
             rates.append(np.max(np.abs(pseudo_inverse_steer(array, d, TAU).gimbal_rates)))
-        assert all(b > a for a, b in zip(rates, rates[1:]))
+        assert all(b > a for a, b in itertools.pairwise(rates))
         assert rates[-1] > 500.0
 
     def test_sr_inverse_stays_bounded_where_the_pseudo_inverse_does_not(self):

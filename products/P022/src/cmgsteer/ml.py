@@ -94,7 +94,7 @@ def policy_features(
     cap = array.total_momentum_capacity
 
     jac = array.jacobian(d)
-    u_mat, sv, vt = np.linalg.svd(jac)
+    u_mat, sv, _vt = np.linalg.svd(jac)
     measure = float(np.prod(sv))
     h = array.momentum(d)
     t_norm = float(np.linalg.norm(t))

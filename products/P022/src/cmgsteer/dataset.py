@@ -25,9 +25,9 @@ from dataclasses import dataclass
 import numpy as np
 from numpy.typing import ArrayLike, NDArray
 
+from ._fast import FastStepper
 from .arrays import CMGArray
 from .ml import DEFAULT_MAX_NULL_RATE, policy_features
-from ._fast import FastStepper
 from .nullmotion import unit_null_vector
 from .simulate import TorqueProfile, rest_to_rest_profile
 from .steering import DEFAULT_LAM0, DEFAULT_MU, sr_inverse_steer
