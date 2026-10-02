@@ -177,3 +177,23 @@ verified on both. Monorepo pushed commits this session: 2.
 Open for the owner: six consecutive nightly runs (2026-09-03 .. 2026-09-08) report
 SUCCEEDED and left no commit and no `nightly_reports/` entry, in breach of Rule
 Zero. Cause not established from the mission repository alone.
+
+## 2026-10-02 — Batch 03 closed
+
+| Product | Repository | Tests | Gate |
+|---|---|---:|---|
+| P025 FDIScope | https://github.com/OmAcharya-avtr/fdiscope | 435 | PASS |
+| P028 SkyMatch | https://github.com/OmAcharya-avtr/skymatch | 167 | PASS |
+| P029 MomentumMgr | https://github.com/OmAcharya-avtr/momentummgr | 109 | PASS |
+
+Monorepo commit `db544ca`. One pushed monorepo commit this session, plus three
+per-product repositories (not counted against the monorepo ceiling). Contributor
+check returned exactly `OmAcharya-avtr` on all three.
+
+**Hash table invalidated.** On 2026-10-02 the owner required `claude` removed as
+a contributor, which needed an author rewrite across all history and a force
+push. Every commit hash recorded above this entry refers to a commit that no
+longer exists. `dc4af53` is now `6aa1730`; earlier hashes have moved likewise and
+have not been remapped. Treat pre-2026-10-02 hashes in this ledger as historical
+labels, not as refs.
+

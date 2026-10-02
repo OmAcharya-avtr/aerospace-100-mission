@@ -1,10 +1,10 @@
 # Mission Status
 
-**Last updated:** 2026-08-30 — 20 per-product repositories published
+**Last updated:** 2026-10-02 — Batch 03 closed; FDIScope, SkyMatch and MomentumMgr published
 **Phase:** Batches 01–02 published as 20 standalone repositories · Batch 03 next
-**Products registered:** 20 / 100
-**Products built to completion gate:** 20 / 100
-**Products published:** 20 / 100 — Batch 01 and Batch 02, monorepo source public on `main`
+**Products registered:** 30 / 100
+**Products built to completion gate:** 30 / 100
+**Products published:** 30 / 100 — Batches 01-03 complete, one repository per product
 **Automated tests passing:** 3,547 · **0 failing** · 20/20 products PASS the release gate
 **Lint:** `ruff check` clean across all 20 built products
 
