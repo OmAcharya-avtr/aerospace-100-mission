@@ -28,12 +28,12 @@ from numpy.typing import ArrayLike, NDArray
 from . import _validate as _v
 
 __all__ = [
-    "WheelArray",
     "Allocation",
+    "WheelArray",
+    "count_zero_crossings",
+    "orthogonal_three",
     "pyramid_four",
     "tetrahedral_four",
-    "orthogonal_three",
-    "count_zero_crossings",
 ]
 
 PYRAMID_ISOTROPIC_HALF_ANGLE_RAD: float = float(np.arctan(np.sqrt(2.0)))

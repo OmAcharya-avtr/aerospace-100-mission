@@ -21,13 +21,13 @@ from . import _validate as _v
 from .constants import MU_EARTH, SRP_PRESSURE_1AU
 
 __all__ = [
-    "gravity_gradient_torque",
-    "gravity_gradient_worst_case",
     "aerodynamic_force",
     "aerodynamic_torque",
+    "gravity_gradient_torque",
+    "gravity_gradient_worst_case",
+    "residual_dipole_torque",
     "srp_force",
     "srp_torque",
-    "residual_dipole_torque",
 ]
 
 

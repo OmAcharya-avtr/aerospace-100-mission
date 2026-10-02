@@ -57,17 +57,17 @@ from .environment import (
 from .wheels import WheelArray, pyramid_four
 
 __all__ = [
+    "DEFAULT_DIPOLE_TILT_RAD",
+    "FEATURE_NAMES",
+    "N_FEATURES",
     "Episode",
     "EpisodeMetrics",
     "Rollout",
-    "N_FEATURES",
-    "FEATURE_NAMES",
-    "DEFAULT_DIPOLE_TILT_RAD",
-    "sample_episode",
     "build_episode",
-    "simulate_masks",
-    "rollout",
     "episode_cost",
+    "rollout",
+    "sample_episode",
+    "simulate_masks",
 ]
 
 N_FEATURES: int = 11
@@ -275,7 +275,7 @@ def build_episode(
     sub = _v.as_int_at_least(substeps, "substeps", 1)
     m_max = _v.positive(max_dipole_am2, "max_dipole_am2")
     period = orbit.period_s
-    n_windows = max(int(round(n_orb * period / win)), 4)
+    n_windows = max(round(n_orb * period / win), 4)
     t_mid = (np.arange(n_windows) + 0.5) * win
     u = 2.0 * np.pi * t_mid / period
 
@@ -366,8 +366,7 @@ def _draw_episode(
         roll_rad=float(np.radians(rng.uniform(-12.0, 12.0))),
     )
     moments = np.sort(rng.uniform(2.0, 14.0, size=3))
-    if moments[0] + moments[1] < moments[2]:
-        moments[2] = moments[0] + moments[1]
+    moments[2] = min(moments[2], moments[0] + moments[1])
     spacecraft = SpacecraftProperties(
         inertia=np.diag(rng.permutation(moments)),
         drag_area_m2=float(rng.uniform(0.3, 1.5)),
@@ -497,7 +496,7 @@ def _features(
     b_norms = episode.b_norm_t
 
     def merit(idx: int) -> tuple[float, float]:
-        i = idx if idx < last else last
+        i = min(last, idx)
         b_norm = float(b_norms[i])
         if h_norm == 0.0 or b_norm == 0.0:
             return 0.0, b_norm
@@ -522,7 +521,7 @@ def _features(
     cx, cy, cz = hx, hy, hz
     coast3 = coast6 = 0.0
     for j in range(6):
-        td = episode.torque_body_nm[k + j if k + j < last else last]
+        td = episode.torque_body_nm[min(last, k + j)]
         gx = oy * cz - oz * cy
         gy = oz * cx - ox * cz
         gz = ox * cy - oy * cx
@@ -660,8 +659,7 @@ def rollout(
             if mag > near_limit:
                 near += 1
             frac = mag / env
-            if frac > peak:
-                peak = frac
+            peak = max(peak, frac)
             if record_history:
                 h_hist[step] = (hx, hy, hz)
                 dip_hist[step - 1] = (mx, my, mz)

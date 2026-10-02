@@ -121,7 +121,9 @@ from .wheels import (
 
 __version__ = "0.1.0"
 
-__all__ = [
+# RUF022: __all__ is grouped by subject with section comments rather than sorted,
+# which is the more useful ordering for a reader scanning the public surface.
+__all__ = [  # noqa: RUF022
     "__version__",
     # constants
     "MU_EARTH",

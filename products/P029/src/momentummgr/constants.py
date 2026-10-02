@@ -8,17 +8,17 @@ reader needs in order to judge whether two independent codes should agree.
 from __future__ import annotations
 
 __all__ = [
+    "ASTRONOMICAL_UNIT",
+    "DEFAULT_DRAG_COEFFICIENT",
+    "EARTH_REDUCED_DIPOLE",
     "MU_EARTH",
+    "OMEGA_EARTH",
     "R_EARTH_EQUATORIAL",
     "R_EARTH_MEAN",
-    "OMEGA_EARTH",
-    "SPEED_OF_LIGHT",
-    "ASTRONOMICAL_UNIT",
     "SOLAR_IRRADIANCE_1AU",
+    "SPEED_OF_LIGHT",
     "SRP_PRESSURE_1AU",
-    "EARTH_REDUCED_DIPOLE",
     "STANDARD_GRAVITY",
-    "DEFAULT_DRAG_COEFFICIENT",
 ]
 
 MU_EARTH: float = 3.986004418e14

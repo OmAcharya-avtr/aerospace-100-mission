@@ -78,8 +78,7 @@ def test_gravity_gradient_is_perpendicular_to_nadir(
     if u is None:
         return
     moments = np.sort(np.array([a, b, cc]))
-    if moments[0] + moments[1] < moments[2]:
-        moments[2] = moments[0] + moments[1]
+    moments[2] = min(moments[2], moments[0] + moments[1])
     t = gravity_gradient_torque(np.diag(moments), u, 7.0e6)
     # T = 3 n^2 (u x I u) is orthogonal to u exactly; the residual is roundoff on the
     # natural scale 3 n^2 |I u|, not on |T|, which is itself zero for an isotropic inertia.

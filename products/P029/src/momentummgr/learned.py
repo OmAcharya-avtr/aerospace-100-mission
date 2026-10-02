@@ -31,7 +31,7 @@ the difference is inside the interval and the honest answer is "indistinguishabl
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 import numpy as np
 from numpy.typing import NDArray
@@ -48,13 +48,13 @@ from .episodes import (
 from .policies import Decider, FixedThresholdScheduler
 
 __all__ = [
-    "MaskSearchResult",
-    "search_best_mask",
-    "harvest_training_rows",
     "LearnedScheduler",
+    "MaskSearchResult",
+    "harvest_training_rows",
+    "search_best_mask",
     "train_scheduler",
-    "tune_decision_threshold",
     "tune_confidence_band",
+    "tune_decision_threshold",
 ]
 
 
@@ -182,7 +182,7 @@ class LearnedScheduler:
     model: GradientBoostingClassifier
     decision_threshold: float = 0.5
     min_confidence: float = 0.0
-    fallback: FixedThresholdScheduler = FixedThresholdScheduler()
+    fallback: FixedThresholdScheduler = field(default_factory=FixedThresholdScheduler)
 
     def predict_proba(self, features: NDArray[np.float64]) -> NDArray[np.float64]:
         """Probability of the actuate class for each feature row, shape ``(N,)``."""

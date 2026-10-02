@@ -48,12 +48,12 @@ from .constants import STANDARD_GRAVITY
 
 __all__ = [
     "MagneticCommand",
-    "magnetic_dump_command",
-    "uncontrollable_fraction",
+    "ThrusterDump",
     "averaged_controllability",
     "dipole_cost",
-    "ThrusterDump",
+    "magnetic_dump_command",
     "thruster_dump",
+    "uncontrollable_fraction",
 ]
 
 

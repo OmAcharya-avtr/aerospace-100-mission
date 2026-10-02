@@ -48,11 +48,11 @@ from .torques import gravity_gradient_torque
 __all__ = [
     "SOURCES",
     "OrbitSweep",
-    "sweep_orbit",
-    "momentum_per_orbit_eci",
-    "momentum_history_eci",
-    "secular_torque_eci",
     "momentum_budget",
+    "momentum_history_eci",
+    "momentum_per_orbit_eci",
+    "secular_torque_eci",
+    "sweep_orbit",
 ]
 
 SOURCES: tuple[str, ...] = ("gravity_gradient", "aerodynamic", "solar", "magnetic")

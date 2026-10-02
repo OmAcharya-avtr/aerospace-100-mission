@@ -10,8 +10,8 @@ import pytest
 
 from momentummgr import (
     FixedThresholdScheduler,
-    circular_state,
     averaged_controllability,
+    circular_state,
     dipole_field_eci,
     momentum_budget,
     momentum_per_orbit_eci,

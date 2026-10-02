@@ -24,12 +24,12 @@ from . import _validate as _v
 from .episodes import Episode, EpisodeMetrics, rollout
 
 __all__ = [
+    "AlwaysOnScheduler",
     "Decider",
     "FixedThresholdScheduler",
-    "AlwaysOnScheduler",
     "NeverScheduler",
-    "tune_fixed_threshold",
     "evaluate_policy",
+    "tune_fixed_threshold",
 ]
 
 Decider = Callable[[int, NDArray[np.float64]], tuple[bool, float]]

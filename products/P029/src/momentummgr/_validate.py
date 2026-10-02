@@ -12,13 +12,13 @@ from numpy.typing import ArrayLike, NDArray
 
 __all__ = [
     "as_finite_float",
-    "positive",
-    "non_negative",
-    "in_range",
-    "as_vector3",
-    "as_unit_vector",
     "as_inertia_matrix",
     "as_int_at_least",
+    "as_unit_vector",
+    "as_vector3",
+    "in_range",
+    "non_negative",
+    "positive",
 ]
 
 

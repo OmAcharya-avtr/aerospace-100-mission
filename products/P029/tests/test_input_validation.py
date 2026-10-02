@@ -11,11 +11,12 @@ from momentummgr import (
     WheelArray,
     aerodynamic_torque,
     averaged_controllability,
+    count_zero_crossings,
     density,
     dipole_cost,
     dipole_field_eci,
-    episode_cost,
     eclipse_boundaries,
+    episode_cost,
     gravity_gradient_torque,
     lvlh_dcm,
     magnetic_dump_command,
@@ -29,7 +30,6 @@ from momentummgr import (
     sweep_orbit,
     thruster_dump,
     tune_fixed_threshold,
-    count_zero_crossings,
 )
 from momentummgr.policies import FixedThresholdScheduler
 
