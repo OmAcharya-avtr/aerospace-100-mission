@@ -1,5 +1,52 @@
 # Mission Status
 
+> ## Reconciliation — 2026-10-03 (authoritative)
+>
+> Everything below this block predates Batch 03's publication and contradicts
+> it in several places. It is retained as history. Where the two disagree,
+> **this block and `products.yaml` govern.** The figures here are derived
+> mechanically from the repaired `products.yaml` and from
+> `scripts/quota_report.py` re-run on 2026-10-03.
+>
+> - **30 of 100 products registered, built and PUBLISHED.** Batches 01, 02 and
+>   03 are complete. Every one of the 30 has its own repository (ADR-018);
+>   `tracking/RELEASE_LEDGER.md` lists them.
+> - **Next unbuilt batch: 04 (P031–P040).** Specified on 2026-10-03 in
+>   `batch_reports/BATCH_04_SPEC.md`. Not built.
+> - **Quota:** flagship 6/20, medium 9/30, compact 15/50, AI 21/70;
+>   validation L1 6/10, L2 18/60, L3 6/25, **L4 0/5**.
+> - **Level 4 is still zero** against a Batch 05 deadline. It cannot be closed
+>   without measured timing and resource use from the Jetson Orin Nano. The
+>   Batch 04 spec carries the groundwork and the labelling rule: those products
+>   are `Level 3, hardware-pending` and are never labelled Level 4 on
+>   simulated numbers.
+> - **Test counts are deliberately not restated here.** The body below claims
+>   3,547 passing; that figure was not re-measured on 2026-10-03 and the
+>   release gate was not run to completion this session, so repeating it as
+>   current would be an unverified number in an authoritative document. The
+>   per-batch counts recorded at the time of each release are in
+>   `tracking/RELEASE_LEDGER.md`. The next run that completes a gate pass
+>   should replace this paragraph with its measured total from junit XML.
+> - **`products.yaml` did not parse** until 2026-10-03: line 399 (P026
+>   WahbaKit, added in Batch 03) carried an unquoted `summary` containing a
+>   colon-space, so the declared source of truth was unreadable by every tool
+>   that opens it. Repaired; see `nightly_reports/2026-10-03.md`.
+> - **Open blocker, publication:** `connectedFolders` is empty inside scheduled
+>   runs, so `device_commit_files` is refused and no bundle or binary can reach
+>   the Mac. The Mac-to-GitHub leg is verified working. Until the folder is
+>   connected to the task, runs are restricted to text-only publication and
+>   must not start a product batch.
+> - **Stale blockers below are closed.** The credential blocker, the
+>   'Batch 02 push pending' entries, the three uncreated Batch 02
+>   per-product repositories and the four-row published-repository table are
+>   all contradicted by `products.yaml` and the release ledger. Also note that
+>   history was rewritten on 2026-10-02 to remove `claude` as a contributor, so
+>   **every commit hash recorded below is a historical label, not a ref.**
+>
+> No approval row was written by any automated session, and none is cited
+> anywhere in this block (ADR-016).
+
+
 **Last updated:** 2026-10-02 — Batch 03 closed; FDIScope, SkyMatch and MomentumMgr published
 **Phase:** Batches 01–02 published as 20 standalone repositories · Batch 03 next
 **Products registered:** 30 / 100

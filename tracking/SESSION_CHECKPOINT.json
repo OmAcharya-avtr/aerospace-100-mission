@@ -1,9 +1,12 @@
 {
-  "batch": 3,
-  "phase": "ready_to_specify",
-  "phase_index": 1,
-  "updated": "2026-08-30T04:30:00Z",
+  "batch": 4,
+  "phase": "specification_complete",
+  "phase_index": 2,
+  "updated": "2026-10-03T21:10:00Z",
   "products_complete": [],
-  "products_pending": [],
-  "notes": "Batches 01 and 02 (P001-P020) are complete, approved and published; do not rebuild them. Batch 03 is next and has no specification yet. Publication is now automatic under ADR-017, conditional on scripts/release_gate.py exiting 0 - run it, never estimate it, never skip a check, never edit it to pass. ADR-016 still stands: an automated session may never write an approval row, set APPROVED on its own say-so, or attribute words to the owner. Quota gap after Batch 02: 16 flagship, 24 medium, 40 compact, 56 AI, and L1 6 / L2 48 / L3 21 / L4 5. LEVEL 4 IS STILL ZERO AND MUST START BY BATCH 05. Three per-product repositories from Batch 02 are carved and waiting in ~/100 Aero Prods/publish/ but cannot be pushed until the owner creates them empty on GitHub: flagship-waveforge, flagship-navbench, batch-02-suite."
+  "products_pending": ["P031", "P032", "P033", "P034", "P035", "P036", "P037", "P038", "P039", "P040"],
+  "blocked": true,
+  "blocked_on": "connectedFolders is empty inside scheduled runs, so device_commit_files is refused and the container-to-Mac transfer leg of the publication path is down. Source trees would survive the osascript text route; screenshots, bundles and binaries would not. DO NOT START THE BATCH 04 BUILD until get_device_info reports a non-empty connectedFolders. Owner action: add /Users/acharya/100 Aero Prods as a connected folder on the task 'Aerospace 100 - nightly build (v5, device-bound)'.",
+  "verified_working": "osascript bridge, gh auth (OmAcharya-avtr via keyring), Keychain-backed git push to origin main, create-ref/delete-ref write probe, contributor check returns exactly OmAcharya-avtr",
+  "notes": "Batches 01-03 (P001-P030) are complete, published and must not be rebuilt or modified. Batch 04 (P031-P040) is specified in batch_reports/BATCH_04_SPEC.md: 2 flagship, 3 medium, 5 compact, 7 AI, levels 2xL1 5xL2 3xL3, all ten PyPI names verified free 2026-10-03. It is the Level 4 entry batch: P031 HilForge and P033 EdgeInfer carry the hardware abstraction layer, simulation and dry-run modes, deployment and recovery procedures and the benchmark harness, and are labelled Level 3 hardware-pending - never Level 4 until measured numbers come from the Jetson Orin Nano itself. Quota after Batch 03: flagship 6/20, medium 9/30, compact 15/50, AI 21/70, L1 6/10, L2 18/60, L3 6/25, L4 0/5. Publication is automatic under ADR-017 conditional on scripts/release_gate.py exiting 0; run it with named products because the unargumented form does not finish in a usable time, and git checkout -- products/*/screenshots products/*/validation afterwards because the gate regenerates them. ADR-016 stands: no automated session writes an approval row, sets APPROVED, or attributes words to the owner."
 }

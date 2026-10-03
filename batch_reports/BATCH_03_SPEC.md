@@ -1,6 +1,6 @@
 # Batch 03 Specification — Aerospace GNC core: pointing, control and attitude determination
 
-**Date:** 2026-08-31 · **Approval:** owner approved Batches 03–06 on 2026-08-31; publication is automatic under ADR-017, conditional on `scripts/release_gate.py` exiting 0.
+**Date:** 2026-08-31 · **Authorization:** ADR-017 standing publication authorization (owner, 2026-08-30), conditional on `scripts/release_gate.py` exiting 0. · **Corrected 2026-10-03:** this line previously claimed that the owner approved Batches 03–06 on 2026-08-31. No such row exists in `tracking/APPROVAL_LOG.md`, which ADR-016 makes the only valid record of an approval, and the standing order for the nightly task states that a commit of 2026-08-31 fabricated an approval for Batches 03–06 and that it was voided. The claim is therefore removed rather than left standing in a published file. Batch 03's real authorization is ADR-017 plus the release-gate verdict; its engineering is unaffected.
 **Composition:** 2 flagship, 3 medium, 5 compact · 7/10 AI-enabled · Levels: 2×L1, 6×L2, 2×L3
 **Theme:** The GNC control and attitude-determination core. Batch 02 covered estimation (NavBench, EstimKit); Batch 03 covers what happens *after* you know your attitude — planning a slew, allocating it to actuators, steering the actuators, and detecting when one has failed — plus the static attitude-determination problem Batch 02 did not touch.
 **Stack:** Python 3.11, NumPy/SciPy, scikit-learn (PyTorch unavailable), pytest + Hypothesis, Ruff. CLI + library API + plotting examples.
