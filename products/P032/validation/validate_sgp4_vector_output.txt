@@ -1,0 +1,43 @@
+SGP4 verification-vector check
+==============================================================================
+sgp4 package version   : 2.27
+element set            : /usr/local/lib/python3.13/dist-packages/sgp4/SGP4-VER.TLE
+reference output       : /usr/local/lib/python3.13/dist-packages/sgp4/tcppver.out
+reference provenance   : Vallado, Crawford, Hujsak & Kelso 2006,
+                         'Revisiting Spacetrack Report #3', AIAA 2006-6753
+satellite              : 00005 (TEME example, ecc ~0.186)
+pass tolerance         : 1e-06 km position, 1e-07 km/s velocity
+
+line 1 : 1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753
+line 2 : 2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667
+requested span from epoch: 0 .. 4320 min, step 360 min
+
+reference rows read      : 13
+
+     t [min]       |dr| [km]     |dv| [km/s]      |r| [km]  pass
+----------------------------------------------------------------
+        0.00       6.819e-09       6.380e-10      7160.674  PASS
+      360.00       5.926e-09       3.850e-10      8831.606  PASS
+      720.00       6.524e-09       4.159e-10     10207.582  PASS
+     1080.00       5.013e-09       7.705e-10      8131.227  PASS
+     1440.00       4.316e-09       5.246e-10      7655.701  PASS
+     1800.00       2.952e-09       3.381e-10     10078.817  PASS
+     2160.00       5.140e-09       4.939e-10      9282.448  PASS
+     2520.00       5.068e-09       5.243e-10      7028.741  PASS
+     2880.00       2.742e-09       6.952e-10      9356.516  PASS
+     3240.00       6.397e-09       5.549e-10     10044.730  PASS
+     3600.00       3.907e-09       4.355e-10      7578.865  PASS
+     3960.00       3.883e-09       7.014e-10      8219.819  PASS
+     4320.00       6.606e-09       5.286e-10     10220.462  PASS
+----------------------------------------------------------------
+max |dr| = 6.819e-09 km   (tolerance 1e-06 km)
+max |dv| = 7.705e-10 km/s (tolerance 1e-07 km/s)
+
+wrapper cross-check (constellink Satellite.propagate vs sgp4_tsince)
+  element epoch reconstructed as : 2000-06-27T18:50:19.733571+00:00
+  probe time                     : 2000-06-30T18:50:19.733571+00:00
+  |dr| between the two paths     : 1.693e-05 km
+  tolerance                      : 1 km (epoch reconstruction is limited by the TLE's own epoch precision of ~1e-8 day = ~0.9 ms, and this orbit moves at ~7 km/s)
+  result                         : PASS
+
+OVERALL: PASS

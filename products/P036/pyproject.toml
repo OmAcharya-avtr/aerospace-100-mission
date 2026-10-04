@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtclock"
+version = "0.1.0"
+description = "Real-time timing arithmetic for Python control loops: monotonic timebase with measured resolution, drift-reporting loop driver, exact-percentile latency histograms, and rate-monotonic/EDF schedulability analysis."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "real-time",
+    "scheduling",
+    "rate-monotonic",
+    "response-time-analysis",
+    "latency",
+    "percentile",
+    "jitter",
+    "control-loop",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering",
+    "Topic :: System :: Benchmark",
+]
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis", "numpy"]
+examples = ["matplotlib", "numpy"]
+dev = ["pytest", "hypothesis", "ruff", "matplotlib", "numpy"]
+
+[project.scripts]
+rtclock = "rtclock.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]

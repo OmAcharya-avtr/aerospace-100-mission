@@ -1,0 +1,68 @@
+{
+  "stages": [
+    {
+      "name": "preprocess",
+      "mean_s": 6e-05,
+      "std_s": 1.2e-05,
+      "dist": "lognormal"
+    },
+    {
+      "name": "inference",
+      "mean_s": 0.00018,
+      "std_s": 4e-05,
+      "dist": "lognormal"
+    },
+    {
+      "name": "postprocess",
+      "mean_s": 3e-05,
+      "std_s": 6e-06,
+      "dist": "lognormal"
+    }
+  ],
+  "n_samples": 2000,
+  "seed": 20260401,
+  "measured": {
+    "mean_s": 0.0005922359854930619,
+    "p50_s": 0.00028386249960021814,
+    "p99_s": 0.004740619459635127
+  },
+  "_environment": {
+    "platform": "Linux-6.18.44-fc-v64-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "python_version": "3.13.16",
+    "cpu_count_logical": 1,
+    "cpu_count_available": 1,
+    "clock_name": "perf_counter",
+    "clock_resolution_s": 1e-09,
+    "clock_monotonic": true,
+    "shared_host": true,
+    "note": ""
+  },
+  "_environment_note": "All numbers in this file are WORKSTATION numbers measured in a shared, single-CPU-core cloud container with other build jobs running concurrently. They are not measurements of any edge or flight target. The target-device column is empty because no measurement from that device exists; it must be filled only from raw output produced on the device itself.",
+  "injected": {
+    "mean_s": 0.00027,
+    "std_s": 4.2190046219457976e-05,
+    "note": "sum of the declared stage means; variances of independent stages add"
+  },
+  "measured_extra": {
+    "std_s": 0.001129981549801182,
+    "p90_s": 0.0003862250994643546,
+    "max_s": 0.012262995000128285,
+    "min_s": 0.00016846600010467228,
+    "u_mean_s": 2.5267155590058155e-05,
+    "u_p50_s": 1.2896922988033133e-06,
+    "u_p99_s": 0.0001857882569131392
+  },
+  "measurement_method": "perf_counter per-call bracket; n=2000 repeats, 20 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 51 ns; gc disabled=True",
+  "consume_time": true,
+  "sampler": "numpy.random.default_rng(seed); one lognormal draw per stage per sample, in stage order; lognormal parameters from the declared mean and sd by sigma^2 = log1p((sd/mean)^2), mu = log(mean) - sigma^2/2",
+  "agreement_guidance": "Diff p50_s: it is the statistic that reflects the injected cost model, and two correct implementations should agree on it to within a few per cent. Do NOT diff mean_s or p99_s. Both are sensitive to scheduler preemption on whatever host each implementation ran on -- on the run that produced this file the mean sat 119.3 % above the injected mean while the median sat 5.1 % above it, and the gap between those two figures varies from run to run with the host's load -- so a disagreement there is a fact about the two hosts, not about either implementation. The injected mean under 'injected' is the value both implementations are trying to recover.",
+  "ratios_on_this_run": {
+    "p50_over_injected_mean": 1.051342591111919,
+    "mean_over_injected_mean": 2.193466612937266,
+    "trimmed_mean_over_injected_mean": 1.0413146151989732,
+    "trim_keep_fraction": 0.9
+  },
+  "comparable_statistic": "p50_s"
+}

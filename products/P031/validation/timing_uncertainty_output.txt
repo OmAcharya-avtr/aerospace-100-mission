@@ -1,0 +1,63 @@
+HilForge validation 6 — timing-measurement uncertainty
+========================================================================
+
+6a. the arithmetic, against a hand-computed case
+  u_statistical_s    hand=0.000000000e+00  code=0.000000000e+00  PASS
+  u_resolution_s     hand=2.041241452e-07  code=2.041241452e-07  PASS
+  combined_s         hand=2.041241452e-07  code=2.041241452e-07  PASS
+  expanded_k2_s      hand=4.082482905e-07  code=4.082482905e-07  PASS
+  u(single duration) hand=4.082482905e-07  code=4.082482905e-07  PASS
+
+  scaling laws
+  u_A ratio at 4x n (expect 2)     measured=1.977898  PASS
+  u_B ratio at 4x n (expect 2)     measured=2.000000  PASS
+  u_B ratio at 1e4x delta          measured=1.000000e+04  PASS
+
+6b. the measured clock on this machine
+reported resolution      : 1.000e-09 s
+measured resolution      : 1.130e-07 s
+call-pair overhead (med) : 5.900e-08 s
+u(duration) from res.    : 4.613e-08 s (= delta/sqrt(6), Bennett 1948)
+samples                  : 20000
+
+6c. the budget applied to a measured 20000-iteration loop run
+  deterministic_timing : False (False means a wall clock was read)
+  is_hardware          : False
+
+  stage            n      mean [s]     stdev [s]      u_A [s]      u_B [s]      u_c [s]   u_B/u_c
+  sense        20000  1.782987e-05  6.089207e-05    4.306e-07    3.262e-10    4.306e-07  7.58e-04
+  estimate     20000  1.125255e-06  3.970149e-06    2.807e-08    3.262e-10    2.808e-08  1.16e-02
+  control      20000  8.342501e-06  3.595532e-05    2.542e-07    3.262e-10    2.542e-07  1.28e-03
+  actuate      20000  1.529286e-05  5.859171e-05    4.143e-07    3.262e-10    4.143e-07  7.87e-04
+  total        20000  4.259049e-05  9.261932e-05    6.549e-07    3.262e-10    6.549e-07  4.98e-04
+
+  full budget for the mean total iteration duration
+    n                        : 20000
+    mean                     : 4.259049395e-05 s
+    sample stdev             : 9.261932165e-05 s
+    clock resolution (delta) : 1.130000000e-07 s
+    u_A statistical s/sqrt(n): 6.549175040e-07 s
+    u_B resolution  d/sqrt(6n): 3.262029021e-10 s
+    u_c combined (quadrature): 6.549175853e-07 s
+    U expanded (k=2)         : 1.309835171e-06 s
+    bias: timing-call overhead: 5.900000000e-08 s (reported, not subtracted)
+
+  timing-call bias on a 4-stage iteration : 2.360e-07 s
+  as a fraction of the mean iteration     : 0.0055
+  (four stages, one call pair each; reported, never subtracted)
+
+  INTERPRETATION
+  The resolution term is negligible here because the clock is
+  nanosecond-resolution; the scatter, which is contention on a
+  shared single-core container, dominates by orders of magnitude.
+  The term is carried anyway because on a coarse clock it would
+  dominate instead, and a budget that drops it would be silently
+  wrong there. The timing-call bias above is not negligible: it is
+  a measurable fraction of a short iteration and is why this
+  harness reports per-stage latency rather than claiming to measure
+  the work alone.
+
+verdict: PASS
+note: every number in 6b and 6c is a host-side measurement on a
+      shared, single-core cloud container. None of them is a
+      hardware measurement and none supports a Level 4 claim.

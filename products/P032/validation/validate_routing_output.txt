@@ -1,0 +1,22 @@
+Dijkstra vs exhaustive enumeration on the time-expanded graph
+==============================================================================
+latency agreement tolerance: 1e-09 s (both paths sum the same float edge costs, so only summation order differs)
+
+Part 1 -- hand-built instances with written-out expected answers
+  instance                        dijkstra [s]        enum [s]    expected [s]  pass
+  ----------------------------------------------------------------------------------
+  two hops, no alternative       120.006671282   120.006671282   120.006671282  PASS
+  direct hop wins                 60.010006923    60.010006923    60.010006923  PASS
+  store and forward              180.006671282   180.006671282   180.006671282  PASS
+  result: PASS
+
+Part 2 -- 40 random instances (alternating dense/sparse), Dijkstra vs enumeration
+  cases                        : 40
+  cases with a route           : 30
+  cases with no route          : 10 (both methods agreed on absence)
+  routes enumerated in total   : 513
+  worst latency gap            : 0.000e+00 s
+  result: PASS
+
+==============================================================================
+OVERALL: PASS

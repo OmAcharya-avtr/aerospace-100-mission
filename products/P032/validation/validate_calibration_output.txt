@@ -1,0 +1,109 @@
+Link-availability predictor calibration
+==============================================================================================
+dataset       : 1974 contacts from a 24/4/1 Walker shell at 550 km over 18 h
+dataset seed  : 20260401
+base rate     : 0.752280
+ground rows   : 328 of 1974 (the rest are inter-satellite links, which carry no weather term)
+distinct links: 168
+reliability bins: 10
+
+HEADLINE IS CALIBRATION: the reliability term REL (lower is better).
+Accuracy is reported last and is NOT the figure of merit.
+
+Part 1 -- grouped split by link, five split seeds
+  split seed 0: 1457 train / 517 test, test base rate 0.7041, unseen-stratum rows 0
+  predictor                 Brier      REL      RES      ECE  logloss  acc@0.5
+  ----------------------------------------------------------------------------
+  climatology             0.18479  0.00545  0.02908  0.06539  0.54842   0.7524
+  logistic                0.08818  0.00476  0.12517  0.03765  0.27537   0.8801
+  learned                 0.09220  0.00979  0.12501  0.05707  0.28578   0.8607
+  learned-model ensemble std: mean 0.04106, max 0.25986
+
+  split seed 1: 1293 train / 681 test, test base rate 0.7269, unseen-stratum rows 0
+  predictor                 Brier      REL      RES      ECE  logloss  acc@0.5
+  ----------------------------------------------------------------------------
+  climatology             0.17747  0.00236  0.02339  0.04182  0.53646   0.7680
+  logistic                0.08787  0.00090  0.11163  0.01803  0.26198   0.8664
+  learned                 0.08943  0.00393  0.11346  0.04082  0.26805   0.8708
+  learned-model ensemble std: mean 0.04085, max 0.21906
+
+  split seed 2: 1450 train / 524 test, test base rate 0.8187, unseen-stratum rows 0
+  predictor                 Brier      REL      RES      ECE  logloss  acc@0.5
+  ----------------------------------------------------------------------------
+  climatology             0.12279  0.00820  0.03342  0.08294  0.40679   0.8645
+  logistic                0.05398  0.00249  0.09689  0.02259  0.16700   0.9198
+  learned                 0.05567  0.00294  0.09494  0.03267  0.17270   0.9179
+  learned-model ensemble std: mean 0.03018, max 0.20598
+
+  split seed 3: 1463 train / 511 test, test base rate 0.7084, unseen-stratum rows 0
+  predictor                 Brier      REL      RES      ECE  logloss  acc@0.5
+  ----------------------------------------------------------------------------
+  climatology             0.16605  0.00227  0.04255  0.04612  0.50245   0.7808
+  logistic                0.07674  0.00330  0.13408  0.02932  0.24420   0.8963
+  learned                 0.07983  0.00590  0.13214  0.03518  0.25304   0.8963
+  learned-model ensemble std: mean 0.03887, max 0.28296
+
+  split seed 4: 1324 train / 650 test, test base rate 0.8292, unseen-stratum rows 0
+  predictor                 Brier      REL      RES      ECE  logloss  acc@0.5
+  ----------------------------------------------------------------------------
+  climatology             0.12701  0.01398  0.02812  0.11501  0.42190   0.8677
+  logistic                0.04884  0.00156  0.09456  0.02155  0.16051   0.9338
+  learned                 0.04938  0.00324  0.09567  0.03071  0.16726   0.9292
+  learned-model ensemble std: mean 0.02592, max 0.22325
+
+Part 2 -- across-seed summary (mean +- sample std over 5 seeds)
+  predictor                  Brier               REL               RES               ECE     acc@0.5
+  --------------------------------------------------------------------------------------------------
+  climatology     0.15562+-0.02887  0.00645+-0.00487  0.03131+-0.00722  0.07025+-0.02991      0.8067
+  logistic        0.07112+-0.01866  0.00260+-0.00151  0.11246+-0.01727  0.02583+-0.00777      0.8993
+  learned         0.07330+-0.01964  0.00516+-0.00284  0.11224+-0.01684  0.03929+-0.01064      0.8950
+
+  BEST CALIBRATED (lowest mean REL) : logistic
+  BEST PROPER SCORE (lowest Brier)  : logistic
+  The learned model is NOT the best calibrated predictor here. 'logistic' is.
+  That result is kept and reported as measured.
+
+Part 3 -- Brier decomposition identity and bootstrap intervals (split seed 0)
+  predictor     bins           Brier       REL       RES       UNC     residual  occupied
+  ---------------------------------------------------------------------------------------
+  climatology   equal-10     0.18479   0.00545   0.02908   0.20836     5.35e-05         5
+                distinct     0.18479   0.00597   0.02954   0.20836     0.00e+00         7
+  logistic      equal-10     0.08818   0.00476   0.12517   0.20836     2.30e-04         8
+                distinct     0.08818   0.08818   0.20836   0.20836    -3.82e-15       517
+  learned       equal-10     0.09220   0.00979   0.12501   0.20836    -9.44e-04        10
+                distinct     0.09220   0.09220   0.20836   0.20836    -3.86e-15       517
+  equal-width bins: the residual is the within-bin component of
+    Stephenson, Coelho & Jolliffe 2008 -- real, not rounding error.
+  distinct-value bins: the three-term identity is exact and the
+    residual is floating-point only. This is the exactness check.
+  Note the degeneracy it exposes: for a continuous predictor every
+    distinct-value bin holds one row, so REL collapses onto the
+    Brier score and RES onto UNC. The distinct-value decomposition
+    is an identity check, NOT a calibration measurement; the
+    equal-width rows are the ones to read for calibration.
+
+  predictor          Brier   95% CI low  95% CI high  n_boot
+  ----------------------------------------------------------
+  climatology      0.18479      0.16261      0.20827    2000
+  logistic         0.08818      0.07448      0.10249    2000
+  learned          0.09220      0.07781      0.10702    2000
+  (percentile bootstrap over forecast/outcome pairs; the pairs are not
+   independent within a link, so these intervals are optimistic)
+
+Part 4 -- leakage measurement: row-wise split vs grouped split
+  predictor        Brier grouped   Brier row-wise    optimism
+  -----------------------------------------------------------
+  climatology            0.18479          0.17044     0.01435
+  logistic               0.08818          0.08568     0.00249
+  learned                0.09220          0.08546     0.00674
+  (a positive optimism column means the row-wise split flatters the
+   predictor; the grouped numbers are the ones reported everywhere else)
+
+Part 5 -- reliability diagram
+  written: /home/claude/aerospace-100-mission/products/P032/validation/reliability_diagram.png
+
+==============================================================================================
+Pass criteria: the distinct-value Brier identity is exact to 1e-12 and every
+probability is in [0, 1]. The RANKING of the predictors is a measurement,
+not a pass criterion: a baseline winning is a valid outcome.
+OVERALL: PASS

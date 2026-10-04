@@ -1,0 +1,60 @@
+==============================================================================
+VALIDATION 1 -- utilization bounds (Liu & Layland 1973)
+==============================================================================
+
+1a. RM least upper bound U_lub(n) = n(2^(1/n) - 1), n = 1..10
+    reference: 40-digit decimal arithmetic; tolerance 5e-13 absolute
+
+  n               rtclock    decimal(40 digits)      abs diff  verdict
+  1     1.000000000000000     1.000000000000000     0.000e+00  PASS
+  2     0.828427124746190     0.828427124746190     2.220e-16  PASS
+  3     0.779763149684620     0.779763149684619     1.110e-16  PASS
+  4     0.756828460010884     0.756828460010884     1.110e-16  PASS
+  5     0.743491774985175     0.743491774985175     4.441e-16  PASS
+  6     0.734772289856238     0.734772289856238     2.220e-16  PASS
+  7     0.728626595716686     0.728626595716686     5.551e-16  PASS
+  8     0.724061861322062     0.724061861322061     2.220e-16  PASS
+  9     0.720537650030755     0.720537650030756     5.551e-16  PASS
+ 10     0.717734625362931     0.717734625362932     3.331e-16  PASS
+
+1b. Named values
+                             check              computed              expected        tol  verdict
+                          U_lub(1)    1.0000000000000000    1.0000000000000000    0.0e+00  PASS
+       U_lub(2) vs textbook 0.8284    0.8284271247461903    0.8284000000000000    5.0e-05  PASS
+           U_lub(2) full precision    0.8284271247461903    0.8284271247461903    1.0e-15  PASS
+                          U_lub(3)    0.7797631496846196    0.7797631496846196    1.0e-15  PASS
+                         U_lub(10)    0.7177346253629313    0.7177346253629313    1.0e-15  PASS
+                U_lub(1e6) -> ln 2    0.6931474207938493    0.6931471805599453    2.5e-07  PASS
+
+1c. Asymptotic expansion: U_lub(n) - ln2 ~ (ln2)^2/(2n)
+    (ln 2)^2 / 2 = 0.2402265069591007
+       n        U_lub(n)-ln2        (ln2)^2/(2n)         ratio  verdict
+     100  2.407825111943e-03  2.402265069591e-03   1.002314500  PASS
+    1000  2.402820207960e-04  2.402265069591e-04   1.000231090  PASS
+   10000  2.402320505202e-05  2.402265069591e-05   1.000023076  PASS
+  100000  2.402260017687e-06  2.402265069591e-06   0.999997897  PASS
+
+1d. EDF utilization test (exact for implicit deadlines)
+    harmonic set, U = 1.0      U = 1.000000000000  EDF exact: feasible  PASS
+    overloaded set, U = 1.2    U = 1.200000000000  EDF exact: infeasible  PASS
+
+1e. The Liu & Layland bound is SUFFICIENT, not necessary
+    harmonic set a(T=4,C=1) b(T=8,C=2) c(T=16,C=8), U = 1.000000000000
+    Liu & Layland bound for n=3            : 0.779763149685
+    Liu & Layland verdict                  : INCONCLUSIVE
+    hyperbolic verdict                     : INCONCLUSIVE
+    exact RTA response times [s]           : {a: 1, b: 3, c: 16}
+    exact RTA verdict                      : all deadlines met
+    a set rejected by the bound yet schedulable: PASS
+
+1f. Hyperbolic bound dominates the Liu & Layland bound (random sweep)
+    task sets drawn                        : 200000
+    accepted by Liu & Layland              : 179801
+    accepted by hyperbolic                 : 181017
+    accepted by both                       : 179801
+    accepted by L&L but not hyperbolic     : 0  (must be 0)
+    verdict                                : PASS
+
+==============================================================================
+RESULT: all checks PASS
+==============================================================================

@@ -1,0 +1,41 @@
+Walker constellation generator: realised vs requested geometry
+======================================================================================
+
+Part 1 -- realised radius vs requested (Kozai vs Kepler mean motion)
+  declared bounds: mean radius offset <= 5 km, peak-to-peak radius variation over one orbit <= 15 km
+    alt [km]   requested r [km]    mean r [km]   offset [km]  p-p var [km]  pass
+  ------------------------------------------------------------------------------
+         400           6778.137       6778.010        -0.127        11.945  PASS
+         550           6928.137       6928.013        -0.124        11.945  PASS
+         800           7178.137       7178.017        -0.120        11.945  PASS
+        1200           7578.137       7578.024        -0.113        11.945  PASS
+  result: PASS
+
+Part 2 -- Walker pattern angles against the i:T/P/F definition
+  pattern: 53 deg : 24/4/1 (6 satellites per plane)
+  tolerance: 1e-06 deg on every angle
+  satellite      inc [deg]  RAAN [deg]   exp RAAN     M [deg]      exp M  pass
+  ----------------------------------------------------------------------------
+  W00-00        53.0000000   0.0000000     0.0000   0.0000000     0.0000  PASS
+  W00-01        53.0000000   0.0000000     0.0000  60.0000000    60.0000  PASS
+  W00-02        53.0000000   0.0000000     0.0000 120.0000000   120.0000  PASS
+  W00-03        53.0000000   0.0000000     0.0000 180.0000000   180.0000  PASS
+  W00-04        53.0000000   0.0000000     0.0000 240.0000000   240.0000  PASS
+  W00-05        53.0000000   0.0000000     0.0000 300.0000000   300.0000  PASS
+  W01-00        53.0000000  90.0000000    90.0000  15.0000000    15.0000  PASS
+  W01-01        53.0000000  90.0000000    90.0000  75.0000000    75.0000  PASS
+  ... 16 further satellites checked
+  worst angle error over all 24 satellites: 2.842e-14 deg
+  result: PASS
+
+Part 3 -- intra-plane ISL separation is constant (a design invariant)
+  W00-00 to W00-01 range: mean 6928.818 km, p-p variation 10.345 km
+  chord for a perfect circle at the requested radius: 6928.137 km
+  difference from that chord: +0.681 km
+  (reported, not pass/fail: the difference is the same Kozai/Kepler
+   radius offset measured in Part 1, scaled by the chord geometry)
+
+======================================================================================
+part 1 (realised radius) : PASS
+part 2 (pattern angles)  : PASS
+OVERALL: PASS

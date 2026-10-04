@@ -1,0 +1,43 @@
+==============================================================================
+P033 edgeinfer -- Validation 3: peak-memory measurement
+==============================================================================
+environment: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39 x86_64, 1 CPU core(s) available of 1 logical, shared host, Python 3.13.16, clock perf_counter resolution 1e-09 s. 
+WORKSTATION NUMBERS, shared single-CPU-core cloud container. Byte counts in
+sections (a) and (b) are allocator arithmetic and do not depend on the host;
+the RSS figures do.
+
+(a) the measurement instrument against hand-counted allocations
+------------------------------------------------------------------------------
+  one float64 array, 1e6 elements          measured    8000272 B  hand    8000000 B  delta   +272 B  PASS
+  two arrays live together, 1e6 + 2e6      measured   24000440 B  hand   24000000 B  delta   +440 B  PASS
+  two arrays in sequence, first released   measured    8000296 B  hand    8000000 B  (not 16 MB)  PASS
+  float64 / float32 peak ratio             measured     1.9999    hand     2.0000              PASS
+  nested regions agree on the inner peak   inner    2400208 B  hand    2400000 B              PASS
+
+  instrument method: tracemalloc.get_traced_memory peak after reset_peak; counts CPython allocator traffic only, not a C++ runtime's own arena; gc.collect before baseline = True
+  process RSS now 170762240 B, lifetime high water 170762240 B (from /proc/self/status; whole-process figures, informative only as a difference)
+
+(b) the analytic liveness model against a measured execution
+------------------------------------------------------------------------------
+  hand MLP     analytic peak activations       48 B  measured      568 B  allowance   4096 B  PASS
+  hand CNN     analytic peak activations      576 B  measured     1160 B  allowance   6144 B  PASS
+
+  a larger graph, where the payload dominates the headers:
+  512-2048-2048-64 MLP                     analytic    16384 B  measured    16904 B  relative excess  3.17 %  PASS
+
+(c) what tracemalloc does NOT see: the onnxruntime arena
+------------------------------------------------------------------------------
+  analytic peak memory (weights + activations) :    5521664 B
+      of which resident weights                :    5513472 B
+      of which peak activations                :       8192 B
+  tracemalloc peak across one session.run()    :       4956 B
+  These are NOT the same quantity and neither validates the other. The
+  tracemalloc figure is the Python-side marshalling of the output tensor;
+  onnxruntime's own arena, holding the weights and every intermediate, is
+  invisible to it. Measuring a real session's peak working set needs an
+  allocator-level instrument on the target, which this repository does not
+  have. That gap is listed under Limitations in README.md.
+
+==============================================================================
+RESULT: 8/8 checks passed
+==============================================================================

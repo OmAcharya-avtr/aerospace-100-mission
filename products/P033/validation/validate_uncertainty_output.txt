@@ -1,0 +1,64 @@
+==============================================================================
+P033 edgeinfer -- Validation 4: uncertainty budget over timing
+==============================================================================
+environment: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39 x86_64, 1 CPU core(s) available of 1 logical, shared host, Python 3.13.16, clock perf_counter resolution 1e-09 s. 
+WORKSTATION NUMBERS. Shared single-CPU-core cloud container with other build
+jobs running concurrently. The coverage ratios in (b) and (c) are properties of
+this host and will differ on another.
+
+(a) the clock and its quantisation term
+------------------------------------------------------------------------------
+  perf_counter resolution      : 1.000e-09 s (time.get_clock_info)
+  perf_counter monotonic       : True
+  perf_counter implementation  : clock_gettime(CLOCK_MONOTONIC)
+  u_B for a start/stop pair    : 4.082483e-10 s  closed form d*sqrt(2/12) = 4.082483e-10 s  PASS
+  source: GUM section 4.3.7, rectangular distribution of full width d has
+  standard uncertainty d/sqrt(12); two independent reads add in quadrature.
+  measured timer-pair cost     : 45.0 ns (median over 5000 back-to-back pairs)
+  the timer-pair cost is 45x the clock resolution, so on this host the dominant
+  instrumental effect on a short interval is the call cost, not the
+  quantisation.  PASS
+
+(b) and (c) does the predicted uncertainty match the realised spread?
+------------------------------------------------------------------------------
+  mean of a batch   : 24 batches of 150 repeats
+    realised spread of batch means         : 24.0647 us
+    median predicted u_A = s/sqrt(n)       : 58.9909 us
+    realised / predicted                   : 0.408
+    interpretation: the realised spread is SMALLER than the within-batch prediction: a few preempted repeats inflated the within-batch standard deviation while the batch means stayed close, so u_A overstates the spread of the mean on this run
+    Neither direction is a general property. The ratio moves with host load,
+    and that is the point: a figure quoted from a shared machine carries the
+    machine's load with it.
+
+  p99 of a batch
+    realised spread of batch p99s          : 816.8969 us
+    median bootstrap u_A (400 resamples)   : 1015.2721 us
+    realised / predicted                   : 0.805
+    a bootstrap resamples the batch it was given, so it cannot see
+    variation BETWEEN batches; and with n=150 repeats the p99 is interpolated
+    between the top two order statistics, so the bootstrap spread is itself
+    driven by a handful of points. Both effects are present and they push in
+    opposite directions.
+    on this run the two agreed to within 20 %, which is not a general
+    property: the ratio moves with host load and with the repeat count.
+
+(d) what the combined uncertainty is not
+------------------------------------------------------------------------------
+  measurement method : perf_counter per-call bracket; n=1500 repeats, 20 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 45 ns; gc disabled=True
+  mean               :   508.335 us
+  u_c(mean)          :    26.809 us
+  sd of the samples  :  1038.313 us
+  p50                :   244.795 us
+  p99                :  4325.394 us
+  max                : 12101.736 us
+
+  the sample spread is 39x the uncertainty of the mean.
+  A budget written against u_c would be written against the wrong number by
+  that factor. u_c says how well the *statistic* is known; the distribution's
+  width is what a deadline has to survive, and that is what p99 and max are
+  for.
+  components of u_c(mean): u_A = 26.8091 us, u_B(clock) = 0.4082 ns, RSS = 26.8091 us
+
+==============================================================================
+RESULT: 4/4 checks passed
+==============================================================================

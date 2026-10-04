@@ -1,0 +1,53 @@
+HilForge validation 1 — simulation/device parity
+========================================================================
+period 1.000000e-02 s   seed 20261004   iterations 1500
+device backend driver: loopback stub (NOT hardware)
+
+case: constant 0.40 T
+  simulated kind/driver : simulated / n/a
+  device    kind/driver : device / loopback
+  is_hardware (both)    : False / False
+  iterations completed  : 1500 / 1500
+  signal bytes identical: True
+  max |difference|      : 0.000e+00  (tolerance: exactly 0)
+  data digest           : ab86a11daea2ef7e7fda484836c86a29ac2e26986ef8ed153f47b141c16aa04f
+  data digests equal    : True
+  full digest           : a508d0fca0f50ed58bc5ff59868fca04ee5da61840ad3f55c59e2e3db8701d84
+  full digests equal    : True
+  overrun accounts equal: True
+  direct / cascade      : 0 / 0
+  RESULT                : PASS
+
+case: ramp 0.30 T -> 1.35 T
+  simulated kind/driver : simulated / n/a
+  device    kind/driver : device / loopback
+  is_hardware (both)    : False / False
+  iterations completed  : 1500 / 1500
+  signal bytes identical: True
+  max |difference|      : 0.000e+00  (tolerance: exactly 0)
+  data digest           : ab86a11daea2ef7e7fda484836c86a29ac2e26986ef8ed153f47b141c16aa04f
+  data digests equal    : True
+  full digest           : 2eb58ce8f1aed0c76dbd3aa6edbf508cf8ec516de1b3ea9bd16105a3f1dc14f6
+  full digests equal    : True
+  overrun accounts equal: True
+  direct / cascade      : 500 / 500
+  RESULT                : PASS
+
+case: sawtooth with overruns
+  simulated kind/driver : simulated / n/a
+  device    kind/driver : device / loopback
+  is_hardware (both)    : False / False
+  iterations completed  : 1500 / 1500
+  signal bytes identical: True
+  max |difference|      : 0.000e+00  (tolerance: exactly 0)
+  data digest           : ab86a11daea2ef7e7fda484836c86a29ac2e26986ef8ed153f47b141c16aa04f
+  data digests equal    : True
+  full digest           : 6ec7b5c97e266b3fe10a27e72ebb1a73d02eda3b811cc17a52786dd4a26990b5
+  full digests equal    : True
+  overrun accounts equal: True
+  direct / cascade      : 642 / 856
+  RESULT                : PASS
+
+verdict: 3/3 cases bit-identical
+note: parity covers the data path and the injected timing. Hardware
+      timing is not measured here and is not claimed anywhere.

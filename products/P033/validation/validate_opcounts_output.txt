@@ -1,0 +1,70 @@
+==============================================================================
+P033 edgeinfer -- Validation 1: analytic operation counts vs hand counts
+==============================================================================
+environment: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39 x86_64, 1 CPU core(s) available of 1 logical, shared host, Python 3.13.16, clock perf_counter resolution 1e-09 s. 
+NOTE: this check is exact integer arithmetic and is independent of the host; it is the one validation in this repository that a different machine cannot change.
+
+X(1,4) -> Gemm(4,6)+b -> Relu -> Gemm(6,3)+b -> Y, float32
+------------------------------------------------------------------------------
+  hand derivation:
+    tensors (4 B/element): X 16, W0 96, B0 24, G0 24, H0 24, W1 72, B1 12, Y 12
+    MACs  gemm0 = 1*4*6 = 24; gemm1 = 1*6*3 = 18; Relu = 0        -> 42
+    FLOPs gemm0 = 2*24 + 6 = 54; act0 = 6; gemm1 = 2*18 + 3 = 39  -> 99
+    traffic gemm0 = (16+96+24)+24 = 160; act0 = 24+24 = 48;
+            gemm1 = (24+72+12)+12 = 120                           -> 328 B
+    weights = 96 + 24 + 72 + 12                                   -> 204 B
+    liveness: entry 16; gemm0 16+24 = 40; act0 24+24 = 48; gemm1 24+12 = 36
+    peak activations                                              -> 48 B
+
+  total MACs                   computed =         42 -   hand =         42 -   PASS
+  total FLOPs                  computed =         99 -   hand =         99 -   PASS
+  compulsory traffic           computed =        328 B   hand =        328 B   PASS
+  resident weight bytes        computed =        204 B   hand =        204 B   PASS
+  peak activation bytes        computed =         48 B   hand =         48 B   PASS
+
+  per-node breakdown (analytic):
+    node      op                        MACs     FLOPs     bytes  live after
+    gemm0     Gemm                        24        54       160          24
+    act0      Relu                         0         6        48          24
+    gemm1     Gemm                        18        39       120          12
+
+X(1,1,6,6) -> Conv(1->2,3x3,pad1) -> Relu -> MaxPool(2x2,s2) -> Reshape(1,18) -> Gemm(18,2)+b -> Y, float32
+------------------------------------------------------------------------------
+  hand derivation:
+    shapes: conv out floor((6+1+1-3)/1)+1 = 6, so C0 = (1,2,6,6);
+            pool out floor((6-2)/2)+1 = 3, so P0 = (1,2,3,3)
+    tensors: X 144, CW0 72, C0 288, R0 288, P0 72, RS 16 (int64), F 72,
+             FW 144, FB 8, Y 8
+    MACs  conv0 = 1*2*36*1*9 = 648; fc = 1*18*2 = 36               -> 684
+    FLOPs conv0 = 1296; crelu0 = 72; pool0 = 18*4 = 72; flat = 0;
+          fc = 2*36 + 2 = 74                                       -> 1514
+    traffic conv0 = (144+72)+288 = 504; crelu0 = 288+288 = 576;
+            pool0 = 288+72 = 360; flat = (72+16)+72 = 160;
+            fc = (72+144+8)+8 = 232                                -> 1832 B
+    weights = 72 + 16 + 144 + 8                                    -> 240 B
+    liveness: entry 144; conv0 144+288 = 432; crelu0 288+288 = 576;
+              pool0 288+72 = 360; flat 72+72 = 144; fc 72+8 = 80
+    peak activations                                               -> 576 B
+
+  total MACs                   computed =        684 -   hand =        684 -   PASS
+  total FLOPs                  computed =       1514 -   hand =       1514 -   PASS
+  compulsory traffic           computed =       1832 B   hand =       1832 B   PASS
+  resident weight bytes        computed =        240 B   hand =        240 B   PASS
+  peak activation bytes        computed =        576 B   hand =        576 B   PASS
+
+  per-node breakdown (analytic):
+    node      op                        MACs     FLOPs     bytes  live after
+    conv0     Conv                       648      1296       504         288
+    crelu0    Relu                         0        72       576         288
+    pool0     MaxPool                      0        72       360          72
+    flat      Reshape                      0         0       160          72
+    fc        Gemm                        36        74       232           8
+
+onnxruntime numerical agreement (the graphs must also be runnable)
+------------------------------------------------------------------------------
+  hand MLP                     max |onnxruntime - numpy| = 0.000e+00  tolerance = 1e-05  PASS
+  hand CNN                     max |onnxruntime - numpy| = 2.384e-07  tolerance = 1e-05  PASS
+
+==============================================================================
+RESULT: 12/12 checks passed
+==============================================================================

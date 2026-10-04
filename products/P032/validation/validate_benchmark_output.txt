@@ -1,0 +1,46 @@
+Performance benchmark
+==============================================================================================
+python_version: 3.13.16
+platform: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39
+machine: x86_64
+processor: x86_64
+numpy_version: 2.5.3
+clock_resolution_s: 6.09998096479103e-08
+note: workstation/container measurement; not a measurement on target flight or edge hardware
+
+configuration: 24/4/1 Walker at 550 km, 3 h horizon, 60 s scan step, 5 ground stations
+repeats per stage: 3
+
+stage                               rep     min[ms]     med[ms]     max[ms]   peakPy[KiB]
+-----------------------------------------------------------------------------------------
+ephemeris, 24 sat x 181 epochs        3      11.176      11.468      11.489         237.7
+contact scan, 276 ISL + 120 ground pairs    3    1048.968    1165.419    1192.547         115.1
+time-expanded unroll, 180 slots       3      66.784      68.281      75.537        3938.2
+dijkstra, one source-destination pair    3       0.021       0.026       0.075           2.9
+dijkstra, all 27 nodes to AWARUA      3       2.351       2.391       2.603          28.1
+ILP max flow (HiGHS), 1 pair, 1 repeat    1    1237.314    1237.314    1237.314        6099.8
+
+graph size: 27 nodes, 338 contact windows, 4887 time-expanded nodes, 12354 edges
+
+Contact-scan scaling in satellite count (expected exponent 2)
+    n_sat   pairs    min [ms]   median [ms]   ms per pair
+  -------------------------------------------------------
+        8      28      48.992        49.057        1.7497
+       16     120     186.245       187.477        1.5520
+       24     276     421.120       429.845        1.5258
+  fitted exponent d(log t)/d(log n_sat) = 1.955 (expected 2 for the pair loop; the ground-station leg is linear and is excluded from this sweep)
+
+Model training and inference
+stage                               rep     min[ms]     med[ms]     max[ms]   peakPy[KiB]
+-----------------------------------------------------------------------------------------
+dataset generation, 18 h horizon      1    6466.146    6466.146    6466.146        2474.6
+logistic baseline fit                 3       5.295       5.332      18.666         308.0
+learned model fit (5 members, sigmoid)    1     953.766     953.766     953.766        3810.7
+learned model inference, 517 rows     3      51.078      52.035      52.579         110.7
+
+dataset: 1974 rows, 1457 train / 517 test
+
+==============================================================================================
+sum of median x repeats over every timed stage: 12.57 s
+Every stage is a container measurement; see the environment block above.
+OVERALL: REPORTED

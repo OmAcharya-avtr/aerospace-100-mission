@@ -1,0 +1,69 @@
+==============================================================================
+VALIDATION 5 -- clock resolution MEASURED, with its error term
+==============================================================================
+
+Platform strings (for the record, not asserted):
+    sys.platform                : linux
+    python                      : 3.13.16
+    time.monotonic     : implementation=clock_gettime(CLOCK_MONOTONIC) monotonic=True adjustable=False advertised resolution=1e-09 s
+    time.perf_counter  : implementation=clock_gettime(CLOCK_MONOTONIC) monotonic=True adjustable=False advertised resolution=1e-09 s
+
+5a. Measurements
+        clock   samples    advertised [s]    measured tick [s]    median read [s]   identical frac
+    monotonic      2000      1.000000e-09         6.500000e-08       1.200000e-07         0.000000
+    monotonic     20000      1.000000e-09         5.800000e-08       6.900000e-08         0.000000
+    monotonic    100000      1.000000e-09         5.700000e-08       6.700000e-08         0.000000
+    monotonic    400000      1.000000e-09         5.300000e-08       6.600000e-08         0.000000
+ perf_counter      2000      1.000000e-09         5.400000e-08       6.400000e-08         0.000000
+ perf_counter     20000      1.000000e-09         5.500000e-08       6.400000e-08         0.000000
+ perf_counter    100000      1.000000e-09         5.200000e-08       6.400000e-08         0.000000
+ perf_counter    400000      1.000000e-09         5.600000e-08       6.500000e-08         0.000000
+
+    Primary reported value (monotonic, 400 000 samples):
+      observable tick            q = 5.300000e-08 s
+      per-read cost (median)       = 6.600000e-08 s
+      worst-case duration error    = +/- 5.300000e-08 s
+      standard uncertainty q/sqrt6 = 2.163716e-08 s
+      identical-reading fraction   = 0.000000
+      method                       = 400000 back-to-back time.monotonic_ns() reads; observable tick = min non-zero forward difference; per-read cost = median forward difference
+      interpretation: no two successive reads were identical, so the
+      read loop is slower than the clock and the measured tick is an
+      UPPER BOUND on the hardware granularity, not the granularity.
+
+5b. Internal consistency
+        monotonic n=2000    PASS
+        monotonic n=20000   PASS
+        monotonic n=100000  PASS
+        monotonic n=400000  PASS
+     perf_counter n=2000    PASS
+     perf_counter n=20000   PASS
+     perf_counter n=100000  PASS
+     perf_counter n=400000  PASS
+
+5c. Repeatability: 10 independent measurements, monotonic, 50 000 samples
+    observable tick  min / median / max [s] : 5.200000e-08 / 5.400000e-08 / 5.700000e-08
+    per-read cost    min / median / max [s] : 6.300000e-08 / 6.400000e-08 / 7.700000e-08
+    tick spread (max-min)/median            : 0.093
+    The spread is the honest statement of how well this quantity is
+    known on a shared, loaded host. It is not asserted against a bound.
+    all measurements strictly positive      : PASS
+
+5d. The error term at the loop rates this package targets
+    using q = 5.300000e-08 s and u = q/sqrt(6) = 2.163716e-08 s
+  rate [Hz]     period [s]           q/T           u/T     q/T [ppm]
+          1   1.000000e+00     5.300e-08     2.164e-08         0.053
+         10   1.000000e-01     5.300e-07     2.164e-07         0.530
+        100   1.000000e-02     5.300e-06     2.164e-06         5.300
+        400   2.500000e-03     2.120e-05     8.655e-06        21.200
+       1000   1.000000e-03     5.300e-05     2.164e-05        53.000
+      10000   1.000000e-04     5.300e-04     2.164e-04       530.000
+     100000   1.000000e-05     5.300e-03     2.164e-03      5300.000
+
+    Read this as: at 100 kHz the clock quantization alone is 5300 ppm
+    of the period, so a drift figure quoted at that rate on this machine
+    cannot be trusted below that level, whatever the loop does.
+
+==============================================================================
+RESULT: all consistency checks PASS; the measured values are reported,
+        not asserted, because they describe this machine at this moment.
+==============================================================================

@@ -1,0 +1,70 @@
+==============================================================================
+VALIDATION 4 -- reported drift vs injected clock skew
+==============================================================================
+
+Injection: SkewedSimulatedTimebase.sleep(d) advances the timestamping
+clock by d*(1 + skew_ppm*1e-6) + wake_delay_s. Deterministic, noise-free.
+Grid: skews (-1000.0, -1.0, 1.0, 250.0) ppm x delays (0.0, 1e-07, 5e-06) s x periods (0.0001, 0.001, 0.0025, 0.01, 0.1) s
+Iterations per run: 500. Every iteration is compared, not just the last.
+
+Tolerance per comparison: 1e-9 * |closed form| + 4*k*ulp(k*T), the second
+term being binary64 accumulation noise over k periods. A ratio of
+deviation to tolerance below 1 is a pass.
+
+4a. Relative mode: drift_k = k * (T*eps + d)
+    comparisons                 : 30000
+    worst absolute deviation    : 5.709e-13 s
+    worst deviation / tolerance : 7.075e-02  (must be <= 1)
+    verdict                     : PASS
+
+4b. Absolute mode: drift_k = a (1 - (-eps)^k) / (1 + eps)
+    comparisons                 : 30000
+    worst absolute deviation    : 3.385e-15 s
+    worst deviation / tolerance : 8.762e-02  (must be <= 1)
+    verdict                     : PASS
+
+4c. Recovering the injected skew from the drift slope (relative mode)
+    slope = T * eps, so eps_recovered = slope / T, in ppm = 1e6 * slope / T
+ injected [ppm]      T [s]     slope [s/iter]   recovered [ppm]     rel err  verdict
+      -1000.000     0.0010   -1.000000000e-06   -1000.000000020    2.04e-11  PASS
+      -1000.000     0.0100   -1.000000000e-05   -1000.000000002    2.46e-12  PASS
+        -10.000     0.0010   -1.000000004e-08     -10.000000041    4.07e-09  PASS
+        -10.000     0.0100   -9.999999965e-08      -9.999999965    3.47e-09  PASS
+          0.500     0.0010    4.999999783e-10       0.499999978    4.35e-08  PASS
+          0.500     0.0100    5.000000008e-09       0.500000001    1.67e-09  PASS
+          1.000     0.0010    9.999999738e-10       0.999999974    2.62e-08  PASS
+          1.000     0.0100    1.000000016e-08       1.000000016    1.57e-08  PASS
+        100.000     0.0010    9.999999996e-08      99.999999957    4.30e-10  PASS
+        100.000     0.0100    1.000000000e-06     100.000000032    3.17e-10  PASS
+       1000.000     0.0010    1.000000000e-06    1000.000000022    2.22e-11  PASS
+       1000.000     0.0100    1.000000000e-05     999.999999987    1.34e-11  PASS
+
+4d. Relative mode accumulates, absolute mode does not (50 000 iterations)
+    period                      : 1.000000e-03 s
+    injected skew               : 200.000 ppm  -> a = T*eps = 2.000000e-07 s
+    relative final drift        : 9.999800000323e-03 s (closed form 9.999800000000e-03 s)
+    absolute final drift        : 1.999600058866e-07 s (closed form 1.999600079984e-07 s)
+    relative deviation from form: 3.225e-11  (tolerance 1e-6)
+    absolute deviation from form: 1.056e-08  (tolerance 1e-6)
+    relative / absolute         : 50009.000
+    relative drift slope        : 2.000000000e-07 s/iter
+    absolute drift slope        : 4.797429630e-16 s/iter
+    verdict                     : PASS
+
+4e. For the record only: a real-clock run on THIS machine.
+    NOT ASSERTED. The build container has 1 CPU core and four concurrent
+    build agents, so what follows is a sample of a loaded general-purpose
+    host, not a performance claim and not a bound. CPython on a
+    general-purpose OS is not a real-time platform.
+    measured clock tick         : 5.400000e-08 s
+    worst-case duration error   : +/-5.400000e-08 s
+    period                      : 2.000000e-03 s, 300 iterations, absolute mode
+    max |drift|                 : 4.581682e-03 s +/- 5.4e-08 s (clock quantization)
+    final drift                 : 9.252100e-05 s
+    drift slope                 : -3.323579e-07 s/iter
+    late releases               : 6 of 300
+    body duration p50 / p99 / max (nearest_rank): 9.660e-07 / 6.621e-06 / 6.698e-06 s
+
+==============================================================================
+RESULT: all asserted checks PASS (4e is reported, not asserted)
+==============================================================================

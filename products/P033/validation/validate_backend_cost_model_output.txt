@@ -1,0 +1,64 @@
+==============================================================================
+P033 edgeinfer -- Validation 2: measured latency vs injected cost model
+==============================================================================
+environment: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39 x86_64, 1 CPU core(s) available of 1 logical, shared host, Python 3.13.16, clock perf_counter resolution 1e-09 s. 
+WORKSTATION NUMBERS. Every latency below was measured in a shared, single-CPU-core
+cloud container with other build jobs running concurrently. No number here is a
+measurement of any edge target.
+
+(a) constant-duration stages: isolating the spin-wait overshoot
+------------------------------------------------------------------------------
+  injected     50 us  measured p50    50.772 us  overshoot    772.5 ns  ratio 1.0154  PASS
+  injected    200 us  measured p50   201.277 us  overshoot   1277.0 ns  ratio 1.0064  PASS
+  injected    800 us  measured p50   803.027 us  overshoot   3026.5 ns  ratio 1.0038  PASS
+  interpretation: the overshoot is a fixed per-call cost, so it matters
+  relatively more for a short pipeline. It is a measurement bias of the
+  simulated backend, not of the harness.
+
+(b) the cross-check pipeline, lognormal stages, time actually consumed
+------------------------------------------------------------------------------
+  injected stage preprocess     mean   60.000 us  sd  12.000 us  dist lognormal
+  injected stage inference      mean  180.000 us  sd  40.000 us  dist lognormal
+  injected stage postprocess    mean   30.000 us  sd   6.000 us  dist lognormal
+  injected total        mean  270.000 us  sd  42.190 us  (variances of independent stages add)
+
+  measurement method: perf_counter per-call bracket; n=2000 repeats, 20 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 51 ns; gc disabled=True
+
+  p99 (worst-case proxy)  : 4740.619 us
+  max (observed worst)    : 12262.995 us
+  p90                     : 386.225 us
+  p50 (median)            : 283.862 us
+  mean                    : 592.236 us
+  sd                      : 1129.982 us
+  min                     : 168.466 us
+  tail ratio p99/p50      : 16.700
+
+  uncertainty budgets:
+    mean  value   592.236 us  u_A  25.2672 us  u_B(clock)  0.408 ns  u_c  25.2672 us
+    p50   value   283.862 us  u_A   1.2897 us  u_B(clock)  0.408 ns  u_c   1.2897 us
+    p99   value  4740.619 us  u_A 185.7883 us  u_B(clock)  0.408 ns  u_c 185.7883 us
+    timer-pair bias 51.0 ns, stated not corrected
+
+  recovery of the injected cost model:
+    PRIMARY  measured p50 / injected mean = 1.0513  band [1.00, 1.15]  PASS
+             median bias = +13.862 us total, +4620.8 ns per stage
+    REPORTED measured mean / injected mean = 2.1935  (NOT asserted: contaminated by preemption)
+    REPORTED trimmed mean (lowest 90 %) / injected mean = 1.0413  (NOT asserted; diagnostic only)
+             the gap between 2.193 and 1.051 is the size of the
+             preemption contamination on this host. It is not a property of the
+             harness or of the injected cost model.
+    REPORTED measured sd / injected sd     = 26.7831  (NOT asserted: preemption inflates the sd)
+    REPORTED measured p99 / p50            = 16.7004  (a property of the host)
+    quantile ordering p50 <= p90 <= p99 <= max  PASS
+    smallest observed repeat      = 168.466 us (injected mean 270.000 us; a short draw is possible because the stages are random)
+
+(c) cross-check export for P039 LatencyNet
+------------------------------------------------------------------------------
+  written: /home/claude/aerospace-100-mission/products/P033/validation/crosscheck_pipeline.json
+  required keys: stages[{name, mean_s, std_s, dist}], n_samples, seed,
+                 measured{mean_s, p50_s, p99_s}
+  measured mean_s = 5.922359855e-04, p50_s = 2.838624996e-04, p99_s = 4.740619460e-03
+
+==============================================================================
+RESULT: 6/6 checks passed
+==============================================================================

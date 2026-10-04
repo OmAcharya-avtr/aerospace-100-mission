@@ -1,0 +1,115 @@
+{
+  "backend_driver": "",
+  "backend_kind": "simulated",
+  "cascade_overruns": 0,
+  "caveat": "These are host-side measurements of the harness, taken on a shared,\nsingle-core cloud container with four other build agents running\nconcurrently. Absolute latencies are therefore pessimistic and their\nscatter is dominated by contention outside this process. They are not\nhardware numbers and must not be quoted as such.\nLevel 4 validation is NOT claimed and is not reachable from this record:\nit requires this same harness run on a Jetson Orin Nano with its raw\noutput captured, and until that exists the product is Level 3,\nhardware-pending.",
+  "clock_call_overhead_s": 5.9e-08,
+  "clock_measured_resolution_s": 1.09e-07,
+  "clock_reported_resolution_s": 1e-09,
+  "direct_overruns": 0,
+  "dry_run": false,
+  "duration_resolution_uncertainty_s": 4.449906366056107e-08,
+  "environment_note": "shared single-core cloud container (1 CPU allowed to this process, 7.8 GiB RAM, four other build agents running concurrently); NOT a Jetson Orin Nano and NOT any other target hardware",
+  "host": {
+    "cpu_count_os": "1",
+    "machine": "x86_64",
+    "numpy": "2.5.3",
+    "platform": "Linux-6.18.44-fc-v64-x86_64-with-glibc2.39",
+    "python": "3.13.16"
+  },
+  "is_hardware": false,
+  "label": "simulated-write",
+  "maxrss_bytes": 89411584.0,
+  "maxrss_note": "ru_maxrss interpreted as kibibytes (linux)",
+  "mean_uncertainty": {
+    "combined_s": 8.865834914022596e-07,
+    "expanded_k2_s": 1.7731669828045192e-06,
+    "mean_s": 0.00015858461185000406,
+    "n": 20000.0,
+    "stdev_s": 0.00012538183187517138,
+    "u_resolution_s": 3.14655896708346e-10,
+    "u_statistical_s": 8.86583435565253e-07
+  },
+  "method": {
+    "clock": "time.perf_counter_ns via MonotonicTimebase",
+    "latency": "one sample per stage per iteration, no intra-stage averaging",
+    "memory": "tracemalloc peak + resource.getrusage(RUSAGE_SELF)",
+    "pacing": "none; the loop is not slept to the period",
+    "percentiles": "exact over stored samples, Hyndman & Fan type 1",
+    "throughput": "completed iterations / wall-clock span"
+  },
+  "n_completed": 20000,
+  "n_iterations": 20000,
+  "period_s": 0.01,
+  "stage_summary_s": {
+    "actuate": {
+      "count": 20000.0,
+      "max_s": 0.00508057800000028,
+      "mean_s": 5.3213305799998076e-05,
+      "min_s": 3.896099999955993e-05,
+      "p50_s": 4.3694000000038535e-05,
+      "p90_s": 7.525600000013455e-05,
+      "p999_s": 0.0007194080000000325,
+      "p99_s": 0.00012406500000050613,
+      "stdev_s": 7.249622363548871e-05
+    },
+    "control": {
+      "count": 20000.0,
+      "max_s": 0.008070152999999358,
+      "mean_s": 3.6361345200001504e-05,
+      "min_s": 2.6701999999989567e-05,
+      "p50_s": 2.9526999999696102e-05,
+      "p90_s": 5.168099999997011e-05,
+      "p999_s": 0.0006546549999999485,
+      "p99_s": 8.825400000000982e-05,
+      "stdev_s": 7.29844563292688e-05
+    },
+    "estimate": {
+      "count": 20000.0,
+      "max_s": 0.0022818879999999993,
+      "mean_s": 1.2288976800001272e-05,
+      "min_s": 7.754999999999996e-06,
+      "p50_s": 1.0598000000028307e-05,
+      "p90_s": 1.5955000000067443e-05,
+      "p999_s": 7.242499999993157e-05,
+      "p99_s": 3.792499999999421e-05,
+      "stdev_s": 1.9898809914721706e-05
+    },
+    "sense": {
+      "count": 20000.0,
+      "max_s": 0.004046919999999954,
+      "mean_s": 5.67209840500032e-05,
+      "min_s": 4.1496999999779405e-05,
+      "p50_s": 4.7370000000018786e-05,
+      "p90_s": 8.024900000025426e-05,
+      "p999_s": 0.0006070290000002032,
+      "p99_s": 0.0001290789999999209,
+      "stdev_s": 6.073333089899925e-05
+    },
+    "total": {
+      "count": 20000.0,
+      "max_s": 0.00822720900000018,
+      "mean_s": 0.00015858461185000406,
+      "min_s": 0.00011782399999926696,
+      "p50_s": 0.0001338760000002548,
+      "p90_s": 0.00020791800000008465,
+      "p999_s": 0.0016284239999992955,
+      "p99_s": 0.0003823830000007078,
+      "stdev_s": 0.00012538183187517165
+    }
+  },
+  "throughput_iter_s": 4153.659632961313,
+  "total_summary_s": {
+    "count": 20000.0,
+    "max_s": 0.00822720900000018,
+    "mean_s": 0.00015858461185000406,
+    "min_s": 0.00011782399999926696,
+    "p50_s": 0.0001338760000002548,
+    "p90_s": 0.00020791800000008465,
+    "p999_s": 0.0016284239999992955,
+    "p99_s": 0.0003823830000007078,
+    "stdev_s": 0.00012538183187517165
+  },
+  "tracemalloc_peak_bytes": 16608489.0,
+  "wall_clock_s": 4.81503102500028
+}

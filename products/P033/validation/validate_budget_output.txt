@@ -1,0 +1,105 @@
+==============================================================================
+P033 edgeinfer -- Validation 8: the budget decision path
+==============================================================================
+environment: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39 x86_64, 1 CPU core(s) available of 1 logical, shared host, Python 3.13.16, clock perf_counter resolution 1e-09 s. 
+WORKSTATION NUMBERS where anything is measured at all. Cases (1) to (4) are
+analytic and host-independent; cases (5) and (6) use a measured profile from
+this shared single-CPU-core cloud container. Nothing here is a measurement
+of any edge target, and every throttle factor is declared, not measured.
+
+(1) a model exceeding the memory budget
+------------------------------------------------------------------------------
+  analytic peak memory : 5521664 B (5513472 B weights + 8192 B activations)
+  declared ceiling     : 1048576 B
+  utilisation          : 526.6 %
+  memory row                                           got FAIL           want FAIL           PASS
+  latency row (unaffected)                             got PASS           want PASS           PASS
+  overall                                              got FAIL           want FAIL           PASS
+  note: the decision needed no measurement at all. The memory overrun is
+  integer arithmetic over the graph, available before the model is loaded.
+
+(2) an unsupported operator
+------------------------------------------------------------------------------
+  GRU                  refused: operator 'GRU' (node 'n') has no cost model in edgeinfer
+  Einsum               refused: operator 'Einsum' (node 'n') has no cost model in edgeinfer
+  Loop                 refused: operator 'Loop' (node 'n') has no cost model in edgeinfer
+  Transpose            refused: operator 'Transpose' (node 'n') has no cost model in edgeinfer
+  The refusal is the correct behaviour: an unknown operator charged zero
+  cost turns a budget overrun into a budget pass, which is the single
+  failure this product exists to prevent.
+
+(3) a thermally throttled device
+------------------------------------------------------------------------------
+  nominal analytic latency : 51.742 us on declared target (declared; not measured, not a datasheet figure)
+  declared ceiling         : 103.483 us
+
+  declared throttle                   compute  bandwidth  latency [us]         verdict
+  nominal                                1.00       1.00        51.742            PASS  PASS
+  mild, declared 70 % clock              0.70       1.00        73.741            PASS  PASS
+  severe, declared 30 % clock            0.30       1.00       171.533            FAIL  PASS
+  severe + memory derate                 0.30       0.50       171.926            FAIL  PASS
+
+  Every throttle factor above is DECLARED, not measured. There is no
+  thermal model here and no device: a real throttle curve for a Jetson
+  Orin Nano would come from its DVFS frequency table and thermal zones
+  logged under load on the device itself. The bandwidth factor defaults to
+  1.0 because memory clocks throttle on their own schedule and this package
+  has no basis to derate a quantity it cannot see.
+
+(4) a budget that is infeasible by construction
+------------------------------------------------------------------------------
+  duty cycle tighter than the latency ceiling
+    - duty cycle 0.1 of period 0.01 s allows 0.001 s, which is less than the declared worst-case latency 0.002 s; the two limits contradict
+    feasible = False  PASS
+  median ceiling above the worst-case ceiling
+    - median ceiling 0.002 s exceeds worst-case ceiling 0.001 s; a median above the tail limit cannot be met
+    feasible = False  PASS
+  median above the duty-cycle-implied ceiling
+    - duty cycle 0.02 of period 0.01 s allows 0.0002 s, which is less than the declared worst-case latency 0.0004 s; the two limits contradict
+    - median ceiling 0.0003 s exceeds the duty-cycle-implied ceiling 0.0002 s
+    feasible = False  PASS
+
+  and the same budget against a candidate with zero latency:
+  overall for an impossible candidate                  got FAIL           want FAIL           PASS
+  A contradictory declaration fails whatever is measured against it, and
+  the contradiction is detectable before any model is loaded. A
+  self-consistent budget is a different question from an achievable one:
+  a 1 ns ceiling is self-consistent and unachievable, and the two are
+  reported separately.
+  a self-consistent budget is reported feasible  PASS
+
+(5) and (6) a marginal pass, and a median pass with a tail failure
+------------------------------------------------------------------------------
+  measurement method : perf_counter per-call bracket; n=200 repeats, 10 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 45 ns; gc disabled=True
+  measured p50 = 7.079 us +/- 0.012 us (u_c)
+  measured p99 = 41.886 us +/- 1075.042 us (u_c)
+  ceiling 1 u above p99                                got MARGINAL PASS  want MARGINAL PASS  PASS
+  ceiling 100x p99                                     got PASS           want PASS           PASS
+  median row                                           got PASS           want PASS           PASS
+  tail row (p99)                                       got MARGINAL FAIL  want FAIL or MARGINAL FAIL  PASS
+  overall                                              got MARGINAL FAIL  want FAIL or MARGINAL FAIL  PASS
+
+  This is the case the whole separation exists for: the candidate is
+  comfortably inside the median ceiling and outside the worst-case one, and
+  the overall verdict follows the worst case. A tool that reported only the
+  median would have passed this candidate.
+
+  full report for case (6):
+    candidate   : measured
+    budget      : ceiling between p50 and p99
+    environment : Linux-6.18.44-fc-v64-x86_64-with-glibc2.39 x86_64, 1 CPU core(s) available of 1 logical, shared host, Python 3.13.16, clock perf_counter resolution 1e-09 s. 
+    
+    quantity                              value     u(value)          limit    util verdict        method
+    -----------------------------------------------------------------------------------------------------
+    worst-case latency (p99) [s]    4.18856e-05      0.00108    2.44823e-05  171.1% MARGINAL FAIL  perf_counter per-call bracket; n=200 repeats, 10 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 45 ns; gc disabled=True
+    median latency (p50) [s]          7.079e-06     1.21e-08    2.20341e-05   32.1% PASS           perf_counter per-call bracket; n=200 repeats, 10 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 45 ns; gc disabled=True
+    peak memory [B]                           1            0    8.38861e+06    0.0% PASS           analytic liveness analysis
+    average power [W]                         -            -              -       - NOT MEASURED   not measured by edgeinfer; declared value only
+    
+    overall     : MARGINAL FAIL
+    undecided rows:
+      - average power: NOT MEASURED
+
+==============================================================================
+RESULT: 21/21 checks passed
+==============================================================================

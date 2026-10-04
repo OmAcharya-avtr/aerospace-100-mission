@@ -1,0 +1,250 @@
+==============================================================================
+P033 edgeinfer -- Validation 5: analytic baseline vs learned predictor
+==============================================================================
+environment: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39 x86_64, 1 CPU core(s) available of 1 logical, shared host, Python 3.13.16, clock perf_counter resolution 1e-09 s. 
+WORKSTATION NUMBERS. Every measured latency below comes from a shared,
+single-CPU-core cloud container with other build jobs running concurrently.
+No number here is a measurement of any edge target, and the Jetson Orin Nano
+column of every results table in this repository is empty for that reason.
+
+population: 120 models, seed 20260401; split 70%/30%, seed 20260401
+families: {'mlp': 60, 'cnn': 60}
+nodes per graph: min 3, median 6, max 11
+
+(1) measurement campaign
+------------------------------------------------------------------------------
+  measured 120 models in 0.9 s
+  method: perf_counter per-call bracket; n=60 repeats, 8 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 44 ns; gc disabled=True
+  train 84 models, held-out test 36 models
+
+(2) comparison, one measurement pass in detail
+------------------------------------------------------------------------------
+
+--- target: p50 latency [s] ---
+  measured range: 6.481 to 691.043 us (107x)
+
+  (i-a) is the roofline a bound at all? Declared peaks 200 GFLOP/s and
+        400 GB/s, chosen well above anything one core of this host
+        delivers, so the bound must lie BELOW every measured latency.
+        bound above the measurement for 0/36 models PASS
+        measured / bound: median 12.8x, min 3.7x, max 349.9x
+
+  (i-b) the same bound on the declared device (4.0 GFLOP/s,
+        10.0 GB/s, no overhead terms)
+        predictor               : roofline bound
+        n (held out)            : 36
+        median |rel error|      : 287.16 %
+        p90 |rel error|         : 746.22 %
+        max |rel error|         : 1230.83 %
+        Spearman rho            : 0.9009
+        RMSE in log10 space     : 0.6537
+        bound above the measurement for 31/36 models
+        interpretation: a roofline bound is a bound for the device it
+        DECLARES, not for the machine it is evaluated on. These declared
+        peaks are slower than this host's effective rate, so the bound sits
+        above the measurement for most models. That is a statement about the
+        declaration, not an error in the model, and it is the reason the
+        baseline below is fitted rather than declared.
+
+  (ii) analytic baseline, four parameters fitted on the training set
+  calibrated in 0.0 s at grid 20x20
+    peak compute          : 43.4345 GFLOP/s (fitted)
+    peak bandwidth        : 78.0322 GB/s (fitted)
+    per-node overhead     : 1.7969 us (fitted)
+    fixed overhead        : 0.9629 us (fitted)
+    ridge point           : 0.5566 FLOP/B (derived)
+    source label          : calibrated-fit
+      predictor               : analytic roofline (calibrated)
+      n (held out)            : 36
+      median |rel error|      : 25.08 %
+      p90 |rel error|         : 46.16 %
+      max |rel error|         : 76.88 %
+      Spearman rho            : 0.9243
+      RMSE in log10 space     : 0.1709
+
+  (iii) learned random forest on the same training set
+      trained in 0.11 s, 120 trees, depth <= 8
+      predictor               : learned random forest
+      n (held out)            : 36
+      median |rel error|      : 16.95 %
+      p90 |rel error|         : 43.66 %
+      max |rel error|         : 63.62 %
+      Spearman rho            : 0.9593
+      RMSE in log10 space     : 0.1361
+
+  (iv) head to head on the held-out set
+      learned random forest wins: median |rel error| 16.95 % vs 25.08 % for analytic roofline (calibrated), a difference of 8.13 pp against a bootstrap sd of 5.10 pp
+      p90 |rel error|: analytic 46.16 % vs learned 43.66 %
+      Spearman rho   : analytic 0.9243 vs learned 0.9593
+
+  (v) the forest's uncertainty output and its empirical coverage
+      median relative ensemble spread : 34.34 %
+      truth inside +/- 1 u            : 75.0 % of models
+      truth inside +/- 2 u            : 91.7 % of models
+      For a calibrated Gaussian interval these would be about 68 % and 95 %.
+      The ensemble spread measures disagreement between trees, not the
+      irreducible measurement noise, so it is NOT a calibrated interval and
+      the figures above are the measured evidence for that statement.
+
+  (vi) forest impurity importances (biased; diagnostic only)
+      log10_flops              0.3201
+      log10_peak_act_bytes     0.2349
+      log10_macs               0.1750
+      log10_max_node_flops     0.0893
+      log10_intensity          0.0866
+      log10_bytes              0.0190
+
+--- target: p99 latency [s] ---
+  measured range: 11.184 to 3730.549 us (334x)
+
+  (i-a) is the roofline a bound at all? Declared peaks 200 GFLOP/s and
+        400 GB/s, chosen well above anything one core of this host
+        delivers, so the bound must lie BELOW every measured latency.
+        bound above the measurement for 0/36 models PASS
+        measured / bound: median 33.8x, min 6.9x, max 1138.1x
+
+  (i-b) the same bound on the declared device (4.0 GFLOP/s,
+        10.0 GB/s, no overhead terms)
+        predictor               : roofline bound
+        n (held out)            : 36
+        median |rel error|      : 80.39 %
+        p90 |rel error|         : 275.53 %
+        max |rel error|         : 618.26 %
+        Spearman rho            : 0.8234
+        RMSE in log10 space     : 0.5101
+        bound above the measurement for 25/36 models
+        interpretation: a roofline bound is a bound for the device it
+        DECLARES, not for the machine it is evaluated on. These declared
+        peaks are slower than this host's effective rate, so the bound sits
+        above the measurement for most models. That is a statement about the
+        declaration, not an error in the model, and it is the reason the
+        baseline below is fitted rather than declared.
+
+  (ii) analytic baseline, four parameters fitted on the training set
+  calibrated in 0.0 s at grid 20x20
+    peak compute          : 18.4068 GFLOP/s (fitted)
+    peak bandwidth        : 25.3953 GB/s (fitted)
+    per-node overhead     : 4.5448 us (fitted)
+    fixed overhead        : 0.0000 us (fitted)
+    ridge point           : 0.7248 FLOP/B (derived)
+    source label          : calibrated-fit
+      predictor               : analytic roofline (calibrated)
+      n (held out)            : 36
+      median |rel error|      : 22.80 %
+      p90 |rel error|         : 86.58 %
+      max |rel error|         : 121.60 %
+      Spearman rho            : 0.8332
+      RMSE in log10 space     : 0.3017
+
+  (iii) learned random forest on the same training set
+      trained in 0.12 s, 120 trees, depth <= 8
+      predictor               : learned random forest
+      n (held out)            : 36
+      median |rel error|      : 45.58 %
+      p90 |rel error|         : 108.57 %
+      max |rel error|         : 207.45 %
+      Spearman rho            : 0.8489
+      RMSE in log10 space     : 0.3162
+
+  (iv) head to head on the held-out set
+      analytic roofline (calibrated) wins: median |rel error| 22.80 % vs 45.58 % for learned random forest, a difference of 22.78 pp against a bootstrap sd of 13.29 pp
+      p90 |rel error|: analytic 86.58 % vs learned 108.57 %
+      Spearman rho   : analytic 0.8332 vs learned 0.8489
+
+  (v) the forest's uncertainty output and its empirical coverage
+      median relative ensemble spread : 53.76 %
+      truth inside +/- 1 u            : 72.2 % of models
+      truth inside +/- 2 u            : 86.1 % of models
+      For a calibrated Gaussian interval these would be about 68 % and 95 %.
+      The ensemble spread measures disagreement between trees, not the
+      irreducible measurement noise, so it is NOT a calibrated interval and
+      the figures above are the measured evidence for that statement.
+
+  (vi) forest impurity importances (biased; diagnostic only)
+      log10_max_node_flops     0.3485
+      log10_peak_act_bytes     0.1518
+      log10_flops              0.1222
+      log10_intensity          0.0790
+      log10_macs               0.0725
+      n_nodes                  0.0543
+
+(3) peak memory
+------------------------------------------------------------------------------
+
+--- target: analytic peak memory [B] ---
+  range: 3408 to 3566984 B (1047x)
+  The analytic peak memory is EXACT by construction: it is integer byte
+  arithmetic over the graph's tensor shapes plus a liveness analysis, and
+  validate_memory.py checks it against a measured execution. Its error
+  against itself is zero, so there is no accuracy for a learned model to
+  add. What follows is the cost of using one anyway.
+      predictor               : learned forest, memory features ablated
+      n (held out)            : 36
+      median |rel error|      : 11.17 %
+      p90 |rel error|         : 62.65 %
+      max |rel error|         : 100.55 %
+      Spearman rho            : 0.9920
+      RMSE in log10 space     : 0.1358
+      analytic error on the same models: 0.00 % (exact arithmetic)
+      so the learned model is worse by 11.17 pp at the median and
+      62.65 pp at p90, and it needs the population to have been
+      measured first. For peak memory the analytic model wins outright.
+
+(4) run-to-run stability of the comparison
+------------------------------------------------------------------------------
+  5 independent passes. Each re-measures all 120 models, refits the
+  analytic baseline's four parameters and refits the forest, on the same
+  train/test split.
+  measured 120 models in 0.8 s
+  method: perf_counter per-call bracket; n=60 repeats, 8 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 44 ns; gc disabled=True
+    pass 1: p50 -> learned  (analytic  21.94 %, learned  11.62 %)   p99 -> tie      (analytic   39.54 %, learned   40.80 %)
+  measured 120 models in 0.8 s
+  method: perf_counter per-call bracket; n=60 repeats, 8 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 45 ns; gc disabled=True
+    pass 2: p50 -> learned  (analytic  24.96 %, learned  15.20 %)   p99 -> tie      (analytic   35.34 %, learned   40.77 %)
+  measured 120 models in 0.8 s
+  method: perf_counter per-call bracket; n=60 repeats, 8 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 45 ns; gc disabled=True
+    pass 3: p50 -> learned  (analytic  21.92 %, learned   8.83 %)   p99 -> tie      (analytic   30.55 %, learned   33.49 %)
+  measured 120 models in 0.8 s
+  method: perf_counter per-call bracket; n=60 repeats, 8 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 45 ns; gc disabled=True
+    pass 4: p50 -> learned  (analytic  21.20 %, learned   8.42 %)   p99 -> tie      (analytic   43.71 %, learned   47.55 %)
+  measured 120 models in 0.8 s
+  method: perf_counter per-call bracket; n=60 repeats, 8 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 44 ns; gc disabled=True
+    pass 5: p50 -> learned  (analytic  22.19 %, learned  10.44 %)   p99 -> tie      (analytic   38.45 %, learned   51.25 %)
+
+  p50: learned won 5/5, analytic won 0/5, tie 0/5
+       analytic median |rel error| across passes: 21.20 % to 24.96 %
+       learned  median |rel error| across passes: 8.42 % to 15.20 %
+
+  p99: learned won 0/5, analytic won 0/5, tie 5/5
+       analytic median |rel error| across passes: 30.55 % to 43.71 %
+       learned  median |rel error| across passes: 33.49 % to 51.25 %
+
+==============================================================================
+HEADLINE RESULT
+==============================================================================
+One measurement pass, in detail:
+  p50 latency : learned random forest wins: median |rel error| 16.95 % vs 25.08 % for analytic roofline (calibrated), a difference of 8.13 pp against a bootstrap sd of 5.10 pp
+  p99 latency : analytic roofline (calibrated) wins: median |rel error| 22.80 % vs 45.58 % for learned random forest, a difference of 22.78 pp against a bootstrap sd of 13.29 pp
+  peak memory : analytic wins outright (exact arithmetic vs a fitted model)
+
+Across 5 independent passes, which is the figure to believe:
+  p50 latency : learned won 5, analytic won 0, tie 0
+               analytic median |rel error| 21.20-24.96 %, learned 8.42-15.20 %
+  p99 latency : learned won 0, analytic won 0, tie 5
+               analytic median |rel error| 30.55-43.71 %, learned 33.49-51.25 %
+
+No retuning was done to change any of these outcomes. The analytic model's
+four parameters were fitted once per pass, on the training split, with the
+grid size declared in this script; the forest's hyperparameters are the
+package defaults. Both predictors saw the same features and the same
+training set, and the analytic model was written and validated first.
+
+summary table from the detailed pass (held-out, |relative error|):
+  target                  analytic med  learned med  analytic p90  learned p90
+  p50 latency                   25.08%       16.95%        46.16%       43.66%
+  p99 latency                   22.80%       45.58%        86.58%      108.57%
+
+  Spearman rho, p50 target: analytic 0.9243, learned 0.9593
+  Spearman rho, p99 target: analytic 0.8332, learned 0.8489
+==============================================================================
+RESULT: campaign completed. See the stability block above, not the single pass.

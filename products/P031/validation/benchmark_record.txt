@@ -1,0 +1,66 @@
+HilForge benchmark record — simulated-write
+========================================================================
+
+ENVIRONMENT AND MEASUREMENT METHOD
+  environment note      : shared single-core cloud container (1 CPU allowed to this process, 7.8 GiB RAM, four other build agents running concurrently); NOT a Jetson Orin Nano and NOT any other target hardware
+  backend               : simulated (driver=n/a)
+  is_hardware           : False
+  cpu_count_os          : 1
+  machine               : x86_64
+  numpy                 : 2.5.3
+  platform              : Linux-6.18.44-fc-v64-x86_64-with-glibc2.39
+  python                : 3.13.16
+  clock                 : time.perf_counter_ns via MonotonicTimebase
+  latency               : one sample per stage per iteration, no intra-stage averaging
+  memory                : tracemalloc peak + resource.getrusage(RUSAGE_SELF)
+  pacing                : none; the loop is not slept to the period
+  percentiles           : exact over stored samples, Hyndman & Fan type 1
+  throughput            : completed iterations / wall-clock span
+
+CLOCK
+  reported resolution   : 1.000000e-09 s
+  measured resolution   : 1.090000e-07 s
+  call-pair overhead    : 5.900000e-08 s (bias)
+  u(duration) from res. : 4.449906e-08 s = delta/sqrt(6)
+
+RUN
+  period                : 1.000000e-02 s
+  iterations requested  : 20000
+  iterations completed  : 20000
+  dry run               : False
+  wall clock            : 4.815031 s
+  throughput            : 4153.66 iterations/s
+  direct overruns       : 0
+  cascade overruns      : 0
+
+LATENCY PER STAGE [s] (exact percentiles over every sample)
+  stage         count         mean          p50          p90          p99          max
+  sense         20000 5.672098e-05 4.737000e-05 8.024900e-05 1.290790e-04 4.046920e-03
+  estimate      20000 1.228898e-05 1.059800e-05 1.595500e-05 3.792500e-05 2.281888e-03
+  control       20000 3.636135e-05 2.952700e-05 5.168100e-05 8.825400e-05 8.070153e-03
+  actuate       20000 5.321331e-05 4.369400e-05 7.525600e-05 1.240650e-04 5.080578e-03
+  total         20000 1.585846e-04 1.338760e-04 2.079180e-04 3.823830e-04 8.227209e-03
+
+UNCERTAINTY ON THE MEAN TOTAL DURATION (JCGM 100:2008 §5.1.2)
+  n                     : 2.000000000e+04
+  mean_s                : 1.585846119e-04
+  stdev_s               : 1.253818319e-04
+  u_statistical_s       : 8.865834356e-07
+  u_resolution_s        : 3.146558967e-10
+  combined_s            : 8.865834914e-07
+  expanded_k2_s         : 1.773166983e-06
+
+MEMORY
+  tracemalloc peak      : 16.608 MB
+  process max RSS       : 89.412 MB (ru_maxrss interpreted as kibibytes (linux))
+
+CAVEAT
+  These are host-side measurements of the harness, taken on a shared,
+  single-core cloud container with four other build agents running
+  concurrently. Absolute latencies are therefore pessimistic and their
+  scatter is dominated by contention outside this process. They are not
+  hardware numbers and must not be quoted as such.
+  Level 4 validation is NOT claimed and is not reachable from this record:
+  it requires this same harness run on a Jetson Orin Nano with its raw
+  output captured, and until that exists the product is Level 3,
+  hardware-pending.

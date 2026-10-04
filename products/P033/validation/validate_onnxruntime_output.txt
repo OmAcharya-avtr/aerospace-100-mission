@@ -1,0 +1,75 @@
+==============================================================================
+P033 edgeinfer -- Validation 7: the ONNX writer and the real runtime
+==============================================================================
+environment: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39 x86_64, 1 CPU core(s) available of 1 logical, shared host, Python 3.13.16, clock perf_counter resolution 1e-09 s. 
+WORKSTATION NUMBERS. Shared single-CPU-core cloud container. Sections (a)
+and (b) are exact and host-independent; section (c) is not.
+
+(a) field numbers, checked against models shipped inside onnxruntime
+------------------------------------------------------------------------------
+  onnxruntime version: 1.29.0
+  providers available: ['AzureExecutionProvider', 'CPUExecutionProvider']
+
+  /usr/local/lib/python3.13/dist-packages/onnxruntime/datasets/mul_1.onnx
+    parsed graph name      : 'mul test'
+    parsed op types        : ('Mul',)
+    parsed inputs          : [('X', (3, 2), 'float32')]
+    parsed outputs         : ('Y',)
+    parsed initialisers    : [('W', (3, 2), 'float32')]
+    initialiser values     : [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
+    op_type reads as Mul                     PASS
+    input name reads as X                    PASS
+    input shape reads as (3, 2)              PASS
+    elem_type reads as float32               PASS
+    output name reads as Y                   PASS
+    initialiser name reads as W              PASS
+    initialiser values read as 1..6          PASS
+    Each line above reads a different protobuf field. A wrong field number
+    would surface here as a wrong value, not as a silent default.
+
+  hand count for the shipped model: Mul over (3, 2) float32
+    6 output elements, 1 flop each                  -> 6 flops
+    read 2 x 24 B, write 24 B                       -> 72 B
+    computed: 6 flops, 72 B  PASS
+
+  sigmoid.onnx: parsed, op types ('Sigmoid',)
+
+  logreg_iris.onnx: REFUSED by edgeinfer's parser -- GraphError: value_info 'probabilities': only tensor_type is supported; maps, sequences and optionals are not representable in edgeinfer's IR
+    This is a documented limitation, not a silent failure: the parser
+    supports the subset of the ONNX IR that the cost model covers and
+    refuses anything else rather than returning a graph with pieces missing.
+
+(b) round trip: build, load in onnxruntime, run, compare with NumPy
+------------------------------------------------------------------------------
+  hand MLP  max |onnxruntime - numpy| = 0.000e+00  tolerance 1e-05  PASS
+  hand CNN  output shape (1, 2) matches the inferred shape (1, 2)  PASS
+  build -> parse -> build produces identical bytes  PASS
+
+(c) measured latency, p50 and p99 separately, with methods
+------------------------------------------------------------------------------
+  model                    p50 [us]   p99 [us]   max [us]  p99/p50  u(p50) [us]
+  logreg_iris.onnx       skipped: GraphError: value_info 'probabilities': only tensor_type is supported; maps, sequences and optionals are not representable in edgeinfer's IR
+  mul_1.onnx                  5.222     11.274     44.006     2.16       0.0048
+  sigmoid.onnx                5.007     12.692     33.408     2.53       0.0032
+  hand_mlp (built here)       6.399     33.901   3874.878     5.30       0.0041
+  hand_cnn (built here)       8.838     44.408   4105.320     5.02       0.0066
+
+  method for every row: perf_counter per-call bracket; n=300 repeats, 20 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 45 ns; gc disabled=True
+  These latencies are dominated by the per-call cost of onnxruntime's Python
+  binding, not by the models' arithmetic: the largest of these graphs does
+  under two thousand flops. They are reported because they are measured, and
+  they are not a characterisation of onnxruntime's kernels.
+
+  analytic estimate for the same graphs, on the declared device:
+  model                      flops     bytes  bound [us]
+  mul_1.onnx                     6        72      0.0072
+  sigmoid.onnx                 240       480      0.0600
+  hand_mlp (built here)         99       328      0.0328
+  hand_cnn (built here)       1514      1832      0.4568
+  The gap between the bound and the measurement is the per-call overhead the
+  roofline does not model; the calibrated baseline in validate_predictor.py
+  fits that overhead explicitly as two free parameters.
+
+==============================================================================
+RESULT: 13/13 checks passed
+==============================================================================

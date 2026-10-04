@@ -1,0 +1,66 @@
+validate_tle_pass.py
+==============================================================================
+TLE                ISS, sgp4 documentation example, epoch 2019-12-09
+station            +51.1450 deg lat, -1.4365 deg lon, 100.0 m
+carrier            2.200000 GHz, downlink, one-way
+frame              TEME; station rotated by GMST with omega_E x r velocity
+
+A -- culmination search, 5 s elevation scan over one hour from 16:00 UTC
+  culmination epoch            2019-12-09T16:39:05+00:00
+  elevation                    59.739047 deg
+  slant range                  483.066209 km
+  range-rate                   +242.358612 m/s
+  one-way Doppler              -1778.5269 Hz
+  scan step 5 s, so the culmination epoch is located to +/- 5 s;
+  the range-rate is not zero at culmination because maximum elevation
+  and closest approach are not the same instant for an off-zenith pass.
+
+B -- profile across the pass, 60 s steps
+
+    dt [s]   el [deg]   range [km]  rho_dot [m/s]   Doppler [Hz]   precomp [Hz]
+      -360    -1.9504    2582.5865     -6880.5288       50492.14      -50492.14
+      -300     1.7422    2169.9448     -6868.3112       50402.48      -50402.48
+      -240     6.2836    1759.3604     -6806.5964       49949.60      -49949.60
+      -180    12.4142    1355.2207     -6638.1595       48713.54      -48713.54
+      -120    21.9443     968.3935     -6174.3705       45310.06      -45310.06
+       -60    39.5368     634.5205     -4628.9733       33969.30      -33969.30
+         0    59.7390     483.0662       242.3586       -1778.53        1778.53
+        60    37.7535     656.2666      4831.2826      -35453.93       35453.93
+       120    21.0270     996.8714      6229.9837      -45718.18       45718.18
+       180    11.8714    1385.6918      6656.4920      -48848.07       48848.07
+       240     5.9060    1790.5033      6812.5524      -49993.30       49993.30
+       300     1.4485    2201.2629      6868.7986      -50406.06       50406.06
+       360    -2.1962    2613.8352      6877.9572      -50473.27       50473.27
+
+  Sign check across the table: Doppler is positive (up-shift) while the
+  range-rate is negative (approaching) and negative afterwards, and the
+  pre-compensation column is the negative of the Doppler column.
+
+C -- what dropping the station velocity would cost
+comparing the correct station state against one with velocity forced to zero
+
+    dt [s]  |v_sta| [m/s]   rho_dot ok [m/s]   rho_dot zero-v   error [m/s]   error [Hz]
+      -300       292.3806         -6868.3112       -7152.7013     -284.3901      2086.97
+      -200       292.3806         -6712.9386       -6996.0199     -283.0813      2077.37
+      -100       292.3806         -5858.7859       -6120.2239     -261.4380      1918.54
+         0       292.3806           242.3586         200.7315      -41.6271       305.48
+       100       292.3806          5942.6147        6149.3136      206.6988     -1516.84
+       200       292.3806          6725.7928        6975.1315      249.3386     -1829.75
+       300       292.3806          6868.7986        7128.5094      259.7108     -1905.86
+
+  worst range-rate error from a zero-velocity station  284.3901 m/s
+  worst Doppler error at 2.2 GHz                   2086.97 Hz
+  For comparison, every O(beta^2) relativistic term in this package is
+  under 1.3 Hz at this carrier (validate_two_way_relativistic.py).
+  Station velocity is therefore the larger error by roughly three orders
+  of magnitude, which is why frames.station_state_teme never omits it.
+
+D -- regression values pinned by tests/test_frames.py
+  epoch                        2019-12-09T16:39:05+00:00
+  elevation                    59.739047 deg
+  slant range                  483.066209 km
+  range-rate                   +242.358612 m/s
+  station inertial speed       292.380579 m/s
+  tolerances in the test: 0.01 deg, 0.01 km, 0.01 m/s
+
+ALL CHECKS IN THIS SCRIPT: reported (regression values, no external reference)

@@ -1,0 +1,69 @@
+HilForge validation 5 — recovery after an induced mid-run abort
+==========================================================================
+period 1.000000e-02 s   iterations requested 400   seed 20261004
+every case warms the rig up first, so the pre-run state is non-trivial
+
+case: device disconnects mid-run
+  abort signal            : DeviceDisconnectedError  (expected DeviceDisconnectedError)
+  iterations completed    : -1
+  snapshot fields compared: 14
+  fields differing after  : 0  (required 0)
+  recovery verified       : True
+  write_count  before/after: 25 / 25
+  held torque  before/after: -0.6736660941755666 / -0.6736660941755666
+  theta [rad]  before/after: 0.077735046510207323 / 0.077735046510207323
+  omega [rad/s] before/after: -0.017112269489610619 / -0.017112269489610619
+  RESULT                  : PASS
+
+case: sample dropped, policy=abort
+  abort signal            : SampleDroppedError  (expected SampleDroppedError)
+  iterations completed    : -1
+  snapshot fields compared: 14
+  fields differing after  : 0  (required 0)
+  recovery verified       : True
+  write_count  before/after: 25 / 25
+  held torque  before/after: -0.6736660941755666 / -0.6736660941755666
+  theta [rad]  before/after: 0.077735046510207323 / 0.077735046510207323
+  omega [rad/s] before/after: -0.017112269489610619 / -0.017112269489610619
+  RESULT                  : PASS
+
+case: actuator write rejected, policy=abort
+  abort signal            : WriteRejectedError  (expected WriteRejectedError)
+  iterations completed    : -1
+  snapshot fields compared: 14
+  fields differing after  : 0  (required 0)
+  recovery verified       : True
+  write_count  before/after: 25 / 25
+  held torque  before/after: -0.6736660941755666 / -0.6736660941755666
+  theta [rad]  before/after: 0.077735046510207323 / 0.077735046510207323
+  omega [rad/s] before/after: -0.017112269489610619 / -0.017112269489610619
+  RESULT                  : PASS
+
+case: timebase steps backwards
+  abort signal            : TimebaseRegressionError  (expected TimebaseRegressionError)
+  iterations completed    : -1
+  snapshot fields compared: 14
+  fields differing after  : 0  (required 0)
+  recovery verified       : True
+  write_count  before/after: 25 / 25
+  held torque  before/after: -0.6736660941755666 / -0.6736660941755666
+  theta [rad]  before/after: 0.077735046510207323 / 0.077735046510207323
+  omega [rad/s] before/after: -0.017112269489610619 / -0.017112269489610619
+  RESULT                  : PASS
+
+case: loop overrun cascade
+  abort signal            : OverrunCascadeError  (expected OverrunCascadeError)
+  iterations completed    : -1
+  snapshot fields compared: 13
+  fields differing after  : 0  (required 0)
+  recovery verified       : True
+  write_count  before/after: 25 / 25
+  held torque  before/after: -0.6736660941755666 / -0.6736660941755666
+  theta [rad]  before/after: 0.077735046510207323 / 0.077735046510207323
+  omega [rad/s] before/after: -0.017112269489610619 / -0.017112269489610619
+  RESULT                  : PASS
+
+verdict: 5/5 cases recovered exactly
+note: recovery is verified against a simulated rig and a loopback
+      stub. On real hardware the same procedure would have to be
+      re-verified, because a board's state is not all readable.

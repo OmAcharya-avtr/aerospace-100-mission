@@ -1,0 +1,72 @@
+==============================================================================
+VALIDATION 6 -- overrun accounting and the P031/P036 cross-check
+==============================================================================
+
+Convention: an iteration overruns when latency_s > period_s, STRICTLY.
+            Equality is not an overrun. No tolerance. Indices are
+            zero-based. The count is a pure function of the trace.
+
+6a. Hand-computed accounting on a 10-sample trace, period 2.5 ms
+    trace [ms]                  : [1.0, 2.0, 2.5, 2.5000001, 3.0, 3.1, 1.0, 9.0, 2.4999999, 2.5]
+    period [ms]                 : 2.5
+    count    computed / by hand : 4 / 4
+    indices  computed / by hand : [3, 4, 5, 7] / [3, 4, 5, 7]
+    run      computed / by hand : 3 / 3
+    overshoot computed / by hand: 6.5000000 / 6.5 ms
+    fraction                    : 0.4000
+    verdict                     : PASS
+
+6b. The strict-inequality boundary at one ulp
+    latency exactly   2.500000000000000e-03 s -> overruns 0  (expect 0)
+    latency nextafter 2.500000000000000e-03 s -> overruns 1  (expect 1)
+    latency nextafter 2.500000000000000e-03 s -> overruns 0  (expect 0)
+    one ulp at the period       : 4.336809e-19 s
+    verdict                     : PASS
+
+6c/6d. P031's cross-check file was found at /home/claude/aerospace-100-mission/products/P031/validation/crosscheck_overruns.json
+       Its trace and period are used; rtclock's accounting is run
+       over them independently and written to this product's own file.
+
+6c. rtclock's accounting vs a separate expression in this script
+    trace length                : 1200
+    period [s]                  : 1.000000000000e-02
+    rtclock overrun count       : 176
+    numpy  (arr > period).sum() : 176
+    indices identical           : True
+    verdict                     : PASS
+
+6d. Cross-check result
+    trace defined by            : P031
+    overrun count               : 176
+    overrun fraction            : 0.146667
+    longest consecutive run     : 4
+    worst overshoot [s]         : 2.817417400000e-02
+    first 20 overrun indices    : [1, 2, 18, 22, 28, 39, 40, 48, 62, 79, 84, 85, 108, 118, 123, 134, 137, 145, 148, 156]
+    P031 reported count         : 176
+    agreement                   : PASS
+6e. The second accounting P031 publishes: CASCADE overruns
+    P031 also reports a cascade count under the recurrence
+        r[i] = i*T ; s[i] = max(r[i], c[i-1]) ; c[i] = s[i] + d[i]
+        overrun iff c[i] > r[i] + deadline,  with c[-1] = 0
+    which is a DIFFERENT question from the direct one above: it asks
+    whether an iteration finished late once earlier overruns have
+    pushed its start, not whether its own duration exceeded the
+    budget. rtclock.loop.FixedRateLoop on a SimulatedTimebase
+    implements exactly that recurrence (release at t0 + k*T, wait
+    skipped when already past it), so it reproduces the quantity
+    independently rather than reimplementing P031's expression.
+
+    deadline [s]                : 1.000000000000e-02
+    rtclock cascade count       : 307
+    P031 cascade count          : 307
+    cascade indices identical   : True
+    rtclock longest cascade run : 16
+    P031 max_consecutive_cascade: 16
+    late releases reported      : 307 of 1200
+    agreement                   : PASS
+
+    written to                  : /home/claude/aerospace-100-mission/products/P036/validation/crosscheck_overruns.json
+
+==============================================================================
+RESULT: all checks PASS
+==============================================================================

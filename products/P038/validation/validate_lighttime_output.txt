@@ -1,0 +1,96 @@
+validate_lighttime.py
+==============================================================================
+model              circular overhead pass, non-rotating Earth, 500 km
+c                  299792458.0 m/s (exact, SI definition)
+convergence tol    1.0e-06 m on the residual |c tau - rho(tau)|
+initial guess      tau = 0 in every case (no warm start)
+
+CHECK 5a -- static known answer: a stationary pair must give tau = rho/c
+  rho                1000000.0 m
+  expected tau       3.335640951981520e-03 s
+  computed tau       3.335640951981520e-03 s
+  |difference|       0.000e+00 s
+  iterations         1
+  residual           0.000e+00 m
+  expected 1 iteration and zero residual -> PASS
+
+CHECK 5b -- down-leg and up-leg over the pass: iterations and residual
+
+       t [s]   leg       tau [ms]    range [km]  iters   residual [m]  converged
+    -346.632  down    8.587866048   2574.577471      3      3.353e-08        yes
+    -346.632    up    8.587461620   2574.456227      3      3.353e-08        yes
+    -259.974  down    6.551137294   1963.981552      3      2.515e-08        yes
+    -259.974    up    6.550830675   1963.889630      3      2.584e-08        yes
+    -173.316  down    4.548445891   1363.589774      3      1.583e-08        yes
+    -173.316    up    4.548239899   1363.528019      3      1.583e-08        yes
+     -86.658  down    2.696046023    808.254264      3      5.472e-09        yes
+     -86.658    up    2.695942551    808.223244      3      6.286e-09        yes
+       0.000  down    1.667820476    500.000000      2      0.000e+00        yes
+       0.000    up    1.667820476    500.000000      2      0.000e+00        yes
+      86.658  down    2.695942551    808.223244      3      6.286e-09        yes
+      86.658    up    2.696046023    808.254264      3      5.472e-09        yes
+     173.316  down    4.548239899   1363.528019      3      1.583e-08        yes
+     173.316    up    4.548445891   1363.589774      3      1.607e-08        yes
+     259.974  down    6.550830675   1963.889630      3      2.584e-08        yes
+     259.974    up    6.551137294   1963.981552      3      2.515e-08        yes
+     346.632  down    8.587461620   2574.456227      3      3.353e-08        yes
+     346.632    up    8.587866048   2574.577471      3      3.353e-08        yes
+
+  maximum iterations used      3  (max_iter limit 50)
+  worst residual               3.353e-08 m
+  tolerance                    1.0e-06 m
+  all converged                yes
+  result                       PASS
+
+CHECK 5c -- measured contraction rate vs the predicted |rho_dot|/c
+one iteration at a time from tau = 0, at the epoch of peak range-rate
+
+  epoch                        +346.6320 s
+  rho_dot                      +7059.216450 m/s
+  predicted contraction rate   2.354701e-05 per iteration
+
+   iters allowed                tau [s]     residual [m]    resid ratio
+               1  8.587663829343265e-03        6.062e+01             --
+               2  8.587461615524495e-03        1.427e-03      2.355e-05
+               3  8.587461620286027e-03        3.353e-08      2.349e-05
+               4  8.587461620285914e-03        0.000e+00      0.000e+00
+               5  8.587461620285914e-03        0.000e+00             --
+
+  first measured residual ratio 2.355e-05
+  predicted                     2.354701e-05
+  ratio of the two              1.000
+  Reading: the first measured residual ratio matches the predicted
+  contraction factor |rho_dot|/c to three significant figures, which is
+  the evidence that the iteration is the contraction the derivation says
+  it is. After the third iteration the residual reaches the
+  double-precision floor, which for positions of
+  order 6.878e+06 m is eps*r ~ 1.53e-09 m, so the ratio stops being
+  meaningful. This is why the tolerance is 1e-6 m and not tighter.
+
+CHECK 5d -- two-way round trip self-consistency
+
+    t_tx [s]    tau_up [ms]  tau_down [ms]  round trip [ms]  up it  dn it  worst resid [m]
+    -346.632    8.587461620    8.587461620     17.174923241      3      3        3.353e-08
+    -173.316    4.548239899    4.548239899      9.096479799      3      3        1.583e-08
+       0.000    1.667820476    1.667820476      3.335640953      2      2        0.000e+00
+     173.316    4.548445891    4.548445891      9.096891783      3      3        1.607e-08
+     346.632    8.587866048    8.587866048     17.175732096      3      3        3.353e-08
+
+  round trip equals the leg sum to within 1.0e-06 m of range -> PASS
+
+CHECK 5e -- the light-time correction is not negligible
+difference between the light-time-consistent range and the instantaneous range
+
+       t [s]    instantaneous [m]     light-time [m]   difference [m]
+    -346.632       2574516.847877     2574577.471482        60.623605
+    -173.316       1363558.895656     1363589.773841        30.878184
+       0.000        500000.000000      500000.000149         0.000149
+     173.316       1363558.895656     1363528.018972       -30.876685
+     346.632       2574516.847877     2574456.227126       -60.620750
+
+  The correction reaches tens of metres over this pass. At S-band a
+  60 m range error is 0 Hz of Doppler by itself, but it displaces the
+  epoch at which the range-rate is evaluated, which is the effect
+  quantified in validate_two_way_relativistic.py check 4c.
+
+ALL CHECKS IN THIS SCRIPT: PASS

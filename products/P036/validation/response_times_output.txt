@@ -1,0 +1,129 @@
+==============================================================================
+VALIDATION 2 -- response-time analysis vs hand computation
+==============================================================================
+
+Recurrence (Joseph & Pandya 1986; iterative form Audsley et al. 1993):
+    R_i = C_i + B_i + sum_{j in hp(i)} ceil(R_i / T_j) * C_j
+Tolerance on every response time: 1.0e-12 s absolute.
+
+2.1  Standard three-task set, no blocking.
+     t1: T=7  C=3   t2: T=12 C=3   t3: T=20 C=5     (D = T for all)
+     U = 3/7 + 3/12 + 5/20 = 0.428571428571 + 0.25 + 0.25 = 0.928571428571
+
+     Hand computation:
+       t1 (highest, no interference):  R = C = 3            3 <= 7   met
+       t2: R0 = 3
+           R1 = 3 + ceil(3/7)*3  = 3 + 1*3 = 6
+           R2 = 3 + ceil(6/7)*3  = 3 + 1*3 = 6   fixed       6 <= 12  met
+       t3: R0 = 5
+           R1 = 5 + ceil(5/7)*3  + ceil(5/12)*3  = 5 + 3 + 3 = 11
+           R2 = 5 + ceil(11/7)*3 + ceil(11/12)*3 = 5 + 6 + 3 = 14
+           R3 = 5 + ceil(14/7)*3 + ceil(14/12)*3 = 5 + 6 + 6 = 17
+           R4 = 5 + ceil(17/7)*3 + ceil(17/12)*3 = 5 + 9 + 6 = 20
+           R5 = 5 + ceil(20/7)*3 + ceil(20/12)*3 = 5 + 9 + 6 = 20  fixed
+                                                    20 <= 20  met exactly
+
+--- 2.1 standard set
+  task  prio    T [s]    C [s]    B [s]    D [s]   R computed    R by hand       diff  verdict
+    t1     2    7.000    3.000    0.000    7.000     3.000000     3.000000   0.00e+00  PASS
+    t2     1   12.000    3.000    0.000   12.000     6.000000     6.000000   0.00e+00  PASS
+    t3     0   20.000    5.000    0.000   20.000    20.000000    20.000000   0.00e+00  PASS
+       iterates for t1: computed ['3', '3']
+       iterates for t1: by hand  ['3', '3']   PASS
+       iterates for t2: computed ['3', '6', '6']
+       iterates for t2: by hand  ['3', '6', '6']   PASS
+       iterates for t3: computed ['5', '11', '14', '17', '20', '20']
+       iterates for t3: by hand  ['5', '11', '14', '17', '20', '20']   PASS
+
+2.2  Harmonic set at U = 1.0 exactly -- schedulable although the
+     Liu & Layland bound (0.779763149685 for n=3) rejects it.
+     a: T=4  C=1   b: T=8  C=2   c: T=16 C=8
+
+     Hand computation:
+       R_a = 1                                              1 <= 4   met
+       R_b: R0 = 2; R1 = 2 + ceil(2/4)*1 = 3;
+            R2 = 2 + ceil(3/4)*1 = 3   fixed                3 <= 8   met
+       R_c: R0 = 8
+            R1 = 8 + ceil(8/4)*1  + ceil(8/8)*2  = 8 + 2 + 2 = 12
+            R2 = 8 + ceil(12/4)*1 + ceil(12/8)*2 = 8 + 3 + 4 = 15
+            R3 = 8 + ceil(15/4)*1 + ceil(15/8)*2 = 8 + 4 + 4 = 16
+            R4 = 8 + ceil(16/4)*1 + ceil(16/8)*2 = 8 + 4 + 4 = 16  fixed
+                                                   16 <= 16  met exactly
+
+--- 2.2 harmonic set at U = 1
+  task  prio    T [s]    C [s]    B [s]    D [s]   R computed    R by hand       diff  verdict
+     a     2    4.000    1.000    0.000    4.000     1.000000     1.000000   0.00e+00  PASS
+     b     1    8.000    2.000    0.000    8.000     3.000000     3.000000   0.00e+00  PASS
+     c     0   16.000    8.000    0.000   16.000    16.000000    16.000000   0.00e+00  PASS
+       iterates for c: computed ['8', '12', '15', '16', '16']
+       iterates for c: by hand  ['8', '12', '15', '16', '16']   PASS
+
+2.3  Priority-ceiling blocking turns a met deadline into a missed one.
+     t1: T=7 C=3  t2: T=12 C=3  t3: T=20 C=5  t4: T=50 C=5
+     Semaphore s1 used by t3 (0.001 s) and t4 (1.0 s).
+     RM priorities: t1=3 > t2=2 > t3=1 > t4=0, so ceiling(s1) = 1.
+
+     Blocking by hand (Sha, Rajkumar & Lehoczky 1990, blocked at most once):
+       B_1: no lower-priority user of a semaphore with ceiling >= 3 -> 0
+       B_2: ceiling(s1) = 1 < 2                                    -> 0
+       B_3: t4 is lower priority and ceiling(s1) = 1 >= 1          -> 1.0 s
+       B_4: nothing below it                                       -> 0
+
+     Then for t3, R = 5 + 1 + ceil(R/7)*3 + ceil(R/12)*3:
+       R0 = 6
+       R1 = 6 + ceil(6/7)*3  + ceil(6/12)*3  = 6 + 3 + 3 = 12
+       R2 = 6 + ceil(12/7)*3 + ceil(12/12)*3 = 6 + 6 + 3 = 15
+       R3 = 6 + ceil(15/7)*3 + ceil(15/12)*3 = 6 + 9 + 6 = 21
+       21 > D = 20: the 1 s blocking term costs the deadline by 1 s.
+       Iteration stops at the first iterate past the deadline.
+
+     t4 also misses, because U = 0.928571 + 0.1 = 1.028571 > 1.
+     R_4 = 5 + ceil(R/7)*3 + ceil(R/12)*3 + ceil(R/20)*5:
+       R0 = 5
+       R1 = 5 + ceil(5/7)*3  + ceil(5/12)*3  + ceil(5/20)*5  = 5+3+3+5     = 16
+       R2 = 5 + ceil(16/7)*3 + ceil(16/12)*3 + ceil(16/20)*5 = 5+9+6+5     = 25
+       R3 = 5 + ceil(25/7)*3 + ceil(25/12)*3 + ceil(25/20)*5 = 5+12+9+10   = 36
+       R4 = 5 + ceil(36/7)*3 + ceil(36/12)*3 + ceil(36/20)*5 = 5+18+9+10   = 42
+       R5 = 5 + ceil(42/7)*3 + ceil(42/12)*3 + ceil(42/20)*5 = 5+18+12+15  = 50
+       R6 = 5 + ceil(50/7)*3 + ceil(50/12)*3 + ceil(50/20)*5 = 5+24+15+15  = 59
+       59 > D = 50, so iteration stops there and reports R_4 = 59.
+       (Past its own period the recurrence is no longer the exact worst
+        case -- see the known-limitation note in rtclock.schedulability --
+        but the deadline-miss verdict is sound either way.)
+
+     computed blocking terms [s]: {'t1': 0.0, 't2': 0.0, 't3': 1.0, 't4': 0.0}
+     hand blocking terms     [s]: {'t1': 0.0, 't2': 0.0, 't3': 1.0, 't4': 0.0}   PASS
+
+--- 2.3 with priority-ceiling blocking
+  task  prio    T [s]    C [s]    B [s]    D [s]   R computed    R by hand       diff  verdict
+    t1     3    7.000    3.000    0.000    7.000     3.000000     3.000000   0.00e+00  PASS
+    t2     2   12.000    3.000    0.000   12.000     6.000000     6.000000   0.00e+00  PASS
+    t3     1   20.000    5.000    1.000   20.000    21.000000    21.000000   0.00e+00  PASS
+    t4     0   50.000    5.000    0.000   50.000    59.000000    59.000000   0.00e+00  PASS
+       iterates for t3: computed ['6', '12', '15', '21']
+       iterates for t3: by hand  ['6', '12', '15', '21']   PASS
+       iterates for t4: computed ['5', '16', '25', '36', '42', '50', '59']
+       iterates for t4: by hand  ['5', '16', '25', '36', '42', '50', '59']   PASS
+
+     t3 slack [s]: -1.000000  deadline met: False   PASS
+
+2.4  Constrained deadlines (D < T) under deadline-monotonic priorities.
+     a: T=50 C=5  D=10   b: T=20 C=4  D=20   (DM: a has the shorter
+     deadline so a gets the higher priority, which rate-monotonic
+     would have got the other way round.)
+
+     Hand computation:
+       R_a = 5                                            5 <= 10  met
+       R_b: R0 = 4; R1 = 4 + ceil(4/50)*5 = 9;
+            R2 = 4 + ceil(9/50)*5 = 9  fixed              9 <= 20  met
+
+--- 2.4 constrained deadlines, DM priorities
+  task  prio    T [s]    C [s]    B [s]    D [s]   R computed    R by hand       diff  verdict
+     a     1   50.000    5.000    0.000   10.000     5.000000     5.000000   0.00e+00  PASS
+     b     0   20.000    4.000    0.000   20.000     9.000000     9.000000   0.00e+00  PASS
+       iterates for b: computed ['4', '9', '9']
+       iterates for b: by hand  ['4', '9', '9']   PASS
+
+==============================================================================
+RESULT: all checks PASS
+==============================================================================

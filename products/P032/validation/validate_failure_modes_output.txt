@@ -1,0 +1,64 @@
+Failure-mode validation
+================================================================================
+
+Case 1 -- empty contact graph
+  graph reports is_empty                       : PASS
+  node set preserved                           : PASS
+  hold-edge skeleton built                     : PASS
+  routing returns None (not an exception)      : PASS
+  only the source is reachable                 : PASS
+  every node is its own component              : PASS
+  is_partitioned is True                       : PASS
+  result: PASS
+
+Case 2 -- partitioned constellation
+  two components found                         : PASS
+  components are {A,B} and {C,D}               : PASS
+  is_partitioned is True                       : PASS
+  route across the partition is None           : PASS
+  route within a component exists              : PASS
+  reachable set is the component               : PASS
+  unreachable set is the other component       : PASS
+  result: PASS
+
+Case 3 -- satellite lost mid-horizon
+  route exists before the loss                 : PASS
+  route is gone after the loss                 : PASS
+  node B stays in the node set                 : PASS
+  B-C window removed entirely                  : PASS
+  A-B window survives (it closed before the loss): PASS
+  no surviving B window extends past the loss time: PASS
+  B unreachable after the loss                 : PASS
+  straddling window truncated to 90 s          : PASS (measured 90.000000 s)
+  result: PASS
+
+Case 4 -- TLE epoch far from the requested window (must RAISE)
+  3 days from epoch (inside 7-day window) propagates        : PASS
+  +30 days raises TleEpochError                             : PASS
+  -30 days raises TleEpochError                             : PASS
+  +365 days raises TleEpochError                            : PASS
+  Constellation.ephemeris raises for a far window           : PASS
+  check_epoch=False is an explicit, working escape hatch    : PASS
+  raised message:
+    satellite 'W00-00': requested window reaches 30.000 days from the element epoch 2026-04-01T00:00:00+00:00, exceeding max_epoch_age_days=7.0
+    SGP4 degrades silently far from epoch; supply a fresher element set, or raise max_epoch_age_days deliberately and record the resulting accuracy loss.
+  result: PASS
+
+Case 5 -- a sample of input validation
+  negative RF frequency                        ValueError    PASS
+  negative loss (losses are positive dB)       ValueError    PASS
+  zero range in rf_link                        ValueError    PASS
+  cosecant law below its validity elevation    ValueError    PASS
+  unstable queue (rho >= 1)                    ValueError    PASS
+  Walker n_total not a multiple of n_planes    ValueError    PASS
+  Walker phasing out of range                  ValueError    PASS
+  unknown routing endpoint                     KeyError      PASS
+  result: PASS
+
+================================================================================
+empty contact graph             : PASS
+partitioned constellation       : PASS
+satellite lost mid-horizon      : PASS
+TLE epoch far from window       : PASS
+input validation                : PASS
+OVERALL: PASS

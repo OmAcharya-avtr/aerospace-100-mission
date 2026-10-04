@@ -1,14 +1,37 @@
 {
   "batch": 4,
-  "phase": "specification_complete",
-  "phase_index": 2,
-  "updated": "2026-10-04T03:20:00Z",
-  "products_complete": [],
-  "products_pending": ["P031", "P032", "P033", "P034", "P035", "P036", "P037", "P038", "P039", "P040"],
+  "phase": "ai_work_complete",
+  "phase_index": 4,
+  "updated": "2026-10-04T04:45:00Z",
+  "products_complete": [
+    "P031",
+    "P032",
+    "P033",
+    "P036",
+    "P038"
+  ],
+  "products_pending": [
+    "P034",
+    "P035",
+    "P037",
+    "P039",
+    "P040"
+  ],
   "blocked": false,
   "blocked_on": null,
   "verified_working": "FULL PUBLICATION PATH VERIFIED END TO END 2026-10-04, first time in mission history. (1) osascript bridge alive; gh authenticated as OmAcharya-avtr via keyring. (2) Mac working copy ~/100 Aero Prods/aerospace-100-mission/mission-repo clean, in sync with origin/main at 36a6343. (3) Keychain-backed create-ref/delete-ref push probe passed. (4) Container-to-Mac transfer leg RESTORED: see unblocked_how.",
   "unblocked_how": "The 2026-10-03 blocker was an empty connectedFolders inside scheduled runs. Resolved without owner action: a scheduled run can call mcp__remote-devices__device_request_folder_access for /Users/acharya/100 Aero Prods and this task auto-grants it. get_device_info then reports it, and device_commit_files succeeds. Verified by committing a real git bundle to the Mac, matching sha256 byte-for-byte (40004a2c...), and git bundle verify accepting it. FUTURE RUNS: if connectedFolders is empty at Phase -1, request the folder rather than aborting.",
-  "environment_deltas_2026_10_04": "nproc reports 1 core, not the 2 the build guide assumes — size Monte Carlo and training budgets accordingly. 7.8 GiB RAM. onnxruntime 1.29.0 IS available (P033 can use it). reedsolo installs (P037 RS path OK). commpy and crcmod FAIL to build in this container, so P037 must implement convolutional coding and CRC internally and cite commpy/crcmod as existing alternatives rather than dependencies. numpy 2.5.3, scipy 1.18.1, scikit-learn 1.9.1, pytest 9.1.1, pandas 3.0.5. PyTorch still unavailable.",
-  "notes": "Batches 01-03 (P001-P030) complete, published, must not be rebuilt or modified. Batch 04 (P031-P040) registered in products.yaml 2026-10-04 at status DEVELOPING; composition verified against batch_reports/BATCH_04_SPEC.md (2 flagship, 3 medium, 5 compact, 7 AI, 2xL1 5xL2 3xL3). All ten PyPI names re-verified HTTP 404 (free) 2026-10-04. P031 and P033 carry hardware_pending: true and are labelled 'Level 3, hardware-pending' — never Level 4 until measured numbers come from the Jetson Orin Nano itself; L4 stays 0 of 5. Run release_gate.py with named products; git checkout -- products/*/screenshots products/*/validation afterwards. ADR-016 stands: no automated session writes an approval row, sets APPROVED, or attributes words to the owner. Publication cites ADR-017 and the gate verdict only. ADR-017's 'no gh CLI on the publication host' caveat is now obsolete: gh 404-checks and repo creation both work from the Mac."
+  "environment_deltas_2026_10_04": "nproc reports 1 core, not the 2 the build guide assumes \u2014 size Monte Carlo and training budgets accordingly. 7.8 GiB RAM. onnxruntime 1.29.0 IS available (P033 can use it). reedsolo installs (P037 RS path OK). commpy and crcmod FAIL to build in this container, so P037 must implement convolutional coding and CRC internally and cite commpy/crcmod as existing alternatives rather than dependencies. numpy 2.5.3, scipy 1.18.1, scikit-learn 1.9.1, pytest 9.1.1, pandas 3.0.5. PyTorch still unavailable.",
+  "notes": "Batches 01-03 (P001-P030) complete, published, must not be rebuilt or modified. Batch 04 (P031-P040) registered in products.yaml 2026-10-04 at status DEVELOPING; composition verified against batch_reports/BATCH_04_SPEC.md (2 flagship, 3 medium, 5 compact, 7 AI, 2xL1 5xL2 3xL3). All ten PyPI names re-verified HTTP 404 (free) 2026-10-04. P031 and P033 carry hardware_pending: true and are labelled 'Level 3, hardware-pending' \u2014 never Level 4 until measured numbers come from the Jetson Orin Nano itself; L4 stays 0 of 5. Run release_gate.py with named products; git checkout -- products/*/screenshots products/*/validation afterwards. ADR-016 stands: no automated session writes an approval row, sets APPROVED, or attributes words to the owner. Publication cites ADR-017 and the gate verdict only. ADR-017's 'no gh CLI on the publication host' caveat is now obsolete: gh 404-checks and repo creation both work from the Mac.",
+  "wave_1_tests_junit": {
+    "P031": 264,
+    "P032": 387,
+    "P033": 467,
+    "P036": 252,
+    "P038": 146,
+    "total": 1516
+  },
+  "wave_1_notes": "Wave 1 built and committed 2026-10-04. Test counts above are read from junit XML by the coordinator, not from agent stdout or self-report; all five agents self-reported figures identical to the XML. ruff clean, fresh-interpreter import and python -m <pkg> --help exit 0 verified for all five by the coordinator. Independent re-run of every validation script is still pending (Phase 6).",
+  "environment_findings_from_wave_1": "pulp 4.0.0 in this container ships NO bundled CBC and no external MILP solver, so pulp.listSolvers(onlyAvailable=True) is empty and pulp cannot solve; its API also changed (rust core). P032 builds the pulp model for export and solves with scipy.optimize.milp (HiGHS) instead, labelled NOT RUN for the pulp leg with REQ-09 partially verified. Any future product needing an actual MILP solve must use scipy.optimize.milp. The sgp4 package ships SGP4-VER.TLE and tcppver.out in its package directory - an authoritative offline SGP4 verification vector, used by P032. Container Python is 3.13.16, not the 3.11 the build guide states; all products declare requires-python >=3.11 and CI tests 3.11/3.12. Timing, latency and benchmark numbers on this shared 1-core host move by factors of 2-13 between runs; P031, P032, P033 and P036 all label their volatile rows as such, and a coordinator re-run disagreeing on those specific numbers is the environment, not a defect.",
+  "crosscheck_status": "P031 vs P036 overrun accounting: AGREE. Over P031 1200-sample trace at period 0.01 s, both report 176 direct overruns with identical index lists and 307 cascade overruns with longest run 16, from independent implementations. P033 vs P039 latency: P033 has published validation/crosscheck_pipeline.json (3 lognormal stages, n=2000, seed 20260401) and flags comparable_statistic p50_s because its recorded mean was preemption-contaminated. P039 is built in Wave 2 and must diff p50."
 }

@@ -1,0 +1,84 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "edgeinfer: declared latency, memory and power budgets for aerospace edge inference"
+abstract: >-
+  edgeinfer treats a deployment envelope for an edge inference computer --
+  worst-case latency, median latency, peak memory, a power ceiling and a duty
+  cycle -- as a declared, first-class object, and checks a candidate model
+  against it two ways: an analytic estimate computed from the model graph with
+  nothing executed (operation counts, memory traffic, a roofline latency bound
+  and peak memory by liveness analysis) and a measured profile from a real
+  onnxruntime session. Worst-case and median latency are reported separately
+  throughout, every number carries its measurement method, repeat count and
+  combined standard uncertainty, and a verdict whose margin is below the
+  measurement uncertainty is reported as marginal. A learned latency predictor
+  is benchmarked against the analytic baseline on held-out models over several
+  independent measurement passes, and the outcome is reported whichever way it
+  falls. Research-grade software; validation level 3, hardware-pending. No
+  measurement from an edge target exists.
+type: software
+version: "0.1.0"
+date-released: "2026-10-04"
+license: Apache-2.0
+repository-code: "https://github.com/OmAcharya-avtr/edgeinfer"
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - edge inference
+  - roofline model
+  - latency budget
+  - worst-case latency
+  - onnxruntime
+  - embedded machine learning
+  - aerospace software
+references:
+  - type: article
+    authors:
+      - family-names: Williams
+        given-names: Samuel
+      - family-names: Waterman
+        given-names: Andrew
+      - family-names: Patterson
+        given-names: David
+    title: "Roofline: An Insightful Visual Performance Model for Multicore Architectures"
+    journal: "Communications of the ACM"
+    volume: 52
+    issue: 4
+    start: 65
+    end: 76
+    year: 2009
+    doi: "10.1145/1498765.1498785"
+  - type: article
+    authors:
+      - family-names: Sze
+        given-names: Vivienne
+      - family-names: Chen
+        given-names: Yu-Hsin
+      - family-names: Yang
+        given-names: Tien-Ju
+      - family-names: Emer
+        given-names: Joel S.
+    title: "Efficient Processing of Deep Neural Networks: A Tutorial and Survey"
+    journal: "Proceedings of the IEEE"
+    volume: 105
+    issue: 12
+    start: 2295
+    end: 2329
+    year: 2017
+    doi: "10.1109/JPROC.2017.2761740"
+  - type: report
+    authors:
+      - name: "Joint Committee for Guides in Metrology"
+    title: "Evaluation of measurement data -- Guide to the expression of uncertainty in measurement (GUM)"
+    number: "JCGM 100:2008"
+    year: 2008
+  - type: book
+    authors:
+      - family-names: Efron
+        given-names: Bradley
+      - family-names: Tibshirani
+        given-names: Robert J.
+    title: "An Introduction to the Bootstrap"
+    publisher:
+      name: "Chapman and Hall/CRC"
+    year: 1993

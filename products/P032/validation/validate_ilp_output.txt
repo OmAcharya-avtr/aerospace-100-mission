@@ -1,0 +1,40 @@
+Integer maximum flow: ILP vs brute force, and the pulp model
+==============================================================================
+flow quantum: 60 Mbit; slot 60 s
+
+Part 1 -- hand-checkable instances
+  instance                        ILP [units]  brute [units]  expected  pass
+  --------------------------------------------------------------------------
+  single chain, 1 unit                      1              1         1  PASS
+  two parallel paths, 2 units               2              2         2  PASS
+  backend used: scipy-highs
+  result: PASS
+
+Part 2 -- random instances small enough to enumerate
+  instances compared        : 27
+  instances skipped (too big for brute force): 33
+  instances with nonzero flow: 23
+  largest optimum seen      : 4 units = 240 Mbit
+  mismatches                : 0
+  result: PASS
+
+Part 3 -- the pulp model
+  pulp solver available             : False
+  program size                      : 24 variables, 15 conservation rows
+  structural check variable_count                   : PASS
+  structural check constraint_count                 : PASS
+  structural check variable_bounds_and_category     : PASS
+  structural check objective_coefficients           : PASS
+  structural check constraint_coefficients          : PASS
+  NOT RUN: no pulp objective value was produced in this session.
+           pulp 4.0.0 ships no bundled CBC binary and no external
+           MILP solver is installed in this container. The pulp
+           model is verified structurally only; the solved
+           objective comes from scipy.optimize.milp (HiGHS).
+  result: PASS
+
+==============================================================================
+part 1 (hand instances)   : PASS
+part 2 (random instances) : PASS
+part 3 (pulp model)       : PASS (structural only -- see above)
+OVERALL: PASS

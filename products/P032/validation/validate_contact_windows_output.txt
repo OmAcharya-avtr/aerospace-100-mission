@@ -1,0 +1,54 @@
+Contact windows vs closed-form central-angle expressions
+==============================================================================
+
+Check 1 -- central angle at the window edges
+  orbit radius          : 6928.137 km (550 km altitude)
+  elevation mask        : 10 deg
+  lambda_max (closed)   : 14.956635125 deg
+  windows found         : 4 (6 h horizon, 30 s scan, 1e-4 s bisection)
+  tolerance             : 0.0001 deg (the 1e-4 s bisection tolerance moves the sub-satellite point by ~7e-4 km, i.e. ~6e-6 deg of central angle)
+   window   edge     gamma [deg]    residual [deg]  pass
+  ------------------------------------------------------
+        0   rise    14.956633824         -1.30e-06  PASS
+        0    set    14.956636357          1.23e-06  PASS
+        1   rise    14.956634361         -7.64e-07  PASS
+        1    set    14.956635878          7.54e-07  PASS
+        2   rise    14.956634897         -2.28e-07  PASS
+        2    set    14.956635343          2.18e-07  PASS
+  result                : PASS
+
+Check 2 -- pass duration
+  two-body mean motion n       : 1.094823692886e-03 rad/s
+  omega_E (WGS-84 sidereal)    : 7.292115000000e-05 rad/s
+  omega_E (IAU 1982 GMST rate) : 7.292115855307e-05 rad/s
+  predicted duration (WGS-84)  : 510.895153 s
+  predicted duration (GMST)    : 510.895157 s
+  measured durations           : 510.895156, 510.895157, 510.895157 s
+  residual vs GMST prediction  : -0.000001, -0.000000, -0.000000 s
+  tolerance                    : 0.5 s (the equatorial pass is only ~511 s long and the closed form ignores the GMST quadratic term and the Earth's finite figure off-equator)
+  result                       : PASS
+
+Check 3a -- ISL clearance flip against the closed-form gamma_max
+  blocking radius r_block : 6478.137 km (WGS-84 equatorial + 100 km grazing)
+  gamma_max (closed form) : 41.528367944 deg
+  bisected flip angle     : 41.528367944 deg
+  residual                : 1.908e-14 deg
+  tolerance               : 1e-05 deg (80 bisection steps on [0, pi] resolve to ~1e-22 rad; the tolerance is set by double-precision arccos conditioning)
+  result                  : PASS
+
+Check 3b -- segment minimum radius at a real ISL window edge
+  radii                   : 6928.137 / 7048.137 km
+  windows found           : 1
+  tolerance               : 0.001 km (a 1e-4 s bisection tolerance with a ~2 km/s closing rate on the limb distance bounds the edge error well below this)
+   window   edge      d_min [km]   residual [km]  pass
+  ----------------------------------------------------
+        0   open     6478.137000        2.06e-07  PASS
+        0  close     6478.136999       -9.87e-07  PASS
+  result                  : PASS
+
+==============================================================================
+check 1 (edge central angle) : PASS
+check 2 (pass duration)      : PASS
+check 3a (gamma_max flip)    : PASS
+check 3b (limb at ISL edge)  : PASS
+OVERALL: PASS

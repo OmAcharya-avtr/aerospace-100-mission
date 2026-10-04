@@ -1,0 +1,139 @@
+HilForge validation 9 — deployment pre-run checks
+========================================================================
+intended period 1.000000e-02 s
+
+backend: simulated plant
+  is_hardware : False
+  [PASS] device_present             measured=open=True                expected=open=True  (driver=n/a)
+  [PASS] channels_present           measured=['ahrs', 'torque']       expected=['ahrs', 'torque']
+  [PASS] channel_specs_match        measured=mismatches=0             expected=mismatches=0
+  [PASS] timebase_monotonic         measured=reads=200, regressions=0 expected=regressions=0
+  [PASS] clock_resolution           measured=1.000e-09 s              expected=<= 1.000e-04 s  (0.01 x period 1.000e-02 s)
+  [PASS] dry_run_no_write           measured=write_count 0 -> 0       expected=write_count stays 0  (rehearsed=1)
+  [PASS] state_round_trip           measured=restored                 expected=restored
+  [PASS] sensor_read                measured=[ 0.079952 -0.001957]    expected=finite sample of length 2
+  [PASS] state_unchanged            measured=0 of 13 differing        expected=0 fields differing  (restored on exit)
+  verdict: 9/9 checks passed — GO
+  expected verdict: GO  -> PASS
+
+backend: loopback device stub
+  is_hardware : False
+  [PASS] device_present             measured=open=True                expected=open=True  (driver=loopback)
+  [PASS] channels_present           measured=['ahrs', 'torque']       expected=['ahrs', 'torque']
+  [PASS] channel_specs_match        measured=mismatches=0             expected=mismatches=0
+  [PASS] timebase_monotonic         measured=reads=200, regressions=0 expected=regressions=0
+  [PASS] clock_resolution           measured=1.000e-09 s              expected=<= 1.000e-04 s  (0.01 x period 1.000e-02 s)
+  [PASS] dry_run_no_write           measured=write_count 0 -> 0       expected=write_count stays 0  (rehearsed=1)
+  [PASS] state_round_trip           measured=restored                 expected=restored
+  [PASS] sensor_read                measured=[ 0.079952 -0.001957]    expected=finite sample of length 2
+  [PASS] state_unchanged            measured=0 of 14 differing        expected=0 fields differing  (restored on exit)
+  verdict: 9/9 checks passed — GO
+  expected verdict: GO  -> PASS
+
+backend: absent device
+  is_hardware : False
+  [FAIL] device_present             measured=DeviceAbsentError        expected=open=True  (device absent: no device on the configured bus)
+  verdict: 0/1 checks passed — NO-GO
+  expected verdict: NO-GO  -> PASS
+
+a deliberately impossible requirement, to show the checks can fail
+  period 1e-8 s against a 1e-9 s clock: failures = ['clock_resolution']
+  (1 % of 1e-8 s is 1e-10 s, finer than the clock)  PASS
+
+what is captured during a run — field list read from the code
+  per iteration (IterationRecord):
+    index
+    model_time_s
+    stage_s
+    total_s
+    completion_s
+    deadline_s
+    lateness_s
+    direct_overrun
+    cascade_overrun
+    flagged
+    shed
+    dropped
+    rejected
+    saturated
+    theta_hat_rad
+    sample
+    command
+    applied
+  per run (RunRecord):
+    backend_kind
+    backend_name
+    backend_driver
+    is_hardware
+    deterministic_timing
+    period_s
+    deadline_s
+    n_requested
+    dry_run
+    iterations
+    overruns
+    stage_histograms
+    dropped_samples
+    rejected_writes
+    saturated_writes
+    writes_issued
+    rehearsed_writes
+    flagged_iterations
+    shed_iterations
+    aborted
+    abort_reason
+    abort_index
+
+  example run summary
+    backend                   : plant-sim
+    driver                    : 
+    is_hardware               : False
+    deterministic_timing      : True
+    dry_run                   : False
+    period_s                  : 0.01
+    n_requested               : 200
+    n_completed               : 200
+    aborted                   : False
+    abort_reason              : 
+    abort_index               : -1
+    dropped_samples           : 0
+    rejected_writes           : 0
+    saturated_writes          : 0
+    writes_issued             : 200
+    rehearsed_writes          : 0
+    flagged_iterations        : 0
+    shed_iterations           : 0
+    direct_overruns           : 0
+    cascade_overruns          : 0
+    max_consecutive_cascade   : 0
+    total_count               : 200.0
+    total_mean_s              : 0.004000000000000003
+    total_stdev_s             : 0.0
+    total_min_s               : 0.004
+    total_max_s               : 0.004
+    total_p50_s               : 0.004
+    total_p90_s               : 0.004
+    total_p99_s               : 0.004
+    total_p999_s              : 0.004
+    data_digest               : c5e725871c094c09f840f1ab3fbbbc4ccc7f4c12922c31fc6f8858e8da8b8228
+    full_digest               : f8a15ffd8b3e7db965974d5d0a4217910d7c678b0b84e6443056c8c7c9bc4f21
+
+state captured for backing out a half-finished run
+    plant.theta               : 0.020970297634397676
+    plant.omega               : -0.02766496643547962
+    plant.torque              : 0.2125900412987639
+    plant.step_count          : 200
+    plant.rng_state.bit_generator       : 'PCG64'
+    plant.rng_state.state.state               : 30937806675615292469575717038120679548
+    plant.rng_state.state.inc                 : 130191785777869103741416805075500630729
+    plant.rng_state.has_uint32          : 0
+    plant.rng_state.uinteger            : 0
+    write_count         : 200
+    read_count          : 200
+    last_command        : [0.2125900412987639]
+    time_s              : 2.0
+
+verdict: PASS
+note: these checks verify the harness against a simulated rig and a
+      loopback stub. Against real hardware they would verify the
+      rig; nothing here has been run against real hardware.

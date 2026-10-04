@@ -1,0 +1,33 @@
+HilForge validation 4 — dry-run mode issues no write
+==================================================================
+period 1.000000e-02 s   iterations 5000   seed 20261004
+
+4a. dry run against a real simulated actuator
+  actuator write_count           expected=0        measured=0        PASS
+  record writes_issued           expected=0        measured=0        PASS
+  record rehearsed_writes        expected=5000     measured=5000     PASS
+  iterations completed           expected=5000     measured=5000     PASS
+  plant held torque unchanged    expected=0.0      measured=0.0      PASS
+
+4b. the control: the same run with dry_run=False
+  actuator write_count           expected=5000     measured=5000     PASS
+  record writes_issued           expected=5000     measured=5000     PASS
+  record rehearsed_writes        expected=0        measured=0        PASS
+
+4c. dry run against a counting stub configured to forbid writes
+  DryRunViolationError raised    expected=''         measured=''         PASS
+  stub write_count               expected=0          measured=0          PASS
+  stub attempts                  expected=0          measured=0          PASS
+  iterations completed           expected=5000       measured=5000       PASS
+  rehearsed writes               expected=5000       measured=5000       PASS
+
+4d. the stub does raise when written to directly
+  raises on a direct write       expected=True     measured=True     PASS
+  attempts after the raise       expected=1        measured=1        PASS
+
+4e. the dry-run wrapper still validates and clips
+  command 9.0 N*m clipped to     1.500 N*m, saturated=True  PASS
+  invalid commands rejected      expected=2        measured=2        PASS
+  inner stub attempts            expected=0        measured=0        PASS
+
+verdict: PASS

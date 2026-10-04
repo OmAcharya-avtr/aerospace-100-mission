@@ -1,0 +1,48 @@
+==============================================================================
+P033 edgeinfer -- Validation 6: performance benchmark
+==============================================================================
+environment: Linux-6.18.44-fc-v64-x86_64-with-glibc2.39 x86_64, 1 CPU core(s) available of 1 logical, shared host, Python 3.13.16, clock perf_counter resolution 1e-09 s. 
+WORKSTATION NUMBERS, shared single-CPU-core cloud container with other build
+jobs running concurrently. No figure below is a measurement of any edge target.
+
+(a) cost of generating and characterising the model population
+------------------------------------------------------------------------------
+  generate 120 ONNX models        : 0.314 s (2.618 ms per model, 1 repeat)
+  analytic estimate, one graph        : p50 44.12 us, p99 82.67 us
+  featurise 120 graphs             : 0.011 s (92.6 us per graph, 1 repeat)
+
+(b) cost of the two predictors
+------------------------------------------------------------------------------
+  calibrate 4 parameters, grid 20x20  : 0.011 s (400 NNLS solves, 1 repeat)
+    (the fit itself is not the point here; its label is calibrated-fit)
+  train forest, 120 trees, n=120      : 0.143 s (1 repeat)
+  forest predict, 120 rows          : p50 8.240 ms, p99 16.347 ms
+  forest predict + uncertainty, 1 row : p50 12.349 ms, p99 17.077 ms
+
+(c) cost of measuring, which the analytic estimate replaces
+------------------------------------------------------------------------------
+  build one InferenceSession          : 28.94 ms (1 repeat)
+  measured profile, 60 repeats       : 1.87 ms (including 8 warm-up calls)
+  the model's own p50 / p99           : 11.316 us / 34.005 us
+  tracemalloc peak over one run       : 671 B
+
+(d) the screening argument
+------------------------------------------------------------------------------
+  analytic estimate for all 120       : 0.0077 s (64.3 us per candidate, measured)
+  measure one candidate               : 30.81 ms = 28.94 ms session build + 1.87 ms profile
+  measure all 120 (extrapolated)     : 3.697 s (one candidate's cost times 120)
+  ratio                               : 479x cheaper to estimate than to measure
+  The session build dominates the measured path, which is why it is counted
+  here: screening a candidate by measurement means loading it. This ratio is
+  the only extrapolation in this file and it extrapolates this repository's
+  own cost, not any device's performance.
+
+(e) compute budget
+------------------------------------------------------------------------------
+  this script took 2.8 s against a per-script ceiling of 180 s  PASS
+
+  results file written: /home/claude/aerospace-100-mission/products/P033/validation/performance_results.md
+
+==============================================================================
+RESULT: 1/1 checks passed (the compute-budget ceiling)
+==============================================================================

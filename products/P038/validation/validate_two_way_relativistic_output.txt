@@ -1,0 +1,105 @@
+validate_two_way_relativistic.py
+==============================================================================
+model           circular overhead pass, non-rotating Earth, 500 km
+orbital speed   7612.608173 m/s
+beta_orbit      2.539293e-05  (= v/c)
+peak rho_dot    7059.216450 m/s at the geometric horizon
+beta_rho_dot    2.354701e-05
+
+CHECK 4a -- two-way is EXACTLY twice one-way (G = 1), bit-exact equality
+
+   rho_dot [m/s]  carrier [GHz]         1-way [Hz]         2-way [Hz]   2*1way == 2way
+    -7059.216450         0.4010        9442.351603       18884.703207            exact
+    -7059.216450         2.2000       51803.425255      103606.850510            exact
+    -7059.216450         8.4000      197794.896428      395589.792856            exact
+    -7059.216450        26.0000      612222.298468     1224444.596935            exact
+    -3000.000000         0.4010        4012.776065        8025.552130            exact
+    -3000.000000         2.2000       22015.230283       44030.460566            exact
+    -3000.000000         8.4000       84058.151990      168116.303980            exact
+    -3000.000000        26.0000      260179.994255      520359.988509            exact
+        0.000000         0.4010          -0.000000          -0.000000            exact
+        0.000000         2.2000          -0.000000          -0.000000            exact
+        0.000000         8.4000          -0.000000          -0.000000            exact
+        0.000000        26.0000          -0.000000          -0.000000            exact
+     1234.500000         0.4010       -1651.257351       -3302.514702            exact
+     1234.500000         2.2000       -9059.267261      -18118.534523            exact
+     1234.500000         8.4000      -34589.929544      -69179.859088            exact
+     1234.500000        26.0000     -107064.067636     -214128.135272            exact
+     7059.216450         0.4010       -9442.351603      -18884.703207            exact
+     7059.216450         2.2000      -51803.425255     -103606.850510            exact
+     7059.216450         8.4000     -197794.896428     -395589.792856            exact
+     7059.216450        26.0000     -612222.298468    -1224444.596935            exact
+
+  tolerance: ZERO (bit-exact) -> PASS
+
+CHECK 4b -- O(beta^2) terms, reported with their magnitudes in Hz
+
+  at the geometric horizon (peak |rho_dot|):
+   carrier [GHz]     classical [Hz]   SR O(b^2) [Hz]   cascade [Hz]    grav [Hz]   |SR/cls|
+          0.4010       -9442.351603         0.093057       0.222339     0.020270   9.86e-06
+          2.2000      -51803.425255         0.510535       1.219816     0.111205   9.86e-06
+          8.4000     -197794.896430         1.949315       4.657479     0.424601   9.86e-06
+         26.0000     -612222.298472         6.033595      14.416005     1.314241   9.86e-06
+
+  at closest approach (rho_dot = 0, so the classical shift vanishes):
+   carrier [GHz]     classical [Hz]   SR O(b^2) [Hz]    grav [Hz]
+          0.4010          -0.000000        -0.129283     0.020270
+          2.2000          -0.000000        -0.709281     0.111205
+          8.4000          -0.000000        -2.708163     0.424601
+         26.0000          -0.000000        -8.382410     1.314241
+
+  SR fractional term at closest approach   -3.224004e-10  (= -v^2/(2c^2))
+  gravitational fractional term            +5.054774e-11
+  ratio |SR| / |grav|                      6.378
+
+  Reading: at S-band (2.2 GHz) the whole O(beta^2) budget is under 1.3 Hz
+  against a 51.8 kHz classical excursion -- a relative 2.4e-05. At Ka-band
+  (26 GHz) it reaches about 15 Hz against 612 kHz. It matters only for
+  sub-Hz carrier knowledge, and at that level the neglected tropospheric
+  delay rate is larger still, so this package does not apply any of it.
+
+  The SR term does NOT vanish at closest approach: there it is pure
+  transmitter time dilation -v^2/(2c^2), independent of range-rate.
+
+CHECK 4c -- light-time separation of the two legs
+two-way Doppler from light-time-corrected per-leg range-rates vs the
+instantaneous exactly-2x form, at 2.2 GHz uplink, G = 1
+
+  normalising denominator for the 'rel' column: the peak two-way
+  excursion over this pass, 103606.8505 Hz
+
+  Note: this model holds the station inertially fixed (non-rotating
+  Earth), so the up-leg and down-leg light times of one round trip are
+  equal to double precision; the tau_up - tau_down column is therefore
+  exactly zero here by construction, and would not be for a real station.
+
+    t_tx [s]    tau_up [ms]   tau_up-tau_dn [ns]   2-way inst [Hz]   2-way 2-leg [Hz]   diff [Hz]  diff/peak
+    -346.632    8.587461620                0.000       103606.8505        103606.8505     -0.0000   5.65e-11
+    -259.974    6.550830675                0.000       102971.0903        102970.9773     -0.1129   1.09e-06
+    -173.316    4.548239899                0.000        99636.8494         99636.5230     -0.3264   3.15e-06
+     -86.658    2.695942551                0.000        84435.4530         84434.4545     -0.9985   9.64e-06
+       0.000    1.667820476                0.000           -0.0000            -2.6309     -2.6309   2.54e-05
+      86.658    2.696046023               -0.000       -84435.4530        -84436.4515     -0.9985   9.64e-06
+     173.316    4.548445891               -0.000       -99636.8494        -99637.1758     -0.3264   3.15e-06
+     259.974    6.551137294               -0.000      -102971.0903       -102971.2032     -0.1129   1.09e-06
+     346.632    8.587866048               -0.000      -103606.8505       -103606.8505      0.0000   5.65e-11
+
+  worst absolute departure from exactly-2x: 2.6309 Hz
+  worst departure as a fraction of the peak two-way excursion: 2.539e-05
+  This is NOT a failure of check 4a: 4a is the identity at a single epoch,
+  and this is the physical fact that the two legs are not at one epoch.
+  Both are reported because a reader needs to know which one their
+  application is using.
+
+  Quantitative explanation of the worst case, at closest approach: the
+  two legs' mid-epochs sit at t_tx + tau/2 and t_tx + 3tau/2, a mean
+  offset of one light time tau from t_tx, so the departure is the
+  two-way Doppler rate times tau:
+    two-way Doppler rate at TCA  -1577.4367 Hz/s
+    light time at TCA            1.667820 ms
+    product                      -2.6309 Hz
+    measured departure           -2.6309 Hz
+    |product - measured|         0.0000 Hz
+
+ALL CHECKS IN THIS SCRIPT: PASS
+(checks 4b and 4c report magnitudes; they have no pass/fail criterion)

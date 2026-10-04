@@ -1,0 +1,77 @@
+cff-version: 1.2.0
+title: "constellink: time-varying constellation contact graphs, routing and link capacity"
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - name: "OPTIMA Organisation"
+version: 0.1.0
+date-released: "2026-10-04"
+license: AGPL-3.0
+repository-code: "https://github.com/OmAcharya-avtr/constellink"
+keywords:
+  - satellite constellation
+  - contact graph
+  - time-expanded graph
+  - routing
+  - link budget
+  - free-space optical
+  - forecast calibration
+abstract: >-
+  constellink computes contact windows for inter-satellite and
+  satellite-to-ground links from sgp4-propagated element sets or generated
+  Walker shells, assembles them into a time-varying contact graph, routes over
+  its time expansion by Dijkstra, schedules an integer maximum flow over the
+  same graph, and sizes each link with an RF or free-space-optical capacity
+  model. It also ships a link-availability predictor with two deterministic
+  baselines and a calibration-first verification harness. Research-grade
+  software; not flight-qualified, not certified, not approved for operational
+  aerospace use.
+references:
+  - type: report
+    title: "Revisiting Spacetrack Report #3"
+    authors:
+      - family-names: Vallado
+        given-names: David A.
+      - family-names: Crawford
+        given-names: Paul
+      - family-names: Hujsak
+        given-names: Richard
+      - family-names: Kelso
+        given-names: T. S.
+    year: 2006
+    number: "AIAA 2006-6753"
+  - type: article
+    title: "A Note on a Simple Transmission Formula"
+    authors:
+      - family-names: Friis
+        given-names: Harald T.
+    journal: "Proceedings of the IRE"
+    volume: 34
+    issue: 5
+    start: 254
+    end: 256
+    year: 1946
+  - type: article
+    title: "A New Vector Partition of the Probability Score"
+    authors:
+      - family-names: Murphy
+        given-names: Allan H.
+    journal: "Journal of Applied Meteorology"
+    volume: 12
+    issue: 4
+    start: 595
+    end: 600
+    year: 1973
+  - type: article
+    title: "Constructing Maximal Dynamic Flows from Static Flows"
+    authors:
+      - family-names: Ford
+        given-names: L. R.
+      - family-names: Fulkerson
+        given-names: D. R.
+    journal: "Operations Research"
+    volume: 6
+    issue: 3
+    start: 419
+    end: 433
+    year: 1958

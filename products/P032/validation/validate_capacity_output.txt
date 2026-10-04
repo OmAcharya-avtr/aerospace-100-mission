@@ -1,0 +1,88 @@
+Link-capacity model validation
+==============================================================================================
+
+Check 1 -- dB chain reduces to Friis with losses zeroed
+  tolerance: relative 1e-12 on received power
+      R [km]  f [GHz]  Gt [dBi]  Gr [dBi]    P_rx dB chain [W]     P_rx Friis [W]        rel  pass
+  ------------------------------------------------------------------------------------------------
+         500      2.2       6.0      30.0   1.872562437718e-11   1.8725624377e-11    6.9e-16  PASS
+        1500     26.0      30.0      45.0   2.366586917596e-11   2.3665869176e-11    7.9e-15  PASS
+        5000      8.4      20.0      50.0   3.226436313573e-10   3.2264363136e-10    3.7e-15  PASS
+       36000     20.0      40.0      55.0   1.735907938688e-10   1.7359079387e-10    3.9e-15  PASS
+  result: PASS
+
+Check 2 -- free-space path loss vs the engineering form
+  computed constant K = 92.447783222 dB (the commonly quoted rounded value is 92.45 dB)
+  tolerance: 1e-10 dB
+      d [km]  f [GHz]    library [dB]     K form [dB]    diff [dB]  pass
+  ----------------------------------------------------------------------
+           1      0.4    84.488983048    84.488983048     0.00e+00  PASS
+           1      2.2    99.296236838    99.296236838     0.00e+00  PASS
+           1     26.0   120.747250181   120.747250181     0.00e+00  PASS
+           1    193.4   138.176912617   138.176912617     0.00e+00  PASS
+         500      0.4   138.468383135   138.468383135     0.00e+00  PASS
+         500      2.2   153.275636925   153.275636925     2.84e-14  PASS
+         500     26.0   174.726650268   174.726650268     5.68e-14  PASS
+         500    193.4   192.156312704   192.156312704     0.00e+00  PASS
+        2000      0.4   150.509582962   150.509582962     0.00e+00  PASS
+        2000      2.2   165.316836752   165.316836752     0.00e+00  PASS
+        2000     26.0   186.767850095   186.767850095     5.68e-14  PASS
+        2000    193.4   204.197512530   204.197512530     0.00e+00  PASS
+       36000      0.4   175.615033064   175.615033064     0.00e+00  PASS
+       36000      2.2   190.422286854   190.422286854     0.00e+00  PASS
+       36000     26.0   211.873300197   211.873300197     0.00e+00  PASS
+       36000    193.4   229.302962632   229.302962632     0.00e+00  PASS
+      400000      0.4   196.530182875   196.530182875     2.84e-14  PASS
+      400000      2.2   211.337436665   211.337436665     0.00e+00  PASS
+      400000     26.0   232.788450008   232.788450008     0.00e+00  PASS
+      400000    193.4   250.218112443   250.218112443     0.00e+00  PASS
+  result: PASS
+
+Check 3 -- infinite-bandwidth Shannon limit
+  theoretical minimum Eb/N0 = 10 log10(ln 2) = -1.591745 dB
+       B [MHz]    C [Mbit/s]   Eb/N0 at C [dB]   gap to limit [dB]
+  ----------------------------------------------------------------
+             1       10.7407         22.019779        2.361152e+01
+           100      417.7959          6.120450        7.712196e+00
+         10000     2277.4742         -1.244443        3.473026e-01
+       1000000     2464.9758         -1.588035        3.710686e-03
+     100000000     2467.0617         -1.591708        3.713305e-05
+   10000000000     2467.0826         -1.591745        3.730968e-07
+  gap decreases monotonically with bandwidth : True
+  final gap < 1e-5 dB                        : True (3.731e-07 dB)
+  result: PASS
+
+Check 4 -- Gaussian aperture capture vs numerical integration
+  tolerance: relative 1e-08 between the analytic and the quadrature result
+        a/w   f_geo library      f_geo quad        rel    2(a/w)^2  pass
+  ----------------------------------------------------------------------
+       0.01    0.0001999800    0.0001999800    5.7e-14    0.000200  PASS
+       0.05    0.0049875208    0.0049875208    1.0e-15    0.005000  PASS
+       0.20    0.0768836536    0.0768836536    7.2e-16    0.080000  PASS
+       0.50    0.3934693403    0.3934693403    2.8e-16    0.500000  PASS
+       1.00    0.8646647168    0.8646647168    2.6e-16    2.000000  PASS
+       2.00    0.9996645374    0.9996645374    4.4e-16    8.000000  PASS
+       3.00    0.9999999848    0.9999999848    3.3e-16   18.000000  PASS
+  (the last column is the small-aperture limit 2(a/w)^2, printed for comparison;
+   it is only valid for a/w well below 1 and is not part of the pass criterion)
+  result: PASS
+
+Check 5 -- pointing loss in dB against the closed algebraic form
+  tolerance: 1e-12 dB
+     err/half    library [dB]   (20/ln10) x^2 [dB]    diff [dB]  pass
+  -------------------------------------------------------------------
+        0.000  0.000000000000       0.000000000000     0.00e+00  PASS
+        0.050  0.021714724095       0.021714724095    -2.78e-17  PASS
+        0.100  0.086858896381       0.086858896381     2.22e-16  PASS
+        0.250  0.542868102379       0.542868102379    -1.11e-16  PASS
+        0.500  2.171472409516       2.171472409516     4.44e-16  PASS
+        1.000  8.685889638065       8.685889638065     1.78e-15  PASS
+  result: PASS
+
+==============================================================================================
+friis reduction                     : PASS
+fspl engineering form               : PASS
+shannon infinite-bandwidth limit    : PASS
+gaussian capture vs quadrature      : PASS
+pointing loss algebra               : PASS
+OVERALL: PASS

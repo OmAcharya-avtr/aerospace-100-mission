@@ -1,0 +1,89 @@
+Uncertainty analysis
+========================================================================================
+
+Part 1 -- along-track propagation error to window-edge shift
+  method: perturb the mean anomaly by dM = ds / a (circular-orbit arc
+          length, exact for a circular orbit; Vallado 2013 Ch. 2) and
+          recompute the ground windows. 6 h horizon, 30 s scan.
+  the along-track error is a user input, not a result of this package.
+     ds [km]     dM [rad]  n win   max |dt| [s]   mean dt_open [s]   mean d_dur [s]
+  ---------------------------------------------------------------------------------
+        0.10    1.443e-05      3         0.0293            -0.0098          -0.0000
+        1.00    1.443e-04      3         0.1465            -0.0879          -0.0391
+        5.00    7.217e-04      3         0.7031            -0.4590          -0.2246
+       20.00    2.887e-03      3         2.7832            -1.8359          -0.9082
+  edge shift per km of along-track error: 0.2930, 0.1465, 0.1406, 0.1392 s/km
+  the slope is near the reciprocal of the ground-track speed, which
+  is the expected first-order behaviour and is reported, not asserted.
+  the smallest perturbation sits at the 0.05 s default bisection
+  tolerance floor, which is why its apparent slope is larger; the
+  three larger perturbations are the ones to read.
+
+Part 2 -- contact-scan grid step (discretisation)
+  step [s]   n windows     total [s]
+------------------------------------
+       5.0           8      5859.473
+      10.0           8      5859.473
+      30.0           8      5859.478
+      60.0           8      5859.478
+     120.0           8      5859.478
+     300.0           8      5859.467
+     600.0           8      5859.467
+  reference (5 s step): 8 windows, 5859.473 s total
+    step    5.0 s: window count delta +0, total duration delta +0.000 s
+    step   10.0 s: window count delta +0, total duration delta +0.000 s
+    step   30.0 s: window count delta +0, total duration delta +0.005 s
+    step   60.0 s: window count delta +0, total duration delta +0.005 s
+    step  120.0 s: window count delta +0, total duration delta +0.005 s
+    step  300.0 s: window count delta +0, total duration delta -0.006 s
+    step  600.0 s: window count delta +0, total duration delta -0.006 s
+  windows shorter than the step can be missed entirely; this table is
+  how a user chooses a step for their own shortest window of interest.
+
+Part 3 -- bisection refinement tolerance
+     tol [s]  n win   max |dt_open| [s]   max |dt_close| [s]
+  ----------------------------------------------------------
+       1e-06      8            0.000000             0.000000
+       1e-03      8            0.000409             0.000438
+       5e-02      8            0.005542             0.005228
+       1e+00      8            0.453885             0.455467
+       1e+01      8            3.555318             3.562223
+  edge error is bounded by the tolerance and is independent of the
+  grid step, because bisection re-propagates rather than interpolating.
+
+Part 4 -- link-budget parameter uncertainty (Monte Carlo)
+  RF terminal, 1500 km, 1-sigma Gaussian inputs (all stated inputs):
+    tx_power_dbw               0.3
+    tx_gain_dbi                0.5
+    rx_g_over_t_db_per_k       0.7
+    other_loss_db              0.3
+  Monte Carlo capacity: n=4000, seed=11
+    mean       156.700 Mbit/s (sem 0.563)
+    stdev       35.599 Mbit/s
+    p1          92.864 Mbit/s
+    p5         105.890 Mbit/s
+    p50        152.338 Mbit/s
+    p95        220.439 Mbit/s
+    p99        258.310 Mbit/s
+  p95/p5 spread: 3.184 dB (quadrature sum of the input sigmas is 3.155 dB)
+
+  Optical terminal, 1500 km, 1-sigma Gaussian inputs:
+    tx_power_w                 0.05
+    beam_divergence_full_rad   2e-06
+    pointing_error_rad         1e-06
+    rx_optics_loss_db          0.3
+  Monte Carlo capacity: n=4000, seed=12
+    mean     11085.163 Mbit/s (sem 23.340)
+    stdev     1476.137 Mbit/s
+    p1        8195.008 Mbit/s
+    p5        8811.432 Mbit/s
+    p50      10986.791 Mbit/s
+    p95      13681.781 Mbit/s
+    p99      14991.104 Mbit/s
+  input parameters are drawn independently; real terminal parameters
+  are correlated, so this spread is not a calibrated predictive
+  interval. It is a sensitivity measurement.
+
+========================================================================================
+This script reports measurements; it has no pass/fail criterion.
+OVERALL: REPORTED

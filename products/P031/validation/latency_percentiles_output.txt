@@ -1,0 +1,40 @@
+HilForge validation 2 — latency percentiles against a known distribution
+==============================================================================
+injected law      : shifted exponential, a = 1.200000e-03 s, b = 9.000000e-04 s
+samples           : 200000   seed 7310
+tolerance         : 3.0 x se, se(p) = b sqrt(p / ((1-p) n)) [Serfling 1980 §2.3.3]
+sample mean       : 2.099946247e-03 s (analytic a + b = 2.100000000e-03 s)
+
+2a. exact-mode histogram vs the analytic quantile
+        p    analytic [s]    measured [s]   deviation [s]      3 se [s]  |dev|/se  result
+    0.500    1.823832e-03    1.822562e-03      -1.271e-06     6.037e-06     0.632  PASS
+    0.900    3.272327e-03    3.268935e-03      -3.391e-06     1.811e-05     0.562  PASS
+    0.990    5.344653e-03    5.391810e-03       4.716e-05     6.007e-05     2.355  PASS
+    0.999    7.416980e-03    7.426653e-03       9.673e-06     1.908e-04     0.152  PASS
+
+2b. the loop's own 'total' histogram over the first 20000 samples
+        p      direct [s]        loop [s]   difference [s]  result
+    0.500    1.829909e-03    1.829909e-03        0.000e+00  PASS
+    0.900    3.283673e-03    3.283673e-03        0.000e+00  PASS
+    0.990    5.356994e-03    5.356994e-03        0.000e+00  PASS
+    0.999    7.338495e-03    7.338495e-03        0.000e+00  PASS
+  loop samples recorded : 20000 (expected 20000)
+  loop mean total       : 2.102459124e-03 s
+
+2c. the four stages sum to the total, iteration by iteration
+  max |sum(stages) - total| : 8.674e-19 s  (round-off bound 2.019e-17 s)  PASS
+  (the stage split is exact by construction: the injected total is
+   multiplied by fractions that sum to 1, and summed back in the loop)
+
+2d. binned mode, bin width 2.000e-05 s
+        p       exact [s]      binned [s]     error [s]     bound [s]  result
+    0.500    1.822561e-03    1.840000e-03     1.744e-05     2.000e-05  PASS
+    0.900    3.268935e-03    3.280000e-03     1.107e-05     2.000e-05  PASS
+    0.990    5.391800e-03    5.400000e-03     8.200e-06     2.000e-05  PASS
+    0.999    7.426648e-03    7.440000e-03     1.335e-05     2.000e-05  PASS
+  overflow samples : 0
+
+verdict: PASS
+note: these are injected synthetic latencies, not measured hardware
+      latencies. The check validates the histogram and the loop's
+      sample handling, not any machine's timing.
