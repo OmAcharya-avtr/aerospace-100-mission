@@ -465,3 +465,145 @@ products:
     local_path: products/P030
     approved_for_publish: true
     published: true
+
+  - id: P031
+    name: HilForge
+    batch: 4
+    class: flagship
+    category: hardware-in-the-loop
+    summary: Hardware-in-the-loop harness for GNC and comms loops — hardware abstraction layer with simulation/device parity, dry-run rehearsal, deadline and overrun accounting, seeded replay, benchmark harness; deadline-overrun predictor against fixed-threshold and queueing baselines.
+    ai_enabled: true
+    validation_level: 3
+    hardware_pending: true
+    status: DEVELOPING
+    license: AGPL-3.0 (open-core)
+    local_path: products/P031
+    approved_for_publish: false
+    published: false
+
+  - id: P032
+    name: ConstelLink
+    batch: 4
+    class: flagship
+    category: satellite-communications
+    summary: Constellation link planning over a time-varying contact graph — sgp4 propagation, inter-satellite and ground contact windows, Dijkstra on a time-expanded graph, ILP max-flow scheduling, RF and optical capacity models; calibrated link-availability predictor against climatology and logistic baselines.
+    ai_enabled: true
+    validation_level: 3
+    status: DEVELOPING
+    license: AGPL-3.0 (open-core)
+    local_path: products/P032
+    approved_for_publish: false
+    published: false
+
+  - id: P033
+    name: EdgeInfer
+    batch: 4
+    class: medium
+    category: autonomous-aerospace-systems
+    summary: Onboard inference budget verification — declared latency, memory, power and duty-cycle budgets as first-class objects, analytic roofline baseline, measured profiling, worst-case separated from median, pass/fail with stated uncertainty; learned latency predictor benchmarked against the analytic baseline.
+    ai_enabled: true
+    validation_level: 3
+    hardware_pending: true
+    status: DEVELOPING
+    license: Apache-2.0
+    local_path: products/P033
+    approved_for_publish: false
+    published: false
+
+  - id: P034
+    name: FaultInject
+    batch: 4
+    class: medium
+    category: aerospace-assurance
+    summary: Fault-injection campaign tool for GNC and comms software — sensor, actuator, bus, timing and numerical fault taxonomy, wrapper-based injection with no target modification, coverage accounting, severity scoring, seeded replay; learned campaign prioritizer against random and coverage-greedy search.
+    ai_enabled: true
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    local_path: products/P034
+    approved_for_publish: false
+    published: false
+
+  - id: P035
+    name: TelemetryOOL
+    batch: 4
+    class: medium
+    category: space-operations
+    summary: Housekeeping telemetry limit monitoring with operational semantics — soft and hard limits, validity masks, persistence debounce, mode dependence, EWMA and CUSUM with designed false-alarm rates, change-point detection; multivariate novelty detector compared at matched false-alarm rate.
+    ai_enabled: true
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    local_path: products/P035
+    approved_for_publish: false
+    published: false
+
+  - id: P036
+    name: RtClock
+    batch: 4
+    class: compact
+    category: hardware-in-the-loop
+    summary: Real-time timing primitives and schedulability arithmetic — monotonic timebase with measured resolution, period and deadline arithmetic with units, fixed-rate loop driver reporting drift, exact percentile histograms, rate-monotonic and EDF bounds, response-time analysis, priority-ceiling blocking.
+    ai_enabled: false
+    validation_level: 1
+    status: DEVELOPING
+    license: MIT
+    local_path: products/P036
+    approved_for_publish: false
+    published: false
+
+  - id: P037
+    name: FrameSync
+    batch: 4
+    class: compact
+    category: satellite-communications
+    summary: CCSDS frame-level link performance harness over existing codecs — attached sync marker correlation, acquisition/flywheel/loss state machine, slip and false-sync statistics, frame-error rate versus Eb/N0 for uncoded, RS(255,223) and convolutionally coded links. Not a codec and not a packet parser.
+    ai_enabled: false
+    validation_level: 2
+    status: DEVELOPING
+    license: MIT
+    local_path: products/P037
+    approved_for_publish: false
+    published: false
+
+  - id: P038
+    name: DopplerKit
+    batch: 4
+    class: compact
+    category: satellite-communications
+    summary: Doppler and range-rate link geometry — range, range-rate and Doppler from propagated states, Doppler rate, carrier pre-compensation profiles over a pass, light-time correction, one-way and two-way cases kept explicitly separate with stated sign conventions.
+    ai_enabled: false
+    validation_level: 1
+    status: DEVELOPING
+    license: MIT
+    local_path: products/P038
+    approved_for_publish: false
+    published: false
+
+  - id: P039
+    name: LatencyNet
+    batch: 4
+    class: compact
+    category: autonomous-aerospace-systems
+    summary: Tail-latency prediction for a staged embedded pipeline — sum-of-stages analytic model and linear regression as baselines, learned predictor as the third, prediction intervals with measured coverage on all three, p99 and p99.9 as the primary targets.
+    ai_enabled: true
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    local_path: products/P039
+    approved_for_publish: false
+    published: false
+
+  - id: P040
+    name: BitFlipSim
+    batch: 4
+    class: compact
+    category: aerospace-assurance
+    summary: Single-event-upset effects on onboard inference — bit-flip injection into parameters and activations at a stated flux and exposure, per-bit criticality by position, degradation versus upset rate, and mitigation evaluation with memory and latency cost; learned criticality predictor against magnitude and exponent-bit heuristics.
+    ai_enabled: true
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    local_path: products/P040
+    approved_for_publish: false
+    published: false
