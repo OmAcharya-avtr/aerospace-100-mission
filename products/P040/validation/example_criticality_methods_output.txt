@@ -1,0 +1,64 @@
+test region               59 of 147 parameters = 236 bytes (grouped split, seed 7)
+total degradation         51.951744 over 1888 bit sites
+training sites            2816 (88 parameters), measured on the calibration split
+scoring                   evaluation split, disjoint from calibration
+
+cost model: bit  (degradation avoided per protected byte)
+  budget    bytes   units     magnitude baseline     exponent heuristic      learned predictor  oracle (unachievable)                 random
+    0.02      4.7      37               0.498414               4.886449               6.298675               6.532930               0.312257
+    0.05     11.8      94               0.364869               3.164676               3.550208               3.616972               0.258950
+    0.10     23.6     188               0.362017               1.713467               1.983816               2.031046               0.155522
+    0.15     35.4     283               0.355700               1.226040               1.394806               1.410939               0.165693
+    0.25     59.0     472               0.369763               0.834949               0.871761               0.872797               0.159885
+    0.40     94.4     755               0.349265               0.550051               0.550190               0.550226               0.215315
+    0.50    118.0     944               0.331287               0.440233               0.440244               0.440246               0.223585
+    0.75    177.0    1416               0.257330               0.293513               0.293513               0.293513               0.236560
+    1.00    236.0    1888               0.220135               0.220135               0.220135               0.220135               0.220135
+
+cost model: word  (degradation avoided per protected byte)
+  budget    bytes   units     magnitude baseline     exponent heuristic      learned predictor  oracle (unachievable)                 random
+    0.02      4.7       1               0.547011               0.220135               0.362759               0.547011               0.095307
+    0.05     11.8       2               0.367204               0.220135               0.448575               0.540700               0.109166
+    0.10     23.6       5               0.350601               0.220135               0.388010               0.461151               0.146595
+    0.15     35.4       8               0.365451               0.220135               0.395551               0.433850               0.185473
+    0.25     59.0      14               0.372746               0.220135               0.360320               0.398163               0.200680
+    0.40     94.4      23               0.350942               0.220135               0.356623               0.362602               0.189729
+    0.50    118.0      29               0.333600               0.220135               0.331964               0.335665               0.201788
+    0.75    177.0      44               0.257794               0.220135               0.260982               0.265392               0.209127
+    1.00    236.0      59               0.220135               0.220135               0.220135               0.220135               0.220135
+
+Learned predictor uncertainty (ensemble standard deviation across 160 trees)
+coverage at k = 2         0.878178 (Gaussian reference 0.954500)
+mean abs error (log1p)    4.624248e-03
+median sigma (log1p)      8.452685e-06
+
+Top five features by importance:
+  heuristic_log2_relative            0.664403
+  biased_exponent                    0.118038
+  log2_abs_weight                    0.081391
+  abs_weight                         0.077793
+  bit_position                       0.031904
+
+Winner by budget, cost model bit (oracle and random excluded from the comparison):
+  budget  0.02: learned predictor      6.298675 beats exponent heuristic     4.886449 by  +1.412225 (+28.9%)
+  budget  0.05: learned predictor      3.550208 beats exponent heuristic     3.164676 by  +0.385533 (+12.2%)
+  budget  0.10: learned predictor      1.983816 beats exponent heuristic     1.713467 by  +0.270349 (+15.8%)
+  budget  0.15: learned predictor      1.394806 beats exponent heuristic     1.226040 by  +0.168765 (+13.8%)
+  budget  0.25: learned predictor      0.871761 beats exponent heuristic     0.834949 by  +0.036812 (+4.4%)
+  budget  0.40: learned predictor      0.550190 beats exponent heuristic     0.550051 by  +0.000139 (+0.0%)
+  budget  0.50: learned predictor      0.440244 beats exponent heuristic     0.440233 by  +0.000010 (+0.0%)
+  budget  0.75: learned predictor      0.293513 beats exponent heuristic     0.293513 by  +0.000000 (+0.0%)
+  budget  1.00: magnitude baseline     0.220135 beats learned predictor      0.220135 by  +0.000000 (+0.0%)
+
+Winner by budget, cost model word (oracle and random excluded from the comparison):
+  budget  0.02: magnitude baseline     0.547011 beats learned predictor      0.362759 by  +0.184251 (+50.8%)
+  budget  0.05: learned predictor      0.448575 beats magnitude baseline     0.367204 by  +0.081371 (+22.2%)
+  budget  0.10: learned predictor      0.388010 beats magnitude baseline     0.350601 by  +0.037409 (+10.7%)
+  budget  0.15: learned predictor      0.395551 beats magnitude baseline     0.365451 by  +0.030100 (+8.2%)
+  budget  0.25: magnitude baseline     0.372746 beats learned predictor      0.360320 by  +0.012426 (+3.4%)
+  budget  0.40: learned predictor      0.356623 beats magnitude baseline     0.350942 by  +0.005681 (+1.6%)
+  budget  0.50: magnitude baseline     0.333600 beats learned predictor      0.331964 by  +0.001636 (+0.5%)
+  budget  0.75: learned predictor      0.260982 beats magnitude baseline     0.257794 by  +0.003188 (+1.2%)
+  budget  1.00: magnitude baseline     0.220135 beats learned predictor      0.220135 by  +0.000000 (+0.0%)
+
+wrote /home/claude/aerospace-100-mission/products/P040/screenshots/criticality_methods.png

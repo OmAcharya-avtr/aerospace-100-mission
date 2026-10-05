@@ -1,0 +1,97 @@
+==============================================================================
+Rate model under test
+==============================================================================
+flux                      1.000000e+03 particles cm^-2 s^-1 (illustrative)
+cross-section             1.000000e-14 cm^2 bit^-1 (illustrative)
+exposed bits              4704 (147 float32 parameters)
+lambda = flux*sigma*N     4.704000000e-08 upsets s^-1
+                          1.693440e+05 FIT
+mean time between upsets  2.125850e+07 s
+
+Note: the flux and cross-section above are round illustrative numbers, not
+measured environment or part figures. The exposure times below are derived
+from them so that the expected counts are convenient; with a real
+cross-section the same equation gives different exposures.
+
+==============================================================================
+Check 1 - bits flipped equals upsets drawn, per trial
+==============================================================================
+trials                    500
+upsets drawn (total)      4012
+bits flipped (total)      4012
+trials with a mismatch    0
+[PASS] injected count equals drawn count: 4012 drawn, 4012 flipped, 0 mismatched trials
+
+==============================================================================
+Check 2 - sample mean and variance against the Poisson prediction
+==============================================================================
+trials per expectation    200000
+      mu     exposure (s)         mean    se(mean)       z     variance     se(var)       z
+    0.50     1.062925e+07     0.498665    0.001581   -0.84     0.497691    0.002236   -1.03
+    1.00     2.125850e+07     0.999120    0.002236   -0.39     0.999114    0.003873   -0.23
+    2.00     4.251701e+07     1.996510    0.003162   -1.10     2.003338    0.007071   +0.47
+    4.00     8.503401e+07     4.004000    0.004472   +0.89     4.019684    0.013416   +1.47
+    8.00     1.700680e+08     7.992635    0.006325   -1.16     8.038241    0.026077   +1.47
+   16.00     3.401361e+08    16.022515    0.008944   +2.52    16.058138    0.051381   +1.13
+
+Gate: |z| < 4 on both statistics at every expectation. One tail of a
+standard normal beyond 4 sigma has probability 3.167e-05, so over the
+12 statistics above the chance of a spurious failure is about 7.598e-04. The gate is deliberately wide; the
+seeds are fixed, so the numbers above are reproducible rather than lucky.
+[PASS] Poisson mean and variance: worst |z| over 6 expectations x 2 statistics = 2.517 (gate 4.0)
+
+==============================================================================
+Check 3 - chi-square goodness of fit of the count histogram
+==============================================================================
+mu                        6.0
+bins (tail pooled at k=19) 20
+   k   observed     expected
+   0        473       495.75
+   1       2835      2974.50
+   2       8997      8923.51
+   3      17790     17847.02
+   4      26607     26770.52
+   5      32305     32124.63
+   6      32001     32124.63
+   7      27743     27535.40
+   8      20584     20651.55
+   9      13759     13767.70
+  10       8205      8260.62
+  11       4632      4505.79
+  12       2291      2252.90
+  13       1059      1039.80
+  14        452       445.63
+  15        163       178.25
+  16         68        66.84
+  17         23        23.59
+  18         10         7.86
+>=19          3         3.52
+chi-square                19.649404 on 19 degrees of freedom
+p-value                   0.415945
+[PASS] chi-square fit to the Poisson pmf: chi2 = 19.6494, dof = 19, p = 0.415945 (gate p > 0.01)
+
+==============================================================================
+Check 4 - uniformity of sampled bit positions
+==============================================================================
+upsets drawn              320000 (with replacement, to sample positions freely)
+expected per bit position 10000.0
+multinomial sigma         98.425
+observed min / max        9857 / 10204
+worst |z| over 32 bins    2.073
+[PASS] bit-position uniformity: worst |z| = 2.073 over 32 bins (gate 4.5)
+
+==============================================================================
+Check 5 - periodic reload: E[live upsets] = lambda * T_s / 2
+==============================================================================
+Derivation: upsets arrive as a Poisson process of rate lambda and are
+cleared at each reload. Observing at a time tau uniform on [0, T_s) into
+the current interval, E[live | tau] = lambda tau, so E[live] = lambda T_s / 2.
+  lambda (1/s)    T_s (s)    predicted    simulated         se       z
+        0.0500      20.00     0.500000     0.501645   0.001711   +0.96
+        0.2000      10.00     1.000000     0.997860   0.002578   -0.83
+        1.0000       4.00     2.000000     1.996720   0.004092   -0.80
+        2.0000       3.00     3.000000     2.995705   0.005490   -0.78
+[PASS] expected live upsets under scrubbing: worst |z| over 4 configurations = 0.961 (gate 4.0)
+
+==============================================================================
+RESULT: all checks PASSED

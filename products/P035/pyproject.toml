@@ -1,0 +1,64 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "telemetryool"
+version = "0.1.0"
+description = "Operational out-of-limit checking for housekeeping telemetry, with designed false-alarm rates and a matched-false-alarm-rate detector comparison harness."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "telemetry",
+    "out-of-limit",
+    "limit-checking",
+    "false-alarm-rate",
+    "cusum",
+    "ewma",
+    "change-point",
+    "novelty-detection",
+    "statistical-process-control",
+    "spacecraft",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "scikit-learn>=1.3",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis"]
+examples = ["matplotlib"]
+dev = ["pytest", "hypothesis", "ruff", "matplotlib"]
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/telemetryool"
+Source = "https://github.com/OmAcharya-avtr/telemetryool"
+
+[project.scripts]
+telemetryool = "telemetryool.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]

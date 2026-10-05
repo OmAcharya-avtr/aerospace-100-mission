@@ -1,0 +1,125 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "latencynet: end-to-end tail-latency prediction for staged embedded pipelines"
+version: 0.1.0
+date-released: 2026-10-05
+license: Apache-2.0
+abstract: >-
+  Predicts the p99 and p99.9 end-to-end latency of a serial staged pipeline
+  from a short aligned per-stage probe trace. Three predictors with prediction
+  intervals, compared on held-out pipelines in two stage-dependence regimes: an
+  analytic sum-of-stages model whose moment identities are exact to machine
+  precision and whose Fenton-Wilkinson tail map is measured to under-predict
+  p99.9 by 2.4 to 4.3 per cent; an ordinary least squares fit on thirteen probe
+  features with the exact Student-t prediction interval; and a gradient-boosted
+  tree ensemble with quantile-loss interval heads. Split-conformal calibration
+  for all three. Validation level 2. The recorded result is that the learned
+  model helps only where stage latencies are dependent, and that the linear
+  baseline wins every comparison. Not flight-qualified, not certified, not
+  approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - latency
+  - tail-latency
+  - percentile
+  - prediction-interval
+  - conformal-prediction
+  - order-statistics
+  - embedded
+  - real-time
+references:
+  - type: article
+    authors:
+      - family-names: Fenton
+        given-names: "Lawrence F."
+    title: "The Sum of Log-Normal Probability Distributions in Scatter Transmission Systems"
+    journal: "IRE Transactions on Communications Systems"
+    volume: 8
+    issue: 1
+    start: 57
+    end: 67
+    year: 1960
+  - type: article
+    authors:
+      - family-names: Mosteller
+        given-names: Frederick
+    title: "On Some Useful Inefficient Statistics"
+    journal: "The Annals of Mathematical Statistics"
+    volume: 17
+    issue: 4
+    start: 377
+    end: 408
+    year: 1946
+  - type: book
+    authors:
+      - family-names: David
+        given-names: "Herbert A."
+      - family-names: Nagaraja
+        given-names: "Haikady N."
+    title: "Order Statistics"
+    edition: "3rd"
+    publisher:
+      name: Wiley
+    year: 2003
+  - type: article
+    authors:
+      - family-names: Lei
+        given-names: Jing
+      - family-names: "G'Sell"
+        given-names: Max
+      - family-names: Rinaldo
+        given-names: Alessandro
+      - family-names: Tibshirani
+        given-names: "Ryan J."
+      - family-names: Wasserman
+        given-names: Larry
+    title: "Distribution-Free Predictive Inference for Regression"
+    journal: "Journal of the American Statistical Association"
+    volume: 113
+    issue: 523
+    start: 1094
+    end: 1111
+    year: 2018
+  - type: article
+    authors:
+      - family-names: Friedman
+        given-names: "Jerome H."
+    title: "Greedy Function Approximation: A Gradient Boosting Machine"
+    journal: "The Annals of Statistics"
+    volume: 29
+    issue: 5
+    start: 1189
+    end: 1232
+    year: 2001
+  - type: article
+    authors:
+      - family-names: Koenker
+        given-names: Roger
+      - family-names: Bassett
+        given-names: Gilbert
+    title: "Regression Quantiles"
+    journal: Econometrica
+    volume: 46
+    issue: 1
+    start: 33
+    end: 50
+    year: 1978
+  - type: book
+    authors:
+      - family-names: Johnson
+        given-names: "Norman L."
+      - family-names: Kotz
+        given-names: Samuel
+      - family-names: Balakrishnan
+        given-names: "Narayanaswamy"
+    title: "Continuous Univariate Distributions, Volume 1"
+    edition: "2nd"
+    publisher:
+      name: Wiley
+    year: 1994
+  - type: report
+    authors:
+      - name: "Joint Committee for Guides in Metrology"
+    title: "JCGM 100:2008 Evaluation of measurement data - Guide to the expression of uncertainty in measurement"
+    year: 2008

@@ -1,0 +1,78 @@
+==============================================================================
+VALIDATION 4 -- NaN injection is detected, not silently absorbed
+==============================================================================
+
+Smallest normal binary64          2.22507385850720138e-308
+Smallest subnormal binary64       4.94065645841246544e-324
+Surveillance threshold (sqrt max) 1.34078079299425956e+154
+
+4a. classify_value against a hand-written table
+                         value   expected        got    ok
+    -------------------------------------------------------
+                           nan        nan        nan  True
+                           nan        nan        nan  True
+                           inf        inf        inf  True
+                          -inf        inf        inf  True
+                  0.000000e+00       None       None  True
+                 -0.000000e+00       None       None  True
+                  1.000000e+00       None       None  True
+                -1.000000e+100       None       None  True
+                 2.225074e-308       None       None  True
+                 1.112537e-308  subnormal  subnormal  True
+                 4.940656e-324  subnormal  subnormal  True
+                -4.940656e-324  subnormal  subnormal  True
+                 1.340781e+154       None       None  True
+                 2.681562e+154      large      large  True
+                -1.000000e+200      large      large  True
+
+4b. NaN injected on each channel, plain target
+
+     channel  detected     verdict  first step  latency  finite  severity
+    ----------------------------------------------------------------------
+         pos      True  propagated          50        0   False  1.000000
+         vel      True  propagated          50        0   False  1.000000
+           u      True     emitted          50        0   False  1.000000
+
+    Verdict meanings: 'propagated' entered the target and left it;
+    'emitted' was written on the actuator side so it never entered.
+
+4c. The hard case: a target that silently replaces the NaN
+    target                  SanitisingGncController (replaces non-finite with 0)
+    trace finite            True
+    severity score          0.002414 (negligible)
+    monitor detected        True
+    monitor verdict         absorbed
+    first seen entering     [50, 'pos']
+    first seen leaving      None
+    PASS  the severity score alone would have called this a mild fault;
+          the boundary monitor is what makes it visible.
+
+4d. Negative control -- fault-free run
+    detected False, classes []
+    PASS
+
+4e. Every numerical_nan coverage cell is detected
+    cells   12
+    missed  0
+    PASS
+
+4f. Denormal and overflow, including the documented blind spot
+
+                    kind  channel    magnitude                classes     verdict  severity
+    ------------------------------------------------------------------------------------------
+      numerical_denormal      pos            -          ['subnormal']    absorbed  0.155513
+      numerical_denormal      vel            -          ['subnormal']    absorbed  0.615923
+      numerical_denormal        u            -          ['subnormal']     emitted  0.152973
+      numerical_overflow      pos      1.0e+08                     []           -  0.902667
+      numerical_overflow      pos      1.0e+50                     []           -  0.902667
+      numerical_overflow      pos     1.0e+150                     []           -  0.902667
+      numerical_overflow      pos     1.0e+250              ['large']    absorbed  0.902667
+
+    DOCUMENTED LIMITATION, verified above: an injected magnitude below
+    1.340781e+154 is a finite normal number and the numerical monitor
+    does not flag it. Those cases are caught by the severity score's
+    divergence test instead, and the table above shows their severities.
+
+==============================================================================
+RESULT: PASS -- all checks in validation 4 passed
+==============================================================================

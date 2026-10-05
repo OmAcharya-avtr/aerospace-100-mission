@@ -1,0 +1,46 @@
+==============================================================================
+Check 1 - numpy forward pass versus MLPClassifier.predict_proba
+==============================================================================
+evaluation samples        300
+architecture              8 -> 12 (ReLU) -> 3, softmax
+max |diff| float64 store  0.000000e+00
+max |diff| float32 store  3.585047e-07
+[PASS] numpy forward pass equals sklearn in float64: max absolute probability difference over 300 samples x 3 classes = 0.000000e+00 (bit-exact required)
+[PASS] float32 storage costs only rounding: max absolute probability difference = 3.585047e-07, which is the cost of storing the weights in float32 rather than float64, not an upset
+
+==============================================================================
+Check 2 to 5 - the ONNX path
+==============================================================================
+onnxruntime               1.29.0
+serialised model          905 bytes
+float32 data_type code    1
+max |onnx - numpy| logit  6.260614e-06
+[PASS] onnxruntime loads the hand-encoded model and agrees with numpy: max absolute logit difference over 300 samples = 6.260614e-06; onnxruntime accumulates in float32, this package in float64
+
+initializer  dims          elements  byte offset   bytes  decodes exactly
+W1           (8, 12)             96          222     384             True
+b1           (12,)               12          618      48             True
+W2           (12, 3)             36          682     144             True
+b2           (3,)                 3          838      12             True
+[PASS] every initializer is located and decodes bit-exactly: 4 of 4 initializers, 147 elements total, matching the 147-parameter layout
+
+In-file bit flips, prediction from the IEEE 754 layout versus onnxruntime:
+initializer   element   bit role         weight before     weight after        predicted   |d logit| max
+W1                  5    30 exponent      -0.162728533  -5.53736504e+37  -5.53736504e+37    3.268108e+38
+W1                  5    31 sign          -0.162728533      0.162728533      0.162728533    1.523125e+00
+W1                  5    23 exponent      -0.162728533     -0.325457066     -0.325457066    7.615633e-01
+W1                  5     0 mantissa      -0.162728533     -0.162728518     -0.162728518    1.907349e-06
+W1                 17    30 exponent       0.544080794     1.851411e+38     1.851411e+38             inf
+W1                 40    12 mantissa       0.303645074      0.303523004      0.303523004    7.753372e-04
+[PASS] in-file bit flips match the layout prediction: 6 in-file flips, 0 disagreeing with predict_flip
+[PASS] flipping the same file bit twice restores the file: 905-byte model restored byte for byte
+
+Scope of the ONNX support, stated plainly: this reads and writes float32
+initializers stored in raw_data, which is what a dense MLP exporter
+produces. It is not a general ONNX implementation: it does not run
+graphs itself, does not handle float_data-encoded tensors, quantized
+ONNX types, external data files, subgraphs or sparse initializers, and
+reports each of those as unsupported rather than skipping it.
+
+==============================================================================
+RESULT: all checks PASSED

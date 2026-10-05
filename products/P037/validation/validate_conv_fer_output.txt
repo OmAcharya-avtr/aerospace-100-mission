@@ -1,0 +1,48 @@
+framesync validation 6 -- convolutionally coded frame error rate
+==============================================================================
+CCSDS (171, 133) rate-1/2, K = 7, 64 states, G2 inverted = True
+computed free distance: 10 (literature value 10)
+frame: 512 information bits + 6 tail bits -> 1036 channel bits
+Eb/N0 is per information bit; the rate-1/2 loss (3.0103 dB) is inside
+the channel bit error rate Eq. (1).
+
+Regression guard: noiseless decoding must be exact
+------------------------------------------------------------------------------
+16 frames round-trip with no channel errors: True -> PASS
+
+Measured frame error rate
+----------------------------------------------------------------------------------------------------------
+Eb/N0 dB   mode       p_chan      N  errors          FER             uncertainty      dec BER  FER uncoded
+----------------------------------------------------------------------------------------------------------
+    2.00   hard   1.0403e-01    300     295   9.8333e-01             +-7.391e-03   1.0513e-01   1.0000e+00
+    2.00   soft   1.0403e-01    300      77   2.5667e-01             +-2.522e-02   4.3685e-03   1.0000e+00
+    3.00   hard   7.8896e-02    300     239   7.9667e-01             +-2.324e-02   2.9876e-02   9.9999e-01
+    3.00   soft   7.8896e-02    300       9   3.0000e-02             +-9.849e-03   3.3203e-04   9.9999e-01
+    4.00   hard   5.6495e-02    400     131   3.2750e-01             +-2.347e-02   4.9268e-03   9.9840e-01
+    4.00   soft   5.6495e-02    400       1   2.5000e-03             +-2.497e-03   1.9531e-05   9.9840e-01
+    5.00   hard   3.7679e-02    500      21   4.2000e-02             +-8.971e-03   3.9844e-04   9.5299e-01
+    5.00   soft   3.7679e-02    500       0   0.0000e+00  <6.000e-03 (95% 1-sided)   0.0000e+00   9.5299e-01
+
+Check: frame error rate falls monotonically with Eb/N0
+------------------------------------------------------------------------------
+   hard: 9.8333e-01 -> 7.9667e-01 -> 3.2750e-01 -> 4.2000e-02  -> PASS
+   soft: 2.5667e-01 -> 3.0000e-02 -> 2.5000e-03 -> 0.0000e+00  -> PASS
+
+Check: soft decision is not worse than hard decision at any point
+------------------------------------------------------------------------------
+   2.00 dB: hard 9.8333e-01, soft 2.5667e-01, ratio     3.83 -> PASS
+   3.00 dB: hard 7.9667e-01, soft 3.0000e-02, ratio    26.56 -> PASS
+   4.00 dB: hard 3.2750e-01, soft 2.5000e-03, ratio   131.00 -> PASS
+   5.00 dB: hard 4.2000e-02, soft 0.0000e+00, ratio      inf -> PASS
+  (the soft/hard separation is reported, not asserted at a particular
+   value; the frame counts here do not resolve a dB figure)
+
+Check: the coded link beats the uncoded link of the same length
+------------------------------------------------------------------------------
+   2.00 dB: soft-decision coded 2.5667e-01 < uncoded 1.0000e+00 -> PASS
+   3.00 dB: soft-decision coded 3.0000e-02 < uncoded 9.9999e-01 -> PASS
+   4.00 dB: soft-decision coded 2.5000e-03 < uncoded 9.9840e-01 -> PASS
+   5.00 dB: soft-decision coded 0.0000e+00 < uncoded 9.5299e-01 -> PASS
+
+ALL CHECKS PASS: True
+wall time: 17.6 s

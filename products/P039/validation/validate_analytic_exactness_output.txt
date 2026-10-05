@@ -1,0 +1,96 @@
+==============================================================================
+P039 latencynet -- Validation 1: analytic sum-of-stages exactness
+==============================================================================
+binary64 eps 2.220446e-16; exactness tolerance 3.552714e-15 relative
+No measured wall-clock time appears anywhere in this script.
+
+(a) constant stages: the model must be exact sample by sample
+------------------------------------------------------------------------------
+  2 constant stages, mean                              got  1.70000000000000012e-04
+                                                       ref  1.70000000000000012e-04   rel 0.000e+00   tol 3.553e-15   PASS
+  2 constant stages, p99                               got  1.70000000000000012e-04
+                                                       ref  1.70000000000000012e-04   rel 0.000e+00   tol 3.553e-15   PASS
+  constant stages, predicted sd is exactly zero        PASS
+  3 constant stages, mean                              got  6.00000000000000012e-03
+                                                       ref  6.00000000000000012e-03   rel 0.000e+00   tol 3.553e-15   PASS
+  3 constant stages, p99                               got  6.00000000000000012e-03
+                                                       ref  6.00000000000000012e-03   rel 0.000e+00   tol 3.553e-15   PASS
+  constant stages, predicted sd is exactly zero        PASS
+  1 constant stages, mean                              got  7.49999999999999934e-05
+                                                       ref  7.49999999999999934e-05   rel 0.000e+00   tol 3.553e-15   PASS
+  1 constant stages, p99                               got  7.49999999999999934e-05
+                                                       ref  7.49999999999999934e-05   rel 0.000e+00   tol 3.553e-15   PASS
+  constant stages, predicted sd is exactly zero        PASS
+
+(b) linearity of the mean, on 200000 injected draws, both regimes
+------------------------------------------------------------------------------
+  Both sides are accumulated with math.fsum, which is correctly
+  rounded, so the two sides differ only by the final rounding of one
+  exact value and the tolerance is 4 eps. The second line of each
+  pair reports the same comparison with numpy's default pairwise
+  summation, whose accumulation error is bounded by about
+  log2(n) eps per sum (Higham 2002, Accuracy and Stability of
+  Numerical Algorithms, 2nd ed., Sec. 4.2); that figure is reported
+  as a floating-point fact, not asserted as an identity.
+  independent: fsum sum-of-means vs fsum mean-of-sums  got  2.69993138911056379e-04
+                                                       ref  2.69993138911056379e-04   rel 0.000e+00   tol 8.882e-16   PASS
+  independent: numpy pairwise summation differs by rel 1.305e-14; log2(n) eps = 3.910e-15 per sum (reported, not asserted)
+  correlated rho=0.7: fsum sum-of-means vs fsum mean-of-sums got  2.70006911348005460e-04
+                                                       ref  2.70006911348005460e-04   rel 0.000e+00   tol 8.882e-16   PASS
+  correlated rho=0.7: numpy pairwise summation differs by rel 5.622e-15; log2(n) eps = 3.910e-15 per sum (reported, not asserted)
+  equation (1) holds under any dependence; both regimes must pass.
+
+(c) variance additivity, on 200000 injected draws
+------------------------------------------------------------------------------
+  independent: total sum of the covariance matrix      got  1.78062996058988577e-09
+                                                       ref  1.78062996058988391e-09   rel 1.045e-15   tol 3.553e-15   PASS
+  independent: residual from dropping covariances      got -2.89383130098788705e-12
+                                                       ref -2.89383130098602589e-12   rel 6.431e-13   tol 1.000e-09   PASS
+  independent: independence sd 42.2318 us vs measured total sd 42.1975 us  (ratio 1.00081)
+  correlated rho=0.7: total sum of the covariance matrix got  2.89281885349485007e-09
+                                                       ref  2.89281885349485049e-09   rel 1.430e-16   tol 3.553e-15   PASS
+  correlated rho=0.7: residual from dropping covariances got  1.10563850327349433e-09
+                                                       ref  1.10563850327349392e-09   rel 3.741e-16   tol 1.000e-09   PASS
+  correlated rho=0.7: independence sd 42.2751 us vs measured total sd 53.7849 us  (ratio 0.78600)
+  the residual check uses 1e-9 because it is a difference of two
+  near-equal sums and so loses significant digits by cancellation;
+  the identity itself is checked at machine precision above.
+
+(d) the model on declared parameters reproduces the closed-form injection
+------------------------------------------------------------------------------
+  independent: end-to-end mean                         got  2.70000000000000003e-04
+                                                       ref  2.70000000000000003e-04   rel 0.000e+00   tol 3.553e-15   PASS
+  independent: end-to-end sd                           got  4.21900462194579765e-05
+                                                       ref  4.21900462194579765e-05   rel 0.000e+00   tol 3.553e-15   PASS
+  correlated rho=0.7: end-to-end mean                  got  2.70000000000000003e-04
+                                                       ref  2.70000000000000003e-04   rel 0.000e+00   tol 3.553e-15   PASS
+  correlated rho=0.7: end-to-end sd                    got  5.36795578754322637e-05
+                                                       ref  5.36795578754322637e-05   rel 0.000e+00   tol 3.553e-15   PASS
+
+(e) Fenton-Wilkinson quantile error -- an APPROXIMATION, measured not asserted
+------------------------------------------------------------------------------
+  reference: 2000000 injected draws per pipeline, seed 20260406
+  pipeline                          p       MC us       FW us    rel err     MC SE
+  independent cv~0.2              0.5    266.0393    266.7629    0.00272   0.00013
+  independent cv~0.2             0.99    386.9460    382.8655   -0.01055   0.00042
+  independent cv~0.2            0.999    441.5109    431.0951   -0.02359   0.00093
+  correlated rho=0.7              0.5    264.7713    264.8171    0.00017   0.00018
+  correlated rho=0.7             0.99    419.2532    418.6657   -0.00140   0.00057
+  correlated rho=0.7            0.999    488.3032    486.6152   -0.00346   0.00131
+  one dominant skewed stage       0.5    382.9581    386.2679    0.00864   0.00044
+  one dominant skewed stage      0.99   1286.3848   1266.2957   -0.01562   0.00137
+  one dominant skewed stage     0.999   1955.0083   1870.0529   -0.04346   0.00353
+  five low-cv stages              0.5    499.8871    499.8750   -0.00002   0.00002
+  five low-cv stages             0.99    526.5654    526.5627   -0.00001   0.00006
+  five low-cv stages            0.999    535.6541    535.6330   -0.00004   0.00019
+  Reading: the relative error column is the systematic bias the
+  analytic predictor carries into every tail prediction. It is
+  negative at p99 and p99.9 for every pipeline above, i.e. the
+  two-moment lognormal match UNDER-predicts the tail, which is the
+  unsafe direction for a deadline. It is not a defect in equations
+  (1) and (2), which are exact; it is the cost of turning two
+  moments into a quantile without the distribution.
+
+==============================================================================
+exactness checks: 19/19 PASS
+==============================================================================

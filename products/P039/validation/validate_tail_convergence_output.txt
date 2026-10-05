@@ -1,0 +1,69 @@
+================================================================================================
+P039 latencynet -- Validation 3: tail-quantile convergence vs order-statistic theory
+================================================================================================
+predicted RMSE scaling: n^-0.5 exactly; predicted magnitude: sqrt(p(1-p)/n)/f(q_p)
+declared tolerances: slope +/-0.04, magnitude ratio +/-0.15
+validity condition applied to every fitted grid: n (1 - p) >= 5
+No measured wall-clock time appears anywhere in this script.
+
+(a) single lognormal stage, exact quantile known in closed form
+------------------------------------------------------------------------------------------------
+  mu = -8.609394553   sigma = 0.429421382   mean = 200.000 us
+  repeats per n: 400; log-RMSE standard deviation 1/sqrt(2R) = 0.0354
+
+  p = 0.99   exact quantile 495.2682 us   smallest interior n = 100   grid starts at n(1-p) = 5.0 exceedances
+         n     RMSE us   analytic SE us    ratio    RMSE/q
+       500    36.02020         35.50787   1.0144   0.07273
+      1500    20.08859         20.50048   0.9799   0.04056
+      5000    10.83096         11.22857   0.9646   0.02187
+     15000     6.67873          6.48282   1.0302   0.01349
+     50000     3.59902          3.55079   1.0136   0.00727
+  fitted log-log slope -0.49583 +/- 0.00971 vs predicted -0.50   diff +0.00417 = +0.43 SE   tol 0.04   PASS
+  magnitude ratio at n=50000: 1.01358 vs predicted 1.0   tol 0.15   PASS
+
+  p = 0.999   exact quantile 687.5454 us   smallest interior n = 1000   grid starts at n(1-p) = 5.0 exceedances
+         n     RMSE us   analytic SE us    ratio    RMSE/q
+      5000    40.48197         39.19476   1.0328   0.05888
+     15000    22.14984         22.62911   0.9788   0.03222
+     50000    12.30302         12.39447   0.9926   0.01789
+    150000     6.64556          7.15595   0.9287   0.00967
+  fitted log-log slope -0.52648 +/- 0.01386 vs predicted -0.50   diff -0.02648 = -1.91 SE   tol 0.04   PASS
+  magnitude ratio at n=150000: 0.92868 vs predicted 1.0   tol 0.15   PASS
+
+(b) three-stage pipeline, truth from a large Monte Carlo reference
+------------------------------------------------------------------------------------------------
+
+  p = 0.99   reference quantile 386.7907 us from 4000000 passes, one-sigma 0.13224 us (0.0342 %)
+         n     RMSE us   predicted us    ratio
+      1000     7.32565        7.02027   1.0435
+      4000     3.82245        3.51013   1.0890
+     16000     2.06017        1.75507   1.1738
+     64000     1.00282        0.87753   1.1428
+  fitted log-log slope -0.47492 +/- 0.01317 vs predicted -0.50   diff +0.02508 = +1.90 SE   tol 0.04   PASS
+
+  p = 0.999   reference quantile 440.8020 us from 4000000 passes, one-sigma 0.39421 us (0.0894 %)
+         n     RMSE us   predicted us    ratio
+      5000    10.61299        8.88869   1.1940
+     20000     5.05687        4.44435   1.1378
+     80000     2.51469        2.22217   1.1316
+  fitted log-log slope -0.51934 +/- 0.02082 vs predicted -0.50   diff -0.01934 = -0.93 SE   tol 0.04   PASS
+
+  repeats per n = 300; declared stage means [60.0, 180.0, 30.0] us, sds [12.0, 40.0, 6.0] us
+
+(c) below the validity condition: p = 0.999 with fewer than 5 exceedances
+------------------------------------------------------------------------------------------------
+  These grid points violate n (1 - p) >= 5 and are excluded from the fit
+  in (a). They are measured here to show the condition is real.
+         n   n(1-p)     RMSE us   analytic SE us    ratio
+       200     0.20   139.17685        195.97381   0.7102
+       500     0.50    93.89534        123.94472   0.7576
+      1500     1.50    61.79855         71.55952   0.8636
+  fitted slope over the out-of-range grid: -0.40220, which is 0.09780 from -0.5.
+  The measured RMSE sits well below the asymptotic SE because the
+  estimator is pinned near the sample maximum and cannot fluctuate
+  upward: the asymptotic expression over-states the error there.
+
+  written: tail_convergence.json
+================================================================================================
+convergence checks: 6/6 PASS
+================================================================================================

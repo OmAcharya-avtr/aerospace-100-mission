@@ -1,0 +1,73 @@
+==============================================================================
+Persistence / debounce logic against hand-traced alarm sequences
+==============================================================================
+script          : validation/validate_persistence_trace.py
+python          : 3.13.16 on Linux-6.18.44-fc-v70-x86_64-with-glibc2.39
+numpy / scipy / scikit-learn : 2.5.3 / 1.18.1 / 1.9.1
+
+Tolerance: none.  Every compared quantity is an integer or an enum member.
+Columns show hand-traced value / implementation value.
+
+------------------------------------------------------------------------------
+Trace 1 -- soft and hard escalation, two-step de-escalation
+------------------------------------------------------------------------------
+trace 1: 16 samples
+ idx    value  val     mode    level(hand/got)      soft      hard     below            state(hand/got)        event
+   0     0.00    1        *  IN_LIMIT/IN_LIMIT       0/0       0/0       0/0            NOMINAL/NOMINAL          -/-
+   1     2.50    1        *          SOFT/SOFT       1/1       0/0       0/0            NOMINAL/NOMINAL          -/-
+   2     2.50    1        *          SOFT/SOFT       2/2       0/0       0/0            NOMINAL/NOMINAL          -/-
+   3     0.00    1        *  IN_LIMIT/IN_LIMIT       0/0       0/0       0/0            NOMINAL/NOMINAL          -/-
+   4     2.50    1        *          SOFT/SOFT       1/1       0/0       0/0            NOMINAL/NOMINAL          -/-
+   5     2.50    1        *          SOFT/SOFT       2/2       0/0       0/0            NOMINAL/NOMINAL          -/-
+   6     2.50    1        *          SOFT/SOFT       3/3       0/0       0/0      SOFT_ALARM/SOFT_ALARM  RAISE/RAISE
+   7     2.50    1        *          SOFT/SOFT       3/3       0/0       0/0      SOFT_ALARM/SOFT_ALARM          -/-
+   8     5.00    1        *          HARD/HARD       3/3       1/1       0/0      SOFT_ALARM/SOFT_ALARM          -/-
+   9     5.00    1        *          HARD/HARD       3/3       2/2       0/0      HARD_ALARM/HARD_ALARM  RAISE/RAISE
+  10     2.50    1        *          SOFT/SOFT       3/3       0/0       1/1      HARD_ALARM/HARD_ALARM          -/-
+  11     2.50    1        *          SOFT/SOFT       3/3       0/0       0/0      SOFT_ALARM/SOFT_ALARM  CLEAR/CLEAR
+  12     0.00    1        *  IN_LIMIT/IN_LIMIT       0/0       0/0       1/1      SOFT_ALARM/SOFT_ALARM          -/-
+  13     0.00    1        *  IN_LIMIT/IN_LIMIT       0/0       0/0       0/0            NOMINAL/NOMINAL  CLEAR/CLEAR
+  14     0.00    1        *  IN_LIMIT/IN_LIMIT       0/0       0/0       0/0            NOMINAL/NOMINAL          -/-
+  15     0.00    1        *  IN_LIMIT/IN_LIMIT       0/0       0/0       0/0            NOMINAL/NOMINAL          -/-
+
+[PASS] trace 1 reproduced sample by sample
+[PASS] trace 1 final latched state is NOMINAL with all counters zero  state=NOMINAL counters=(0, 0, 0)
+
+------------------------------------------------------------------------------
+Trace 2 -- mode-dependent limits, invalid sample, latch across mode change
+------------------------------------------------------------------------------
+trace 2: 10 samples
+ idx    value  val     mode    level(hand/got)      soft      hard     below            state(hand/got)        event
+   0     0.00    1     SAFE  IN_LIMIT/IN_LIMIT       0/0       0/0       0/0            NOMINAL/NOMINAL          -/-
+   1     1.50    1     SAFE  IN_LIMIT/IN_LIMIT       0/0       0/0       0/0            NOMINAL/NOMINAL          -/-
+   2     1.50    1  SCIENCE          SOFT/SOFT       1/1       0/0       0/0            NOMINAL/NOMINAL          -/-
+   3     1.50    1  SCIENCE          SOFT/SOFT       2/2       0/0       0/0      SOFT_ALARM/SOFT_ALARM  RAISE/RAISE
+   4     9.90    0  SCIENCE                -/-       2/2       0/0       0/0      SOFT_ALARM/SOFT_ALARM          -/-
+   5     2.00    1  SCIENCE          HARD/HARD       2/2       1/1       0/0      HARD_ALARM/HARD_ALARM  RAISE/RAISE
+   6     0.00    1     SAFE  IN_LIMIT/IN_LIMIT       0/0       0/0       1/1      HARD_ALARM/HARD_ALARM          -/-
+   7     0.00    1     SAFE  IN_LIMIT/IN_LIMIT       0/0       0/0       0/0      SOFT_ALARM/SOFT_ALARM  CLEAR/CLEAR
+   8     0.00    1     SAFE  IN_LIMIT/IN_LIMIT       0/0       0/0       1/1      SOFT_ALARM/SOFT_ALARM          -/-
+   9     0.00    1     SAFE  IN_LIMIT/IN_LIMIT       0/0       0/0       0/0            NOMINAL/NOMINAL  CLEAR/CLEAR
+
+[PASS] trace 2 reproduced sample by sample
+
+------------------------------------------------------------------------------
+Invalid-sample policy, same three-sample breach run in each case
+------------------------------------------------------------------------------
+values 2.5, 2.5, [invalid], 2.5 with persistence_soft = 3:
+[PASS] InvalidPolicy.HOLD: soft counts [1, 2, 2, 3], final state SOFT_ALARM  expected counts [1, 2, 2, 3] and state SOFT_ALARM
+[PASS] InvalidPolicy.RESET: soft counts [1, 2, 0, 1], final state NOMINAL  expected counts [1, 2, 0, 1] and state NOMINAL
+[PASS] InvalidPolicy.BREACH raises HARD_ALARM on a single invalid sample  level=HARD state=HARD_ALARM
+
+------------------------------------------------------------------------------
+Clearing steps down exactly one level per satisfied clear count
+------------------------------------------------------------------------------
+  clear_persistence = 3, nine in-limit samples after a HARD_ALARM:
+  hand: ['HARD_ALARM', 'HARD_ALARM', 'SOFT_ALARM', 'SOFT_ALARM', 'SOFT_ALARM', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL']
+  got : ['HARD_ALARM', 'HARD_ALARM', 'SOFT_ALARM', 'SOFT_ALARM', 'SOFT_ALARM', 'NOMINAL', 'NOMINAL', 'NOMINAL', 'NOMINAL']
+[PASS] HARD -> SOFT -> NOMINAL, one level per three in-limit samples
+
+------------------------------------------------------------------------------
+elapsed: 0.0 s on this machine
+all checks passed
+------------------------------------------------------------------------------

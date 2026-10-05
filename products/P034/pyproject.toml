@@ -1,0 +1,54 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "faultinject"
+version = "0.1.0"
+description = "Fault-injection campaigns for GNC and communications software: a 16-kind taxonomy, injection around an unmodified target, coverage accounting over the taxonomy cross product, severity scoring, seeded bit-identical replay, and a learned campaign prioritiser benchmarked against uniform-random and coverage-greedy search."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "fault-injection",
+    "fault-tolerance",
+    "fdir",
+    "gnc",
+    "kalman-filter",
+    "coverage",
+    "campaign",
+    "reproducibility",
+    "severity",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Testing",
+]
+dependencies = ["numpy>=1.24", "scikit-learn>=1.3"]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis", "numpy", "scikit-learn"]
+examples = ["matplotlib", "numpy", "scikit-learn"]
+dev = ["pytest", "hypothesis", "ruff", "matplotlib", "numpy", "scikit-learn"]
+
+[project.scripts]
+faultinject = "faultinject.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]

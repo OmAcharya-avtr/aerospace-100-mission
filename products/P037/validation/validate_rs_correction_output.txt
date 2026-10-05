@@ -1,0 +1,40 @@
+framesync validation 2 -- RS(255,223) correction boundary
+==============================================================================
+n = 255, k = 223, n - k = 32, d_min = n - k + 1 = 33, E = (d_min - 1)/2 = 16
+codec: reedsolo RSCodec(32); a decoding failure raises ReedSolomonError
+patterns per error count: 4 families x 3 seeds = 12
+error values are drawn non-zero, so every chosen position is a real symbol error
+
+ errors  patterns  corrected  declared fail  wrong msg  expected  result
+------------------------------------------------------------------------
+      0         3          3              0          0  all corrected  PASS
+      1        12         12              0          0  all corrected  PASS
+      2        12         12              0          0  all corrected  PASS
+      3        12         12              0          0  all corrected  PASS
+      4        12         12              0          0  all corrected  PASS
+      5        12         12              0          0  all corrected  PASS
+      6        12         12              0          0  all corrected  PASS
+      7        12         12              0          0  all corrected  PASS
+      8        12         12              0          0  all corrected  PASS
+      9        12         12              0          0  all corrected  PASS
+     10        12         12              0          0  all corrected  PASS
+     11        12         12              0          0  all corrected  PASS
+     12        12         12              0          0  all corrected  PASS
+     13        12         12              0          0  all corrected  PASS
+     14        12         12              0          0  all corrected  PASS
+     15        12         12              0          0  all corrected  PASS
+     16        12         12              0          0  all corrected  PASS
+     17        12          0             12          0  none corrected  PASS
+     18        12          0             12          0  none corrected  PASS
+     19        12          0             12          0  none corrected  PASS
+     20        12          0             12          0  none corrected  PASS
+
+Interleaved codeblock: 16 errors in each of I codewords must all correct,
+17 in any one codeword must fail that codeword and so lose the frame.
+------------------------------------------------------------------------------
+  I = 1: 16 per codeword -> frame recovered: True  (PASS True);  17 in codeword 0 -> frame lost: True (failed codewords 1) (PASS True)
+  I = 3: 16 per codeword -> frame recovered: True  (PASS True);  17 in codeword 0 -> frame lost: True (failed codewords 1) (PASS True)
+  I = 5: 16 per codeword -> frame recovered: True  (PASS True);  17 in codeword 0 -> frame lost: True (failed codewords 1) (PASS True)
+
+ALL CHECKS PASS: True
+wall time: 1.8 s

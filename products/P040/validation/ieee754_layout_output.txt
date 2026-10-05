@@ -1,0 +1,126 @@
+==============================================================================
+Check 1 - layout fields re-derived from probe encodings
+==============================================================================
+
+float16: 16 bits = 1 sign + 5 exponent + 10 mantissa, bias 15
+    mantissa_bits    finfo=10     probe=10     agree=True
+    exponent_bits    finfo=5      probe=5      agree=True
+    exponent_bias    finfo=15     probe=15     agree=True
+    sign_bit         finfo=15     probe=15     agree=True
+    total_bits       finfo=16     probe=16     agree=True
+[PASS] layout re-derivation float16: every field agrees
+
+float32: 32 bits = 1 sign + 8 exponent + 23 mantissa, bias 127
+    mantissa_bits    finfo=23     probe=23     agree=True
+    exponent_bits    finfo=8      probe=8      agree=True
+    exponent_bias    finfo=127    probe=127    agree=True
+    sign_bit         finfo=31     probe=31     agree=True
+    total_bits       finfo=32     probe=32     agree=True
+[PASS] layout re-derivation float32: every field agrees
+
+float64: 64 bits = 1 sign + 11 exponent + 52 mantissa, bias 1023
+    mantissa_bits    finfo=52     probe=52     agree=True
+    exponent_bits    finfo=11     probe=11     agree=True
+    exponent_bias    finfo=1023   probe=1023   agree=True
+    sign_bit         finfo=63     probe=63     agree=True
+    total_bits       finfo=64     probe=64     agree=True
+[PASS] layout re-derivation float64: every field agrees
+
+==============================================================================
+Check 2 - exact flip prediction over a value grid, all bit positions
+==============================================================================
+float16: 240 (value, bit) pairs compared, 0 mismatched
+[PASS] flip prediction float16: 240 exact comparisons, 0 mismatches
+float32: 480 (value, bit) pairs compared, 0 mismatched
+[PASS] flip prediction float32: 480 exact comparisons, 0 mismatches
+float64: 960 (value, bit) pairs compared, 0 mismatched
+[PASS] flip prediction float64: 960 exact comparisons, 0 mismatches
+
+==============================================================================
+Check 3 - most significant exponent bit: predicted magnitude change
+==============================================================================
+Derivation: for a normal float the stored value is
+    (-1)**s * 2**(E - bias) * (1 + m / 2**nmant)
+so flipping the exponent bit at position p changes E by +- 2**(p - nmant)
+and leaves s and m untouched. For the exponent MSB, p - nmant = nexp - 1,
+hence the magnitude is multiplied by 2**(+- 2**(nexp - 1)) whenever both
+the operand and the result are normal. The field-level prediction below is
+integer arithmetic, so it is exact even for float64, whose 2**1024 factor
+is not a representable float.
+
+float16: exponent MSB is bit 14, exponent weight 2**4 = 16, so the predicted factor is 2**(+-16)
+                     value      E     dE regime             ratio (where finite)          predicted ratio
+                         1     15    +16 to_infinity                         inf                      inf
+                        -1     15    +16 to_infinity                        -inf                     -inf
+                       0.5     14    +16 scaled                            65536                    65536
+                         2     16    -16 to_subnormal                          0                        0
+                       3.5     16    -16 to_subnormal          4.57763671875e-05        4.57763671875e-05
+                         5     17    -16 scaled                1.52587890625e-05        1.52587890625e-05
+                    123.25     21    -16 scaled                1.52587890625e-05        1.52587890625e-05
+                      1024     25    -16 scaled                1.52587890625e-05        1.52587890625e-05
+                       -77     21    -16 scaled                1.52587890625e-05        1.52587890625e-05
+                0.00390625      7    +16 scaled                            65536                    65536
+              -0.001953125      6    +16 scaled                            65536                    65536
+                        17     19    -16 scaled                1.52587890625e-05        1.52587890625e-05
+                      -256     23    -16 scaled                1.52587890625e-05        1.52587890625e-05
+                       6.5     17    -16 scaled                1.52587890625e-05        1.52587890625e-05
+                     0.125     12    +16 scaled                            65536                    65536
+    11 scaled cases, 4 special cases (infinity / NaN / subnormal / already special); 11 with a representable float ratio
+[PASS] exponent MSB field prediction float16: sign, biased exponent and mantissa fields of 15 results all match the integer prediction (0 mismatches)
+[PASS] exponent MSB ratio float16: worst relative deviation from 2**(+-16) over 11 normal cases with a representable ratio = 0.000e+00
+
+float32: exponent MSB is bit 30, exponent weight 2**7 = 128, so the predicted factor is 2**(+-128)
+                     value      E     dE regime             ratio (where finite)          predicted ratio
+                         1    127   +128 to_infinity                         inf                      inf
+                        -1    127   +128 to_infinity                        -inf                     -inf
+                       0.5    126   +128 scaled           3.4028236692093846e+38   3.4028236692093846e+38
+                         2    128   -128 to_subnormal                          0                        0
+                       3.5    128   -128 to_subnormal     8.8162076311671563e-39   8.8162076311671563e-39
+                         5    129   -128 scaled           2.9387358770557188e-39   2.9387358770557188e-39
+                    123.25    133   -128 scaled           2.9387358770557188e-39   2.9387358770557188e-39
+                      1024    137   -128 scaled           2.9387358770557188e-39   2.9387358770557188e-39
+                       -77    133   -128 scaled           2.9387358770557188e-39   2.9387358770557188e-39
+                0.00390625    119   +128 scaled           3.4028236692093846e+38   3.4028236692093846e+38
+              -0.001953125    118   +128 scaled           3.4028236692093846e+38   3.4028236692093846e+38
+                        17    131   -128 scaled           2.9387358770557188e-39   2.9387358770557188e-39
+                      -256    135   -128 scaled           2.9387358770557188e-39   2.9387358770557188e-39
+                       6.5    129   -128 scaled           2.9387358770557188e-39   2.9387358770557188e-39
+                     0.125    124   +128 scaled           3.4028236692093846e+38   3.4028236692093846e+38
+    11 scaled cases, 4 special cases (infinity / NaN / subnormal / already special); 11 with a representable float ratio
+[PASS] exponent MSB field prediction float32: sign, biased exponent and mantissa fields of 15 results all match the integer prediction (0 mismatches)
+[PASS] exponent MSB ratio float32: worst relative deviation from 2**(+-128) over 11 normal cases with a representable ratio = 0.000e+00
+
+float64: exponent MSB is bit 62, exponent weight 2**10 = 1024, so the predicted factor is 2**(+-1024)
+                     value      E     dE regime             ratio (where finite)          predicted ratio
+                         1   1023  +1024 to_infinity                         inf                      inf
+                        -1   1023  +1024 to_infinity                        -inf                     -inf
+                       0.5   1022  +1024 scaled                              inf                      inf
+                         2   1024  -1024 to_subnormal                          0                        0
+                       3.5   1024  -1024 to_subnormal     1.668805393880401e-308   1.668805393880401e-308
+                         5   1025  -1024 scaled          5.5626846462680035e-309  5.5626846462680035e-309
+                    123.25   1029  -1024 scaled          5.5626846462680035e-309  5.5626846462680035e-309
+                      1024   1033  -1024 scaled          5.5626846462680035e-309  5.5626846462680035e-309
+                       -77   1029  -1024 scaled          5.5626846462680035e-309  5.5626846462680035e-309
+                0.00390625   1015  +1024 scaled                              inf                      inf
+              -0.001953125   1014  +1024 scaled                              inf                      inf
+                        17   1027  -1024 scaled          5.5626846462680035e-309  5.5626846462680035e-309
+                      -256   1031  -1024 scaled          5.5626846462680035e-309  5.5626846462680035e-309
+                       6.5   1025  -1024 scaled          5.5626846462680035e-309  5.5626846462680035e-309
+                     0.125   1020  +1024 scaled                              inf                      inf
+    11 scaled cases, 4 special cases (infinity / NaN / subnormal / already special); 7 with a representable float ratio
+[PASS] exponent MSB field prediction float64: sign, biased exponent and mantissa fields of 15 results all match the integer prediction (0 mismatches)
+[PASS] exponent MSB ratio float64: worst relative deviation from 2**(+-1024) over 7 normal cases with a representable ratio = 0.000e+00
+
+==============================================================================
+Check 4 - two's-complement int8 flip delta, exhaustive
+==============================================================================
+2048 (value, bit) pairs = 256 values x 8 bits; 0 mismatched
+sign-bit delta is -128 when the bit goes 0 -> 1 and +128 when it goes 1 -> 0:
+    int8     0 bit 7 ->  -128 (delta  -128)
+    int8  -128 bit 7 ->     0 (delta  +128)
+    int8    -1 bit 7 ->   127 (delta  +128)
+    int8   127 bit 7 ->    -1 (delta  -128)
+[PASS] int8 flip delta exhaustive: 2048 exhaustive comparisons, 0 mismatches
+
+==============================================================================
+RESULT: all checks PASSED

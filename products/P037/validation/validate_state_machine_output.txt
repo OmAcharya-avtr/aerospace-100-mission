@@ -1,0 +1,52 @@
+framesync validation 4 -- acquisition state machine hand trace
+==============================================================================
+config: search_tolerance=0, lock_tolerance=3, check_required=2, flywheel_max=3
+
+  i  obs    from         to         miss  chk  hand: to   hand: miss  result
+----------------------------------------------------------------------------
+  0  miss   SEARCH    -> SEARCH        0    0  SEARCH              0  PASS
+  1  hit    SEARCH    -> CHECK         0    1  CHECK               0  PASS
+  2  miss   CHECK     -> SEARCH        0    0  SEARCH              0  PASS
+  3  hit    SEARCH    -> CHECK         0    1  CHECK               0  PASS
+  4  hit    CHECK     -> LOCK          0    2  LOCK                0  PASS
+  5  hit    LOCK      -> LOCK          0    2  LOCK                0  PASS
+  6  miss   LOCK      -> FLYWHEEL      1    2  FLYWHEEL            1  PASS
+  7  hit    FLYWHEEL  -> LOCK          0    2  LOCK                0  PASS
+  8  miss   LOCK      -> FLYWHEEL      1    2  FLYWHEEL            1  PASS
+  9  miss   FLYWHEEL  -> FLYWHEEL      2    2  FLYWHEEL            2  PASS
+ 10  hit    FLYWHEEL  -> LOCK          0    2  LOCK                0  PASS
+ 11  miss   LOCK      -> FLYWHEEL      1    2  FLYWHEEL            1  PASS
+ 12  miss   FLYWHEEL  -> FLYWHEEL      2    2  FLYWHEEL            2  PASS
+ 13  miss   FLYWHEEL  -> SEARCH        0    0  SEARCH              0  PASS
+ 14  hit    SEARCH    -> CHECK         0    1  CHECK               0  PASS
+ 15  hit    CHECK     -> LOCK          0    2  LOCK                0  PASS
+ 16  hit    LOCK      -> LOCK          0    2  LOCK                0  PASS
+ 17  miss   LOCK      -> FLYWHEEL      1    2  FLYWHEEL            1  PASS
+
+full 18-step state sequence matches the hand trace exactly: True -> PASS
+observations in a delivering state (LOCK or FLYWHEEL): 12, hand trace says 12 -> PASS
+
+Machine driven by real correlator output over a noisy stream
+------------------------------------------------------------------------------
+  Eb/N0 = -2.00 dB, p = 1.3064e-01: observations in LOCK 1/60, final state SEARCH
+  Eb/N0 =  0.00 dB, p = 7.8650e-02: observations in LOCK 45/60, final state LOCK
+  Eb/N0 =  2.00 dB, p = 3.7506e-02: observations in LOCK 59/60, final state LOCK
+  Eb/N0 =  6.00 dB, p = 2.3883e-03: observations in LOCK 60/60, final state LOCK
+  Eb/N0 = 12.00 dB, p = 9.0060e-09: observations in LOCK 60/60, final state LOCK
+  (reported, not a pass/fail criterion. The marker survives far below
+   the data threshold because the lock tolerance is 3 bits in 32: at
+   Eb/N0 = 6 dB the expected marker errors are 32p = 0.08 bits, so the
+   synchroniser holds lock in a region where the frame error rate is 1.)
+
+Slip behaviour across a known insertion and deletion
+------------------------------------------------------------------------------
+default config: flywheel_max=4, so the hand
+expectation is 4 frames delivered at the wrong phase (1 flywheel entry
+plus 3 further misses) before SEARCH is re-entered
+  slip  +3 bits: correct-phase frames   7, wrong-phase frames 4, frames to SEARCH 4, final SEARCH -> PASS
+  slip  +1 bits: correct-phase frames   7, wrong-phase frames 4, frames to SEARCH 4, final SEARCH -> PASS
+  slip  -2 bits: correct-phase frames   7, wrong-phase frames 4, frames to SEARCH 4, final SEARCH -> PASS
+  slip  -7 bits: correct-phase frames   7, wrong-phase frames 4, frames to SEARCH 4, final SEARCH -> PASS
+
+ALL CHECKS PASS: True
+wall time: 0.2 s

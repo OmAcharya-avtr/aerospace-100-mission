@@ -1,0 +1,42 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q
+      - name: Validation scripts
+        run: |
+          python validation/validate_ieee754_layout.py
+          python validation/validate_poisson_counts.py
+          python validation/validate_clamp_bound.py
+          python validation/validate_triplication.py
+          python validation/validate_criticality_methods.py
+          python validation/validate_onnx_path.py
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/bit_position_criticality.py
+          python examples/degradation_vs_upset_rate.py
+          python examples/criticality_methods.py
+          python examples/mitigation_tradeoff.py

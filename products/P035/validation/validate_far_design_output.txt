@@ -1,0 +1,123 @@
+==============================================================================
+Designed vs measured window false-alarm probability (EWMA, CUSUM, limit check)
+==============================================================================
+script          : validation/validate_far_design.py
+python          : 3.13.16 on Linux-6.18.44-fc-v70-x86_64-with-glibc2.39
+numpy / scipy / scikit-learn : 2.5.3 / 1.18.1 / 1.9.1
+
+target alpha_W           : 0.05
+window length W          : 100 samples
+windows per seed M       : 20000
+seeds                    : 8  [20261005, 20262005, 20263005, 20264005, 20265005, 20266005, 20267005, 20268005]
+per-seed binomial SE     : 0.0015411
+pooled binomial SE       : 0.0005449
+windows for 10 % rel. SE : 1900 (reference, from telemetryool.calibration.windows_for_precision)
+agreement band           : |z| < 3.5 pooled standard errors
+
+------------------------------------------------------------------------------
+Designed thresholds (analytic, iid normal, sigma known)
+------------------------------------------------------------------------------
+method                          parameter            value   alpha_W design   ARL0 (samples)
+cusum k=0.5 (Brook-Evans)               h      6.351522849     0.0500000000          1802.80
+ewma lam=0.2 (Lucas-Sacc.)              L      3.374959514     0.0500000000          1864.55
+limit check persistence=3               L      1.734259866     0.0500000000          1914.69
+
+The design values above are the exact values of the discretised chains, so
+they reproduce the target to the bisection tolerance by construction.  The
+question this script answers is whether Monte Carlo agrees with them.
+
+------------------------------------------------------------------------------
+Per-seed measurement under the design hypothesis (iid normal, rho = 0)
+------------------------------------------------------------------------------
+chart                    seed   alarms    measured         SE  z vs design
+cusum k=0.5          20261005      991    0.049550   0.001535        -0.29
+cusum k=0.5          20262005      996    0.049800   0.001538        -0.13
+cusum k=0.5          20263005      982    0.049100   0.001528        -0.58
+cusum k=0.5          20264005      988    0.049400   0.001532        -0.39
+cusum k=0.5          20265005      976    0.048800   0.001523        -0.78
+cusum k=0.5          20266005      976    0.048800   0.001523        -0.78
+cusum k=0.5          20267005     1034    0.051700   0.001566         1.10
+cusum k=0.5          20268005      988    0.049400   0.001532        -0.39
+ewma lam=0.2         20261005      980    0.049000   0.001526        -0.65
+ewma lam=0.2         20262005     1033    0.051650   0.001565         1.07
+ewma lam=0.2         20263005      954    0.047700   0.001507        -1.49
+ewma lam=0.2         20264005     1011    0.050550   0.001549         0.36
+ewma lam=0.2         20265005      986    0.049300   0.001531        -0.45
+ewma lam=0.2         20266005     1003    0.050150   0.001543         0.10
+ewma lam=0.2         20267005     1006    0.050300   0.001545         0.19
+ewma lam=0.2         20268005     1000    0.050000   0.001541         0.00
+limit p=3            20261005     1010    0.050500   0.001548         0.32
+limit p=3            20262005     1037    0.051850   0.001568         1.20
+limit p=3            20263005     1023    0.051150   0.001558         0.75
+limit p=3            20264005     1021    0.051050   0.001556         0.68
+limit p=3            20265005     1043    0.052150   0.001572         1.40
+limit p=3            20266005      971    0.048550   0.001520        -0.94
+limit p=3            20267005     1004    0.050200   0.001544         0.13
+limit p=3            20268005      987    0.049350   0.001532        -0.42
+
+------------------------------------------------------------------------------
+Pooled over all seeds: design vs measurement
+------------------------------------------------------------------------------
+chart                  design     measured    abs diff   rel diff   pooled SE        z               95% Wilson
+cusum k=0.5         0.0500000    0.0495688  -0.0004313    -0.0086   0.0005449    -0.79 [0.0485160, 0.0506431]
+ewma lam=0.2        0.0500000    0.0498313  -0.0001687    -0.0034   0.0005449    -0.31 [0.0487758, 0.0509083]
+limit p=3           0.0500000    0.0506000  +0.0006000    +0.0120   0.0005449     1.10 [0.0495368, 0.0516848]
+
+[PASS] cusum k=0.5: pooled measured alpha_W agrees with design within 3.5 pooled SE  measured=0.0495688 design=0.0500000 z=-0.79
+[PASS] ewma lam=0.2: pooled measured alpha_W agrees with design within 3.5 pooled SE  measured=0.0498313 design=0.0500000 z=-0.31
+[PASS] limit p=3: pooled measured alpha_W agrees with design within 3.5 pooled SE  measured=0.0506000 design=0.0500000 z=+1.10
+
+------------------------------------------------------------------------------
+Seed-to-seed spread against the binomial prediction
+------------------------------------------------------------------------------
+If the windows are independent Bernoulli trials, the standard deviation of
+the eight per-seed rates should match the per-seed binomial SE.
+chart               mean rate   observed sd   binomial SE    ratio
+cusum k=0.5         0.0495687     0.0009300     0.0015411    0.603
+ewma lam=0.2        0.0498313     0.0011765     0.0015411    0.763
+limit p=3           0.0506000     0.0012192     0.0015411    0.791
+
+With only 8 seeds the sample standard deviation itself has a relative
+standard error of 1/sqrt(2*(8-1)) = 0.267, so a ratio anywhere in
+[0.47, 1.53] is consistent with the binomial model at 2 sigma.  The check
+below uses that band.
+[PASS] cusum k=0.5: seed-to-seed spread consistent with the binomial model  ratio=0.603
+[PASS] ewma lam=0.2: seed-to-seed spread consistent with the binomial model  ratio=0.763
+[PASS] limit p=3: seed-to-seed spread consistent with the binomial model  ratio=0.791
+
+------------------------------------------------------------------------------
+Serially correlated telemetry: the design hypothesis violated on purpose
+------------------------------------------------------------------------------
+The designs above assume independent samples.  Housekeeping telemetry
+usually is not independent.  Measured alpha_W under an AR(1) nominal model
+with the SAME designed thresholds, 20000 windows per cell, one seed each:
+
+chart               rho     design    measured         SE  ratio to design
+cusum k=0.5        0.00   0.050000    0.048550   0.001520            0.971
+cusum k=0.5        0.30   0.050000    0.364250   0.003403            7.285
+cusum k=0.5        0.60   0.050000    0.809600   0.002776           16.192
+cusum k=0.5        0.90   0.050000    0.949550   0.001548           18.991
+ewma lam=0.2       0.00   0.050000    0.047400   0.001503            0.948
+ewma lam=0.2       0.30   0.050000    0.318700   0.003295            6.374
+ewma lam=0.2       0.60   0.050000    0.742600   0.003091           14.852
+ewma lam=0.2       0.90   0.050000    0.903350   0.002089           18.067
+limit p=3          0.00   0.050000    0.049150   0.001529            0.983
+limit p=3          0.30   0.050000    0.116900   0.002272            2.338
+limit p=3          0.60   0.050000    0.402550   0.003468            8.051
+limit p=3          0.90   0.050000    0.632150   0.003410           12.643
+
+This is a documented limitation, not a check that can pass: at rho = 0.9 the
+delivered false-alarm probability is multiples of the design value for the
+drift charts and a large multiple for the persistence-based limit check,
+because a correlated excursion keeps the persistence counter running.
+[PASS] rho = 0 is the only setting where the analytic design is delivered  cusum k=0.5: ratio at rho=0 is 0.971, ewma lam=0.2: ratio at rho=0 is 0.948, limit p=3: ratio at rho=0 is 0.983
+
+Inflation factors, measured alpha_W divided by design alpha_W:
+  cusum k=0.5      rho=0.0: 0.97x  rho=0.3: 7.28x  rho=0.6: 16.19x  rho=0.9: 18.99x
+  ewma lam=0.2     rho=0.0: 0.95x  rho=0.3: 6.37x  rho=0.6: 14.85x  rho=0.9: 18.07x
+  limit p=3        rho=0.0: 0.98x  rho=0.3: 2.34x  rho=0.6: 8.05x  rho=0.9: 12.64x
+
+------------------------------------------------------------------------------
+elapsed: 10.9 s on this machine
+all checks passed
+------------------------------------------------------------------------------

@@ -1,0 +1,36 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q
+      - name: Validation scripts
+        working-directory: validation
+        run: |
+          python validate_uncoded_fer.py
+          python validate_rs_correction.py
+          python validate_false_sync.py
+          python validate_state_machine.py
+          python validate_rs_coding_gain.py
+          python validate_conv_fer.py
+          python crosscheck_berbench.py

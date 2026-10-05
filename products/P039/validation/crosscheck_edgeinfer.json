@@ -1,0 +1,70 @@
+{
+  "product": "P039 latencynet",
+  "counterpart": "P033 edgeinfer",
+  "counterpart_file": "/home/claude/aerospace-100-mission/products/P033/validation/crosscheck_pipeline.json",
+  "comparable_statistic": "p50_s",
+  "pipeline": {
+    "stages": [
+      {
+        "name": "preprocess",
+        "mean_s": 6e-05,
+        "std_s": 1.2e-05,
+        "dist": "lognormal"
+      },
+      {
+        "name": "inference",
+        "mean_s": 0.00018,
+        "std_s": 4e-05,
+        "dist": "lognormal"
+      },
+      {
+        "name": "postprocess",
+        "mean_s": 3e-05,
+        "std_s": 6e-06,
+        "dist": "lognormal"
+      }
+    ],
+    "n_samples": 2000,
+    "seed": 20260401
+  },
+  "declarations_match": true,
+  "injected": {
+    "ours_mean_s": 0.00027,
+    "theirs_mean_s": 0.00027,
+    "relative_difference": 0.0,
+    "tolerance": 3.552713678800501e-15,
+    "pass": true,
+    "ours_std_s": 4.2190046219457976e-05,
+    "theirs_std_s": 4.2190046219457976e-05,
+    "std_relative_difference": 0.0,
+    "std_pass": true
+  },
+  "p50_diff": {
+    "ours_sampled_p50_s": 0.0002671846764042926,
+    "theirs_measured_p50_s": 0.00028386249960021814,
+    "relative_difference": -0.058753175285266586,
+    "band": 0.03,
+    "verdict": "DISAGREE"
+  },
+  "accounting": {
+    "large_sample_n": 4000000,
+    "distributional_median_s": 0.0002660741975509946,
+    "distributional_median_over_injected_mean": 0.9854599909296096,
+    "ours_p50_over_injected_mean": 0.9895728755714541,
+    "theirs_p50_over_injected_mean": 1.051342591111919,
+    "p033_measurement_overhead_on_median": 0.06685466765643189,
+    "unexplained_residual": 0.004173568363708746
+  },
+  "volatile_measured": {
+    "ours_measured_p50_s": 0.0002708120000534109,
+    "ours_measured_mean_s": 0.00028580432700709937,
+    "relative_difference_vs_theirs": -0.045974722146064094,
+    "repeats": 2000,
+    "warmup": 50,
+    "method": "perf_counter bracket around a spin-wait consuming each drawn stage duration in turn; gc not disabled; shared single core with four concurrent build jobs",
+    "label": "VOLATILE WORKSTATION NUMBER -- not a measurement of any edge target",
+    "platform": "Linux-6.18.44-fc-v70-x86_64-with-glibc2.39",
+    "python_version": "3.13.16"
+  },
+  "finding": "The two implementations agree exactly on the injected cost model: the sum of declared stage means matches to binary64 rounding, and so does the injected standard deviation. They disagree on p50 by -5.8753 % because the two p50s are different quantities: P033's is a measured wall-clock median that includes its spin-wait overshoot and harness cost, while this one is the median of the sampled cost model with no clock involved. P033's own published ratio p50_over_injected_mean = 1.051343 against the distributional median ratio 0.985460 accounts for +6.6855 % of the gap, leaving +0.4174 % unexplained. latencynet's implementation was NOT changed to close the gap."
+}

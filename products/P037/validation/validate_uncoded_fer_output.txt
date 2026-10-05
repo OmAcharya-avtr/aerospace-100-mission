@@ -1,0 +1,30 @@
+framesync validation 1 -- uncoded frame error rate vs Eq. (11)
+==============================================================================
+frame: 1115 octets + 2 octet FECF = 8936 bits
+Eq. (11): FER = 1 - (1 - p)^n,  p = Q(sqrt(2 Eb/N0)) (Eq. (1), R = 1)
+acceptance: |measured - analytic| < 4 binomial standard errors
+seed 20261005; frame counts sized for 5% relative standard error, clamped to [400, 12000] frames
+
+CRC-16 known answer: crc16(b'123456789') = 0x29B1 (catalogue check value 0x29B1) -> PASS
+
+Eb/N0 dB        p_bit        N   errors     FER meas      stderr    FER Eq.11  dev/sigma  result
+------------------------------------------------------------------------------------------------
+    7.00   7.7267e-04      400      400   1.0000e+00   2.500e-03   9.9900e-01       0.40  PASS
+    8.00   1.9091e-04      400      329   8.2250e-01   1.910e-02   8.1843e-01       0.21  PASS
+    9.00   3.3627e-05     1142      297   2.6007e-01   1.298e-02   2.5955e-01       0.04  PASS
+   10.00   3.8721e-06    11362      368   3.2389e-02   1.661e-03   3.4009e-02       0.98  PASS
+   11.00   2.6131e-07    12000       31   2.5833e-03   4.634e-04   2.3323e-03       0.54  PASS
+
+Frame Error Control Field detection gap
+------------------------------------------------------------------------------
+frames with at least one bit error      : 1425
+of those, FECF failed to reject         : 0
+undetected fraction                     : 0.000e+00
+asymptotic expectation for a 16-bit CRC : 2^-16 = 1.526e-05
+expected undetected count at that rate  : 0.022
+NOTE: most frames here carry a single bit error, which a CRC-16 always
+      detects, so the measured gap is expected BELOW 2^-16 and this is
+      reported, not used as a pass/fail criterion.
+
+ALL CHECKS PASS: True
+wall time: 9.9 s

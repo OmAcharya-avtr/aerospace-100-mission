@@ -1,0 +1,66 @@
+model                     8 -> 12 (ReLU) -> 3, 147 parameters
+evaluation samples        300
+float32 sites swept       4704
+int8 sites swept          1176
+golden accuracy float32   0.970000
+golden accuracy int8      0.970000
+
+float32 mean degradation (mean total-variation distance) by bit position
+ bit role            mean TV    max TV  mean acc drop
+  31 sign       5.840970e-02  0.288614       0.049070
+  30 exponent   5.521985e-01  1.000000       0.530113
+  29 exponent   3.501336e-02  0.437603       0.027438
+  28 exponent   3.501336e-02  0.437603       0.027438
+  27 exponent   3.501296e-02  0.437603       0.027438
+  26 exponent   3.475581e-02  0.430972       0.027279
+  25 exponent   3.246110e-02  0.385886       0.024603
+  24 exponent   2.318103e-02  0.186235       0.016213
+  23 exponent   1.049241e-02  0.096570       0.005125
+  22 mantissa   4.911427e-03  0.024623       0.001565
+  21 mantissa   2.279994e-03  0.012593       0.000363
+  20 mantissa   1.141927e-03  0.006647       0.000136
+  19 mantissa   5.727359e-04  0.005075       0.000023
+  18 mantissa   2.820794e-04  0.001863       0.000000
+  17 mantissa   1.412177e-04  0.000974       0.000000
+  16 mantissa   7.074657e-05  0.000526       0.000000
+  15 mantissa   3.526359e-05  0.000253       0.000000
+  14 mantissa   1.761324e-05  0.000127       0.000000
+  13 mantissa   8.806405e-06  0.000064       0.000000
+  12 mantissa   4.404903e-06  0.000032       0.000000
+  11 mantissa   2.202317e-06  0.000016       0.000000
+  10 mantissa   1.101083e-06  0.000008       0.000000
+   9 mantissa   5.505483e-07  0.000004       0.000000
+   8 mantissa   2.752780e-07  0.000002       0.000000
+   7 mantissa   1.376387e-07  0.000001       0.000000
+   6 mantissa   6.881926e-08  0.000001       0.000000
+   5 mantissa   3.440965e-08  0.000000       0.000000
+   4 mantissa   1.720482e-08  0.000000       0.000000
+   3 mantissa   8.602404e-09  0.000000       0.000000
+   2 mantissa   4.301203e-09  0.000000       0.000000
+   1 mantissa   2.150601e-09  0.000000       0.000000
+   0 mantissa   1.075301e-09  0.000000       0.000000
+
+int8 mean degradation by bit position
+ bit role            mean TV    max TV  mean acc drop
+   7 sign       9.213904e-02  0.279740       0.080023
+   6 value      3.353668e-02  0.151117       0.024966
+   5 value      1.491127e-02  0.103524       0.007937
+   4 value      5.919391e-03  0.039637       0.001769
+   3 value      2.708774e-03  0.014297       0.000363
+   2 value      1.301623e-03  0.005752       0.000045
+   1 value      6.515932e-04  0.002536       0.000000
+   0 value      3.266510e-04  0.001192       0.000000
+
+int8 quantization is not lossless, and that is separate from any upset:
+max per-class probability shift from quantization alone  0.056143
+argmax predictions changed by quantization alone         0 of 300
+accuracy float32 0.970000 -> int8 0.970000
+
+float32: exponent field + sign is 98.853 % of the total damage in 9 of 32 bits
+float32: worst bit is 30 (exponent), mean TV 0.552198, max TV 1.000000
+int8:    worst bit is 7 (sign), mean TV 0.092139, max TV 0.279740
+ratio of worst mean TV, float32 / int8: 5.993
+ratio of total damage, float32 / int8:  5.452 (over 4x as many bit sites)
+per-site mean, float32 / int8:          1.363
+
+wrote /home/claude/aerospace-100-mission/products/P040/screenshots/bit_position_criticality.png

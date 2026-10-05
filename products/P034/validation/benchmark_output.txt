@@ -1,0 +1,77 @@
+==============================================================================
+VALIDATION 5 -- campaign search: two baselines, one learned model
+==============================================================================
+
+Protocol
+  pools                 3, each covering all 248 cells 2x -> 496 cases
+  strategy seeds        8 per pool -> 24 runs per strategy
+  budget                60 executions (12.1 % of the pool)
+  learned warm-up       32 random executions, counted against the budget
+  severe threshold      severity >= 0.6
+  intervals             percentile bootstrap, 5000 resamples
+
+Pool severity ground truth: 28.49 % of pool cases are severe.
+A budget of 60 spent uniformly at random therefore has expectation 17.10 severe cases.
+
+5a. Structural checks on every run
+    runs checked  12
+    run counts    [24, 24, 24, 24]
+    PASS
+
+5b. Severe cases found per budget, with 95 % bootstrap intervals
+
+    strategy             mean        95 % interval  mean sev  coverage
+    ------------------------------------------------------------------
+    uniform_random     16.583 [ 15.208,  17.958]    0.3258    0.2266
+    coverage_greedy    16.708 [ 15.458,  18.000]    0.3299    0.2419
+    kind_mean          34.292 [ 32.792,  35.750]    0.5985    0.1899
+    learned            33.875 [ 32.083,  35.583]    0.5764    0.1892
+
+    'mean sev' is the mean severity of the cases the strategy chose to run;
+    'coverage' is the fraction of the 248 cells reached inside the budget.
+
+5c. Verdicts under the specification's overlap rule
+
+    learned          vs uniform_random   : learned ahead
+    learned          vs coverage_greedy  : learned ahead
+    learned          vs kind_mean        : no measurable advantage
+    coverage_greedy  vs uniform_random   : no measurable advantage
+    kind_mean        vs uniform_random   : kind_mean ahead
+
+    Required headline verdict (learned vs uniform_random): measurable advantage
+
+5d. Paired bootstrap on the per-run difference (same pool, same seed)
+
+    coverage_greedy - uniform_random      0.125  [ -0.292,   0.543]  interval contains zero
+    kind_mean - uniform_random           17.708  [ 16.583,  18.875]  interval excludes zero
+    learned - uniform_random             17.292  [ 15.917,  18.625]  interval excludes zero
+
+5e. The learned model's uncertainty output
+
+    empirical coverage of the nominal 95 % interval : 0.947581
+    mean interval width (severity is in [0, 1])     : 0.830661
+    NOTE  the interval is wider than half the severity range, so the
+          nominal coverage is reached by being uninformative rather than
+          by being calibrated. Stated as such in MODEL_CARD.md.
+
+    top feature importances (impurity-based, last fitted forest)
+      channel:u                          0.341502
+      param0                             0.113482
+      duration_frac                      0.105918
+      start_frac                         0.078627
+      kind:numerical_nan                 0.078323
+      kind:numerical_overflow            0.068734
+      kind:timing_overrun                0.044355
+      kind:sensor_quant_collapse         0.035383
+
+5f. Coverage-greedy must reach at least as many cells as uniform random
+    coverage_greedy 0.241935  uniform_random 0.226647
+    PASS
+
+Wall clock for the benchmark: 26.7 s on the build container (1 core, shared).
+
+Re-derived learned interval from its raw scores: mean 33.875, [32.083, 35.583]
+
+==============================================================================
+RESULT: PASS -- validation 5 structural checks passed; comparison reported above
+==============================================================================

@@ -1,0 +1,175 @@
+==============================================================================
+Ground truth: every bit of every parameter flipped once
+==============================================================================
+parameters                147 float32 (588 bytes)
+bit sites                 4704
+forward passes            9408 (calibration and evaluation splits)
+golden accuracy (cal)     0.960000
+golden accuracy (eval)    0.970000
+total degradation (eval)  121.423299 summed over all 4704 sites
+
+Mean degradation by bit position, evaluation split
+ bit role             mean TV  share of total
+  31 sign        5.840970e-02        0.070713
+  30 exponent    5.521985e-01        0.668514
+  29 exponent    3.501336e-02        0.042389
+  28 exponent    3.501336e-02        0.042389
+  27 exponent    3.501296e-02        0.042388
+  26 exponent    3.475581e-02        0.042077
+  25 exponent    3.246110e-02        0.039299
+  24 exponent    2.318103e-02        0.028064
+  23 exponent    1.049241e-02        0.012703
+  22 mantissa    4.911427e-03        0.005946
+  21 mantissa    2.279994e-03        0.002760
+  20 mantissa    1.141927e-03        0.001382
+  19 mantissa    5.727359e-04        0.000693
+  18 mantissa    2.820794e-04        0.000341
+  17 mantissa    1.412177e-04        0.000171
+  16 mantissa    7.074657e-05        0.000086
+  15 mantissa    3.526359e-05        0.000043
+  14 mantissa    1.761324e-05        0.000021
+  13 mantissa    8.806405e-06        0.000011
+  12 mantissa    4.404903e-06        0.000005
+  11 mantissa    2.202317e-06        0.000003
+  10 mantissa    1.101083e-06        0.000001
+   9 mantissa    5.505483e-07        0.000001
+   8 mantissa    2.752780e-07        0.000000
+   7 mantissa    1.376387e-07        0.000000
+   6 mantissa    6.881926e-08        0.000000
+   5 mantissa    3.440965e-08        0.000000
+   4 mantissa    1.720482e-08        0.000000
+   3 mantissa    8.602404e-09        0.000000
+   2 mantissa    4.301203e-09        0.000000
+   1 mantissa    2.150601e-09        0.000000
+   0 mantissa    1.075301e-09        0.000000
+
+exponent field + sign bit 8.165382e-01 (98.853 % of the total) in 9 of 32 bits
+mantissa field            9.470620e-03 (1.147 % of the total) in 23 of 32 bits
+most critical bit         30 (exponent)
+[PASS] exponent MSB is the most critical bit position: bit 30 has the highest mean degradation, and the exponent MSB is bit 30
+[PASS] exponent field plus sign dominates the mantissa: 8.165382e-01 versus 9.470620e-03, a factor of 86.22
+
+==============================================================================
+Learned predictor
+==============================================================================
+features                  14
+training sites            2816 (88 parameters)
+test sites                1888 (59 parameters)
+trees                     160
+target                    log1p(TV degradation) on the calibration split
+
+feature                              importance
+heuristic_log2_relative                0.664403
+biased_exponent                        0.118038
+log2_abs_weight                        0.081391
+abs_weight                             0.077793
+bit_position                           0.031904
+downstream_weight_l1                   0.008389
+layer_index                            0.004711
+hidden_active_fraction                 0.003839
+upstream_activation_mean_abs           0.003837
+weight_sign                            0.002334
+is_exponent_bit                        0.001440
+is_sign_bit                            0.000978
+is_bias                                0.000734
+is_mantissa_bit                        0.000210
+
+Uncertainty output (ensemble standard deviation across trees)
+median sigma (log1p)      8.452685e-06
+mean abs error (log1p)    4.624248e-03
+coverage at k = 2         0.878178
+Gaussian reference        0.954500
+sites                     1888
+
+The coverage is BELOW the Gaussian reference, which is the expected
+direction: the dispersion of the trees of a random forest measures model
+disagreement, not predictive variance, and is known to understate the
+latter. The number above says by how much on this problem. It is a
+confidence signal for ranking, not a calibrated interval, and the model
+card says so.
+[PASS] uncertainty output is non-degenerate: max sigma 2.062673e-01, coverage 0.878178 at k = 2 against a Gaussian reference of 0.954500
+
+==============================================================================
+Degradation avoided per protected byte
+==============================================================================
+test region               59 parameters = 236 bytes
+total degradation         51.951744 over 1888 test bit sites
+
+cost model: bit
+   budget    bytes   units  magnitude_baseline  exponent_heuristic   learned_predictor              oracle              random
+     0.02      4.7      37            0.498414            4.886449            6.298675            6.532930            0.312257
+     0.05     11.8      94            0.364869            3.164676            3.550208            3.616972            0.258950
+     0.10     23.6     188            0.362017            1.713467            1.983816            2.031046            0.155522
+     0.25     59.0     472            0.369763            0.834949            0.871761            0.872797            0.159885
+     0.50    118.0     944            0.331287            0.440233            0.440244            0.440246            0.223585
+     1.00    236.0    1888            0.220135            0.220135            0.220135            0.220135            0.220135
+
+cost model: word
+   budget    bytes   units  magnitude_baseline  exponent_heuristic   learned_predictor              oracle              random
+     0.02      4.7       1            0.547011            0.220135            0.362759            0.547011            0.095307
+     0.05     11.8       2            0.367204            0.220135            0.448575            0.540700            0.109166
+     0.10     23.6       5            0.350601            0.220135            0.388010            0.461151            0.146595
+     0.25     59.0      14            0.372746            0.220135            0.360320            0.398163            0.200680
+     0.50    118.0      29            0.333600            0.220135            0.331964            0.335665            0.201788
+     1.00    236.0      59            0.220135            0.220135            0.220135            0.220135            0.220135
+
+==============================================================================
+Which method wins, and by how much
+==============================================================================
+ cost model   budget               winner     per byte            runner-up     per byte     margin
+        bit     0.02    learned_predictor     6.298675   exponent_heuristic     4.886449  +1.412225 (+28.9%)
+        bit     0.05    learned_predictor     3.550208   exponent_heuristic     3.164676  +0.385533 (+12.2%)
+        bit     0.10    learned_predictor     1.983816   exponent_heuristic     1.713467  +0.270349 (+15.8%)
+        bit     0.25    learned_predictor     0.871761   exponent_heuristic     0.834949  +0.036812 (+4.4%)
+        bit     0.50    learned_predictor     0.440244   exponent_heuristic     0.440233  +0.000010 (+0.0%)
+        bit     1.00   magnitude_baseline     0.220135    learned_predictor     0.220135  +0.000000 (+0.0%)
+       word     0.02   magnitude_baseline     0.547011    learned_predictor     0.362759  +0.184251 (+50.8%)
+       word     0.05    learned_predictor     0.448575   magnitude_baseline     0.367204  +0.081371 (+22.2%)
+       word     0.10    learned_predictor     0.388010   magnitude_baseline     0.350601  +0.037409 (+10.7%)
+       word     0.25   magnitude_baseline     0.372746    learned_predictor     0.360320  +0.012426 (+3.4%)
+       word     0.50   magnitude_baseline     0.333600    learned_predictor     0.331964  +0.001636 (+0.5%)
+       word     1.00   magnitude_baseline     0.220135    learned_predictor     0.220135  +0.000000 (+0.0%)
+
+Cost of obtaining each ranking, which the metric above does not charge for:
+  magnitude_baseline   0 injections, 0 forward passes
+  exponent_heuristic   0 injections, 0 forward passes
+  learned_predictor    2816 injections and forward passes on the training parameters, plus the forest fit
+  oracle               1888 injections on the test parameters, measured on the data it is then scored on - unachievable in flight
+
+==============================================================================
+Oracle fraction: how close each method gets to perfect knowledge
+==============================================================================
+ cost model   budget  magnitude_baseline  exponent_heuristic   learned_predictor              random
+        bit     0.02            0.076293            0.747972            0.964142            0.047797
+        bit     0.05            0.100877            0.874952            0.981542            0.071593
+        bit     0.10            0.178242            0.843638            0.976746            0.076572
+        bit     0.25            0.423653            0.956636            0.998814            0.183187
+        bit     0.50            0.752504            0.999971            0.999994            0.507864
+       word     0.02            1.000000            0.402432            0.663167            0.174232
+       word     0.05            0.679126            0.407128            0.829618            0.201897
+       word     0.10            0.760273            0.477359            0.841395            0.317889
+       word     0.25            0.936164            0.552875            0.904956            0.504013
+       word     0.50            0.993849            0.655816            0.988975            0.601158
+[PASS] oracle is an upper bound on every method: checked for every (cost model, budget) pair in tests/test_criticality.py; the fractions above are all <= 1
+
+==============================================================================
+Reading of the result, stated plainly
+==============================================================================
+1. The exponent-bit heuristic does NOT win the headline metric at bit
+   granularity: the learned predictor is ahead at every budget below the
+   whole region. But the heuristic costs zero injections and zero training,
+   and already reaches 87 % of the oracle at a 5 % budget, against the
+   learned predictor's 98 % bought with 2816 injections and a forest fit.
+   Per unit of effort the heuristic is far ahead, and for anyone who cannot
+   run a ground-truth sweep it is the method to use.
+2. At word granularity - which is what real ECC and TMR charge - the
+   exponent heuristic is exactly uninformative. Its per-byte figure is
+   constant at the random-selection expectation, because it gives every
+   word the same score. The plain magnitude baseline beats the learned
+   predictor there at 4 of the 6 budgets tested.
+3. So which criticality method wins depends on the protection granularity,
+   and no single method wins everywhere. That is the result; it has not
+   been retuned to produce a cleaner one.
+
+==============================================================================
+RESULT: all checks PASSED

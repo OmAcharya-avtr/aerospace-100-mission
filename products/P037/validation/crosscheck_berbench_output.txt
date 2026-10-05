@@ -1,0 +1,51 @@
+framesync validation 7 -- cross-check against P010 BERBench
+==============================================================================
+channel: coherent BPSK, AWGN, uncoded, Eb/N0 per bit, no fading
+P010 expression: Pb = Q(sqrt(2 gamma)), gamma = 10^(Eb/N0 dB / 10)
+                 [P010 src/berbench/analytic.py; Proakis & Salehi 2008,
+                  Eq. (4.3-13)]
+relation:        FER = 1 - (1 - Pb)^n  [Eq. (11)]
+frame:           1115 octets + 2 octet FECF = 8936 bits
+
+Step 1: P010's BER expression against P010's own recorded numbers
+------------------------------------------------------------------------------
+    8.0 dB: P010 recorded 1.909100e-04, recomputed 1.909078e-04 (rel 1.17e-05), framesync 1.909078e-04 (rel 0.00e+00) -> PASS
+   10.0 dB: P010 recorded 3.872108e-06, recomputed 3.872108e-06 (rel 1.23e-10), framesync 3.872108e-06 (rel 3.72e-15) -> PASS
+
+Step 2: P010's BER converted to a frame error rate through Eq. (11)
+------------------------------------------------------------------------------
+  Eb/N0                                  : 9.00 dB
+  P010 BER (its formula, scipy norm.sf)  : 3.362722842e-05
+  framesync BER (its formula, erfc)      : 3.362722842e-05
+  relative difference in BER             : 2.821e-15
+  FER from P010 BER via Eq. (11)         : 2.595505895e-01
+  FER from framesync Eq. (11)            : 2.595505895e-01
+
+Step 3: framesync MEASURED frame error rate, 20000 frames
+------------------------------------------------------------------------------
+  frames                                 : 20000
+  frames with at least one bit error     : 5130
+  measured FER                           : 2.565000000e-01
+  binomial standard error                : 3.087942276e-03
+  FER predicted from P010's BER          : 2.595505895e-01
+  relative difference                    : 1.175335e-02
+  deviation in standard errors           : 0.988
+  acceptance: rel < 0.05 -> PASS; dev < 4 sigma -> PASS
+
+  FECF-detected frame error rate         : 2.565000000e-01
+  frames with errors the FECF missed     : 0
+
+Step 4: the inverted-BER anchor
+------------------------------------------------------------------------------
+  framesync Eb/N0 at BER 1e-5            : 9.5879 dB
+  P010 recorded                          : 9.5879 dB
+  difference                             : 4.17e-05 dB (tolerance 1e-3) -> PASS
+
+Finding
+------------------------------------------------------------------------------
+  NO DISAGREEMENT.
+  framesync's BER expression reproduces P010 BERBench's recorded BPSK/AWGN values to better than 1e-4 relative (limited only by the 5 significant figures P010 printed for the 8 dB row), the inverted Eb/N0 at BER 1e-5 agrees to 1e-4 dB, and framesync's measured frame error rate at 9.0 dB sits 0.99 binomial standard errors from the value obtained by converting P010's BER through FER = 1 - (1 - Pb)^n..
+
+wrote crosscheck_berbench.json
+ALL CHECKS PASS: True
+wall time: 3.0 s

@@ -1,0 +1,124 @@
+======================================================================================================
+P039 latencynet -- Validation 4: three-way held-out comparison in both regimes
+======================================================================================================
+splits: train=200 calibration=60 test=150 pipelines; probe n=256; nominal level=0.9
+reference sample: 25000 passes for train/calibration, 90000 for test; seed 20260402
+winner rule, fixed in advance: smallest mean absolute log error on the test split; significance by
+paired t-test against analytic_sum_indep at p < 0.05.
+No measured wall-clock time appears anywhere in this script.
+
+(a) regime=independent
+------------------------------------------------------------------------------------------------------
+  injected latent correlation across 410 pipelines: min 0.000 mean 0.000 max 0.000
+  stages per pipeline: min 2 mean 3.94 max 6
+
+regime=independent  p=0.99  nominal level=0.9  train=200 cal=60 test=150
+reference-target mean relative MC standard error: 0.304 %
+
+model                      mean|dlnq|  med|dlnq|     bias  native cov  conf cov  conf width  p vs base
+------------------------------------------------------------------------------------------------------
+analytic_sum_indep            0.03655    0.02525  -0.0227       0.627     0.933      0.1863        ref
+linear_ols                    0.03300    0.02253   0.0060       0.860     0.880      0.1342     0.1306
+learned_gbt                   0.05167    0.03552   0.0093       0.700     0.927      0.2474     0.0009
+analytic_sum_cov              0.03725    0.02629  -0.0221       0.233     0.940      0.1928     0.4266
+------------------------------------------------------------------------------------------------------
+winner by mean absolute log error: linear_ols (not significant vs the baseline)
+
+regime=independent  p=0.999  nominal level=0.9  train=200 cal=60 test=150
+reference-target mean relative MC standard error: 0.876 %
+
+model                      mean|dlnq|  med|dlnq|     bias  native cov  conf cov  conf width  p vs base
+------------------------------------------------------------------------------------------------------
+analytic_sum_indep            0.07086    0.06137  -0.0592       0.413     0.953      0.3429        ref
+linear_ols                    0.05005    0.03652   0.0041       0.873     0.880      0.1978     0.0000
+learned_gbt                   0.06080    0.04349   0.0076       0.520     0.887      0.2908     0.0988
+analytic_sum_cov              0.07154    0.06148  -0.0584       0.053     0.967      0.3515     0.5833
+------------------------------------------------------------------------------------------------------
+winner by mean absolute log error: linear_ols (significant)
+
+(c) learned-model capacity sweep, regime=independent, p=0.99
+------------------------------------------------------------------------------------------------------
+  reference: analytic_sum_indep 0.03655   linear_ols 0.03300
+   n_estimators  max_depth  learning_rate  mean|dlnq|  beats analytic  beats linear
+             50          2           0.05     0.08990              no            no
+            100          3           0.05     0.05386              no            no
+            300          3           0.05     0.05167              no            no
+            300          2           0.10     0.05838              no            no
+            300          5           0.05     0.05775              no            no
+            800          3           0.02     0.05196              no            no
+
+  learned-model impurity feature importances, regime=independent, p=0.99 (top 6)
+    log_sum_stage_p99       0.8513
+    log_sum_mean            0.0904
+    log_indep_sd            0.0374
+    log_dep_sd              0.0163
+    max_stage_cv            0.0013
+    mean_stage_skew         0.0009
+    impurity importances are biased toward high-cardinality features
+    (Strobl et al. 2007); reported as what the model leaned on, not as a
+    causal claim.
+
+(b) regime=correlated
+------------------------------------------------------------------------------------------------------
+  injected latent correlation across 410 pipelines: min 0.354 mean 0.623 max 0.900
+  stages per pipeline: min 2 mean 3.94 max 6
+
+regime=correlated  p=0.99  nominal level=0.9  train=200 cal=60 test=150
+reference-target mean relative MC standard error: 0.374 %
+
+model                      mean|dlnq|  med|dlnq|     bias  native cov  conf cov  conf width  p vs base
+------------------------------------------------------------------------------------------------------
+analytic_sum_indep            0.15441    0.14950  -0.1530       0.107     0.900      0.5195        ref
+linear_ols                    0.03155    0.02398   0.0057       0.907     0.913      0.1466     0.0000
+learned_gbt                   0.05094    0.04153   0.0183       0.680     0.927      0.2500     0.0000
+analytic_sum_cov              0.03317    0.02466  -0.0145       0.193     0.953      0.1744     0.0000
+------------------------------------------------------------------------------------------------------
+winner by mean absolute log error: linear_ols (significant)
+
+regime=correlated  p=0.999  nominal level=0.9  train=200 cal=60 test=150
+reference-target mean relative MC standard error: 1.001 %
+
+model                      mean|dlnq|  med|dlnq|     bias  native cov  conf cov  conf width  p vs base
+------------------------------------------------------------------------------------------------------
+analytic_sum_indep            0.22493    0.21619  -0.2233       0.093     0.887      0.7245        ref
+linear_ols                    0.04107    0.03100   0.0072       0.953     0.960      0.2468     0.0000
+learned_gbt                   0.05546    0.04451   0.0151       0.733     0.987      0.3641     0.0000
+analytic_sum_cov              0.04916    0.03820  -0.0340       0.067     0.973      0.2902     0.0000
+------------------------------------------------------------------------------------------------------
+winner by mean absolute log error: linear_ols (significant)
+
+(c) learned-model capacity sweep, regime=correlated, p=0.99
+------------------------------------------------------------------------------------------------------
+  reference: analytic_sum_indep 0.15441   linear_ols 0.03155
+   n_estimators  max_depth  learning_rate  mean|dlnq|  beats analytic  beats linear
+             50          2           0.05     0.07479             yes            no
+            100          3           0.05     0.05257             yes            no
+            300          3           0.05     0.05094             yes            no
+            300          2           0.10     0.05592             yes            no
+            300          5           0.05     0.05270             yes            no
+            800          3           0.02     0.05098             yes            no
+
+  learned-model impurity feature importances, regime=correlated, p=0.99 (top 6)
+    log_sum_stage_p99       0.8439
+    log_sum_mean            0.0925
+    log_dep_sd              0.0561
+    log_indep_sd            0.0034
+    mean_stage_skew         0.0012
+    max_stage_cv            0.0006
+    impurity importances are biased toward high-cardinality features
+    (Strobl et al. 2007); reported as what the model leaned on, not as a
+    causal claim.
+
+======================================================================================================
+which case does the data fall in
+------------------------------------------------------------------------------------------------------
+  independent/p0.99         winner linear_ols            not significant vs baseline
+  independent/p0.999        winner linear_ols            significant vs analytic baseline
+  correlated/p0.99          winner linear_ols            significant vs analytic baseline
+  correlated/p0.999         winner linear_ols            significant vs analytic baseline
+
+  capacity sweep: the learned model beat the analytic baseline on 6/12 settings
+  and the linear baseline on 0/12 settings.
+
+  written: model_comparison.json
+======================================================================================================

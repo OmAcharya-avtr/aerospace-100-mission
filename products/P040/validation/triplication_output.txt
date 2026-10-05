@@ -1,0 +1,73 @@
+==============================================================================
+Triplication with a majority vote, enumerated exhaustively
+==============================================================================
+Protected words are stored three times and voted at use. Two voters are
+compared; the single-upset claim is unconditional, and the double-upset
+behaviour is enumerated by case rather than summarised as pass or fail.
+
+==============================================================================
+Case A, float16: 3 float16 parameters x 16 bits x 3 copies = 144 sites
+==============================================================================
+single upsets enumerated          144
+word voter wrong                  0
+word voter flagged uncorrectable  0
+bitwise voter wrong               0
+[PASS] Case A, float16 single-upset recovery: all 144 single-upset cases recovered exactly by both voters, 0 flagged, 0 wrong
+
+double-upset pairs enumerated     10296 (= C(144, 2) = 10296)
+case                                             cases  word ok  flagged  bit ok
+same copy                                         3384     3384        0    3384
+different copies, different elements              4608     4608        0    4608
+different copies, same element, same bit           144        0        0       0
+different copies, same element, different bit     2160        0     2160    2160
+[PASS] Case A, float16 double upsets in one copy are recovered: 3384 cases, all recovered by both voters
+[PASS] Case A, float16 double upsets in different copies but different elements: 4608 cases, all recovered: each element still has a 2-of-3 majority
+[PASS] Case A, float16 double upsets on the same element and same bit FAIL silently: 144 cases, 0 recovered, 0 flagged by either voter: two copies agree on the wrong value, which is the classic TMR double-upset failure
+[PASS] Case A, float16 double upsets on the same element at different bits are detected: 2160 cases: the word voter corrects none and flags all 2160; the bitwise voter silently corrects all of them
+
+word voter over all 10296 double-upset pairs: 7992 recovered (77.622 %), 2160 flagged (20.979 %), 144 silently wrong (1.399 %)
+
+==============================================================================
+Case B, float32 single parameter: 1 float32 parameters x 32 bits x 3 copies = 96 sites
+==============================================================================
+single upsets enumerated          96
+word voter wrong                  0
+word voter flagged uncorrectable  0
+bitwise voter wrong               0
+[PASS] Case B, float32 single parameter single-upset recovery: all 96 single-upset cases recovered exactly by both voters, 0 flagged, 0 wrong
+
+double-upset pairs enumerated     4560 (= C(96, 2) = 4560)
+case                                             cases  word ok  flagged  bit ok
+same copy                                         1488     1488        0    1488
+different copies, different elements                 0        0        0       0
+different copies, same element, same bit            96        0        0       0
+different copies, same element, different bit     2976        0     2976    2976
+[PASS] Case B, float32 single parameter double upsets in one copy are recovered: 1488 cases, all recovered by both voters
+[n/a ] double upsets in different copies but different elements: this case has a single element, so the bucket is empty by construction
+[PASS] Case B, float32 single parameter double upsets on the same element and same bit FAIL silently: 96 cases, 0 recovered, 0 flagged by either voter: two copies agree on the wrong value, which is the classic TMR double-upset failure
+[PASS] Case B, float32 single parameter double upsets on the same element at different bits are detected: 2976 cases: the word voter corrects none and flags all 2976; the bitwise voter silently corrects all of them
+
+word voter over all 4560 double-upset pairs: 1488 recovered (32.632 %), 2976 flagged (65.263 %), 96 silently wrong (2.105 %)
+
+==============================================================================
+Cost of triplication
+==============================================================================
+scheme                    selective_triplication
+protected                 588 bytes
+extra memory              1176 bytes
+memory factor             3.000x
+latency overhead          0.003000 of inference time
+(the inference and vote times above are the illustrative 1 ms / 3 us pair;
+the measured figures for this host are in examples/mitigation_tradeoff.py)
+
+What triplication does NOT buy, stated plainly:
+  - it does not reduce the upset rate, only the probability that an upset
+    changes the result;
+  - 3x memory on the protected region means 3x the exposed bits in that
+    region, so the rate of double upsets within a voted triple grows with
+    the protection, which is why the scrub interval matters;
+  - a word voter that flags an uncorrectable element has still lost that
+    element; detection is not correction.
+
+==============================================================================
+RESULT: all checks PASSED

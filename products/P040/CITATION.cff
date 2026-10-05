@@ -1,0 +1,71 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "bitflipsim: single-event-upset injection, per-bit criticality and mitigation accounting for small scikit-learn / ONNX inference models"
+version: 0.1.0
+date-released: 2026-10-05
+license: MIT
+abstract: >-
+  Bit-level single-event-upset injection into the parameters and activations of
+  a small scikit-learn or ONNX inference model, with the IEEE 754 and
+  two's-complement storage layouts discovered at runtime rather than asserted;
+  a flux times cross-section times bit-count rate model with Poisson counts and
+  their sampling errors; exhaustive per-bit criticality by storage position for
+  float32 and int8; a learned criticality predictor with an ensemble
+  uncertainty output, benchmarked against a magnitude baseline and an
+  exponent-bit heuristic on degradation avoided per protected byte; and
+  mitigation evaluation covering parameter range clamping with a derived and
+  exhaustively verified deviation bound, selective triplication with two
+  majority voters enumerated over all single and double upsets, and periodic
+  reload, each with its memory and latency cost. Validation level 2,
+  research grade. This software models upsets; it does not qualify parts. Not
+  flight-qualified, not certified, not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - single-event-upset
+  - radiation-effects
+  - fault-injection
+  - bit-flip
+  - ieee-754
+  - triple-modular-redundancy
+  - onnx
+  - onboard-inference
+references:
+  - type: conference-paper
+    authors:
+      - family-names: Mahmoud
+        given-names: A.
+      - family-names: Aggarwal
+        given-names: N.
+      - family-names: Nobbe
+        given-names: A.
+      - family-names: "Sanchez Vicarte"
+        given-names: "J. R."
+      - family-names: Adve
+        given-names: "S. V."
+      - family-names: Fletcher
+        given-names: "C. W."
+      - family-names: Frosio
+        given-names: I.
+      - family-names: Hari
+        given-names: "S. K. S."
+    title: "PyTorchFI: A Runtime Perturbation Tool for DNNs"
+    collection-title: "2020 50th Annual IEEE/IFIP International Conference on Dependable Systems and Networks Workshops (DSN-W)"
+    start: 25
+    end: 31
+    year: 2020
+    notes: >-
+      Named in this repository's alternatives table as the closest prior art.
+      The bibliographic details above are those given in the citation block of
+      the pytorchfi project description on PyPI, read on 2026-10-05.
+  - type: standard
+    title: "IEEE Standard for Floating-Point Arithmetic"
+    number: "IEEE 754-2019"
+    institution:
+      name: "IEEE"
+    year: 2019
+    notes: >-
+      The binary16, binary32 and binary64 interchange formats. This repository
+      does not quote the standard; it derives every layout field from numpy at
+      runtime and re-derives it from probe encodings, so the layout is checked
+      rather than asserted (validation/validate_ieee754_layout.py).

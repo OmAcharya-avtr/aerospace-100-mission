@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bitflipsim"
+version = "0.1.0"
+description = "Single-event-upset injection, per-bit criticality and mitigation accounting for small scikit-learn / ONNX inference models."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "single-event-upset",
+    "radiation-effects",
+    "fault-injection",
+    "bit-flip",
+    "ieee-754",
+    "triple-modular-redundancy",
+    "onnx",
+    "onboard-inference",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: System :: Hardware",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scikit-learn>=1.3",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis"]
+examples = ["matplotlib"]
+onnx = ["onnxruntime"]
+dev = ["pytest", "hypothesis", "ruff", "matplotlib", "onnxruntime"]
+
+[project.scripts]
+bitflipsim = "bitflipsim.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+filterwarnings = ["error::RuntimeWarning"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]

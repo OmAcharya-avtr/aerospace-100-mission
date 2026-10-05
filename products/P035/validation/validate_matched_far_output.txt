@@ -1,0 +1,416 @@
+==============================================================================
+Matched-false-alarm-rate comparison with full confusion matrices
+==============================================================================
+script          : validation/validate_matched_far.py
+python          : 3.13.16 on Linux-6.18.44-fc-v70-x86_64-with-glibc2.39
+numpy / scipy / scikit-learn : 2.5.3 / 1.18.1 / 1.9.1
+
+target alpha_W           : 0.05
+window length W          : 100 samples
+channels                 : 4, equicorrelation 0.6, no serial correlation
+debounce (persistence)   : 1
+anomaly onset            : sample 40 of 100
+train / cal / measure    : 1500 / 10000 / 20000 windows
+windows per scenario     : 2000
+base seed                : 20261005
+combined SE on delivered : 0.0026693
+agreement band           : |z| < 3.5 combined SE
+
+------------------------------------------------------------------------------
+Analytic single-channel design values, for reference
+------------------------------------------------------------------------------
+These are what the charts would need on ONE channel with no debounce.  The
+harness monitors all four channels through one alarm bus, so the calibrated
+thresholds below are larger; the analytic values are printed so the
+multi-channel inflation is visible rather than implicit.
+
+method                    parameter   single-channel value      alpha_W         ARL0
+cusum k=0.5                       h            6.351522849   0.05000000      1802.80
+ewma lam=0.2                      L            3.374959514   0.05000000      1864.55
+limit p=1                         L            3.473978869   0.05000000      1950.07
+
+------------------------------------------------------------------------------
+Running the comparison
+------------------------------------------------------------------------------
+Detector order is baseline-first by construction.
+harness wall time        : 33.0 s
+
+Window false-alarm probability: target, calibration (in-sample), measurement (independent)
+  target alpha_W = 0.050000   W = 100 samples   channels = 4
+  calibration windows = 10000   measurement windows = 20000
+
+  method                      threshold       cal  measured  binom SE   comb SE   z comb           95% Wilson
+  ool(p=1)                     3.821037   0.05000   0.04675   0.00149   0.00267    -1.22 [0.04391, 0.04976]
+  ewma(lam=0.2)                3.736748   0.05000   0.05210   0.00157   0.00267     0.79 [0.04911, 0.05527]
+  cusum(k=0.5)                 7.582248   0.05000   0.05105   0.00156   0.00267     0.39 [0.04808, 0.05419]
+  t2q(lam=0.2)                 1.632697   0.05000   0.04670   0.00149   0.00267    -1.24 [0.04386, 0.04971]
+  gmm4(lam=0.2)               18.790808   0.05000   0.04855   0.00152   0.00267    -0.54 [0.04566, 0.05162]
+  iforest60(lam=0.2)           0.680150   0.05000   0.05615   0.00163   0.00267     2.30 [0.05304, 0.05943]
+
+  analytic single-channel design value, for reference only:
+    ool(p=1)                 alpha_W(design) = 0.050000
+    ewma(lam=0.2)            alpha_W(design) = 0.050000
+    cusum(k=0.5)             alpha_W(design) = 0.050000
+
+------------------------------------------------------------------------------
+Is the match good enough to call it a comparison?
+------------------------------------------------------------------------------
+[PASS] ool(p=1): delivered alpha_W within 3.5 combined SE of the target  delivered=0.046750 target=0.05 z=-1.22 (in-sample calibration rate 0.050000)
+[PASS] ewma(lam=0.2): delivered alpha_W within 3.5 combined SE of the target  delivered=0.052100 target=0.05 z=+0.79 (in-sample calibration rate 0.050000)
+[PASS] cusum(k=0.5): delivered alpha_W within 3.5 combined SE of the target  delivered=0.051050 target=0.05 z=+0.39 (in-sample calibration rate 0.050000)
+[PASS] t2q(lam=0.2): delivered alpha_W within 3.5 combined SE of the target  delivered=0.046700 target=0.05 z=-1.24 (in-sample calibration rate 0.050000)
+[PASS] gmm4(lam=0.2): delivered alpha_W within 3.5 combined SE of the target  delivered=0.048550 target=0.05 z=-0.54 (in-sample calibration rate 0.050000)
+[PASS] iforest60(lam=0.2): delivered alpha_W within 3.5 combined SE of the target  delivered=0.056150 target=0.05 z=+2.30 (in-sample calibration rate 0.050000)
+
+A method that fails here is not comparable with the others in the tables
+below, and the reason has to be named rather than averaged away.  One
+mechanism that would cause it is a score with heavy ties: a threshold has
+to land between two distinct score values, so a coarse score cannot be
+calibrated to an arbitrary rate.  The next section measures that directly,
+so the explanation is checked rather than assumed.
+
+------------------------------------------------------------------------------
+Score granularity: why a tied score cannot be calibrated finely
+------------------------------------------------------------------------------
+For each detector, the number of distinct window trigger levels among the
+first 4000 calibration windows, and the number of those windows
+sharing the single most common level.  A detector whose scores take few
+distinct values cannot hit an arbitrary alpha_W.
+
+method                    distinct levels   largest tie group   tie group / windows
+ool(p=1)                             4000                   1               0.00025
+ewma(lam=0.2)                        4000                   1               0.00025
+cusum(k=0.5)                         4000                   1               0.00025
+t2q(lam=0.2)                         4000                   1               0.00025
+gmm4(lam=0.2)                        4000                   1               0.00025
+iforest60(lam=0.2)                   3988                   3               0.00075
+
+Measured outcome: the scores are almost entirely distinct for every
+detector, so calibration granularity is NOT the limiting factor at this
+sample size, and any residual discrepancy in the table above is ordinary
+sampling error of the threshold and the measurement.  The diagnostic is kept
+because it would be the first thing to look at if a detector with a coarser
+score -- a rank statistic, a quantised telemetry word -- were added.
+
+------------------------------------------------------------------------------
+Detection probability and delay at the matched operating point
+------------------------------------------------------------------------------
+Pd is the probability of an alarm at or after the onset, within the window.
+Delay is in samples and is conditional on detection; 'early' counts windows
+that alarmed before the onset, which are excluded from the delay and are
+false alarms that happened to land in an anomalous window.
+AUC is the window-level ROC area against the 20000-window nominal set.
+
+Scenario 'step_1.0sigma': step onset=40 magnitude=1.0 channels=[0] n_windows=2000
+  method                         Pd       SE     mean   median    p10    p90   early      AUC
+  ool(p=1)                   0.1485   0.0080    29.61     29.0    7.0   53.0      35   0.7184
+  ewma(lam=0.2)              0.9695   0.0038    16.86     14.0    6.0   33.0      35   0.9962
+  cusum(k=0.5)               0.9875   0.0025    13.63     12.0    6.0   23.0      24   1.0000
+  t2q(lam=0.2)               0.9800   0.0031    14.62     13.0    6.0   27.0      34   0.9985
+  gmm4(lam=0.2)              0.9855   0.0027    11.90     10.0    5.0   21.0      28   0.9995
+  iforest60(lam=0.2)         0.0415   0.0045    31.46     34.0    4.0   53.0      41   0.6348
+
+Scenario 'step_0.5sigma': step onset=40 magnitude=0.5 channels=[0] n_windows=2000
+  method                         Pd       SE     mean   median    p10    p90   early      AUC
+  ool(p=1)                   0.0410   0.0044    28.70     25.0    6.0   53.0      41   0.5482
+  ewma(lam=0.2)              0.3125   0.0104    29.60     28.0   10.4   51.0      41   0.8012
+  cusum(k=0.5)               0.5510   0.0111    31.41     31.0   13.0   52.0      39   0.8611
+  t2q(lam=0.2)               0.3830   0.0109    31.21     30.0   12.0   53.0      30   0.8551
+  gmm4(lam=0.2)              0.4130   0.0110    30.36     30.0   11.0   52.0      24   0.8639
+  iforest60(lam=0.2)         0.0395   0.0044    27.22     27.0    5.8   50.4      40   0.5650
+
+Scenario 'drift_0.05sigma_per_sample': drift onset=40 magnitude=0.05 channels=[0] n_windows=2000
+  method                         Pd       SE     mean   median    p10    p90   early      AUC
+  ool(p=1)                   0.8835   0.0072    44.94     47.0   31.6   56.0      42   0.9831
+  ewma(lam=0.2)              0.9780   0.0033    25.52     26.0   18.0   33.0      44   1.0000
+  cusum(k=0.5)               0.9790   0.0032    24.43     25.0   18.0   30.0      42   1.0000
+  t2q(lam=0.2)               0.9815   0.0030    24.58     25.0   18.0   31.0      37   1.0000
+  gmm4(lam=0.2)              0.9800   0.0031    22.89     23.0   17.0   28.0      40   1.0000
+  iforest60(lam=0.2)         0.0430   0.0045    35.50     37.5   12.0   54.5      42   0.6716
+
+Scenario 'stuck_channel0': stuck onset=40 magnitude=0.0 channels=[0] n_windows=2000
+  method                         Pd       SE     mean   median    p10    p90   early      AUC
+  ool(p=1)                   0.0235   0.0034    28.13     26.0    5.6   49.4      35   0.4677
+  ewma(lam=0.2)              0.2370   0.0095     8.94      6.0    3.0   15.0      34   0.6279
+  cusum(k=0.5)               0.5430   0.0111    15.74     11.0    4.0   35.0      29   0.7666
+  t2q(lam=0.2)               0.6585   0.0106    15.65     11.0    3.0   37.0      32   0.8838
+  gmm4(lam=0.2)              0.6600   0.0106    15.74     10.0    3.0   40.0      30   0.8874
+  iforest60(lam=0.2)         0.0155   0.0028    28.48     25.0    9.0   51.0      46   0.5154
+
+Scenario 'decorrelate_ch01': decorrelate onset=40 magnitude=0.0 channels=[0, 1] n_windows=2000
+  method                         Pd       SE     mean   median    p10    p90   early      AUC
+  ool(p=1)                   0.0320   0.0039    30.52     33.5    6.3   54.0      37   0.5144
+  ewma(lam=0.2)              0.0355   0.0041    29.94     31.0    7.0   51.0      42   0.5386
+  cusum(k=0.5)               0.0345   0.0041    30.58     33.0    7.0   50.2      34   0.5374
+  t2q(lam=0.2)               0.9240   0.0059    18.28     14.0    3.0   40.0      41   0.9888
+  gmm4(lam=0.2)              0.9340   0.0056    17.46     13.0    2.0   40.0      36   0.9893
+  iforest60(lam=0.2)         0.0000   0.0000      nan      nan    nan    nan      40   0.4253
+
+
+------------------------------------------------------------------------------
+Who wins each scenario, among methods reaching Pd >= 0.5
+------------------------------------------------------------------------------
+scenario                              fastest (lowest mean delay)    its Pd  its mean delay                 best AUC
+step_1.0sigma                                       gmm4(lam=0.2)    0.9855           11.90    cusum(k=0.5) (1.0000)
+step_0.5sigma                                        cusum(k=0.5)    0.5510           31.41   gmm4(lam=0.2) (0.8639)
+drift_0.05sigma_per_sample                          gmm4(lam=0.2)    0.9800           22.89   ewma(lam=0.2) (1.0000)
+stuck_channel0                                       t2q(lam=0.2)    0.6585           15.65   gmm4(lam=0.2) (0.8874)
+decorrelate_ch01                                    gmm4(lam=0.2)    0.9340           17.46   gmm4(lam=0.2) (0.9893)
+
+------------------------------------------------------------------------------
+Textbook expectations that must hold if the harness is correct
+------------------------------------------------------------------------------
+[PASS] CUSUM beats a plain limit check on a sustained 1.0 sigma step, at matched FAR  cusum Pd=0.9875 delay=13.63; ool Pd=0.1485 delay=29.61
+[PASS] no univariate method detects a pure decorrelation (Pd < 0.2 for all three)  ool(p=1): Pd=0.0320, ewma(lam=0.2): Pd=0.0355, cusum(k=0.5): Pd=0.0345
+[PASS] at least one multivariate method detects the decorrelation with Pd > 0.5  t2q(lam=0.2): Pd=0.9240, gmm4(lam=0.2): Pd=0.9340
+[PASS] every method is at chance or better on the step scenario (AUC >= 0.5)  ool(p=1): 0.7184, ewma(lam=0.2): 0.9962, cusum(k=0.5): 1.0000, t2q(lam=0.2): 0.9985, gmm4(lam=0.2): 0.9995, iforest60(lam=0.2): 0.6348
+
+Methods scoring BELOW chance on some scenario, reported as measured:
+  ool(p=1)                 stuck_channel0                 AUC = 0.4677
+  iforest60(lam=0.2)       decorrelate_ch01               AUC = 0.4253
+An AUC below 0.5 means the score is anti-correlated with the anomaly on
+that scenario: the detector is systematically more comfortable with the
+anomalous data than with nominal data.  That is a real failure mode of a
+one-class model whose notion of 'normal' does not include the relevant
+direction, and it is left in the table.
+
+------------------------------------------------------------------------------
+Full confusion matrices, every method against every scenario
+------------------------------------------------------------------------------
+Negatives are the 20000-window nominal measurement set, shared by every
+scenario, so the false-positive column is the same within a method.
+
+Confusion matrix: method='ool(p=1)' scenario='step_1.0sigma'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                332                1668         2000
+  actual nominal                935               19065        20000
+  total                        1267               20733        22000
+  tpr=0.1660 fpr=0.0467 precision=0.2620 specificity=0.9533 f1=0.2032 accuracy=0.8817
+
+Confusion matrix: method='ewma(lam=0.2)' scenario='step_1.0sigma'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               1974                  26         2000
+  actual nominal               1042               18958        20000
+  total                        3016               18984        22000
+  tpr=0.9870 fpr=0.0521 precision=0.6545 specificity=0.9479 f1=0.7871 accuracy=0.9515
+
+Confusion matrix: method='cusum(k=0.5)' scenario='step_1.0sigma'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               1999                   1         2000
+  actual nominal               1021               18979        20000
+  total                        3020               18980        22000
+  tpr=0.9995 fpr=0.0510 precision=0.6619 specificity=0.9489 f1=0.7964 accuracy=0.9535
+
+Confusion matrix: method='t2q(lam=0.2)' scenario='step_1.0sigma'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               1994                   6         2000
+  actual nominal                934               19066        20000
+  total                        2928               19072        22000
+  tpr=0.9970 fpr=0.0467 precision=0.6810 specificity=0.9533 f1=0.8093 accuracy=0.9573
+
+Confusion matrix: method='gmm4(lam=0.2)' scenario='step_1.0sigma'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               1999                   1         2000
+  actual nominal                971               19029        20000
+  total                        2970               19030        22000
+  tpr=0.9995 fpr=0.0486 precision=0.6731 specificity=0.9515 f1=0.8044 accuracy=0.9558
+
+Confusion matrix: method='iforest60(lam=0.2)' scenario='step_1.0sigma'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                124                1876         2000
+  actual nominal               1123               18877        20000
+  total                        1247               20753        22000
+  tpr=0.0620 fpr=0.0561 precision=0.0994 specificity=0.9438 f1=0.0764 accuracy=0.8637
+
+Confusion matrix: method='ool(p=1)' scenario='step_0.5sigma'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                123                1877         2000
+  actual nominal                935               19065        20000
+  total                        1058               20942        22000
+  tpr=0.0615 fpr=0.0467 precision=0.1163 specificity=0.9533 f1=0.0804 accuracy=0.8722
+
+Confusion matrix: method='ewma(lam=0.2)' scenario='step_0.5sigma'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                666                1334         2000
+  actual nominal               1042               18958        20000
+  total                        1708               20292        22000
+  tpr=0.3330 fpr=0.0521 precision=0.3899 specificity=0.9479 f1=0.3592 accuracy=0.8920
+
+Confusion matrix: method='cusum(k=0.5)' scenario='step_0.5sigma'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               1141                 859         2000
+  actual nominal               1021               18979        20000
+  total                        2162               19838        22000
+  tpr=0.5705 fpr=0.0510 precision=0.5278 specificity=0.9489 f1=0.5483 accuracy=0.9145
+
+Confusion matrix: method='t2q(lam=0.2)' scenario='step_0.5sigma'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                796                1204         2000
+  actual nominal                934               19066        20000
+  total                        1730               20270        22000
+  tpr=0.3980 fpr=0.0467 precision=0.4601 specificity=0.9533 f1=0.4268 accuracy=0.9028
+
+Confusion matrix: method='gmm4(lam=0.2)' scenario='step_0.5sigma'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                850                1150         2000
+  actual nominal                971               19029        20000
+  total                        1821               20179        22000
+  tpr=0.4250 fpr=0.0486 precision=0.4668 specificity=0.9515 f1=0.4449 accuracy=0.9036
+
+Confusion matrix: method='iforest60(lam=0.2)' scenario='step_0.5sigma'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                119                1881         2000
+  actual nominal               1123               18877        20000
+  total                        1242               20758        22000
+  tpr=0.0595 fpr=0.0561 precision=0.0958 specificity=0.9438 f1=0.0734 accuracy=0.8635
+
+Confusion matrix: method='ool(p=1)' scenario='drift_0.05sigma_per_sample'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               1809                 191         2000
+  actual nominal                935               19065        20000
+  total                        2744               19256        22000
+  tpr=0.9045 fpr=0.0467 precision=0.6593 specificity=0.9533 f1=0.7626 accuracy=0.9488
+
+Confusion matrix: method='ewma(lam=0.2)' scenario='drift_0.05sigma_per_sample'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               2000                   0         2000
+  actual nominal               1042               18958        20000
+  total                        3042               18958        22000
+  tpr=1.0000 fpr=0.0521 precision=0.6575 specificity=0.9479 f1=0.7933 accuracy=0.9526
+
+Confusion matrix: method='cusum(k=0.5)' scenario='drift_0.05sigma_per_sample'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               2000                   0         2000
+  actual nominal               1021               18979        20000
+  total                        3021               18979        22000
+  tpr=1.0000 fpr=0.0510 precision=0.6620 specificity=0.9489 f1=0.7967 accuracy=0.9536
+
+Confusion matrix: method='t2q(lam=0.2)' scenario='drift_0.05sigma_per_sample'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               2000                   0         2000
+  actual nominal                934               19066        20000
+  total                        2934               19066        22000
+  tpr=1.0000 fpr=0.0467 precision=0.6817 specificity=0.9533 f1=0.8107 accuracy=0.9575
+
+Confusion matrix: method='gmm4(lam=0.2)' scenario='drift_0.05sigma_per_sample'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               2000                   0         2000
+  actual nominal                971               19029        20000
+  total                        2971               19029        22000
+  tpr=1.0000 fpr=0.0486 precision=0.6732 specificity=0.9515 f1=0.8047 accuracy=0.9559
+
+Confusion matrix: method='iforest60(lam=0.2)' scenario='drift_0.05sigma_per_sample'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                128                1872         2000
+  actual nominal               1123               18877        20000
+  total                        1251               20749        22000
+  tpr=0.0640 fpr=0.0561 precision=0.1023 specificity=0.9438 f1=0.0787 accuracy=0.8639
+
+Confusion matrix: method='ool(p=1)' scenario='stuck_channel0'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                 82                1918         2000
+  actual nominal                935               19065        20000
+  total                        1017               20983        22000
+  tpr=0.0410 fpr=0.0467 precision=0.0806 specificity=0.9533 f1=0.0544 accuracy=0.8703
+
+Confusion matrix: method='ewma(lam=0.2)' scenario='stuck_channel0'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                508                1492         2000
+  actual nominal               1042               18958        20000
+  total                        1550               20450        22000
+  tpr=0.2540 fpr=0.0521 precision=0.3277 specificity=0.9479 f1=0.2862 accuracy=0.8848
+
+Confusion matrix: method='cusum(k=0.5)' scenario='stuck_channel0'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               1115                 885         2000
+  actual nominal               1021               18979        20000
+  total                        2136               19864        22000
+  tpr=0.5575 fpr=0.0510 precision=0.5220 specificity=0.9489 f1=0.5392 accuracy=0.9134
+
+Confusion matrix: method='t2q(lam=0.2)' scenario='stuck_channel0'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               1349                 651         2000
+  actual nominal                934               19066        20000
+  total                        2283               19717        22000
+  tpr=0.6745 fpr=0.0467 precision=0.5909 specificity=0.9533 f1=0.6299 accuracy=0.9280
+
+Confusion matrix: method='gmm4(lam=0.2)' scenario='stuck_channel0'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               1350                 650         2000
+  actual nominal                971               19029        20000
+  total                        2321               19679        22000
+  tpr=0.6750 fpr=0.0486 precision=0.5816 specificity=0.9515 f1=0.6249 accuracy=0.9263
+
+Confusion matrix: method='iforest60(lam=0.2)' scenario='stuck_channel0'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                 77                1923         2000
+  actual nominal               1123               18877        20000
+  total                        1200               20800        22000
+  tpr=0.0385 fpr=0.0561 precision=0.0642 specificity=0.9438 f1=0.0481 accuracy=0.8615
+
+Confusion matrix: method='ool(p=1)' scenario='decorrelate_ch01'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                101                1899         2000
+  actual nominal                935               19065        20000
+  total                        1036               20964        22000
+  tpr=0.0505 fpr=0.0467 precision=0.0975 specificity=0.9533 f1=0.0665 accuracy=0.8712
+
+Confusion matrix: method='ewma(lam=0.2)' scenario='decorrelate_ch01'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                113                1887         2000
+  actual nominal               1042               18958        20000
+  total                        1155               20845        22000
+  tpr=0.0565 fpr=0.0521 precision=0.0978 specificity=0.9479 f1=0.0716 accuracy=0.8669
+
+Confusion matrix: method='cusum(k=0.5)' scenario='decorrelate_ch01'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                103                1897         2000
+  actual nominal               1021               18979        20000
+  total                        1124               20876        22000
+  tpr=0.0515 fpr=0.0510 precision=0.0916 specificity=0.9489 f1=0.0659 accuracy=0.8674
+
+Confusion matrix: method='t2q(lam=0.2)' scenario='decorrelate_ch01'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               1889                 111         2000
+  actual nominal                934               19066        20000
+  total                        2823               19177        22000
+  tpr=0.9445 fpr=0.0467 precision=0.6691 specificity=0.9533 f1=0.7833 accuracy=0.9525
+
+Confusion matrix: method='gmm4(lam=0.2)' scenario='decorrelate_ch01'
+                    predicted alarm   predicted nominal        total
+  actual anomaly               1904                  96         2000
+  actual nominal                971               19029        20000
+  total                        2875               19125        22000
+  tpr=0.9520 fpr=0.0486 precision=0.6623 specificity=0.9515 f1=0.7811 accuracy=0.9515
+
+Confusion matrix: method='iforest60(lam=0.2)' scenario='decorrelate_ch01'
+                    predicted alarm   predicted nominal        total
+  actual anomaly                 40                1960         2000
+  actual nominal               1123               18877        20000
+  total                        1163               20837        22000
+  tpr=0.0200 fpr=0.0561 precision=0.0344 specificity=0.9438 f1=0.0253 accuracy=0.8599
+
+
+------------------------------------------------------------------------------
+Verdict on the learned models against the baselines
+------------------------------------------------------------------------------
+Scenario by scenario, the best baseline (limit check, EWMA, CUSUM) against
+the best learned model (T^2/Q is classical and is listed as a baseline for
+this purpose; GMM and Isolation Forest are the learned models).
+
+scenario                           best univariate baseline      Pd   classical multivariate      Pd           best learned      Pd
+step_1.0sigma                                  cusum(k=0.5)  0.9875             t2q(lam=0.2)  0.9800          gmm4(lam=0.2)  0.9855
+step_0.5sigma                                  cusum(k=0.5)  0.5510             t2q(lam=0.2)  0.3830          gmm4(lam=0.2)  0.4130
+drift_0.05sigma_per_sample                     cusum(k=0.5)  0.9790             t2q(lam=0.2)  0.9815          gmm4(lam=0.2)  0.9800
+stuck_channel0                                 cusum(k=0.5)  0.5430             t2q(lam=0.2)  0.6585          gmm4(lam=0.2)  0.6600
+decorrelate_ch01                              ewma(lam=0.2)  0.0355             t2q(lam=0.2)  0.9240          gmm4(lam=0.2)  0.9340
+
+The question the README has to answer honestly is whether the learned models
+earn their place.  The rows above are the evidence; the README states the
+conclusion in the same terms and names `pyod` where a reader would be better
+served by it.
+
+------------------------------------------------------------------------------
+elapsed: 42.6 s on this machine
+all checks passed
+------------------------------------------------------------------------------

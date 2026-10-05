@@ -1,0 +1,54 @@
+Host measurement (single contended core, numpy; not a flight figure)
+inference, 300 samples   234.567 us median of 40
+clamp pass, 147 parameters  5.745 us median of 200 (39.085 ns per parameter)
+bitwise 3-way vote        12.266 us median of 200
+clamp + inference         302.129 us median of 40
+
+Parameter range clamping: the derived bound
+clamp limit C = max |w|   4.581974506
+Xmax = max |x|            3.473793800
+B = 2C max(C(n_in Xmax + 1), 1)  1208.877469 on max_k |d logits_k|
+(verified against all 4704 exhaustive single-upset cases in
+ validation/validate_clamp_bound.py, which also reports the tightness)
+
+Mitigation costs on the whole 588-byte parameter block
+scheme                      extra bytes  mem factor  latency fraction
+parameter_range_clamping              0       1.000          0.024494
+selective_triplication             1176       3.000          0.052292
+periodic_reload                     588       2.000          0.000167
+
+parameter_range_clamping: no redundant storage; the clamp limit C must be stored, which is one word per tensor and is not counted here. Latency measured with time.perf_counter on the build host.
+selective_triplication: 3x storage on the protected region only; the voter runs once per inference in this implementation, so the latency fraction is a measured numpy figure on the build host, not a flight figure.
+periodic_reload: one golden copy in non-volatile or protected storage; the latency figure is the duty cycle of lost inference time, not a per-call overhead.
+
+Clamping effectiveness, measured by campaign (600 trials per point)
+    mu  unmitigated TV        se   clamped TV        se   reduction
+   1.0        0.028079  0.004958     0.008469  0.001022      0.6984
+   2.0        0.051557  0.007225     0.015216  0.001414      0.7049
+   4.0        0.092991  0.009003     0.030200  0.001845      0.6752
+   8.0        0.170777  0.010965     0.060806  0.002647      0.6439
+  16.0        0.348919  0.014352     0.113277  0.003150      0.6753
+  32.0        0.509674  0.014205     0.188119  0.004085      0.6309
+  64.0        0.718746  0.011724     0.300029  0.004371      0.5826
+
+Periodic reload: expected live upsets and the reload duty cycle
+(lambda from the illustrative flux and cross-section applied to a 50 MB
+ model, so that the scrub interval has something to trade against)
+lambda for 50 MB          4.194304e-03 upsets s^-1
+   T_s (s)   E[live upsets]   duty cycle  reload time (s)
+       1.0     2.097152e-03 5.000000e-02            0.050
+      10.0     2.097152e-02 5.000000e-03            0.050
+      60.0     1.258291e-01 8.333333e-04            0.050
+     600.0     1.258291e+00 8.333333e-05            0.050
+    3600.0     7.549747e+00 1.388889e-05            0.050
+   86400.0     1.811939e+02 5.787037e-07            0.050
+
+check: expected_live_upsets(lam, 60) = 1.258291e-01
+
+Protection targeting: avoided degradation per byte at a 5 % budget
+  bit   magnitude baseline   avoided   7.567102 per byte   0.257603 fraction of total  0.062320
+  bit   exponent heuristic   avoided  84.254353 per byte   2.868233 fraction of total  0.693890
+  word  magnitude baseline   avoided   7.309431 per byte   0.261051 fraction of total  0.060198
+  word  exponent heuristic   avoided   5.782062 per byte   0.206502 fraction of total  0.047619
+
+wrote /home/claude/aerospace-100-mission/products/P040/screenshots/mitigation_tradeoff.png

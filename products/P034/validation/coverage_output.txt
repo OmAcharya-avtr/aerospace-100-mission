@@ -1,0 +1,102 @@
+==============================================================================
+VALIDATION 2 -- coverage accounting vs a hand enumeration
+==============================================================================
+
+Binning in use:
+  start_frac    range [0.0, 1.0], 2 linear bins, edges (0.0, 0.5, 1.0)
+  duration_frac range [0.05, 1.0], 2 linear bins, edges (0.05, 0.525, 1.0)
+  sensor_bias.offset  range [0.1, 10.0] channel units, 3 log bins, edges 0.100000, 0.464159, 2.154435, 10.000000
+  timing_late_sample.late_steps range [1.0, 4.0] step, 2 linear bins, edges 1.000000, 2.500000, 4.000000
+
+2a. Hand enumeration of the subset vs coverage.all_cells
+    hand cells      32
+    computed cells  32
+    PASS  identical, cell for cell and in the same order
+
+2b. Per-kind cell counts of the full taxonomy vs hand-evaluated products
+
+    kind                             hand  computed  match
+    ------------------------------------------------------
+    sensor_bias                        24        24   True
+    sensor_drift                       24        24   True
+    sensor_stuck                        8         8   True
+    sensor_dropout                     24        24   True
+    sensor_quant_collapse              24        24   True
+    actuator_loss_effectiveness        12        12   True
+    actuator_stuck                      4         4   True
+    actuator_runaway                   12        12   True
+    bus_delay                          12        12   True
+    bus_reorder                        12        12   True
+    bus_loss                           12        12   True
+    timing_late_sample                  8         8   True
+    timing_overrun                     12        12   True
+    numerical_nan                      12        12   True
+    numerical_denormal                 12        12   True
+    numerical_overflow                 36        36   True
+    ------------------------------------------------------
+    TOTAL                             248       248   True
+
+2c. Coverage after a hand-specified campaign, arithmetic shown
+
+    sensor_bias/pos offset=0.2 start=10 duration=20
+      start_frac    = 10/150 = 0.066667 -> bin 0
+      duration_frac = 20/150 = 0.133333 -> bin 0
+      offset        = 0.2 -> bin 0
+      hand cell     = sensor_bias/pos/s0/d0/p[0]
+      computed cell = sensor_bias/pos/s0/d0/p[0]
+
+    sensor_bias/pos offset=1 start=10 duration=20
+      start_frac    = 10/150 = 0.066667 -> bin 0
+      duration_frac = 20/150 = 0.133333 -> bin 0
+      offset        = 1 -> bin 1
+      hand cell     = sensor_bias/pos/s0/d0/p[1]
+      computed cell = sensor_bias/pos/s0/d0/p[1]
+
+    sensor_bias/pos offset=0.2 start=10 duration=20
+      start_frac    = 10/150 = 0.066667 -> bin 0
+      duration_frac = 20/150 = 0.133333 -> bin 0
+      offset        = 0.2 -> bin 0
+      hand cell     = sensor_bias/pos/s0/d0/p[0]
+      computed cell = sensor_bias/pos/s0/d0/p[0]
+
+    sensor_bias/vel offset=5 start=120 duration=30
+      start_frac    = 120/150 = 0.800000 -> bin 1
+      duration_frac = 30/150 = 0.200000 -> bin 0
+      offset        = 5 -> bin 2
+      hand cell     = sensor_bias/vel/s1/d0/p[2]
+      computed cell = sensor_bias/vel/s1/d0/p[2]
+
+    timing_late_sample/bus late_steps=1 start=0 duration=150
+      start_frac    = 0/150 = 0.000000 -> bin 0
+      duration_frac = 150/150 = 1.000000 -> bin 1
+      late_steps    = 1 -> bin 0
+      hand cell     = timing_late_sample/bus/s0/d1/p[0]
+      computed cell = timing_late_sample/bus/s0/d1/p[0]
+
+    timing_late_sample/bus late_steps=4 start=75 duration=75
+      start_frac    = 75/150 = 0.500000 -> bin 1
+      duration_frac = 75/150 = 0.500000 -> bin 0
+      late_steps    = 4 -> bin 1
+      hand cell     = timing_late_sample/bus/s1/d0/p[1]
+      computed cell = timing_late_sample/bus/s1/d0/p[1]
+
+    hand-computed distinct cells covered : 5 of 32 = 0.156250000000
+    tracker.covered / tracker.total      : 5 of 32 = 0.156250000000
+    six injections, one repeated, so hit count of the repeated cell = 2: 2
+    PASS
+
+    per-kind breakdown (hand: sensor_bias 3 of 24, timing_late_sample 2 of 8)
+      sensor_bias            3 of 24
+      timing_late_sample     2 of 8
+
+2d. Every cell of the full taxonomy is reachable by a constructed case
+    cells tested     248
+    unreachable      0
+    PASS
+
+2e. An injection outside the tracked subset is rejected
+    PASS    ValueError raised: cell bus_loss/bus/s0/d0/p[1] is outside the tracked subset ['sensor_bias', 'timing_late_sample']
+
+==============================================================================
+RESULT: PASS -- all checks in validation 2 passed
+==============================================================================

@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "framesync"
+version = "0.1.0"
+description = "CCSDS telemetry frame-level link performance harness: attached sync marker correlation detection, the acquisition/flywheel/loss state machine, slip and false-sync statistics, and frame-error rate versus Eb/N0 for uncoded, RS(255,223) and convolutionally coded links. Not a codec and not a packet parser."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "ccsds",
+    "telemetry",
+    "frame-synchronisation",
+    "attached-sync-marker",
+    "reed-solomon",
+    "viterbi",
+    "frame-error-rate",
+    "link-performance",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Communications",
+]
+dependencies = ["numpy>=1.24", "scipy>=1.10", "reedsolo>=1.7"]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis"]
+examples = ["matplotlib"]
+dev = ["pytest", "hypothesis", "ruff", "matplotlib"]
+
+[project.scripts]
+framesync = "framesync.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]

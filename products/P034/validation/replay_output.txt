@@ -1,0 +1,34 @@
+==============================================================================
+VALIDATION 1 -- seeded replay is bit-identical
+==============================================================================
+
+Pool: 248 cases, one per coverage cell, pool_seed=1.
+Kinds exercised: 16 of 16.
+
+1a. Same case run twice -- byte image must be identical
+    cases compared        248
+    bytes compared        2622168
+    byte-image mismatches 0
+    PASS
+
+1b. Case -> JSON -> case -> run: byte image must match the original run
+    round trips           248
+    mismatches            0
+    PASS
+
+1c. Tampered case file must be rejected
+    PASS    ValueError raised: case_id mismatch: file says bd32605725b734a5, content hashes to b7e9137ae2f99b98
+
+1d. Negative control -- changing the seed must change the byte image
+    cases where seed+1 changed the trace  248/248
+    PASS (a non-empty subset is enough; some cases abort on the same step)
+
+1e. Content-hash regression for a fixed case
+    case      {"case_id":"bd32605725b734a5","injection":{"channel":"pos","duration_steps":100,"kind":"sensor_bias","params":{"offset":3.0},"start_step":40},"n_steps":150,"seed":7}
+    case_id   bd32605725b734a5
+    recorded  bd32605725b734a5
+    PASS
+
+==============================================================================
+RESULT: PASS -- all checks in validation 1 passed
+==============================================================================

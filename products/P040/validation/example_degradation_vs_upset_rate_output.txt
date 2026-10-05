@@ -1,0 +1,48 @@
+Flux model (ILLUSTRATIVE inputs, not measured environment or part data)
+flux                      1.000000e+03 particles cm^-2 s^-1
+cross-section             1.000000e-14 cm^2 bit^-1
+exposed bits              4704
+lambda                    4.704000e-08 upsets s^-1 (1.693440e+05 FIT)
+mean time between upsets  2.125850e+07 s
+
+campaign sizing: probe sample std 0.352952 at mu = 32; for a standard
+error of 0.012 the formula n = (s/e)**2 asks for 866 trials.
+Using 600, capped by the 600-trial compute budget for this script
+on one contended core, so the achieved standard error is 0.014409 rather than 0.012 at mu = 32. The
+achieved standard error is printed for every point below; none of the
+comparisons drawn from this table are inside it.
+
+Parameter upsets (persist until the next scrub)
+    mu    exposure (s)    mean TV        se   accuracy        se  clamped TV        se  drawn mean
+   0.5    1.062925e+07   0.010072  0.002470   0.961239  0.002349    0.003183  0.000526      0.5217
+   1.0    2.125850e+07   0.026499  0.005338   0.945917  0.005168    0.007328  0.000930      1.0300
+   2.0    4.251701e+07   0.045062  0.006172   0.929472  0.005976    0.017598  0.001508      1.8933
+   4.0    8.503401e+07   0.091073  0.008451   0.888017  0.008201    0.031578  0.001893      4.0933
+   8.0    1.700680e+08   0.168167  0.010783   0.816222  0.010508    0.063110  0.002693      7.9617
+  16.0    3.401361e+08   0.349162  0.014347   0.641878  0.014115    0.114611  0.003418     15.9533
+  32.0    6.802721e+08   0.489906  0.014071   0.506478  0.013957    0.194517  0.004063     31.7433
+  64.0    1.360544e+09   0.717668  0.011574   0.280961  0.011501    0.305468  0.004349     64.0150
+
+Activation upsets (affect one inference only)
+    mu      mean TV         se   accuracy        se  activation bits
+   0.5     0.000030   0.000011   0.969967  0.000014           115200
+   1.0     0.000154   0.000028   0.969861  0.000029           115200
+   2.0     0.000331   0.000039   0.969700  0.000041           115200
+   4.0     0.000710   0.000059   0.969339  0.000061           115200
+   8.0     0.001491   0.000084   0.968661  0.000082           115200
+  16.0     0.002727   0.000115   0.967489  0.000118           115200
+  32.0     0.005897   0.000161   0.964756  0.000174           115200
+  64.0     0.011068   0.000247   0.959939  0.000256           115200
+
+golden accuracy           0.970000
+parameter bit population  4704
+activation bit population 115200 (the whole evaluation batch's hidden layer)
+
+Poisson validity at mu = 64: per-bit probability 1.360544e-02, within validity False (threshold 1.0e-03)
+
+The exposures above are enormous because the illustrative cross-section is
+small and the model is 588 bytes. That is itself the finding: a parameter
+block this small is not what drives an onboard inference upset budget. The
+same equation applied to a 50 MB model gives exposures 1e5 times shorter.
+
+wrote /home/claude/aerospace-100-mission/products/P040/screenshots/degradation_vs_upset_rate.png

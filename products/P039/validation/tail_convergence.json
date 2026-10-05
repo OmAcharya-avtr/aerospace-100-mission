@@ -1,0 +1,267 @@
+{
+  "single_mean_s": 0.0002,
+  "single_cv": 0.45,
+  "n_grid_by_p": {
+    "0.99": [
+      500,
+      1500,
+      5000,
+      15000,
+      50000
+    ],
+    "0.999": [
+      5000,
+      15000,
+      50000,
+      150000
+    ]
+  },
+  "n_repeats": 400,
+  "out_of_range_grid": [
+    200,
+    500,
+    1500
+  ],
+  "pipeline_grid_by_p": {
+    "0.99": [
+      1000,
+      4000,
+      16000,
+      64000
+    ],
+    "0.999": [
+      5000,
+      20000,
+      80000
+    ]
+  },
+  "pipeline_repeats": 300,
+  "pipeline_reference_n": 4000000,
+  "seed": 20260405,
+  "slope_tolerance": 0.04,
+  "ratio_tolerance": 0.15,
+  "validity_condition": "n * (1 - p) >= 5",
+  "rows": [
+    {
+      "case": "single_lognormal",
+      "p": 0.99,
+      "n": 500,
+      "rmse_s": 3.6020200310886236e-05,
+      "analytic_se_s": 3.5507869972504495e-05,
+      "ratio": 1.0144286418413289
+    },
+    {
+      "case": "single_lognormal",
+      "p": 0.99,
+      "n": 1500,
+      "rmse_s": 2.008859093407387e-05,
+      "analytic_se_s": 2.05004782869757e-05,
+      "ratio": 0.9799084027632902
+    },
+    {
+      "case": "single_lognormal",
+      "p": 0.99,
+      "n": 5000,
+      "rmse_s": 1.0830962479236652e-05,
+      "analytic_se_s": 1.1228574397421455e-05,
+      "ratio": 0.9645892787354989
+    },
+    {
+      "case": "single_lognormal",
+      "p": 0.99,
+      "n": 15000,
+      "rmse_s": 6.678732738296879e-06,
+      "analytic_se_s": 6.482820450967018e-06,
+      "ratio": 1.03022022417737
+    },
+    {
+      "case": "single_lognormal",
+      "p": 0.99,
+      "n": 50000,
+      "rmse_s": 3.5990166336379766e-06,
+      "analytic_se_s": 3.55078699725045e-06,
+      "ratio": 1.013582801904162
+    },
+    {
+      "case": "single_lognormal_slope",
+      "p": 0.99,
+      "n_grid": [
+        500,
+        1500,
+        5000,
+        15000,
+        50000
+      ],
+      "fitted_slope": -0.49583272849152643,
+      "slope_standard_error": 0.00970990010949402,
+      "predicted_slope": -0.5,
+      "slope_within_tolerance": true,
+      "ratio_at_largest_n": 1.013582801904162,
+      "ratio_within_tolerance": true
+    },
+    {
+      "case": "single_lognormal",
+      "p": 0.999,
+      "n": 5000,
+      "rmse_s": 4.0481972411880985e-05,
+      "analytic_se_s": 3.919476264225208e-05,
+      "ratio": 1.03284137172555
+    },
+    {
+      "case": "single_lognormal",
+      "p": 0.999,
+      "n": 15000,
+      "rmse_s": 2.2149844939626103e-05,
+      "analytic_se_s": 2.2629106762327728e-05,
+      "ratio": 0.9788210012999945
+    },
+    {
+      "case": "single_lognormal",
+      "p": 0.999,
+      "n": 50000,
+      "rmse_s": 1.2303022814408115e-05,
+      "analytic_se_s": 1.2394472229919589e-05,
+      "ratio": 0.9926217580050952
+    },
+    {
+      "case": "single_lognormal",
+      "p": 0.999,
+      "n": 150000,
+      "rmse_s": 6.645557577787579e-06,
+      "analytic_se_s": 7.155951878407417e-06,
+      "ratio": 0.9286755543787379
+    },
+    {
+      "case": "single_lognormal_slope",
+      "p": 0.999,
+      "n_grid": [
+        5000,
+        15000,
+        50000,
+        150000
+      ],
+      "fitted_slope": -0.5264810923864083,
+      "slope_standard_error": 0.013858077082110034,
+      "predicted_slope": -0.5,
+      "slope_within_tolerance": true,
+      "ratio_at_largest_n": 0.9286755543787379,
+      "ratio_within_tolerance": true
+    },
+    {
+      "case": "three_stage_pipeline",
+      "p": 0.99,
+      "n": 1000,
+      "rmse_s": 7.325648529301828e-06,
+      "predicted_se_s": 7.020265054719951e-06,
+      "ratio": 1.043500277012555
+    },
+    {
+      "case": "three_stage_pipeline",
+      "p": 0.99,
+      "n": 4000,
+      "rmse_s": 3.822454274305859e-06,
+      "predicted_se_s": 3.5101325273599755e-06,
+      "ratio": 1.0889771951661282
+    },
+    {
+      "case": "three_stage_pipeline",
+      "p": 0.99,
+      "n": 16000,
+      "rmse_s": 2.060167564253594e-06,
+      "predicted_se_s": 1.7550662636799877e-06,
+      "ratio": 1.1738403312099885
+    },
+    {
+      "case": "three_stage_pipeline",
+      "p": 0.99,
+      "n": 64000,
+      "rmse_s": 1.0028194382923741e-06,
+      "predicted_se_s": 8.775331318399939e-07,
+      "ratio": 1.1427710269920892
+    },
+    {
+      "case": "three_stage_pipeline_slope",
+      "p": 0.99,
+      "n_grid": [
+        1000,
+        4000,
+        16000,
+        64000
+      ],
+      "fitted_slope": -0.47492107077801005,
+      "slope_standard_error": 0.013169943624928722,
+      "predicted_slope": -0.5,
+      "slope_within_tolerance": true,
+      "reference_n": 4000000,
+      "reference_quantile_s": 0.00038679074084364584,
+      "reference_one_sigma_s": 1.3224452468068703e-07
+    },
+    {
+      "case": "three_stage_pipeline",
+      "p": 0.999,
+      "n": 5000,
+      "rmse_s": 1.0612988490661489e-05,
+      "predicted_se_s": 8.8886930533264e-06,
+      "ratio": 1.1939875105361872
+    },
+    {
+      "case": "three_stage_pipeline",
+      "p": 0.999,
+      "n": 20000,
+      "rmse_s": 5.0568708464328865e-06,
+      "predicted_se_s": 4.4443465266632e-06,
+      "ratio": 1.1378210083518325
+    },
+    {
+      "case": "three_stage_pipeline",
+      "p": 0.999,
+      "n": 80000,
+      "rmse_s": 2.514687836762851e-06,
+      "predicted_se_s": 2.2221732633316e-06,
+      "ratio": 1.1316344581487303
+    },
+    {
+      "case": "three_stage_pipeline_slope",
+      "p": 0.999,
+      "n_grid": [
+        5000,
+        20000,
+        80000
+      ],
+      "fitted_slope": -0.5193449333093098,
+      "slope_standard_error": 0.020823509255394543,
+      "predicted_slope": -0.5,
+      "slope_within_tolerance": true,
+      "reference_n": 4000000,
+      "reference_quantile_s": 0.00044080200872652245,
+      "reference_one_sigma_s": 3.9420807699074695e-07
+    },
+    {
+      "case": "single_lognormal_out_of_range",
+      "p": 0.999,
+      "n": 200,
+      "expected_exceedances": 0.20000000000000018,
+      "rmse_s": 0.0001391768540873805,
+      "analytic_se_s": 0.00019597381321126038,
+      "ratio": 0.7101808747138446
+    },
+    {
+      "case": "single_lognormal_out_of_range",
+      "p": 0.999,
+      "n": 500,
+      "expected_exceedances": 0.5000000000000004,
+      "rmse_s": 9.389534292213563e-05,
+      "analytic_se_s": 0.00012394472229919592,
+      "ratio": 0.7575582177309438
+    },
+    {
+      "case": "single_lognormal_out_of_range",
+      "p": 0.999,
+      "n": 1500,
+      "expected_exceedances": 1.5000000000000013,
+      "rmse_s": 6.179855187244224e-05,
+      "analytic_se_s": 7.155951878407415e-05,
+      "ratio": 0.8635965266747399
+    }
+  ]
+}

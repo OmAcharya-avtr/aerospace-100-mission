@@ -1,0 +1,92 @@
+==============================================================================
+Change-point detection: designed false-alarm rate and localisation accuracy
+==============================================================================
+script          : validation/validate_changepoint.py
+python          : 3.13.16 on Linux-6.18.44-fc-v70-x86_64-with-glibc2.39
+numpy / scipy / scikit-learn : 2.5.3 / 1.18.1 / 1.9.1
+
+segment length n        : 200 samples
+target per-segment alpha: 0.05
+calibration replicates  : 40000
+measurement replicates  : 40000 (independent seed)
+combined SE             : 0.0015411
+agreement band          : |z| < 3.5 combined standard errors
+
+------------------------------------------------------------------------------
+Threshold calibration and independent measurement
+------------------------------------------------------------------------------
+threshold               : 3.147854662 (dimensionless)
+in-sample achieved alpha: 0.0500000 +/- 0.0010897
+independent measurement : 0.0505500 +/- 0.0010954 (binomial SE), 2022 of 40000
+95 % Wilson             : [0.0484459, 0.0527404]
+z against the target    : +0.36 combined SE
+[PASS] per-segment false-alarm rate matches the target on independent data  measured=0.0505500 target=0.05 z=+0.36
+
+------------------------------------------------------------------------------
+Threshold grows with segment length and shrinks with alpha
+------------------------------------------------------------------------------
+     n   alpha=0.10   alpha=0.05   alpha=0.01
+    50     2.689381     2.942456     3.491223
+   100     2.805733     3.077351     3.645240
+   200     2.906406     3.175309     3.736797
+   400     2.950054     3.208644     3.764533
+[PASS] threshold increases with segment length at every alpha
+[PASS] threshold increases as alpha tightens at every segment length
+
+------------------------------------------------------------------------------
+Localisation accuracy of the maximiser
+------------------------------------------------------------------------------
+A single step at index 120 of a 200-sample standard-normal series, 1000 seeds per shift size.
+The error distribution is tabulated, not reduced to a mean: it is
+heavy-tailed at small shift sizes, where the maximiser can land anywhere.
+
+ shift    exact   |e|<=1   |e|<=2   |e|<=5  median |e|   p90 |e|   max |e|       Pd
+   0.5    0.086    0.182    0.263    0.415         8.0      51.0       119    0.757
+   1.0    0.267    0.480    0.597    0.809         2.0      10.0        43    1.000
+   2.0    0.647    0.863    0.938    0.990         0.0       2.0         9    1.000
+   3.0    0.838    0.979    0.998    1.000         0.0       1.0         3    1.000
+   5.0    0.980    1.000    1.000    1.000         0.0       0.0         1    1.000
+
+Binomial SE on each fraction at 1000 trials, worst case (p = 0.5): 0.0158
+
+[PASS] shift 2.0 sigma: maximiser within 2 samples at least 90% of the time  measured 0.938
+[PASS] shift 3.0 sigma: maximiser within 2 samples at least 95% of the time  measured 0.998
+[PASS] shift 5.0 sigma: maximiser within 2 samples at least 99% of the time  measured 1.000
+[PASS] shift 1.0 sigma: detection probability at least 0.7  measured 1.000
+[PASS] shift 2.0 sigma: detection probability at least 0.99  measured 1.000
+[PASS] shift 3.0 sigma: detection probability at least 0.999  measured 1.000
+
+At a 0.5 sigma shift over 200 samples the statistic is barely above its
+null distribution, so neither detection nor localisation works; that row is
+reported and not checked, because a detector that could do it would be
+violating the information content of the data.
+
+------------------------------------------------------------------------------
+Series-wide false-alarm rate of binary segmentation
+------------------------------------------------------------------------------
+The threshold is calibrated per segment.  Binary segmentation applies it at
+every recursion level, so the probability of at least one spurious change
+point in a pure-noise series can exceed the per-segment target.  How much it
+exceeds it is an empirical question, measured here over 4000 pure-noise
+series:
+
+ min_segment  max_depth  any false CP        SE  mean count  inflation
+          20         20       0.05150   0.00349      0.0540       1.03
+          20          2       0.05150   0.00349      0.0540       1.03
+          50         20       0.05150   0.00349      0.0527       1.03
+
+Reported, not checked.  The measured inflation is modest, because the
+top-level test gates the recursion: a series that fails to produce one
+change point never reaches a second level, so the extra tests are not
+independent of the first.  The mean number of spurious change points per
+series exceeds the any-false-CP probability only slightly, which is the
+same statement.  A user who needs a guaranteed series-wide rate should
+calibrate the threshold against this measurement at their own segment
+length, or use a penalised method such as PELT (Killick, Fearnhead and
+Eckley 2012), which the `ruptures` package implements and this module does
+not.
+
+------------------------------------------------------------------------------
+elapsed: 1.8 s on this machine
+all checks passed
+------------------------------------------------------------------------------

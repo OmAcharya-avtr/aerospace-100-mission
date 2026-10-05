@@ -1,0 +1,46 @@
+==============================================================================
+Model and batch under test
+==============================================================================
+parameters                147 float32 (588 bytes)
+architecture              8 -> 12 (ReLU) -> 3
+evaluation batch          200 of 300 evaluation samples
+max |w|                   4.581974506
+Xmax = max |x|            3.208058866
+single-upset sites        4704 (every parameter x every bit)
+
+==============================================================================
+Check 1 to 3 - exhaustive single-upset deviation against the bound
+==============================================================================
+       clamp C            bound B     worst measured    B / worst  violations   golden shift
+   4.581974506        1119.613957      142.435628452        7.860           0    0.000000000
+   2.290987253         279.903489       71.217814226        3.930           0   39.943883340
+   1.145493627          69.975872       24.103880709        2.903           0   79.159635199
+[PASS] clamp bound at C = 4.581975: 4704 exhaustive single-upset cases, worst deviation 142.435628452 <= bound 1119.613957, 0 violations (golden model shifted by 0.000000000 at this clamp)
+[PASS] clamp bound at C = 2.290987: 4704 exhaustive single-upset cases, worst deviation 71.217814226 <= bound 279.903489, 0 violations (golden model shifted by 39.943883340 at this clamp)
+[PASS] clamp bound at C = 1.145494: 4704 exhaustive single-upset cases, worst deviation 24.103880709 <= bound 69.975872, 0 violations (golden model shifted by 79.159635199 at this clamp)
+
+==============================================================================
+Check 4 - the same sweep with no clamping, for comparison
+==============================================================================
+worst finite deviation    2.786753e+39
+non-finite outcomes       50 of 4704 sites (1.06 %)
+ratio to clamped worst    1.956500e+37
+
+The unclamped sweep produces non-finite logits, so no finite bound of any
+kind exists for it. That is the whole value of the clamp: the bound is not
+merely tighter, it is the difference between a bound and none.
+[PASS] clamping is what makes a bound possible: 50 of 4704 unclamped single upsets give non-finite logits; worst finite unclamped deviation 2.786753e+39 vs clamped 142.435628452
+
+==============================================================================
+Bound tightness, stated plainly
+==============================================================================
+At C = max|w| = 4.581975 the bound is 1119.613957 and the worst
+measured deviation over all 4704 single-upset sites is 142.435628452,
+so the bound is loose by a factor of 7.860. It is loose because
+it assumes the worst input, the worst weight magnitude in the row sum and
+the worst alignment of signs simultaneously. A bound that is never
+exceeded and is known to be loose is more useful than a tight estimate
+that is sometimes exceeded.
+
+==============================================================================
+RESULT: all checks PASSED

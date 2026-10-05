@@ -1,0 +1,62 @@
+framesync validation 5 -- RS(255,223) coding gain at 10^-5
+==============================================================================
+R = 223/255 = 0.874509804, E = 16, interleave I = 5
+Eb/N0 is always per INFORMATION bit, so the 0.5821 dB rate loss of the
+coded link is already inside the channel bit error rate Eq. (1).
+
+Check 1: semi-analytic Eqs. (7)/(8) against Monte Carlo with reedsolo
+------------------------------------------------------------------------------
+Eb/N0 dB        p_bit      N  errors     FER meas      stderr     FER Eq.8  dev/sigma  result
+---------------------------------------------------------------------------------------------
+    5.25   7.7505e-03    100      90   9.0000e-01   3.000e-02   9.0209e-01       0.07  PASS
+    5.50   6.3668e-03    150      86   5.7333e-01   4.038e-02   5.2463e-01       1.21  PASS
+    5.75   5.1755e-03    200      34   1.7000e-01   2.656e-02   1.5398e-01       0.60  PASS
+    6.00   4.1607e-03    250       9   3.6000e-02   1.178e-02   2.4350e-02       0.99  PASS
+acceptance: within 4 binomial standard errors of the semi-analytic value
+
+Check 2: the uncoded anchor
+------------------------------------------------------------------------------
+Eb/N0 for uncoded BPSK BER = 1e-5: 9.5879 dB
+textbook-quoted value for coherent BPSK: ~9.6 dB [Proakis & Salehi 2008, Sec. 4.3; Sklar 2001, Sec. 4.7.1]
+P010 BERBench records the same inversion at 9.5879 dB (validation/bpsk_textbook_output.txt)
+within 0.05 dB of 9.6: True -> PASS
+
+Check 3: coding gain at 10^-5, both metrics
+------------------------------------------------------------------------------
+  BER = 1e-5: uncoded needs  9.5879 dB, RS needs  6.2938 dB, gain = 3.2941 dB
+  FER = 1e-5: uncoded needs 12.5230 dB, RS needs  6.7023 dB, gain = 5.8207 dB
+  BER metric compares Eq. (10) (approximate post-decoding bit error
+  rate) against Eq. (1); FER metric compares Eq. (8) against Eq. (11)
+  with n = 8936 bits. The two differ because a 8936-bit frame needs a
+  much lower bit error rate to reach 1e-5 at the frame level.
+
+Check 4: against the asymptotic-coding-gain bound (a formula, not a
+         remembered figure)
+------------------------------------------------------------------------------
+G_inf = 10 log10(R (E+1)) = 10 log10(0.874510 x 17) = 11.7221 dB
+  [Lin & Costello 2004 Ch. 1/12 coding-gain discussion; Sklar 2001 Ch. 8]
+  BER: measured gain 3.2941 dB, 0 < gain < 11.7221 dB -> PASS
+  FER: measured gain 5.8207 dB, 0 < gain < 11.7221 dB -> PASS
+  Real gain well below the asymptote is the expected behaviour of a
+  high-rate hard-decision block code at a moderate error rate.
+
+Check 5: the reference range the specification asked for
+------------------------------------------------------------------------------
+STATUS: NOT VERIFIED in this environment.
+  The CCSDS Green Book 130.1-G carries the Reed-Solomon performance
+  curves. This build container has no access to that document, so no
+  numeric range and no page is quoted from it. A figure recalled from
+  memory and attached to a page number would be an invented citation.
+  The measured numbers stand on their own and are reported above; the
+  comparison against a published range remains open and is recorded as
+  a deviation in VALIDATION.md and README Limitations.
+
+Convolutional leg: free distance, computed from the trellis
+------------------------------------------------------------------------------
+CCSDS (171, 133) rate-1/2 K=7: computed d_free = 10
+literature value for this code: 10 -> PASS
+with the G2 inversion switched off: 10 (must be unchanged)
+
+wrote rs_coding_gain.json
+ALL CHECKS PASS: True
+wall time: 44.3 s

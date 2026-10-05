@@ -1,0 +1,49 @@
+==============================================================================
+VALIDATION 6 -- the wrapper does not require modifying the target
+==============================================================================
+
+6a. Bit-transparency against an independent closed loop, 50 seeds
+    seeds compared        50
+    bytes per trace       10800
+    byte-image mismatches 0
+    PASS  the wrapper with no injections changes nothing, bit for bit
+
+6b. A foreign target, wrapped and injected without modification
+    target class          ForeignTarget (no faultinject imports)
+    interface used        reset(), step(k, meas)
+    steps before the window identical to the bare target : True
+    steps inside/after the window differ                 : True
+    target call count     40 (expected 40)
+    PASS
+
+6c. bus_reorder really reorders, and its rate is non-monotonic in swap_prob
+
+    The mechanism holds one frame and may deliver the newer one first, so an
+    exchange needs a swap followed by a non-swap. At swap_prob = 1 every step
+    swaps, the held frame is never released, and nothing arrives out of order;
+    the rate peaks near swap_prob = 0.5. This non-monotonicity is real and is
+    recorded in the README limitations.
+
+     swap_prob   swaps  out of order       first 8 source steps
+    ------------------------------------------------------------
+           0.1       4             4 [None, 0, 1, 2, 3, 4, 5, 6]
+          0.25      17            13 [None, 0, 2, 1, 3, 4, 6, 5]
+           0.5      27            14 [None, 0, 2, 1, 3, 4, 6, 5]
+          0.75      46            11 [None, 1, 2, 3, 0, 5, 6, 7]
+           1.0      59             0 [None, 1, 2, 3, 4, 5, 6, 7]
+
+    Pure one-step delay when no swap fires: searching fault seeds at
+    swap_prob = 0.1 for a 20-step run with zero swaps.
+    fault seed 2: sources [None, 0, 1, 2, 3, 4, 5, 6] ... == one-step delay: True
+
+6d. bus_delay leaves a persistent latency after its window;
+    timing_late_sample recovers immediately
+
+    bus_delay            staleness at steps 30..35: [4, 4, 4, 4, 4, 4]
+                         PASS  still 4 steps stale, as documented
+    timing_late_sample   staleness at steps 30..35: [0, 0, 0, 0, 0, 0]
+                         PASS  fresh again immediately, as documented
+
+==============================================================================
+RESULT: PASS -- all checks in validation 6 passed
+==============================================================================

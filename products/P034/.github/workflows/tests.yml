@@ -1,0 +1,36 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q
+      - name: Validation scripts
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python validation/validate_replay.py
+          python validation/validate_coverage.py
+          python validation/validate_analytic_bias.py
+          python validation/validate_nan_detection.py
+          python validation/validate_transparency.py
+          python validation/validate_benchmark.py
