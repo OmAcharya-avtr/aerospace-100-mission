@@ -108,10 +108,10 @@ def main() -> int:
     print("P039 latencynet -- mandatory cross-check against P033 edgeinfer")
     print("=" * 92)
     if not P033_JSON.exists():
-        print(f"FAIL: P033 cross-check file not found at {P033_JSON}")
+        print(f"FAIL: P033 cross-check file not found at {Path(*P033_JSON.parts[-3:])}")
         return 1
     p033 = json.loads(P033_JSON.read_text())
-    print(f"P033 file: {P033_JSON}")
+    print(f"P033 file: {Path(*P033_JSON.parts[-3:])}")
     print(f"P033 nominated comparable statistic: {p033.get('comparable_statistic')!r}")
 
     spec = make_lognormal_pipeline(STAGE_MEANS_S, STAGE_STDS_S, names=STAGE_NAMES)
@@ -254,7 +254,7 @@ def main() -> int:
     payload = {
         "product": "P039 latencynet",
         "counterpart": "P033 edgeinfer",
-        "counterpart_file": str(P033_JSON),
+        "counterpart_file": str(Path(*P033_JSON.parts[-3:])),
         "comparable_statistic": "p50_s",
         "pipeline": {
             "stages": [

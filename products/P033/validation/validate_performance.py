@@ -320,7 +320,7 @@ def main() -> int:
             ),
         ),
     )
-    print(f"\n  results file written: {written}")
+    print(f"\n  results file written: validation/{Path(written).name}")
 
     print("\n" + "=" * 78)
     print(f"RESULT: {'1/1' if budget_ok else '0/1'} checks passed "

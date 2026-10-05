@@ -118,7 +118,7 @@ if P031_FILE.exists():
     payload = json.loads(P031_FILE.read_text())
     trace = [float(x) for x in payload["trace"]]
     period_s = float(payload["period_s"])
-    print(f"6c/6d. P031's cross-check file was found at {P031_FILE}")
+    print(f"6c/6d. P031's cross-check file was found at {Path(*P031_FILE.parts[-3:])}")
     print("       Its trace and period are used; rtclock's accounting is run")
     print("       over them independently and written to this product's own file.")
     p031_count = payload.get("overrun_count")
@@ -260,7 +260,7 @@ OUT_FILE.write_text(
     )
     + "\n"
 )
-print(f"    written to                  : {OUT_FILE}")
+print(f"    written to                  : {Path(*OUT_FILE.parts[-2:])}")
 print()
 
 print("=" * 78)

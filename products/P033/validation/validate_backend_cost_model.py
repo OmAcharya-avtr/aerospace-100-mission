@@ -292,7 +292,7 @@ def main() -> int:
             "comparable_statistic": "p50_s",
         },
     )
-    print(f"  written: {written}")
+    print(f"  written: validation/{Path(written).name}")
     print(
         "  required keys: stages[{name, mean_s, std_s, dist}], n_samples, seed,\n"
         "                 measured{mean_s, p50_s, p99_s}"

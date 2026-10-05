@@ -1,8 +1,8 @@
 Host measurement (single contended core, numpy; not a flight figure)
-inference, 300 samples   234.567 us median of 40
-clamp pass, 147 parameters  5.745 us median of 200 (39.085 ns per parameter)
-bitwise 3-way vote        12.266 us median of 200
-clamp + inference         302.129 us median of 40
+inference, 300 samples   130.660 us median of 40
+clamp pass, 147 parameters  4.056 us median of 200 (27.588 ns per parameter)
+bitwise 3-way vote        6.973 us median of 200
+clamp + inference         171.948 us median of 40
 
 Parameter range clamping: the derived bound
 clamp limit C = max |w|   4.581974506
@@ -13,8 +13,8 @@ B = 2C max(C(n_in Xmax + 1), 1)  1208.877469 on max_k |d logits_k|
 
 Mitigation costs on the whole 588-byte parameter block
 scheme                      extra bytes  mem factor  latency fraction
-parameter_range_clamping              0       1.000          0.024494
-selective_triplication             1176       3.000          0.052292
+parameter_range_clamping              0       1.000          0.031039
+selective_triplication             1176       3.000          0.053371
 periodic_reload                     588       2.000          0.000167
 
 parameter_range_clamping: no redundant storage; the clamp limit C must be stored, which is one word per tensor and is not counted here. Latency measured with time.perf_counter on the build host.
@@ -51,4 +51,4 @@ Protection targeting: avoided degradation per byte at a 5 % budget
   word  magnitude baseline   avoided   7.309431 per byte   0.261051 fraction of total  0.060198
   word  exponent heuristic   avoided   5.782062 per byte   0.206502 fraction of total  0.047619
 
-wrote /home/claude/aerospace-100-mission/products/P040/screenshots/mitigation_tradeoff.png
+wrote screenshots/mitigation_tradeoff.png

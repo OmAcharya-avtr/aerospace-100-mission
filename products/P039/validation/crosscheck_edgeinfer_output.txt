@@ -1,7 +1,7 @@
 ============================================================================================
 P039 latencynet -- mandatory cross-check against P033 edgeinfer
 ============================================================================================
-P033 file: /home/claude/aerospace-100-mission/products/P033/validation/crosscheck_pipeline.json
+P033 file: P033/validation/crosscheck_pipeline.json
 P033 nominated comparable statistic: 'p50_s'
 
 (0) the two declarations of the pipeline must match before anything is diffed
@@ -22,8 +22,8 @@ P033 nominated comparable statistic: 'p50_s'
 (2) p50 -- the statistic P033 nominated
 --------------------------------------------------------------------------------------------
   ours   sampled  p50 267.184676 us  (n=2000, seed=20260401)
-  theirs measured p50 283.862500 us
-  relative difference (ours - theirs) / theirs = -0.058753 = -5.8753 %   band +/-3 %   DISAGREE
+  theirs measured p50 282.050500 us
+  relative difference (ours - theirs) / theirs = -0.052706 = -5.2706 %   band +/-3 %   DISAGREE
   ours   sampled mean 270.928818 us vs injected 270.000000 us (ratio 1.003440)
   ours   sampled sd   43.039101 us vs injected 42.190046 us (ratio 1.020125)
 
@@ -32,10 +32,10 @@ P033 nominated comparable statistic: 'p50_s'
   distributional median of the sum, from 4000000 draws: 266.074198 us
     median / injected mean = 0.985460  (a sum of right-skewed lognormals has its median below its mean)
   our n=2000 p50 / injected mean          = 0.989573
-  P033's measured p50 / injected mean     = 1.051343  (from their JSON)
-  P033 measurement overhead on the median = +6.6855 %
-  predicted gap from the measurement path alone: +6.6855 %
-  observed gap (theirs over ours, n=2000):       +6.2421 %
+  P033's measured p50 / injected mean     = 1.044631  (from their JSON)
+  P033 measurement overhead on the median = +6.0045 %
+  predicted gap from the measurement path alone: +6.0045 %
+  observed gap (theirs over ours, n=2000):       +5.5639 %
   unexplained residual after accounting:         +0.4174 %
 
 (4) VOLATILE like-for-like measured figure from this package's own spin-wait
@@ -45,15 +45,15 @@ P033 nominated comparable statistic: 'p50_s'
   single CPU core with four other build jobs running concurrently.
   WORKSTATION NUMBER. VOLATILE: wall-clock timings on this host move by
   factors of 2 to 13 between runs. No correctness claim rests on it.
-  ours   measured p50 271.880000 us (overhead over our sampled p50: +1.7573 %)
-  theirs measured p50 283.862500 us
-  measured-vs-measured relative difference -0.042212 = -4.2212 %   (volatile, not a verdict)
-  ours   measured mean 291.257509 us (ratio to injected 1.0787) -- preemption-contaminated,
+  ours   measured p50 271.490500 us (overhead over our sampled p50: +1.6116 %)
+  theirs measured p50 282.050500 us
+  measured-vs-measured relative difference -0.037440 = -3.7440 %   (volatile, not a verdict)
+  ours   measured mean 282.655053 us (ratio to injected 1.0469) -- preemption-contaminated,
   exactly as P033 reported for its own mean
 
 ============================================================================================
 declarations match: YES
 injected cost model: PASS
-p50 diff: -5.8753 %  ->  DISAGREE within +/-3 %
+p50 diff: -5.2706 %  ->  DISAGREE within +/-3 %
 written: crosscheck_edgeinfer.json
 ============================================================================================

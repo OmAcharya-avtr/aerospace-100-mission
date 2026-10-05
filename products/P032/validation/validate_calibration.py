@@ -247,7 +247,7 @@ def main() -> int:
     ax2.grid(alpha=0.3)
     fig.savefig(OUT_PNG, dpi=130)
     plt.close(fig)
-    print(f"  written: {OUT_PNG}")
+    print(f"  written: validation/{os.path.basename(OUT_PNG)}")
     print("")
 
     # Pass criteria: the decomposition identity must hold, every predictor must

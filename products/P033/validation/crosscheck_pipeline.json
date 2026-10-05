@@ -22,12 +22,12 @@
   "n_samples": 2000,
   "seed": 20260401,
   "measured": {
-    "mean_s": 0.0005922359854930619,
-    "p50_s": 0.00028386249960021814,
-    "p99_s": 0.004740619459635127
+    "mean_s": 0.0002877497455056073,
+    "p50_s": 0.00028205050011820276,
+    "p99_s": 0.00043003893972127117
   },
   "_environment": {
-    "platform": "Linux-6.18.44-fc-v64-x86_64-with-glibc2.39",
+    "platform": "Linux-6.18.44-fc-v70-x86_64-with-glibc2.39",
     "machine": "x86_64",
     "processor": "x86_64",
     "python_version": "3.13.16",
@@ -46,22 +46,22 @@
     "note": "sum of the declared stage means; variances of independent stages add"
   },
   "measured_extra": {
-    "std_s": 0.001129981549801182,
-    "p90_s": 0.0003862250994643546,
-    "max_s": 0.012262995000128285,
-    "min_s": 0.00016846600010467228,
-    "u_mean_s": 2.5267155590058155e-05,
-    "u_p50_s": 1.2896922988033133e-06,
-    "u_p99_s": 0.0001857882569131392
+    "std_s": 5.1405786190189414e-05,
+    "p90_s": 0.00034664540044104797,
+    "max_s": 0.0008529339993401663,
+    "min_s": 0.0001599610004632268,
+    "u_mean_s": 1.149468396078118e-06,
+    "u_p50_s": 9.887656473489195e-07,
+    "u_p99_s": 7.912373684446711e-06
   },
-  "measurement_method": "perf_counter per-call bracket; n=2000 repeats, 20 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 51 ns; gc disabled=True",
+  "measurement_method": "perf_counter per-call bracket; n=2000 repeats, 20 warm-up discarded; clock resolution 1e-09 s; timer-pair bias 47 ns; gc disabled=True",
   "consume_time": true,
   "sampler": "numpy.random.default_rng(seed); one lognormal draw per stage per sample, in stage order; lognormal parameters from the declared mean and sd by sigma^2 = log1p((sd/mean)^2), mu = log(mean) - sigma^2/2",
-  "agreement_guidance": "Diff p50_s: it is the statistic that reflects the injected cost model, and two correct implementations should agree on it to within a few per cent. Do NOT diff mean_s or p99_s. Both are sensitive to scheduler preemption on whatever host each implementation ran on -- on the run that produced this file the mean sat 119.3 % above the injected mean while the median sat 5.1 % above it, and the gap between those two figures varies from run to run with the host's load -- so a disagreement there is a fact about the two hosts, not about either implementation. The injected mean under 'injected' is the value both implementations are trying to recover.",
+  "agreement_guidance": "Diff p50_s: it is the statistic that reflects the injected cost model, and two correct implementations should agree on it to within a few per cent. Do NOT diff mean_s or p99_s. Both are sensitive to scheduler preemption on whatever host each implementation ran on -- on the run that produced this file the mean sat 6.6 % above the injected mean while the median sat 4.5 % above it, and the gap between those two figures varies from run to run with the host's load -- so a disagreement there is a fact about the two hosts, not about either implementation. The injected mean under 'injected' is the value both implementations are trying to recover.",
   "ratios_on_this_run": {
-    "p50_over_injected_mean": 1.051342591111919,
-    "mean_over_injected_mean": 2.193466612937266,
-    "trimmed_mean_over_injected_mean": 1.0413146151989732,
+    "p50_over_injected_mean": 1.0446314819192695,
+    "mean_over_injected_mean": 1.0657397981689158,
+    "trimmed_mean_over_injected_mean": 1.0248820926285085,
     "trim_keep_fraction": 0.9
   },
   "comparable_statistic": "p50_s"

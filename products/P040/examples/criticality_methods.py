@@ -181,4 +181,4 @@ figure.suptitle(
 )
 figure.tight_layout()
 figure.savefig(OUT, dpi=130)
-print(f"wrote {os.path.normpath(OUT)}")
+print(f"wrote screenshots/{os.path.basename(OUT)}")
