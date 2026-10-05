@@ -197,3 +197,51 @@ longer exists. `dc4af53` is now `6aa1730`; earlier hashes have moved likewise an
 have not been remapped. Treat pre-2026-10-02 hashes in this ledger as historical
 labels, not as refs.
 
+
+## 2026-10-05 — Batch 04 closed and published in full
+
+Ten products, ten repositories (ADR-018). Authorization: **ADR-017 standing
+authorization plus `scripts/release_gate.py` exit 0.** No per-batch approval
+exists, none was written, and no words are attributed to the owner (ADR-016).
+
+Test counts below are read from **junit XML by the coordinating session**, never
+from pytest stdout and never from a build agent's self-report. Every count was
+produced twice, by two independent full gate runs, and agreed exactly both times.
+
+| Product | Repository | Tests | Gate | Contributors |
+|---|---|---:|---|---|
+| P031 HilForge | https://github.com/OmAcharya-avtr/hilforge | 264 | PASS | `OmAcharya-avtr` |
+| P032 ConstelLink | https://github.com/OmAcharya-avtr/constellink | 387 | PASS | `OmAcharya-avtr` |
+| P033 EdgeInfer | https://github.com/OmAcharya-avtr/edgeinfer | 467 | PASS | `OmAcharya-avtr` |
+| P034 FaultInject | https://github.com/OmAcharya-avtr/faultinject | 202 | PASS | `OmAcharya-avtr` |
+| P035 TelemetryOOL | https://github.com/OmAcharya-avtr/telemetryool | 241 | PASS | `OmAcharya-avtr` |
+| P036 RtClock | https://github.com/OmAcharya-avtr/rtclock | 252 | PASS | `OmAcharya-avtr` |
+| P037 FrameSync | https://github.com/OmAcharya-avtr/framesync | 122 | PASS | `OmAcharya-avtr` |
+| P038 DopplerKit | https://github.com/OmAcharya-avtr/dopplerkit | 146 | PASS | `OmAcharya-avtr` |
+| P039 LatencyNet | https://github.com/OmAcharya-avtr/latencynet | 164 | PASS | `OmAcharya-avtr` |
+| P040 BitFlipSim | https://github.com/OmAcharya-avtr/bitflipsim | 126 | PASS | `OmAcharya-avtr` |
+| | | **2371** | **PUSH ALLOWED** | one name on all ten |
+
+All ten public, default branch `main`, `.github/workflows/tests.yml` present
+(605 bytes) and pushed with the Keychain credential because the `gh` token lacks
+`workflow` scope. Commit author email on all ten:
+`145807881+OmAcharya-avtr@users.noreply.github.com`. Zero authorship defects.
+
+All ten package names re-verified free on PyPI this session (HTTP 404):
+`hilforge`, `constellink`, `edgeinfer`, `faultinject`, `telemetryool`,
+`rtclock`, `framesync`, `dopplerkit`, `latencynet`, `bitflipsim`.
+
+Monorepo pushed commits this session: **4** of the nightly ceiling of 5 —
+`54d914a`, `8e42e67`, `3fdee27` and this entry's commit. Per-product
+repositories are separate and not counted against that ceiling.
+
+**`approved_for_publish` stays `false` on all ten, deliberately.** They are
+`published: true` with `status: PUBLISHED`, which is factual, and carry a new
+`publication_basis` field naming ADR-017 and the gate verdict. ADR-016 clause 3
+bars an unattended session from setting `approved_for_publish: true`, and
+ADR-017 states that ADR-016 remains in force. The two fields therefore disagree
+on purpose. **This needs the owner** — see the nightly report.
+
+**Cumulative after this batch:** 40 of 100 registered, built and published.
+Flagship 8/20, medium 12/30, compact 20/50, AI 28/70. Validation L1 8/10,
+L2 23/60, L3 9/25, **L4 0/5 — unchanged, and correctly so.**

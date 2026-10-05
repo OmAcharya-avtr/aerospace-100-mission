@@ -1,5 +1,63 @@
 # Mission Status
 
+> ## Reconciliation — 2026-10-05 (authoritative; supersedes the 2026-10-03 block below)
+>
+> Figures derived mechanically from `products.yaml` and from
+> `scripts/quota_report.py` re-run on 2026-10-05. Test counts are measured from
+> junit XML by the coordinating session, twice, by two independent full release
+> gate runs that agreed exactly.
+>
+> - **40 of 100 products registered, built and PUBLISHED.** Batches 01, 02, 03
+>   and 04 are complete. Every one of the 40 has its own repository (ADR-018);
+>   `tracking/RELEASE_LEDGER.md` lists them.
+> - **Batch 04 (P031–P040) closed and published 2026-10-05.** Authorization was
+>   ADR-017 standing authorization plus `scripts/release_gate.py` exit 0. No
+>   approval row was written, no product was set to `APPROVED`, and no words are
+>   attributed to the owner (ADR-016).
+> - **Automated tests passing: 2,371 across the ten Batch 04 products, 0 failing,
+>   0 errored, 0 skipped**, measured from junit XML. This figure covers Batch 04
+>   only. The 3,547 claimed in the body below was never re-measured and is not
+>   restated as current. A future run that gates all forty products should
+>   replace this line with its own measured total.
+> - **Gate verdict: `PUSH ALLOWED`** — ten of ten products PASS plus
+>   `repository PASS`. The first run of the gate returned `PUSH BLOCKED` on a
+>   repository-hygiene defect (18 tracked absolute private paths across 13
+>   files, two of them introduced by that same session's opening report). The
+>   defect was fixed at source, every affected script was re-run so committed
+>   raw output still matches a fresh run, and the gate was re-run to render a
+>   fresh verdict. The gate script itself was not modified.
+> - **Contributor check: exactly `OmAcharya-avtr`, one line, on all ten new
+>   repositories**, author email
+>   `145807881+OmAcharya-avtr@users.noreply.github.com`. Zero authorship defects.
+> - **Quota:** flagship 8/20, medium 12/30, compact 20/50, AI 28/70;
+>   validation L1 8/10, L2 23/60, L3 9/25, **L4 0/5**.
+> - **Level 4 is still zero.** P031 HilForge and P033 EdgeInfer ship the
+>   groundwork and are labelled `Level 3, hardware-pending`. They are not Level 4
+>   and must not be relabelled until measured timing and resource use come from
+>   the Jetson Orin Nano itself. **This is the one mission target no cloud
+>   session can close.**
+> - **L1 is nearly closed at 8 of 10, so Batch 05 must stop producing L1
+>   products.** L3 at 9 of 25, accumulating 3 per batch, does not reach 25 by
+>   Batch 10 — flagship validation depth must rise or medium products must be
+>   promoted.
+> - **The 2026-10-03 publication blocker is closed.** `connectedFolders` is still
+>   empty inside scheduled runs, but `device_request_folder_access` grants the
+>   mission folder with no owner action. An empty `connectedFolders` at Phase −1
+>   is not a blocker.
+> - **New hazard, silent:** `device_commit_files` wrote a stale cached copy when
+>   the same `stagedPath` was reused, returning `written` with no error while the
+>   Mac kept the previous file and the subsequent push reported
+>   `Everything up-to-date`. Use a unique filename per transfer and compare
+>   sha256 on the Mac. See `nightly_reports/2026-10-05.md`.
+> - **`approved_for_publish` is `false` on all ten Batch 04 products despite
+>   `published: true`.** ADR-016 clause 3 bars an unattended session from setting
+>   it; ADR-017 authorizes the push itself. A new `publication_basis` field
+>   records what authorized each product. The contradiction is deliberate and
+>   needs the owner's decision — do not resolve it automatically.
+> - **Commit hashes recorded below the 2026-10-03 block are historical labels,
+>   not refs**, because history was rewritten on 2026-10-02 to remove `claude`
+>   as a contributor.
+
 > ## Reconciliation — 2026-10-03 (authoritative)
 >
 > Everything below this block predates Batch 03's publication and contradicts
