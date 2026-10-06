@@ -1,0 +1,93 @@
+==============================================================================
+validate_distribution_fits.py
+==============================================================================
+
+[1] Positive control: a truly geometric sample must not be rejected
+    p true        n   p fitted         chi2   dof     p-value
+  -----------------------------------------------------------
+     0.020    30000   0.019874     287.4939   276      0.3047
+     0.060    30000   0.060044     125.0856   106     0.09946
+     0.200    30000   0.199185      24.9394    33       0.842
+  exponential MLE on exponential data: theta_hat = 4.0042970338881165 (true 4.0)
+  PASS = True
+
+[2] The measured channel: geometric chi-square at four thresholds
+      T   fades  cens  mean [samp]   p fitted         chi2   dof    p-value    verdict
+  ------------------------------------------------------------------------------------
+   0.40    2269     0       9.2049   0.108637       2485.6    39          0   REJECTED
+   0.50    7829     0      12.3301   0.081103      17253.6    65          0   REJECTED
+   0.60   16382     1      15.4974   0.064527      62510.3    90          0   REJECTED
+   0.70   25228     2      19.3654   0.051638     129214.4   118          0   REJECTED
+  alpha = 0.01. Every threshold rejects the memoryless hypothesis.
+
+[3] Coefficient of variation: 1 for an exponential, measured here
+      T  cv measured  cv exponential    ratio
+  -------------------------------------------
+   0.40       2.2157          1.0000     2.22
+   0.50       2.3443          1.0000     2.34
+   0.60       2.5707          1.0000     2.57
+   0.70       2.7624          1.0000     2.76
+  A fade-duration distribution two to three times more dispersed than an
+  exponential needs no hypothesis test to be visibly not exponential.
+
+[4] Full model comparison at the specified threshold T = 0.6
+Fade-duration model comparison (n_complete=16382, n_censored=1, fs=1000000.0 Hz)
+distribution                      AIC test              statistic   dof            p    valid
+---------------------------------------------------------------------------------------------
+geometric (samples)        121480.751 chi2                62510.3    90            0       ok
+exponential (cens MLE)    -330089.667 KS                 0.371464     -            0       ok
+lognormal                 -347240.977 KS                 0.159108     -            0       ok
+weibull                   -341292.695 KS                 0.227974     -            0       ok
+gamma                     -337756.629 KS                 0.206497     -            0       ok
+
+Memoryless (exponential/geometric) hypothesis at alpha=0.01: REJECTED
+  decided on the geometric chi-square: statistic=62510.26195113153, dof=90, p=0.0
+  best fit by AIC: lognormal
+  note [geometric (samples)]: 92 bins after tail merging at min_expected=5.0; mean length 15.4974 samples
+  note [exponential (cens MLE)]: KS p-value is anticonservative (parameter estimated from the same sample) and distorted by ties (durations are multiples of 1/fs). Use the geometric chi-square for the memoryless verdict. AIC includes the censored contributions, so it is not comparable with the two-parameter rows when n_censored > 0.
+  note [lognormal]: loc pinned at 0; fitted on complete durations only (SciPy fit has no censoring support); KS p-value anticonservative and tie-distorted
+  note [weibull]: loc pinned at 0; fitted on complete durations only (SciPy fit has no censoring support); KS p-value anticonservative and tie-distorted
+  note [gamma]: loc pinned at 0; fitted on complete durations only (SciPy fit has no censoring support); KS p-value anticonservative and tie-distorted
+  coefficient_of_variation: 2.5706948819179805
+  coefficient_of_variation_if_exponential: 1.0
+  mean_duration_s: 1.5497375167867175e-05
+  median_duration_s: 3e-06
+
+[5] Censoring
+  complete fades                  : 16382
+  right/left-censored runs        : 1
+  exponential scale with censoring: 1.5497558295690393e-05 s
+  exponential scale ignoring it   : 1.5497375167867175e-05 s
+  relative bias from ignoring     : -1.1816559726707254e-05
+  On this record one run of 16383 is censored, so the bias is negligible.
+  It is not negligible on a short record; the deliberate short case:
+    2000-sample record at T = 0.6: 19 complete, 2 censored
+    scale with censoring 1.6315789473684206e-05 s, ignoring it 7.947368421052631e-06 s, relative bias -0.5129032258064514
+  Kaplan-Meier vs raw survival, max absolute difference: 3.306800608504634e-05
+
+[6] Tail: empirical survival against the fitted exponential
+   L [samples]  empirical S(L)  geometric S(L)    ratio
+  -----------------------------------------------------
+             1        0.682701        0.935473     0.73
+             2        0.540288         0.87511     0.62
+             5        0.360884        0.716401     0.50
+            10        0.245086         0.51323     0.48
+            20        0.158894        0.263405     0.60
+            50       0.0750824       0.0356091     2.11
+           100       0.0349164      0.00126801    27.54
+           200        0.010011     1.60785e-06  6226.31
+           400      0.00122085     2.58519e-12 472248553.02
+  The memoryless law under-predicts the long fades by orders of
+  magnitude, and over-predicts the medium ones. Sizing an interleaver
+  from an exponential fade-duration fit would under-size it.
+
+[7] Sensitivity of the verdict to the fade definitions
+  definition variant                         fades      cv         chi2    verdict
+  --------------------------------------------------------------------------------
+  published                                  16382   2.571      62510.3   REJECTED
+  singles not fades                          11184   2.101      24590.5   REJECTED
+  censored folded in                         16383   2.571      62522.7   REJECTED
+  The verdict does not depend on the definitional choices: the
+  memoryless hypothesis is rejected under all of them.
+
+done

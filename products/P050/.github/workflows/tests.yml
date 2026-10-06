@@ -1,0 +1,47 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q
+      - name: CLI
+        run: python -m coderateopt --help
+      - name: Validation scripts
+        run: |
+          python validation/validate_fade_moments.py
+          python validation/validate_milp_vs_exhaustive.py
+          python validation/validate_mip_gap.py
+          python validation/validate_sensitivity.py
+          python validation/validate_degenerate.py
+          python validation/validate_heuristic_gap.py
+          python validation/validate_mode_divergence.py
+          python validation/validate_support_size.py
+          python validation/worked_example.py
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/knife_edge_vs_flat.py
+          python examples/sensitivity_map.py
+          python examples/goodput_vs_target.py
+          python examples/heuristic_gap.py

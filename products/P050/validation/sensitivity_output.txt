@@ -1,0 +1,58 @@
+1 and 2. interval stability and boundary resolution, scintillation index sweeps
+   margin   target                    support     lower     upper  rel width  knife
+    10.00   0.9500                   ook-r2/3   0.17305   0.26841    0.47681  False
+  [PASS] support stable across [0.17305, 0.26841]
+  [PASS] support changes 1e-3 above the upper boundary
+  [PASS] support changes 1e-3 below the lower boundary
+    12.00   0.9900                   ook-r3/4   0.15891   0.24446    0.42773  False
+  [PASS] support stable across [0.15891, 0.24446]
+  [PASS] support changes 1e-3 above the upper boundary
+  [PASS] support changes 1e-3 below the lower boundary
+    14.00   0.9900                  ook-r9/10   0.11064   0.26409    0.76721  False
+  [PASS] support stable across [0.11064, 0.26409]
+  [PASS] support changes 1e-3 above the upper boundary
+  [PASS] support changes 1e-3 below the lower boundary
+    16.00   0.9990                  ook-r9/10   0.16045   0.29624    0.67896  False
+  [PASS] support stable across [0.16045, 0.29624]
+  [PASS] support changes 1e-3 above the upper boundary
+  [PASS] support changes 1e-3 below the lower boundary
+    20.00   0.9900                  qpsk-r3/4   0.05000   0.42742    1.88708  False
+  [PASS] support stable across [0.05000, 0.42742]
+  [PASS] support changes 1e-3 above the upper boundary
+
+3. widest and narrowest stability intervals over a margin/target grid
+  grid points evaluated                        135
+  with both boundaries resolved (not scan-bounded) 84
+  relative width: min 0.251465  median 0.757324  max 3.368164
+  knife-edge at +/-10%                         24 of 84
+
+  narrowest (knife-edge)
+    margin                     14.00 dB
+    availability target        0.9990
+    chosen MODCOD              ook-r5/6
+    nominal scintillation      0.200000
+    stable over                [0.154590, 0.204883]
+    relative width             0.251465
+    headroom down / up         0.227051 / 0.024414
+    knife-edge at +/-10%       True
+    answer just below / above  ook-r9/10 / ook-r3/4
+
+  widest (flat)
+    margin                     22.00 dB
+    availability target        0.9900
+    chosen MODCOD              qpsk-r3/4
+    nominal scintillation      0.200000
+    stable over                [0.081641, 0.755273]
+    relative width             3.368164
+    headroom down / up         0.591797 / 2.776367
+    knife-edge at +/-10%       False
+    answer just below / above  qam16-r3/4 / qpsk-r1/2
+
+  ratio of widest to narrowest relative width: 13.39
+
+4. margin sensitivity on the same two instances, in dB
+  narrowest case   nominal  14.00 dB  stable over [ 13.927,  14.726] dB  width  0.800 dB  knife-edge True
+  widest case      nominal  22.00 dB  stable over [ 17.911,  23.709] dB  width  5.798 dB  knife-edge True
+
+checks run: 0 failed
+every reported stability interval was verified stable inside and unstable outside

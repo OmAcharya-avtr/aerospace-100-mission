@@ -1,0 +1,32 @@
+1. the two modes coincide at K = 1
+  feasible grid points compared 684
+  identical answers             684
+  [PASS] per_interval and long_run agree at K = 1 everywhere
+
+2. divergence at K = 2
+  feasible grid points          684
+  answers that differ           511 (0.7471)
+  goodput gain from long_run: mean 0.113952  median 0.046195  max 0.977107
+  worst-interval availability shortfall against target: mean 0.070091  median 0.020729  max 0.476618
+  [PASS] every divergence trades goodput for worst-interval availability
+
+3. the largest divergence, in full
+  margin 13.00 dB, scintillation index 0.4, target 0.999
+  per_interval: ('ook-r1/4',) goodput 0.249994  worst-interval availability 0.999977
+  long_run:     ook-r1/4 x=0.020938, ook-r1/2 x=0.979062
+                goodput 0.494266  long-run availability 0.999000  worst-interval availability 0.998979
+  goodput gain 0.977107; worst-interval availability shortfall 0.000021
+  unavailability during the worst interval rises from 2.286210e-05 to 1.020897e-03, a factor of 44.65
+  [PASS] the long-run mix meets the long-run target
+  [PASS] the long-run mix violates the target during its worst interval
+
+4. a worked divergence at the documented operating point
+  margin 12.00 dB, scintillation index 0.2, target 0.99
+  availabilities [9.999999e-01 9.999362e-01 9.987447e-01 9.952102e-01 9.798854e-01
+ 9.473819e-01 7.242091e-01 1.947277e-01 3.327391e-05]
+  per_interval -> ('ook-r3/4',) at 0.746408 bits/symbol
+  long_run     -> ook-r3/4 x=0.660014, ook-r5/6 x=0.339986 at 0.770151 bits/symbol
+  goodput gain 0.031810; worst-interval availability 0.979885 against a 0.99 target
+
+checks run: 0 failed
+the two availability readings diverge exactly where the formulation says they must

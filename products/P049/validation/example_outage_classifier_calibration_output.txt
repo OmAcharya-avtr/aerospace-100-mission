@@ -1,0 +1,29 @@
+Outage dataset:
+  gap_rows                : 12
+  horizon_samples         : 200
+  n_features              : 14
+  n_samples               : 1500000
+  stride_samples          : 50
+  threshold               : 0.35
+  window_samples          : 400
+  rows                    : 29989
+  positives               : 724
+  base rate               : 0.024142185468004933
+
+Temporal split (no shuffling; gap between splits to break overlap):
+  train       : 17993 rows, 439 positive
+  calibration : 4498 rows, 97 positive
+  test        : 7474 rows, 188 positive
+  gap         : 12 rows discarded between splits
+
+forecaster                         Brier       BSS         REL         RES       ECE       MCE   logloss     AUC       AP    mean p
+constant base rate             0.0245217    0.0000   5.708e-07   0.000e+00   0.00076   0.00076   0.11748  0.5000   0.0252   0.02440
+analytic LCR (fit)             0.0236771    0.0344   3.281e-03   1.935e-03   0.02885   0.17058   0.09813  0.8713   0.3244   0.05400
+logistic regression            0.0201792    0.1771   1.079e-05   1.867e-03   0.00272   0.00639   0.08562  0.8669   0.3243   0.02404
+random forest                  0.0207702    0.1530   6.761e-05   1.703e-03   0.00587   0.01978   0.10079  0.8464   0.2829   0.02506
+analytic LCR (fit) + Platt     0.0200258    0.1833   3.264e-05   1.935e-03   0.00392   0.01526   0.08481  0.8713   0.3244   0.02160
+
+lowest Brier on the held-out split: analytic LCR (fit) + Platt
+all-negative accuracy on the same split: 0.974846
+
+wrote screenshots/outage_classifier_calibration.png

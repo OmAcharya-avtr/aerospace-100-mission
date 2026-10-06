@@ -1,0 +1,91 @@
+softdecode validation 3: max-log and clipping costs
+raw output committed as validation/maxlog_clipping_output.txt
+LDPC n=96 m=48 k=50 rate=0.520833 length-4 cycles=26
+blocks per point 1200 (60000 information bits, 115200 channel bits), seed 20261006
+
+1. Max-log versus exact, no channel-state information, lognormal sigma_I2 = 0.3
+-------------------------------------------------------------------------------
+   The fading average is taken over the prior; max-log replaces the
+   logsumexp over quadrature nodes by a max, so L_maxlog >= L_exact.
+    Eb/N0    LLR rmse     max |e|  mean signed  one-signed     BER exact   BER max-log  BER ratio  GMI exact  GMI max-log
+     2.00     1.68393     1.73445     +1.68169        True  2.165167e-01  3.102000e-01      1.433    0.33433      0.04219
+     4.00     1.60210     1.67579     +1.59684        True  1.615333e-01  2.408500e-01      1.491    0.43333      0.20678
+     6.00     1.51376     1.62212     +1.50314        True  8.610000e-02  1.590500e-01      1.847    0.53879      0.37829
+     8.00     1.42262     1.57249     +1.40457        True  2.608333e-02  6.438333e-02      2.468    0.64327      0.53398
+    10.00     1.32868     1.52881     +1.29919        True  3.700000e-03  1.181667e-02      3.194    0.74288      0.67248
+
+1. Max-log versus exact, no channel-state information, gamma-gamma (4, 2)
+-------------------------------------------------------------------------
+   The fading average is taken over the prior; max-log replaces the
+   logsumexp over quadrature nodes by a max, so L_maxlog >= L_exact.
+    Eb/N0    LLR rmse     max |e|  mean signed  one-signed     BER exact   BER max-log  BER ratio  GMI exact  GMI max-log
+     2.00     2.93399     3.16490     +2.91498        True  2.593500e-01  3.823333e-01      1.474    0.26257     -0.59485
+     4.00     2.85590     3.15530     +2.82746        True  2.280000e-01  3.356167e-01      1.472    0.32381     -0.41769
+     6.00     2.77637     3.14565     +2.73559        True  1.892833e-01  2.824833e-01      1.492    0.39146     -0.22394
+     8.00     2.69682     3.14047     +2.64132        True  1.463333e-01  2.364167e-01      1.616    0.46401     -0.04899
+    10.00     2.61603     3.13248     +2.54161        True  9.298333e-02  1.870333e-01      2.011    0.53285      0.11495
+
+2. Max-log versus exact with an estimated channel state
+-------------------------------------------------------
+   Here the fading average is over the posterior p(h | h_hat), which is
+   the quantity a receiver with an imperfect estimate should average
+   over. bias +2.00 dB, jitter 1.00 dB.
+    Eb/N0    LLR rmse     max |e|     BER exact   BER max-log  BER ratio  GMI exact  GMI max-log
+     2.00     1.44177     1.59695  1.992333e-01  2.832500e-01      1.422    0.38453      0.17677
+     4.00     1.40745     1.59515  1.275667e-01  2.107667e-01      1.652    0.49303      0.32927
+     6.00     1.36349     1.60112  4.330000e-02  1.168000e-01      2.697    0.60495      0.47949
+     8.00     1.30848     1.58313  4.450000e-03  2.231667e-02      5.015    0.71587      0.63126
+    10.00     1.24325     1.58635  1.333333e-04  7.666667e-04      5.750    0.80916      0.75679
+
+3. LLR clipping: LLR error against decoded cost
+-----------------------------------------------
+   Exact LLRs with no CSI, then saturated at L_max before decoding.
+   The two costs diverge: the LLR error is already large at L_max = 5
+   while the decoded BER has not moved.
+
+  Eb/N0 = 4.00 dB, unclipped BER 1.615333e-01 +- 1.502e-03 (9692/60000), GMI 0.433334
+    L_max  clipped frac    LLR rmse   rel rmse           BER  BER / base        GMI   GMI loss
+     0.25      0.928802     4.04623    0.96504  1.826500e-01       1.131    0.10372    0.32962
+     0.50      0.855564     3.90901    0.93231  1.826000e-01       1.130    0.18685    0.24648
+     1.00      0.710148     3.66180    0.87335  1.804667e-01       1.117    0.30204    0.13130
+     2.00      0.439436     3.26525    0.77877  1.695333e-01       1.050    0.40069    0.03265
+     3.00      0.237387     2.96732    0.70772  1.637833e-01       1.014    0.42542    0.00792
+     5.00      0.102370     2.52449    0.60210  1.617833e-01       1.002    0.43272    0.00062
+     8.00      0.047405     2.05543    0.49023  1.615000e-01       1.000    0.43332    0.00002
+    12.00      0.019991     1.63444    0.38982  1.615333e-01       1.000    0.43333    0.00000
+    20.00      0.005816     1.12628    0.26862  1.615333e-01       1.000    0.43333    0.00000
+    40.00      0.000677     0.54898    0.13093  1.615333e-01       1.000    0.43333    0.00000
+
+  Eb/N0 = 8.00 dB, unclipped BER 2.608333e-02 +- 6.507e-04 (1565/60000), GMI 0.643271
+    L_max  clipped frac    LLR rmse   rel rmse           BER  BER / base        GMI   GMI loss
+     0.25      0.964731    10.17560    0.98755  1.042333e-01       3.996    0.13193    0.51134
+     0.50      0.930347    10.05164    0.97552  1.041167e-01       3.992    0.24236    0.40091
+     1.00      0.857422     9.81658    0.95270  1.010333e-01       3.873    0.40607    0.23720
+     2.00      0.697708     9.39529    0.91182  5.290000e-02       2.028    0.57009    0.07318
+     3.00      0.521510     9.03156    0.87652  3.260000e-02       1.250    0.62257    0.02070
+     5.00      0.263906     8.42582    0.81773  2.590000e-02       0.993    0.64148    0.00179
+     8.00      0.161302     7.68658    0.74599  2.613333e-02       1.002    0.64321    0.00006
+    12.00      0.098733     6.90162    0.66981  2.608333e-02       1.000    0.64327    0.00000
+    20.00      0.043698     5.76829    0.55982  2.610000e-02       1.001    0.64327    0.00000
+    40.00      0.010130     4.15696    0.40343  2.608333e-02       1.000    0.64327    0.00000
+
+4. 4-PPM max-log bit-LLR error (LLR units only, no decoder)
+-----------------------------------------------------------
+   inner_max=False applies max-log only to the symbol sums, which is
+   the classical Hagenauer-Hoeher demapper; inner_max=True also
+   replaces the fading average by its dominant node.
+    Eb/N0  rmse symbol-only  max |e| symbol-only   rmse both  max |e| both
+     2.00           0.31219              0.69216     0.47690       2.00076
+     4.00           0.30822              0.69245     0.54534       2.17615
+     6.00           0.30691              0.69280     0.63682       2.10922
+     8.00           0.29330              0.69293     0.72846       2.12853
+    10.00           0.28899              0.69296     0.82222       2.10622
+
+   Known answer for the symbol-only column: for 4-PPM each of the two
+   sums in a bit LLR has M/2 = 2 terms, and
+     0 <= logsumexp(a, b) - max(a, b) <= log 2,
+   with equality at a = b. The bit LLR is a difference of two such
+   reductions, so its max-log error lies in [-log 2, +log 2] = [-0.693147, +0.693147].
+   The measured maximum above is 0.692962, i.e. 0.999733 of the bound.
+
+done

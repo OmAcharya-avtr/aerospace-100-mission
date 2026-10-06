@@ -1,0 +1,34 @@
+First-order Markov fit, K=2, N=2000000 samples
+  transition matrix P[i,j] (row-normalised counts):
+    row 0: 0.935469767  0.064530233
+    row 1: 0.009381955  0.990618045
+  transition counts:
+    row 0: [237498, 16383]
+    row 1: [16382, 1729736]
+  model stationary occupancy : [0.12693379868266366, 0.8730662013173365]
+  measured occupancy         : [0.1269405, 0.8730595]
+  model mean dwell (samples) : [15.496612342061894, 106.58759614210757]
+  measured mean dwell        : [15.49737516786717, 106.56604810157489]
+  log likelihood             : -153534.18048953993
+  free parameters            : 2
+  AIC                        : 307072.36097907985
+
+state 0   n=16382    p_geom=0.06453023 chi2=     62525.6 dof=91    p=          0 mean_obs=   15.4974 mean_geom=   15.4966 cv_obs=2.5707 cv_geom=0.9672 ok
+state 1   n=16382    p_geom=0.00938195 chi2=      241872 dof=446   p=          0 mean_obs=  106.5660 mean_geom=  106.5876 cv_obs=3.1541 cv_geom=0.9953 ok
+
+Markov-order (conditional independence) test, K=2, triplets=1999998
+  summed chi2 = 139205.81210958044, dof = 2, p = 0.0
+  Cramer's V (effect size) = 0.2638237587060079
+  per middle state j: (j, chi2, dof, V, n)
+    j=0: chi2=18534.823486346995 dof=1 V=0.2701966638300687 n=253880
+    j=1: chi2=120670.98862323345 dof=1 V=0.2628842944505551 n=1746118
+
+semi-Markov free parameters: 1553 against 2 for the Markov chain
+K =  2  Cramer V = 0.2638  max cv ratio = 3.17  chi2 = 139206 on 2 dof
+K =  3  Cramer V = 0.2173  max cv ratio = 3.08  chi2 = 188822 on 6 dof
+K =  4  Cramer V = 0.1866  max cv ratio = 3.01  chi2 = 208917 on 10 dof
+K =  5  Cramer V = 0.1575  max cv ratio = 3.01  chi2 = 198396 on 14 dof
+K =  7  Cramer V = 0.1304  max cv ratio = 2.86  chi2 = 203993 on 22 dof
+
+censored dwell runs excluded: [1, 1]
+wrote screenshots/markov_dwell_fit.png

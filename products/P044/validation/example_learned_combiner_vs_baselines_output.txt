@@ -1,0 +1,31 @@
+L=4, si=0.9, pitch=0.15 m, rho_c=0.1 m, seed=44044
+training rows 70000, validation 25000, held-out 25000
+adjacent-aperture log correlation 0.105399
+analytic shrinkage exponent fitted on the validation split: p* = 0.1600
+  (p=1 is MRC with the estimate, p=0 is equal gain)
+
+  sigma_e  sigma_e dB   mrc_est    egc   shrinkage  learned
+    0.000      0.000  -0.0000   0.4389   0.2999   0.0082
+    0.300      1.303   0.0633   0.4405   0.3025   0.0599
+    0.600      2.606   0.2418   0.4352   0.3052   0.1653
+    0.900      3.909   0.5068   0.4327   0.3135   0.2510
+    1.200      5.212   0.8311   0.4351   0.3290   0.3096
+    1.500      6.514   1.1760   0.4417   0.3499   0.3490
+    1.800      7.817   1.5234   0.4390   0.3692   0.3710
+    2.100      9.120   1.8475   0.4315   0.3871   0.3810
+    2.400     10.423   2.1785   0.4362   0.4224   0.3991
+    2.700     11.726   2.4617   0.4358   0.4464   0.4037
+    3.000     13.029   2.7532   0.4367   0.4845   0.4177
+
+MRC-with-the-estimate and EGC cross between 2.606 and 3.909 dB of irradiance estimation error
+
+pooled coverage of the uncertainty output on the held-out rows
+  nominal 0.10 -> empirical 0.094360
+  nominal 0.50 -> empirical 0.465720
+  nominal 0.90 -> empirical 0.873240
+
+learned minus best non-learned, over the error range: worst +0.0082 dB, best -0.0765 dB
+a negative number means the learned combiner is ahead
+
+wrote screenshots/learned_combiner_vs_baselines.png
+research-grade output; not flight-qualified, not certified

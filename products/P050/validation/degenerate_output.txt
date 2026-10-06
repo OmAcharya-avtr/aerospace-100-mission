@@ -1,0 +1,67 @@
+1. infeasible instance
+  availabilities [0.75 0.5  0.25]
+  target 0.9
+  solve_milp             raised InfeasibleProblem
+    best_availability 0.75  best_modcod 'm2'
+  [PASS] solve_milp raises on an infeasible instance
+  solve_exhaustive       raised InfeasibleProblem
+    best_availability 0.75  best_modcod 'm2'
+  [PASS] solve_exhaustive raises on an infeasible instance
+  solve_closed_form_k2   raised InfeasibleProblem
+    best_availability 0.75  best_modcod 'm2'
+  [PASS] solve_closed_form_k2 raises on an infeasible instance
+  select_rate            raised InfeasibleProblem
+    best_availability 0.75  best_modcod 'm2'
+  [PASS] select_rate raises on an infeasible instance
+  diagnostic message on the illustrative table at 3 dB margin, target 0.999:
+    availability target 0.999000 is unreachable: the best MODCOD in the table is 'ook-r1/4' at availability 0.542575 (threshold 2.00 dB), short by 0.456425
+    Raise the link margin, lower the target, or add a lower-threshold MODCOD; the margin needed by 'ook-r1/4' at this target is 10.52 dB (+7.52 dB from the current 3.00 dB).
+  margin the message names as sufficient: 10.5155 dB
+  at that margin the instance solves: ('ook-r1/4',) at 0.249750 bits/symbol
+  [PASS] the margin named in the error message makes the instance feasible
+
+2. exact ties
+  availabilities [1.   0.75 0.5 ]
+  goodputs       [1.5 1.5 1.5]
+  canonical support ('a',)
+  tied alternatives [('b',), ('c',)]
+  is_unique() False
+  [PASS] three-way tie resolves to the lexicographically first support
+  [PASS] both alternatives are reported
+  supports over 20 repeated solves: {(0,)}
+  [PASS] the canonical choice is stable across repeated solves
+
+3. constraint satisfied only by the lowest rate
+  availabilities [1.   0.75 0.5  0.25]
+  chosen ('m1',) at 1.000000 bits/symbol, the lowest rate in the table
+  [PASS] only the lowest rate is selected
+  [PASS] goodput is the lowest rate's own
+
+4. non-monotone goodput over the rate set
+  rates          [1. 1. 6. 2. 8.]
+  availabilities [1.  0.8 0.6 0.4 0.2]
+  goodputs       [1.  0.8 3.6 0.8 1.6]
+  goodput is monotone in rate: False
+  optimum ('c',) at 3.600000
+  greedy 'fastest that closes' at 1.600000, relative loss 0.555556
+  [PASS] the optimum is the interior peak, not the top rate
+  [PASS] the greedy rule loses here
+  milp         3.600000000
+  [PASS] milp finds the global optimum on a non-monotone set
+  exhaustive   3.600000000
+  [PASS] exhaustive finds the global optimum on a non-monotone set
+
+5. a zero-availability MODCOD with the largest rate in the table
+  availabilities [1. 0.]
+  goodputs       [1. 0.]
+  chosen ('useful',)
+  [PASS] the zero-availability MODCOD is never selected
+
+6. a minimum dwell fraction that forbids every mix
+  max_entries 4, min_dwell 0.75 -> effective_k 1
+  chosen ('ook-r3/4',) at 0.746408 bits/symbol, worst-interval availability 0.995210
+  [PASS] a dwell above 0.5 collapses the cardinality limit to 1
+  [PASS] the single-entry answer still meets the target
+
+checks run: 0 failed
+every degenerate case behaved as documented

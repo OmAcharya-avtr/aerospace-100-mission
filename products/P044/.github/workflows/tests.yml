@@ -1,0 +1,44 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: CLI smoke test
+        run: python -m aperturediv --help
+      - name: Test
+        run: python -m pytest tests/ -q
+      - name: Validation scripts
+        run: |
+          python validation/validate_channel_stats.py
+          python validation/validate_aperture_averaging.py
+          python validation/validate_correlation.py
+          python validation/validate_combining.py
+          python validation/validate_learned_combiner.py
+          python validation/validate_cross_check_x2.py
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/aperture_averaging.py
+          python examples/combining_outage.py
+          python examples/one_big_vs_many_small.py
+          python examples/learned_combiner_vs_baselines.py

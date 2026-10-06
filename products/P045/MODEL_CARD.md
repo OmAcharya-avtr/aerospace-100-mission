@@ -1,0 +1,271 @@
+# Model card — learned redundancy policy
+
+**Status: TESTING** · Validation level 2 (research grade) · Apache-2.0 ·
+© 2026 OPTIMA Organisation
+
+**This model is not certified for operational flight use.** It is a research
+artefact trained entirely on synthetic episodes from a model of a fading link.
+It has never seen a real telemetry stream.
+
+## Problem
+
+At each round of a hybrid-ARQ exchange, choose how many incremental-redundancy
+symbols to send next, from the five-element set
+`{10, 25, 50, 100, 200}` symbols. At `k = 200` information symbols those
+choices correspond to first-transmission code rates of 0.952, 0.889, 0.800,
+0.667 and 0.500.
+
+The objective is to minimise the expected per-frame cost
+
+```
+C = (elapsed channel symbol times, including one feedback wait per round)
+    + drop_penalty * 1{frame still undecoded after M rounds}
+```
+
+with `drop_penalty = 2000` symbol times, an explicit design input representing
+the cost of escalating a frame to an outer ARQ layer. Goodput,
+`k * P(success) / E[elapsed]`, is reported alongside and is the quantity a
+practitioner cares about; cost is what the model is trained on because it is
+additive over rounds and therefore learnable from a single rollout.
+
+### The structural difficulty, stated before any result
+
+On a long link the feedback that would reveal the fade state is at least one
+round trip old by the time it can be acted upon. A policy therefore cannot
+track the channel. It can only exploit the channel's *statistics*, plus
+whatever correlation survives the staleness. How much that is worth depends on
+the ratio of the fade correlation time to the round length, so the comparison
+is run in two regimes and both are reported:
+
+| regime | mean faded sojourn | state autocorrelation 1/e time | stale feedback |
+|---|---|---|---|
+| long-burst | 25 rounds | 19.50 rounds | still informative |
+| short-burst | 1.5 rounds | 0.56 rounds | nearly worthless |
+
+Both have the same stationary marginal per-symbol error probability
+(0.0471) and the same 20 per cent faded duty cycle, so any difference between
+them is correlation and nothing else.
+
+## Baselines, implemented first
+
+Phase order was not negotiable (ADR-011 and the build guide): the analytic
+baseline was computed before any model was fitted, and all four policies are
+scored on the same held-out seeds.
+
+1. **analytic-fixed.** The throughput-optimal fixed `(first, later)` schedule
+   computed from the exact nested dynamic program of `arqlonghaul.harq`
+   evaluated at the stationary *mixture* per-symbol error probability. Uses no
+   data at all: no episode is simulated and no seed is read.
+2. **tuned-fixed.** The best fixed `(first, later)` pair by exhaustive grid
+   search over all 25 pairs, scored on the tune seeds.
+3. **escalating.** Send the next larger increment after each failed round,
+   saturating at the largest; the base action is chosen on the tune seeds.
+
+## Architecture
+
+`sklearn.ensemble.RandomForestRegressor`, 140 trees, `max_depth` and
+`min_samples_leaf` chosen on the tune seeds from
+`{(6, 40), (10, 20), (14, 10), (None, 5)}`. No PyTorch is available in this
+build environment and none is needed: the state is eight-dimensional and the
+action set has five elements.
+
+The model regresses the realised cost from a decision point to the end of the
+frame on `(observable state, action)`. The policy acts greedily, choosing the
+action with the lowest predicted cost. This is **one step of approximate policy
+improvement over a uniform random behaviour policy** — no bootstrapping, no
+second iteration. The greedy policy is therefore provably an improvement on
+the *random* policy, which is a much weaker claim than optimality, and it is
+the claim being made.
+
+### Features, eight, all observable
+
+| feature | meaning |
+|---|---|
+| `round_index` | 1..M, the transmission number for this frame |
+| `redundancy_ratio` | accumulated redundancy / k |
+| `rounds_remaining` | M − round index |
+| `prev_frame_rounds` | rounds the previous frame needed, / M |
+| `nak_ewma` | exponentially weighted NAK rate over rounds, decay 0.85 |
+| `rounds_last8_mean` | mean rounds over the last eight frames, / M |
+| `consecutive_hard_frames` | run of frames needing more than one round, capped at 8 |
+| `rtt_over_k` | feedback latency D / k, constant within an environment |
+
+**The fade state is deliberately not a feature.** Including it would measure a
+different and easier problem.
+
+`nak_ewma` and `rounds_last8_mean` are quantised to sixteenths before the
+policy sees them. Two reasons, the second being the honest one: a real
+implementation would keep these statistics in a few bits, and a finite
+observation space lets the greedy action be memoised, which is what makes a
+400-seed evaluation fit the compute budget. The quantisation is applied
+identically when collecting training data and when acting, so it is part of the
+problem definition and not a shortcut taken at evaluation time.
+
+## Dataset
+
+See `DATASET_CARD.md`. Synthetic throughout, generated by committed code under
+fixed seeds.
+
+## Training procedure
+
+```
+python validation/export_policy_table.py     # trains and exports the artifact
+python validation/validate_policy.py         # the published comparison
+```
+
+Fit seeds 1000–1119, 150 frames each, behaviour policy uniform random with
+seed 7, forest `random_state = 0`. 18330 decision rows for the long-burst
+environment. Hyperparameters selected on tune seeds 2000–2039.
+
+## Test-split strategy
+
+Three disjoint seed sets, declared in `arqlonghaul.datasets.SEED_SPLIT`, whose
+constructor raises if they overlap:
+
+| set | seeds | used for |
+|---|---|---|
+| fit | 1000–1199 | training the cost-to-go regressor |
+| tune | 2000–2199 | every free parameter of every policy |
+| report | 3000–3399 | the published numbers, read once |
+
+A baseline whose parameter was chosen on the reporting seeds is not a
+baseline. The tune set exists so that the fixed schedule gets exactly the
+advantage the learned model gets.
+
+## Metrics — the published result
+
+300 report seeds × 150 frames = 45000 frames per policy
+(`validation/validate_policy_output.txt`). Lower cost is better.
+
+### long-burst regime (mean faded sojourn 25 rounds)
+
+| policy | cost/frame | ± | goodput | ± | residual FER | rounds/frame |
+|---|---|---|---|---|---|---|
+| analytic-fixed | 443.733 | 8.377 | 0.59130 | 0.00382 | 6.240e-02 | 1.2524 |
+| **tuned-fixed** | **331.401** | **1.541** | **0.60758** | **0.00253** | 2.222e-04 | 1.2064 |
+| escalating | 337.514 | 1.878 | 0.59754 | 0.00301 | 0.000e+00 | 1.2030 |
+| learned-forest | 336.902 | 1.875 | 0.59940 | 0.00295 | 3.556e-04 | 1.1778 |
+
+| learned against | goodput diff | cost diff | z on cost | verdict |
+|---|---|---|---|---|
+| analytic-fixed | +1.370 % | −24.076 % | −12.45 | learned wins |
+| tuned-fixed | −1.346 % | +1.660 % | +2.27 | **tuned-fixed wins** |
+| escalating | +0.312 % | −0.182 % | −0.23 | tie |
+
+### short-burst regime (mean faded sojourn 1.5 rounds)
+
+| policy | cost/frame | ± | goodput | ± | residual FER | rounds/frame |
+|---|---|---|---|---|---|---|
+| analytic-fixed | 550.983 | 3.228 | 0.52643 | 0.00136 | 1.054e-01 | 1.5352 |
+| **tuned-fixed** | **339.893** | **0.381** | **0.58864** | **0.00066** | 0.000e+00 | 1.2660 |
+| escalating | 345.650 | 0.463 | 0.57893 | 0.00077 | 0.000e+00 | 1.2643 |
+| learned-forest | 350.194 | 0.217 | 0.57118 | 0.00035 | 0.000e+00 | 1.2446 |
+
+| learned against | goodput diff | cost diff | z on cost | verdict |
+|---|---|---|---|---|
+| analytic-fixed | +8.500 % | −36.442 % | −62.06 | learned wins |
+| tuned-fixed | −2.967 % | +3.031 % | +23.50 | **tuned-fixed wins** |
+| escalating | −1.339 % | +1.315 % | +8.88 | **escalating wins** |
+
+### What that means, without spin
+
+**A two-parameter grid search beats the learned model in both regimes.** It is
+not close in the short-burst regime (`|z| = 23.5`) and it is marginal but real
+in the long-burst regime (`|z| = 2.27`). The learned model was not retuned
+after this was found and it has not been removed, because the point of running
+the comparison is to believe it.
+
+The one thing the learned model does beat, decisively, is the analytic fixed
+schedule — and the reason is instructive rather than flattering. Choosing the
+schedule that is optimal *at the mixture error probability* is not the same as
+choosing the schedule that minimises *expected cost under the mixture*, because
+cost is convex in the error probability. The analytic baseline consequently
+ships a residual frame error rate of 6 to 11 per cent where every other policy
+achieves 1e-4 or better: it optimises for an average channel that the link is
+never actually in. That is a real and transferable lesson about computing an
+optimum at a marginal, and it is the analytic baseline's failure rather than
+the learned model's success.
+
+## Uncertainty output
+
+`LearnedRedundancyPolicy.predict_with_uncertainty(obs)` returns the per-action
+mean predicted cost and the across-tree standard deviation.
+`decision_confidence(obs)` adds the margin to the runner-up action, both in
+symbol times and divided by the pooled across-tree standard deviation of the
+two.
+
+Measured on the report seeds (long-burst regime):
+
+- across-tree standard deviation of the chosen action's predicted cost:
+  median **68.99** symbol times, 10th percentile 6.66, 90th percentile 193.49;
+- decision margin to the runner-up: median **0.65 pooled standard deviations**,
+  with **63.3 per cent of states below one standard deviation**.
+
+Read plainly: at nearly two thirds of the states it visits, the model cannot
+distinguish its two best actions. That is an honest explanation of why it loses
+to a grid search, and it is the number to look at before trusting a decision
+this policy makes.
+
+## Failure cases
+
+- **Loses to a tuned fixed schedule in both tested regimes.** Published above.
+- **Occasionally chooses the smallest increment.** The learned policy spends
+  0.34 per cent of rounds at 10 symbols where no baseline ever does; at `k =
+  200` that is a code rate of 0.952, which essentially cannot decode at the
+  operating Es/N0, so those rounds are close to wasted.
+- **Residual frame error rate is not zero** (3.6e-4 in the long-burst regime)
+  where the escalating heuristic achieves zero over the same 45000 frames. The
+  cost surrogate charges 2000 symbol times per drop; a mission with a harder
+  reliability requirement should raise `drop_penalty` and retrain, and the
+  policy has not been characterised at other values.
+- **No transfer evidence.** The model is trained and tested on the same
+  environment family. Nothing here shows it transfers to a different fade
+  model, a different action set, a different `k`, or a different `D`.
+- **No real-data evidence of any kind.**
+
+## Reproducibility
+
+```bash
+pip install -e ".[dev]"
+python validation/validate_policy.py          # the published table, ~300 s
+python validation/export_policy_table.py      # the artifact, ~15 s
+python examples/policy_comparison.py          # the figure, ~40 s
+```
+
+Seeds: fit 1000–1119, tune 2000–2039, report 3000–3299, behaviour policy 7,
+forest `random_state` 0. `export_policy_table.py` prints the SHA-256 of each
+exported array and the numpy and scikit-learn versions it ran under, because a
+forest is not guaranteed to be bit-identical across scikit-learn releases and
+claiming otherwise would be false.
+
+## Model persistence
+
+No model binary is committed. The greedy policy is a finite map from a
+quantised observation to an action, so it is exported as a compressed `.npz`
+lookup table carrying the states, the chosen action index, the per-action
+predicted cost and the per-action across-tree standard deviation:
+
+| file | states | bytes |
+|---|---|---|
+| `validation/policy_table_long_burst.npz` | 200 | 7936 |
+| `validation/policy_table_short_burst.npz` | 255 | 10761 |
+
+Regenerate with `python validation/export_policy_table.py`.
+
+## Compute used
+
+Two cores, 7.8 GiB, shared with four sibling build agents and a concurrent gate
+run. Training the forest takes about 2 s; collecting the 18330 training
+transitions takes about 1 s; the full published comparison over both regimes
+takes about 300 s. No run in this repository exceeds three minutes, which was
+the budget.
+
+## Ethical and safety limits
+
+This model chooses how many redundancy symbols to send on a simulated link. It
+makes no decision about a person. The safety limit that matters is the
+engineering one: **it is not certified for operational flight use**, it is
+beaten by a two-parameter grid search on the only comparison that was run, and
+its own uncertainty output says it cannot distinguish its two best actions at
+63 per cent of the states it visits. Anyone tempted to put a learned policy on
+a radio link should read the tuned-fixed row of the tables above first.

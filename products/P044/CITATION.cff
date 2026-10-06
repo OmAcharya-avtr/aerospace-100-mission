@@ -1,0 +1,108 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "aperturediv: multi-aperture receive diversity for free-space optical links"
+version: 0.1.0
+date-released: 2026-10-06
+license: Apache-2.0
+abstract: >-
+  Receive diversity for a scintillating free-space optical link, with the
+  inter-aperture correlation treated as a first-class input rather than
+  assumed away. Unit-mean lognormal and gamma-gamma irradiance statistics
+  with the scintillation index checked against each model's own closed form;
+  the aperture-averaging factor computed from its defining integral over the
+  circular-aperture overlap kernel, with two closed-form limits derived and
+  used as validation targets; the exact lognormal relation between
+  log-irradiance and irradiance correlation, and Gaussian-copula samplers for
+  both channel models; maximal-ratio, equal-gain and selection combining with
+  outage probability, finite-window diversity order and the measured cost of
+  the independent-aperture idealisation; and a learned combiner for imperfect
+  or stale channel-state information, benchmarked against maximal-ratio
+  combining with the true state (optimal by Cauchy-Schwarz, so an upper bound
+  no model can pass), maximal-ratio combining with the estimate, equal-gain
+  combining, and a one-parameter analytic shrinkage family, with a
+  penalty-quantile uncertainty output. Validation level 2, research grade.
+  Not flight-qualified, not certified, not approved for operational aerospace
+  use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - free-space-optics
+  - scintillation
+  - aperture-averaging
+  - diversity-combining
+  - maximal-ratio-combining
+  - gamma-gamma
+  - lognormal-fading
+  - outage-probability
+references:
+  - type: book
+    authors:
+      - family-names: Andrews
+        given-names: "L. C."
+      - family-names: Phillips
+        given-names: "R. L."
+    title: "Laser Beam Propagation through Random Media"
+    edition: "2nd"
+    publisher:
+      name: "SPIE Press"
+    year: 2005
+    notes: >-
+      Standard reference for optical scintillation, the lognormal and
+      gamma-gamma irradiance models, and aperture averaging. This repository
+      does not quote a page number or a tabulated constant from it: the
+      aperture-averaging factor is computed from its defining integral and the
+      two closed-form limits used as validation targets are derived in the
+      source docstrings of aperturediv.aperture.
+  - type: article
+    authors:
+      - family-names: Al-Habash
+        given-names: "M. A."
+      - family-names: Andrews
+        given-names: "L. C."
+      - family-names: Phillips
+        given-names: "R. L."
+    title: >-
+      Mathematical model for the irradiance probability density function of a
+      laser beam propagating through turbulent media
+    journal: "Optical Engineering"
+    volume: 40
+    issue: 8
+    year: 2001
+    notes: >-
+      Origin of the gamma-gamma irradiance model used in
+      aperturediv.channel. The plane-wave mapping from Rytov variance to the
+      shape parameters is the widely reproduced form of this literature; this
+      repository checks it for internal consistency against the model's own
+      closed-form scintillation index and against sampled moments
+      (validation/validate_channel_stats.py) rather than asserting a
+      quotation.
+  - type: article
+    authors:
+      - family-names: Brennan
+        given-names: "D. G."
+    title: "Linear Diversity Combining Techniques"
+    journal: "Proceedings of the IRE"
+    volume: 47
+    issue: 6
+    year: 1959
+    notes: >-
+      Source for maximal-ratio, equal-gain and selection combining and for the
+      optimality of maximal-ratio combining under perfect channel knowledge.
+      The optimality statement is additionally enforced in this repository as
+      a property-based test over random branch gains rather than taken on
+      trust.
+  - type: article
+    authors:
+      - family-names: Zhu
+        given-names: "X."
+      - family-names: Kahn
+        given-names: "J. M."
+    title: "Free-space optical communication through atmospheric turbulence channels"
+    journal: "IEEE Transactions on Communications"
+    volume: 50
+    issue: 8
+    year: 2002
+    notes: >-
+      Named in the README as prior art for lognormal-channel free-space
+      optical link analysis. No numerical value in this repository is taken
+      from it.

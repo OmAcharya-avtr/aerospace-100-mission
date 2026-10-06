@@ -1,0 +1,32 @@
+instances requested: 3000  seed: 20261006
+agreement tolerance: rel 1e-07, abs 1e-09
+
+results
+  instances generated                     3000
+  infeasible in both solvers (agreed)     784
+  feasibility disagreements               0
+  feasible instances compared             2216
+  milp vs exhaustive mismatches           0
+  closed-form applicable (effective K<=2) 1456
+  closed-form vs exhaustive mismatches    0
+  worst relative goodput difference       0.000e+00
+    on instance                           
+
+optimal support sizes over the compared instances
+  1 entry: 2178
+  2 entries: 38
+
+solve cost, wall clock on a contended core (indicative, not a benchmark)
+  milp total        10.439 s  mean 3.480 ms
+  exhaustive total  33.589 s  mean 11.196 ms
+
+enumeration cost as the table grows: sum_{k=1..K} C(M, k) linear programmes
+  M =   9, K = 2:           45 subsets
+  M =   9, K = 3:          129 subsets
+  M =  16, K = 3:          696 subsets
+  M =  30, K = 3:        4,525 subsets
+  M =  30, K = 5:      174,436 subsets
+  M =  64, K = 4:      679,120 subsets
+  M = 100, K = 5:   79,375,495 subsets
+
+all three solvers agree on every compared instance

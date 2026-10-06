@@ -1,0 +1,135 @@
+==============================================================================================
+1. block_fer (equation 7) against a direct math.comb summation
+==============================================================================================
+     n    t        p         package       math.comb    abs diff
+    64    3    0.0016.0561542474e-076.0561542492e-07    1.78e-16
+    64    3     0.013.9435237763e-033.9435237763e-03    5.32e-16
+    64    3   0.05634.8917132860e-014.8917132860e-01    4.44e-16
+    64    3      0.18.9370881747e-018.9370881747e-01    0.00e+00
+    64    3      0.39.9999955132e-019.9999955132e-01    0.00e+00
+   250   12    0.0011.3981620953e-180.0000000000e+00    1.40e-18
+   250   12     0.011.9358637555e-061.9358637576e-06    2.18e-15
+   250   12   0.05636.5476750186e-016.5476750186e-01    0.00e+00
+   250   12      0.19.9786771405e-019.9786771405e-01    0.00e+00
+   250   12      0.31.0000000000e+001.0000000000e+00    0.00e+00
+   300   25    0.0011.5867071711e-412.2204460493e-16    2.22e-16
+   300   25     0.011.4652581332e-162.8865798640e-15    2.74e-15
+   300   25   0.05632.0290496406e-022.0290496406e-02    4.04e-15
+   300   25      0.18.0509794339e-018.0509794339e-01    0.00e+00
+   300   25      0.31.0000000000e+001.0000000000e+00    0.00e+00
+   400   50    0.0018.3012876798e-893.3306690739e-16    3.33e-16
+   400   50     0.013.7582370124e-393.7747582837e-15    3.77e-15
+   400   50   0.05636.0126912142e-086.0126917556e-08    5.41e-15
+   400   50      0.14.3644428198e-024.3644428198e-02    1.07e-14
+   400   50      0.31.0000000000e+001.0000000000e+00    0.00e+00
+   500   10    0.0016.9976667195e-126.9981798134e-12    5.13e-16
+   500   10     0.011.3243567100e-021.3243567100e-02    4.16e-15
+   500   10   0.05639.9994561929e-019.9994561929e-01    0.00e+00
+   500   10      0.11.0000000000e+001.0000000000e+00    0.00e+00
+   500   10      0.31.0000000000e+001.0000000000e+00    0.00e+00
+largest absolute difference: 1.07e-14
+Tolerance adopted: 1e-12 absolute.
+PASS: True
+
+==============================================================================================
+2. Type-I chase combining: analytic against Monte Carlo
+   60000 frames per Monte Carlo point
+==============================================================================================
+   n1  Es/N0  M   analytic gp        MC gp    rel %  analytic res     MC res       z
+  250     -1  4      0.207263     0.207521    0.124    6.0621e-14 0.0000e+00   -0.00
+  250      1  4      0.268655     0.268519   -0.051    6.4370e-37 0.0000e+00   -0.00
+  250      3  4      0.442016     0.441955   -0.014    1.9767e-78 0.0000e+00   -0.00
+  300     -1  4      0.215309     0.215056   -0.118    1.7961e-38 0.0000e+00   -0.00
+  300      1  4      0.392073     0.391978   -0.024    1.0397e-88 0.0000e+00   -0.00
+  300      3  4      0.400000     0.400000    0.000   6.8711e-175 0.0000e+00   -0.00
+worst |z| on the residual frame error rate: 0.00
+Tolerance adopted: |z| <= 4.
+PASS: True
+
+==============================================================================================
+3. Type-II incremental redundancy: approximation, exact DP, Monte Carlo
+==============================================================================================
+   n1  Es/N0   approx res    exact res     MC res  approx/exact-1 %  MC z vs exact
+  240      0   1.1353e-02   1.1341e-02 1.1000e-02            0.1047          -0.78
+  240      1   1.7791e-05   1.7765e-05 0.0000e+00            0.1444          -1.03
+  240      2   4.4467e-10   4.4390e-10 0.0000e+00            0.1743          -0.00
+  260      0   2.5212e-03   2.5160e-03 2.4167e-03            0.2058          -0.48
+  260      1   1.1090e-06   1.1060e-06 0.0000e+00            0.2721          -0.07
+  260      2   5.0040e-12   4.9880e-12 0.0000e+00            0.3213          -0.00
+  300      0   8.3825e-05   8.3359e-05 1.3333e-04            0.5594           1.34
+  300      1   2.8240e-09   2.8044e-09 0.0000e+00            0.6990          -0.00
+  300      2   4.0967e-16   4.0641e-16 0.0000e+00            0.8012          -0.00
+  340      0   1.8733e-06   1.8522e-06 0.0000e+00            1.1372          -0.11
+  340      1   4.7325e-12   4.6684e-12 0.0000e+00            1.3716          -0.00
+  340      2   2.1844e-20   2.1512e-20 0.0000e+00            1.5419          -0.00
+
+worst error of the independent-round approximation on the residual
+frame error rate, against the exact nested DP: 1.5419 %
+worst |z| of the Monte Carlo against the exact DP:  1.34
+Tolerance adopted: |z| <= 4 for the Monte Carlo. The approximation
+error is reported, not bounded: it is a property of the
+approximation and the exact DP is what the package publishes.
+PASS (Monte Carlo): True
+
+==============================================================================================
+4. The crossover: when is up-front redundancy cheaper than
+   retransmitting? R=0.90 with IR versus R=0.50 with IR.
+==============================================================================================
+baseline: k=200, Es/N0=1.0 dB, alpha=0.5, delta=40, M=4
+crossover D = 85.87 symbol times
+
+sensitivity of the crossover to each assumption, one at a time:
+varied            value   crossover D   change %
+alpha               0.4         49.18      -42.7
+alpha               0.5         85.87        0.0
+alpha               0.6        118.20       37.7
+alpha               0.8        160.44       86.8
+Es/N0 dB             -1           nan        nan
+Es/N0 dB              0         31.02      -63.9
+Es/N0 dB              1         85.87        0.0
+Es/N0 dB              2        162.29       89.0
+Es/N0 dB              3        407.26      374.3
+delta                20         37.54      -56.3
+delta                40         85.87        0.0
+delta                80         96.61       12.5
+delta               160         20.34      -76.3
+max_rounds            2           nan        nan
+max_rounds            3         80.59       -6.2
+max_rounds            4         85.87        0.0
+max_rounds            6         85.95        0.1
+max_rounds            8         85.95        0.1
+
+A 'nan' crossover means no sign change inside the search grid, which
+is reported rather than extrapolated.
+
+==============================================================================================
+5. Optimal first-transmission rate against D, and D on real links
+==============================================================================================
+   D symbols  optimal R1    n1    goodput  mean rounds    residual
+           1      0.7576   264   0.717741       1.3330   6.229e-07
+          10      0.7576   264   0.688115       1.3330   6.229e-07
+          50      0.7220   277   0.586137       1.1580   1.164e-07
+         100      0.6897   290   0.501253       1.0643   2.091e-08
+         300      0.6601   303   0.327455       1.0229   3.632e-09
+        1000      0.6329   316   0.151501       1.0040   2.264e-10
+       10000      0.6079   329   0.019343       1.0011   3.628e-11
+      100000      0.5650   354   0.001993       1.0001   7.869e-13
+     1000000      0.5450   367   0.000200       1.0000   1.179e-13
+
+D on each link preset, taking BPSK so that one channel symbol carries
+one bit and D is the bandwidth-delay product in bits:
+preset          D symbols   D / crossover                      side
+geo             5.175e+05            6026   pay redundancy up front
+leo             5.836e+05            6796   pay redundancy up front
+lunar           2.614e+06       3.045e+04   pay redundancy up front
+mars_near       9.393e+08       1.094e+07   pay redundancy up front
+
+Reading: every link preset here is between four and six orders of
+magnitude past the crossover, so for a single HARQ process with no
+pipelining the answer on a space link is always to pay for redundancy
+before knowing whether it is needed. The assumption that produces that
+conclusion is the no-pipelining one: a sender that runs enough
+parallel HARQ processes to fill the round trip hides D entirely, and
+then the crossover moves back to D near zero and retransmission wins
+again. The crossover is a statement about one process, not about the
+link.

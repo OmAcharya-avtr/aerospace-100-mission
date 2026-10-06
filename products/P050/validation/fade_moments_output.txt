@@ -1,0 +1,174 @@
+1. Lognormal dB parameters, package value against an independent re-derivation
+   sigma_I^2      sigma_lnI    independent     sigma_dB
+       0.010   0.0997513451   0.0997513451   0.43321459
+  [PASS] sigma_lnI at sigma_I^2 = 0.01
+  [PASS] sigma_dB at sigma_I^2 = 0.01
+       0.050   0.2208849569   0.2208849569   0.95929118
+  [PASS] sigma_lnI at sigma_I^2 = 0.05
+  [PASS] sigma_dB at sigma_I^2 = 0.05
+       0.200   0.4269912842   0.4269912842   1.85439959
+  [PASS] sigma_lnI at sigma_I^2 = 0.2
+  [PASS] sigma_dB at sigma_I^2 = 0.2
+       0.500   0.6367614217   0.6367614217   2.76541972
+  [PASS] sigma_lnI at sigma_I^2 = 0.5
+  [PASS] sigma_dB at sigma_I^2 = 0.5
+       1.000   0.8325546112   0.8325546112   3.61573874
+  [PASS] sigma_lnI at sigma_I^2 = 1.0
+  [PASS] sigma_dB at sigma_I^2 = 1.0
+  sigma_lnI_from_scintillation(0.2) = 0.426991284213
+
+2. Lognormal normalisation: E[I] = 1 and E[10 log10 I] < 0
+  sigma_I^2 = 0.05  E[I] = 1.000126 +/- 0.000354  z = +0.356   E[dB] sample -0.105359  model -0.105946
+  [PASS] E[I] = 1 at sigma_I^2 = 0.05 (|z| < 4)
+  [PASS] E[dB] < 0 at sigma_I^2 = 0.05
+  [PASS] sample E[dB] matches model at sigma_I^2 = 0.05
+  sigma_I^2 = 0.20  E[I] = 0.999457 +/- 0.000707  z = -0.769   E[dB] sample -0.398655  model -0.395906
+  [PASS] E[I] = 1 at sigma_I^2 = 0.2 (|z| < 4)
+  [PASS] E[dB] < 0 at sigma_I^2 = 0.2
+  [PASS] sample E[dB] matches model at sigma_I^2 = 0.2
+  sigma_I^2 = 0.60  E[I] = 1.000471 +/- 0.001223  z = +0.385   E[dB] sample -1.018050  model -1.020600
+  [PASS] E[I] = 1 at sigma_I^2 = 0.6 (|z| < 4)
+  [PASS] E[dB] < 0 at sigma_I^2 = 0.6
+  [PASS] sample E[dB] matches model at sigma_I^2 = 0.6
+
+3. Lognormal availability, closed form against Monte Carlo (n = 400000)
+   sigma_I^2  level dB   closed form   monte carlo        z
+        0.05      -1.0    0.82433015    0.82481000   +0.798
+  [PASS] availability at sigma_I^2=0.05, level=-1.0 (|z| < 4)
+        0.05      -3.0    0.99872299    0.99873750   +0.257
+  [PASS] availability at sigma_I^2=0.05, level=-3.0 (|z| < 4)
+        0.05      -6.0    1.00000000    1.00000000   +0.013
+  [PASS] availability at sigma_I^2=0.05, level=-6.0 (|z| < 4)
+        0.20      -1.0    0.62769796    0.62760250   -0.125
+  [PASS] availability at sigma_I^2=0.2, level=-1.0 (|z| < 4)
+        0.20      -3.0    0.91988206    0.92017750   +0.688
+  [PASS] availability at sigma_I^2=0.2, level=-3.0 (|z| < 4)
+        0.20      -6.0    0.99874467    0.99876750   +0.408
+  [PASS] availability at sigma_I^2=0.2, level=-6.0 (|z| < 4)
+        0.60      -1.0    0.49723982    0.49580750   -1.812
+  [PASS] availability at sigma_I^2=0.6, level=-1.0 (|z| < 4)
+        0.60      -3.0    0.74691454    0.74554750   -1.989
+  [PASS] availability at sigma_I^2=0.6, level=-3.0 (|z| < 4)
+        0.60      -6.0    0.95277800    0.95222500   -1.649
+  [PASS] availability at sigma_I^2=0.6, level=-6.0 (|z| < 4)
+
+4. Gamma-gamma moments by quadrature against the defining identities
+   sigma_I^2      alpha       beta         mass         E[I]  SI from moments
+        0.05   40.49390   40.49390  1.000000000  1.000000000      0.050000000
+  [PASS] mass = 1 at sigma_I^2=0.05, ratio=1.0
+  [PASS] E[I] = 1 at sigma_I^2=0.05, ratio=1.0
+  [PASS] SI from moments = 0.05 at ratio=1.0
+  [PASS] closed-form SI identity at sigma_I^2=0.05, ratio=1.0
+        0.05   70.70714   28.28286  1.000000000  1.000000000      0.050000000
+  [PASS] mass = 1 at sigma_I^2=0.05, ratio=0.4
+  [PASS] E[I] = 1 at sigma_I^2=0.05, ratio=0.4
+  [PASS] SI from moments = 0.05 at ratio=0.4
+  [PASS] closed-form SI identity at sigma_I^2=0.05, ratio=0.4
+        0.20   10.47723   10.47723  1.000000000  1.000000000      0.200000000
+  [PASS] mass = 1 at sigma_I^2=0.2, ratio=1.0
+  [PASS] E[I] = 1 at sigma_I^2=0.2, ratio=1.0
+  [PASS] SI from moments = 0.2 at ratio=1.0
+  [PASS] closed-form SI identity at sigma_I^2=0.2, ratio=1.0
+        0.20   18.18729    7.27492  1.000000000  1.000000000      0.200000000
+  [PASS] mass = 1 at sigma_I^2=0.2, ratio=0.4
+  [PASS] E[I] = 1 at sigma_I^2=0.2, ratio=0.4
+  [PASS] SI from moments = 0.2 at ratio=0.4
+  [PASS] closed-form SI identity at sigma_I^2=0.2, ratio=0.4
+        0.60    3.77485    3.77485  1.000000000  1.000000000      0.600000000
+  [PASS] mass = 1 at sigma_I^2=0.6, ratio=1.0
+  [PASS] E[I] = 1 at sigma_I^2=0.6, ratio=1.0
+  [PASS] SI from moments = 0.6 at ratio=1.0
+  [PASS] closed-form SI identity at sigma_I^2=0.6, ratio=1.0
+        0.60    6.47667    2.59067  1.000000000  1.000000000      0.600000000
+  [PASS] mass = 1 at sigma_I^2=0.6, ratio=0.4
+  [PASS] E[I] = 1 at sigma_I^2=0.6, ratio=0.4
+  [PASS] SI from moments = 0.6 at ratio=0.4
+  [PASS] closed-form SI identity at sigma_I^2=0.6, ratio=0.4
+        1.50    1.72076    1.72076  1.000000000  1.000000000      1.500000000
+  [PASS] mass = 1 at sigma_I^2=1.5, ratio=1.0
+  [PASS] E[I] = 1 at sigma_I^2=1.5, ratio=1.0
+  [PASS] SI from moments = 1.5 at ratio=1.0
+  [PASS] closed-form SI identity at sigma_I^2=1.5, ratio=1.0
+        1.50    2.90672    1.16269  1.000000000  1.000000000      1.500000000
+  [PASS] mass = 1 at sigma_I^2=1.5, ratio=0.4
+  [PASS] E[I] = 1 at sigma_I^2=1.5, ratio=0.4
+  [PASS] SI from moments = 1.5 at ratio=0.4
+  [PASS] closed-form SI identity at sigma_I^2=1.5, ratio=0.4
+
+5. Gamma-gamma survival: quadrature against a product-of-gammas Monte Carlo
+   sigma_I^2  level dB   quadrature  monte carlo        z
+        0.20      -1.0   0.63021285   0.63047000   +0.292
+  [PASS] gamma-gamma survival at sigma_I^2=0.2, level=-1.0 (|z| < 4)
+        0.20      -3.0   0.90406840   0.90383667   -0.431
+  [PASS] gamma-gamma survival at sigma_I^2=0.2, level=-3.0 (|z| < 4)
+        0.20      -6.0   0.99584027   0.99575667   -0.712
+  [PASS] gamma-gamma survival at sigma_I^2=0.2, level=-6.0 (|z| < 4)
+    sample scintillation index 0.200565 against requested 0.200000
+        0.60      -1.0   0.50127898   0.50098667   -0.320
+  [PASS] gamma-gamma survival at sigma_I^2=0.6, level=-1.0 (|z| < 4)
+        0.60      -3.0   0.71968870   0.71933000   -0.437
+  [PASS] gamma-gamma survival at sigma_I^2=0.6, level=-3.0 (|z| < 4)
+        0.60      -6.0   0.91548326   0.91540667   -0.151
+  [PASS] gamma-gamma survival at sigma_I^2=0.6, level=-6.0 (|z| < 4)
+    sample scintillation index 0.598997 against requested 0.600000
+        1.50      -1.0   0.40375340   0.40221667   -1.715
+  [PASS] gamma-gamma survival at sigma_I^2=1.5, level=-1.0 (|z| < 4)
+        1.50      -3.0   0.55629682   0.55590333   -0.434
+  [PASS] gamma-gamma survival at sigma_I^2=1.5, level=-3.0 (|z| < 4)
+        1.50      -6.0   0.74853175   0.74795667   -0.726
+  [PASS] gamma-gamma survival at sigma_I^2=1.5, level=-6.0 (|z| < 4)
+    sample scintillation index 1.501305 against requested 1.500000
+
+6. Gamma-gamma against lognormal in weak turbulence (different models)
+   sigma_I^2  level dB   gamma-gamma     lognormal        diff
+        0.01      -1.0    0.98678398    0.98804117 -0.00125719
+        0.01      -2.0    0.99999453    0.99999752 -0.00000299
+        0.01      -3.0    1.00000000    1.00000000 -0.00000000
+        0.02      -1.0    0.93844124    0.94131475 -0.00287351
+        0.02      -2.0    0.99897630    0.99931803 -0.00034173
+        0.02      -3.0    0.99999755    0.99999935 -0.00000180
+        0.05      -1.0    0.82188851    0.82433015 -0.00244164
+        0.05      -2.0    0.97129842    0.97583358 -0.00453516
+        0.05      -3.0    0.99776141    0.99872299 -0.00096158
+        0.20      -1.0    0.63021285    0.62769796 +0.00251489
+        0.20      -2.0    0.79609413    0.80648625 -0.01039212
+        0.20      -3.0    0.90406840    0.91988206 -0.01581366
+  worst absolute availability difference over the block: 0.015814
+  reported, not asserted: these are two distinct models, not one identity
+
+7. Empirical survival function on a hand-written sample
+  P[fade >=  -7.0] = 1.0000, expected 1.0000
+  [PASS] empirical survival at -7.0
+  P[fade >=  -6.0] = 1.0000, expected 1.0000
+  [PASS] empirical survival at -6.0
+  P[fade >=  -5.9] = 0.7500, expected 0.7500
+  [PASS] empirical survival at -5.9
+  P[fade >=  -2.0] = 0.5000, expected 0.5000
+  [PASS] empirical survival at -2.0
+  P[fade >=   0.0] = 0.2500, expected 0.2500
+  [PASS] empirical survival at 0.0
+  P[fade >=   0.1] = 0.0000, expected 0.0000
+  [PASS] empirical survival at 0.1
+  resolution floor 1/n = 0.250000 for n = 4
+  [PASS] empirical resolution is 1/n
+
+8. Quantile inversion: exceedance(quantile(p)) == p
+  lognormal(0.2)     p = 0.5000  level =   -0.3959 dB -> 0.500000000
+  [PASS] quantile inversion lognormal(0.2) at p=0.5
+  lognormal(0.2)     p = 0.9000  level =   -2.7724 dB -> 0.900000000
+  [PASS] quantile inversion lognormal(0.2) at p=0.9
+  lognormal(0.2)     p = 0.9900  level =   -4.7099 dB -> 0.990000000
+  [PASS] quantile inversion lognormal(0.2) at p=0.99
+  lognormal(0.2)     p = 0.9990  level =   -6.1264 dB -> 0.999000000
+  [PASS] quantile inversion lognormal(0.2) at p=0.999
+  gamma-gamma(0.5)   p = 0.5000  level =   -0.8354 dB -> 0.500000000
+  [PASS] quantile inversion gamma-gamma(0.5) at p=0.5
+  gamma-gamma(0.5)   p = 0.9000  level =   -5.0447 dB -> 0.900000000
+  [PASS] quantile inversion gamma-gamma(0.5) at p=0.9
+  gamma-gamma(0.5)   p = 0.9900  level =   -9.0015 dB -> 0.990000000
+  [PASS] quantile inversion gamma-gamma(0.5) at p=0.99
+  gamma-gamma(0.5)   p = 0.9990  level =  -12.2473 dB -> 0.999000000
+  [PASS] quantile inversion gamma-gamma(0.5) at p=0.999
+
+checks run: 0 failed
+all fade-model identity checks passed

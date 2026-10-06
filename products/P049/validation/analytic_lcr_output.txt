@@ -1,0 +1,99 @@
+==============================================================================
+validate_analytic_lcr.py
+==============================================================================
+
+[1] Two independent routes to the orthant probability
+         u          rho                    mvn                   quad       |diff|
+  --------------------------------------------------------------------------------
+   -3.0000  0.000000000 1.3480758069342911e-03 1.3480758069342946e-03    3.469e-18
+   -3.0000  0.500000000 1.2680083697978915e-03 1.2680083697979019e-03    1.041e-17
+   -3.0000  0.900000000 7.3949364632629557e-04 7.3949364632631606e-04    2.049e-17
+   -3.0000  0.995012479 1.7599807359568545e-04 1.7599807359574876e-04    6.332e-17
+   -2.0000  0.000000000 2.2232563444519612e-02 2.2232563444519630e-02    1.735e-17
+   -2.0000  0.500000000 1.8697185713016248e-02 1.8697185713016217e-02    3.123e-17
+   -2.0000  0.900000000 9.3888758211598672e-03 9.3888758211599175e-03    5.031e-17
+   -2.0000  0.995012479 2.1485543151116143e-03 2.1485543151115900e-03    2.429e-17
+   -1.1474  0.000000000 1.0982430898246726e-01 1.0982430898246727e-01    1.388e-17
+   -1.1474  0.500000000 8.0809158863669295e-02 8.0809158863669350e-02    5.551e-17
+   -1.1474  0.900000000 3.6744908076299987e-02 3.6744908076299987e-02    0.000e+00
+   -1.1474  0.995012479 8.2284718437063975e-03 8.2284718437064773e-03    7.980e-17
+   -0.5000  0.000000000 2.1334212592289703e-01 2.1334212592289706e-01    2.776e-17
+   -0.5000  0.500000000 1.4521801741692353e-01 1.4521801741692353e-01    0.000e+00
+   -0.5000  0.900000000 6.3211648795778230e-02 6.3211648795778147e-02    8.327e-17
+   -0.5000  0.995012479 1.4032212155922874e-02 1.4032212155922886e-02    1.214e-17
+    0.0000  0.000000000 2.5000000000000000e-01 2.5000000000000006e-01    5.551e-17
+    0.0000  0.500000000 1.6666666666666669e-01 1.6666666666666669e-01    0.000e+00
+    0.0000  0.900000000 7.1783146564353140e-02 7.1783146564353126e-02    1.388e-17
+    0.0000  0.995012479 1.5902234718912889e-02 1.5902234718912896e-02    6.939e-18
+    1.0000  0.000000000 1.3348376433140197e-01 1.3348376433140194e-01    2.776e-17
+    1.0000  0.500000000 9.6141159221793226e-02 9.6141159221793226e-02    0.000e+00
+    1.0000  0.900000000 4.3164916503098727e-02 4.3164916503098755e-02    2.776e-17
+    1.0000  0.995012479 9.6411782738390350e-03 9.6411782738390385e-03    3.469e-18
+  worst absolute disagreement: 8.326672684688674e-17
+  PASS = True
+
+[2] Independent case rho = 0 against (1 - Phi(u)) Phi(u)
+  u = -2.00: analytic 0.022232563444519612  exact 0.02223256344451963  diff -1.734723475976807e-17
+  u = -1.00: analytic 0.13348376433140197  exact 0.13348376433140194  diff 2.7755575615628914e-17
+  u =  0.00: analytic 0.25  exact 0.25  diff 0.0
+  u =  0.50: analytic 0.21334212592289703  exact 0.21334212592289703  diff 0.0
+  PASS = True
+
+[3] Sample level-crossing rate against the analytic rate
+  The standard error is a BLOCK estimate, not a Poisson one: the record is
+  cut into blocks of 20 correlation lengths, the crossing rate is measured
+  in each, and the standard error of the mean of those block rates is
+  reported. A Poisson error would assume independent crossings, which a
+  correlated process does not produce, and would understate the error.
+      T    SI   tau [s]    fs [Hz]   cross   sample [Hz]  analytic [Hz]       rel  block se       z
+  -------------------------------------------------------------------------------------------------
+   0.60  0.60   2.0e-04    1.0e+06   16629     8314.5042      8228.4718    +1.05%     2.05%   +0.51
+   0.60  0.60   2.0e-04    5.0e+05   23142     5785.5029      5810.3793    -0.43%     1.52%   -0.28
+   0.50  0.60   2.0e-04    1.0e+06    7171     3585.5018      3877.6044    -7.53%     3.11%   -2.42
+   0.40  0.60   2.0e-04    1.0e+06    1982      991.0005      1050.2734    -5.64%     5.64%   -1.00
+   0.70  0.60   2.0e-04    1.0e+06   25555    12777.5064     12463.9019    +2.52%     1.48%   +1.70
+   0.60  0.20   2.0e-04    1.0e+06    3061     1530.5008      1477.0888    +3.62%     5.11%   +0.71
+   0.60  1.00   2.0e-04    1.0e+06   22960    11480.0057     11443.7796    +0.32%     1.64%   +0.19
+   0.60  0.60   5.0e-05    1.0e+06   32967    16483.5082     16388.9444    +0.58%     1.07%   +0.54
+   0.60  0.60   1.0e-03    1.0e+06    7378     3689.0018      3683.9538    +0.14%     5.25%   +0.03
+  max |relative gap| = 0.0753306794129156
+  max |z|            = 2.423299562629994
+  cells with |z| > 3 : 0 of 9
+  PASS (all |z| <= 3) = True
+  The relative gap is as large as 7.5 % on the deepest threshold, where
+  the realisation holds only a few thousand crossings; the block standard
+  error there is of the same size, which is why the z score and not the
+  relative gap is the criterion.
+
+[4] Convergence of the sample rate towards the analytic rate
+  Independent seeds per record length, so the rows are not nested
+  prefixes of one realisation and the trend is a real convergence.
+           N  seeds  mean crossings  rms rel gap  1/sqrt(cross)
+  -------------------------------------------------------------
+       50000      5           425.8      14.420%         0.0485
+      200000      5          1517.0       9.651%         0.0257
+      800000      5          6701.8       3.287%         0.0122
+     3200000      5         26619.2       1.944%         0.0061
+  The root-mean-square gap falls with record length, which is what a
+  sampling gap does and a bias does not.
+
+[5] Analytic mean fade duration against the sample mean
+      T    SI   fades     sample [s]   analytic [s]       rel  se of mean
+  -----------------------------------------------------------------------
+   0.60  0.60   16378  1.5420381e-05  1.5264020e-05    +1.02%       2.02%
+   0.50  0.60    7615  1.1997242e-05  1.2003348e-05    -0.05%       2.81%
+   0.40  0.60    2215  9.3209932e-06  9.4214886e-06    -1.07%       4.71%
+   0.60  1.00   22618  1.8651472e-05  1.8239223e-05    +2.26%       1.81%
+  The relative gaps sit inside one to two standard errors of the mean.
+
+[6] The analytic rate must move with the sample rate
+  fs =  2.50e+05 Hz  rho = 0.980198673  P(down per pair) = 1.638894e-02  LCR =    4097.2361 Hz
+  fs =  5.00e+05 Hz  rho = 0.990049834  P(down per pair) = 1.162076e-02  LCR =    5810.3793 Hz
+  fs =  1.00e+06 Hz  rho = 0.995012479  P(down per pair) = 8.228472e-03  LCR =    8228.4718 Hz
+  fs =  2.00e+06 Hz  rho = 0.997503122  P(down per pair) = 5.822428e-03  LCR =   11644.8568 Hz
+  There is no sample-rate-free crossing rate for this process: the
+  Ornstein-Uhlenbeck log-amplitude is nowhere differentiable, so its
+  continuous-time crossing rate diverges. Every rate in this product is
+  therefore reported with its sample rate.
+
+done

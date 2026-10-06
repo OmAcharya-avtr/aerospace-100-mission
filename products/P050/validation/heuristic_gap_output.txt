@@ -1,0 +1,35 @@
+table                 9 MODCODs, thresholds 2.0 to 19.0 dB
+margins               6.0 to 24.0 dB in 1.0 dB steps
+scintillation indices (0.05, 0.1, 0.2, 0.4, 0.8)
+availability targets  (0.9, 0.95, 0.99, 0.995, 0.999)
+fade reserve for the fixed-margin rule 3.0 dB
+
+grid points feasible  430
+grid points infeasible for every MODCOD 45
+
+highest_feasible_rate
+  constraint-respecting choices      430
+  matched the optimum exactly        429 (0.9977 of them)
+  relative goodput loss: mean 0.000002  median 0.000000  p90 0.000000  max 0.000865
+  where it lost at all: n = 1, mean loss 0.000865, max 0.000865
+  choices that MISS the availability target 0
+  refused to choose                  0
+
+highest_rate_within_reserve
+  constraint-respecting choices      238
+  matched the optimum exactly        201 (0.8445 of them)
+  relative goodput loss: mean 0.037651  median 0.000000  p90 0.094310  max 0.496837
+  where it lost at all: n = 37, mean loss 0.242185, max 0.496837
+  choices that MISS the availability target 192
+    those are constraint violations, not gains; their apparent 'loss' ranges -2.591004 to 0.035016
+  refused to choose                  0
+
+worst single case for the constraint-respecting rule, reproduced
+  margin 10.0 dB, scintillation index 0.05, target 0.9
+  availabilities [1.000000e+00 1.000000e+00 9.999754e-01 9.993709e-01 9.854791e-01
+ 9.113264e-01 2.638043e-01 2.842239e-04 1.129204e-21]
+  goodputs       [2.500000e-01 5.000000e-01 6.669836e-01 7.495282e-01 8.209041e-01
+ 8.201938e-01 2.638043e-01 4.263358e-04 3.387613e-21]
+  greedy goodput 0.820194, optimum 0.820904, relative loss 0.000865
+
+measured, not asserted: the numbers above are the whole claim

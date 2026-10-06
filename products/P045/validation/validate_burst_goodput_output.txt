@@ -1,0 +1,147 @@
+slots per run: 800000   marginal frame error rate held at 0.05
+channels differ only in correlation; the marginal rate is identical
+
+============================================================================================
+N = 20 slots   window(min) = 20   window(big) = 800
+============================================================================================
+control: memoryless channel
+protocol                      closed form  iid measured  closed/iid - 1 %
+stop-and-wait                    0.047500      0.047458              0.09
+go-back-N W=20                   0.487179      0.488712             -0.31
+selective repeat W=20            0.950000      0.645926             47.08
+selective repeat W=800           0.950000      0.950310             -0.03
+  realised marginal frame error rate: 0.049701
+
+correlated channel, same marginal rate:
+  burstprotocol                      closed form  GE measured  closed/GE - 1 %  GE/iid - 1 %
+      2stop-and-wait                    0.047500     0.047439             0.13         -0.04
+      2go-back-N W=20                   0.487179     0.645910           -24.57         32.17
+      2selective repeat W=20            0.950000     0.720555            31.84         11.55
+      2selective repeat W=800           0.950000     0.950380            -0.04          0.01
+       realised marginal: 0.049635
+--------------------------------------------------------------------------------------------
+      5stop-and-wait                    0.047500     0.047502            -0.00          0.09
+      5go-back-N W=20                   0.487179     0.816529           -40.34         67.08
+      5selective repeat W=20            0.950000     0.832308            14.14         28.85
+      5selective repeat W=800           0.950000     0.949796             0.02         -0.05
+       realised marginal: 0.050191
+--------------------------------------------------------------------------------------------
+     10stop-and-wait                    0.047500     0.047613            -0.24          0.33
+     10go-back-N W=20                   0.487179     0.892373           -45.41         82.60
+     10selective repeat W=20            0.950000     0.895365             6.10         38.62
+     10selective repeat W=800           0.950000     0.950819            -0.09          0.05
+       realised marginal: 0.049231
+--------------------------------------------------------------------------------------------
+     25stop-and-wait                    0.047500     0.047623            -0.26          0.35
+     25go-back-N W=20                   0.487179     0.932483           -47.75         90.80
+     25selective repeat W=20            0.950000     0.932859             1.84         44.42
+     25selective repeat W=800           0.950000     0.952794            -0.29          0.26
+       realised marginal: 0.047194
+--------------------------------------------------------------------------------------------
+     50stop-and-wait                    0.047500     0.047477             0.05          0.04
+     50go-back-N W=20                   0.487179     0.940085           -48.18         92.36
+     50selective repeat W=20            0.950000     0.940160             1.05         45.55
+     50selective repeat W=800           0.950000     0.950149            -0.02         -0.02
+       realised marginal: 0.049839
+--------------------------------------------------------------------------------------------
+    100stop-and-wait                    0.047500     0.047264             0.50         -0.41
+    100go-back-N W=20                   0.487179     0.940485           -48.20         92.44
+    100selective repeat W=20            0.950000     0.940485             1.01         45.60
+    100selective repeat W=800           0.950000     0.945513             0.47         -0.50
+       realised marginal: 0.054474
+--------------------------------------------------------------------------------------------
+
+============================================================================================
+N = 60 slots   window(min) = 60   window(big) = 2400
+============================================================================================
+control: memoryless channel
+protocol                      closed form  iid measured  closed/iid - 1 %
+stop-and-wait                    0.015833      0.015815              0.12
+go-back-N W=60                   0.240506      0.240138              0.15
+selective repeat W=60            0.950000      0.537157             76.86
+selective repeat W=2400          0.950000      0.949872              0.01
+  realised marginal frame error rate: 0.050081
+
+correlated channel, same marginal rate:
+  burstprotocol                      closed form  GE measured  closed/GE - 1 %  GE/iid - 1 %
+      2stop-and-wait                    0.015833     0.015809             0.16         -0.04
+      2go-back-N W=60                   0.240506     0.376654           -36.15         56.85
+      2selective repeat W=60            0.950000     0.583264            62.88          8.58
+      2selective repeat W=2400          0.950000     0.949608             0.04         -0.03
+       realised marginal: 0.050380
+--------------------------------------------------------------------------------------------
+      5stop-and-wait                    0.015833     0.015885            -0.32          0.44
+      5go-back-N W=60                   0.240506     0.604003           -60.18        151.52
+      5selective repeat W=60            0.950000     0.693995            36.89         29.20
+      5selective repeat W=2400          0.950000     0.951017            -0.11          0.12
+       realised marginal: 0.048967
+--------------------------------------------------------------------------------------------
+     10stop-and-wait                    0.015833     0.015826             0.05          0.07
+     10go-back-N W=60                   0.240506     0.750993           -67.97        212.73
+     10selective repeat W=60            0.950000     0.783943            21.18         45.94
+     10selective repeat W=2400          0.950000     0.951013            -0.11          0.12
+       realised marginal: 0.049024
+--------------------------------------------------------------------------------------------
+     25stop-and-wait                    0.015833     0.015834            -0.00          0.12
+     25go-back-N W=60                   0.240506     0.877708           -72.60        265.50
+     25selective repeat W=60            0.950000     0.881999             7.71         64.20
+     25selective repeat W=2400          0.950000     0.951215            -0.13          0.14
+       realised marginal: 0.048811
+--------------------------------------------------------------------------------------------
+     50stop-and-wait                    0.015833     0.015920            -0.54          0.66
+     50go-back-N W=60                   0.240506     0.922167           -73.92        284.02
+     50selective repeat W=60            0.950000     0.923593             2.86         71.94
+     50selective repeat W=2400          0.950000     0.954053            -0.42          0.44
+       realised marginal: 0.045953
+--------------------------------------------------------------------------------------------
+    100stop-and-wait                    0.015833     0.015929            -0.60          0.72
+    100go-back-N W=60                   0.240506     0.941606           -74.46        292.11
+    100selective repeat W=60            0.950000     0.941756             0.88         75.32
+    100selective repeat W=2400          0.950000     0.955553            -0.58          0.60
+       realised marginal: 0.044414
+--------------------------------------------------------------------------------------------
+
+============================================================================================
+SUMMARY: the misstatement of the independent-error closed form on a
+bursty channel, as a percentage of the measured bursty goodput
+============================================================================================
+marginal frame error rate 0.05, N = 60 slots, window = 60 frames
+  burst   stop-and-wait    go-back-N   sel. repeat W=N   sel. repeat W=40N
+      1           -0.18        -0.60             76.67               -0.00
+      2            0.09       -35.85             62.47               -0.05
+      5           -0.14       -60.08             37.80               -0.05
+     10            0.08       -68.00             21.18               -0.01
+     25            0.36       -72.34              8.57                0.32
+     50           -0.21       -73.77              3.55               -0.12
+    100            0.52       -74.13              2.19                0.53
+
+burst = 1 is the memoryless channel and is the control row.
+A positive entry means the closed form predicts MORE goodput than the
+protocol achieves; a negative entry means it predicts less.
+
+sw       largest misstatement    +0.52 % at burst = 100 slots
+gbn      largest misstatement   -74.13 % at burst = 100 slots
+sr_wn    largest misstatement   +62.47 % at burst = 2 slots
+sr_big   largest misstatement    +0.53 % at burst = 100 slots
+
+The same comparison against the MEASURED memoryless goodput, which
+isolates the effect of correlation from the error in the formula:
+  burst   stop-and-wait    go-back-N   sel. repeat W=N   sel. repeat W=40N
+      1            0.00         0.00              0.00                0.00
+      2           -0.27        54.96              8.74                0.05
+      5           -0.04       148.99             28.20                0.04
+     10           -0.26       210.64             45.80                0.01
+     25           -0.54       259.30             62.72               -0.32
+     50            0.03       278.95             70.61                0.12
+    100           -0.69       284.16             72.88               -0.53
+(per cent change in measured goodput relative to the memoryless
+ channel at the same marginal frame error rate)
+
+Headline, stated as a practitioner would need it:
+  at a 5 per cent frame error rate on an N = 60 link, the
+  independent-error go-back-N formula is wrong by -74.1 per cent
+  once errors arrive in bursts of 100 frames, and the
+  selective-repeat formula at the textbook window is wrong by
+  +62.5 per cent at bursts of 2 frames.
+  Stop-and-wait is wrong by at most +0.52 per cent,
+  as predicted, because its throughput is linear in the marginal rate.

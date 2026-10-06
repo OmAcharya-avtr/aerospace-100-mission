@@ -1,0 +1,24 @@
+numpy 2.5.3   scikit-learn 1.9.1
+quantisation levels 16
+forest: 140 trees, max_depth 10, min_samples_leaf 20, random_state 0
+fit seeds 1000..1119 x 150 frames, behaviour seed 7
+
+long-burst (25 rounds, 20% faded)
+  states enumerated      200
+  file                   policy_table_long_burst.npz (7936 bytes)
+  sha256 states          c4d706667e5994ea75ac9ad3815606cd31212ca8f384b3fac5847ebf148a728b
+  sha256 action_index    be181a739f6f6c6f9329990357b1b086efe87b0c70e67ef0fc3854fed6527654
+  sha256 predicted_cost  3054e6593f2195926103c5170225b4ace3af43930fd7a787da10019c0fd29cd8
+  action index histogram 10:0 25:1 50:52 100:42 200:105
+
+short-burst (1.5 rounds, 20% faded)
+  states enumerated      255
+  file                   policy_table_short_burst.npz (10761 bytes)
+  sha256 states          3840115aa163da32a61aa7517c4068c3b14cdc3b0a11bb93754bc349858af351
+  sha256 action_index    f275fb78637f1a9945bedb7cda8ddd6b41008d1154acecd051a127db44346ef9
+  sha256 predicted_cost  06b54615983fcc7227143f2714280401e550a1b6c8de400ddde923e7518de5fc
+  action index histogram 10:0 25:8 50:106 100:114 200:27
+
+To regenerate: python validation/export_policy_table.py
+The hashes above are over float32 arrays and are reproducible on the
+numpy and scikit-learn versions printed at the top of this output.

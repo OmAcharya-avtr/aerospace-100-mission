@@ -1,0 +1,140 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "softdecode: soft-decision demapping over fading optical channels, including the mismatched-channel-state penalty"
+version: 0.1.0
+date-released: 2026-10-06
+license: Apache-2.0
+abstract: >-
+  Exact log-likelihood ratios for on-off keying and M-ary pulse-position
+  modulation over unit-mean lognormal and gamma-gamma fading under a
+  thermal-limited, signal-independent additive Gaussian noise model, with the
+  fading average taken by a quadrature rule that is verified against a Monte
+  Carlo estimate of the same integral and against the textbook affine
+  log-likelihood ratio in the zero-scintillation limit; the measured cost of
+  the max-log approximation and of log-likelihood-ratio clipping, reported both
+  in log-likelihood-ratio error and in decoded bit error rate because the two
+  disagree; the mismatched-channel-state penalty measured separately for
+  over-estimated and under-estimated channel quality, which is not symmetric,
+  together with the decision-threshold mechanism that makes it asymmetric; and
+  a learned log-likelihood-ratio corrector for the mismatched regime,
+  benchmarked on a disjoint reporting split against the true-channel-state
+  bound, max-log with the estimated channel state, the analytic
+  posterior-aware log-likelihood ratio, and tuned scalar rescaling and
+  clipping of the plug-in log-likelihood ratio. The analytic posterior-aware
+  log-likelihood ratio beats the learned corrector in every regime measured and
+  that is published as the result. Validation level 2, research grade. Not
+  flight-qualified, not certified, not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - free-space-optical
+  - log-likelihood-ratio
+  - soft-decision-demapping
+  - lognormal-fading
+  - gamma-gamma
+  - on-off-keying
+  - pulse-position-modulation
+  - channel-state-information
+  - ldpc
+references:
+  - type: book
+    authors:
+      - family-names: Andrews
+        given-names: "L. C."
+      - family-names: Phillips
+        given-names: "R. L."
+    title: "Laser Beam Propagation through Random Media"
+    edition: "2nd"
+    publisher:
+      name: "SPIE Press"
+    year: 2005
+    notes: >-
+      Source for the lognormal irradiance model and the scintillation index
+      used in softdecode.channel.LognormalFading.
+  - type: article
+    authors:
+      - family-names: "Al-Habash"
+        given-names: "M. A."
+      - family-names: Andrews
+        given-names: "L. C."
+      - family-names: Phillips
+        given-names: "R. L."
+    title: >-
+      Mathematical model for the irradiance probability density function of a
+      laser beam propagating through turbulent media
+    journal: "Optical Engineering"
+    volume: 40
+    issue: 8
+    start: 1554
+    end: 1562
+    year: 2001
+    notes: >-
+      Source for the gamma-gamma density and its scintillation index in
+      softdecode.channel.GammaGammaFading.
+  - type: article
+    authors:
+      - family-names: Zhu
+        given-names: "X."
+      - family-names: Kahn
+        given-names: "J. M."
+    title: >-
+      Free-space optical communication through atmospheric turbulence channels
+    journal: "IEEE Transactions on Communications"
+    volume: 50
+    issue: 8
+    start: 1293
+    end: 1300
+    year: 2002
+    notes: >-
+      The detection framework this package assumes - thermal-limited,
+      signal-independent Gaussian noise - and the imperfect-channel-knowledge
+      case that motivates softdecode.csi.
+  - type: conference-paper
+    authors:
+      - family-names: Hagenauer
+        given-names: "J."
+      - family-names: Hoeher
+        given-names: "P."
+    title: "A Viterbi algorithm with soft-decision outputs and its applications"
+    collection-title: "Proc. IEEE GLOBECOM 1989"
+    start: 1680
+    end: 1686
+    year: 1989
+    notes: >-
+      Origin of the soft-output formulation whose max-star / logsumexp
+      distinction is the max-log approximation measured here.
+  - type: book
+    authors:
+      - family-names: Proakis
+        given-names: "J. G."
+      - family-names: Salehi
+        given-names: "M."
+    title: "Digital Communications"
+    edition: "5th"
+    publisher:
+      name: "McGraw-Hill"
+    year: 2008
+    notes: >-
+      The equal-variance Gaussian log-likelihood ratio that is affine in the
+      observation, which is the known-answer target of the zero-scintillation
+      limit in validation/validate_awgn_limit.py.
+  - type: article
+    authors:
+      - family-names: "Böcherer"
+        given-names: "G."
+      - family-names: Steiner
+        given-names: "F."
+      - family-names: Schulte
+        given-names: "P."
+    title: >-
+      Bandwidth efficient and rate-matched low-density parity-check coded
+      modulation
+    journal: "IEEE Transactions on Communications"
+    volume: 63
+    issue: 12
+    start: 4651
+    end: 4665
+    year: 2015
+    notes: >-
+      Source for the form of the generalised mutual information of a
+      bit-metric decoder used in softdecode.metrics.

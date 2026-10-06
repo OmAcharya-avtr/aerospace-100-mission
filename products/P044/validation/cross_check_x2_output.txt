@@ -1,0 +1,86 @@
+==============================================================================
+CROSS-CHECK X2 -- frozen configuration
+==============================================================================
+  modulation                   BPSK, coherent, ideal phase reference, hard decision
+  receive apertures            1 (single aperture, no diversity)
+  Eb/N0                        10.0000 dB (= 10.000000 linear)
+  Eb/N0 reference              mean received irradiance, E[I] = 1
+  fading law                   gamma = (Eb/N0) * I, I lognormal, E[I] = 1
+  scintillation index si       0.300000  (= var(I)/E[I]^2)
+  sigma_log = sqrt(ln(1+si))   0.512215056854  (std of ln I, natural log)
+  E[ln I]                      -0.131182132234
+  channel realisations         20000000
+  bits per realisation         1 (so bits are independent)
+  total bits                   20000000
+  RNG                          numpy.random.default_rng(44044)  (PCG64, NumPy default bit generator)
+  seed                         44044
+  chunk size                   2000000 bits per chunk
+
+  draw order inside each chunk of m bits, one stream, strictly this order:
+    1. z     = rng.standard_normal(m)       -> I = exp(sigma_log*z - sigma_log^2/2)
+    2. bits  = rng.integers(0, 2, m)        -> s_tx = 1 - 2*bits
+    3. noise = rng.standard_normal(m)       -> unit variance
+  received sample  r = sqrt(2*(Eb/N0)*I) * s_tx + noise
+  decision         bit_hat = (r < 0)
+  BER definition   observed bit errors / total bits  (a sample statistic)
+
+==============================================================================
+CROSS-CHECK X2 -- result
+==============================================================================
+  sample BER                   6.039000000e-04
+  bit errors observed          12078
+  total bits                   20000000
+  binomial standard error      5.493338260e-06
+  SE as a fraction of the BER  0.9096 %
+  3 binomial standard errors   1.648001478e-05
+  X2 agreement interval        [5.874199852e-04, 6.203800148e-04]
+
+  THE NUMBER TO COMPARE WITH P010 BERBench IS THE SAMPLE BER ABOVE.
+  P010's value is not known to this repository; the coordinating session
+  holds it and performs the comparison.
+
+==============================================================================
+Internal consistency of the X2 number (not the comparison)
+==============================================================================
+  Gauss-Hermite quadrature of the same expectation, 300 nodes  6.002225662e-04
+  the same with 150 nodes (quadrature convergence check)       6.002225662e-04
+  relative difference between node counts                      3.613e-16
+  z = (sample BER - quadrature) / binomial SE                  +0.6694
+  AWGN BER at the same Eb/N0, no fading                        3.872108216e-06
+  fading penalty: BER ratio to AWGN                            155.962x
+
+  The quadrature is a diagnostic for the sample figure, not the compared
+  quantity. |z| above 3 would mean the sampler and the model disagree,
+  which would be an internal defect and would have to be fixed before the
+  X2 number meant anything.
+
+==============================================================================
+Reproducibility of the X2 number
+==============================================================================
+  rerun with the same seed and chunk: BER 6.039000000e-04, errors 12078
+  bit-for-bit identical: True
+  a different seed (44045): BER 6.080000000e-04, errors 12160
+  difference -4.100e-06, combined SE 7.782e-06, z -0.527
+  two seeds agreeing within a couple of combined standard errors is
+  evidence that the quoted SE describes the real sampling spread.
+
+==============================================================================
+Supplementary operating points (secondary, for diagnosis only)
+==============================================================================
+  Eb/N0 dB     si    realisations      sample BER   binomial SE     z vs GH
+      6.00  0.300        20000000    1.024845e-02  2.252046e-05      +0.958
+     14.00  0.300        20000000    7.000000e-06  5.916059e-07      -1.230
+     10.00  0.100        20000000    7.415000e-05  1.925416e-06      -0.645
+     10.00  0.600        20000000    2.189850e-03  1.045240e-05      +1.414
+  These are not the X2 comparand. They exist so that, if the primary
+  numbers disagree, the shape of the disagreement in Eb/N0 and in si can
+  be read off and attributed to a convention rather than to noise.
+
+==============================================================================
+Result
+==============================================================================
+All checks passed.
+
+X2 SAMPLE BER = 6.039000000e-04  +/- 5.493338260e-06 (1 binomial SE)
+X2 CONFIG     = BPSK coherent, 1 aperture, Eb/N0 10.0 dB, si 0.3, 20000000 realisations x 1 bit, seed 44044, chunk 2000000
+X2 ERRORS     = 12078 of 20000000 bits

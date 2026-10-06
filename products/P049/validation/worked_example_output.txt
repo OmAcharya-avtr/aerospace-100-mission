@@ -1,0 +1,45 @@
+==============================================================================
+worked_example.py -- the README example, actually run
+==============================================================================
+
+# 1. Fade statistics, and the definitions that produced them
+level-crossing rate : 8208.008 Hz
+mean fade duration  : 1.4791e-05 s
+outage fraction     : 0.121401
+availability        : 0.878599
+complete fades      : 8208, censored 0
+single-sample fades : 2674
+
+# 2. Is the fade-duration distribution memoryless? Test, do not assume.
+geometric chi-square : 22850.4 on 77 dof, p = 0
+memoryless rejected  : True
+coefficient of variation 2.495 against 1.0 for an exponential
+best fit by AIC      : lognormal
+
+# 3. Two-state Markov channel, with its goodness of fit
+P[fade -> good]   : 0.067611
+P[good -> fade]   : 0.009342
+mean dwell, model : [14.791, 107.042] samples
+mean dwell, data  : [14.791, 106.858] samples
+state 0: dwell chi2 22850.4 on 78 dof, cv measured 2.495 against geometric 0.966
+state 1: dwell chi2 105599.2 on 374 dof, cv measured 3.109 against geometric 0.995
+
+# 4. Short-horizon outage forecast, baselines first
+base rate on the test split : 0.02975
+constant base rate     Brier 0.028983  skill +0.0000  ECE 0.01066  AUC 0.5000
+analytic LCR (fit)     Brier 0.026119  skill +0.0988  ECE 0.02825  AUC 0.8817
+random forest          Brier 0.023385  skill +0.1932  ECE 0.00655  AUC 0.8451
+
+# 5. The forest's forecast carries an ensemble spread
+P(outage within 0.2 ms) = 0.0041 +/- 0.0319 (spread across 100 trees)
+P(outage within 0.2 ms) = 0.0033 +/- 0.0202 (spread across 100 trees)
+P(outage within 0.2 ms) = 0.0000 +/- 0.0001 (spread across 100 trees)
+P(outage within 0.2 ms) = 0.0046 +/- 0.0264 (spread across 100 trees)
+P(outage within 0.2 ms) = 0.0000 +/- 0.0001 (spread across 100 trees)
+
+max spread over the test split: 0.3617
+
+Research-grade. Not flight-qualified, not certified, not approved for
+operational aerospace use.
+
+done

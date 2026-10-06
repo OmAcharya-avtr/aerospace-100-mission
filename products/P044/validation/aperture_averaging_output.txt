@@ -1,0 +1,97 @@
+==============================================================================
+1. Kernel normalisation  int_0^1 u W(u) du = pi/16
+==============================================================================
+  quadrature      0.196349540849362  (reported error 2.18e-16)
+  pi/16           0.196349540849362
+  abs difference  2.776e-17, tolerance 1.0e-11
+
+==============================================================================
+2. Limit at D = 0 and monotonicity
+==============================================================================
+  A(0)            1.000000000000000  (expect exactly 1)
+  A over D/rho_c in [1e-3, 300]: max 0.999999750000  min 4.428e-05
+  strictly decreasing: True  (largest forward difference -5.902e-08)
+
+==============================================================================
+3. Small-aperture limit  A ~ 1 - D^2/(4 rho_c^2)
+==============================================================================
+  D/rho_c     A quadrature     A small-D       residual    residual/(D/rc)^4
+   0.0125   0.999960938772  0.999960937500      1.272e-09           0.052082
+   0.0250   0.999843770343  0.999843750000      2.034e-08           0.052078
+   0.0500   0.999375325378  0.999375000000      3.254e-07           0.052061
+   0.1000   0.997505199232  0.997500000000      5.199e-06           0.051992
+   0.2000   0.990082753482  0.990000000000      8.275e-05           0.051721
+  residual/(D/rho_c)^4 spread over the range: 0.6944%
+  a constant ratio confirms the neglected term is O((D/rho_c)^4), tolerance 5%
+
+==============================================================================
+4. Large-aperture limit  A ~ 4(rho_c/D)^2 - (8/sqrt pi)(rho_c/D)^3
+==============================================================================
+  D/rho_c     A quadrature      A large-D (2 terms)   rel diff   A large-D (1 term)  rel diff
+      5.0     0.1242586623          0.1238918667  2.952e-03        0.1600000000  2.876e-01
+     10.0     0.0354978100          0.0354864833  3.191e-04        0.0400000000  1.268e-01
+     20.0     0.0094361634          0.0094358104  3.740e-05        0.0100000000  5.975e-02
+     50.0     0.0015638955          0.0015638919  2.309e-06        0.0016000000  2.309e-02
+    100.0     0.0003954866          0.0003954865  2.853e-07        0.0004000000  1.141e-02
+    200.0     0.0000994358          0.0000994358  3.546e-08        0.0001000000  5.674e-03
+  worst relative difference for D/rho_c >= 20: 3.740e-05, tolerance 1.0e-4
+
+==============================================================================
+5. Leading large-D coefficient  A D^2 / rho_c^2 -> 4
+==============================================================================
+  D/rho_c =    10.0   A D^2/rho_c^2 = 3.54978100   deviation from 4: -4.502e-01
+  D/rho_c =    50.0   A D^2/rho_c^2 = 3.90973870   deviation from 4: -9.026e-02
+  D/rho_c =   200.0   A D^2/rho_c^2 = 3.97743256   deviation from 4: -2.257e-02
+  D/rho_c =  1000.0   A D^2/rho_c^2 = 3.99548648   deviation from 4: -4.514e-03
+  at D/rho_c = 1000 the deviation is 4.514e-03, tolerance 2.0e-2
+  convergence is O(rho_c/D), so this is a slow limit; the two-term form in
+  check 4 is the one worth using.
+
+==============================================================================
+6. Exponential covariance: structural properties, and a crossover
+==============================================================================
+  A(0) exponential  1.000000000000
+  strictly decreasing: True
+  D/rho_c      A gaussian   A exponential   exp - gauss
+     0.10     0.99750520     0.95595382    -0.04155138
+     0.50     0.94061796     0.80191582    -0.13870214
+     1.00     0.79417571     0.65021637    -0.14395934
+     2.00     0.47622239     0.44134377    -0.03487861
+     3.00     0.28215240     0.31173259    +0.02958019
+     5.00     0.12425866     0.17247928    +0.04822062
+    20.00     0.00943616     0.01746640    +0.00803024
+
+  Recorded because the first expectation written for this check was wrong.
+  'Exponential covariance has the heavier tail, so A must be larger at every
+  D' is false: exp(-x) < exp(-x^2) for x < 1, so at equal rho_c the
+  exponential field is already decorrelated across a small aperture and
+  averages LESS, while its tail makes it average less across a large one
+  too. The two curves therefore cross exactly once.
+  sign changes exactly once, between D/rho_c = 2.2904 and 2.5465
+
+==============================================================================
+7. Worked engineering case: 1.55 um over 2 km
+==============================================================================
+  Fresnel scale sqrt(lambda L) = 0.055678 m, taken as rho_c
+  point scintillation index si(0) = 0.600000
+  D (m)    D/rho_c       A(D)      si(D)
+  0.010     0.1796    0.991989   0.595194
+  0.020     0.3592    0.968590   0.581154
+  0.050     0.8980    0.828002   0.496801
+  0.100     1.7961    0.532486   0.319492
+  0.200     3.5921    0.214569   0.128741
+  0.400     7.1842    0.065387   0.039232
+
+  one aperture of D against n of equal total area, d = D/sqrt(n):
+  n    d (m)      A(d)     si per aperture
+  1   0.20000   0.214569         0.128741
+  2   0.14142   0.356066         0.213640
+  3   0.11547   0.457339         0.274404
+  4   0.10000   0.532486         0.319492
+  splitting the glass raises the per-aperture scintillation index; that cost
+  is what examples/one_big_vs_many_small.py weighs against the diversity gain.
+
+==============================================================================
+Result
+==============================================================================
+All checks passed.

@@ -1,0 +1,102 @@
+==============================================================================
+validate_cross_check_x1.py -- cross-check X1 (P049 side)
+==============================================================================
+
+SPECIFIED CONFIGURATION
+  model                  : lognormal irradiance, AR(1) Gauss-Markov log-amplitude
+  n_samples              : 2000000
+  driving noise          : numpy.random.default_rng(41).standard_normal(2000000)  [ONE call]
+  fs                     : 1000000.0 Hz
+  tau                    : 0.0002 s
+  rho = exp(-1/(tau*fs)) : 0.9950124791926823
+  correlation length     : 200.0 samples
+  scintillation index SI : 0.6
+  sigma_lnI**2 = ln(1+SI): 0.4700036292457356
+  sigma_lnI              : 0.6855681069344866
+  mean irradiance E[I]   : 1.0 by construction
+  amplitude a            : sqrt(I)
+  amplitude threshold T  : 0.6
+
+INPUT CHECK -- the series itself, not the compared statistics
+  computed mean irradiance : 0.9989079726815594
+  specified reference      : 0.998907972681559
+  absolute difference      : 4.440892098500626e-16
+  relative difference      : 4.445746975648912e-16
+  SERIES REPRODUCED        : True
+  lag-one correlation of x : 0.9950409800554045
+
+DEFINITIONS IN FORCE (the published conventions)
+Fade definitions in force:
+  in fade          : a[n] < T (strict)
+  down-crossing    : a[n-1] not in fade AND a[n] in fade, for n = 1..N-1
+  up-crossing      : a[n-1] in fade AND a[n] not in fade, for n = 1..N-1
+  fade run         : a maximal run of consecutive in-fade samples
+  duration         : duration = L / fs for a run of L below-threshold samples
+  censoring        : a run touching sample 0 or sample N-1 is censored: counted, reported, and excluded from the mean and from any distribution fit
+  single sample    : a single below-threshold sample is a fade of duration 1/fs
+  rate denominator : record duration = (N - 1) / fs
+  level-crossing rate = (counted down-crossings) / (record duration)
+  outage fraction      = (in-fade samples) / N, over ALL samples including
+                         censored runs and discarded single-sample runs
+  availability         = 1 - outage fraction
+
+COMPARED QUANTITIES -- sample statistics of this series
+  sample count N                 : 2000000
+  record duration (N-1)/fs       : 1.999999 s
+  LEVEL-CROSSING RATE            : 8191.004095502048 Hz
+  MEAN FADE DURATION             : 1.5497375167867175e-05 s
+
+SUPPORTING COUNTS
+  down-crossings                 : 16382
+  up-crossings                   : 16383
+  fade runs (all)                : 16383
+  complete fades (in the mean)    : 16382
+  censored runs (excluded)       : 1
+    of which left-censored       : 1
+    of which right-censored      : 0
+  single-sample fades (counted)  : 5198
+  in-fade samples                : 253881
+  OUTAGE FRACTION                : 0.1269405
+  availability                   : 0.8730595
+  median complete fade duration  : 3e-06 s
+  longest complete fade          : 0.00069 s
+
+INTERNAL CONSISTENCY (Rice partition of below-threshold time)
+  outage_fraction / LCR          : 1.5497550546911246e-05 s
+  relative residual vs the mean  : -1.1316565384989094e-05
+  the residual is the combined effect of the one censored run and the
+  (N-1)/fs versus N/fs choice of record duration, both stated above
+
+SAMPLING ERROR OF THE COMPARED QUANTITIES
+  crossings counted              : 16382
+  approx relative se of the rate : 0.00781297688081839  (Poisson, 1/sqrt(n))
+  this understates the true error: crossings of a correlated process are
+  not independent, so the effective count is below the raw count
+  standard error of the mean fade duration : 3.1126136586589687e-07 s
+  relative                                 : 0.020084779680063343
+
+DEFINITIONAL SENSITIVITY -- for tracing a disagreement to its cause
+  variant                                                      LCR [Hz]          MFD [s]      dLCR      dMFD
+  ----------------------------------------------------------------------------------------------------------
+  published (sample_count, exclude, singles counted)        8191.004096  1.549737517e-05    +0.00%    +0.00%
+  interval_count durations                                  8191.004096  1.449737517e-05    +0.00%    -6.45%
+  interpolated crossing instants                            8191.004096  1.546564684e-05    +0.00%    -0.20%
+  censored runs folded in as complete                       8191.004096  1.549661234e-05    +0.00%    -0.00%
+  single-sample excursions not fades                        5592.002796  2.223533619e-05   -31.73%   +43.48%
+  non-strict a <= T                                         8191.004096  1.549737517e-05    +0.00%    +0.00%
+  record duration N/fs                                      8191.000000  1.549737517e-05    -0.00%    +0.00%
+  A disagreement with the sibling product of the size of one of these rows
+  is a definitional difference, not an implementation error.
+
+CONTEXT ONLY -- NOT the compared quantities
+  analytic discrete-time LCR of the model  : 8228.471843706175 Hz
+  analytic mean fade duration of the model : 1.526401989602934e-05 s
+  analytic outage fraction Phi(u)          : 0.12559955793624827
+  sample LCR / analytic LCR - 1            : -0.004553427284652578
+  sample MFD / analytic MFD - 1            : 0.015287930271797867
+  These are model-versus-realisation gaps of one finite sample path, not
+  the cross-check. The cross-check compares the two SAMPLE statistics
+  above against another implementation's sample statistics on the same
+  series.
+
+done

@@ -1,0 +1,20 @@
+1. Lunar, 1 Mbit/s, 1115-octet frame
+   N = 294.1 slots, bandwidth-delay = 326805 bytes = 293.1 frames
+   smallest window for continuous transmission: 295 frames
+2. at the textbook window of 295 frames (328925 bytes):
+   selective repeat eta = 0.9500 -> 936.4 kbit/s
+   go-back-N        eta = 0.0607 -> 59.8 kbit/s
+3. N = 60, W = 60, independent errors at 5 per cent:
+   closed form says eta = 0.9500
+   the state machine measures eta = 0.5339 +- 0.0014
+   the difference is head-of-line blocking, which the formula omits
+4. same 5 per cent marginal rate, bursts of 25 frames:
+   go-back-N closed form        eta = 0.2405
+   go-back-N, independent errors eta = 0.2404
+   go-back-N, bursty errors      eta = 0.8770
+   the formula is wrong by -72.6 per cent
+5. type-II IR, k = 200, first rate 0.667, D = 500 symbols:
+   goodput 0.2466, residual frame error 2.80e-09, 1.020 rounds per frame
+6. crossover at D = 86 symbol times; this link's D is 2.61e+06,
+   a factor of 30446 past it, so for a single HARQ process
+   with no pipelining the answer is always to pay up front

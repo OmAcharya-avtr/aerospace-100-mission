@@ -1,0 +1,99 @@
+softdecode validation 6: cross-check X3 and the BPSK comparand
+raw output committed as validation/cross_check_x3_output.txt
+
+PART A: cross-check X3, soft-decision BER <= hard-decision BER
+--------------------------------------------------------------
+  modulation        OOK, thermal-limited AWGN, sigma = 1.0
+  code              extended Hamming (8,4), rate 0.5000, d_min 4
+  weight enumerator [1, 0, 0, 0, 14, 0, 0, 0, 1]
+  fading            unit-mean lognormal, scintillation index 0.3000, sigma_x 0.512215057, mu_x -0.131182132
+                    drawn independently per channel bit (ideal interleaving)
+  energy            a = 2 sigma sqrt(R Eb/N0), R = 0.5000, N0 = 2 sigma**2
+  blocks per point  40000 (160000 information bits per point)
+  seed              20261006, one generator per point: default_rng(seed + 1000 * round(Eb/N0))
+  draw order        information bits, then fading, then noise
+  decoders          both exhaustive maximum likelihood over all 16
+                    codewords; the hard decoder sees only sign(LLR)
+
+   Eb/N0 dB          a       soft BER  soft errs    soft se       hard BER  hard errs    hard se  soft<=hard     gain
+       0.00   1.414214   2.095250e-01      33524  1.017e-03   2.952187e-01      47235  1.140e-03        True    1.409
+       2.00   1.780389   1.369625e-01      21914  8.595e-04   2.328562e-01      37257  1.057e-03        True    1.700
+       4.00   2.241377   7.737500e-02      12380  6.680e-04   1.712937e-01      27407  9.419e-04        True    2.214
+       6.00   2.821727   3.292500e-02       5268  4.461e-04   1.082625e-01      17322  7.768e-04        True    3.288
+       8.00   3.552344   1.054375e-02       1687  2.553e-04   5.906875e-02       9451  5.894e-04        True    5.602
+      10.00   4.472136   2.237500e-03        358  1.181e-04   2.691250e-02       4306  4.046e-04        True   12.028
+      12.00   5.630086   3.625000e-04         58  4.759e-05   9.268750e-03       1483  2.396e-04        True   25.569
+
+  X3 RESULT: PASS. soft <= hard at every stated Eb/N0 on the same
+  channel realisations, strictly at every point.
+
+PART A.1: pairing evidence
+--------------------------
+  Both decoders are evaluated on one LLR array per point, so the
+  realisations are identical by construction rather than by seed
+  agreement. The counts below show where they differ.
+   Eb/N0 dB   blocks  soft right hard wrong  soft wrong hard right  both wrong
+       0.00    40000                   8042                   1853       14871
+       2.00    40000                   8548                   1434        9506
+       4.00    40000                   7851                    881        5322
+       6.00    40000                   6143                    458        2171
+       8.00    40000                   3807                    146         689
+      10.00    40000                   1892                     41         135
+      12.00    40000                    693                      5          23
+
+PART B: comparand, uncoded hard-decision BPSK over lognormal fading
+-------------------------------------------------------------------
+  Configuration, complete:
+    modulation       antipodal BPSK, s in {-1, +1}, one sample per bit
+    detection        thermal-limited signal-independent AWGN, sigma = 1
+    amplitude        a = sigma sqrt(2 Eb/N0); uncoded, so R = 1
+    received sample  y = a h s + n, n ~ N(0, 1)
+    fading           unit-mean lognormal, independent per bit,
+                     h = exp(mu_x + sigma_x z), mu_x = -sigma_x**2/2,
+                     sigma_x = sqrt(log(1 + sigma_I**2))
+    detector         hard decision sign(y); error iff sign(y) != s
+    channel knowledge  none needed: the hard decision is CSI free
+    bits per point   2000000
+    seed             20261048, one generator per
+                     (sigma_I**2, Eb/N0) cell:
+                     default_rng(COMPARAND_SEED + 101 * round(10*sigma_I2)
+                                 + round(Eb/N0))
+    draw order       symbols as rng.integers(0, 2, bits) mapped to
+                     1 - 2b; then fading as rng.standard_normal(bits);
+                     then noise as rng.standard_normal(bits)
+    standard error   binomial, sqrt(p(1-p)/n)
+    analytic check   BER = E_h[Q(h sqrt(2 Eb/N0))] by the package
+                     quadrature (80 Gauss-Hermite nodes)
+
+   sigma_I^2  Eb/N0 dB          a     sample BER    errors    binom se  quadrature BER        z
+        0.10      0.00   1.414214   9.675150e-02    193503   2.090e-04    9.671036e-02    0.197
+        0.10      5.00   2.514867   1.889150e-02     37783   9.627e-05    1.897078e-02   -0.824
+        0.10     10.00   4.472136   1.043000e-03      2086   2.282e-05    1.011151e-03    1.395
+        0.10     15.00   7.952707   1.100000e-05        22   2.345e-06    9.000176e-06    0.853
+        0.10     20.00  14.142136   0.000000e+00         0   0.000e+00    9.075611e-09      nan
+        0.30      0.00   1.414214   1.221105e-01    244221   2.315e-04    1.223778e-01   -1.154
+        0.30      5.00   2.514867   4.103150e-02     82063   1.403e-04    4.108426e-02   -0.376
+        0.30     10.00   4.472136   7.549000e-03     15098   6.120e-05    7.518905e-03    0.492
+        0.30     15.00   7.952707   6.645000e-04      1329   1.822e-05    6.533920e-04    0.610
+        0.30     20.00  14.142136   1.800000e-05        36   3.000e-06    2.422195e-05   -2.074
+        1.00      0.00   1.414214   1.706820e-01    341364   2.660e-04    1.711206e-01   -1.649
+        1.00      5.00   2.514867   9.074300e-02    181486   2.031e-04    9.043221e-02    1.530
+        1.00     10.00   4.472136   3.729400e-02     74588   1.340e-04    3.699729e-02    2.215
+        1.00     15.00   7.952707   1.129400e-02     22588   7.472e-05    1.125578e-02    0.511
+        1.00     20.00  14.142136   2.473000e-03      4946   3.512e-05    2.465364e-03    0.217
+
+  The headline comparand value, for the coordinating session to use:
+    scintillation index   0.30
+    Eb/N0                 10.00 dB  (amplitude a = 4.472135955)
+    bits                  2000000
+    seed                  20261361
+    sample BER            7.549000000e-03
+    errors                15098
+    binomial se           6.120463e-05
+    three se interval     [7.365386e-03, 7.732614e-03]
+    quadrature reference  7.518905101e-03
+    No comparison to any other product's value is made in this file.
+    No quantity in this file is compared to a wall-clock measurement.
+
+X3 ordering held at every point: True
+done

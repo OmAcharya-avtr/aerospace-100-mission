@@ -1,0 +1,28 @@
+lambda 1.550e-06 m, path 10000 m
+correlation scale rho_c = sqrt(lambda L) = 0.124499 m
+point scintillation index si(0) = 0.6
+total aperture diameter held at 0.2 m
+n = 800000 realisations per configuration, seed 44044
+outage threshold 5.0 dB, target outage 1e-03
+
+  n   d each (m)     A(d)   si per aperture   branch share of mean power
+  1      0.20000  0.590014         0.354009                      1.0000
+  2      0.14142  0.747788         0.448673                      0.5000
+  3      0.11547  0.818357         0.491014                      0.3333
+  4      0.10000  0.858159         0.514895                      0.2500
+
+-- panel 1, array pitch = 1.5 x the small-aperture diameter
+  n   pitch (m)  pitch/rho_c   adj log corr   SNR for 1e-3 outage (dB)   gain over n=1 (dB)
+  1     0.30000       2.4097            nan                     13.023                0.000
+  2     0.21213       1.7039       0.054846                     11.510                1.513
+  3     0.17321       1.3912       0.144354                     10.871                2.152
+  4     0.15000       1.2048       0.234192                     10.473                2.550
+
+-- panel 2, the answer depends on the pitch
+  pitch factor   n=1 (dB)   n=2 (dB)   n=3 (dB)   n=4 (dB)   best n
+          1.05     13.023     12.040     11.583     11.251        4
+          1.50     13.023     11.510     10.871     10.473        4
+          3.00     13.023     11.343     10.405      9.768        4
+
+wrote screenshots/one_big_vs_many_small.png
+research-grade output; not flight-qualified, not certified

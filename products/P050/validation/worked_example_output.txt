@@ -1,0 +1,39 @@
+MODCOD table with availabilities at a 14.00 dB margin
+name            rate  thr dB            A       R*A
+ook-r1/4       0.250    2.00   1.00000000  0.250000
+ook-r1/2       0.500    4.50   0.99999954  0.500000
+ook-r2/3       0.667    6.00   0.99997939  0.666986
+ook-r3/4       0.750    6.80   0.99987833  0.749909
+ook-r5/6       0.833    7.80   0.99912568  0.832272
+ook-r9/10      0.900    8.60   0.99651734  0.896866
+qpsk-r1/2      1.000   10.50   0.95292563  0.952926
+qpsk-r3/4      1.500   13.20   0.58625071  0.879376
+qam16-r3/4     3.000   19.00   0.00180838  0.005425
+
+availability target        0.999
+chosen MODCOD              ook-r5/6
+expected goodput           0.832272 bits/symbol
+achieved availability      0.99912568
+unique optimum             True
+
+sensitivity in the scintillation index
+nominal                    0.200000
+stable over                [0.154590, 0.204883]
+relative width             0.251465
+headroom down / up         0.227051 / 0.024414
+knife-edge at +/-10%       True
+answer just below / above  ook-r9/10 / ook-r3/4
+
+the same instance with time-sharing allowed and the long-run reading
+  ook-r5/6     x = 0.951814  A = 0.99912568
+  ook-r9/10    x = 0.048186  A = 0.99651734
+  expected goodput          0.835384 bits/symbol
+  long-run availability     0.99900000
+  worst-interval availability 0.99651734
+  goodput gain over per-interval 0.003740
+  paid for with a worst-interval availability of 0.996517 against the 0.999 target
+
+the rules of thumb on the same instance
+rule                              goodput   rel loss  meets target
+highest_feasible_rate            0.832272   0.000000          True
+highest_rate_within_reserve      0.952926  -0.144969         False

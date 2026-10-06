@@ -1,0 +1,138 @@
+==============================================================================
+0. Configuration
+==============================================================================
+  apertures L                 4
+  scintillation index si      0.9
+  aperture spacing            0.15 m
+  correlation scale rho_c     0.1 m
+  adjacent log correlation    0.105399
+  sigma_e range               [0, 3.0] = [0, 13.029] dB of irradiance
+  rows                        120000 (70000 train / 25000 val / 25000 test)
+  branch Eb/N0 for BER        10.0 dB
+  seed                        44044
+  dB per natural log unit     4.342944819
+
+==============================================================================
+2. The feature matrix cannot contain the truth
+==============================================================================
+  features rebuilt from (irradiance_estimated, sigma_e) alone: True
+  feature columns: 7 = L(4) + 3 (mean log est, std log est, sigma_e)
+  build_features takes no argument carrying the true irradiance, so the
+  label cannot reach the model through the feature path.
+
+  shrinkage exponent fitted on the validation split: p* = 0.1600
+  (p = 1 is MRC-with-the-estimate, p = 0 is EGC)
+
+==============================================================================
+1. Penalty non-negativity on the held-out rows
+==============================================================================
+  combiner                    min penalty dB   rows below -1e-9 dB
+  mrc_true                         -3.375e-15                     0
+  mrc_estimated                    +2.558e-08                     0
+  egc                              +3.971e-04                     0
+  shrinkage p=0.160                +5.829e-04                     0
+  learned                          +2.698e-05                     0
+  mrc_true max |penalty| 3.857e-15 dB, tolerance 1e-9
+  MRC with the true state is 0 dB by Cauchy-Schwarz, not by merit.
+
+==============================================================================
+3. Held-out comparison, all sigma_e pooled
+==============================================================================
+  25000 held-out rows, identical for every combiner
+  combiner                      mean dB  median dB    p90 dB    max dB       mean BER
+  mrc_true                      -0.0000     0.0000    0.0000    0.0000   7.082324e-08
+  mrc_estimated                  1.2278     0.7275    3.1630   14.6171   2.059059e-05
+  egc                            0.4411     0.3603    0.8941    2.9260   1.281703e-07
+  shrinkage p=0.160              0.3667     0.2892    0.7549    3.1880   1.239550e-07
+  learned                        0.2948     0.2124    0.6676    2.6016   1.225447e-07
+
+  pooled headline numbers
+    learned vs mrc_estimated : +0.9329 dB mean penalty recovered by learning
+    learned vs egc           : +0.1463 dB
+    learned vs shrinkage     : +0.0719 dB
+    learned vs mrc_true      : +0.2948 dB still lost (cannot be negative)
+
+==============================================================================
+4. Resolved by estimation error level, fixed sigma_e per block
+==============================================================================
+  a separate evaluation set, 20000 rows per level, seed 44544
+  the true irradiance is redrawn per level so no row is shared with training
+
+  sigma_e  sigma_e dB   mrc_est   egc    shrink  learned  | best non-learned
+    0.000      0.000   -0.0000  0.4402   0.3005   0.0084  | mrc_est
+    0.250      1.086    0.0441  0.4373   0.3002   0.0447  | mrc_est
+    0.500      2.171    0.1708  0.4361   0.3036   0.1299  | mrc_est
+    0.750      3.257    0.3668  0.4344   0.3095   0.2127  | shrinkage
+    1.000      4.343    0.6023  0.4401   0.3217   0.2730  | shrinkage
+    1.250      5.429    0.8809  0.4394   0.3341   0.3175  | shrinkage
+    1.500      6.514    1.1714  0.4395   0.3484   0.3470  | shrinkage
+    2.000      8.686    1.7498  0.4344   0.3832   0.3809  | shrinkage
+    2.500     10.857    2.2805  0.4345   0.4265   0.3973  | shrinkage
+    3.000     13.029    2.7497  0.4369   0.4846   0.4176  | egc
+
+  EGC overtakes MRC-with-the-estimate at sigma_e = 0.8320
+  = 3.613 dB of irradiance error (bracketed to 0.0078 in sigma_e by bisection)
+  Below that the estimate is worth using; above it, equal gain -- which
+  needs no estimate at all -- is the better analytic choice.
+
+  the learned combiner is the best of the four at 8 of 10 error levels
+  worst margin against the best non-learned option, per level:
+    sigma_e 0.000: learned - best_non_learned = +0.0084 dB
+    sigma_e 0.250: learned - best_non_learned = +0.0006 dB
+    sigma_e 0.500: learned - best_non_learned = -0.0409 dB
+    sigma_e 0.750: learned - best_non_learned = -0.0968 dB
+    sigma_e 1.000: learned - best_non_learned = -0.0487 dB
+    sigma_e 1.250: learned - best_non_learned = -0.0166 dB
+    sigma_e 1.500: learned - best_non_learned = -0.0014 dB
+    sigma_e 2.000: learned - best_non_learned = -0.0023 dB
+    sigma_e 2.500: learned - best_non_learned = -0.0292 dB
+    sigma_e 3.000: learned - best_non_learned = -0.0193 dB
+
+==============================================================================
+5. Calibration of the uncertainty output
+==============================================================================
+  nominal quantile   empirical coverage   mean predicted dB   mean realised dB
+              0.10             0.094360              0.0563             0.2948
+              0.50             0.465720              0.2167             0.2948
+              0.90             0.873240              0.5489             0.2948
+  tolerance 0.05 absolute on coverage. The quantile models are fitted on
+  the penalties the weight models incur on the training rows, so this is
+  a genuine held-out calibration measurement.
+
+==============================================================================
+6. sigma_e is a sufficient parameterisation
+==============================================================================
+  stale-but-clean against fresh-but-noisy at matched sigma_e
+  rho_t   sigma_m   sigma_e   mean penalty mrc_est dB   mean penalty egc dB
+  1.000    1.0000    1.0000                    0.6089                0.4343
+  0.950    0.9674    1.0000                    0.6178                0.4363
+  0.900    0.9336    1.0000                    0.6227                0.4360
+  0.800    0.8621    1.0000                    0.6325                0.4350
+  all four rows share sigma_e = 1.0 by construction; the mrc_est penalties
+  agree to within Monte Carlo error, so staleness and measurement noise
+  do not need separate axes.
+
+==============================================================================
+7. Sensitivity to the number of apertures
+==============================================================================
+  refit at 45000 rows, 27000 train, max_iter 60 (a sensitivity check, not the headline fit)
+  L   p*     mrc_est dB   egc dB   shrink dB   learned dB   best
+  2  0.140       0.6817   0.2533      0.2121       0.1728   learned
+  3  0.160       1.0001   0.3680      0.3085       0.2488   learned
+  4  0.160       1.1971   0.4382      0.3602       0.2899   learned
+
+==============================================================================
+8. BER at the stated operating point, pooled held-out rows
+==============================================================================
+  branch Eb/N0 10.0 dB, 25000 rows
+  combiner                      mean BER      BER / mrc_true BER
+  mrc_true                      7.082324e-08                 1.0000
+  mrc_estimated                 2.059059e-05               290.7321
+  egc                           1.281703e-07                 1.8097
+  shrinkage p=0.160             1.239550e-07                 1.7502
+  learned                       1.225447e-07                 1.7303
+
+==============================================================================
+Result
+==============================================================================
+All checks passed.

@@ -1,0 +1,132 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "linkoutage: outage and availability statistics for an optical link"
+version: 0.1.0
+date-released: 2026-10-06
+license: Apache-2.0
+abstract: >-
+  Fade statistics of an optical link computed from a supplied or generated
+  amplitude series, with every definitional choice explicit and reported
+  alongside the numbers: down-crossing count, level-crossing rate, fade
+  durations with left and right censoring, outage fraction and availability
+  under seven stated conventions whose spread on a two-million-sample record is
+  measured rather than assumed. Fade-duration distribution fitting with a
+  goodness-of-fit verdict on the memoryless hypothesis, tested by a Pearson
+  chi-square on the discrete sample-count histogram rather than by a
+  Kolmogorov-Smirnov test against a continuous law, with a positive control on
+  truly geometric data. Two-state and N-state Markov and semi-Markov
+  channel-state fitting with a dwell-time chi-square, a conditional-independence
+  test of the Markov property and its effect size. A short-horizon outage
+  classifier benchmarked against three baselines, including the constant
+  base-rate forecaster, with calibration reported as a Brier decomposition,
+  expected calibration error and reliability curves rather than as accuracy.
+  Exact discrete-time analytic level-crossing rate and mean fade duration for
+  the correlated lognormal channel, computed two independent ways. Validation
+  level 2, research grade. Not flight-qualified, not certified, not approved
+  for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - free-space-optical
+  - fade-statistics
+  - level-crossing-rate
+  - mean-fade-duration
+  - outage-probability
+  - availability
+  - lognormal-fading
+  - scintillation
+  - markov-channel
+references:
+  - type: article
+    authors:
+      - family-names: Rice
+        given-names: "S. O."
+    title: "Mathematical analysis of random noise"
+    journal: "Bell System Technical Journal"
+    year: 1945
+    notes: >-
+      The level-crossing problem and the relation between the crossing rate of
+      a level, the fraction of time spent below it and the mean duration of an
+      excursion. Published in two parts, 1944 and 1945. This repository uses
+      the discrete-record form of that relation as an internal consistency
+      check and does not quote any equation number or page from the original.
+  - type: book
+    authors:
+      - family-names: Andrews
+        given-names: "L. C."
+      - family-names: Phillips
+        given-names: "R. L."
+    title: "Laser Beam Propagation through Random Media"
+    edition: "2nd"
+    publisher:
+      name: "SPIE Press"
+    year: 2005
+    notes: >-
+      The lognormal irradiance model for weak-to-moderate scintillation used in
+      linkoutage.channel, and the scintillation index as the parameter of that
+      model. This repository implements the lognormal distribution and an AR(1)
+      temporal correlation; it does not implement the propagation theory that
+      produces the scintillation index from turbulence strength and path
+      geometry.
+  - type: article
+    authors:
+      - family-names: Gilbert
+        given-names: "E. N."
+    title: "Capacity of a burst-noise channel"
+    journal: "Bell System Technical Journal"
+    year: 1960
+    notes: >-
+      The two-state burst channel named in linkoutage.markov. Gilbert's channel
+      attaches an error process to the states; this repository fits only the
+      state process.
+  - type: article
+    authors:
+      - family-names: Al-Habash
+        given-names: "M. A."
+      - family-names: Andrews
+        given-names: "L. C."
+      - family-names: Phillips
+        given-names: "R. L."
+    title: >-
+      Mathematical model for the irradiance probability density function of a
+      laser beam propagating through turbulent media
+    journal: "Optical Engineering"
+    volume: 40
+    issue: 8
+    start: 1554
+    end: 1562
+    year: 2001
+    notes: >-
+      The gamma-gamma irradiance distribution, named in this repository's
+      limitations as the standard replacement for the lognormal model in strong
+      turbulence. It is NOT implemented here.
+  - type: article
+    authors:
+      - family-names: Murphy
+        given-names: "A. H."
+    title: "A new vector partition of the probability score"
+    journal: "Journal of Applied Meteorology"
+    volume: 12
+    issue: 4
+    start: 595
+    end: 600
+    year: 1973
+    notes: >-
+      The reliability-resolution-uncertainty decomposition of the Brier score
+      implemented in linkoutage.calibration.brier_decomposition.
+  - type: article
+    authors:
+      - family-names: Kaplan
+        given-names: "E. L."
+      - family-names: Meier
+        given-names: "P."
+    title: "Nonparametric estimation from incomplete observations"
+    journal: "Journal of the American Statistical Association"
+    volume: 53
+    issue: 282
+    start: 457
+    end: 481
+    year: 1958
+    notes: >-
+      The product-limit survival estimator implemented in
+      linkoutage.distributions.kaplan_meier_survival.

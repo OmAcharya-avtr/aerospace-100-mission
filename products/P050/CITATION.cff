@@ -1,0 +1,115 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "coderateopt: availability-constrained code-rate and MODCOD selection on a fading optical link"
+version: 0.1.0
+date-released: 2026-10-06
+license: Apache-2.0
+abstract: >-
+  Code-rate and MODCOD selection on a fading optical link, treated as the
+  constrained optimisation it is: maximise expected goodput over a discrete
+  MODCOD set subject to a stated availability target, with both readings of
+  that target -- every interval meeting it, or the long-run average meeting it
+  -- written down and priced against each other. Marginal fade models
+  (lognormal, gamma-gamma, empirical) supply the per-MODCOD delivery
+  probability. The discrete problem is solved by scipy.optimize.milp with the
+  relative MIP gap set to zero and the continuous part re-solved exactly on the
+  chosen support, and cross-checked against subset enumeration and a
+  solver-free closed form for two-entry mixes. The stability interval of the
+  chosen MODCOD in the scintillation index, the margin or the target is
+  resolved by bisection, separating knife-edge optima from flat ones.
+  Infeasible instances raise with the margin that would fix them; ties are
+  resolved canonically and reported. Validation level 2, research grade. Not
+  flight-qualified, not certified, not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - free-space-optical
+  - modcod-selection
+  - code-rate
+  - link-availability
+  - mixed-integer-programming
+  - scintillation
+  - sensitivity-analysis
+  - goodput
+references:
+  - type: book
+    authors:
+      - family-names: Andrews
+        given-names: "L. C."
+      - family-names: Phillips
+        given-names: "R. L."
+    title: "Laser Beam Propagation through Random Media"
+    edition: "2nd"
+    publisher:
+      name: "SPIE Press"
+    year: 2005
+    notes: >-
+      Source of the lognormal irradiance model and of the scintillation index
+      definition used in coderateopt.fade.
+  - type: article
+    authors:
+      - family-names: Al-Habash
+        given-names: "M. A."
+      - family-names: Andrews
+        given-names: "L. C."
+      - family-names: Phillips
+        given-names: "R. L."
+    title: >-
+      Mathematical model for the irradiance probability density function of a
+      laser beam propagating through turbulent media
+    journal: "Optical Engineering"
+    volume: 40
+    issue: 8
+    year: 2001
+    notes: >-
+      Source of the gamma-gamma irradiance model. The moment identities used
+      here are verified numerically in validation/validate_fade_moments.py
+      rather than taken on trust; no page number is quoted because none was
+      verified in this environment.
+  - type: article
+    authors:
+      - family-names: Goldsmith
+        given-names: "A. J."
+      - family-names: Chua
+        given-names: "S.-G."
+    title: "Variable-rate variable-power MQAM for fading channels"
+    journal: "IEEE Transactions on Communications"
+    volume: 45
+    issue: 10
+    year: 1997
+    notes: >-
+      Named as the adaptive-rate framing this problem sits in. No result of
+      that paper is reimplemented here.
+  - type: article
+    authors:
+      - family-names: Huangfu
+        given-names: "Q."
+      - family-names: Hall
+        given-names: "J. A. J."
+    title: "Parallelizing the dual revised simplex method"
+    journal: "Mathematical Programming Computation"
+    volume: 10
+    issue: 1
+    year: 2018
+    notes: >-
+      HiGHS, the solver behind scipy.optimize.milp and scipy.optimize.linprog
+      as used here.
+  - type: standard
+    title: "Prediction method of fade dynamics on Earth-space paths"
+    number: "ITU-R P.1623"
+    institution:
+      name: "International Telecommunication Union"
+    notes: >-
+      Named as the methodology for fade-duration and fade-dynamics statistics.
+      NOT implemented in this repository, which models the marginal fade
+      distribution only.
+  - type: standard
+    title: >-
+      Propagation data and prediction methods required for the design of
+      Earth-space telecommunication systems
+    number: "ITU-R P.618"
+    institution:
+      name: "International Telecommunication Union"
+    notes: >-
+      Named as the propagation-availability methodology whose outputs this
+      repository consumes. NOT implemented here.

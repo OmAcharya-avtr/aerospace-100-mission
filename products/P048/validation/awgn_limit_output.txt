@@ -1,0 +1,53 @@
+softdecode validation 2: the AWGN limit as a known answer
+raw output committed as validation/awgn_limit_output.txt
+
+1. Lognormal fading: sigma_I**2 -> 0
+------------------------------------
+  a = 6.324555, sigma = 1, y grid -3.0 .. 9.0 (61 points), 200 Gauss-Hermite nodes
+  reference: L(y) = (a**2 - 2 a y) / 2, slope -6.324555
+    sigma_I**2    max |L - ref|    rms |L - ref|  max err / sigma_I**2
+       1.0e-10     1.718947e-07     6.856365e-08           1718.946692
+       1.0e-09     1.718946e-06     6.856364e-07           1718.946471
+       1.0e-08     1.718945e-05     6.856359e-06           1718.944957
+       1.0e-07     1.718930e-04     6.856304e-05           1718.929822
+       1.0e-06     1.718778e-03     6.855758e-04           1718.778489
+  coefficient spread over five decades: 1.000098 (1.0 would be exact first-order behaviour)
+  conclusion: the deviation is first order in sigma_I**2 with coefficient 1718.909 on this grid
+  The coefficient is a property of the grid and of a/sigma, not of the
+  package: it grows with the largest |y| and with the amplitude, because
+  the leading term is the curvature of L in h times Var[h]/2. The
+  test-suite check tests/test_llr.py::test_awgn_limit_known_answer uses
+  a = 2, y in [-3, 9], 25 points; the coefficient there is measured below.
+  test-grid coefficient 96.001; the test tolerance of 300 * sigma_I**2
+  is therefore slack by a factor of 3.12
+
+2. Gamma-gamma fading: alpha = beta = A -> infinity
+---------------------------------------------------
+           A    sigma_I**2   nodes    max |L - ref|  max err / sigma_I**2
+  (the density is evaluated in log space via kve, so these do not overflow)
+       1e+01  2.100000e-01     129     2.942267e+01            140.107955
+       1e+02  2.010000e-02     129     1.438900e+01            715.870486
+       1e+03  2.001000e-03     129     2.944391e+00           1471.459945
+       1e+04  2.000100e-04     129     3.378771e-01           1689.301079
+
+3. 4-PPM: the same limit for the bit LLRs
+-----------------------------------------
+  a = 6.324555, 400 random 4-PPM symbols at Eb/N0 = 10 dB
+    sigma_I**2    max |L - ref|  max err / sigma_I**2
+       1.0e-09     1.371306e-06           1371.305608
+       1.0e-08     1.371304e-05           1371.304479
+       1.0e-07     1.371293e-04           1371.293279
+       1.0e-06     1.371181e-03           1371.181307
+
+4. A one-node quadrature is the known-CSI formula exactly
+---------------------------------------------------------
+  h = 0.25: max |difference| 3.552714e-15
+  h = 1.00: max |difference| 3.552714e-15
+  h = 2.50: max |difference| 2.842171e-14
+
+Verdict
+-------
+  PASS: the lognormal exact LLR is first order in sigma_I**2 and
+  reduces to the textbook linear LLR as sigma_I**2 -> 0.
+
+done

@@ -1,0 +1,30 @@
+1. wide random search
+  instances generated                 1200
+  feasible                            909
+  MILP support size by mode (a tie can inflate a support by one):
+    long_run      size 1: 506
+    long_run      size 2: 25
+    per_interval  size 1: 378
+  largest optimal support found       2  (M=3 K=3 mode=long_run dwell=0.3 target=0.664342)
+  [PASS] per_interval optimum never exceeds the best single allowed entry
+  [PASS] long_run optima with no dwell never exceed two entries
+
+2. targeted search for a three-or-more entry optimum under a minimum dwell
+  targeted instances feasible         1922 of 2000
+  with a three-or-more entry optimum  13
+  largest support 3:
+    rates          [0.3151 2.6378 5.5532 6.2442]
+    thresholds dB  [-3.381  2.351  3.982  9.308]
+    availabilities [0.993083 0.75069  0.566959 0.068128]
+    target 0.756620  K 3  dwell 0.1
+    mix m0 x=0.100265, m1 x=0.799735, m2 x=0.100000
+    goodput 1.929836415
+
+3. is any pair as good as that support?
+    best pair  ('m0', 'm2') at 1.886390780
+    best single 'm0' at 0.312888822
+    the three-entry optimum beats the best pair by 4.345e-02
+  [PASS] a three-entry optimum strictly beats every pair
+
+checks run: 0 failed
+support-size structure is as the formulation documents it

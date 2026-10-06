@@ -1,0 +1,217 @@
+softdecode validation 5: learned LLR corrector against the analytic methods
+raw output committed as validation/corrector_output.txt
+LDPC n=96 k=50 rate=0.520833; lognormal sigma_I2=0.3
+PyTorch is unavailable in the build container, so the learned model is a
+scikit-learn random forest, not a neural network.
+
+Case: over-estimating CSI, bias +2.00 dB, jitter 1.00 dB
+--------------------------------------------------------
+  train split: 240000 channel-bit samples over Eb/N0 (2.0, 4.0, 6.0, 8.0, 10.0) dB, 500 blocks per point, seed 20261006
+  forest: 40 trees, max_depth 14, min_samples_leaf 200, seed 20261006
+    feature y_over_sigma         importance 0.554795
+    feature plugin_llr           importance 0.391904
+    feature amplitude_snr_hat    importance 0.033555
+    feature log_h_hat            importance 0.008779
+    feature h_hat                importance 0.007728
+    feature nominal_snr          importance 0.003239
+  tuned on the tune split: plugin_scaled          scale 0.2000  clip inf  tuning BER 1.561000e-01
+  tuned on the tune split: plugin_clipped         scale 1.0000  clip 2.000  tuning BER 1.582000e-01
+  tuned on the tune split: plugin_scaled_clipped  scale 0.3000  clip 2.000  tuning BER 1.538667e-01
+  tuned on the tune split: learned output clip    scale 1.0000  clip 12.000  tuning BER 3.200000e-03
+
+  report split: 1500 blocks (75000 information bits) at Eb/N0 8.00 dB
+  method                      decoded BER    binom se  BER / best       GMI  rmse vs truth
+  known_csi (upper bound)    2.773333e-03   1.920e-04       1.000  +0.73624        0.00000
+  csi_aware_exact            5.826667e-03   2.779e-04       2.101  +0.71515        7.09332
+  csi_aware_maxlog           2.198667e-02   5.355e-04       7.928  +0.63108        6.92588
+  plugin                     1.854667e-01   1.419e-03      66.875  -0.37842       24.17628
+  plugin_scaled              1.540267e-01   1.318e-03      55.538  +0.37941       11.13344
+  plugin_clipped             1.573067e-01   1.329e-03      56.721  +0.39426       14.15919
+  plugin_scaled_clipped      1.521067e-01   1.311e-03      54.846  +0.41603       14.17398
+  learned                    6.533333e-03   2.942e-04       2.356  +0.71050       10.67170
+
+  Uncertainty output
+  ------------------
+    The forest reports the standard deviation of its per-tree LLRs,
+    saturated at the same clip level as the mean, so the reference it is
+    compared against is clipped the same way; comparing an output capped
+    at L_max against an uncapped analytic LLR measures the cap, not the
+    model's uncertainty.
+    Pearson correlation of sigma with |learned - clipped reference|: 0.711446
+    Pearson correlation of sigma with the hard-decision error indicator: -0.241137
+    Pearson correlation of sigma/(1+|L|) with that indicator:          0.028322
+    Pearson correlation of |L| with that indicator:                    -0.358746
+     quintile   mean sigma  mean |error|   err by sigma   err by sigma/(1+|L|)   err by |L|
+            1     0.202741      0.097990       0.223715               0.017778     0.326806
+            2     0.442938      0.232515       0.146771               0.100174     0.093889
+            3     0.953933      0.703812       0.048333               0.134722     0.013507
+            4     2.072117      1.989944       0.009896               0.137951     0.001285
+            5     3.290127      2.615411       0.006806               0.044896     0.000035
+    sigma range 0.000000 .. 4.800262, mean 1.392371
+    Reading, from the three right-hand columns:
+      error rate against sigma              monotonically decreasing
+      error rate against sigma/(1+|L|)      NOT monotone
+      error rate against |L|                monotonically decreasing
+    The dispersion measures how much the trees disagree, and it grows
+    with the magnitude of the LLR it is attached to, so as a standalone
+    risk score it points the wrong way. Normalising by 1 + |L| removes
+    the scale but does not produce a monotone risk ordering either. The
+    quantity that does order risk here is |L| itself. All three are
+    published as measured; none is a calibrated interval, the dispersion
+    is a model-disagreement diagnostic, and the README says so.
+
+Verdict: over-estimating CSI
+----------------------------
+  learned 6.533333e-03 vs known_csi (upper bound)  2.773333e-03   learned is 2.356x worse
+  learned 6.533333e-03 vs csi_aware_exact          5.826667e-03   learned is 1.121x worse
+  learned 6.533333e-03 vs csi_aware_maxlog         2.198667e-02   learned is 3.365x better
+  learned 6.533333e-03 vs plugin                   1.854667e-01   learned is 28.388x better
+  learned 6.533333e-03 vs plugin_scaled            1.540267e-01   learned is 23.576x better
+  learned 6.533333e-03 vs plugin_clipped           1.573067e-01   learned is 24.078x better
+  learned 6.533333e-03 vs plugin_scaled_clipped    1.521067e-01   learned is 23.282x better
+
+Case: under-estimating CSI, bias -2.00 dB, jitter 1.00 dB
+---------------------------------------------------------
+  train split: 240000 channel-bit samples over Eb/N0 (2.0, 4.0, 6.0, 8.0, 10.0) dB, 500 blocks per point, seed 20261006
+  forest: 40 trees, max_depth 14, min_samples_leaf 200, seed 20261006
+    feature plugin_llr           importance 0.569700
+    feature y_over_sigma         importance 0.377412
+    feature amplitude_snr_hat    importance 0.033883
+    feature log_h_hat            importance 0.008655
+    feature h_hat                importance 0.005875
+    feature nominal_snr          importance 0.004474
+  tuned on the tune split: plugin_scaled          scale 1.0000  clip inf  tuning BER 1.316667e-02
+  tuned on the tune split: plugin_clipped         scale 1.0000  clip 12.000  tuning BER 1.313333e-02
+  tuned on the tune split: plugin_scaled_clipped  scale 1.0000  clip 12.000  tuning BER 1.313333e-02
+  tuned on the tune split: learned output clip    scale 1.0000  clip 8.000  tuning BER 3.633333e-03
+
+  report split: 1500 blocks (75000 information bits) at Eb/N0 8.00 dB
+  method                      decoded BER    binom se  BER / best       GMI  rmse vs truth
+  known_csi (upper bound)    2.773333e-03   1.920e-04       1.000  +0.73624        0.00000
+  csi_aware_exact            5.826667e-03   2.779e-04       2.101  +0.71515        7.09332
+  csi_aware_maxlog           2.198667e-02   5.355e-04       7.928  +0.63108        6.92588
+  plugin                     1.488000e-02   4.421e-04       5.365  +0.65889        6.57705
+  plugin_scaled              1.488000e-02   4.421e-04       5.365  +0.65889        6.57705
+  plugin_clipped             1.494667e-02   4.431e-04       5.389  +0.65889       10.89192
+  plugin_scaled_clipped      1.494667e-02   4.431e-04       5.389  +0.65889       10.89192
+  learned                    6.280000e-03   2.885e-04       2.264  +0.71289       11.64037
+
+  Uncertainty output
+  ------------------
+    The forest reports the standard deviation of its per-tree LLRs,
+    saturated at the same clip level as the mean, so the reference it is
+    compared against is clipped the same way; comparing an output capped
+    at L_max against an uncapped analytic LLR measures the cap, not the
+    model's uncertainty.
+    Pearson correlation of sigma with |learned - clipped reference|: 0.674950
+    Pearson correlation of sigma with the hard-decision error indicator: -0.153583
+    Pearson correlation of sigma/(1+|L|) with that indicator:          0.194870
+    Pearson correlation of |L| with that indicator:                    -0.393687
+     quintile   mean sigma  mean |error|   err by sigma   err by sigma/(1+|L|)   err by |L|
+            1     0.039295      0.053439       0.039792               0.000035     0.325694
+            2     0.321891      0.106567       0.257083               0.049618     0.093750
+            3     0.505863      0.193211       0.109479               0.128819     0.013958
+            4     0.926629      0.504138       0.018403               0.125000     0.001181
+            5     1.533837      0.895104       0.009861               0.131146     0.000035
+    sigma range 0.000000 .. 4.452957, mean 0.665503
+    Reading, from the three right-hand columns:
+      error rate against sigma              NOT monotone
+      error rate against sigma/(1+|L|)      NOT monotone
+      error rate against |L|                monotonically decreasing
+    The dispersion measures how much the trees disagree, and it grows
+    with the magnitude of the LLR it is attached to, so as a standalone
+    risk score it points the wrong way. Normalising by 1 + |L| removes
+    the scale but does not produce a monotone risk ordering either. The
+    quantity that does order risk here is |L| itself. All three are
+    published as measured; none is a calibrated interval, the dispersion
+    is a model-disagreement diagnostic, and the README says so.
+
+Verdict: under-estimating CSI
+-----------------------------
+  learned 6.280000e-03 vs known_csi (upper bound)  2.773333e-03   learned is 2.264x worse
+  learned 6.280000e-03 vs csi_aware_exact          5.826667e-03   learned is 1.078x worse
+  learned 6.280000e-03 vs csi_aware_maxlog         2.198667e-02   learned is 3.501x better
+  learned 6.280000e-03 vs plugin                   1.488000e-02   learned is 2.369x better
+  learned 6.280000e-03 vs plugin_scaled            1.488000e-02   learned is 2.369x better
+  learned 6.280000e-03 vs plugin_clipped           1.494667e-02   learned is 2.380x better
+  learned 6.280000e-03 vs plugin_scaled_clipped    1.494667e-02   learned is 2.380x better
+
+Case: stale CSI, log-amplitude correlation 0.80
+-----------------------------------------------
+  train split: 240000 channel-bit samples over Eb/N0 (2.0, 4.0, 6.0, 8.0, 10.0) dB, 500 blocks per point, seed 20261006
+  forest: 40 trees, max_depth 14, min_samples_leaf 200, seed 20261006
+    feature plugin_llr           importance 0.569362
+    feature y_over_sigma         importance 0.399666
+    feature amplitude_snr_hat    importance 0.017200
+    feature log_h_hat            importance 0.005428
+    feature h_hat                importance 0.004793
+    feature nominal_snr          importance 0.003551
+  tuned on the tune split: plugin_scaled          scale 0.7000  clip inf  tuning BER 2.083333e-02
+  tuned on the tune split: plugin_clipped         scale 1.0000  clip 5.000  tuning BER 1.876667e-02
+  tuned on the tune split: plugin_scaled_clipped  scale 0.7000  clip 5.000  tuning BER 1.710000e-02
+  tuned on the tune split: learned output clip    scale 1.0000  clip 8.000  tuning BER 6.966667e-03
+
+  report split: 1500 blocks (75000 information bits) at Eb/N0 8.00 dB
+  method                      decoded BER    binom se  BER / best       GMI  rmse vs truth
+  known_csi (upper bound)    2.773333e-03   1.920e-04       1.000  +0.73624        0.00000
+  csi_aware_exact            8.213333e-03   3.296e-04       2.962  +0.69606        8.25846
+  csi_aware_maxlog           2.708000e-02   5.927e-04       9.764  +0.62042        8.04155
+  plugin                     2.664000e-02   5.880e-04       9.606  +0.62791        6.73931
+  plugin_scaled              2.241333e-02   5.405e-04       8.082  +0.64649        7.49280
+  plugin_clipped             2.140000e-02   5.284e-04       7.716  +0.65182       12.70906
+  plugin_scaled_clipped      1.977333e-02   5.084e-04       7.130  +0.65542       12.74541
+  learned                    8.706667e-03   3.392e-04       3.139  +0.69321       11.85715
+
+  Uncertainty output
+  ------------------
+    The forest reports the standard deviation of its per-tree LLRs,
+    saturated at the same clip level as the mean, so the reference it is
+    compared against is clipped the same way; comparing an output capped
+    at L_max against an uncapped analytic LLR measures the cap, not the
+    model's uncertainty.
+    Pearson correlation of sigma with |learned - clipped reference|: 0.669826
+    Pearson correlation of sigma with the hard-decision error indicator: -0.255362
+    Pearson correlation of sigma/(1+|L|) with that indicator:          0.144999
+    Pearson correlation of |L| with that indicator:                    -0.382749
+     quintile   mean sigma  mean |error|   err by sigma   err by sigma/(1+|L|)   err by |L|
+            1     0.244328      0.084057       0.261285               0.003715     0.331562
+            2     0.438476      0.151880       0.129757               0.088403     0.103507
+            3     0.697941      0.256859       0.042535               0.130590     0.021667
+            4     1.076842      0.484863       0.016667               0.116667     0.003090
+            5     1.574912      0.936637       0.009653               0.120521     0.000069
+    sigma range 0.000000 .. 2.790454, mean 0.806500
+    Reading, from the three right-hand columns:
+      error rate against sigma              monotonically decreasing
+      error rate against sigma/(1+|L|)      NOT monotone
+      error rate against |L|                monotonically decreasing
+    The dispersion measures how much the trees disagree, and it grows
+    with the magnitude of the LLR it is attached to, so as a standalone
+    risk score it points the wrong way. Normalising by 1 + |L| removes
+    the scale but does not produce a monotone risk ordering either. The
+    quantity that does order risk here is |L| itself. All three are
+    published as measured; none is a calibrated interval, the dispersion
+    is a model-disagreement diagnostic, and the README says so.
+
+Verdict: stale CSI
+------------------
+  learned 8.706667e-03 vs known_csi (upper bound)  2.773333e-03   learned is 3.139x worse
+  learned 8.706667e-03 vs csi_aware_exact          8.213333e-03   learned is 1.060x worse
+  learned 8.706667e-03 vs csi_aware_maxlog         2.708000e-02   learned is 3.110x better
+  learned 8.706667e-03 vs plugin                   2.664000e-02   learned is 3.060x better
+  learned 8.706667e-03 vs plugin_scaled            2.241333e-02   learned is 2.574x better
+  learned 8.706667e-03 vs plugin_clipped           2.140000e-02   learned is 2.458x better
+  learned 8.706667e-03 vs plugin_scaled_clipped    1.977333e-02   learned is 2.271x better
+
+Summary table, decoded BER on the report split
+----------------------------------------------
+  method                       bias +2 dB     bias -2 dB  stale rho=0.8
+  known_csi (upper bound)    2.773333e-03   2.773333e-03   2.773333e-03
+  csi_aware_exact            5.826667e-03   5.826667e-03   8.213333e-03
+  csi_aware_maxlog           2.198667e-02   2.198667e-02   2.708000e-02
+  plugin                     1.854667e-01   1.488000e-02   2.664000e-02
+  plugin_scaled              1.540267e-01   1.488000e-02   2.241333e-02
+  plugin_clipped             1.573067e-01   1.494667e-02   2.140000e-02
+  plugin_scaled_clipped      1.521067e-01   1.494667e-02   1.977333e-02
+  learned                    6.533333e-03   6.280000e-03   8.706667e-03
+
+done

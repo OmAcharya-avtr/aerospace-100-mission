@@ -1,0 +1,131 @@
+==============================================================================
+1. Pointwise ordering of the three combiners
+==============================================================================
+  si 0.9, L 4, spacing 0.05 m, rho_c 0.1 m, n 2000000
+   L   MRC>=EGC   MRC>=SC   P(SC > EGC)   mean MRC   mean EGC   mean SC
+   1       True      True      0.000000   1.000850   1.000850  1.000850
+   2       True      True      0.000929   2.001845   1.966956  1.211222
+   3       True      True      0.002392   3.002506   2.891685  1.405021
+   4       True      True      0.002302   4.002721   3.786951  1.575236
+
+  For L >= 2, P(SC > EGC) is not zero, so the textbook ordering EGC >= SC
+  is false pointwise; it holds only in the mean. Selection wins on exactly
+  the realisations where one branch is in a deep fade. At L = 1 all three
+  schemes are the same quantity and the probability is identically zero.
+
+==============================================================================
+2. Known-answer checks, hand-written inputs
+==============================================================================
+  case                       MRC exp   MRC got   EGC exp   EGC got   SC exp    SC got
+  single branch, I=0.25       0.2500    0.2500    0.2500    0.2500   0.2500    0.2500
+  two equal, I=(1,1)          2.0000    2.0000    2.0000    2.0000   1.0000    1.0000
+  two unequal, I=(1,0)        1.0000    1.0000    0.5000    0.5000   1.0000    1.0000
+  two unequal, I=(4,1)        5.0000    5.0000    4.5000    4.5000   4.0000    4.0000
+  four equal, I=(0.5 x4)      2.0000    2.0000    2.0000    2.0000   0.5000    0.5000
+  hand check, two unequal (1,0): EGC = (sqrt1 + sqrt0)^2 / 2 = 0.5 < SC = 1
+  hand check, two unequal (4,1): EGC = (2+1)^2 / 2 = 4.5, MRC = 5, SC = 4
+  weighted_snr(w=(1,1), h=(2,1), gamma_bar=1) = 4.500000, expected (2+1)^2/2 = 4.5
+
+==============================================================================
+3. MRC gain statistics against closed forms
+==============================================================================
+   L   E[sum I] sampled   exact   var sampled    var closed    rel diff
+   1          1.000850     1.0      0.899763      0.900000   2.637e-04
+   2          2.001845     2.0      3.100096      3.097035   9.886e-04
+   3          3.002506     3.0      5.827991      5.826734   2.158e-04
+   4          4.002721     4.0      8.689878      8.696417   7.519e-04
+  var(sum_k I_k) = si * sum_jk corr(I_j, I_k) with the exact lognormal
+  irradiance correlation; tolerance 2 % at this sample size.
+
+==============================================================================
+4. L = 1 outage against the lognormal closed form
+==============================================================================
+  branch mean SNR dB   P_out empirical   P_out closed form   MC se       z
+                5.00       0.655080000         0.655634916   3.36e-04  -1.652
+               10.00       0.149927500         0.149994509   2.52e-04  -0.265
+               15.00       0.006726500         0.006689975   5.76e-05  +0.634
+               20.00       0.000050000         0.000046047   4.80e-06  +0.824
+               25.00       0.000000000         0.000000045   1.49e-07  -0.299
+  worst |z| 1.652, tolerance 4.0
+
+==============================================================================
+5-6. Diversity order, gamma-gamma, independent and correlated
+==============================================================================
+  Rytov variance 1.0  alpha 4.393859  beta 2.563632
+  tail index min(alpha,beta) = 2.563632
+  n 2000000  threshold 5.0 dB  SNR grid step 0.25 dB  window (1e-05, 0.001)
+  (asymptotic prediction applies to the independent case only)
+
+-- independent
+   L   measured order   asymptotic L*min(a,b)   shortfall   points    SNR window dB   fit rms
+   1            2.482                   2.564       0.082       34   20.75- 29.00    0.0201
+   2            4.410                   5.127       0.717       18   12.00- 16.25    0.0144
+   3            6.265                   7.691       1.426       13    8.25- 11.25    0.0300
+   4            7.528                  10.255       2.726       10    5.75-  8.00    0.0320
+
+-- correlated
+   L   measured order   asymptotic L*min(a,b)   shortfall   points    SNR window dB   fit rms
+   1            2.479                   2.564       0.085       32   20.75- 28.50    0.0262
+   2            3.914                   5.127       1.213       20   13.50- 18.25    0.0214
+   3            5.016                   7.691       2.675       16   10.00- 13.75    0.0290
+   4            5.608                  10.255       4.647       15    7.50- 11.00    0.0294
+
+  The measured slope is below the asymptotic value in every case. That is
+  not an error: the asymptote is reached only as P_out -> 0, and the window
+  used here (1e-5 to 1e-3) is the range a link designer actually operates
+  in. The honest statement is the measured slope with its window attached.
+
+   L   order independent   order correlated   loss from correlation
+   1              2.482              2.479                  0.003
+   2              4.410              3.914                  0.496
+   3              6.265              5.016                  1.249
+   4              7.528              5.608                  1.921
+  adjacent-aperture log-domain correlation: 0.778801
+
+==============================================================================
+7. The correlation gap in dB at a target outage
+==============================================================================
+  target outage 1e-03, threshold 5.0 dB
+   L  scheme   SNR indep dB   SNR corr dB   gap dB   gain over L=1 indep dB
+  the two arrays below are drawn from the same seeded normal stream, so the
+  independent and correlated cases are a matched comparison, not two
+  unrelated Monte Carlo runs.
+
+   1  mrc            20.679        20.679    0.000                  0.000
+   2  mrc            11.932        13.328    1.396                  8.747
+   3  mrc             8.022         9.798    1.777                 12.657
+   4  mrc             5.563         7.371    1.808                 15.116
+
+   1  egc            20.679        20.679    0.000                  0.000
+   2  egc            12.216        13.574    1.357                  8.463
+   3  egc             8.389        10.152    1.763                 12.290
+   4  egc             5.982         7.784    1.802                 14.697
+
+   1  sc             20.679        20.679    0.000                  0.000
+   2  sc             13.944        15.312    1.368                  6.735
+   3  sc             11.303        13.015    1.712                  9.376
+   4  sc              9.763        11.453    1.690                 10.916
+
+  'gap dB' is the extra branch mean SNR the correlated array needs to reach
+  the same outage as the independent idealisation. It is the price of the
+  independence assumption, per aperture count and per scheme.
+
+==============================================================================
+8. The lognormal case has no finite asymptotic diversity order
+==============================================================================
+  Measured slope for independent lognormal branches in three successive
+  windows. A finite diversity order would give the same slope in all three.
+   L   window 1e-02-1e-01   window 1e-03-1e-02   window 1e-05-1e-03
+   1                 2.738                 3.721                 4.693
+   2                 3.783                 5.253                 6.805
+   3                 4.577                 6.299                 8.666
+   4                 5.220                 7.204                 9.154
+  slope increases monotonically as the window moves down, every L: True
+  So 'diversity order L' is not a property of a lognormal channel. For
+  gamma-gamma it is, because the gamma-gamma density has a power-law tail
+  at small irradiance and the lognormal does not.
+
+==============================================================================
+Result
+==============================================================================
+All checks passed.

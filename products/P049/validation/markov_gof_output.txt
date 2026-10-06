@@ -1,0 +1,91 @@
+==============================================================================
+validate_markov_gof.py
+==============================================================================
+
+[1] Positive controls
+  (a) a true first-order chain
+      true P      : [[0.92, 0.08], [0.015, 0.985]]
+      fitted P    : [[0.9203857719843477, 0.07961422801565232], [0.015045568310851382, 0.9849544316891486]]
+      max |error| : 0.0003857719843476798
+      dwell GOF state 0   n=12654    p_geom=0.07961423 chi2=     71.3934 dof=72    p=      0.498 mean_obs=   12.5611 mean_geom=   12.5606 cv_obs=0.9638 cv_geom=0.9594 ok
+      dwell GOF state 1   n=12654    p_geom=0.01504557 chi2=     310.859 dof=292   p=     0.2143 mean_obs=   66.4574 mean_geom=   66.4648 cv_obs=0.9983 cv_geom=0.9924 ok
+      order test  : chi2=4.728137740170684 dof=2 p=0.09403682011231596 V=0.0021744303153849462
+      PASS (recovered and not rejected) = True
+  (b) an explicitly second-order sequence
+      order test  : chi2=270761.15413297823 dof=2 p=0.0 V=0.5203476680608549
+      PASS (rejected, large effect) = True
+
+[2] The measured channel, two states (threshold 0.6 = state 0)
+First-order Markov fit, K=2, N=2000000 samples
+  transition matrix P[i,j] (row-normalised counts):
+    row 0: 0.935469767  0.064530233
+    row 1: 0.009381955  0.990618045
+  transition counts:
+    row 0: [237498, 16383]
+    row 1: [16382, 1729736]
+  model stationary occupancy : [0.12693379868266366, 0.8730662013173365]
+  measured occupancy         : [0.1269405, 0.8730595]
+  model mean dwell (samples) : [15.496612342061894, 106.58759614210757]
+  measured mean dwell        : [15.49737516786717, 106.56604810157489]
+  log likelihood             : -153534.18048953993
+  free parameters            : 2
+  AIC                        : 307072.36097907985
+
+  dwell-time goodness of fit (geometric implied by the fitted P[i,i]):
+    state 0   n=16382    p_geom=0.06453023 chi2=     62525.6 dof=91    p=          0 mean_obs=   15.4974 mean_geom=   15.4966 cv_obs=2.5707 cv_geom=0.9672 ok
+    state 1   n=16382    p_geom=0.00938195 chi2=      241872 dof=446   p=          0 mean_obs=  106.5660 mean_geom=  106.5876 cv_obs=3.1541 cv_geom=0.9953 ok
+
+Markov-order (conditional independence) test, K=2, triplets=1999998
+  summed chi2 = 139205.81210958044, dof = 2, p = 0.0
+  Cramer's V (effect size) = 0.2638237587060079
+  per middle state j: (j, chi2, dof, V, n)
+    j=0: chi2=18534.823486346995 dof=1 V=0.2701966638300687 n=253880
+    j=1: chi2=120670.98862323345 dof=1 V=0.2628842944505551 n=1746118
+
+[3] Where the Markov assumption fails, without reference to a p-value
+   state    runs  mean dwell [samp]  geometric mean  cv measured  cv geometric   ratio
+  ------------------------------------------------------------------------------------
+       0   16382            15.4974         15.4966       2.5707        0.9672    2.66
+       1   16382           106.5660        106.5876       3.1541        0.9953    3.17
+  The fitted chain reproduces the MEAN dwell almost exactly -- it is
+  fitted to do so -- and gets the DISPERSION wrong by a factor of about
+  2.7. The quantised state of a continuous Gauss-Markov process is not
+  Markov, because 'below the threshold' discards how far below. A fade
+  one sample old sits at the threshold and usually recovers at once; a
+  fade one correlation length old has gone deeper and lasts longer.
+
+[4] More states
+    K thresholds                     order chi2   dof        p  Cramer V max cv ratio
+  -----------------------------------------------------------------------------------
+    2 [0.6]                            139205.8     2        0    0.2638         3.17
+    3 [0.5, 0.8]                       188822.5     6        0    0.2173         3.08
+    5 [0.4, 0.55, 0.7, 0.9]            198395.8    14        0    0.1575         3.01
+  Finer quantisation reduces the departure from Markov, as it must: in
+  the limit of infinitely many states the chain IS the Gauss-Markov
+  process and is exactly first-order. It does not reach that limit at
+  any state count a link budget would use.
+
+[5] The semi-Markov alternative
+Semi-Markov fit, K=2
+  embedded jump matrix J[i,j] (i != j):
+    row 0: [0.0, 1.0]
+    row 1: [1.0, 0.0]
+  mean dwell (samples) : [15.49737516786717, 106.56604810157489]
+  complete runs        : [16382, 16382]
+  censored runs        : [1, 1]
+  implied occupancy    : [0.12696166265678424, 0.8730383373432157]
+  free parameters      : 1553
+  the dwell law is empirical, so the mean dwell and the whole dwell distribution are reproduced by construction; this is a fit with many parameters, not a parsimonious model
+
+   state  occupancy orig  occupancy sim  mean dwell orig  mean dwell sim  P(dwell>100) orig        sim
+  ----------------------------------------------------------------------------------------------------
+       0        0.126941       0.128756          15.4974         15.7078           0.034916   0.035257
+       1        0.873059       0.871243         106.5660        106.2942           0.151630   0.153297
+  Markov free parameters      : 2
+  semi-Markov free parameters : 1553
+  The semi-Markov model matches the dwell tail because it stores it.
+  That is a reproduction, not a prediction: it has no power to say what
+  the dwell law would be at a threshold or turbulence level it has not
+  seen, where the two-parameter channel fit does.
+
+done

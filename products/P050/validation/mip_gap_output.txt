@@ -1,0 +1,42 @@
+scipy version                 1.18.1
+numpy version                 2.5.3
+package MILP options          {'mip_rel_gap': 0.0}
+sweep                         scintillation index 0.0500 to 1.2000, 221 points
+instance                      illustrative table, margin 12.00 dB, target 0.990000, K = 2, long_run
+
+feasible sweep points         186 of 221
+
+A. scipy.optimize.milp with no options (HiGHS default gap)
+  objective shortfalls > 1e-9           0
+  support differences from enumeration  0
+  worst relative shortfall              1.5240e-14
+    at                                  scintillation 0.6197727272727273, relative shortfall 1.5240e-14, absolute 5.940e-15 bits/symbol
+
+B. scipy.optimize.milp with mip_rel_gap = 0.0 (what this package does)
+  objective shortfalls > 1e-9           0
+  support differences from enumeration  0
+  worst relative shortfall              1.5240e-14
+    at                                  scintillation 0.6197727272727273, relative shortfall 1.5240e-14, absolute 5.940e-15 bits/symbol
+
+C. random instances, default gap against enumeration
+   (the uniform sweep above walks a coarse grid and can step over the narrow
+    parameter bands where the two-entry mix is only marginally better, so the
+    frequency of the defect is measured by random search instead)
+  feasible random instances             481 of 500
+  objective shortfalls > 1e-9           3
+  support differences from enumeration  3
+  support-difference rate               0.0062
+  worst relative shortfall              6.8651e-05
+    at                                  scintillation 0.2890263106541858, margin 13.78634782472341 dB, target 0.9823623376786259: default-gap support ('ook-r9/10',) at 0.884625451194, enumerated ('ook-r9/10', 'qpsk-r1/2') at 0.884686185403
+
+the specific instance named in coderateopt.milp.MILP_OPTIONS
+  enumerated optimum    0.495018082635  support ('ook-r1/2', 'ook-r2/3')
+  default gap           0.495001474400  support ('ook-r1/2',)
+  mip_rel_gap = 0.0     0.495018082635  support ('ook-r1/2', 'ook-r2/3')
+  relative difference   3.3551e-05
+
+verdict
+  random search          3 support differences in 481 feasible instances under the default gap
+  default gap            0 support differences, 0 objective shortfalls
+  mip_rel_gap = 0.0      0 support differences, 0 objective shortfalls
+  the package's options reproduce the enumerated optimum at every feasible sweep point

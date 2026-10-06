@@ -1,0 +1,30 @@
+==============================================================================
+validate_series_construction.py
+==============================================================================
+rho = exp(-1/(tau*fs)) = 0.9950124791926823
+correlation length     = 200.0 samples
+
+[1] AR(1) recursion against the direct loop
+  max |lfilter+correction - direct loop| over first 50000 samples: 3.1086244689504383e-15
+  max |independent reconstruction - x| over all 2000000 samples:        0.0
+  x[0] - z[0] = 0.0 (must be 0: stationary initial condition)
+  PASS       = True
+
+[2] Second-order statistics of x
+  sample variance      = 1.0068865573493446   (target 1, se ~ 0.02)
+  lag-one correlation  = 0.9950409800554045   (target 0.9950124791926823)
+  PASS                 = True
+
+[3] Lognormal mapping
+  mean irradiance          = 0.9989079726815594  (target 1.0)
+  var(ln I)                = 0.47324033619293654  (target 0.4700036292457356)
+  max |a**2 - I|           = 3.552713678800501e-15
+  mean irradiance at E[I]=4 = 4.093835051506972
+  PASS                     = True
+
+[4] Threshold maps exactly onto a Gaussian level
+  u = -1.1474416982823363
+  samples where (a < T) != (x < u): 0  (must be 0)
+  PASS = True
+
+done

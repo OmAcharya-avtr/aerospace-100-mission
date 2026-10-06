@@ -1,0 +1,124 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "arqlonghaul: ARQ and hybrid-ARQ goodput on links where the round-trip time dominates"
+version: 0.1.0
+date-released: 2026-10-06
+license: Apache-2.0
+abstract: >-
+  Slotted state-machine simulators for stop-and-wait, go-back-N and selective
+  repeat, validated against the classical closed-form throughput expressions in
+  the regime where those expressions are exact (independent frame errors, large
+  windows) to a worst 0.616 per cent relative deviation over 78 cases; window
+  sizing against the bandwidth-delay product in frames and bytes, including the
+  measured shortfall of the textbook one-bandwidth-delay-product window;
+  correlated frame errors from a Gilbert-Elliott channel parameterised so that
+  marginal error rate and mean burst length are set independently, and the
+  measured misstatement of the independent-error expressions on such a channel;
+  type-I chase combining and type-II incremental redundancy over a
+  Singleton-bound bounded-distance decoder model, computed by an exact nested
+  dynamic program and cross-checked against Monte Carlo, with the
+  retransmit-versus-redundancy crossover located and its sensitivity to every
+  assumption reported; and a learned per-round redundancy policy with an
+  ensemble uncertainty output, benchmarked on three disjoint seed sets against
+  an analytic fixed schedule, a tuned fixed schedule and an adaptive heuristic,
+  where the tuned fixed schedule wins and that is the published result.
+  Validation level 2, research grade. Not flight-qualified, not certified, not
+  approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - arq
+  - hybrid-arq
+  - harq
+  - incremental-redundancy
+  - go-back-n
+  - selective-repeat
+  - gilbert-elliott
+  - bandwidth-delay-product
+  - deep-space-communications
+references:
+  - type: article
+    authors:
+      - family-names: Gilbert
+        given-names: "E. N."
+    title: "Capacity of a burst-noise channel"
+    journal: "The Bell System Technical Journal"
+    volume: 39
+    issue: 5
+    start: 1253
+    end: 1265
+    year: 1960
+    notes: >-
+      The two-state burst-error channel used in arqlonghaul.channel. Title and
+      publication date were confirmed against the Nokia Bell Labs publication
+      page for this paper on 2026-10-06; the volume, issue and page numbers are
+      as given in the reference list of arXiv:2005.06921, read the same day.
+  - type: article
+    authors:
+      - family-names: Elliott
+        given-names: "E. O."
+    title: "Estimates of error rates for codes on burst-noise channels"
+    journal: "The Bell System Technical Journal"
+    volume: 42
+    issue: 5
+    start: 1977
+    end: 1997
+    year: 1963
+    notes: >-
+      The extension to a non-zero error probability in the good state, which is
+      the form implemented here. Verified the same way as Gilbert 1960.
+  - type: book
+    authors:
+      - family-names: Lin
+        given-names: Shu
+      - family-names: Costello
+        given-names: "Daniel J."
+        name-suffix: Jr.
+    title: "Error Control Coding"
+    edition: "2nd"
+    publisher:
+      name: "Prentice Hall"
+    year: 2004
+    notes: >-
+      Source for the ARQ throughput expressions in arqlonghaul.closedform and
+      for the bounded-distance decoder block error probability in
+      arqlonghaul.harq. No page numbers are quoted because none were verified
+      against the printed text in this build.
+  - type: book
+    authors:
+      - family-names: Tanenbaum
+        given-names: "Andrew S."
+    title: "Computer Networks"
+    notes: >-
+      The sliding-window efficiency derivations, which agree with the Lin and
+      Costello forms. No edition or page numbers are quoted because none were
+      verified in this build.
+  - type: standard
+    title: "TM Synchronization and Channel Coding"
+    number: "CCSDS 131.0-B-5"
+    institution:
+      name: "Consultative Committee for Space Data Systems"
+    notes: >-
+      Cited as the channel-coding context for space links, and as the source of
+      the frame size order of magnitude used in the link presets. The document
+      number and title were confirmed on 2026-10-06 against the European
+      Cooperation for Space Standardization adoption notice ECSS-E-AS-50-21C
+      Rev.2 (5 December 2024), which adopts CCSDS 131.0-B-5 under that exact
+      title. This repository does not quote any numerical value from the
+      standard.
+  - type: standard
+    title: "Licklider Transmission Protocol - Specification"
+    number: "RFC 5326"
+    institution:
+      name: "Internet Engineering Task Force"
+    notes: >-
+      Cited as the long-delay retransmission context. Existence, number and
+      title confirmed at rfc-editor.org on 2026-10-06. No numerical value from
+      it is used here.
+  - type: software
+    title: "crcmod"
+    version: "1.7"
+    notes: >-
+      Not a dependency and never imported. Its source distribution file
+      python3/crcmod/predefined.py was read on 2026-10-06 to obtain the CRC
+      catalogue check values that validation/validate_crc.py checks against.

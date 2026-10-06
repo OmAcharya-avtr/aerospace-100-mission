@@ -1,0 +1,53 @@
+==============================================================================
+regenerate_outage_model.py
+==============================================================================
+
+Configuration (the whole of it):
+  n_samples         : 4000000
+  fs_hz             : 1000000.0
+  tau_s             : 0.0002
+  si                : 0.6
+  seed              : 4901
+  threshold         : 0.35
+  window_samples    : 400
+  horizon_samples   : 200
+  stride_samples    : 50
+  n_estimators      : 200
+  min_samples_leaf  : 5
+
+Outage dataset:
+  gap_rows                : 12
+  horizon_samples         : 200
+  n_features              : 14
+  n_samples               : 4000000
+  stride_samples          : 50
+  threshold               : 0.35
+  window_samples          : 400
+  rows                    : 79989
+  positives               : 2046
+  base rate               : 0.02557851704609384
+
+Temporal split (no shuffling; gap between splits to break overlap):
+  train       : 47993 rows, 1219 positive
+  calibration : 11998 rows, 279 positive
+  test        : 19974 rows, 543 positive
+  gap         : 12 rows discarded between splits
+
+Verification against the published test Brier scores
+  forecaster                         refitted    published      |diff|    ok
+  --------------------------------------------------------------------------
+  constant base rate                0.0264495    0.0264495    1.27e-08   yes
+  analytic LCR (fit)                0.0265626    0.0265626    1.02e-08   yes
+  logistic regression               0.0220142    0.0220142    3.52e-08   yes
+  random forest                     0.0223498    0.0223498    4.96e-08   yes
+  analytic LCR (fit) + Platt        0.0217557    0.0217557    3.36e-08   yes
+  random forest + Platt             0.0222801    0.0222801    9.62e-09   yes
+  tolerance 5e-06 (the published values are rounded to 7 figures)
+  ALL REPRODUCED = True
+
+wrote validation/outage_models.joblib (6.07 MB)
+wrote validation/outage_dataset.npz (2.96 MB)
+Neither file is committed: both are listed in .gitignore and both are
+reproduced exactly by re-running this script.
+
+done

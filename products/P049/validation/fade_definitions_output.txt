@@ -1,0 +1,95 @@
+==============================================================================
+validate_fade_definitions.py
+==============================================================================
+
+[1] Hand-calculated known answers
+  (a) a = [1.0, 0.5, 0.5, 1.0, 1.0, 0.4, 1.0], T = 0.6, fs = 1.0 Hz
+      mask = [F, T, T, F, F, T, F]
+      runs = [1,3) length 2; [5,6) length 1, neither touching an end
+      down-crossings at 1 and 5 -> 2;  up-crossings at 3 and 6 -> 2
+      mean fade duration = (2 + 1) / 2 samples / 1 Hz = 1.5 s
+      outage fraction = 3 / 7;  LCR = 2 / ((7-1)/1) = 1/3 Hz
+      n_down_crossings           computed 2                        expected 2                      ok
+      n_up_crossings             computed 2                        expected 2                      ok
+      n_complete_fades           computed 2                        expected 2                      ok
+      n_single_sample_fades      computed 1                        expected 1                      ok
+      mean_fade_duration_s       computed 1.5                      expected 1.5                    ok
+      level_crossing_rate_hz     computed 0.3333333333333333       expected 0.3333333333333333     ok
+      outage_fraction            computed 0.42857142857142855      expected 0.42857142857142855    ok
+      availability               computed 0.5714285714285714       expected 0.5714285714285714     ok
+      PASS = True
+
+  (b) a = [0.4, 0.4, 1.0, 1.0, 0.3], T = 0.6, fs = 2.0 Hz  (both ends censored)
+      mask = [T, T, F, F, T]
+      run [0,2) is left-censored, run [4,5) is right-censored
+      index 0 has no predecessor, so there is no down-crossing there -> 1
+      no complete fade survives the censoring rule -> mean is nan
+      outage fraction = 3 / 5;  LCR = 1 / ((5-1)/2) = 0.5 Hz
+      n_down_crossings           computed 1                        expected 1                     
+      n_up_crossings             computed 1                        expected 1                     
+      n_runs                     computed 2                        expected 2                     
+      n_left_censored            computed 1                        expected 1                     
+      n_right_censored           computed 1                        expected 1                     
+      n_complete_fades           computed 0                        expected 0                     
+      level_crossing_rate_hz     computed 0.5                      expected 0.5                   
+      outage_fraction            computed 0.6                      expected 0.6                   
+      mean_fade_duration_s is nan: True
+      PASS = True
+
+  (c) interpolated crossing instants, a = [1.0, 0.4, 1.0], T = 0.6, fs = 1 Hz
+      down fraction = (1.0 - 0.6) / (1.0 - 0.4) = 2/3 -> t_down = 2/3 s
+      up   fraction = (0.6 - 0.4) / (1.0 - 0.4) = 1/3 -> t_up   = 4/3 s
+      duration = 4/3 - 2/3 = 2/3 s, versus 1 s by sample count
+      computed 0.6666666666666665, expected 0.6666666666666666
+      PASS = True
+
+[2] Rice partition identity, checked to machine precision
+  With nothing censored, below-threshold time is partitioned exactly into
+  the complete fades, so mean_fade_duration * LCR * (N-1)/fs = in-fade
+  samples / fs, hence mean / (outage/LCR) = N / (N-1) exactly.
+  series                                    N                 residual                  1/(N-1)   match
+  -----------------------------------------------------------------------------------------------------
+  hand series (a)                           7      0.16666666666666657      0.16666666666666666      ok
+  500-sample channel realisation          495     0.002024291497975651    0.0020242914979757085      ok
+  20000-sample channel realisation      19995   5.0015004501147415e-05   5.0015004501350405e-05      ok
+  PASS = True
+
+[3] What each definitional choice costs on the specified series
+  variant                                LCR [Hz]     dLCR         MFD [s]     dMFD     outage      avail
+  -------------------------------------------------------------------------------------------------------
+  published                             8191.0041   +0.00%  1.54973752e-05   +0.00%   0.126941   0.873059
+  interval_count durations              8191.0041   +0.00%  1.44973752e-05   -6.45%   0.126941   0.873059
+  interpolated instants                 8191.0041   +0.00%  1.54656468e-05   -0.20%   0.126941   0.873059
+  censored folded in as complete        8191.0041   +0.00%  1.54966123e-05   -0.00%   0.126941   0.873059
+  singles are not fades                 5592.0028  -31.73%  2.22353362e-05  +43.48%   0.126941   0.873059
+  non-strict a <= T                     8191.0041   +0.00%  1.54973752e-05   +0.00%   0.126941   0.873059
+  record duration N/fs                  8191.0000   -0.00%  1.54973752e-05   +0.00%   0.126941   0.873059
+  The single-sample rule is the dominant choice: -32 % on the rate and
+  +43 % on the mean fade duration. Two tools that disagree on that rule
+  cannot agree on either statistic, whatever else they get right.
+
+[4] Threshold sweep: outage probability and availability
+       T  outage measured  outage analytic  availability  LCR meas [Hz]  LCR anal [Hz]   MFD meas [s]   MFD anal [s]
+  ------------------------------------------------------------------------------------------------------------------
+    0.30        0.0007020        0.0007634     0.9992980        109.000        104.273   6.440367e-06   7.320911e-06
+    0.40        0.0104430        0.0098951     0.9895570       1134.501       1050.273   9.204936e-06   9.421489e-06
+    0.50        0.0482660        0.0465442     0.9517340       3914.502       3877.604   1.233005e-05   1.200335e-05
+    0.60        0.1269405        0.1255996     0.8730595       8191.004       8228.472   1.549738e-05   1.526402e-05
+    0.70        0.2443155        0.2426700     0.7556845      12614.506      12463.902   1.936543e-05   1.946983e-05
+    0.80        0.3809055        0.3789689     0.6190945      15029.008      15164.081   2.533200e-05   2.499122e-05
+    0.90        0.5141635        0.5141264     0.4858365      15740.008      15892.256   3.265383e-05   3.235075e-05
+
+[5] Quantisation: when the strict/non-strict choice stops being academic
+  A receiver logs amplitude through an ADC. Quantising the same record to
+  8 bits over [0, 2] puts many samples exactly on a code boundary, and if
+  the threshold lands on a code the two rules differ by thousands of
+  samples rather than by none.
+   bits  threshold    strict LCR  non-strict LCR  rel diff  strict outage  non-strict outage
+  ------------------------------------------------------------------------------------------
+      8   0.596078      7820.004        8191.004    +4.74%      0.1192595          0.1269405
+     10   0.600196      8160.504        8267.504    +1.31%      0.1261495          0.1281190
+     12   0.599756      8165.504        8191.004    +0.31%      0.1264500          0.1269405
+  On float data the two rules coincide; on logged data they do not, and
+  the difference is not small.
+
+done

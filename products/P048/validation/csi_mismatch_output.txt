@@ -1,0 +1,82 @@
+softdecode validation 4: the mismatched-CSI penalty
+raw output committed as validation/csi_mismatch_output.txt
+LDPC n=96 k=50 rate=0.520833; lognormal sigma_I2=0.3
+
+1. Pure bias, no jitter: the asymmetry
+--------------------------------------
+  Eb/N0 = 8.00 dB per information bit, 1200 blocks, seed 20261006
+  reference rows: known_csi uses the true h, csi_aware_exact averages
+  over p(h | h_hat) with the bias known to the receiver.
+   bias dB  raw hard BER   plug-in BER  plug-in GMI   LLR rmse  BER / unbiased  known-CSI BER  csi-aware BER
+     -4.00  1.394184e-01  7.630000e-02     +0.54901     9.8664          39.809   1.916667e-03   1.916667e-03
+     -3.00  1.200955e-01  3.526667e-02     +0.60769     8.4879          18.400   1.916667e-03   1.916667e-03
+     -2.00  1.020747e-01  1.168333e-02     +0.66565     6.6249           6.096   1.916667e-03   1.916667e-03
+     -1.00  8.746528e-02  3.600000e-03     +0.71438     3.9758           1.878   1.916667e-03   1.916667e-03
+     -0.50  8.263021e-02  2.116667e-03     +0.73069     2.2009           1.104   1.916667e-03   1.916667e-03
+      0.00  8.135417e-02  1.916667e-03     +0.73712     0.0000           1.000   1.916667e-03   1.916667e-03
+      0.50  8.377604e-02  2.983333e-03     +0.72723     2.7590           1.557   1.916667e-03   1.916667e-03
+      1.00  9.140625e-02  6.933333e-03     +0.68888     6.2485           3.617   1.916667e-03   1.916667e-03
+      2.00  1.366406e-01  8.415000e-02     +0.39145    16.3763          43.904   1.916667e-03   1.916667e-03
+      3.00  2.569878e-01  2.776667e-01     -1.17002    33.0444         144.870   1.916667e-03   1.916667e-03
+      4.00  4.022222e-01  4.851333e-01     -7.61582    60.5834         253.113   1.916667e-03   1.916667e-03
+
+  Decomposition. The raw hard-decision BER is scale invariant, so its
+  over/under ratio isolates the decision-threshold shift; the decoded
+  BER ratio contains that plus the over-confidence of the LLRs, and the
+  quotient of the two is what over-confidence alone costs.
+   |bias| dB      over BER     under BER  decoded ratio  raw ratio  confidence share
+         1.0  6.933333e-03  3.600000e-03          1.926      1.045             1.843
+         2.0  8.415000e-02  1.168333e-02          7.203      1.339             5.381
+         3.0  2.776667e-01  3.526667e-02          7.873      2.140             3.679
+         4.0  4.851333e-01  7.630000e-02          6.358      2.885             2.204
+
+2. Pure jitter, no bias
+-----------------------
+  A zero-mean log error still costs, because the LLR is nonlinear in h.
+   jitter dB  raw hard BER   plug-in BER  plug-in GMI  csi-aware BER  csi-aware GMI
+        0.00  8.135417e-02  1.916667e-03     +0.73712   1.916667e-03       +0.73712
+        0.50  8.277778e-02  3.883333e-03     +0.72913   3.816667e-03       +0.73060
+        1.00  9.033854e-02  1.200000e-02     +0.68791   5.566667e-03       +0.71558
+        1.50  1.050260e-01  5.371667e-02     +0.51673   8.616667e-03       +0.70032
+        2.00  1.235764e-01  1.197167e-01     -0.01255   1.175000e-02       +0.68788
+        3.00  1.632639e-01  2.113333e-01     -3.65892   1.598333e-02       +0.67165
+
+3. Bias and jitter together, over- against under-estimating
+-----------------------------------------------------------
+   bias dB  jitter dB   plug-in BER  plug-in GMI  csi-aware BER
+     -2.00       0.50  1.366667e-02     +0.66462   3.816667e-03
+     -2.00       1.00  1.533333e-02     +0.66058   5.566667e-03
+     -2.00       2.00  4.086667e-02     +0.58988   1.175000e-02
+      0.00       0.50  3.883333e-03     +0.72913   3.816667e-03
+      0.00       1.00  1.200000e-02     +0.68791   5.566667e-03
+      0.00       2.00  1.197167e-01     -0.01255   1.175000e-02
+      2.00       0.50  1.156167e-01     +0.25345   3.816667e-03
+      2.00       1.00  1.848167e-01     -0.40522   5.566667e-03
+      2.00       2.00  2.669000e-01     -4.65829   1.175000e-02
+
+4. A stale estimate of stated correlation
+-----------------------------------------
+  rho = 1 is perfect CSI. The stale estimate is unbiased in log h but
+  its spread makes it over-estimate as often as it under-estimates, and
+  the over-estimates dominate the cost.
+     rho  raw hard BER   plug-in BER  plug-in GMI  csi-aware BER  csi-aware GMI
+    1.00  8.033854e-02  2.783333e-03     +0.73746   2.783333e-03       +0.73746
+    0.99  8.128472e-02  2.933333e-03     +0.73439   2.800000e-03       +0.73458
+    0.95  8.493924e-02  5.616667e-03     +0.71962   4.616667e-03       +0.72408
+    0.90  8.967014e-02  9.700000e-03     +0.69488   5.866667e-03       +0.71311
+    0.80  9.923611e-02  2.851667e-02     +0.62478   9.633333e-03       +0.69577
+    0.60  1.157031e-01  8.058333e-02     +0.42688   1.576667e-02       +0.67205
+
+5. The mechanism: missed ones against false alarms on zeros
+-----------------------------------------------------------
+  Split the raw hard-decision errors of the plug-in demapper by the
+  transmitted bit. Over-estimating h raises the threshold a h_hat / 2
+  and the errors become almost entirely missed ones.
+   bias dB  P(error | bit=1)  P(error | bit=0)  share missed ones
+     -4.00      2.872647e-02      2.504260e-01             0.1029
+     -2.00      4.276897e-02      1.615494e-01             0.2093
+      0.00      8.224403e-02      8.046177e-02             0.5055
+      2.00      2.441663e-01      2.880837e-02             0.8945
+      4.00      7.962449e-01      7.076046e-03             0.9912
+
+done

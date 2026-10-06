@@ -1,0 +1,213 @@
+seed discipline: {'n_fit': 200, 'n_tune': 200, 'n_report': 400}
+fit seeds used 120, tune 40, report 300
+the three sets are disjoint by construction; SeedSplit raises if not
+
+====================================================================================================
+ENVIRONMENT: long-burst (25 rounds, 20% faded)
+====================================================================================================
+  k                   200
+  alpha               0.5
+  esn0_good_db        2.5
+  esn0_bad_db         -1.5
+  rtt_symbols         50.0
+  max_rounds          4
+  drop_penalty        2000.0
+  pi_bad              0.19999999999999998
+  mean_burst_rounds   25.0
+  ber_good            0.02965528762603682
+  ber_bad             0.11704040806157306
+  ber_mixture         0.04713231171314407
+  memory_rounds       19.4957
+  actions (symbols)   (10, 25, 50, 100, 200)
+  first-round code rates [0.9524, 0.8889, 0.8, 0.6667, 0.5]
+
+-- step 1: analytic baseline, no data used ------------------------------
+  first_action              50
+  later_action              25
+  analytic_expected_cost    335.004
+  analytic_goodput          0.597254
+  analytic_residual_fer     8.30386e-05
+  mixture_ber               0.0471323
+
+-- step 2: baselines tuned on the tune seeds ----------------------------
+  tune set: 40 seeds x 120 frames
+  tuned-fixed first_action        50
+  tuned-fixed later_action        100
+  tuned-fixed tune_cost_per_frame 334.719
+  escalating  base_action         50
+  escalating  tune_cost_per_frame 341.667
+
+-- step 3: learned policy, fit on the fit seeds -------------------------
+  fit set: 120 seeds x 150 frames
+  transitions collected: 27303 rows, 8 features + 1 action column
+  features: round_index, redundancy_ratio, rounds_remaining, prev_frame_rounds, nak_ewma, rounds_last8_mean, consecutive_hard_frames, rtt_over_k
+  cost target: mean 429.82, sd 463.45 symbol times
+
+  hyperparameters selected on the TUNE seeds, never the report seeds:
+   max_depth  min_leaf   tune cost/frame
+           6        40           350.146
+          10        20           350.333
+          14        10           348.889
+        None         5           343.021
+  chosen: max_depth=None, min_samples_leaf=5
+
+-- step 4: report, on seeds no policy has seen --------------------------
+  report set: 300 seeds x 150 frames = 45000 frames
+
+policy             cost/frame   stderr   goodput   stderr   residual  rounds  symbols
+analytic-fixed        443.733    8.377   0.59130  0.00382  6.240e-02  1.2524   256.31
+tuned-fixed           331.401    1.541   0.60758  0.00253  2.222e-04  1.2064   270.64
+escalating            337.514    1.878   0.59754  0.00301  0.000e+00  1.2030   277.36
+learned-forest        336.902    1.875   0.59940  0.00295  3.556e-04  1.1778   277.30
+
+  learned policy against each baseline, paired over the report seeds
+  baseline           goodput diff %   cost diff %   z on cost     verdict
+  analytic-fixed              1.370       -24.076      -12.45     learned
+  tuned-fixed                -1.346         1.660        2.27 tuned-fixed
+  escalating                  0.312        -0.182       -0.23         tie
+
+  z is on cost per frame, which is the quantity the learned policy
+  minimises; the standard errors are across report seeds. |z| < 2 is
+  reported as a tie, because at this episode length a difference
+  smaller than two standard errors is not a result.
+
+-- step 5: uncertainty output -------------------------------------------
+  distinct observed states on one report seed: 60
+  memoisation cache entries after the report run: 799
+  across-tree sd of the chosen action's predicted cost:
+    median 68.99, 10th pct 6.66, 90th pct 193.49 symbol times
+  decision margin to the runner-up action, in pooled sd:
+    median 0.65, fraction below 1 sd: 0.633
+  A margin below about one standard deviation means the model cannot
+  distinguish its two best actions at that state; the fraction above
+  is how often that happens, and it is the honest reading of how much
+  of the policy is a real decision.
+
+  worked example of the uncertainty output at one state:
+    state: {'round_index': 1.0, 'redundancy_ratio': 0.0, 'rounds_remaining': 3.0, 'prev_frame_rounds': 0.5, 'nak_ewma': 0.5, 'rounds_last8_mean': 0.5, 'consecutive_hard_frames': 6.0, 'rtt_over_k': 0.25}
+      action symbols  predicted cost  across-tree sd
+                  10          722.79          282.19
+                  25         1137.02          473.19
+                  50          826.37          378.26
+                 100          478.52           92.49
+                 200          482.50           69.65
+    chosen action 100 symbols, margin 3.98 symbol times = 0.03 pooled sd
+
+-- step 6: action usage -------------------------------------------------
+  policy                 a=10      a=25      a=50     a=100     a=200
+  analytic-fixed       0.0000    0.1694    0.8306    0.0000    0.0000
+  tuned-fixed          0.0000    0.0000    0.8525    0.1475    0.0000
+  escalating           0.0000    0.0000    0.8543    0.1017    0.0440
+  learned-forest       0.0034    0.0289    0.8342    0.0668    0.0668
+  (fraction of rounds at each increment, one report seed, 2000 frames)
+
+
+====================================================================================================
+ENVIRONMENT: short-burst (1.5 rounds, 20% faded)
+====================================================================================================
+  k                   200
+  alpha               0.5
+  esn0_good_db        2.5
+  esn0_bad_db         -1.5
+  rtt_symbols         50.0
+  max_rounds          4
+  drop_penalty        2000.0
+  pi_bad              0.2
+  mean_burst_rounds   1.5
+  ber_good            0.02965528762603682
+  ber_bad             0.11704040806157306
+  ber_mixture         0.04713231171314407
+  memory_rounds       0.5581
+  actions (symbols)   (10, 25, 50, 100, 200)
+  first-round code rates [0.9524, 0.8889, 0.8, 0.6667, 0.5]
+
+-- step 1: analytic baseline, no data used ------------------------------
+  first_action              50
+  later_action              25
+  analytic_expected_cost    335.004
+  analytic_goodput          0.597254
+  analytic_residual_fer     8.30386e-05
+  mixture_ber               0.0471323
+
+-- step 2: baselines tuned on the tune seeds ----------------------------
+  tune set: 40 seeds x 120 frames
+  tuned-fixed first_action        50
+  tuned-fixed later_action        100
+  tuned-fixed tune_cost_per_frame 339.5
+  escalating  base_action         50
+  escalating  tune_cost_per_frame 345.385
+
+-- step 3: learned policy, fit on the fit seeds -------------------------
+  fit set: 120 seeds x 150 frames
+  transitions collected: 28535 rows, 8 features + 1 action column
+  features: round_index, redundancy_ratio, rounds_remaining, prev_frame_rounds, nak_ewma, rounds_last8_mean, consecutive_hard_frames, rtt_over_k
+  cost target: mean 418.17, sd 436.89 symbol times
+
+  hyperparameters selected on the TUNE seeds, never the report seeds:
+   max_depth  min_leaf   tune cost/frame
+           6        40           351.042
+          10        20           363.302
+          14        10           364.802
+        None         5           364.054
+  chosen: max_depth=6, min_samples_leaf=40
+
+-- step 4: report, on seeds no policy has seen --------------------------
+  report set: 300 seeds x 150 frames = 45000 frames
+
+policy             cost/frame   stderr   goodput   stderr   residual  rounds  symbols
+analytic-fixed        550.983    3.228   0.52643  0.00136  1.054e-01  1.5352   263.38
+tuned-fixed           339.893    0.381   0.58864  0.00066  0.000e+00  1.2660   276.60
+escalating            345.650    0.463   0.57893  0.00077  0.000e+00  1.2643   282.44
+learned-forest        350.194    0.217   0.57118  0.00035  0.000e+00  1.2446   287.97
+
+  learned policy against each baseline, paired over the report seeds
+  baseline           goodput diff %   cost diff %   z on cost     verdict
+  analytic-fixed              8.500       -36.442      -62.06     learned
+  tuned-fixed                -2.967         3.031       23.50 tuned-fixed
+  escalating                 -1.339         1.315        8.88  escalating
+
+  z is on cost per frame, which is the quantity the learned policy
+  minimises; the standard errors are across report seeds. |z| < 2 is
+  reported as a tie, because at this episode length a difference
+  smaller than two standard errors is not a result.
+
+-- step 5: uncertainty output -------------------------------------------
+  distinct observed states on one report seed: 80
+  memoisation cache entries after the report run: 385
+  across-tree sd of the chosen action's predicted cost:
+    median 14.27, 10th pct 8.41, 90th pct 51.30 symbol times
+  decision margin to the runner-up action, in pooled sd:
+    median 0.28, fraction below 1 sd: 0.775
+  A margin below about one standard deviation means the model cannot
+  distinguish its two best actions at that state; the fraction above
+  is how often that happens, and it is the honest reading of how much
+  of the policy is a real decision.
+
+  worked example of the uncertainty output at one state:
+    state: {'round_index': 1.0, 'redundancy_ratio': 0.0, 'rounds_remaining': 3.0, 'prev_frame_rounds': 0.75, 'nak_ewma': 0.4375, 'rounds_last8_mean': 0.5, 'consecutive_hard_frames': 1.0, 'rtt_over_k': 0.25}
+      action symbols  predicted cost  across-tree sd
+                  10          529.02           38.36
+                  25          441.16           13.94
+                  50          402.83           14.45
+                 100          407.13           11.92
+                 200          461.51            3.42
+    chosen action 50 symbols, margin 4.30 symbol times = 0.23 pooled sd
+
+-- step 6: action usage -------------------------------------------------
+  policy                 a=10      a=25      a=50     a=100     a=200
+  analytic-fixed       0.0000    0.3485    0.6515    0.0000    0.0000
+  tuned-fixed          0.0000    0.0000    0.7899    0.2101    0.0000
+  escalating           0.0000    0.0000    0.7915    0.1626    0.0459
+  learned-forest       0.0000    0.0000    0.6001    0.3971    0.0028
+  (fraction of rounds at each increment, one report seed, 2000 frames)
+
+
+====================================================================================================
+OVERALL, STATED WITHOUT SPIN
+====================================================================================================
+environment                         best policy by cost   learned vs best %     |z|
+long-burst (25 rounds, 20% faded)   tuned-fixed                       1.660    2.27
+short-burst (1.5 rounds, 20% faded) tuned-fixed                       3.031   23.50
+
+Lower cost per frame is better. A positive 'learned vs best' means
+the learned policy is worse than the best policy in that row.

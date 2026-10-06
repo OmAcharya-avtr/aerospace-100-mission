@@ -1,0 +1,23 @@
+Fade-duration model comparison (n_complete=16382, n_censored=1, fs=1000000.0 Hz)
+distribution                      AIC test              statistic   dof            p    valid
+---------------------------------------------------------------------------------------------
+geometric (samples)        121480.751 chi2                62510.3    90            0       ok
+exponential (cens MLE)    -330089.667 KS                 0.371464     -            0       ok
+lognormal                 -347240.977 KS                 0.159108     -            0       ok
+weibull                   -341292.695 KS                 0.227974     -            0       ok
+gamma                     -337756.629 KS                 0.206497     -            0       ok
+
+Memoryless (exponential/geometric) hypothesis at alpha=0.01: REJECTED
+  decided on the geometric chi-square: statistic=62510.26195113153, dof=90, p=0.0
+  best fit by AIC: lognormal
+  note [geometric (samples)]: 92 bins after tail merging at min_expected=5.0; mean length 15.4974 samples
+  note [exponential (cens MLE)]: KS p-value is anticonservative (parameter estimated from the same sample) and distorted by ties (durations are multiples of 1/fs). Use the geometric chi-square for the memoryless verdict. AIC includes the censored contributions, so it is not comparable with the two-parameter rows when n_censored > 0.
+  note [lognormal]: loc pinned at 0; fitted on complete durations only (SciPy fit has no censoring support); KS p-value anticonservative and tie-distorted
+  note [weibull]: loc pinned at 0; fitted on complete durations only (SciPy fit has no censoring support); KS p-value anticonservative and tie-distorted
+  note [gamma]: loc pinned at 0; fitted on complete durations only (SciPy fit has no censoring support); KS p-value anticonservative and tie-distorted
+  coefficient_of_variation: 2.5706948819179805
+  coefficient_of_variation_if_exponential: 1.0
+  mean_duration_s: 1.5497375167867175e-05
+  median_duration_s: 3e-06
+
+wrote screenshots/fade_duration_fit.png

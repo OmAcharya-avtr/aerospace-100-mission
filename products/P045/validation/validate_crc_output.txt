@@ -1,0 +1,46 @@
+========================================================================
+1. Catalogue check values (CRC of the ASCII string 123456789)
+   reference: crcmod 1.7 python3/crcmod/predefined.py, read 2026-10-06
+========================================================================
+name               width      computed     catalogue   agree
+crc-32                32    0xcbf43926    0xcbf43926    True
+crc-32c               32    0xe3069283    0xe3069283    True
+crc-ccitt-false       16        0x29b1        0x29b1    True
+crc-16                16        0xbb3d        0xbb3d    True
+crc-8                  8          0xf4          0xf4    True
+all five agree: True
+
+========================================================================
+2. Table-driven implementation versus the bit-at-a-time definition
+========================================================================
+name                payloads  mismatches
+crc-32                   400           0
+crc-32c                  400           0
+crc-ccitt-false          400           0
+crc-16                   400           0
+crc-8                    400           0
+
+========================================================================
+3. CRC-32 versus zlib.crc32 (Python standard library)
+========================================================================
+payloads compared      3000
+bytes compared         763709
+mismatches             0
+
+========================================================================
+4. Frame check sequence detection of injected bit errors
+========================================================================
+name                trials  detected      rate    stderr       2**-w
+crc-32                8000      8000   1.00000   0.00000   2.328e-10
+crc-32c               8000      8000   1.00000   0.00000   2.328e-10
+crc-ccitt-false       8000      7999   0.99987   0.00012   1.526e-05
+crc-16                8000      8000   1.00000   0.00000   1.526e-05
+crc-8                 8000      7974   0.99675   0.00064   3.906e-03
+
+Notes. The error patterns are 1 to 8 distinct bit flips over a
+544-bit frame (CRC-32 case).  A first pass of this check sampled flip
+positions with replacement, which silently injected no-error frames
+and produced 7 spurious misses in 20000 for CRC-32; the sampling is
+now without replacement and that artefact is gone.  These rates are
+for a pattern a CRC is good at.  They are not a residual-undetected-
+error model for a real channel, and this package does not provide one.
