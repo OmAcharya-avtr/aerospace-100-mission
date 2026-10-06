@@ -1,0 +1,93 @@
+V3 POLICY VALIDATION -- acmpilot
+script: validation/validate_policies.py
+  MODCOD table loaded from validation/modcod_thresholds.json
+  channel: lognormal, slot = 1 ms, tau_c = 10 ms, sigma_I^2 = 0.5, SNR at mean irradiance = 14 dB
+  20000 slots per episode, 5 seeds, paired across policies
+
+V3.1 and V3.2 invariants: clairvoyant dominates, and does not see the delay
+ tau_ms   clair_G   fixed_G    hyst_G  clair>=fixed  clair>=hyst
+    0.0    2.3362    1.6679    2.0240          PASS         PASS
+    1.0    2.3362    1.6648    1.8968          PASS         PASS
+    2.0    2.3362    1.6433    1.7934          PASS         PASS
+    5.0    2.3362    1.5558    1.6065          PASS         PASS
+   10.0    2.3362    1.4627    1.4853          PASS         PASS
+   20.0    2.3362    1.3862    1.3968          PASS         PASS
+   40.0    2.3362    1.3574    1.3657          PASS         PASS
+  V3.1 all dominance checks: PASS
+  V3.2 clairvoyant goodput spread across delays: 0.000e+00 bit/symbol (PASS, exactly invariant)
+
+V3.3 goodput, outage and the two mis-selection kinds against feedback delay
+ tau_ms                             policy  goodput      sem    eff   outage  unavoid  aggr_avoid  conserv   wasted     lost  switch
+    0.0                  fixed margin 3 dB   1.7078  0.01111 0.7139  0.00028  0.00028     0.00000   0.9118   0.6845   0.0000  0.3835
+    0.0              hysteresis +2/-0.5 dB   2.0754  0.01383 0.8675  0.00470  0.00028     0.00442   0.5409   0.3090   0.0079  0.2168
+    0.0 clairvoyant (upper bound, no causa   2.3923  0.01524 1.0000  0.00028  0.00028     0.00000   0.0000   0.0000   0.0000  0.4320
+    1.0                  fixed margin 3 dB   1.7049  0.01111 0.7127  0.00146  0.00028     0.00118   0.8534   0.6851   0.0023  0.3835
+    1.0              hysteresis +2/-0.5 dB   1.9365  0.01094 0.8095  0.06029  0.00028     0.06001   0.5148   0.3381   0.1177  0.2168
+    1.0 clairvoyant (upper bound, no causa   2.3923  0.01524 1.0000  0.00028  0.00028     0.00000   0.0000   0.0000   0.0000  0.4320
+    2.0                  fixed margin 3 dB   1.6826  0.01074 0.7034  0.01067  0.00028     0.01039   0.8059   0.6898   0.0199  0.3835
+    2.0              hysteresis +2/-0.5 dB   1.8251  0.00974 0.7629  0.10339  0.00028     0.10311   0.5091   0.3652   0.2020  0.2168
+    2.0 clairvoyant (upper bound, no causa   2.3923  0.01524 1.0000  0.00028  0.00028     0.00000   0.0000   0.0000   0.0000  0.4320
+    5.0                  fixed margin 3 dB   1.5898  0.00987 0.6645  0.04922  0.00028     0.04894   0.7363   0.7135   0.0891  0.3835
+    5.0              hysteresis +2/-0.5 dB   1.6369  0.00997 0.6842  0.17347  0.00028     0.17319   0.5033   0.4224   0.3331  0.2168
+    5.0 clairvoyant (upper bound, no causa   2.3923  0.01524 1.0000  0.00028  0.00028     0.00000   0.0000   0.0000   0.0000  0.4320
+   10.0                  fixed margin 3 dB   1.4875  0.00748 0.6218  0.09041  0.00028     0.09013   0.6957   0.7456   0.1592  0.3835
+   10.0              hysteresis +2/-0.5 dB   1.5045  0.00710 0.6289  0.22010  0.00028     0.21982   0.5035   0.4753   0.4125  0.2167
+   10.0 clairvoyant (upper bound, no causa   2.3923  0.01524 1.0000  0.00028  0.00028     0.00000   0.0000   0.0000   0.0000  0.4320
+   20.0                  fixed margin 3 dB   1.4056  0.00679 0.5876  0.12238  0.00028     0.12210   0.6706   0.7769   0.2098  0.3834
+   20.0              hysteresis +2/-0.5 dB   1.4123  0.00567 0.5904  0.24994  0.00028     0.24966   0.5060   0.5207   0.4593  0.2167
+   20.0 clairvoyant (upper bound, no causa   2.3923  0.01524 1.0000  0.00028  0.00028     0.00000   0.0000   0.0000   0.0000  0.4320
+   40.0                  fixed margin 3 dB   1.3674  0.00495 0.5716  0.13708  0.00028     0.13680   0.6574   0.7915   0.2334  0.3833
+   40.0              hysteresis +2/-0.5 dB   1.3641  0.00437 0.5703  0.26577  0.00028     0.26549   0.5034   0.5433   0.4849  0.2166
+   40.0 clairvoyant (upper bound, no causa   2.3923  0.01524 1.0000  0.00028  0.00028     0.00000   0.0000   0.0000   0.0000  0.4320
+  aggressive mis-selection equals outage when the ladder is monotone;
+  'unavoid' is the part no selection rule could have prevented.
+
+V3.4 the ratio tau / tau_c is what matters: fixed tau = 10 ms, tau_c swept
+ tau_c_ms  tau/tau_c                             policy  goodput    eff   outage  conserv
+      2.5      4.000                  fixed margin 3 dB   1.3641 0.5718  0.13666   0.6574
+      2.5      4.000              hysteresis +2/-0.5 dB   1.4037 0.5885  0.25767   0.5098
+      2.5      4.000 clairvoyant (upper bound, no causa   2.3854 1.0000  0.00018   0.0000
+      5.0      2.000                  fixed margin 3 dB   1.4007 0.5866  0.12339   0.6663
+      5.0      2.000              hysteresis +2/-0.5 dB   1.4154 0.5928  0.25139   0.5062
+      5.0      2.000 clairvoyant (upper bound, no causa   2.3878 1.0000  0.00029   0.0000
+     10.0      1.000                  fixed margin 3 dB   1.4875 0.6218  0.09041   0.6957
+     10.0      1.000              hysteresis +2/-0.5 dB   1.5045 0.6289  0.22010   0.5035
+     10.0      1.000 clairvoyant (upper bound, no causa   2.3923 1.0000  0.00028   0.0000
+     20.0      0.500                  fixed margin 3 dB   1.5922 0.6633  0.04970   0.7380
+     20.0      0.500              hysteresis +2/-0.5 dB   1.6413 0.6838  0.17088   0.5047
+     20.0      0.500 clairvoyant (upper bound, no causa   2.4005 1.0000  0.00021   0.0000
+     40.0      0.250                  fixed margin 3 dB   1.6793 0.6965  0.01689   0.7896
+     40.0      0.250              hysteresis +2/-0.5 dB   1.7954 0.7447  0.11708   0.5068
+     40.0      0.250 clairvoyant (upper bound, no causa   2.4111 1.0000  0.00015   0.0000
+
+V3.5 hysteresis dead band: the chatter-against-outage trade, tau = 10 ms
+ up_dB  down_dB  dead_dB  goodput    eff   outage  conserv  switch
+   0.5      0.5      0.0   1.4224 0.5946  0.30502   0.4171  0.4357
+   1.0      0.5      0.5   1.4556 0.6085  0.27475   0.4452  0.3404
+   2.0      0.5      1.5   1.5045 0.6289  0.22010   0.5035  0.2167
+   3.0      0.5      2.5   1.5352 0.6418  0.17079   0.5621  0.1459
+   4.0      0.5      3.5   1.5455 0.6460  0.12974   0.6165  0.1027
+   6.0      0.5      5.5   1.5152 0.6334  0.06806   0.7137  0.0541
+   4.0      2.0      2.0   1.5040 0.6287  0.08748   0.6974  0.1657
+   6.0      4.0      2.0   1.2631 0.5280  0.02198   0.8685  0.1586
+
+V3.6 best fixed margin is a function of the delay, so no single margin wins
+ tau_ms     0.0     1.0     2.0     3.0     4.0     5.0     6.0     8.0   best_dB
+    0.0  2.3923  2.1488  1.9211  1.7078  1.5040  1.3085  1.1238  0.8130      0.0
+    2.0  1.6579  1.8323  1.8168  1.6826  1.4993  1.3078  1.1237  0.8130      1.0
+    5.0  1.4736  1.6092  1.6506  1.5898  1.4589  1.2931  1.1199  0.8127      2.0
+   10.0  1.3531  1.4687  1.5159  1.4875  1.3921  1.2558  1.1021  0.8096      2.0
+   20.0  1.2746  1.3753  1.4220  1.4056  1.3300  1.2130  1.0738  0.8010      2.0
+   40.0  1.2322  1.3287  1.3773  1.3674  1.3030  1.1944  1.0611  0.7963      2.0
+  At zero delay the best margin is 0 dB, as it must be. The optimum moves
+  off zero as soon as the delay is non-zero and then settles; the measured
+  best-margin column above is the evidence, and the shipped 3 dB default is
+  NOT the optimum on this channel. Every comparison against a learned
+  predictor therefore uses the margin tuned on held-out seeds, not 3 dB.
+
+V3 headline, tau = 10 ms, tau_c = 10 ms, averaged over 5 seeds
+  fixed margin 3 dB                                    goodput=1.4875 +/-0.0075 efficiency=0.6218
+  hysteresis +2/-0.5 dB                                goodput=1.5045 +/-0.0071 efficiency=0.6289
+  clairvoyant (upper bound, no causal policy can achie goodput=2.3923 +/-0.0102 efficiency=1.0000
+
+V3 COMPLETE

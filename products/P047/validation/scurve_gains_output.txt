@@ -1,0 +1,75 @@
+slotsync validation: S-curve and detector gain
+exact ensemble averages by enumerating every data pattern in the pulse's span
+
+1. early-late gate on a triangular pulse: K_d = 2 exactly
+---------------------------------------------------------
+   p(t) = 1 - |t|, e(eps) = p(eps - d) - p(eps + d) = 2 eps for |eps| < d
+    delta      K_d (fit)  K_d (central)    abs error
+     0.10   2.0000000000   2.0000000000    1.332e-15
+     0.25   2.0000000000   2.0000000000    1.332e-15
+     0.40   2.0000000000   2.0000000000    1.332e-15
+     0.50   2.0000000000   2.0000000000    1.332e-15
+   worst absolute error over 4 gate spacings: 1.332e-15  (exact expected)
+
+2. Mueller-Mueller on a triangular pulse: K_d = E[a^2]
+------------------------------------------------------
+   S(eps) = E[a^2] (h(eps - 1) - h(eps + 1)) = E[a^2] eps for 0 < eps < 1
+   antipodal  expected  1.0000  measured   1.0000000000  bias +0.000e+00  error 6.661e-16
+   ook        expected  0.2500  measured   0.2500000000  bias +0.000e+00  error 1.665e-16
+   the unipolar case loses a factor of four of gain and gains no lock-point bias
+   worst absolute error: 6.661e-16  (exact expected)
+
+3. Mueller-Mueller on a Nyquist raised cosine: K_d = 2 cos(pi a) / (1 - 4 a^2)
+------------------------------------------------------------------------------
+   derived from K_d = -2 h'(1) with sinc'(1) = -1; a = 1/2 is the limit pi/2
+    rolloff      predicted       measured    rel error
+       0.00    2.000000000    1.999998710    6.449e-07
+       0.25    1.885618083    1.885616989    5.804e-07
+       0.50    1.570796327    1.570795846    3.062e-07
+       0.75    1.131370850    1.131371416    5.007e-07
+       1.00    0.666666667    0.666668576    2.865e-06
+   worst relative error over 5 rolloffs: 2.865e-06  (gate 1e-05)
+
+4. gain survey: every detector on every pulse shape
+---------------------------------------------------
+   K_d(fit) is a least-squares slope over |eps| <= 0.05; K_d(cd) a central difference.
+   A large disagreement between them means the S-curve is not differentiable at the
+   origin and the gain is not usable, which is reported rather than hidden.
+   pulse        detector                       K_d(fit)      K_d(cd)   cd/fit   linear    peak  reversal  self-noise
+   rect         early-late (dd, d=0.25)        0.000000     0.000000      nan    0.000   0.250    0.7500    0.000000
+   rect         early-late (square, d=0.25)     0.000000     0.000000      nan    0.000   0.250    0.2550    0.000000
+   rect         gardner                       29.850746   200.000000    6.700    0.000   0.005    0.5000    0.000000
+   rect         mueller-muller                 0.000000     0.000000      nan    0.000   0.505      none    0.000000
+   tri          early-late (dd, d=0.25)        2.000000     2.000000    1.000    0.275   0.250      none    0.353553
+   tri          early-late (square, d=0.25)     2.000000     2.000000    1.000    0.260   0.250    0.5000    0.530330
+   tri          gardner                        1.386940     1.485000    1.071    0.080   0.250    0.5000    0.000000
+   tri          mueller-muller                 1.000000     1.000000    1.000    0.750   0.750      none    0.000000
+   rc-time      early-late (dd, d=0.25)        2.215902     2.221350    1.002    0.250   0.500      none    0.207107
+   rc-time      early-late (square, d=0.25)     3.110339     3.141076    1.010    0.130   0.250    0.5000    0.353553
+   rc-time      gardner                        3.069765     3.135004    1.021    0.115   0.250    0.5000    0.000000
+   rc-time      mueller-muller                 0.092859     0.012337    0.133    0.000   0.750      none    0.000000
+   half-sine    early-late (dd, d=0.25)        4.431803     4.442700    1.002    0.250   0.250      none    0.000000
+   half-sine    early-late (square, d=0.25)     6.220679     6.282152    1.010    0.130   0.250    0.5000    0.000000
+   half-sine    gardner                        3.110339     3.141076    1.010    0.130   0.250    0.5000    0.000000
+   half-sine    mueller-muller                 0.000000     0.000000      nan    0.000   0.750      none    0.000000
+   nyq-rc-0.5   early-late (dd, d=0.25)        1.728077     1.731332    1.002    0.290   0.600      none    0.556254
+   nyq-rc-0.5   early-late (square, d=0.25)     1.555289     1.570658    1.010    0.130   0.750    0.5000    0.987703
+   nyq-rc-0.5   gardner                        1.493693     1.508455    1.010    0.130   0.250    0.5000    0.242791
+   nyq-rc-0.5   mueller-muller                 1.570066     1.570784    1.000    0.545   0.750      none    0.000000
+
+   notable rows, all measured not assumed:
+   - early-late on rect: K_d = 0. A rectangle is flat inside the pulse, so the
+     difference of two gates inside it is identically zero and no loop exists.
+   - mueller-muller on rect and on half-sine: K_d = 0. The detector is driven by
+     h(+-1); a rectangle is flat there and a half-sine is zero there.
+   - mueller-muller on rc-time: cd/fit far from 1. h'(+-1) = 0 for that shape, so
+     the S-curve is third order at the origin and the gain is ill-conditioned.
+   - gardner on rect: cd/fit far from 1 for the same reason in reverse - the pulse
+     is discontinuous, so the S-curve is a step at the origin.
+
+summary
+-------
+   known answer 1 (triangle, early-late)       worst abs error 1.332e-15
+   known answer 2 (triangle, Mueller-Mueller)  worst abs error 6.661e-16
+   known answer 3 (Nyquist, Mueller-Mueller)   worst rel error 2.865e-06
+   all three known-answer families within tolerance: True

@@ -1,0 +1,57 @@
+validate_deadtime.py
+Knoll, Radiation Detection and Measurement, 4th ed., Wiley 2010, ch. 4
+==============================================================================
+1. Known answers at tau = 1e-6 s, n = 1e5 counts/s (n tau = 0.1)
+   non-paralyzable  m = 90909.0909090909  hand = 90909.0909090909  rel = 0.00e+00
+   paralyzable      m = 90483.7418035960  hand = 90483.7418035960  rel = 0.00e+00
+   verdict: PASS
+
+2. Paralyzable maximum: dm/dn = 0 at n = 1/tau, m = 1/(e tau)
+   closed form     n_max = 1.000000e+06  m_max = 367879.4411714424
+   dense sweep     n_max = 1.000001e+06  m_max = 367879.4411712472
+   central-difference dm/dn at n_max = 0.000e+00 (expected 0)
+   sweep maximum does not exceed closed form: True
+   verdict: PASS
+
+3. The paralyzable inverse is two-valued below the maximum
+     m (counts/s)  m / m_max        n lower        n upper  round-trip rel
+       36787.9441     0.1000     38221.2417   4889720.1699       1.978e-16
+      183939.7206     0.5000    231960.9530   2678346.9900       1.582e-16
+      331091.4971     0.9000    608341.2847   1531811.6084       1.758e-16
+      364200.6468     0.9900    864842.7156   1148554.7403       1.598e-16
+      367842.6532     0.9999    985924.1021   1014209.2376       0.000e+00
+   both roots reproduce the same observed rate; only knowledge of the
+   illumination distinguishes them
+   verdict: PASS
+
+4. Conditioning of the inverse: dn/dm on the lower branch
+    m / m_max      n tau          dn/dm   1 % in m becomes
+       0.1000     0.0382       1.080250              1.04 %
+       0.5000     0.2320       1.641936              1.30 %
+       0.8000     0.4717       3.033482              1.89 %
+       0.9500     0.7130       7.106872              3.48 %
+       0.9900     0.8648      17.569873              7.40 %
+       0.9990     0.9559      59.039655             22.70 %
+   the amplification of a relative error in m diverges at the maximum;
+   this is why preflight refuses to run at or above 1/tau
+   monotone increasing: True
+   verdict: PASS
+
+5. Loss and live-time fractions at n tau = 1
+   non-paralyzable  loss = 0.5000000000 (expected 0.5)
+   paralyzable      loss = 0.6321205588 (expected 1 - 1/e = 0.6321205588)
+   non-paralyzable  live = 0.5000000000 (expected 1 - m tau = 0.5)
+   paralyzable      live = 0.3678794412 (expected exp(-1) = 0.3678794412)
+   verdict: PASS
+
+6. A paralyzable detector always loses at least as much
+   max(m_paralyzable - m_nonparalyzable) over n tau in [1e-4, 31.6]: -4.999e-07 counts/s
+   worst relative excess: -5.000e-09
+   verdict: PASS
+
+7. Non-paralyzable round trip over five decades of n tau
+   worst relative round-trip error: 2.166e-15
+   verdict: PASS
+
+==============================================================================
+checks passed: 7 of 7

@@ -1,0 +1,60 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slotsync"
+version = "0.1.0"
+description = "Slot and symbol timing recovery for OOK and PPM optical receivers: detectors, S-curves, loop jitter and cycle slips."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "timing-recovery",
+    "symbol-synchronization",
+    "slot-synchronization",
+    "gardner-detector",
+    "mueller-muller",
+    "early-late-gate",
+    "pulse-position-modulation",
+    "optical-communications",
+    "cycle-slip",
+    "phase-locked-loop",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: System :: Networking",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis"]
+examples = ["matplotlib"]
+dev = ["pytest", "hypothesis", "ruff", "matplotlib"]
+
+[project.scripts]
+slotsync = "slotsync.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]

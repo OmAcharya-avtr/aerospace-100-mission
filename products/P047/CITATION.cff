@@ -1,0 +1,107 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "slotsync: slot and symbol timing recovery for OOK and PPM optical receivers"
+version: 0.1.0
+date-released: 2026-10-06
+license: Apache-2.0
+abstract: >-
+  Timing-error detectors for optical on-off-keyed and pulse-position-modulated
+  receivers, with the chain from detector to loop design measured end to end:
+  early-late, Gardner and Mueller-Mueller detectors as pure sample-level
+  functions under one sign convention; exact S-curves computed by enumerating
+  every data pattern within the pulse's finite support, so the detector gain K_d
+  is the measured slope of a computed S-curve rather than a quoted figure; a
+  second-order loop whose coefficients place the discrete poles exactly at the
+  exponential image of the analogue prototype's, with the noise-bandwidth
+  relation verified against quadrature; timing jitter variance by three
+  independent routes - the classical white-noise closed form, the exact
+  discrete-time Lyapunov solution, and the same loop driven by a measured
+  detector-noise autocovariance - all compared against a closed-loop Monte Carlo
+  with batch-means standard errors; a measured cycle-slip threshold alongside the
+  classical Gaussian level-crossing estimate, which is reported to fail by six to
+  sixteen orders of magnitude; and an M-ary PPM slot clock implemented as its own
+  case, with a closed-form known answer and an explicit account of what does not
+  carry over from binary symbol timing. Validation level 2, research grade. Not
+  flight-qualified, not certified, not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - timing-recovery
+  - symbol-synchronization
+  - slot-synchronization
+  - gardner-detector
+  - mueller-muller
+  - early-late-gate
+  - pulse-position-modulation
+  - optical-communications
+  - cycle-slip
+  - phase-locked-loop
+references:
+  - type: article
+    authors:
+      - family-names: Gardner
+        given-names: "F. M."
+    title: "A BPSK/QPSK Timing-Error Detector for Sampled Receivers"
+    journal: "IEEE Transactions on Communications"
+    volume: 34
+    issue: 5
+    start: 423
+    end: 429
+    year: 1986
+    doi: "10.1109/TCOM.1986.1096561"
+    notes: >-
+      The source of the Gardner detector implemented in slotsync.detectors.
+      Bibliographic details verified against the Crossref record for this DOI on
+      2026-10-06. No page number, equation or numerical value from inside the
+      paper is quoted anywhere in this repository.
+  - type: article
+    authors:
+      - family-names: Mueller
+        given-names: "K. H."
+      - family-names: Mueller
+        given-names: "M."
+    title: "Timing Recovery in Digital Synchronous Data Receivers"
+    journal: "IEEE Transactions on Communications"
+    volume: 24
+    issue: 5
+    start: 516
+    end: 531
+    year: 1976
+    doi: "10.1109/TCOM.1976.1093326"
+    notes: >-
+      The source of the Mueller-Mueller detector. Bibliographic details verified
+      against the Crossref record for this DOI on 2026-10-06. The arrangement in
+      this repository carries the opposite sign, which the docstring states; the
+      sign is a wiring convention.
+  - type: book
+    authors:
+      - family-names: Mengali
+        given-names: "U."
+      - family-names: "D'Andrea"
+        given-names: "A. N."
+    title: "Synchronization Techniques for Digital Receivers"
+    publisher:
+      name: "Springer"
+    year: 1997
+    isbn: "978-0-306-45725-8"
+    notes: >-
+      Named as the standard treatment of timing-error detectors and their
+      S-curves. Bibliographic details verified against the publisher's catalogue
+      record on 2026-10-06. Nothing in this repository quotes an equation from it.
+  - type: book
+    authors:
+      - family-names: Gardner
+        given-names: "F. M."
+    title: "Phaselock Techniques"
+    edition: "3rd"
+    publisher:
+      name: "Wiley"
+    year: 2005
+    isbn: "978-0-471-43063-6"
+    notes: >-
+      Named as the standard reference for loop noise and cycle slips in
+      phase-locked loops. Bibliographic details verified against the publisher's
+      catalogue record on 2026-10-06, whose chapter list includes "Effects of
+      Additive Noise" and "Digital (Sampled) Phaselock Loops". No equation or page
+      from it is used; the loop-noise bandwidth relation used here is verified
+      numerically by validation/validate_loop_coefficients.py instead.

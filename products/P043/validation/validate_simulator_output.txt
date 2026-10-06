@@ -1,0 +1,72 @@
+validate_simulator.py
+==============================================================================
+1. Ideal counter (tau = 0, p = 0): observed rate equals incident rate
+     n (counts/s)       observed       z    counts
+            1e+04        9997.08   -0.18    400083
+            1e+05       99840.90   -1.01    400362
+            1e+06      998492.68   -0.96    409382
+   verdict: PASS
+
+2. Non-paralyzable dead time (D1): m = n / (1 + n tau)
+      n tau    predicted m    simulated m       z    counts
+      0.010       99009.90       99036.39   +0.17    400107
+      0.100      909090.91      910722.73   +1.14    400718
+      0.300     2307692.31     2306766.67   -0.26    415218
+      0.700     4117647.06     4120519.12   +0.44    400279
+      1.000     5000000.00     4999317.07   -0.09    409944
+      1.500     6000000.00     5998705.88   -0.14    407912
+      3.000     7500000.00     7499444.44   -0.05    404970
+   verdict: PASS (|z| < 5)
+
+3. Paralyzable dead time (D3): m = n exp(-n tau), including past the maximum
+      n tau    predicted m    simulated m       z    counts
+      0.010       99004.98       99056.93   +0.33    400190
+      0.100      904837.42      907575.56   +1.93    408409
+      0.300     2222454.66     2222400.00   -0.02    414848
+      0.700     3476097.13     3479136.59   +0.56    407556
+      1.000     3678794.41     3684045.45   +0.91    405245
+      1.500     3346952.40     3347541.67   +0.11    401705
+      3.000     1493612.05     1498312.97   +1.99    400549
+   observed rate rises to n tau = 1: True; falls beyond it: True
+   verdict: PASS
+
+4. Cascading afterpulsing (A2): m = n / (1 - p), with tau = 0
+        p    predicted m    simulated m       z    counts
+    0.020      102040.82      102010.69   -0.19    400902
+    0.050      105263.16      105029.92   -1.40    400164
+    0.100      111111.11      111201.39   +0.51    400325
+    0.200      125000.00      125312.19   +1.58    400999
+    0.400      166666.67      166368.46   -1.13    400948
+   verdict: PASS
+
+5. Fano factor: below 1 for dead time, above 1 for afterpulsing
+   dead time only, n tau = 2:   Fano = 0.11109  (must be < 1)
+        p   simulated Fano    (1+p)/(1-p)    rel dev
+    0.100          1.18283        1.22222     0.0322
+    0.200          1.58559        1.50000     0.0571
+    0.300          1.90770        1.85714     0.0272
+   the sign of the departure from 1 is what the learned correction uses
+   verdict: PASS (Fano within 15 % of the closed form)
+
+6. Dead-time suppression of afterpulses (A3): p_eff = p exp(-tau / t_ap)
+    tau / t_ap   p_eff (A3)  measured AP fraction   rel dev
+          0.10     0.271451              0.271356    0.0004
+          0.50     0.181959              0.182873    0.0050
+          1.00     0.110364              0.110872    0.0046
+          2.00     0.040601              0.039435    0.0287
+          4.00     0.005495              0.005307    0.0342
+   verdict: PASS (within 8 %)
+
+7. Dead time and afterpulsing do not compose as a product
+      n tau      p   naive product      simulated   rel dev
+      0.300  0.100      2469394.07     2306217.86    0.0661
+      0.700  0.100      3862330.14     3496050.00    0.0948
+      1.000  0.200      4598493.01     3648232.14    0.2066
+      0.500  0.300      4332361.86     3206828.12    0.2598
+   worst relative deviation of the naive product from the simulation: 0.2598
+   this deviation is the gap no closed form covers, and the only thing the
+   learned correction can legitimately claim
+   verdict: PASS (the deviation must be present; a zero here would mean the simulator is not composing the effects)
+
+==============================================================================
+checks passed: 7 of 7

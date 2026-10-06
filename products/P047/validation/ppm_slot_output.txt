@@ -1,0 +1,93 @@
+slotsync validation: PPM slot clock
+slot pulse half-sine (support 0.5 slot), zeta 0.707107
+every quantity below is in SLOT periods; B_n is per loop update unless stated
+
+1. known answer: S(eps) = sin(2 pi eps) and K_d = 2 pi exactly
+--------------------------------------------------------------
+   p(t) = cos(pi t) on |t| <= 1/2 and gates at +-1/4 slot give
+   e = cos^2(pi(eps - 1/4)) - cos^2(pi(eps + 1/4)) = sin(2 pi eps) for |eps| <= 1/4
+   max |S(eps) - sin(2 pi eps)| over 97 offsets in [-0.24, 0.24]: 2.748e-15
+   K_d measured 6.283184894 against 2 pi = 6.283185307, relative error 6.580e-08
+   peak at 0.2500 slot (the gate spacing), reversal None
+   there is no reversal inside half a slot: with a slot pulse narrower than one
+   slot the detector output decays towards zero instead of crossing it, so the
+   half-period barrier that bounds a symbol-timing cycle slip does not exist here.
+
+2. the slot gain does not depend on the PPM order
+-------------------------------------------------
+    order M   K_d per slot   rel error vs 2 pi   patterns
+          2    6.283184894           6.580e-08          8
+          4    6.283184894           6.580e-08         64
+          8    6.283184894           6.580e-08        512
+         16    6.283184894           6.580e-08       4096
+   only the slot carrying the pulse contributes, so the gain is a slot property.
+   What the order changes is the update rate and the noise per update, not the gain.
+
+3. the jitter chain in slot periods, 4-PPM, max-energy slot decision
+--------------------------------------------------------------------
+    B_n/update   B_n/slot     white cf     coloured  monte carlo    mc s.e.   mc/col  slot errs
+        0.0020    0.00050  4.07490e-06  4.06015e-06  3.78305e-06   3.16e-07   0.9318     0.0000
+        0.0050    0.00125  1.01872e-05  1.01700e-05  9.98326e-06   5.14e-07   0.9816     0.0000
+        0.0100    0.00250  2.03745e-05  2.04061e-05  2.08897e-05   7.15e-07   1.0237     0.0000
+        0.0200    0.00500  4.07490e-05  4.10832e-05  4.29641e-05   1.08e-06   1.0458     0.0000
+   the white and coloured routes nearly coincide here: the slot detector's output
+   noise is almost white (|R[j]/R[0]| < 0.05 for j >= 1) because its self-noise is
+   zero - a return-to-zero slot narrower than one slot has no inter-slot
+   interference. The Monte Carlo sits within 7 % of the prediction, with the
+   deviation growing with B_n as it does for symbol timing; the squared-gate
+   detector is quadratic in the noise so its output variance depends on the timing
+   error itself, which no linearised prediction contains.
+
+4. the duty-cycle penalty, measured against the order
+-----------------------------------------------------
+   at a fixed per-sample SNR the gain is order-independent but the chance that noise
+   wins a slot is not, so both the detector output variance and the slot error rate
+   grow with M. The jitter factor is 10 log10(sigma_n^2 / K_d^2) referred to a
+   unit-variance detector of gain 2 pi; a difference in it is a difference in loop
+   SNR in dB. 'vs M=2' is the same quantity relative to binary PPM, which is the
+   duty-cycle penalty proper.
+    order M  snr_dB   sigma_n^2  slot err rate   factor dB   vs M=2 dB  10log10(M/2)
+          2    20.0    0.039174        0.00000    -14.0581      0.0000        0.0000
+          4    20.0    0.039396        0.00000    -14.0335      0.0246        3.0103
+          8    20.0    0.039421        0.00000    -14.0308      0.0273        6.0206
+         16    20.0    0.041191        0.00000    -13.8400      0.2181        9.0309
+          2     6.0    1.308523        0.18300      1.1797      0.0000        0.0000
+          4     6.0    1.501769        0.33683      1.7780      0.5982        3.0103
+          8     6.0    1.741957        0.48617      2.4223      1.2426        6.0206
+         16     6.0    2.193642        0.60817      3.4236      2.2438        9.0309
+   the penalty is not 10 log10(M/2): at 20 dB it is 0.0 to 0.2 dB from M = 2 to
+   M = 16, because no slot decision is ever wrong and the extra empty slots cost
+   nothing; at 6 dB it is 0.6 to 2.2 dB, driven entirely by the slot error rate
+   climbing from 0.18 to 0.61. The measured numbers are published instead of the
+   rule of thumb, and the two disagree in both directions.
+
+5. the slot-index error floor, which symbol timing has no counterpart for
+-------------------------------------------------------------------------
+   closed-loop 8-PPM: the loop re-acquires on whichever slot wins, so a slot slip
+   never appears as a loop slip - it appears as a wrong symbol.
+     snr_dB   rms jitter (slot)  slot err rate  loop slips  locked
+       20.0            0.004445        0.00000           0    True
+       10.0            0.015764        0.15747           0    True
+        6.0            0.034580        0.48527           0    True
+        2.0            0.108422        0.80587          12    True
+       -2.0            0.267185        0.17690         124   False
+   while the loop stays locked the slot error rate rises from 0 to 0.81 and the loop
+   reports no slips at all. A receiver designed against a cycle-slip budget alone
+   would see none of this.
+   The last row is unlocked and its slot error rate is NOT a meaningful error rate:
+   a free-running slot clock that has drifted an integer number of slots picks the
+   wrong slot index systematically, and whenever the drift happens to be a multiple
+   of M it picks the right one by accident. That aliasing is why the figure falls
+   rather than rising. It is reported as unlocked rather than deleted.
+   Resolving which slot begins a symbol is a further M-fold ambiguity that slot
+   timing cannot touch and that needs frame synchronisation.
+
+summary
+-------
+   known answer, max |S - sin(2 pi eps)|: 2.748e-15  (gate 1e-10)
+   known answer, K_d relative error:      6.580e-08  (gate 1e-05)
+   gain order-independence, worst error:  6.580e-08  (gate 1e-05)
+   jitter chain, worst relative deviation of Monte Carlo: 6.8 %
+   gate: known answers within tolerance and jitter deviation under 25 %
+   within tolerance: True
+   elapsed 22.5 s

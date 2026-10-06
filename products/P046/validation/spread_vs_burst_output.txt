@@ -1,0 +1,41 @@
+Helical interleaver on a fixed 16 x 16 array (N = 256)
+Memory and latency are identical for every row: only the read step changes.
+
+ step  min spread  dispersion  burst
+    0           2    0.007812      1
+    1          16    0.015165     15
+    2          16    0.015319     31
+    3          16    0.015411     47
+    4           8    0.015074     63
+    5          16    0.015411     79
+    6          16    0.015411     95
+    7          16    0.015441    111
+    8           4    0.013664    127
+    9          16    0.015441    113
+   10          16    0.015411     97
+   11          16    0.015411     81
+   12           8    0.015074     65
+   13          16    0.015411     49
+   14          16    0.015319     33
+   15          16    0.015165     17
+   16           2    0.007812      1
+
+Spearman rank correlation between minimum spread and burst: 0.0343
+step chosen by maximising minimum spread: 1 (spread 16, burst 15)
+step chosen by maximising burst dispersion: 8 (spread 4, burst 127)
+cost of choosing on minimum spread instead of burst dispersion: 8.47x less fully dispersed burst, at identical memory
+
+Same comparison across constructions at N = 256, equal pair memory 512 symbols
+                                construction  min spread  burst
+         BlockInterleaver(depth=16, span=16)          17     16
+          BlockInterleaver(depth=32, span=8)           9     32
+          BlockInterleaver(depth=8, span=32)           9      8
+HelicalInterleaver(rows=16, columns=16, step=1)          16     15
+HelicalInterleaver(rows=16, columns=16, step=8)           4    127
+SRandomInterleaver(length=256, spread=8, seed=0)           9      8
+
+Spearman rank correlation across these six: -0.4857
+best by minimum spread: BlockInterleaver(depth=16, span=16) (burst 16)
+best by burst:          HelicalInterleaver(rows=16, columns=16, step=8) (spread 4)
+
+RESULT: reported (this script measures a relationship, it does not test a bound)

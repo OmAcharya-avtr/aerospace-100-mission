@@ -1,0 +1,46 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q
+      - name: CLI
+        run: python -m interleavekit --help
+      - name: Validation scripts
+        run: |
+          python validation/validate_block_spread.py
+          python validation/validate_roundtrip.py
+          python validation/validate_burst_metric_equivalence.py
+          python validation/validate_burst_dispersion.py
+          python validation/validate_cost_tradeoff.py
+          python validation/validate_spread_vs_burst.py
+          python validation/validate_srandom.py
+          python validation/worked_example.py
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/burst_dispersion_curves.py
+          python examples/latency_memory_tradeoff.py
+          python examples/spread_vs_burst.py
+          python examples/permutation_structure.py

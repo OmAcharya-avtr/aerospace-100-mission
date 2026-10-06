@@ -1,0 +1,24 @@
+1. Achieved S-parameter against the request, and the spread bound
+ length  request  achieved S  min spread  S+1 <= ms
+     64        4           4           5        yes
+    128        6           6           7        yes
+    256        8           8           9        yes
+    512       10          10          11        yes
+   1024       12          12          13        yes
+
+2. Largest spread this bounded search reaches, against sqrt(length/2)
+ length  sqrt(N/2)  largest   ratio   gaps below largest
+     32       4.00        4    1.00                   []
+     64       5.66        6    1.06                   []
+    128       8.00        7    0.88                   []
+    256      11.31       11    0.97                 [10]
+    512      16.00       10    0.62                   []
+   1024      22.63       12    0.53                   []
+
+3. Determinism: the same (length, spread, seed) gives the same permutation
+   seeds tested: 6  reproduced: 6  differed: 0
+
+4. Distinct seeds give distinct permutations
+   seeds 0..7 gave 8 distinct permutations out of 8
+
+RESULT: PASS

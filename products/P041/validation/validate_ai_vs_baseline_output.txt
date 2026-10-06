@@ -1,0 +1,96 @@
+========================================================================================
+AI VERSUS ANALYTIC BASELINE: FADE-DURATION EXCEEDANCE
+========================================================================================
+channel                  lognormal, SI=0.6, tau=2.0e-04 s, fs=1.0e+06 Hz, kernel=exp
+threshold amplitude      0.6
+target duration          14 samples = 1.400e-05 s
+samples per path         200000
+train seeds              0..23 (24 paths)
+test seeds               100..111 (12 paths, disjoint from train)
+split strategy           by path seed, so no event from a training
+                         realisation appears in the test set
+
+train events             39687  exceedance frequency 0.199486
+test events              19900  exceedance frequency 0.198693
+dataset build            19.1 s
+
+forest fit               7.8 s (160 trees, max_depth 8, min_samples_leaf 20)
+
+-- the analytic closure, measured ------------------------------------
+eq(16) prediction        P(T > MFD) = 0.399641
+observed frequency       0.198693
+ratio predicted/observed 2.0113
+
+The memoryless closure of the level-crossing result over-predicts the
+exceedance at t = MFD by the ratio above. Fade durations on this channel
+are not exponentially distributed: short fades are far more common than an
+exponential with the same mean. This is published as measured; equation
+(16) is not retuned and not removed.
+
+-- benchmark on identical held-out events ----------------------------
+predictor                     Brier   log loss   ROC AUC       ECE
+------------------------------------------------------------------
+analytic_configured        0.199594   0.591088    0.5000  0.200947
+analytic_observed (feat)   0.198676   2.568769    0.4983  0.198648
+empirical_constant         0.159215   0.498588    0.5000  0.000793
+learned                    0.154194   0.484009    0.6175  0.004311
+
+best baseline Brier      0.159215
+learned Brier            0.154194
+relative improvement     +0.031536  (learned wins)
+
+VERDICT
+  The learned model improves on the best state-blind baseline, and the
+  ROC AUC above 0.5 is the direct evidence that the state at the
+  crossing carries information about the fade length. The size of the
+  improvement over the empirical constant is the number to quote; the
+  improvement over the exponential closure is mostly a calibration
+  correction and overstates the case.
+
+-- reliability table, learned model ----------------------------------
+  bin   mean pred   observed    count       diff
+    0    0.093189   0.121711      304  -0.028522
+    1    0.150960   0.153634    11957  -0.002674
+    2    0.235470   0.237998     5395  -0.002529
+    3    0.339812   0.331541     1674  +0.008271
+    4    0.434964   0.412998      477  +0.021966
+    5    0.541788   0.482353       85  +0.059435
+    6    0.640428   0.375000        8  +0.265428
+    7           -          -        0          -
+    8           -          -        0          -
+    9           -          -        0          -
+
+-- uncertainty output ------------------------------------------------
+mean per-tree sigma      0.066564
+median                   0.060739
+max                      0.205373
+events with |p-y| > 0.5  3959 of 19900
+mean sigma on those      0.073262
+mean sigma on the rest   0.064900
+ratio                    1.1289
+A ratio above 1 means the ensemble is more uncertain exactly where it is
+wrong, which is what makes the uncertainty usable for gating a depth
+decision. A ratio near 1 means it is not, and that is reported as such.
+
+-- what the model is actually for: sizing a depth --------------------
+Depth required to cover a fade of a given length at Rs = 1 Mbaud, with the
+latency that depth costs, so the probability output has a decision attached.
+  quantile  duration sym    depth   latency ms (span 31)
+      0.50           3.0        3                  0.186
+      0.90          36.0       36                  2.232
+      0.99         205.0      205                 12.710
+      1.00         640.0      640                 39.680
+
+-- feature importances -----------------------------------------------
+  log_depth_at_crossing              0.402391
+  descent_slope_1                    0.178402
+  log_depth_previous                 0.095882
+  window_min_log_margin              0.095821
+  descent_slope_4                    0.065231
+  window_log_std                     0.047877
+  window_lag1_autocorr               0.047786
+  analytic_observed_mfd_samples      0.027298
+  window_fraction_below              0.025261
+  analytic_observed_exceedance       0.014050
+
+========================================================================================

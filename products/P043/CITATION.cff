@@ -1,0 +1,109 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "photoncount: a photon-counting optical receiver chain for photon-starved optical links"
+version: 0.1.0
+date-released: 2026-10-06
+license: Apache-2.0
+abstract: >-
+  Poisson counting statistics for a photon-counting receiver; the Webb
+  approximation for avalanche-photodiode excess-noise counting statistics, with
+  its closed-form first three moments derived and verified here and its Gaussian
+  and Poisson limits measured rather than asserted; M-ary pulse-position
+  modulation slot statistics with an exact hard-decision symbol error
+  probability, the Poisson-channel per-slot log-likelihood derived in closed
+  form, symbol posteriors and bit log-likelihood ratios; paralyzable and
+  non-paralyzable dead time with both forward relations, both inverse branches
+  through the Lambert W function, and the non-monotonicity of the paralyzable
+  map treated as a first-class hazard; afterpulsing as a Poisson cluster process
+  with closed-form cluster moments and Fano factors and its suppression by dead
+  time; erasure-channel capacity, hard-decision capacity, a Monte Carlo
+  soft-decision achievable rate and the PPM photons-per-bit limit; an
+  event-level detector simulator used as ground truth; a hardware abstraction
+  layer with one contract, a simulated backend, a device stub that refuses, and
+  one shared contract test suite; preflight, capture and backout procedures as
+  executable checks; and a learned incident-rate correction with a quantile
+  uncertainty interval, benchmarked against the closed-form inversions
+  implemented first. Validation level 3, hardware-pending: no number in this
+  repository came from a photon-counting detector or from a
+  flight-representative board. Research grade. Not flight-qualified, not
+  certified, not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - photon-counting
+  - pulse-position-modulation
+  - poisson-channel
+  - deep-space-optical-communications
+  - avalanche-photodiode
+  - webb-distribution
+  - dead-time
+  - afterpulsing
+references:
+  - type: article
+    authors:
+      - family-names: Webb
+        given-names: "P. P."
+      - family-names: McIntyre
+        given-names: "R. J."
+      - family-names: Conradi
+        given-names: J.
+    title: "Properties of avalanche photodiodes"
+    journal: "RCA Review"
+    volume: 35
+    issue: 2
+    start: 234
+    end: 278
+    year: 1974
+    notes: >-
+      Source of the Webb approximation implemented in photoncount.webb. The
+      volume, year and start page were confirmed from two independent reference
+      lists citing the paper on 2026-10-06. This repository does not quote a
+      page number from the paper itself and derives the moment expressions of
+      the distribution numerically rather than taking them from the text.
+  - type: book
+    authors:
+      - family-names: Knoll
+        given-names: "Glenn F."
+    title: "Radiation Detection and Measurement"
+    edition: "4th"
+    publisher:
+      name: "John Wiley & Sons"
+    year: 2010
+    notes: >-
+      Chapter 4 covers the paralyzable and non-paralyzable dead-time models
+      implemented in photoncount.deadtime. No page number is quoted; the
+      relations are standard and are re-derived and verified in
+      validation/validate_deadtime.py.
+  - type: report
+    authors:
+      - family-names: Hamkins
+        given-names: J.
+      - family-names: Moision
+        given-names: B.
+    title: "Multipulse Pulse-Position Modulation on Discrete Memoryless Channels"
+    institution:
+      name: "Jet Propulsion Laboratory"
+    number: "IPN Progress Report 42-161"
+    year: 2005
+    month: 5
+    notes: >-
+      The deep-space PPM context for photoncount.ppm. Title, authors, report
+      number and date of 15 May 2005 were read from the JPL IPN Progress Report
+      index on 2026-10-06. This repository implements the single-pulse M-ary
+      case and takes no numerical result from the report.
+  - type: book
+    authors:
+      - family-names: Gagliardi
+        given-names: "Robert M."
+      - family-names: Karp
+        given-names: Sherman
+    title: "Optical Communications"
+    edition: "2nd"
+    publisher:
+      name: "John Wiley & Sons"
+    year: 1995
+    isbn: "9780471542872"
+    notes: >-
+      The semiclassical photon-counting receiver model behind photoncount.poisson.
+      The ISBN was confirmed from the publisher's listing on 2026-10-06. No page
+      number is quoted.

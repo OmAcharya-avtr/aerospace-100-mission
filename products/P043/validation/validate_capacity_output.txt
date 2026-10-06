@@ -1,0 +1,73 @@
+validate_capacity.py
+==============================================================================
+1. Erasure capacity (C1) vs an independent Monte Carlo, 400000 symbols
+       M    n_s   closed form (C1)    Monte Carlo    MC s.e.       z
+      16   2.00       3.4586588671     3.46112000   2.16e-03   +1.14
+      16   0.50       1.5738773611     1.57573000   3.09e-03   +0.60
+      64   3.00       5.7012775898     5.70444000   2.06e-03   +1.53
+     256   1.00       5.0569644706     5.06208000   6.10e-03   +0.84
+   verdict: PASS
+
+2. Photons per bit (C4) approaches 1/log2(M) from above as n_s -> 0
+   M = 4, limit 1/log2(M) = 0.5000000000
+             n_s      photons/bit   excess over limit   erasure prob
+               1     0.7909883534          5.820e-01      0.36787944
+             0.1     0.5254165972          5.083e-02      0.90483742
+            0.01     0.5025041667          5.008e-03      0.99004983
+           0.001     0.5002500417          5.001e-04      0.99900050
+          0.0001     0.5000250004          5.000e-05      0.99990000
+           1e-05     0.5000025000          5.000e-06      0.99999000
+      strictly above the limit: True; decreasing: True; converged: True
+   M = 16, limit 1/log2(M) = 0.2500000000
+             n_s      photons/bit   excess over limit   erasure prob
+               1     0.3954941767          5.820e-01      0.36787944
+             0.1     0.2627082986          5.083e-02      0.90483742
+            0.01     0.2512520833          5.008e-03      0.99004983
+           0.001     0.2501250208          5.001e-04      0.99900050
+          0.0001     0.2500125002          5.000e-05      0.99990000
+           1e-05     0.2500012500          5.000e-06      0.99999000
+      strictly above the limit: True; decreasing: True; converged: True
+   M = 256, limit 1/log2(M) = 0.1250000000
+             n_s      photons/bit   excess over limit   erasure prob
+               1     0.1977470884          5.820e-01      0.36787944
+             0.1     0.1313541493          5.083e-02      0.90483742
+            0.01     0.1256260417          5.008e-03      0.99004983
+           0.001     0.1250625104          5.001e-04      0.99900050
+          0.0001     0.1250062501          5.000e-05      0.99990000
+           1e-05     0.1250006250          5.000e-06      0.99999000
+      strictly above the limit: True; decreasing: True; converged: True
+   the cost of approaching the limit is the erasure probability, which goes
+   to 1: the limit is unreachable, and the last column is why
+   verdict: PASS
+
+3. Bits per photon has no finite ceiling in M
+         M   log2(M) bits/photon   photons/bit limit
+         2              1.000000        1.0000000000
+        16              4.000000        0.2500000000
+       256              8.000000        0.1250000000
+      4096             12.000000        0.0833333333
+     65536             16.000000        0.0625000000
+   growing without bound, as the background-free Poisson channel requires;
+   the price is bandwidth: M slots per symbol
+   verdict: PASS
+
+4. Data-processing inequality: soft rate (C3) >= hard capacity (C2)
+       M    n_s    n_0    hard (C2)    soft (C3)  soft s.e.  soft - hard
+      16   4.00  0.200     3.288010     3.661366   4.63e-03    +0.373356
+      16   1.00  0.200     0.711179     1.233965   7.64e-03    +0.522786
+       8   2.00  0.500     1.120995     1.600937   6.62e-03    +0.479943
+      64   6.00  0.050     5.808087     5.939060   2.30e-03    +0.130973
+       4   1.00  0.300     0.415792     0.659717   4.79e-03    +0.243925
+     256  10.00  0.010     7.992723     7.998427   3.98e-04    +0.005703
+   the gap is what soft-decision decoding buys over hard decisions
+   verdict: PASS
+
+5. Hard-decision capacity is monotone in the signal level
+   M =  16, n_0 = 0.2: [0.22672, 0.71118, 1.82375, 3.28801, 3.95446, 3.99992, 4.0]
+      monotone: True; saturates at log2(M) = 4.0: True
+   M =  64, n_0 = 0.05: [0.47663, 1.34834, 3.13932, 5.18679, 5.95912, 5.99995, 6.0]
+      monotone: True; saturates at log2(M) = 6.0: True
+   verdict: PASS
+
+==============================================================================
+checks passed: 5 of 5

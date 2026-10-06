@@ -1,0 +1,49 @@
+validate_ppm.py
+Hamkins & Moision, IPN Progress Report 42-161, JPL, 15 May 2005
+==============================================================================
+1. Background-free: exact summation (P4) vs exp(-n_s)(M-1)/M
+       M     n_s     summation (P4)        closed form     abs dev
+       2    0.50   0.30326532985632   0.30326532985632    4.44e-16
+       4    1.00   0.27590958087858   0.27590958087858    1.11e-15
+      16    0.50   0.56862249348059   0.56862249348059    5.55e-16
+      16    2.00   0.12687682803433   0.12687682803432    6.13e-15
+      64    8.00   0.00033022102435   0.00033022102434    5.34e-15
+     256    3.00   0.04959258763205   0.04959258763205    2.90e-15
+   verdict: PASS (tolerance 1e-12 absolute)
+
+2. With background: exact (P4) vs Monte Carlo, 400000 symbols each
+       M    n_s    n_0         exact            MC     MC s.e.       z
+      16   4.00  0.200    0.07963136    0.07890500    4.26e-04   -1.70
+       8   3.00  1.000    0.26860480    0.26936500    7.01e-04   +1.08
+       4   1.00  0.500    0.43384905    0.43603500    7.84e-04   +2.79
+      64   6.00  0.050    0.01416168    0.01429250    1.88e-04   +0.70
+     256  10.00  0.010    0.00034772    0.00030500    2.76e-05   -1.55
+      16   1.00  0.300    0.63498728    0.63478000    7.61e-04   -0.27
+   verdict: PASS (|z| < 4 for every configuration)
+
+3. (P3) against the full Poisson product likelihood
+   scale ln(1 + n_s/n_0) = 2.8332133441 nats per count
+   worst absolute deviation in log posterior over 2000 symbols x 16 slots: 1.776e-14
+   verdict: PASS (tolerance 1e-10 nats)
+
+4. argmax of the posterior equals argmax of the count
+   M =  16: agreement over 5000 symbols = 1.000000
+   M =  64: agreement over 5000 symbols = 1.000000
+   verdict: PASS
+
+5. Bit LLR consistency against the symbol posterior marginals
+   worst |P(bit=1) from LLR - marginal| over 3000 symbols x 4 bits: 2.220e-16
+   LLRs for an all-zero symbol: max |LLR| = 0.000e+00 (must be 0: no counts, no information)
+   verdict: PASS
+
+6. Truncation tail mass and the all-slots-empty probability
+       M    n_s    n_0  truncation K    tail mass   P(all empty)
+      16   2.00  0.000            20     6.11e-15     0.13533528
+      16   4.00  0.200            28     2.34e-15     0.00074659
+     256  10.00  0.010            42     1.00e-14     0.00000351
+   background-free check: P(all empty) must equal exp(-n_s)
+   |P(all empty) - exp(-2)| = 0.00e+00
+   verdict: PASS
+
+==============================================================================
+checks passed: 6 of 6

@@ -1,0 +1,17 @@
+correction_vs_baselines.py
+   wrote screenshots/correction_vs_baselines.png
+   corrector: loaded validation/rate_corrector.joblib
+   test rows: 1500 (seed 515151); counting-noise floor 0.00976 median relative
+
+   band                 estimator                         median rel err
+   p <= 0.02            matched closed form (D2/D5)              0.01172
+   p <= 0.02            composed closed form (A2+D2/D5)          0.01209
+   p <= 0.02            learned correction                       0.01842
+   0.02 < p <= 0.08     matched closed form (D2/D5)              0.02658
+   0.02 < p <= 0.08     composed closed form (A2+D2/D5)          0.02770
+   0.02 < p <= 0.08     learned correction                       0.02068
+   p > 0.08             matched closed form (D2/D5)              0.06765
+   p > 0.08             composed closed form (A2+D2/D5)          0.06749
+   p > 0.08             learned correction                       0.02235
+
+   learned 5-95 interval coverage 0.8887 (nominal 0.90), median relative width 0.2790

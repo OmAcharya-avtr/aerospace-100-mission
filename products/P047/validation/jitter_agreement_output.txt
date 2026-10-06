@@ -1,0 +1,73 @@
+slotsync validation: jitter prediction against Monte Carlo
+pulse nyq-rc-0.5, zeta 0.707107, antipodal data
+open-loop samples 400000, autocovariance lags 0..24
+closed-loop symbols per point 300000
+
+1. measured detector gain and detector-output noise, per detector
+-----------------------------------------------------------------
+   detector                          K_d   sigma_n^2  self-noise     channel  R[1]/R[0]  R[2]/R[0]
+   early-late (dd, d=0.25)      1.731384    0.328907    0.308802    0.020105    -0.4487    -0.0209
+   gardner                      1.508693    0.093960    0.058892    0.035068    -0.1346    -0.1984
+   mueller-muller               1.570796    0.019992    0.000000    0.019992    -0.0022     0.0010
+   at 20 dB per-sample SNR the early-late gate is 94 % self-noise and Gardner 63 %;
+   Mueller-Mueller on a Nyquist pulse has none, which makes it the control case.
+
+2. jitter: three predictions against the Monte Carlo, sweeping B_n at 20 dB
+---------------------------------------------------------------------------
+   detector                       B_n     white cf  white exact     coloured  monte carlo    mc s.e.   mc/col  z(col)  mc/white  slips
+   early-late (dd, d=0.25)     0.0010  2.19440e-04  2.19635e-04  1.43063e-05  1.38738e-05   8.09e-07   0.9698   -0.53    0.0632      0
+   early-late (dd, d=0.25)     0.0050  1.09720e-03  1.10209e-03  7.90324e-05  7.74564e-05   1.61e-06   0.9801   -0.98    0.0706      0
+   early-late (dd, d=0.25)     0.0200  4.38880e-03  4.46752e-03  4.31991e-04  4.62376e-04   4.10e-06   1.0703   +7.41    0.1054      0
+   gardner                     0.0010  8.25602e-05  8.26336e-05  2.58648e-05  2.56280e-05   1.55e-06   0.9908   -0.15    0.3104      0
+   gardner                     0.0050  4.12801e-04  4.14640e-04  1.33771e-04  1.43454e-04   3.60e-06   1.0724   +2.69    0.3475      0
+   gardner                     0.0200  1.65120e-03  1.68082e-03  6.00788e-04  6.85396e-04   8.49e-06   1.1408   +9.96    0.4151      0
+   mueller-muller              0.0010  1.62046e-05  1.62190e-05  1.61797e-05  1.54359e-05   8.83e-07   0.9540   -0.84    0.9526      0
+   mueller-muller              0.0050  8.10231e-05  8.13840e-05  8.11344e-05  8.37389e-05   1.91e-06   1.0321   +1.36    1.0335      0
+   mueller-muller              0.0200  3.24092e-04  3.29905e-04  3.28324e-04  3.41448e-04   4.13e-06   1.0400   +3.18    1.0536      0
+
+3. where the routes diverge, and why
+------------------------------------
+   (a) white closed form vs white exact: the small-bandwidth approximation only.
+       Under 0.2 % at B_n = 0.001, about 1 % at 0.01, 2 % at 0.02.
+   (b) white vs coloured: the whiteness assumption. Detector self-noise is
+       negatively correlated at lag one - the early-late gate measures
+       R[1]/R[0] = -0.45 - so the loop filters it far better than white noise.
+       The white closed form over-predicts by up to 15.34x.
+   (c) coloured vs Monte Carlo: the remaining gap is the S-curve nonlinearity and
+       the decision errors, both absent from every prediction. The deviation is
+       systematic and grows with B_n - about 3 % at B_n = 0.001, 7 % at 0.005 and
+       14 % at 0.02 - not random, so with a Monte Carlo standard error of 1 to 3 %
+       it is many standard errors wide. It is a modelling limit, not noise.
+       Worst relative deviation: 14.1 %.
+       Worst |z| against the Monte Carlo standard error: 9.96.
+
+4. the boundary of validity: pushing the loop out of the linear range
+---------------------------------------------------------------------
+   B_n = 0.05 with a falling SNR, Gardner's detector. The linear range of its
+   S-curve on this pulse is 0.130 symbol; once the rms jitter approaches that
+   the linearised prediction has no reason to hold, and it does not.
+    snr_db     coloured  monte carlo    mc s.e.   mc/col  rms/linear   slips
+      20.0  1.79381e-03  2.37226e-03   2.81e-05   1.3225      0.3747       0
+      10.0  1.51323e-02  8.34245e-02   4.28e-04   5.5130      2.2218    1010
+       4.0  6.96464e-02  8.35006e-02   1.21e-03   1.1989      2.2228    1102
+       0.0  2.28770e-01  8.42226e-02   9.29e-04   0.3682      2.2324    2509
+      -3.0  6.36620e-01  8.37999e-02   7.61e-04   0.1316      2.2268    5090
+   the ratio departs from 1 as rms jitter grows towards the linear range, and once
+   slips appear the stationary variance of a wrapped error is no longer the
+   quantity the prediction describes at all. The measured variance saturates at
+   about 0.0834 to 0.0842, which is the variance of a uniform distribution on a
+   full symbol, 1/12 = 0.083333: the loop has lost timing entirely and the wrapped
+   error is uniform. Below 10 dB the prediction and the measurement are describing
+   different objects, and the prediction crossing the measurement near 4 dB is a
+   coincidence of two unrelated curves, not agreement.
+
+summary
+-------
+   worst relative deviation, Monte Carlo vs coloured: 14.08 %
+   worst |z| of that deviation against the Monte Carlo standard error: 9.96
+   worst over-prediction by the white closed form: 15.34x
+   gate: relative deviation < 15 % at every point in section 2, B_n <= 0.02
+   the gate is on the relative deviation and not on |z| because the deviation is a
+   known systematic approximation error, not sampling noise; see section 3(c).
+   section 2 within tolerance: True
+   elapsed 41.7 s

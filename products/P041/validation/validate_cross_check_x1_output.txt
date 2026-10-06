@@ -1,0 +1,56 @@
+==============================================================================
+CROSS-CHECK X1  (P041 CodedFade <-> P049 LinkOutage)
+==============================================================================
+CONFIGURATION
+  distribution             lognormal
+  kernel                   exp (Gauss-Markov / AR(1), filtered Gaussian)
+  scintillation_index      0.6
+  correlation_time_s       0.0002
+  sample_rate_hz           1000000.0
+  sample_count             2000000
+  threshold_amplitude      0.6
+  seed                     41
+  rng                      numpy.random.default_rng(seed).standard_normal(sample_count)
+  normalisation            E[I] = 1, a = sqrt(I)
+  rho = exp(-1/(fs*tau))   0.995012479192682
+  sigma_lnI^2 = ln(1+SI)   0.470003629245736
+  Lc = tau*fs              200.000000 samples
+
+SERIES FINGERPRINT (for an exact reproduction check)
+  amplitude[0:5]           [0.582925424356399 0.589514039810461 0.590583695809805 0.602026167532692
+ 0.57644569736477 ]
+  amplitude[-5:]           [0.601259433341748 0.629124368200058 0.674698323595734 0.66970961177348
+ 0.666937533144782]
+  mean irradiance          0.998907972681559
+  sample scintillation idx 0.609378559983851
+
+X1 QUANTITIES (sample statistics of the series above)
+  sample_count             2000000
+  record duration          2.000000000 s
+  threshold_amplitude      0.600000
+  outage_fraction          0.126940500000000
+  down_crossings           16382
+  complete_fades           16382
+  censored_fades           1
+
+  LEVEL_CROSSING_RATE_HZ   8191.000000000000000
+  MEAN_FADE_DURATION_S     1.549737516786717e-05
+
+  (the two lines above are the X1 comparands; tolerance is 2 % relative
+   difference on each, per the batch 05 specification)
+
+CONTEXT: the exact sampled-Gauss-Markov analytic result, equations (14)-(15)
+  standard level u         -1.147441698282337
+  analytic LCR             8228.471843706 s^-1   (sample / analytic - 1 = -0.004554)
+  analytic MFD             1.526401990e-05 s     (sample / analytic - 1 = +0.015288)
+
+  This block is context only. X1 compares the two sample statistics
+  between products; it does not compare either to the analytic value, and
+  no quantity here is a wall-clock measurement.
+
+ADDITIONAL SAMPLE STATISTICS (not part of X1, supplied for diagnosis)
+  median fade duration     3.000000000e-06 s
+  max fade duration        6.900000000e-04 s
+  mean fade duration       15.497375168 samples
+  duration p50/p90/p99     3.0 / 37.0 / 199.4 samples
+==============================================================================

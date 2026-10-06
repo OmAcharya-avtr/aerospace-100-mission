@@ -1,0 +1,67 @@
+validate_hal_contract.py
+Level 3, hardware-pending. Nothing here is a hardware measurement.
+==============================================================================
+1. One contract, both backends
+   simulated  describe() keys present: True  simulated=True  hardware_required=False
+   simulated  malformed request -> ValueError (correct: validated before hardware)
+   simulated  open() succeeded; is_open=True
+   device     describe() keys present: True  simulated=False  hardware_required=True
+   device     malformed request -> ValueError (correct: validated before hardware)
+   device     open() raised NotImplementedError; names what is missing: True
+   verdict: PASS
+
+2 & 3. Provenance and the two modes
+   simulation: counts=50 rate=198500.0 fano=1.3171 wall=5.14 ms is_measurement=False
+   dry run:    counts=0 rate=nan wall=5.08 ms is_measurement=False
+   device backend refused: DeviceBackend.acquire requires a physical photon-counting module. Meas...
+   a simulated number can never report is_measurement=True; that predicate
+   is the only thing downstream code needs to consult
+   verdict: PASS
+
+4. Preflight
+   sane                           passed=True  failures=[]
+      PASS backend_described              all required description keys present
+      PASS dead_time_declared             declared dead time 1e-07 s, model 'paralyzable'
+      PASS window_exceeds_dead_time       window is 1e+04 dead times long (required >= 1000)
+      PASS rate_below_saturation          expected rate 2e+05 counts/s is 0.020 of 1/tau
+      PASS inversion_branch_unambiguous   expected observed rate is 0.053 of the paralyzable maximum 3.679e+06 counts/s
+      PASS afterpulsing_declared          declared afterpulse probability 0.04
+      PASS directory_writable             capture directory is writable
+      PASS backend_self_test              backend self-test passed
+   window too short               passed=False  failures=['window_exceeds_dead_time']
+      PASS backend_described              all required description keys present
+      PASS dead_time_declared             declared dead time 1e-07 s, model 'paralyzable'
+      FAIL window_exceeds_dead_time       window is 10 dead times long (required >= 1000)
+      PASS rate_below_saturation          expected rate 2e+05 counts/s is 0.020 of 1/tau
+      PASS inversion_branch_unambiguous   expected observed rate is 0.053 of the paralyzable maximum 3.679e+06 counts/s
+      PASS afterpulsing_declared          declared afterpulse probability 0.04
+      PASS directory_writable             capture directory is writable
+      PASS backend_self_test              backend self-test passed
+   past the paralyzable maximum   passed=False  failures=['rate_below_saturation']
+      PASS backend_described              all required description keys present
+      PASS dead_time_declared             declared dead time 1e-07 s, model 'paralyzable'
+      PASS window_exceeds_dead_time       window is 1e+04 dead times long (required >= 1000)
+      FAIL rate_below_saturation          expected rate 2e+07 counts/s is at or above 1/tau = 1e+07, where the observed rate falls as illumination rises
+      PASS inversion_branch_unambiguous   expected observed rate is 0.736 of the paralyzable maximum 3.679e+06 counts/s
+      PASS afterpulsing_declared          declared afterpulse probability 0.04
+      PASS directory_writable             capture directory is writable
+      PASS backend_self_test              backend self-test passed
+   device backend self-test status: WARN (WARN, not FAIL: no hardware is not a broken detector)
+   verdict: PASS
+
+5 & 6. Capture, backout, and no absolute paths
+   journal file written: night01.inprogress.json
+   record file written:  night01.json
+   record fields: ['backend_description', 'counts', 'environment', 'fano_factor', 'label', 'metadata', 'mode', 'observed_rate_hz', 'preflight', 'preflight_passed', 'request', 'seed', 'simulated', 'started_unix', 'wall_seconds']
+   record says simulated=True mode=simulation windows=40
+   backout: [{'label': 'crashed', 'from': 'crashed.inprogress.json', 'to': 'crashed.aborted.json'}]
+   backout is idempotent: second call returned []
+   aborted record state=aborted (nothing deleted)
+   filenames and environment strings containing a path separator: []
+   verdict: PASS
+
+==============================================================================
+checks passed: 4 of 4
+What Level 4 still requires: benchmark/run_benchmark.py executed on a
+Jetson Orin Nano, with its raw output file kept. No simulated backend,
+extrapolation or datasheet substitutes for that run.

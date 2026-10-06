@@ -1,0 +1,60 @@
+Cheapest parameter set per family that fully disperses a target burst
+symbol rate 1e+06 sym/s, 8 bits per symbol
+burst dispersion of every candidate measured, not derived from depth
+
+--- target burst 4 symbols ---
+symbol rate 1e+06 sym/s
+construction                                                 N  pair lat   pair lat  pair mem   min  burst
+                                                           sym       sym         ms       sym  sprd   disp
+------------------------------------------------------------------------------------------------------------
+BlockInterleaver(depth=5, span=2)                           10        20     0.0200        20     3      4
+HelicalInterleaver(rows=2, columns=6, step=1)               12        24     0.0240        24     4      5
+ConvolutionalInterleaver(registers=2, slope=3)              13         6     0.0060         6     -      5
+
+--- target burst 8 symbols ---
+symbol rate 1e+06 sym/s
+construction                                                 N  pair lat   pair lat  pair mem   min  burst
+                                                           sym       sym         ms       sym  sprd   disp
+------------------------------------------------------------------------------------------------------------
+BlockInterleaver(depth=9, span=2)                           18        36     0.0360        36     3      8
+HelicalInterleaver(rows=2, columns=10, step=1)              20        40     0.0400        40     4      9
+ConvolutionalInterleaver(registers=2, slope=5)              21        10     0.0100        10     -      9
+
+--- target burst 16 symbols ---
+symbol rate 1e+06 sym/s
+construction                                                 N  pair lat   pair lat  pair mem   min  burst
+                                                           sym       sym         ms       sym  sprd   disp
+------------------------------------------------------------------------------------------------------------
+BlockInterleaver(depth=17, span=2)                          34        68     0.0680        68     3     16
+HelicalInterleaver(rows=2, columns=18, step=1)              36        72     0.0720        72     4     17
+ConvolutionalInterleaver(registers=2, slope=9)              37        18     0.0180        18     -     17
+
+--- target burst 32 symbols ---
+symbol rate 1e+06 sym/s
+construction                                                 N  pair lat   pair lat  pair mem   min  burst
+                                                           sym       sym         ms       sym  sprd   disp
+------------------------------------------------------------------------------------------------------------
+BlockInterleaver(depth=33, span=2)                          66       132     0.1320       132     3     32
+HelicalInterleaver(rows=2, columns=34, step=1)              68       136     0.1360       136     4     33
+ConvolutionalInterleaver(registers=2, slope=17)             69        34     0.0340        34     -     33
+
+--- target burst 64 symbols ---
+symbol rate 1e+06 sym/s
+construction                                                 N  pair lat   pair lat  pair mem   min  burst
+                                                           sym       sym         ms       sym  sprd   disp
+------------------------------------------------------------------------------------------------------------
+BlockInterleaver(depth=65, span=2)                         130       260     0.2600       260     3     64
+HelicalInterleaver(rows=2, columns=66, step=1)             132       264     0.2640       264     4     65
+ConvolutionalInterleaver(registers=2, slope=33)            133        66     0.0660        66     -     65
+
+Summary: pair memory in symbols, and the block-to-bank ratios
+ burst   block  helical   bank  mem ratio  block ms  bank ms  lat ratio
+     4      20       24      6      3.333    0.0200   0.0060      3.333
+     8      36       40     10      3.600    0.0360   0.0100      3.600
+    16      68       72     18      3.778    0.0680   0.0180      3.778
+    32     132      136     34      3.882    0.1320   0.0340      3.882
+    64     260      264     66      3.939    0.2600   0.0660      3.939
+
+memory ratio range over targets [4, 8, 16, 32, 64]: 3.333 to 3.939
+
+RESULT: PASS

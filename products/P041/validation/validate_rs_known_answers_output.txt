@@ -1,0 +1,61 @@
+==============================================================================
+REED-SOLOMON KNOWN-ANSWER VALIDATION
+==============================================================================
+code                     RS(15,11) over GF(2^4)
+t = (n-k)/2              2
+minimum distance n-k+1   5 (MDS)
+generator polynomial     [12, 1, 3, 15, 1] (ascending degree)
+generator degree         4 = 2t
+message under test       [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+codeword                 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 12, 0, 13]
+syndromes of codeword    [0, 0, 0, 0]
+
+-- exhaustive error patterns, RS(15,11) ------------------------------
+buckets: recovered = success AND right; miscorrected = success, wrong;
+failed_intact = failure but every error fell in parity so the message
+came back untouched; failed_wrong = failure, message wrong.
+ errors   patterns  recovered   miscorr  fail_intact  fail_wrong                        verdict
+      1        225        225         0            0           0                  all corrected
+      2      23625      23625         0            0           0                  all corrected
+
+-- t+1 = 3 errors, 20000 random patterns, RS(15,11) ------------------
+recovered (must be 0)    0
+miscorrected             5807  (0.290350)
+failed, message intact   137  (0.006850)   expected C(4,3)/C(15,3) = 0.008791
+failed, message wrong    14056  (0.702800)
+
+-- working code RS(31,21) over GF(2^5), t = 5 --------------
+rate                     0.677419
+ errors   trials  recovered   miscorr  fail_intact  fail_wrong
+      5     4000       4000         0            0           0
+      6     4000          0         5            1        3994
+      8     2000          0         8            0        1992
+
+The t row must recover every trial; the t+1 and t+3 rows must show
+recovered = 0. A non-zero failed_intact column on those rows is not a
+recovery: it is an error pattern confined to the parity symbols.
+
+-- convolutional code hand trace -------------------------------------
+code                     ConvolutionalCode((0o7, 0o5), K=3), 4 states
+message                  [1, 0, 1, 1]
+encoded                  111000010111
+hand trace expects       111000010111  (11 10 00 01 01 11)
+match                    True
+viterbi on clean input   [1, 0, 1, 1]  metric 0
+min terminated weight    5 bits over all 4095 non-zero L=12 messages
+
+-- convolutional single-bit error correction -------------------------
+single-bit errors tested 124
+recovered                124  (1.000000)
+
+-- convolutional burst: what the interleaver is for ------------------
+ burst bits  recovered
+          1 12/12
+          2 12/12
+          3 1/11
+          4 0/11
+          6 0/11
+          8 0/11
+         12 0/11
+
+==============================================================================

@@ -1,0 +1,53 @@
+==============================================================================
+INTERLEAVER COST VALIDATION
+==============================================================================
+span (codeword length)   31 symbols
+symbol rate              1.000000e+06 Hz
+bits per symbol          5
+code correction radius t 5 symbols
+
+-- block interleaver: spacing, latency, memory -----------------------
+  depth   spacing  eq(24) lat sym   latency ms     memory B  max burst t*D
+      1         1              62       0.0620         38.8              5
+      2         2             124       0.1240         77.5             10
+      4         4             248       0.2480        155.0             20
+      8         8             496       0.4960        310.0             40
+     16        16             992       0.9920        620.0             80
+     32        32            1984       1.9840       1240.0            160
+     64        64            3968       3.9680       2480.0            320
+    128       128            7936       7.9360       4960.0            640
+    256       256           15872      15.8720       9920.0           1280
+    512       512           31744      31.7440      19840.0           2560
+   1024      1024           63488      63.4880      39680.0           5120
+   2048      2048          126976     126.9760      79360.0          10240
+   4096      4096          253952     253.9520     158720.0          20480
+
+The measured spacing column must equal the depth column exactly: that is
+the property equation (23) relies on. The last column is the longest burst
+that still deposits at most t errors in one codeword.
+
+-- burst dispersion, equation (22) -----------------------------------
+  burst L     D=1     D=8    D=64   D=512
+        1       1       1       1       1
+        8       8       1       1       1
+       20      20       3       1       1
+       64      64       8       1       1
+      200     200      25       4       1
+      512     512      64       8       1
+     2000    2000     250      32       4
+
+-- convolutional interleaver: measured delay vs M*B*(B-1) ------------
+ branches B  increment M   M*B*(B-1)   measured  memory sym  block equiv
+          2            1           2          2           2          124
+          4            1          12         12          12          248
+          4            2          24         24          24          496
+          8            1          56         56          56          496
+          8            4         224        224         224         1984
+         16            1         240        240         240          992
+         31            1         930        930         930         1922
+
+The 'block equiv' column is the block interleaver memory for a comparable
+depth, for the halving claim. The convolutional construction stores less
+for the same end-to-end delay, at the cost of a transient at start-up.
+
+==============================================================================

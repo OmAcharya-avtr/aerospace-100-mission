@@ -1,0 +1,51 @@
+worked_example.py --- 64-PPM photon-starved downlink
+==============================================================================
+
+1. Link budget to slot counts
+   received signal power   3.000e-11 W at 1550 nm
+   slot length             20.0 ns
+   detection efficiency    0.65
+   signal counts per pulsed slot   n_s = 3.043123
+   background counts per slot      n_b = 0.002029
+   dark counts per slot            n_d = 0.000004
+   counting SNR of one slot        1.7439
+
+2. 64-PPM slot statistics
+   non-signalled slot mean n_0 = 0.002033
+   symbol error probability    0.055851 (truncation K = 24, tail 4.3e-15)
+   soft metric scale ln(1 + n_s/n_0) = 7.311918 nats/count
+   one simulated symbol, slot 17 signalled, non-zero slots: [(17, 4), (38, 1)]
+   bit LLRs (nats, positive favours 0): [21.915, -21.915, 25.782, 21.915, 21.915, -21.915]
+
+3. Available rate
+   hard-decision capacity   5.35542 bits/symbol (0.083678 bits/slot)
+   soft-decision rate       5.65997 +- 0.00589 bits/symbol
+   photons/bit, hard        0.56823
+   photons/bit, soft        0.53766
+   64-PPM limit 1/log2(64)  0.16667
+   symbol rate at this slot length  781.250 ksymbol/s
+   information rate, soft           4.4219 Mbit/s
+
+4. The detector
+   dead time               24.0 ns, paralyzable
+   afterpulse probability  0.045, mean delay 110.0 ns
+   incident rate           6.000e+06 counts/s (n tau = 0.1440)
+   paralyzable peak at     n = 4.1667e+07 counts/s, m_max = 1.5328e+07 counts/s
+   preflight passed: True; warnings: []
+   observed rate           5.3356e+06 counts/s
+   Fano factor             0.7649 (below 1: dead time dominates the clustering)
+   is_measurement          False (simulated counts are never a measurement)
+   record would be written as  worked_example.json
+
+5. Correcting the observed rate back to the incident rate
+   truth                           6.0000e+06 counts/s
+   paralyzable closed form (D5)     6.1901e+06  (+3.17 %)
+   composed closed form (A2 + D5)   5.8657e+06  (-2.24 %)
+   learned correction               6.2588e+06  (+4.31 %)
+   learned 5-95 interval            [5.7881e+06, 6.4504e+06]  contains the truth: True
+
+   One row is one draw, not a result. This row sits at n tau = 0.14 with
+   p = 0.045; which estimator happens to be closest here is counting noise.
+   The result is the regime table in VALIDATION.md, which says the closed
+   forms win where afterpulsing is absent, the learned model wins where it
+   is present, and nothing works past n tau = 1.

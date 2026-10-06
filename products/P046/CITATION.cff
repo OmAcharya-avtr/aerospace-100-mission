@@ -1,0 +1,106 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "interleavekit: block, convolutional, helical and S-random interleavers with burst-dispersion metrics and latency/memory cost accounting"
+version: 0.1.0
+date-released: 2026-10-06
+license: Apache-2.0
+abstract: >-
+  Four interleaver constructions collected behind one permutation convention --
+  a row-write column-read block interleaver with a closed-form minimum spread, a
+  shift-register-bank convolutional interleaver with exact per-symbol delays, a
+  wrapping-diagonal helical interleaver, and an S-random interleaver built by a
+  deterministic backjumping search -- together with the metrics a fading-channel
+  designer needs to choose between them: minimum spread, the S-parameter,
+  normalised dispersion, and the burst-dispersion family, which answers how long
+  a run of consecutive source symbols survives a channel burst of a given length.
+  Burst dispersion is computed from the identity that R consecutive source symbols
+  can be damaged by a burst of L exactly when the narrowest transmitted window
+  holding them is at most L-1 wide, which makes it linear rather than quadratic in
+  the block length and is checked against the definitional window scan on 5304
+  comparisons. Each construction reports its latency in symbols and milliseconds
+  and its memory in symbols and bytes under a stated cost model, and a search
+  returns the cheapest parameter set in each family that measurably disperses a
+  target burst. Validation level 2, research grade. Not flight-qualified, not
+  certified, not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - interleaver
+  - deinterleaver
+  - burst-errors
+  - convolutional-interleaver
+  - s-random
+  - fading-channel
+  - error-control-coding
+references:
+  - type: article
+    authors:
+      - family-names: Ramsey
+        given-names: "J. L."
+    title: "Realization of Optimum Interleavers"
+    journal: "IEEE Transactions on Information Theory"
+    volume: 16
+    issue: 3
+    start: 338
+    end: 345
+    month: 5
+    year: 1970
+    notes: >-
+      Standard reference for interleaver structures. The bibliographic details
+      above were read from the Communications Blockset bibliography on
+      2026-10-06; the primary article was not consulted for this build and no
+      numerical result or specific claim is attributed to it.
+  - type: article
+    authors:
+      - family-names: Forney
+        given-names: "G. D."
+        name-suffix: Jr.
+    title: "Burst-Correcting Codes for the Classic Bursty Channel"
+    journal: "IEEE Transactions on Communications"
+    volume: 19
+    start: 772
+    end: 781
+    month: 10
+    year: 1971
+    notes: >-
+      Standard reference for the convolutional interleaver. Bibliographic details
+      read from the Communications Blockset bibliography on 2026-10-06; the
+      primary article was not consulted and no numerical result is attributed to
+      it. The delay and memory expressions used in this package are derived in
+      src/interleavekit/convolutional.py and verified by running the construction.
+  - type: book
+    authors:
+      - family-names: Clark
+        given-names: "George C."
+        name-suffix: Jr.
+      - family-names: Cain
+        given-names: "J. Bibb"
+    title: "Error-Correction Coding for Digital Communications"
+    publisher:
+      name: "Plenum Press"
+    year: 1981
+    notes: >-
+      Standard text covering block interleaving with row-wise write and
+      column-wise read. Bibliographic details read from the Communications
+      Blockset bibliography on 2026-10-06; no page number is quoted and no result
+      is attributed to the text.
+  - type: report
+    authors:
+      - family-names: Dolinar
+        given-names: "S."
+      - family-names: Divsalar
+        given-names: "D."
+    title: "Weight Distributions for Turbo Codes Using Random and Nonrandom Permutations"
+    collection-title: "Interplanetary Network Progress Report"
+    number: "42-122"
+    start: 56
+    end: 65
+    year: 1995
+    month: 8
+    notes: >-
+      Read in full on 2026-10-06. It compares random, nonrandom and semirandom
+      permutations for turbo codes. It does NOT state the S-random selection rule,
+      so it is cited here as context for semirandom permutations only. The rule
+      implemented in src/interleavekit/srandom.py is written out in that module's
+      docstring rather than attributed, because no primary source for it was
+      verified during this build.

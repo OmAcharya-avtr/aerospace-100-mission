@@ -1,0 +1,89 @@
+V2 MODCOD THRESHOLD VALIDATION -- acmpilot
+script: validation/validate_modcod_thresholds.py
+
+V2.1 Monte Carlo uncoded BER vs closed form
+  BPSK and QPSK closed forms are EXACT; 8PSK and 16QAM are high-SNR
+  approximations and are expected to deviate at low SNR.
+   mod  SNR_dB      ber_mc    ber_form    n_bits   n_err  z_score  exact?
+  BPSK     2.0 3.78067e-02 3.75061e-02    150000    5671     0.61     yes
+  BPSK     6.0 2.43167e-03 2.38829e-03    600000    1459     0.69     yes
+  BPSK    10.0 3.33333e-06 3.87211e-06    600000       2    -0.21     yes
+  BPSK    14.0 0.00000e+00 6.81019e-13    600000       0    -0.00     yes
+  BPSK    18.0 0.00000e+00 1.39601e-29    600000       0    -0.00     yes
+  QPSK     2.0 1.05290e-01 1.04029e-01    100000   10529     1.31     yes
+  QPSK     6.0 2.35750e-02 2.30071e-02    200000    4715     1.69     yes
+  QPSK    10.0 8.01667e-04 7.82701e-04   1200000     962     0.74     yes
+  QPSK    14.0 0.00000e+00 2.69515e-07   1200000       0    -0.57     yes
+  QPSK    18.0 0.00000e+00 9.84500e-16   1200000       0    -0.00     yes
+  8PSK     2.0 1.90153e-01 1.65222e-01    150000   28523    26.00  approx
+  8PSK     6.0 9.63067e-02 9.34062e-02    150000   14446     3.86  approx
+  8PSK    10.0 2.88533e-02 2.90017e-02    150000    4328    -0.34  approx
+  8PSK    14.0 2.23833e-03 2.22656e-03   1800000    4029     0.34  approx
+  8PSK    18.0 3.33333e-06 5.72228e-06   1800000       6    -1.34  approx
+ 16QAM     2.0 2.37795e-01 1.68795e-01    200000   47559    82.38  approx
+ 16QAM     6.0 1.42140e-01 1.20101e-01    200000   28428    30.32  approx
+ 16QAM    10.0 5.92800e-02 5.55077e-02    200000   11856     7.37  approx
+ 16QAM    14.0 9.23333e-03 9.28771e-03    600000    5540    -0.44  approx
+ 16QAM    18.0 1.38333e-04 1.43160e-04   2400000     332    -0.63  approx
+  worst |z| over the EXACT closed forms with > 50 observed errors: 1.69 (3.0 would be a 3-sigma disagreement)
+
+V2.2 Reed-Solomon MDS properties, equation (1) of acmpilot.coding
+          code     rate  d_min  n-k+1    t  (n-k)//2   ok
+   RS(255,127)  0.49804    129    129   64        64 PASS
+   RS(255,191)  0.74902     65     65   32        32 PASS
+   RS(255,223)  0.87451     33     33   16        16 PASS
+   RS(255,239)  0.93725     17     17    8         8 PASS
+
+V2.3 post-decoding combinatorics vs direct Monte Carlo through the modem
+  BPSK: one bit per modulation symbol, so the i.i.d.-bit assumption of
+  acmpilot.coding equations (2)-(3) holds exactly and this is a clean
+  test of the combinatorics.
+                      case  SNR_dB        p_b  n_fail    FER_mc  FER_form   ratio    SERo_mc  SERo_form   ratio
+      BPSK, no interleaver    4.50    0.00876    5679   0.56790   0.56914   0.998  4.476e-02  4.487e-02   0.998
+      BPSK, no interleaver    4.80    0.00696    2266   0.22660   0.22687   0.999  1.673e-02  1.675e-02   0.999
+      BPSK, no interleaver    5.10    0.00550     510   0.05100   0.05199   0.981  3.635e-03  3.700e-03   0.983
+
+  16QAM: four bits per modulation symbol, so without a bit interleaver
+  the bit errors inside one code symbol are correlated, more code symbols
+  are hit than the i.i.d. model expects, and the model is therefore
+  OPTIMISTIC -- the measured error rate is HIGHER than the formula. With a
+  bit interleaver, which is what the model assumes, the agreement returns.
+  The ratio column measures the cost of omitting the interleaver.
+                      case  SNR_dB        p_b  n_fail    FER_mc  FER_form   ratio    SERo_mc  SERo_form   ratio
+     16QAM, no interleaver   13.50    0.01285    9704   0.97040   0.96976   1.001  9.709e-02  9.650e-02   1.006
+        16QAM, interleaved   13.50    0.01285    9697   0.96970   0.96991   1.000  9.655e-02  9.655e-02   1.000
+     16QAM, no interleaver   14.00    0.00938    6899   0.68990   0.67653   1.020  5.593e-02  5.486e-02   1.019
+        16QAM, interleaved   14.00    0.00935    6773   0.67730   0.67243   1.007  5.477e-02  5.446e-02   1.006
+     16QAM, no interleaver   14.50    0.00656    1709   0.17090   0.16468   1.038  1.248e-02  1.202e-02   1.038
+        16QAM, interleaved   14.50    0.00658    1678   0.16780   0.16787   1.000  1.223e-02  1.226e-02   0.997
+
+V2.4 measured MODCOD threshold table
+  target post-decoding BER: 1e-06
+  thresholds are measured by this script; no standard's table is used.
+idx                 MODCOD  mod_bits  code_rate  eta_bit_per_sym   thr_dB  sigma_dB
+  0       BPSK RS(255,127)         1    0.49804           0.4980    3.141     0.045
+  1       BPSK RS(255,191)         1    0.74902           0.7490    4.583     0.031
+  2       QPSK RS(255,191)         2    0.74902           1.4980    7.602     0.024
+  3       QPSK RS(255,223)         2    0.87451           1.7490    8.810     0.032
+  4       8PSK RS(255,191)         3    0.74902           2.2471   12.378     0.030
+  5       8PSK RS(255,223)         3    0.87451           2.6235   13.677     0.025
+  6      16QAM RS(255,223)         4    0.87451           3.4980   15.451     0.023
+  7      16QAM RS(255,239)         4    0.93725           3.7490   16.532     0.022
+
+  Monte Carlo support per constellation:
+   mod  grid_lo_dB  grid_hi_dB  points     min_ber
+ 16QAM       -4.00       17.75      88   1.825e-04
+  8PSK       -4.00       15.75      80   2.950e-04
+  BPSK       -4.00        8.00      49   1.900e-04
+  QPSK       -4.00       10.75      60   2.700e-04
+  written: validation/modcod_thresholds.json
+
+V2.5 ladder sanity
+  thresholds strictly increasing: True
+  efficiencies strictly increasing: True
+  dominated MODCODs (higher threshold and lower efficiency): []
+  threshold span: 3.141 dB to 16.532 dB (13.391 dB)
+  efficiency span: 0.498 to 3.749 bit/symbol
+  worst threshold uncertainty: 0.045 dB
+
+V2 COMPLETE

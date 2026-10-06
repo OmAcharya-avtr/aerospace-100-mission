@@ -1,0 +1,59 @@
+==============================================================================
+CHANNEL STATISTICS VALIDATION
+==============================================================================
+samples per path         400000
+sample rate              1.000000e+06 Hz
+correlation time         2.000000e-04 s  (Lc = 200.0 samples)
+
+-- 1. lognormal marginal ---------------------------------------------
+ SI target       mean I    SI sample    rel err    KS stat       KS p
+    0.1000     1.000532     0.103234   0.032343   0.052340   0.124684
+    0.3000     0.985502     0.305166   0.017220   0.022647   0.954568
+    0.6000     1.000394     0.575837   0.040272   0.028597   0.797098
+    1.0000     0.976463     0.954666   0.045334   0.036902   0.492271
+    1.5000     1.028944     1.248874   0.167418   0.030689   0.721994
+
+-- 2. autocorrelation of the underlying Gaussian ---------------------
+kernel=exp    model=exp(-k/Lc)       max |ACF - model| over lags 0..40 = 0.002240
+              ACF at lag Lc=20 = 0.365679  (1/e = 0.367879)
+kernel=gauss  model=exp(-(k/Lc)^2)   max |ACF - model| over lags 0..40 = 0.003695
+              ACF at lag Lc=20 = 0.364550  (1/e = 0.367879)
+
+-- 3. measured 1/e correlation time of log-irradiance ----------------
+marginal     kernel      target s   measured s    rel err
+lognormal    exp     2.000000e-04 1.910364e-04   0.044818
+lognormal    gauss   2.000000e-04 1.942576e-04   0.028712
+gammagamma   exp     2.000000e-04 1.938845e-04   0.030577
+gammagamma   gauss   2.000000e-04 2.010274e-04   0.005137
+
+All four rows are measurements, not checks against a reference. The
+gamma-gamma rows carry an additional caveat: the temporal correlation is
+imposed through a Gaussian copula, so the specified tau governs the latent
+Gaussian rather than the log-irradiance, and no claim is made that the
+copula reproduces a physical two-scale temporal spectrum. At this
+configuration the measured gamma-gamma deviation is of the same order as
+the lognormal rows' own estimator bias, so nothing larger than the
+estimator error was detected; that is reported, not asserted as agreement.
+
+-- 4. gamma-gamma parameter relations --------------------------------
+ sigma_R^2        alpha         beta    SI from (6)   exp(sx2+sy2)-1   rel diff
+    0.0500    41.773624    39.336094    0.049969059      0.049969059  0.000e+00
+    0.3000     8.431713     6.922053    0.280199300      0.280199300  1.981e-16
+    1.0000     4.393859     2.563632    0.706438496      0.706438496  1.572e-16
+    4.0000     4.340663     1.308803    1.170459847      1.170459847  0.000e+00
+   16.0000     6.763441     1.056484    1.234338709      1.234338709  0.000e+00
+
+ SI target        alpha         beta   SI recovered    rel err
+    0.1000    21.406486    19.643636    0.100000000  1.388e-16
+    0.5000     5.395751     3.766914    0.500000000  0.000e+00
+    0.8000     4.165932     2.214529    0.800000000  0.000e+00
+    1.0000     3.995314     1.667710    1.000000000  2.220e-16
+    1.2000     4.543910     1.245069    1.200000000  3.701e-16
+
+-- 5. gamma-gamma sample marginal ------------------------------------
+ SI target       mean I    SI sample    rel err
+    0.3000     0.985003     0.284680   0.051065
+    0.8000     0.973286     0.758841   0.051448
+    1.1000     0.969861     1.046897   0.048276
+
+==============================================================================

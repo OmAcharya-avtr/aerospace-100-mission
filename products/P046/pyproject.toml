@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "interleavekit"
+version = "0.1.0"
+description = "Block, convolutional, helical and S-random interleavers with burst-dispersion metrics and latency/memory cost accounting."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "interleaver",
+    "deinterleaver",
+    "burst-errors",
+    "block-interleaver",
+    "convolutional-interleaver",
+    "helical-interleaver",
+    "s-random",
+    "fading-channel",
+    "optical-communications",
+    "error-control-coding",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: System :: Networking",
+]
+dependencies = [
+    "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis"]
+examples = ["matplotlib"]
+dev = ["pytest", "hypothesis", "ruff", "matplotlib"]
+
+[project.scripts]
+interleavekit = "interleavekit.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]

@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "acmpilot"
+version = "0.1.0"
+description = "Adaptive coding and modulation on one optical link under round-trip feedback delay, with measured MODCOD thresholds and a confidence-gated channel predictor."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "AGPL-3.0-or-later" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "adaptive-coding-and-modulation",
+    "free-space-optics",
+    "feedback-delay",
+    "rate-adaptation",
+    "modcod",
+    "channel-prediction",
+    "reed-solomon",
+    "gamma-gamma-fading",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "scikit-learn>=1.3",
+    "joblib>=1.3",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "hypothesis"]
+examples = ["matplotlib"]
+dev = ["pytest", "hypothesis", "ruff", "matplotlib"]
+
+[project.scripts]
+acmpilot = "acmpilot.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]

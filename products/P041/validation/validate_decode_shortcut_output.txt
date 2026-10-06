@@ -1,0 +1,28 @@
+========================================================================================
+DECODING SHORTCUT VALIDATION
+========================================================================================
+code                     RS(31,21) over GF(2^5), t=5
+channel                  lognormal, SI=0.6, tau=2.0e-04 s, fs=1.0e+06 Hz, seed=9
+mean SNR                 14.0 dB
+codewords per point      512
+
+  depth     mode        FER    post BER   fail   mis   wall s
+-------------------------------------------------------------
+      1 shortcut   0.091797  2.0145e-02     47     0     0.30
+      1    exact   0.091797  2.0145e-02     47     0     1.33
+         speedup x4.44      identical results: True
+      8 shortcut   0.109375  1.9178e-02     56     0     0.28
+      8    exact   0.109375  1.9178e-02     56     0     1.68
+         speedup x6.00      identical results: True
+     64 shortcut   0.035156  4.9665e-03     18     0     0.10
+     64    exact   0.035156  4.9665e-03     18     0     2.68
+         speedup x26.11     identical results: True
+    512 shortcut   0.000000  0.0000e+00      0     0     0.00
+    512    exact   0.000000  0.0000e+00      0     0     2.97
+         speedup x858.82    identical results: True
+
+depths with a mismatch   0 (must be 0)
+
+Timing is wall-clock on a shared cloud core, reported as a compute-budget
+note only. It is not hardware evidence and is not compared to a model.
+========================================================================================

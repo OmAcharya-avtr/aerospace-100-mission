@@ -1,0 +1,40 @@
+==============================================================================
+MODEL REGENERATION
+==============================================================================
+  scintillation_index    0.6
+  correlation_time_s     0.0002
+  sample_rate_hz         1000000.0
+  marginal               lognormal
+  kernel                 exp
+  threshold_amplitude    0.6
+  target_samples         14
+  samples_per_path       200000
+  train_seeds            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+  test_seeds             [100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111]
+  n_estimators           160
+  max_depth              8
+  min_samples_leaf       20
+  forest_seed            0
+
+training events          39687 (12.6 s)
+exceedance frequency     0.199485978
+forest fitted in         8.0 s
+
+analytic baseline        0.399640622  (eq(16) with the exact eq(15) MFD)
+empirical baseline       0.199485978  (measured training frequency)
+analytic MFD             1.526401990e-05 s = 15.2640 samples
+
+feature importances
+  log_depth_at_crossing              0.402391
+  log_depth_previous                 0.095882
+  descent_slope_1                    0.178402
+  descent_slope_4                    0.065231
+  window_log_std                     0.047877
+  window_lag1_autocorr               0.047786
+  window_min_log_margin              0.095821
+  window_fraction_below              0.025261
+  analytic_observed_exceedance       0.014050
+  analytic_observed_mfd_samples      0.027298
+
+artefact written         fade_exceedance_model.joblib (781263 bytes)
+==============================================================================

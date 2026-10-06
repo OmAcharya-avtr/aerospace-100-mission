@@ -1,0 +1,39 @@
+validate_afterpulse.py
+==============================================================================
+1 & 2. Cluster-size moments against direct sampling, n = 2000000
+   model             p    mean (MC)  mean (closed)     var (MC)  var (closed)
+   cascading     0.050     1.052848       1.052632     0.055632      0.055402
+   first_order   0.050     1.050010       1.050000     0.047509      0.047500
+   cascading     0.100     1.111058       1.111111     0.123487      0.123457
+   first_order   0.100     1.099516       1.100000     0.089612      0.090000
+   cascading     0.300     1.428203       1.428571     0.611149      0.612245
+   first_order   0.300     1.299547       1.300000     0.209819      0.210000
+   cascading     0.600     2.498112       2.500000     3.748584      3.750000
+   first_order   0.600     1.599951       1.600000     0.240010      0.240000
+   verdict: PASS
+
+3. Fano factor of the compound Poisson count, mu = 200 primaries per window
+   model             p    Fano (MC)  Fano (closed)   rel dev
+   cascading     0.050     1.101986       1.105263   0.00297
+   first_order   0.050     1.084514       1.095238   0.00979
+   cascading     0.100     1.223536       1.222222   0.00107
+   first_order   0.100     1.176545       1.181818   0.00446
+   cascading     0.300     1.866660       1.857143   0.00512
+   first_order   0.300     1.465820       1.461538   0.00293
+   verdict: PASS (within 5 %)
+
+4. Forward and inverse rate relations are exact inverses
+   worst relative round-trip error over both models and 19 values of p: 1.455e-16
+   verdict: PASS
+
+5. (A3) p_eff = p exp(-tau/t_ap) against the exponential survival fraction
+    tau/t_ap   p_eff (A3)   p * survival (MC)   rel dev       z
+       0.250   0.15576016          0.15581340   0.00034   +0.91
+       0.500   0.12130613          0.12130300   0.00003   -0.05
+       1.000   0.07357589          0.07350880   0.00091   -0.98
+       2.000   0.02706706          0.02701990   0.00174   -0.98
+       5.000   0.00134759          0.00136120   0.01010   +1.17
+   verdict: PASS (|z| < 5 against the binomial s.e.)
+
+==============================================================================
+checks passed: 4 of 4

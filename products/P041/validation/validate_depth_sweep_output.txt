@@ -1,0 +1,93 @@
+==============================================================================================
+INTERLEAVER DEPTH SWEEP
+==============================================================================================
+code                     RS(31,21) over GF(2^5), t=5, rate=0.677419
+modulation               OOK, thermal-limited, p_b = Q(sqrt(gbar) I), eq (26)
+mean electrical SNR      14.000 dB
+scintillation index      0.6
+symbol rate              1.000000e+06 Hz
+channel seed             7
+codewords per point      2048
+frame definition         one RS codeword; FER counts failures AND miscorrections
+
+----------------------------------------------------------------------------------------------
+correlation time tau = 2.000e-05 s   ->   Lc = tau*Rs = 20.0 symbols
+  sample MFD at a_th=0.6: 4.902512e-06 s = 4.90 symbols   (eq(15) exact: 4.89 symbols)
+  sample max fade:            76 symbols over 10350 fades in 400000 samples
+  depth sized to the mean fade: 5 symbols; to 3x the mean: 15
+  uncoded BER (same channel): 1.559065e-02
+
+   depth     D/Lc    raw SER    post BER        FER    FER SE   fail   mis  maxerr    lat ms      mem B
+  -----------------------------------------------------------------------------------------------------
+       1    0.050   0.065319  2.1382e-02   0.124512  0.005159    507     3      29     0.062         39
+       4    0.200   0.065319  1.2684e-02   0.094727  0.004576    385     3      17     0.248        155
+      16    0.800   0.065319  4.0016e-03   0.035889  0.002906    146     1      10     0.992        620
+      64    3.200   0.065319  1.8276e-03   0.017334  0.002039     71     0       8     3.968       2480
+     256   12.800   0.065319  1.4021e-03   0.014160  0.001846     58     0       7    15.872       9920
+    1024   51.200   0.065319  1.6741e-03   0.016113  0.001967     66     0      10    63.488      39680
+    4096  204.800   0.065319  1.6113e-03   0.015381  0.001923     63     0       8   253.952     158720
+
+----------------------------------------------------------------------------------------------
+correlation time tau = 2.000e-04 s   ->   Lc = tau*Rs = 200.0 symbols
+  sample MFD at a_th=0.6: 1.436617e-05 s = 14.37 symbols   (eq(15) exact: 15.26 symbols)
+  sample max fade:            580 symbols over 3583 fades in 400000 samples
+  depth sized to the mean fade: 15 symbols; to 3x the mean: 44
+  uncoded BER (same channel): 1.583933e-02
+
+   depth     D/Lc    raw SER    post BER        FER    FER SE   fail   mis  maxerr    lat ms      mem B
+  -----------------------------------------------------------------------------------------------------
+       1    0.005   0.065091  2.6216e-02   0.133057  0.005307    545     0      30     0.062         39
+       4    0.020   0.065091  2.3640e-02   0.131836  0.005286    539     1      30     0.248        155
+      16    0.080   0.065091  1.8113e-02   0.119385  0.005066    489     0      19     0.992        620
+      64    0.320   0.065091  6.8545e-03   0.055664  0.003582    227     1      10     3.968       2480
+     256    1.280   0.065091  1.5532e-03   0.014893  0.001893     61     0       9    15.872       9920
+    1024    5.120   0.065091  1.2719e-03   0.012207  0.001716     50     0       9    63.488      39680
+    4096   20.480   0.065091  8.0683e-04   0.007568  0.001354     31     0       7   253.952     158720
+
+----------------------------------------------------------------------------------------------
+correlation time tau = 1.000e-03 s   ->   Lc = tau*Rs = 1000.0 symbols
+  sample MFD at a_th=0.6: 3.355760e-05 s = 33.56 symbols   (eq(15) exact: 34.09 symbols)
+  sample max fade:            1548 symbols over 1467 fades in 400000 samples
+  depth sized to the mean fade: 34 symbols; to 3x the mean: 101
+  uncoded BER (same channel): 1.545585e-02
+
+   depth     D/Lc    raw SER    post BER        FER    FER SE   fail   mis  maxerr    lat ms      mem B
+  -----------------------------------------------------------------------------------------------------
+       1    0.001   0.061838  2.5133e-02   0.120117  0.005080    486     6      27     0.062         39
+       4    0.004   0.061838  2.4851e-02   0.119385  0.005066    487     2      28     0.248        155
+      16    0.016   0.061838  2.3856e-02   0.122314  0.005120    499     2      25     0.992        620
+      64    0.064   0.061838  1.9396e-02   0.121582  0.005106    494     4      15     3.968       2480
+     256    0.256   0.061838  6.2360e-03   0.053223  0.003507    218     0      11    15.872       9920
+    1024    1.024   0.061838  2.4182e-04   0.001953  0.000690      8     0       6    63.488      39680
+    4096    4.096   0.061838  1.3207e-03   0.011719  0.001682     48     0       7   253.952     158720
+
+----------------------------------------------------------------------------------------------
+HOW BIG IS THE REAL ERROR BAR? The FER SE column above is a binomial
+standard error, which assumes codeword failures are independent. They are
+not: they are driven by a handful of deep fades, so the binomial figure
+understates the uncertainty. The honest error bar is the spread across
+channel realisations, measured here over five seeds at the longest
+correlation time, where the record holds the fewest fades.
+
+  tau = 1.0e-03 s, Lc = 1000 symbols, 2048 codewords (63488 symbols = 63 correlation times)
+    depth     seed 7    seed 11    seed 23    seed 37    seed 53       mean  across-seed sd  binomial SE
+  ------------------------------------------------------------------------------------------------------
+       64   0.137207   0.139160   0.224609   0.112793   0.032227   0.129199        0.068810     0.007073
+      256   0.082520   0.051758   0.145508   0.132812   0.004883   0.083496        0.058021     0.005561
+     1024   0.003906   0.013184   0.067383   0.022461   0.000488   0.021484        0.027048     0.002640
+     4096   0.011719   0.004395   0.023682   0.005127   0.003906   0.009766        0.008399     0.001436
+
+  The across-seed standard deviation is several times the binomial standard
+  error at every depth. Above D/Lc ~ 1 the depth ordering is NOT resolvable
+  at this sample size: it reverses between channel seeds. Do not read a
+  single-seed difference between two deep depths as a real difference.
+
+----------------------------------------------------------------------------------------------
+total sweep wall-clock   44.6 s on one core
+
+Read the D/Lc column, not the depth column. The frame error rate falls
+once the depth passes the correlation length, and depths well below it buy
+nothing at all while still costing their full latency and memory. The
+latency column is the price: the deepest row here is a quarter of a second
+of end-to-end delay at 1 Mbaud.
+==============================================================================================

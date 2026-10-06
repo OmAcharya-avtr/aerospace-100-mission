@@ -1,0 +1,62 @@
+V1 CHANNEL VALIDATION -- acmpilot
+script: validation/validate_channel.py
+samples per check: 400000
+
+V1.1 Gauss-Markov driver, equations (1)-(2)
+ tau_c_ms       var   lag1_meas   lag1_eq2    rel_err
+      2.0   0.99704    0.605206   0.606531   2.18e-03
+      5.0   0.99337    0.817474   0.818731   1.54e-03
+     10.0   0.99129    0.904000   0.904837   9.26e-04
+     25.0   0.98902    0.960362   0.960789   4.45e-04
+
+V1.2 and V1.3 lognormal path: correlation time and scintillation index
+ tau_c_ms  sigma_i2_in  tau_meas_ms   rel_err   si2_meas   rel_err
+      5.0        0.200       5.0620  1.24e-02    0.19917  4.14e-03
+     10.0        0.500      10.1545  1.54e-02    0.49620  7.59e-03
+     25.0        1.000      25.5051  2.02e-02    0.97943  2.06e-02
+
+V1.4 and V1.5 gamma-gamma path: shapes, scintillation index, correlation time
+ si2_in    alpha     beta   si2_eq7   si2_meas   rel_err  tau_c_in_ms  tau_meas_ms   ratio
+   0.30  17.4316   4.3579   0.30000    0.29655  1.15e-02         10.0       9.3090   0.931
+   0.70   7.8690   1.9673   0.70000    0.69227  1.10e-02         10.0       8.7361   0.874
+   1.50   4.0000   1.0000   1.50000    1.48814  7.91e-03         10.0       7.9171   0.792
+  gamma-gamma correlation time is shorter than the driver's, as documented.
+
+V1.6 mean fade duration scales with tau_c (threshold at the 10% quantile)
+ tau_c_ms   thr_dB  n_fades  mean_fd_ms  median_fd_ms  max_fd_ms
+      2.5    9.562    22178      1.8036        1.0000     14.000
+      5.0    9.558    16583      2.4121        2.0000     29.000
+     10.0    9.556    12088      3.3091        2.0000     51.000
+     20.0    9.558     8638      4.6307        2.0000     91.000
+     40.0    9.563     6088      6.5703        2.0000    156.000
+  log-log scaling exponent of mean fade duration against tau_c: 0.4671
+  exponent 1 would mean exact proportionality; the value above is measured.
+
+V1.7 mean_fade_duration * level_crossing_rate vs outage_fraction
+ tau_c_ms  quantile    outage    fd*lcr   rel_err
+      5.0      0.05   0.05000   0.05000  0.00e+00
+      5.0      0.10   0.10000   0.10000  2.78e-16
+      5.0      0.25   0.25000   0.25000  0.00e+00
+     10.0      0.05   0.05000   0.05000  1.39e-16
+     10.0      0.10   0.10000   0.10000  0.00e+00
+     10.0      0.25   0.25000   0.25000  2.22e-16
+     20.0      0.05   0.05000   0.05000  0.00e+00
+     20.0      0.10   0.10000   0.10000  1.39e-16
+     20.0      0.25   0.25000   0.25000  2.22e-16
+
+V1.8 analytic Rice level-crossing rate, equations (10)-(12), vs measured
+ tau_c_ms   thr_dB  lcr_meas_Hz  lcr_rice_Hz    ratio
+      5.0      8.0      16.9750      17.2698    0.983
+      5.0     10.0      50.4875      50.7196    0.995
+      5.0     12.0      89.2375      88.2893    1.011
+     10.0      8.0      12.4375      12.5129    0.994
+     10.0     10.0      36.9800      36.7491    1.006
+     10.0     12.0      64.3025      63.9704    1.005
+     20.0      8.0       8.9500       8.9579    0.999
+     20.0     10.0      26.6900      26.3083    1.015
+     20.0     12.0      45.7900      45.7958    1.000
+  The ratio is reported, not tuned. The prediction is stated at the
+  sampling interval used (1 ms) and is sampling-rate dependent by
+  construction; see rice_level_crossing_rate_hz, equation (11).
+
+V1 COMPLETE

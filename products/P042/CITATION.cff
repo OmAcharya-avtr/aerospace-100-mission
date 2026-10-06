@@ -1,0 +1,132 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "acmpilot: adaptive coding and modulation on one optical link under round-trip feedback delay"
+version: 0.1.0
+date-released: 2026-10-06
+license: AGPL-3.0-or-later
+abstract: >-
+  Rate adaptation on a single free-space optical link in the regime where the
+  policy necessarily acts on a channel state that is already stale. A temporally
+  correlated fading channel with lognormal and gamma-gamma marginals, driven by a
+  stationary first-order Gauss-Markov process so that fade duration and
+  level-crossing rate are emergent sample statistics rather than parameters; an
+  eight-mode modulation-and-coding ladder spanning 0.498 to 3.749 bit per symbol
+  whose switching thresholds are measured by Monte Carlo through the package's own
+  modulator and Reed-Solomon bounded-distance accounting, each with a Monte Carlo
+  uncertainty of at most 0.045 dB; an explicit round-trip feedback delay against
+  which every result is reported; fixed-margin, hysteresis and clairvoyant
+  upper-bound selection policies, the last labelled throughout as unachievable by
+  any causal policy; mis-selection accounting split into too-aggressive and
+  too-conservative with their separate costs; and a learned quantile channel
+  predictor whose calibrated confidence output gates aggressive rate choices,
+  benchmarked against all three baselines and against an analytic AR(1)
+  minimum-mean-square-error predictor on identical seeded sample paths with every
+  baseline tuned on held-out data first. The published result is that the learned
+  predictor does not beat the analytic one at any feedback delay on either channel
+  marginal, and that the confidence gate is worth two orders of magnitude more
+  than the choice of predictor. Validation level 3, research grade. Every number
+  is a property of this simulator; nothing is validated against measured
+  turbulence data. Not flight-qualified, not certified, not approved for
+  operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - adaptive-coding-and-modulation
+  - free-space-optics
+  - feedback-delay
+  - rate-adaptation
+  - modcod
+  - channel-prediction
+  - reed-solomon
+  - gamma-gamma-fading
+references:
+  - type: book
+    authors:
+      - family-names: Andrews
+        given-names: "L. C."
+      - family-names: Phillips
+        given-names: "R. L."
+    title: "Laser Beam Propagation through Random Media"
+    edition: "2nd"
+    publisher:
+      name: "SPIE Press"
+    year: 2005
+    notes: >-
+      Cited for the weak-turbulence lognormal irradiance model and its validity
+      range. No page, equation number or table is quoted from it; the lognormal
+      relations used here are the standard ones and are verified numerically in
+      validation/validate_channel.py.
+  - type: article
+    authors:
+      - family-names: Al-Habash
+        given-names: "M. A."
+      - family-names: Andrews
+        given-names: "L. C."
+      - family-names: Phillips
+        given-names: "R. L."
+    title: >-
+      Mathematical model for the irradiance probability density function of a
+      laser beam propagating through turbulent media
+    journal: "Optical Engineering"
+    volume: 40
+    issue: 8
+    year: 2001
+    notes: >-
+      Cited for the gamma-gamma irradiance model and its scintillation-index
+      relation, which this package solves for its shape parameters and then
+      verifies numerically rather than asserting.
+  - type: article
+    authors:
+      - family-names: Rice
+        given-names: "S. O."
+    title: "Mathematical analysis of random noise"
+    journal: "Bell System Technical Journal"
+    volume: 23
+    year: 1944
+    notes: >-
+      Cited, together with its 1945 continuation in volume 24, for the
+      level-crossing-rate formula used as an analytic cross-check on the emergent
+      fade statistics. The package applies it with the derivative variance implied
+      by discrete sampling, which is stated in the code and in VALIDATION.md.
+  - type: article
+    authors:
+      - family-names: Goldsmith
+        given-names: "A. J."
+      - family-names: Chua
+        given-names: "S.-G."
+    title: "Variable-rate variable-power MQAM for fading channels"
+    journal: "IEEE Transactions on Communications"
+    volume: 45
+    issue: 10
+    year: 1997
+    notes: >-
+      Cited for the adaptive-modulation framing: selecting rate against an
+      estimated channel state. This package implements neither its power
+      adaptation nor its continuous-rate result; only the framing is borrowed.
+  - type: standard
+    title: >-
+      Digital Video Broadcasting (DVB); Second generation framing structure,
+      channel coding and modulation systems for Broadcasting, Interactive
+      Services, News Gathering and other broadband satellite applications (DVB-S2)
+    number: "ETSI EN 302 307"
+    institution:
+      name: "ETSI"
+    notes: >-
+      Named as the canonical real-world adaptive-coding-and-modulation MODCOD
+      table, so that a reader wanting standardised thresholds knows where to go.
+      This package does not implement DVB-S2, quotes no number from it, and its
+      Reed-Solomon thresholds are several dB worse than DVB-S2 LDPC thresholds at
+      comparable spectral efficiency.
+  - type: book
+    authors:
+      - family-names: Proakis
+        given-names: "J. G."
+      - family-names: Salehi
+        given-names: "M."
+    title: "Digital Communications"
+    publisher:
+      name: "McGraw-Hill"
+    notes: >-
+      Cited for the standard AWGN error-rate expressions for Gray-coded PSK and
+      square QAM, used in this package only as checks on its own Monte Carlo
+      measurement. No page, edition-specific equation number or table is quoted.

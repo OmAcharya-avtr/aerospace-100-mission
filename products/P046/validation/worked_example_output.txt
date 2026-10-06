@@ -1,0 +1,30 @@
+Target: fully disperse a channel burst of 32 symbols
+Symbol rate: 2.5e+06 symbols/s
+
+BlockInterleaver(depth=33, span=3)
+  block length                 99 symbols
+  minimum spread               4
+  largest fully dispersed burst 33 symbols
+  surviving run at burst 32     1 symbol(s)
+  surviving run at burst 64     2 symbols
+  pair latency                 198 symbols = 0.0792 ms
+  pair memory                  198 symbols = 198 bytes at 8 bits/symbol
+
+ConvolutionalInterleaver(registers=2, slope=17)
+  register delays              [0, 17] symbols
+  start-up transient           34 symbols
+  largest fully dispersed burst 33 symbols
+  surviving run at burst 32     1 symbol(s)
+  pair latency                 34 symbols = 0.0136 ms
+  pair memory                  34 symbols = 34 bytes at 8 bits/symbol
+
+symbol rate 2.5e+06 sym/s
+construction                                                 N  pair lat   pair lat  pair mem   min  burst
+                                                           sym       sym         ms       sym  sprd   disp
+------------------------------------------------------------------------------------------------------------
+BlockInterleaver(depth=33, span=3)                          99       198     0.0792       198     4     33
+ConvolutionalInterleaver(registers=2, slope=17)            154        34     0.0136        34     -     33
+
+The bank delivers the same dispersed burst for 5.82x less pair memory.
+It gives no minimum-spread guarantee, so it is the wrong choice if the
+permutation also has to feed a turbo decoder.

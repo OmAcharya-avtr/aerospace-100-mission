@@ -1,0 +1,56 @@
+slotsync validation: self-noise induced static lock offset
+pulse nyq-rc-0.5, zeta 0.707107
+
+1. the open-loop S-curve crosses zero at zero offset for every detector
+-----------------------------------------------------------------------
+   detector                             S(0)          K_d   self-noise sigma
+   early-late (dd, d=0.25)         7.156e-17     1.731332           0.556254
+   gardner                        -2.797e-17     1.508455           0.242791
+   mueller-muller                  5.551e-17     1.570784           0.000000
+   so nothing in the open-loop detector predicts a lock offset.
+
+2. the closed loop locks away from zero, proportionally to B_n
+--------------------------------------------------------------
+   measured at 50 dB per-sample SNR, where channel noise is negligible and only
+   self-noise remains; 60000 symbols per point, static offset with its batch-means
+   standard error
+   detector                        B_n       offset       s.e.  offset / B_n  rms jitter
+   early-late (dd, d=0.25)      0.0025    +0.000945   1.29e-05        0.3780    0.001563
+   early-late (dd, d=0.25)      0.0050    +0.001910   1.61e-05        0.3820    0.003121
+   early-late (dd, d=0.25)      0.0100    +0.003837   2.50e-05        0.3837    0.006267
+   early-late (dd, d=0.25)      0.0200    +0.007727   4.57e-05        0.3863    0.012665
+   gardner                      0.0025    +0.001477   1.68e-05        0.5908    0.001017
+   gardner                      0.0050    +0.002927   1.86e-05        0.5853    0.002021
+   gardner                      0.0100    +0.005727   2.33e-05        0.5727    0.004093
+   gardner                      0.0200    +0.010994   3.91e-05        0.5497    0.008511
+   mueller-muller               0.0025    +0.000011   1.48e-05        0.0045    0.000218
+   mueller-muller               0.0050    +0.000004   1.55e-05        0.0007    0.000303
+   mueller-muller               0.0100    +0.000006   1.38e-05        0.0006    0.000419
+   mueller-muller               0.0200    +0.000008   1.36e-05        0.0004    0.000592
+
+   offset / B_n is constant to within a few per cent for the two self-noisy
+   detectors, which is the signature of a noise-bandwidth-proportional effect.
+
+3. the offset does not depend on the channel SNR
+------------------------------------------------
+   Gardner at B_n = 0.01 across 40 dB of channel SNR
+     snr_dB       offset       s.e.   sigma_n^2  self-noise
+       50.0    +0.005727   2.33e-05    0.058957    0.058921
+       30.0    +0.005750   1.61e-04    0.062436    0.058921
+       20.0    +0.005896   5.08e-04    0.094135    0.058921
+       14.0    +0.006338   1.04e-03    0.201317    0.058921
+       10.0    +0.007269   1.74e-03    0.428309    0.058921
+   the detector output variance rises by two orders of magnitude across this sweep
+   and the static offset does not move: it is not a channel-noise effect.
+
+summary
+-------
+   Mueller-Mueller static offset, largest magnitude over the four bandwidths: 1.12e-05 symbol, which is 0.76 standard errors - indistinguishable from zero
+   early-late and Gardner offsets are 20 to 280 standard errors from zero: largest 281 sigma for Gardner
+   early-late       offset / B_n = +0.3825 symbol per unit B_n, spread 2.2 %
+   gardner          offset / B_n = +0.5746 symbol per unit B_n, spread 7.1 %
+   gate: Mueller-Mueller offset below 5e-05 symbol and within 3 standard errors of
+   zero, and offset / B_n constant to
+   within 35 % for the two self-noisy detectors
+   within tolerance: True
+   elapsed 20.3 s
