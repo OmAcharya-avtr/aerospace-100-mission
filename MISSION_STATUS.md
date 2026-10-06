@@ -1,5 +1,99 @@
 # Mission Status
 
+> ## Reconciliation — 2026-10-06 (authoritative; supersedes the 2026-10-05 block below)
+>
+> Figures derived mechanically from `products.yaml` and from
+> `scripts/quota_report.py` re-run on 2026-10-06. Test counts are measured from
+> junit XML by the coordinating session via `scripts/release_gate.py`.
+>
+> - **50 of 100 products registered, built and PUBLISHED. The mission is exactly
+>   halfway.** Batches 01–05 are complete. Every one of the 50 has its own
+>   repository (ADR-018); `tracking/RELEASE_LEDGER.md` lists them.
+> - **Batch 05 (P041–P050) closed and published 2026-10-06.** Theme: optical
+>   modulation, coding and the fading-channel link layer. Authorization was
+>   ADR-017 standing authorization plus `scripts/release_gate.py` exit 0. No
+>   approval row was written, no product was set to `APPROVED`, and no words are
+>   attributed to the owner (ADR-016).
+> - **Automated tests passing: 2,585 across the ten Batch 05 products, 0 failing,
+>   0 errored, 0 skipped**, measured from junit XML. This figure covers Batch 05
+>   only. The 2,371 measured for Batch 04 stands as that batch's figure; no
+>   cumulative total across all fifty products has ever been measured in one run,
+>   and none is asserted here. A future run that gates all fifty should replace
+>   this line with its own measured total.
+> - **All ten agent self-reported test counts matched the independent measurement
+>   exactly.** Recorded as a measurement outcome, not as licence to trust
+>   self-reports: the agreement is only knowable because the counts were
+>   re-measured, which ADR-008 and ADR-010 require.
+> - **Gate verdict: `PUSH ALLOWED`** on the first attempt — ten of ten products
+>   PASS plus `repository PASS`, `blocked: []`, `repository_failures: []`. The
+>   gate script was not modified, no check skipped, no threshold loosened. Unlike
+>   2026-10-05, no second run was needed: there was no hygiene defect to fix.
+> - **`git status` over `products/` after the gate run was clean**, so every
+>   committed raw validation output, PNG and benchmark record still reproduces
+>   bit-for-bit from a fresh run.
+> - **Contributor check: exactly `OmAcharya-avtr`, one line, on all ten new
+>   repositories**, author email
+>   `145807881+OmAcharya-avtr@users.noreply.github.com`. Each was verified on
+>   three counts simultaneously — one contributor, local `HEAD` equal to remote
+>   `refs/heads/main`, CI workflow tracked. **10 of 10 OK, zero defects.**
+> - **Quota:** flagship 10/20, medium 15/30, compact 25/50, AI 35/70;
+>   validation L1 8/10, L2 30/60, L3 12/25, **L4 0/5**. Every class sits at
+>   precisely half of its target.
+> - **L1 was deliberately frozen at 8 of 10.** Batch 05 produced no L1 product,
+>   answering the previous reconciliation's instruction directly. Two slots
+>   remain for the five batches after this one.
+> - **L3 reaches 25 at the current rate, and the previous block's warning is
+>   withdrawn.** 12 built, 3 per batch, five batches left → 12 + 15 = 27 ≥ 25.
+>   Flagship validation depth does not need raising and medium products do not
+>   need promoting.
+> - **Level 4 is still zero, and that remains correct.** P041 CodedFade and P043
+>   PhotonCount join P031 HilForge and P033 EdgeInfer carrying the groundwork,
+>   labelled `Level 3, hardware-pending`. **Four candidates are now ready.** None
+>   is Level 4 and none may be relabelled until measured timing and resource use
+>   come from the Jetson Orin Nano itself. **This is the one mission target no
+>   cloud session can close**, and it is now past its own Batch 05 deadline.
+> - **Three cross-checks ran. X1 PASSED, X3 PASSED, X2 DISAGREED on a defect in
+>   this session's own specification.** X1 (P041 ↔ P049, independent
+>   implementations on one seeded series) agreed to 5.0e-07 on level-crossing
+>   rate and 2.2e-16 on mean fade duration, and the entire residual is one
+>   record-duration convention. X2 (P044 ↔ P010) disagreed by a factor of 12.45
+>   because the specification never said whether the lognormal variate multiplies
+>   amplitude or power; re-run with the convention matched (P048 ↔ P010) it
+>   passes at z = +0.49. **Neither product is defective** and nothing was retuned.
+> - **Seven honest negatives published**, bringing the portfolio to sixteen. In
+>   four products a non-learned method beat the learned one and was published as
+>   the result: P042's analytic AR(1) predictor, P045's two-integer fixed HARQ
+>   schedule, P048's analytic posterior-aware LLR, and P049's Platt-recalibrated
+>   level-crossing predictor.
+> - **A premise in this batch's own specification was wrong and was corrected
+>   rather than repeated.** The spec claimed `komm` ships interleaving
+>   primitives; four agents independently read the 0.36.0 wheel and established
+>   that it ships no interleaver, no fading channel, no diversity combining and
+>   no ARQ. The method — unpack the wheel, never trust the description — is now
+>   how every alternatives table in this batch was built.
+> - **Security:** `bandit` over 46,150 LOC gives 0 HIGH, 0 MEDIUM, 10 LOW (all
+>   `B101` asserts). `detect-secrets` gives 2 findings, both the same false
+>   positive traced mechanistically to the substring `ghs_` inside `HIGHS_` —
+>   the solver's own name — in a long test identifier. `pip-audit` over the
+>   declared dependency union reports no known vulnerabilities. No unresolved
+>   critical finding. No token was read, displayed, reused, copied, committed or
+>   logged.
+> - **`tracking/products_tracker.csv` was repaired from 20 rows to 40.** Batch 04
+>   was backfilled from the junit figures recorded in the committed 2026-10-05
+>   checkpoint, and Batch 05 added with this session's measurements. **Batch 03
+>   (P021–P030) remains absent** because no measured test counts for it exist in
+>   any committed record, and this session would not invent them.
+> - **The publication path was verified before any build work**, per the three
+>   Phase −1 checks plus a SHA-256 comparison on every container-to-Mac transfer.
+>   All three transfers matched exactly. `connectedFolders` was empty at session
+>   start, as predicted, and `device_request_folder_access` granted the mission
+>   folder with no owner action.
+> - **Correction to a standing note:** scheduled device-bound runs are *not*
+>   memory-blind. `mcp__remote-devices__project_memory_read` does fail, but the
+>   account memory tools read `/projects/<id>/aero_mission.md` and
+>   `model_policy.md` normally. The earlier note named the wrong tool.
+>
+
 > ## Reconciliation — 2026-10-05 (authoritative; supersedes the 2026-10-03 block below)
 >
 > Figures derived mechanically from `products.yaml` and from

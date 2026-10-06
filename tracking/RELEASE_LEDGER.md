@@ -245,3 +245,59 @@ on purpose. **This needs the owner** — see the nightly report.
 **Cumulative after this batch:** 40 of 100 registered, built and published.
 Flagship 8/20, medium 12/30, compact 20/50, AI 28/70. Validation L1 8/10,
 L2 23/60, L3 9/25, **L4 0/5 — unchanged, and correctly so.**
+
+---
+
+## Batch 05 (P041–P050) — published 2026-10-06
+
+Authorization: **ADR-017 standing authorization plus `scripts/release_gate.py` exit 0.**
+No approval row was written, no product was set to `APPROVED`, and no words are
+attributed to the owner (ADR-016).
+
+| Product | Repository | Tests (junit) | Gate | Contributors |
+|---|---|---:|---|---|
+| P041 CodedFade | https://github.com/OmAcharya-avtr/codedfade | 315 | PASS | `OmAcharya-avtr` |
+| P042 AcmPilot | https://github.com/OmAcharya-avtr/acmpilot | 398 | PASS | `OmAcharya-avtr` |
+| P043 PhotonCount | https://github.com/OmAcharya-avtr/photoncount | 302 | PASS | `OmAcharya-avtr` |
+| P044 ApertureDiv | https://github.com/OmAcharya-avtr/aperturediv | 339 | PASS | `OmAcharya-avtr` |
+| P045 ArqLongHaul | https://github.com/OmAcharya-avtr/arqlonghaul | 229 | PASS | `OmAcharya-avtr` |
+| P046 InterleaveKit | https://github.com/OmAcharya-avtr/interleavekit | 191 | PASS | `OmAcharya-avtr` |
+| P047 SlotSync | https://github.com/OmAcharya-avtr/slotsync | 234 | PASS | `OmAcharya-avtr` |
+| P048 SoftDecode | https://github.com/OmAcharya-avtr/softdecode | 161 | PASS | `OmAcharya-avtr` |
+| P049 LinkOutage | https://github.com/OmAcharya-avtr/linkoutage | 264 | PASS | `OmAcharya-avtr` |
+| P050 CodeRateOpt | https://github.com/OmAcharya-avtr/coderateopt | 152 | PASS | `OmAcharya-avtr` |
+| | | **2585** | **PUSH ALLOWED** | one name on all ten |
+
+All ten public, default branch `main`, `.github/workflows/tests.yml` present and
+pushed with the Keychain credential because the `gh` token lacks `workflow`
+scope. Commit author email on all ten:
+`145807881+OmAcharya-avtr@users.noreply.github.com`. **Zero authorship
+defects.** Every repository was verified after pushing on three counts at once:
+exactly one contributor from `gh api`, local `HEAD` equal to remote
+`refs/heads/main`, and the CI workflow tracked — 10 of 10 OK, 0 defects.
+
+Test counts are **measured from junit XML by the coordinating session**, not
+taken from any agent's self-report. All ten agent self-reports happened to match
+the independent measurement exactly, which is recorded as a measurement result
+rather than as a reason to trust self-reports next time.
+
+All ten package names verified free before building, with a controlled method:
+`pip index versions` returned "No matching distribution found" for `codedfade`,
+`acmpilot`, `photoncount`, `aperturediv`, `arqlonghaul`, `interleavekit`,
+`slotsync`, `softdecode`, `linkoutage`, `coderateopt`, and returned version
+lists for nine packages known to exist, so the absences distinguish a free name
+from a broken transport.
+
+Monorepo pushed commits this session: **4** of the nightly ceiling of 5 —
+`500c2dd`, `8b9af94`, `938eb83` and this entry's commit. Per-product
+repositories are separate and not counted against that ceiling.
+
+**`approved_for_publish` stays `false` on all ten, deliberately**, exactly as in
+Batch 04 and for the same reason: ADR-016 clause 3 bars an unattended session
+from setting it, while ADR-017 authorizes the push. The two fields disagree on
+purpose and **this still needs the owner.**
+
+**Cumulative after this batch: 50 of 100 registered, built and published — the
+mission is exactly halfway.** Flagship 10/20, medium 15/30, compact 25/50,
+AI 35/70. Validation L1 8/10, L2 30/60, L3 12/25, **L4 0/5 — unchanged, and
+correctly so.** Every class sits at precisely half of its target.
