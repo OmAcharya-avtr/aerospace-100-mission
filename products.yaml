@@ -637,3 +637,155 @@ products:
     published: true
     publication_basis: >-
       ADR-017 standing authorization; scripts/release_gate.py exit 0 on 2026-10-05 (10/10 products PASS, 2371 tests from junit XML, repository PASS). No per-batch approval exists, none is cited, and approved_for_publish stays false because ADR-016 clause 3 bars an unattended session from setting it.
+
+  - id: P041
+    name: CodedFade
+    batch: 5
+    class: flagship
+    category: optical-modulation
+    summary: Coded FSO link performance over a correlated fading channel — lognormal and gamma-gamma sample paths with specified temporal correlation, in-package Reed-Solomon and convolutional coding, block and convolutional interleaving, post-decoding BER/FER against interleaver depth versus channel correlation time with the latency and memory cost of each depth; hardware abstraction layer with simulated and device backends, simulation and dry-run modes, executable deployment and recovery checks, benchmark harness; learned fade-duration exceedance predictor against the analytic level-crossing-rate baseline.
+    ai_enabled: true
+    validation_level: 3
+    hardware_pending: true
+    status: DEVELOPING
+    license: AGPL-3.0 (open-core)
+    repository: null
+    local_path: products/P041
+    approved_for_publish: false
+    published: false
+
+  - id: P042
+    name: AcmPilot
+    batch: 5
+    class: flagship
+    category: optical-modulation
+    summary: Adaptive coding and modulation on a single optical link under feedback delay — declared MODCOD set with measured thresholds, fixed-margin and hysteresis-threshold policies plus a clairvoyant upper bound no causal policy can beat, throughput and outage and mis-selection accounting against round-trip feedback delay; learned channel predictor over the feedback horizon with a confidence output gating aggressive rate choices.
+    ai_enabled: true
+    validation_level: 3
+    status: DEVELOPING
+    license: AGPL-3.0 (open-core)
+    repository: null
+    local_path: products/P042
+    approved_for_publish: false
+    published: false
+
+  - id: P043
+    name: PhotonCount
+    batch: 5
+    class: medium
+    category: optical-modulation
+    summary: Photon-counting receiver chain for photon-starved optical links — Poisson and Webb detection statistics, PPM slot statistics, paralyzable and non-paralyzable dead time and afterpulsing, soft-decision metrics for PPM over the Poisson channel, Poisson capacity bounds; hardware abstraction layer with simulated and device backends, simulation and dry-run modes, executable deployment and recovery checks, benchmark harness; learned dead-time and afterpulsing correction against the closed-form corrections with an uncertainty interval.
+    ai_enabled: true
+    validation_level: 3
+    hardware_pending: true
+    status: DEVELOPING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P043
+    approved_for_publish: false
+    published: false
+
+  - id: P044
+    name: ApertureDiv
+    batch: 5
+    class: medium
+    category: optical-link-engineering
+    summary: Multi-aperture receive diversity for FSO — gamma-gamma and lognormal pdf and cdf, aperture averaging factor, inter-aperture spatial correlation against separation, maximal-ratio and equal-gain and selection combining, outage probability and diversity order, and the gap between correlated and independent-aperture idealisation; learned combiner weighting for the imperfect-CSI regime against the analytic MRC optimum.
+    ai_enabled: true
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P044
+    approved_for_publish: false
+    published: false
+
+  - id: P045
+    name: ArqLongHaul
+    batch: 5
+    class: medium
+    category: satellite-communications
+    summary: ARQ and hybrid-ARQ throughput over links where round-trip time dominates — stop-and-wait, go-back-N and selective-repeat, window sizing against bandwidth-delay product, HARQ with incremental redundancy, goodput against raw BER and burst structure and RTT, and the crossover where retransmission is cheaper than redundancy; learned retransmission and redundancy policy against fixed-rate HARQ and the analytic throughput expressions.
+    ai_enabled: true
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P045
+    approved_for_publish: false
+    published: false
+
+  - id: P046
+    name: InterleaveKit
+    batch: 5
+    class: compact
+    category: optical-modulation
+    summary: Interleaver construction and burst-dispersion metrics — block, convolutional, helical and S-random interleavers, minimum-spread and dispersion metrics, latency and memory cost per construction, known-answer tests with hand-computed permutations and property tests for the interleave and de-interleave identity.
+    ai_enabled: false
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P046
+    approved_for_publish: false
+    published: false
+
+  - id: P047
+    name: SlotSync
+    batch: 5
+    class: compact
+    category: optical-modulation
+    summary: Slot and symbol timing recovery for OOK and PPM optical receivers — early-late, Gardner and Mueller-Muller timing-error detectors, S-curve computation, loop bandwidth and damping against jitter variance, cycle-slip rate, validated against classical loop-noise results with the reference named per equation.
+    ai_enabled: false
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P047
+    approved_for_publish: false
+    published: false
+
+  - id: P048
+    name: SoftDecode
+    batch: 5
+    class: compact
+    category: optical-modulation
+    summary: Soft-decision demapping over fading optical channels including the stale-channel-state penalty — exact LLRs for OOK and PPM over lognormal and gamma-gamma fading, max-log approximation and its error, LLR clipping effects, and the mismatched-CSI penalty as a measured quantity; learned LLR corrector for the mismatched-CSI regime against exact LLR as upper bound and max-log as baseline.
+    ai_enabled: true
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P048
+    approved_for_publish: false
+    published: false
+
+  - id: P049
+    name: LinkOutage
+    batch: 5
+    class: compact
+    category: optical-link-engineering
+    summary: Outage and availability statistics for an optical link — fade-duration distributions, level-crossing rates, outage probability and availability from a seeded or supplied amplitude series, Markov and semi-Markov channel-state fitting with a goodness-of-fit report; short-horizon outage classifier against the analytic level-crossing-rate predictor and a logistic-regression baseline with calibration reported.
+    ai_enabled: true
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P049
+    approved_for_publish: false
+    published: false
+
+  - id: P050
+    name: CodeRateOpt
+    batch: 5
+    class: compact
+    category: optical-modulation
+    summary: Code-rate and margin selection as a constrained optimisation — maximise expected goodput subject to a stated availability constraint over a discrete MODCOD and rate set using scipy.optimize.milp, with sensitivity of the chosen rate to the fade statistics so a knife-edge optimum is distinguishable from a flat one, and known-answer tests against hand-solved small instances.
+    ai_enabled: false
+    validation_level: 2
+    status: DEVELOPING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P050
+    approved_for_publish: false
+    published: false
