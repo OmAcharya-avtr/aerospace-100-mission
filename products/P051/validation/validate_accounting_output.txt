@@ -1,0 +1,93 @@
+validate_accounting.py   seed = 51054, steps = 2000
+==============================================================================
+check 1  the reference scenario (seed 51, uniform sampler, no hysteresis)
+------------------------------------------------------------------------------
+steps                            2000  (100.0 s at dt = 0.05 s)
+
+1  switch rate
+   authority changes             140
+   per 1000 steps                70.000
+   per second                    1.4000
+
+2  dwell-time distribution (steps)
+   baseline   n=70     min=1    median=2.00    mean=2.400    max=5     len-1 fraction=0.314
+   performance n=71    min=1    median=1.00    mean=25.803   max=83    len-1 fraction=0.648
+   baseline dwell histogram      {'1': 22, '2': 24, '3': 0, '4': 22, '5': 2, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0, '>10': 0}
+
+3  authority share
+   fraction under baseline       0.084000
+   steps held by min-dwell       0
+
+4  conservatism cost (weights state=[10.0, 0.1], input=[0.01])
+   guarded cost                  258.634365
+   unguarded cost                215.826971
+   baseline-only cost            650.257772
+   guarded / unguarded           1.198341
+   guarded - unguarded           42.807394
+   fraction of the baseline-to-unguarded gap recovered  0.901463
+
+5  constraint violations against the declared X
+   guarded                       0
+   unguarded                     168
+   baseline only                 0
+   guarded worst row residual    -1.612008461e-03
+   unguarded worst row residual  3.197937271e-01
+
+6  invariant-set exits (certificate lost)
+   guarded                       0
+   unguarded                     189
+
+   switching-condition margin
+   minimum over the episode      -1.226786374e-01
+   median over the episode       1.189731172e-01
+   median at the firing steps    -4.822443534e-02
+------------------------------------------------------------------------------
+[PASS] check 1  reference scenario: guarded violations 0, unguarded 168, conservatism cost ratio 1.198341, baseline fraction 0.084000
+
+check 2  the same scenario over 10 seeds
+------------------------------------------------------------------------------
+  switches per 1000 steps   mean 67.900000  min 65.000000  max 70.000000  sd 1.523884
+  baseline fraction         mean 0.084000  min 0.084000  max 0.084000  sd 0.000000
+  baseline dwell mean       mean 2.475365  min 2.400000  max 2.584615  sd 0.056340
+  conservatism cost ratio   mean 1.199811  min 1.198341  max 1.201612  sd 0.000905
+  gap recovered             mean 0.900232  min 0.897001  max 0.902130  sd 0.001477
+  unguarded violations      mean 168.000000  min 168.000000  max 168.000000  sd 0.000000
+  unguarded S exits         mean 188.500000  min 187.000000  max 190.000000  sd 0.971825
+------------------------------------------------------------------------------
+[PASS] check 2  zero guarded violations on every seed: 10 seeds, 0 guarded violations, 0 guarded S exits, 1680 unguarded violations over 20000 steps
+[PASS] check 2b the conservatism cost is positive on every seed: ratio range [1.198341, 1.201612]
+
+check 3  all three disturbance samplers, seed 51
+------------------------------------------------------------------------------
+  zero     switches/1k=  72.00 base frac=0.084000 cost ratio=1.196352 guarded X-viol=0 guarded S-exit=0 unguarded X-viol=168
+  uniform  switches/1k=  70.00 base frac=0.084000 cost ratio=1.198341 guarded X-viol=0 guarded S-exit=0 unguarded X-viol=168
+  vertex   switches/1k=  63.00 base frac=0.084000 cost ratio=1.206206 guarded X-viol=0 guarded S-exit=0 unguarded X-viol=168
+------------------------------------------------------------------------------
+[PASS] check 3  zero guarded violations under every sampler: zero for the zero, uniform and worst-case vertex samplers
+[PASS] check 4  dwell totals, interval counts and the authority fraction agree: 10 seeds checked exactly
+
+check 5  minimum baseline dwell: switch rate against conservatism cost
+------------------------------------------------------------------------------
+  dwell=1   switches/1k=  70.00 base frac=0.084000 cost ratio=1.198341 held by dwell=0     min baseline dwell=1   X-viol=0
+  dwell=2   switches/1k=  70.00 base frac=0.096000 cost ratio=1.201536 held by dwell=26    min baseline dwell=2   X-viol=0
+  dwell=4   switches/1k=  46.00 base frac=0.096000 cost ratio=1.214139 held by dwell=50    min baseline dwell=4   X-viol=0
+  dwell=8   switches/1k=  26.00 base frac=0.104000 cost ratio=1.273843 held by dwell=108   min baseline dwell=8   X-viol=0
+  dwell=16  switches/1k=  24.00 base frac=0.192000 cost ratio=1.392117 held by dwell=286   min baseline dwell=16  X-viol=0
+------------------------------------------------------------------------------
+[PASS] check 5a hysteresis does not increase the switch rate: 70.00 per 1000 steps at dwell 1 falling to 24.00 at dwell 16, monotonically non-increasing. It is NOT strictly decreasing: at dwell [2] the switch rate is unchanged, because a two-step minimum merely extends baseline intervals that were already going to end in a switch rather than merging two of them. The authority fraction rises from 0.084000 to 0.096000 for no reduction at all, which is the worst setting in the table
+[PASS] check 5b hysteresis costs tracking performance: cost ratio 1.198341 at dwell 1 rising to 1.392117 at dwell 16
+[PASS] check 5c hysteresis never costs safety: zero violations and zero S exits at every dwell setting, as the invariance of S under the baseline requires
+
+check 6  reference amplitude: how hard the performance controller pushes
+------------------------------------------------------------------------------
+  amp=0.06 rad  switches/1k=   0.00 base frac=0.000000 cost ratio=1.000000 guarded X-viol=0    unguarded X-viol=0     unguarded S-exit=0
+  amp=0.10 rad  switches/1k=   0.00 base frac=0.000000 cost ratio=1.000000 guarded X-viol=0    unguarded X-viol=0     unguarded S-exit=0
+  amp=0.14 rad  switches/1k=  40.00 base frac=0.044000 cost ratio=1.096702 guarded X-viol=0    unguarded X-viol=120   unguarded S-exit=120
+  amp=0.18 rad  switches/1k=  70.00 base frac=0.084000 cost ratio=1.198341 guarded X-viol=0    unguarded X-viol=168   unguarded S-exit=189
+  amp=0.22 rad  switches/1k=  98.00 base frac=0.133000 cost ratio=1.307431 guarded X-viol=0    unguarded X-viol=213   unguarded S-exit=249
+  amp=0.26 rad  switches/1k= 117.00 base frac=0.209000 cost ratio=1.405351 guarded X-viol=0    unguarded X-viol=244   unguarded S-exit=323
+------------------------------------------------------------------------------
+[PASS] check 6  the guard holds at every amplitude the unguarded run breaks: zero guarded violations at all 6 amplitudes; the unguarded run accumulates up to 244 violations
+==============================================================================
+failed checks: 0
+elapsed: 5.9 s

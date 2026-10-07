@@ -1,0 +1,154 @@
+validate_cli.py
+==============================================================================
+
+$ python -m simplexguard --help
+------------------------------------------------------------------------------
+[PASS] exit status of `python -m simplexguard --help`: got 0, expected 0
+usage: simplexguard [-h]
+                    {plant,invariant,guard,run,accounting,bound-sweep,predict} ...
+
+Runtime-assurance (Simplex) architecture benchmark: exact switching condition,
+assurance accounting, bound-violation experiment and a learned switch
+predictor benchmarked against the exact condition.
+
+positional arguments:
+  {plant,invariant,guard,run,accounting,bound-sweep,predict}
+    plant               print the declared plant and sets
+    invariant           compute and verify the robust invariant set
+    guard               print the switching condition data
+    run                 simulate one guarded episode and its pairs
+    accounting          the six assurance quantities
+    bound-sweep         the deliberate bound-violation experiment
+    predict             train the learned switch predictor and benchmark it
+
+options:
+  -h, --help            show this help message and exit
+
+simplexguard is research-grade. It is not flight-qualified, not certified and
+not approved for operational aerospace use. It is not a verification tool and
+proves nothing about a plant it was not given.
+------------------------------------------------------------------------------
+[PASS] the help text carries the research-grade statement: present
+
+$ python -m simplexguard plant
+------------------------------------------------------------------------------
+[PASS] exit status of `python -m simplexguard plant`: got 0, expected 0
+states              2  theta [rad], theta_dot [rad/s]
+inputs              1  u [rad/s^2]
+sample interval     0.05 s
+A                   [[1.   0.05]
+ [0.   1.  ]]
+B                   [[0.00125]
+ [0.05   ]]
+open-loop |eig(A)|  [1. 1.]
+declared W (box)    half-widths [0.00015 0.006  ]
+declared X          4 halfspaces
+declared U          2 halfspaces
+------------------------------------------------------------------------------
+
+$ python -m simplexguard invariant
+------------------------------------------------------------------------------
+[PASS] exit status of `python -m simplexguard invariant`: got 0, expected 0
+converged                 True
+iterations                24
+halfspaces (reduced)      50
+halfspaces per iteration  [4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50]
+baseline spectral radius  0.957627162
+Chebyshev radius of S     0.298406159
+area of S                 0.513045535
+area of Omega_0           0.600000000
+
+subset_of_X                 True
+X_margin                    0.0
+baseline_input_admissible   True
+U_margin                    2.076789587894775
+robustly_invariant          True
+invariance_margin           -5.551115123125783e-17
+n_facets                    50
+------------------------------------------------------------------------------
+
+$ python -m simplexguard guard
+------------------------------------------------------------------------------
+[PASS] exit status of `python -m simplexguard guard`: got 0, expected 0
+facets of S               50
+h_W over facets: min      1.500000000e-04
+h_W over facets: max      6.000000000e-03
+minimum baseline dwell    1 steps
+Chebyshev radius of S     0.298406159
+Chebyshev radius of S-W   0.296722550
+------------------------------------------------------------------------------
+
+$ python -m simplexguard run --steps 2000
+------------------------------------------------------------------------------
+[PASS] exit status of `python -m simplexguard run --steps 2000`: got 0, expected 0
+guarded     cost=  258.591875 baseline_fraction=0.084000 X violations=0      S exits=0      worst X residual=-4.33444e-03
+unguarded   cost=  215.682228 baseline_fraction=0.000000 X violations=168    S exits=188    worst X residual= 3.17519e-01
+baseline    cost=  657.521845 baseline_fraction=1.000000 X violations=0      S exits=0      worst X residual=-2.76133e-01
+------------------------------------------------------------------------------
+
+$ python -m simplexguard accounting --steps 2000
+------------------------------------------------------------------------------
+[PASS] exit status of `python -m simplexguard accounting --steps 2000`: got 0, expected 0
+steps                            2000  (100.0 s at dt = 0.05 s)
+
+1  switch rate
+   authority changes             138
+   per 1000 steps                69.000
+   per second                    1.3800
+
+2  dwell-time distribution (steps)
+   baseline   n=69     min=1    median=2.00    mean=2.435    max=5     len-1 fraction=0.304
+   performance n=70    min=1    median=1.00    mean=26.171   max=83    len-1 fraction=0.643
+   baseline dwell histogram      {'1': 21, '2': 23, '3': 1, '4': 22, '5': 2, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0, '>10': 0}
+
+3  authority share
+   fraction under baseline       0.084000
+   steps held by min-dwell       0
+
+4  conservatism cost (weights state=[10.0, 0.1], input=[0.01])
+   guarded cost                  258.591875
+   unguarded cost                215.682228
+   baseline-only cost            657.521845
+   guarded / unguarded           1.198948
+   guarded - unguarded           42.909646
+   fraction of the baseline-to-unguarded gap recovered  0.902884
+
+5  constraint violations against the declared X
+   guarded                       0
+   unguarded                     168
+   baseline only                 0
+   guarded worst row residual    -4.334435404e-03
+   unguarded worst row residual  3.175189378e-01
+
+6  invariant-set exits (certificate lost)
+   guarded                       0
+   unguarded                     188
+
+   switching-condition margin
+   minimum over the episode      -1.164175713e-01
+   median over the episode       1.190366903e-01
+   median at the firing steps    -4.666708898e-02
+------------------------------------------------------------------------------
+
+$ python -m simplexguard invariant --baseline-r 400   (expected: status 3)
+------------------------------------------------------------------------------
+[PASS] exit status of `python -m simplexguard invariant --baseline-r 400`: got 3, expected 3
+error: the robust invariant set emptied at iteration 52: the baseline controller cannot hold the declared constraints X under the declared disturbance bound W. Either reduce W, relax X, or give the baseline more authority (a smaller LQR input weight).
+------------------------------------------------------------------------------
+[PASS] an empty invariant set is a modelling outcome with its own status: the message names the iteration and what to change
+
+$ python -m simplexguard plant --dt -1   (expected: status 2)
+------------------------------------------------------------------------------
+[PASS] exit status of `python -m simplexguard plant --dt -1`: got 2, expected 2
+error: dt must be finite and positive, got -1.0
+------------------------------------------------------------------------------
+
+$ python -m simplexguard invariant --max-iterations 2   (expected: status 3)
+------------------------------------------------------------------------------
+[PASS] exit status of `python -m simplexguard invariant --max-iterations 2`: got 3, expected 3
+error: the one-step-set recursion did not converge in 2 iterations; the last iterate has 8 halfspaces and is NOT returned, because it is not known to be invariant
+------------------------------------------------------------------------------
+[PASS] a non-converged recursion does not return its last iterate: the message says so explicitly
+==============================================================================
+failed checks: 0
+elapsed: 25.0 s

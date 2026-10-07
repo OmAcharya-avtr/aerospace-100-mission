@@ -1,0 +1,21 @@
+validate_invariant_set.py   seed = 51052
+==============================================================================
+[PASS] check 1  one-dimensional closed form: 4 hand-computed cases, worst absolute difference 0.000e+00, tolerance 1e-12
+    wmax=0.05 xmax=1.0 umax=5.0: b = 1.000000000000, hand answer 1.000000000000, iterations 1
+    wmax=0.05 xmax=1.0 umax=0.1: b = 0.142857142857, hand answer 0.142857142857, iterations 1
+    wmax=0.05 xmax=0.1 umax=5.0: b = 0.100000000000, hand answer 0.100000000000, iterations 1
+    wmax=0.05 xmax=0.08 umax=5.0: empty, as the hand answer says
+[PASS] check 2a S is a subset of the declared X: X margin 0.000e+00 (zero means S touches a facet of X)
+[PASS] check 2b the baseline input is admissible on all of S: U margin 2.076789588 rad/s^2, so the baseline uses at most 0.923210412 of its 3.0 rad/s^2 authority inside S
+[PASS] check 2c S is robustly invariant under the baseline: worst facet invariance margin -5.551e-17; it is zero to floating point because S is the MAXIMAL such set, so some facet holds with equality
+       recursion: 24 iterations, 50 facets, 3.14 s
+[PASS] check 3  sampled one-step invariance: 14604 (state, disturbance-vertex) pairs including all 50 vertices of S, worst residual 5.551e-17, tolerance 1e-12
+[PASS] check 4a S is a subset of Omega_0: area of S 0.513045535 against area of Omega_0 0.600000000
+[PASS] check 4b a larger declared W gives a smaller S: areas at W scale 0.5x -> 0.525200, 1x -> 0.513046, 1.5x -> 0.494365, 2x -> 0.457606
+[PASS] check 4c a certificate exists only below a measured disturbance scale: a non-empty certificate exists at 2.0x the shipped declared bound (area 0.457606) and not at 2.5x, so the threshold lies in (2.0, 2.5]. This is headroom in the DECLARATION, not in the realised disturbance; validate_bound_violation.py measures the latter and it is much smaller
+[PASS] check 5  the three failure modes raise: too weak a baseline: the robust invariant set emptied at iteration 52; W as large as X: the robust invariant set emptied at iteration 1; recursion cap: the one-step-set recursion did not converge in 3 iterations
+[PASS] check 6  facet growth: reduced: 4 facets at Omega_0 growing by exactly 2 per iteration to 50 at convergence in 3.14 s. With redundancy removal off and the recursion capped at 10 iterations it did not converge in 10 iterations and the iterate carries 6144 halfspaces, reached in 26.47 s: the unreduced intersection doubles its row count every iteration: with redundancy removal off Omega_0 keeps all 6 of its rows (4 from X and 2 from the baseline input constraint), and 6 x 2^10 = 6144, which is why redundancy removal is on by default
+[PASS] check 7  how much of X the certificate covers: area(S)/area(X) = 0.85507589; Chebyshev radius of S 0.298406159, of S (-) W 0.296722550, so the erosion costs 1.684e-03 of inscribed radius
+==============================================================================
+failed checks: 0
+elapsed: 64.5 s

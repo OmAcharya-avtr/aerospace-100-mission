@@ -1,0 +1,84 @@
+the certificate
+converged                 True
+iterations                24
+halfspaces (reduced)      50
+halfspaces per iteration  [4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50]
+baseline spectral radius  0.957627162
+Chebyshev radius of S     0.298406159
+area of S                 0.513045535
+area of Omega_0           0.600000000
+
+the switching condition
+facets of S               50
+h_W over facets: min      1.500000000e-04
+h_W over facets: max      6.000000000e-03
+minimum baseline dwell    1 steps
+Chebyshev radius of S     0.298406159
+Chebyshev radius of S-W   0.296722550
+
+the assurance accounting
+steps                            2000  (100.0 s at dt = 0.05 s)
+
+1  switch rate
+   authority changes             140
+   per 1000 steps                70.000
+   per second                    1.4000
+
+2  dwell-time distribution (steps)
+   baseline   n=70     min=1    median=2.00    mean=2.400    max=5     len-1 fraction=0.314
+   performance n=71    min=1    median=1.00    mean=25.803   max=83    len-1 fraction=0.648
+   baseline dwell histogram      {'1': 22, '2': 24, '3': 0, '4': 22, '5': 2, '6': 0, '7': 0, '8': 0, '9': 0, '10': 0, '>10': 0}
+
+3  authority share
+   fraction under baseline       0.084000
+   steps held by min-dwell       0
+
+4  conservatism cost (weights state=[10.0, 0.1], input=[0.01])
+   guarded cost                  258.634365
+   unguarded cost                215.826971
+   baseline-only cost            650.257772
+   guarded / unguarded           1.198341
+   guarded - unguarded           42.807394
+   fraction of the baseline-to-unguarded gap recovered  0.901463
+
+5  constraint violations against the declared X
+   guarded                       0
+   unguarded                     168
+   baseline only                 0
+   guarded worst row residual    -1.612008461e-03
+   unguarded worst row residual  3.197937271e-01
+
+6  invariant-set exits (certificate lost)
+   guarded                       0
+   unguarded                     189
+
+   switching-condition margin
+   minimum over the episode      -1.226786374e-01
+   median over the episode       1.189731172e-01
+   median at the firing steps    -4.822443534e-02
+
+one decision, at the origin with the reference at +0.18 rad
+  mode                     performance
+  proposed input           3.000000 rad/s^2
+  baseline input           -0.000000 rad/s^2
+  switching margin         0.237318554
+  binding facet of S       34
+  state margin inside S    0.298406159
+
+the first step of the episode at which the guard actually fired
+  step                     83  (t = 4.15 s)
+  state                    [0.144800 rad, -0.455328 rad/s]
+  reference                -0.180000 rad
+  mode                     baseline
+  proposed input           -3.000000 rad/s^2
+  applied input            0.627627 rad/s^2
+  switching margin         -0.111327708
+  binding facet of S       3
+  state margin inside S    0.044672292
+  condition holds          False
+
+exact anticipation of the switch, 5 steps ahead
+  x = [ 0.18,  0.00]  earliest step the guard may fire: never within 5
+  x = [ 0.00,  0.00]  earliest step the guard may fire: 2
+  x = [ 0.05,  0.25]  earliest step the guard may fire: 2
+  x = [ 0.12,  0.40]  earliest step the guard may fire: never within 5

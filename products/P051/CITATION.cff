@@ -1,0 +1,271 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  simplexguard: a runtime-assurance (Simplex) architecture benchmark with an
+  exact switching condition and its assurance accounting
+version: 0.1.0
+date-released: 2026-10-07
+license: Apache-2.0
+abstract: >-
+  A Simplex runtime-assurance architecture for a discrete-time linear plant
+  with an explicitly declared bounded additive disturbance and declared
+  polytopic state and input constraints. The maximal robust invariant set of a
+  conservative baseline controller is computed by the one-step-set recursion
+  and then verified from scratch by an independent exact support-function test
+  rather than by sampling. The switching condition is exact: the performance
+  input is admitted if and only if the next state lies in the invariant set for
+  every admissible disturbance, evaluated by support function on the declared
+  polytope, which involves no sampling, no gridding and no tuned threshold. The
+  deliverable is the assurance accounting that the switching costs -- switch
+  rate, dwell-time distribution per authority, fraction of the episode under
+  baseline control, conservatism cost measured as a paired comparison against
+  an unguarded run on the same disturbance realisation, constraint-violation
+  count and invariant-set exit count -- together with a deliberate
+  bound-violation experiment that runs the unchanged guard against a realised
+  disturbance larger than the declared one and measures where the guarantee
+  fails. A learned switch predictor (an isotonic-calibrated random forest on
+  the state) is benchmarked against the exact condition on held-out episodes
+  and loses on that condition's own criterion, on both accuracy and per-decision
+  latency; the loss is published with its structural reason and without
+  retuning. Validation level 3, research grade. Not a verification tool: it
+  proves nothing about a plant it was not given. Not flight-qualified, not
+  certified, not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - runtime-assurance
+  - simplex-architecture
+  - robust-invariant-set
+  - support-function
+  - pontryagin-difference
+  - constrained-control
+  - switch-prediction
+  - aerospace-assurance
+references:
+  - type: book
+    authors:
+      - family-names: Rockafellar
+        given-names: "R. T."
+    title: "Convex Analysis"
+    publisher:
+      name: "Princeton University Press"
+    year: 1970
+    notes: >-
+      Section 13, the support function. Source of the definition used in
+      simplexguard.polytope.
+  - type: book
+    authors:
+      - family-names: Schneider
+        given-names: "R."
+    title: "Convex Bodies: the Brunn-Minkowski Theory"
+    publisher:
+      name: "Cambridge University Press"
+    year: 1993
+    notes: >-
+      Section 1.7, support functions and Minkowski additivity. The additivity
+      identity is verified numerically in
+      validation/validate_support_function.py rather than taken on trust.
+  - type: book
+    authors:
+      - family-names: Boyd
+        given-names: "S."
+      - family-names: Vandenberghe
+        given-names: "L."
+    title: "Convex Optimization"
+    publisher:
+      name: "Cambridge University Press"
+    year: 2004
+    notes: >-
+      Section 8.5.1, the Chebyshev-centre linear programme used for the
+      emptiness test.
+  - type: article
+    authors:
+      - family-names: Gilbert
+        given-names: "E. G."
+      - family-names: Tan
+        given-names: "K. T."
+    title: >-
+      Linear systems with state and control constraints: the theory and
+      application of maximal output admissible sets
+    journal: "IEEE Transactions on Automatic Control"
+    volume: 36
+    issue: 9
+    year: 1991
+    notes: >-
+      The one-step-set recursion that simplexguard.invariant implements.
+  - type: article
+    authors:
+      - family-names: Kolmanovsky
+        given-names: "I."
+      - family-names: Gilbert
+        given-names: "E. G."
+    title: >-
+      Theory and computation of disturbance invariant sets for discrete-time
+      linear systems
+    journal: "Mathematical Problems in Engineering"
+    volume: 4
+    issue: 4
+    year: 1998
+    notes: >-
+      The Pontryagin difference in halfspace form, which is the identity the
+      exact switching condition is built on.
+  - type: book
+    authors:
+      - family-names: Blanchini
+        given-names: "F."
+      - family-names: Miani
+        given-names: "S."
+    title: "Set-Theoretic Methods in Control"
+    publisher:
+      name: "Birkhauser"
+    year: 2008
+    notes: >-
+      Invariant sets for constrained linear systems. No page number is quoted
+      because none was verified in this environment.
+  - type: book
+    authors:
+      - family-names: Borrelli
+        given-names: "F."
+      - family-names: Bemporad
+        given-names: "A."
+      - family-names: Morari
+        given-names: "M."
+    title: "Predictive Control for Linear and Hybrid Systems"
+    publisher:
+      name: "Cambridge University Press"
+    year: 2017
+    notes: >-
+      Invariant-set algorithms. No page number is quoted because none was
+      verified in this environment.
+  - type: article
+    authors:
+      - family-names: "Rakovic"
+        given-names: "S. V."
+      - family-names: Kerrigan
+        given-names: "E. C."
+      - family-names: Kouramas
+        given-names: "K. I."
+      - family-names: Mayne
+        given-names: "D. Q."
+    title: >-
+      Invariant approximations of the minimal robust positively invariant set
+    journal: "IEEE Transactions on Automatic Control"
+    volume: 50
+    issue: 3
+    year: 2005
+    notes: >-
+      The MINIMAL robust invariant set, cited here because it is a different
+      object from the maximal set simplexguard computes, and conflating the two
+      is an error this repository made once and records in
+      validation/VALIDATION.md.
+  - type: conference-paper
+    authors:
+      - family-names: Seto
+        given-names: "D."
+      - family-names: Krogh
+        given-names: "B."
+      - family-names: Sha
+        given-names: "L."
+      - family-names: Chutinan
+        given-names: "A."
+    title: "The Simplex architecture for safe online control system upgrades"
+    collection-title: "Proceedings of the American Control Conference"
+    year: 1998
+    notes: The architecture this package benchmarks.
+  - type: article
+    authors:
+      - family-names: Sha
+        given-names: "L."
+    title: "Using simplicity to control complexity"
+    journal: "IEEE Software"
+    volume: 18
+    issue: 4
+    year: 2001
+    notes: The architecture this package benchmarks.
+  - type: article
+    authors:
+      - family-names: Schierman
+        given-names: "J. D."
+      - family-names: DeVore
+        given-names: "M. D."
+      - family-names: Richards
+        given-names: "N. D."
+      - family-names: Clark
+        given-names: "M. A."
+    title: "Runtime assurance for autonomous aerospace systems"
+    journal: "Journal of Guidance, Control, and Dynamics"
+    year: 2020
+    notes: >-
+      Runtime assurance in an aerospace setting. No page number is quoted
+      because none was verified in this environment.
+  - type: book
+    authors:
+      - family-names: Anderson
+        given-names: "B. D. O."
+      - family-names: Moore
+        given-names: "J. B."
+    title: "Optimal Control: Linear Quadratic Methods"
+    publisher:
+      name: "Prentice-Hall"
+    year: 1990
+    notes: The discrete LQR gain used for both controllers.
+  - type: book
+    authors:
+      - family-names: Franklin
+        given-names: "G. F."
+      - family-names: Powell
+        given-names: "J. D."
+      - family-names: Workman
+        given-names: "M. L."
+    title: "Digital Control of Dynamic Systems"
+    edition: "3rd"
+    publisher:
+      name: "Addison-Wesley"
+    year: 1998
+    notes: Zero-order-hold discretisation of the shipped reference plant.
+  - type: conference-paper
+    authors:
+      - family-names: Zadrozny
+        given-names: "B."
+      - family-names: Elkan
+        given-names: "C."
+    title: >-
+      Transforming classifier scores into accurate multiclass probability
+      estimates
+    collection-title: "Proceedings of KDD"
+    year: 2002
+    notes: Isotonic calibration, as used for the learned predictor's probability.
+  - type: conference-paper
+    authors:
+      - family-names: Niculescu-Mizil
+        given-names: "A."
+      - family-names: Caruana
+        given-names: "R."
+    title: "Predicting good probabilities with supervised learning"
+    collection-title: "Proceedings of ICML"
+    year: 2005
+    notes: Calibration of classifier scores.
+  - type: article
+    authors:
+      - family-names: Brier
+        given-names: "G. W."
+    title: "Verification of forecasts expressed in terms of probability"
+    journal: "Monthly Weather Review"
+    volume: 78
+    issue: 1
+    year: 1950
+    notes: The Brier score reported for the learned predictor.
+  - type: article
+    authors:
+      - family-names: Huangfu
+        given-names: "Q."
+      - family-names: Hall
+        given-names: "J. A. J."
+    title: "Parallelizing the dual revised simplex method"
+    journal: "Mathematical Programming Computation"
+    volume: 10
+    issue: 1
+    year: 2018
+    notes: >-
+      HiGHS, the solver behind scipy.optimize.linprog, which every support
+      function and subset test in this package calls.

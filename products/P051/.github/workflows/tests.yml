@@ -1,0 +1,47 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q
+      - name: CLI
+        run: python -m simplexguard --help
+      - name: Validation scripts
+        run: |
+          python validation/validate_support_function.py
+          python validation/validate_invariant_set.py
+          python validation/validate_guard_exactness.py
+          python validation/validate_accounting.py
+          python validation/validate_bound_violation.py
+          python validation/validate_predictor.py
+          python validation/validate_cli.py
+          python validation/worked_example.py
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/invariant_set.py
+          python examples/guarded_episode.py
+          python examples/bound_violation.py
+          python examples/predictor_benchmark.py
+          python examples/accounting_tradeoff.py

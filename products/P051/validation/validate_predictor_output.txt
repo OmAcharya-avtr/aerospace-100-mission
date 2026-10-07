@@ -1,0 +1,83 @@
+validate_predictor.py   seed = 5101
+40 episodes x 1200 steps, lead 5, 150-tree forest
+==============================================================================
+check 1  datasets
+------------------------------------------------------------------------------
+  lead=0: 48000 rows, base rate 0.081687; train 31200 (0.074487), calib 7200 (0.110694), test 9600 (0.083333)
+  lead=5: 47800 rows, base rate 0.148201; train 31070 (0.138944), calib 7170 (0.186611), test 9560 (0.149477)
+  performance-input saturation rate 0.093729 -- this is the size of the approximation the exact multi-step predictor makes by ignoring saturation
+  dataset construction: 4.4 s for 96000 steps
+  features (5): theta, theta_dot, reference, tracking_error, u_perf_unsaturated
+  the switching-condition margin is NOT a feature, by design
+------------------------------------------------------------------------------
+[PASS] check 1  splits are by episode and disjoint: 26 train / 6 calibration / 8 test episodes, no row shared; a random row split would leak, because consecutive rows of one episode are the same trajectory
+
+check 2  TASK A (lead 0): does the guard fire at this step
+------------------------------------------------------------------------------
+  exact one-step guard condition     P=1.00000 R=1.00000 F1=1.00000 acc=1.00000 TP=800    FP=0      FN=0      Brier=      nan ECE=     nan AUC=1.00000 us/decision=    8.68
+  learned forest (150 trees)         P=0.97764 R=0.98375 F1=0.98069 acc=0.99677 TP=787    FP=18     FN=13     Brier= 0.002629 ECE= 0.00258 AUC=0.99963 us/decision= 7343.16
+  learned logistic                   P=    nan R=0.00000 F1=    nan acc=0.91667 TP=0      FP=0      FN=800    Brier= 0.072448 ECE= 0.02798 AUC=0.73819 us/decision=  819.25
+  always-negative (base rate)        P=    nan R=0.00000 F1=    nan acc=0.91667 TP=0      FP=0      FN=800    Brier= 0.076467 ECE= 0.00885 AUC=0.50000 us/decision=     nan
+  forest fit 1.6 s, logistic fit 0.0 s
+------------------------------------------------------------------------------
+[PASS] check 2a the exact condition is perfect on its own criterion: precision 1.000000, recall 1.000000, 0 false positives, 0 false negatives on 9600 held-out steps
+[PASS] check 2b THE LEARNED MODEL LOSES ON ACCURACY: forest F1 0.980685 against the exact 1.000000; 18 false positives and 13 false negatives in 9600 steps. Structural reason: the exact boundary is the intersection of 50 halfspaces in (x, u), none of them axis-aligned, and an axis-aligned tree ensemble approximates a tilted hyperplane with staircase error. No retune was attempted
+[PASS] check 2c THE LEARNED MODEL ALSO LOSES ON COST: forest 7343.2 us per single-row decision against 8.68 us for the exact condition, a factor of 846. At dt = 0.05 s the exact condition uses 0.0174 % of the sample interval and the forest 14.69 %
+[PASS] check 2d the learned model does provide something the exact one does not: a calibrated probability: forest Brier 0.002629, ECE 0.002583, against an always-negative forecaster at the training base rate with Brier 0.076467. The exact condition has no probability output at all, which is the one structural advantage the learned model has here
+
+check 3  TASK B (lead 5): does the guard fire within the next 5 steps
+------------------------------------------------------------------------------
+  exact worst_case L=5               P=0.43477 R=0.86284 F1=0.57819 acc=0.81182 TP=1233   FP=1603   FN=196    Brier=      nan ECE=     nan AUC=0.90570 us/decision=   13.84
+  exact nominal L=5                  P=0.44448 R=0.86284 F1=0.58672 acc=0.81831 TP=1233   FP=1541   FN=196    Brier=      nan ECE=     nan AUC=0.90646 us/decision=   18.70
+  persistence (fires now => will fire) P=0.85875 R=0.48076 F1=0.61642 acc=0.91056 TP=687    FP=113    FN=742    Brier=      nan ECE=     nan AUC=0.73343 us/decision=     nan
+  learned forest (150 trees)         P=0.96829 R=0.83345 F1=0.89583 acc=0.97103 TP=1191   FP=39     FN=238    Brier= 0.026397 ECE= 0.00392 AUC=0.94616 us/decision= 7123.80
+  learned logistic                   P=    nan R=0.00000 F1=    nan acc=0.85052 TP=0      FP=0      FN=1429   Brier= 0.118032 ECE= 0.03680 AUC=0.70827 us/decision=  827.40
+  always-negative (base rate)        P=    nan R=0.00000 F1=    nan acc=0.85052 TP=0      FP=0      FN=1429   Brier= 0.127245 ECE= 0.01053 AUC=0.50000 us/decision=     nan
+  forest fit 4.2 s, logistic fit 0.0 s
+------------------------------------------------------------------------------
+[PASS] check 3a Task B verdict: THE LEARNED MODEL WINS ON THIS TASK: forest F1 0.895825 against the best exact predictor's 0.586724 (exact nominal L=5). The reason is not that it is smarter: the exact predictor answers 'may fire under SOME admissible disturbance sequence', which over-predicts a realised episode by construction, and its precision is 0.444484 against recall 0.862841. The learned model is fitted to the realised label, which is a different and easier question
+[PASS] check 3b the exact worst-case predictor is NOT sound on realised episodes: recall 0.862841, so it misses 0.1372 of realised firings despite being a worst-case over-approximation. The two stated approximations are responsible: it ignores the saturation of the performance input, measured at 0.093729 of steps, and it ignores the guard's own intervention inside the horizon, which changes the realised trajectory. Both are in the module docstring and both are measured rather than assumed harmless
+[PASS] check 3c the learned model is still far more expensive per decision: forest 7123.8 us against 13.84 us for the exact worst-case predictor, a factor of 515
+
+check 4  lead time before each firing event, in steps
+------------------------------------------------------------------------------
+  exact worst_case             events=287   mean=12.861 median=  8.0 max= 40.0 zero-lead fraction=0.0000
+  exact nominal                events=287   mean=12.861 median=  8.0 max= 40.0 zero-lead fraction=0.0000
+  learned forest lead-5        events=287   mean= 6.624 median=  8.0 max= 16.0 zero-lead fraction=0.0418
+  learned forest lead-0        events=287   mean= 0.115 median=  0.0 max=  5.0 zero-lead fraction=0.9686
+  exact one-step condition     events=287   mean= 0.000 median=  0.0 max=  0.0 zero-lead fraction=1.0000
+------------------------------------------------------------------------------
+[PASS] check 4  the exact worst-case predictor anticipates every event: mean lead 12.861 steps (0.6430 s) with zero events unanticipated, against mean 6.624 steps and 0.0418 of events unanticipated for the forest. The one-step condition has lead 0 by definition and is in the table to make that explicit
+
+check 5  single-row latency and accuracy against forest size
+------------------------------------------------------------------------------
+  trees=20    F1=0.978301 Brier=0.002615 us/decision=  1717.9 fit=  0.3 s
+  trees=50    F1=0.981250 Brier=0.002374 us/decision=  3247.3 fit=  0.5 s
+  trees=150   F1=0.980685 Brier=0.002629 us/decision=  6723.7 fit=  1.7 s
+  trees=300   F1=0.977472 Brier=0.002760 us/decision= 12424.5 fit=  3.1 s
+  exact one-step condition  F1=1.000000 us/decision=    8.68
+------------------------------------------------------------------------------
+[PASS] check 5  no forest size reaches the exact condition's cost: even a 20-tree forest costs 1717.9 us per single-row decision, 198 times the exact condition's 8.68 us, and its F1 is 0.978301. The gap is dominated by scikit-learn's per-call overhead, not by tree traversal: the latency rises by only a factor of 7.23 from 20 to 300 trees
+
+check 6  reliability of the forest's calibrated probability, Task A
+------------------------------------------------------------------------------
+  [0.0, 0.1)  n=8646   mean forecast=0.000211 observed frequency=0.000000
+  [0.1, 0.2)  n=126    mean forecast=0.122057 observed frequency=0.039683
+  [0.3, 0.4)  n=23     mean forecast=0.324280 observed frequency=0.347826
+  [0.5, 0.6)  n=12     mean forecast=0.502476 observed frequency=0.666667
+  [0.6, 0.7)  n=9      mean forecast=0.680715 observed frequency=0.777778
+  [0.7, 0.8)  n=3      mean forecast=0.722847 observed frequency=0.666667
+  [0.8, 0.9)  n=13     mean forecast=0.849174 observed frequency=0.538462
+  [0.9, 1.0)  n=768    mean forecast=1.000000 observed frequency=0.993490
+------------------------------------------------------------------------------
+[PASS] check 6  the forest is well calibrated and that is its only advantage: expected calibration error 0.002583 over 10 equal-width bins, Brier 0.002629. ECE is biased by binning, which is why the Brier score is reported beside it. Neither the exact one-step condition nor the exact multi-step predictor produces a probability, so neither has a Brier score to compare against -- the comparison is on the confusion matrix and the latency, and the learned model loses both
+
+check 7  scikit-learn n_jobs at single-row inference (a measured defect)
+------------------------------------------------------------------------------
+  150-tree forest, n_jobs=2    33123.1 us per single-row predict_proba
+  150-tree forest, n_jobs=1     5780.2 us per single-row predict_proba
+------------------------------------------------------------------------------
+[PASS] check 7  n_jobs > 1 makes single-row inference slower, not faster: a factor of 5.73. joblib's per-call dispatch dominates a single-row predict, and a runtime guard decides one step at a time. fit_switch_predictor therefore sets the forest's n_jobs to 1 AFTER fitting, so the learned model is benchmarked at its best latency and the comparison against the exact condition is not won by an avoidable overhead
+==============================================================================
+failed checks: 0
+elapsed: 36.1 s

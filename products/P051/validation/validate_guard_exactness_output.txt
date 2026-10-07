@@ -1,0 +1,12 @@
+validate_guard_exactness.py   seed = 51053
+==============================================================================
+[PASS] check 1  support-function form vs vertex enumeration of W: 40000 (state, input) pairs, 10000 of them bisected to within 1e-9 of the switching boundary. 0 mismatches with a margin above 1e-12, and 4 disagreements AT the boundary where |margin| <= 1e-12 (worst |margin| among all disagreements 5.551e-17). The two forms are algebraically identical; where they differ it is because the eroded offset d_j - h_W(c_j) is rounded once, while the vertex form rounds c_j^T(A x + B u + w) per vertex, and a state bisected onto the facet can fall either side of the resulting 1-ulp gap. Reported rather than tuned away
+[PASS] check 2  admitted inputs survive a dense interior sampling of W: 5274 admitted pairs x 200 interior disturbance samples = 1054800 successor states, 0 outside S
+[PASS] check 3  the margin equals the binding facet residual: 5000 pairs, worst absolute difference 1.110e-16, tolerance 1e-12; facet normals are unit length, so the margin is in state units
+[PASS] check 4  horizon-0 of the exact lead predictor equals the one-step condition: 20000 random (state, reference) pairs, 0 disagreements
+[PASS] check 5  guarded episodes never leave S under the declared bound: 8 episodes x 1500 steps = 12000 steps with the worst-case vertex sampler, 0 exits from S, 0 violations of X
+[PASS] check 6a an input outside U is refused and flagged: mode baseline, input_admissible False
+[PASS] check 6b a state outside S is flagged as certificate lost: state [0.15, 0.45] has slack -3.017058e-02 in S, mode baseline, certificate_lost True
+==============================================================================
+failed checks: 0
+elapsed: 7.9 s
