@@ -1,0 +1,79 @@
+falsifyloop - robustness semantics validation
+Claim under test: robustness(phi, w) < 0 if and only if w does not satisfy phi,
+with no tolerance band, where the two sides are computed by two separate
+implementations (arithmetic with min/max, versus comparisons with all/any).
+
+==============================================================================
+Check 1 - hand-calculated known answers
+==============================================================================
+case                                                         expected   computed
+--------------------------------------------------------------------------------
+Predicate y <= 2 at t=0                                      2.000000   2.000000
+Predicate y >= 2 at t=0                                     -2.000000  -2.000000
+Predicate y <= 2 scale 4 at t=0                              0.500000   0.500000
+always[0,1] y <= 2  (min over y=0,1,3,1,0 of 2-y)           -1.000000  -1.000000
+eventually[0,1] y >= 3  (max over 5 samples of y-3)          0.000000   0.000000
+always[0.5,1] y <= 2  (indices 2..4: 2-3, 2-1, 2-0)         -1.000000  -1.000000
+|d/dt y| <= 10 at t=0  (forward diff (1-0)/0.25 = 4)         6.000000   6.000000
+always[0,1] |d/dt y| <= 10  (max |diff| is (3-1)/0.25 = 8)   2.000000   2.000000
+and(y<=2, y>=2) at t=0  (min of 2, -2)                      -2.000000  -2.000000
+or(y<=2, y>=2) at t=0  (max of 2, -2)                        2.000000   2.000000
+known-answer mismatches: 0
+
+==============================================================================
+Check 2 - exhaustive sign agreement on enumerated traces and formulas
+==============================================================================
+traces enumerated          : 117
+formulas enumerated        : 382
+formula-trace pairs checked : 44694
+sign disagreements         : 0
+samples at exactly zero robustness (the boundary case): 32070
+samples at infinite robustness (empty windows)       : 16848
+The boundary and infinite counts matter: a sign-agreement claim is only interesting if the enumeration actually visited rho == 0 and rho == +-inf, which are the two cases where a careless semantics breaks.
+
+==============================================================================
+Check 3 - sign agreement on simulator traces from the shipped suite
+==============================================================================
+instance              draws  violating      min rho      max rho
+------------------------------------------------------------------
+overshoot-loose         300         86    -6.157414     0.995535
+settling-band           300         36    -3.336272     0.995779
+multi-requirement       300         16    -2.968338     0.938688
+command-rate            300         12    -1.352732     0.955935
+overshoot-tight         300          2    -0.423070     1.002136
+attitude-envelope       300          3    -0.329937     0.929170
+nested-capture          300          1    -0.024979     0.996752
+rate-envelope           300          0     0.108356     0.961489
+formula-trace pairs checked : 2400
+violating pairs seen        : 156
+sign disagreements          : 0
+
+==============================================================================
+Check 4 - empty-window conventions
+==============================================================================
+always   rho = [inf, inf, inf]  sat = [True, True, True]
+eventually rho = [-inf, -inf, -inf]  sat = [False, False, False]
+These are the identities of min/all and max/any. Choosing them the other way round would break the sign agreement at every clipped window, which is why they are validated and not merely documented.
+convention failures: 0
+
+==============================================================================
+Check 5 - a time bound off the sample grid is refused, not rounded
+==============================================================================
+0.3 s against dt = 0.25 s raised ValueError: upper time bound 0.3 s is not an integer multiple of the trace sample interval dt = 0.25 s (rati
+0.5 s against dt = 0.25 s accepted, rho = 1.000000
+grid-check failures: 0
+
+==============================================================================
+Check 6 - positive normalisation never changes a verdict
+==============================================================================
+scale      0.1: verdict flips over 120 draws = 0
+scale        1: verdict flips over 120 draws = 0
+scale       10: verdict flips over 120 draws = 0
+scale     1000: verdict flips over 120 draws = 0
+scale-invariance failures: 0
+
+==============================================================================
+SUMMARY
+==============================================================================
+total failures across all six checks: 0
+A nonzero total is a defect in the semantics and must be reported as such.

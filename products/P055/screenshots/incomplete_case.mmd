@@ -1,0 +1,41 @@
+```mermaid
+flowchart TD
+    n_G1["G1: The pitch residual monitor raises an alert within 5…"]
+    n_C1(["C1: Scenario set: twelve recorded simulation runs SC-01…"])
+    n_A1{{"A1 [A]: The simulator noise model matches the bench sensor…"}}
+    n_S1[/"S1: Argument by decomposition over the conditions the l…"/]
+    n_G2["G2: The decision statistic exceeds the threshold in all…"]
+    n_G3["G3: First threshold crossing occurs at most 5 samples a…"]
+    n_G4["G4: h = 4.0 is the threshold the stated derivation prod…"]
+    n_G5["G5: The implementation exercised by the tests is the im…"]
+    n_G7["G7: Timing jitter in the sample clock does not move the… (undeveloped)"]
+    n_G8["G8: The monitor rejects a 0.01 rad bias as noise. (undeveloped)"]
+    n_C3(["C3: Rejection band, from the earlier revision of this c…"])
+    n_Sn1(("Sn1: Unit test report: statistic peak against threshold,…"))
+    n_Sn2(("Sn2: Threshold derivation note for the CUSUM rule."))
+    n_Sn3(("Sn3: Detection latency study: onset to first crossing, p…"))
+    n_G1 --o n_C1
+    n_G1 --o n_A1
+    n_G1 --> n_S1
+    n_S1 --> n_G2
+    n_S1 --> n_G3
+    n_S1 --> n_G4
+    n_S1 --> n_G5
+    n_S1 --> n_G7
+    n_G2 --> n_Sn1
+    n_G3 --> n_Sn3
+    n_G4 --> n_Sn2
+    n_G8 --o n_C3
+    classDef gsnGoal fill:#eef4ff,stroke:#2b4c7e,stroke-width:1px;
+    classDef gsnStrategy fill:#f3eeff,stroke:#5a3e8e,stroke-width:1px;
+    classDef gsnSolution fill:#eefaf0,stroke:#2f6b45,stroke-width:1px;
+    classDef gsnContext fill:#f7f7f7,stroke:#555555,stroke-width:1px;
+    classDef gsnAssumption fill:#fffbe6,stroke:#8a6d1f,stroke-width:1px;
+    classDef gsnJustification fill:#fffbe6,stroke:#8a6d1f,stroke-width:1px;
+    classDef gsnFinding fill:#ffe9e9,stroke:#b3261e,stroke-width:3px;
+    class n_G1,n_G2,n_G3,n_G4,n_G7 gsnGoal;
+    class n_S1 gsnStrategy;
+    class n_Sn1 gsnSolution;
+    class n_C1 gsnContext;
+    class n_A1,n_G5,n_G8,n_C3,n_Sn2,n_Sn3 gsnFinding;
+```

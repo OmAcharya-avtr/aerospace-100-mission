@@ -1,0 +1,47 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q
+      - name: CLI
+        run: python -m falsifyloop --help
+      - name: Validation scripts
+        run: |
+          python validation/validate_semantics.py
+          python validation/validate_simulator.py
+          python validation/validate_difficulty.py
+          python validation/validate_benchmark.py
+          python validation/validate_surrogate.py
+          python validation/validate_cli.py
+          python validation/worked_example.py
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/sample_efficiency_curves.py
+          python examples/per_instance_comparison.py
+          python examples/robustness_landscape.py
+          python examples/surrogate_uncertainty.py
+          python examples/counterexample_trace.py
+          python examples/requirement_monitor.py

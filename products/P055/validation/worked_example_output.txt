@@ -1,0 +1,48 @@
+nodes / edges : 14 / 12
+top goals     : G1
+complete      : False    exit code: 1
+
+  error    unsupported_claims         G5
+  info     unsupported_claims         G7
+  info     unsupported_claims         G8
+  error    missing_evidence           Sn3
+  warning  stale_evidence             Sn1
+  error    stale_evidence             Sn2
+  error    undischarged_assumptions   A1
+  error    orphan_nodes               G8
+  error    orphan_nodes               C3
+
+  Sn1  unverifiable  recorded none          found 2ff22a380510  evidence/unit_test_report.txt
+  Sn2  stale         recorded dd4f8ed887d4  found dd4f8ed887d4  evidence/threshold_derivation.md
+  Sn3  absent        recorded ec6f5d72d6ae  found none          evidence/detection_latency_study_v2.txt
+
+Node and edge counts
+
+prefix  GSN element    count
+------  -------------  -----
+G       goal           7
+S       strategy       1
+Sn      solution       3
+C       context        2
+A       assumption     1
+J       justification  0
+
+GSN relationship  count
+----------------  -----
+supported_by      9
+in_context_of     3
+
+Coverage, with denominators
+
+metric                                 count  fraction
+-------------------------------------  -----  -------------------------
+claims argued or declared undeveloped  7/8    87.5 % (8 in denominator)
+cited artifacts present on disk        2/3    66.7 % (3 in denominator)
+artifacts fresh, of those checkable    0/1    0.0 % (1 in denominator)
+assumptions marked discharged          0/1    0.0 % (1 in denominator)
+
+Unverifiable artifacts (no recorded sha256): 1. These are excluded from the freshness denominator; they are not fresh.
+Orphan nodes: 2. Cyclic regions: 0.
+Top goals used for reachability: G1.
+
+    n_G1["G1: The pitch residual monitor raises an alert…"]

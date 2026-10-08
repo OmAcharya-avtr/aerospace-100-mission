@@ -1,0 +1,112 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  assuregraph: an assurance case as a machine-checkable evidence graph
+version: 0.1.0
+date-released: 2026-10-08
+license: Apache-2.0
+abstract: >-
+  A declarative YAML format for an assurance case in Goal Structuring Notation
+  (Core GSN), with six computed checks over the resulting directed graph:
+  claims with no SupportedBy child, cited evidence artifacts absent from disk,
+  evidence staleness detected by comparing an artifact's SHA-256 digest with
+  the digest recorded when the claim cited it, assumptions not marked
+  discharged, cyclic regions of the argument, and nodes unreachable from the
+  declared top goals. Every finding names the offending node identifiers and
+  the command-line interface exits nonzero when the case is structurally
+  incomplete, so the checks can gate a build. The package also renders a case
+  as a Mermaid flowchart with GSN shapes, and prints a coverage summary in
+  which every fraction carries its denominator and an undefined fraction is
+  reported as undefined rather than as zero or one hundred per cent. There is
+  deliberately no learned component: whether an argument is sound is the
+  judgement this tool refuses to automate. The content-hash staleness check
+  detects that an artifact's bytes changed and not whether the change matters;
+  the measured discrimination between meaning-inverting and meaning-preserving
+  edits is zero, and this is published rather than implied away. Structural
+  completeness says nothing about whether the evidence is adequate. A
+  well-formed assurance case is not a safe system. This is not a DO-178C or
+  ARP4754A compliance tool and supports no certification argument. Validation
+  level 2, research grade. Not flight-qualified, not certified, not approved
+  for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - assurance-case
+  - goal-structuring-notation
+  - gsn
+  - evidence-graph
+  - content-hash
+  - staleness
+  - traceability
+  - mermaid
+  - aerospace-assurance
+references:
+  - type: standard
+    title: "Goal Structuring Notation Community Standard, Version 3"
+    number: "SCSC-141C"
+    authors:
+      - name: "SCSC Assurance Case Working Group"
+    institution:
+      name: "Safety-Critical Systems Club"
+    year: 2021
+    month: 5
+    notes: >-
+      The notation assuregraph transcribes: the six Core GSN element types, the
+      two relationship types, the identifier prefixes used in the standard's
+      examples, and the Undeveloped decorator. The version, document number,
+      publisher and May 2021 date were read from scsc.uk on 2026-10-08. No
+      clause or page number is quoted because none was verified in this
+      environment. The standard's own document history records Version 1 issued
+      16 November 2011 and Version 2 in January 2018.
+  - type: standard
+    title: "Secure Hash Standard (SHS)"
+    number: "FIPS PUB 180-4"
+    institution:
+      name: "National Institute of Standards and Technology"
+    year: 2015
+    month: 8
+    notes: >-
+      SHA-256, the hash used for the evidence freshness check. The check detects
+      that an artifact's bytes changed; it carries no information about whether
+      the change matters.
+  - type: article
+    authors:
+      - family-names: Tarjan
+        given-names: "R. E."
+    title: "Depth-first search and linear graph algorithms"
+    journal: "SIAM Journal on Computing"
+    volume: 1
+    issue: 2
+    year: 1972
+    notes: >-
+      The strongly connected component algorithm behind the cycle check,
+      implemented iteratively in assuregraph.graph. No page number is quoted
+      because none was verified in this environment.
+  - type: article
+    authors:
+      - family-names: Johnson
+        given-names: "D. B."
+    title: "Finding all the elementary circuits of a directed graph"
+    journal: "SIAM Journal on Computing"
+    volume: 4
+    issue: 1
+    year: 1975
+    notes: >-
+      Cited for why assuregraph reports one witness cycle per cyclic region
+      rather than enumerating every elementary cycle. No page number is quoted
+      because none was verified in this environment.
+  - type: article
+    authors:
+      - family-names: Denney
+        given-names: "Ewen"
+      - family-names: Pai
+        given-names: "Ganesh"
+    title: "Tool support for assurance case development"
+    journal: "Automated Software Engineering"
+    doi: "10.1007/s10515-017-0230-5"
+    notes: >-
+      AdvoCATE, the NASA Ames assurance case automation toolset named in the
+      README's alternatives table. Volume, issue, year and page numbers are not
+      quoted because they were not verified in this environment; the authors,
+      title, journal and DOI were read from a NASA-hosted copy of the manuscript
+      on 2026-10-08.

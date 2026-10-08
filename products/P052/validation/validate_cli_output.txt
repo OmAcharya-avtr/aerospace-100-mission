@@ -1,0 +1,107 @@
+falsifyloop - CLI validation
+Every command below was run in this session. Exit status 0 means the command ran; it never means anything was or was not found. Status 2 is a usage or validation error.
+
+==============================================================================
+Subprocess check: python -m falsifyloop --help
+==============================================================================
+exit status : 0 (required: 0)
+stdout bytes: 1013
+forbidden vocabulary in --help: none
+
+==============================================================================
+Exit statuses and vocabulary, every subcommand
+==============================================================================
+command                                         expected  actual              forbidden words
+---------------------------------------------------------------------------------------------
+instances                                              0       0                         none
+falsify easy (violation expected)                      0       0                         none
+falsify hard, tiny budget (nothing expected)           0       0                         none
+falsify hard, full budget (violation expected)         0       0                         none
+falsify with repeats and a curve                       0       0                         none
+falsify --exit-on-violation, violation found           1       1                         none
+falsify --exit-on-violation, nothing found             0       0                         none
+benchmark                                              0       0                         none
+evaluate, violating point                              0       0                         none
+evaluate, satisfying point                             0       0                         none
+difficulty                                             0       0                         none
+evaluate, wrong argument count                         2       2                         none
+evaluate, outside the declared box                     2       2                         none
+falsify, zero budget                                   2       2                         none
+difficulty, zero draws                                 2       2                         none
+
+CLI failures: 0
+
+==============================================================================
+Verbatim output: a search that found nothing
+==============================================================================
+instance    : rate-envelope  [very hard]
+requirement : always[0,2] (|q| <= 75)
+strategy    : uniform-random
+seed        : 0
+budget      : 5 simulations
+simulations : 5 actually run
+min robustness: +0.741306 (dimensionless; negative exactly when the requirement is violated)
+NO VIOLATION FOUND within 5 simulations.
+Falsification is one-sided: finding no violation is not evidence of correctness.
+The search spent its budget and returned nothing. That is a statement about the search, not about the requirement.
+
+==============================================================================
+Verbatim output: a search that found a violation
+==============================================================================
+instance    : overshoot-loose  [easy]
+requirement : always[0,2] (over <= 2)
+strategy    : uniform-random
+seed        : 0
+budget      : 100 simulations
+simulations : 1 actually run
+min robustness: -0.051141 (dimensionless; negative exactly when the requirement is violated)
+VIOLATION FOUND at simulation 1
+counterexample (the decision vector that violates the requirement):
+  step_amplitude   +4.184808
+  kp_factor        +0.977701
+  kd_factor        +0.288925
+  tau_factor       +0.639666
+  gust_amplitude   +12.199054
+  gust_frequency   +2.746991
+
+==============================================================================
+Verbatim output: the same hard instance at the full budget
+==============================================================================
+The same instance and seed as the no-violation block above, with the budget raised from 5 to 100. Committed because the README quotes the budget-5 form and a reader should be able to see what the other outcome looks like.
+
+instance    : rate-envelope  [very hard]
+requirement : always[0,2] (|q| <= 75)
+strategy    : uniform-random
+seed        : 0
+budget      : 100 simulations
+simulations : 16 actually run
+min robustness: -0.048916 (dimensionless; negative exactly when the requirement is violated)
+VIOLATION FOUND at simulation 16
+counterexample (the decision vector that violates the requirement):
+  step_amplitude   +5.637120
+  kp_factor        +1.955097
+  kd_factor        +0.263971
+  tau_factor       +2.672736
+  gust_amplitude   +14.717926
+  gust_frequency   +2.875910
+
+==============================================================================
+Verbatim output: evaluate at a satisfying point
+==============================================================================
+instance    : rate-envelope  [very hard]
+requirement : always[0,2] (|q| <= 75)
+  step_amplitude   +1.000000
+  kp_factor        +0.600000
+  kd_factor        +1.200000
+  tau_factor       +0.600000
+  gust_amplitude   +0.000000
+  gust_frequency   +0.100000
+robustness  : +0.980627 (dimensionless)
+NO VIOLATION at this single point. One point says nothing about the box.
+Falsification is one-sided: finding no violation is not evidence of correctness.
+
+==============================================================================
+SUMMARY
+==============================================================================
+total CLI failures: 0
+Falsification is one-sided: finding no violation is not evidence of correctness.

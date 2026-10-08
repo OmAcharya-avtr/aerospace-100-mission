@@ -1,0 +1,80 @@
+falsifyloop - simulator validation
+The simulator is a synthetic benchmark closed loop. No parameter value in it was identified from any aircraft, and nothing below is a statement about a vehicle. What is validated is the numerics and the declared limits.
+
+==============================================================================
+Check 1 - Euler against the exact zero-order-hold linear solution
+==============================================================================
+nominal closed loop: wn = 5.019960 rad/s, zeta = 0.747018 (dimensionless)
+unsaturated regime confirmed below: peak |delta| against the 20 deg limit and peak |d delta/dt| against the 120 deg/s limit.
+
+   dt [s]  max |theta err| [deg]    ratio  peak |delta| [deg]  peak rate [deg/s]
+--------------------------------------------------------------------------------
+   0.0080            0.014637793       --            1.030677            28.0000
+   0.0040            0.007194975    2.034            1.002668            28.0000
+   0.0020            0.003567309    2.017            0.989244            28.0000
+   0.0010            0.001776222    2.008            0.982698            28.0000
+   0.0005            0.000886267    2.004            0.979466            28.0000
+
+A ratio near 2 when dt halves is the first-order global convergence the module docstring claims. The absolute error is the discretisation error budget of every robustness value this package reports.
+at the shipped dt = 0.005 s the worst theta error is 0.009032142 deg
+check-1 failures: 0
+
+==============================================================================
+Check 2 - self-convergence where both clips bind and no analytic answer exists
+==============================================================================
+peak |delta| = 13.2824 deg against the 20 deg limit; peak slew = 120.0 deg/s against the 120 deg/s limit, so both clips are active.
+
+   dt [s]   max |theta - theta_ref| [deg]    ratio
+----------------------------------------------------
+   0.0080                        0.720830       --
+   0.0040                        0.337507    2.136
+   0.0020                        0.159340    2.118
+   0.0010                        0.073451    2.169
+
+at the shipped dt = 0.005 s the worst theta discrepancy is 0.429770 deg
+The measured ratios are near 2, so first-order convergence survives the two clips on this trajectory -- which was not a foregone conclusion, since the clip switching instants move with dt. What does not survive is the small absolute error: the discretisation budget in the saturated regime is about fifty times the unsaturated one, and it is the budget every robustness value near zero has to be read against. Check 5 measures what that costs.
+
+==============================================================================
+Check 3 - declared actuator limits respected over the whole search box
+==============================================================================
+draws                        : 4000
+worst |delta| observed       : 19.614587904 deg  (declared limit 20 deg)
+worst |d delta/dt| observed  : 120.000000 deg/s  (declared limit 120 deg/s)
+worst |cmd| observed         : 20.000000000 deg  (declared limit 20 deg)
+
+worst |theta| observed       : 24.1727 deg   (NOT a declared limit; see below)
+worst |q| observed           : 78.6208 deg/s (NOT a declared limit)
+Attitude and attitude rate have no declared limit: they are what the loop does. The worst |theta| figure is quoted in the README and the dataset card because it is the honest measure of how far the violating corners of this box leave the small-angle regime in which the declared second-order model is even nominally valid. It is a property of the benchmark, not a prediction about any vehicle.
+
+check-3 failures: 0
+
+==============================================================================
+Check 4 - determinism over the search box
+==============================================================================
+draws re-simulated bit-for-bit : 500
+non-reproducible simulations   : 0
+Bit equality rather than tolerance, because the seeded benchmark's reproducibility claim is bit equality and nothing weaker.
+
+==============================================================================
+Check 5 - do found counterexamples survive a four-times-finer step
+==============================================================================
+coarse dt 0.005 s (shipped) against fine dt 0.00125 s
+
+instance              draws  violating  flipped  worst |rho| flipped  min |rho| kept
+------------------------------------------------------------------------------------
+overshoot-loose         600        176       11             0.095497        0.041006
+settling-band           600         54        6             0.087054        0.108170
+multi-requirement       600         39        0             0.000000        0.076980
+command-rate            600         22        2             0.063763        0.022868
+overshoot-tight         600          8        2             0.135888        0.152847
+attitude-envelope       600          2        0             0.000000        0.167923
+nested-capture          600          3        1             0.013825        0.001524
+rate-envelope           600          0        0             0.000000              --
+
+total verdicts that flipped when the step was refined: 22
+A flip means the coarse-step simulation reported a violation the finer step does not. These are reported rather than filtered out: the benchmark counts simulations at the shipped step, so a flipped counterexample still cost the search a simulation and still appears in its curve. The practical rule is that a counterexample should be re-simulated at a finer step before it is believed, and the worst flipped |rho| column is how large a margin that rule needs.
+
+==============================================================================
+SUMMARY
+==============================================================================
+total failures across all five checks: 0

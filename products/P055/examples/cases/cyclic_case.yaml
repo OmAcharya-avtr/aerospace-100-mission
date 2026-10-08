@@ -1,0 +1,41 @@
+# Illustrative assurance case, SYNTHETIC. Shipped with assuregraph so that the
+# checks have something real to run against and the README can show real output.
+#
+# A well-formed assurance case is not a safe system. The claims below are
+# fabricated for demonstration, the evidence artifacts under evidence/ are
+# fabricated, and nothing here supports a certification argument of any kind.
+# Naming follows the GSN Community Standard Version 3 (SCSC-141C, SCSC
+# Assurance Case Working Group, May 2021), Core GSN.
+
+# DELIBERATELY CYCLIC. One cyclic region is expected over G1, S1, G2, S2.
+
+name: "Illustrative: circular argument (SYNTHETIC, cyclic)"
+top_goals: [G1]
+
+nodes:
+  - id: G1
+    type: goal
+    statement: "The monitor meets its latency requirement."
+  - id: S1
+    type: strategy
+    statement: "Argument from the test campaign."
+  - id: G2
+    type: goal
+    statement: "The test campaign is adequate."
+  - id: S2
+    type: strategy
+    statement: "Argument from the monitor meeting its latency requirement."
+  - id: Sn1
+    type: solution
+    statement: "Unit test report."
+    evidence:
+      path: evidence/unit_test_report.txt
+      sha256: "2ff22a3805107da6de0ab2a8b2b36fb32fbf07e7b0515150a78d9d5287c1b974"
+      recorded: "2026-10-08"
+
+edges:
+  - {from: G1, to: S1, type: supported_by}
+  - {from: S1, to: G2, type: supported_by}
+  - {from: G2, to: S2, type: supported_by}
+  - {from: S2, to: G1, type: supported_by}
+  - {from: G2, to: Sn1, type: supported_by}

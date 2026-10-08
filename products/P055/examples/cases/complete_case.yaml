@@ -1,0 +1,139 @@
+# Illustrative assurance case, SYNTHETIC. Shipped with assuregraph so that the
+# checks have something real to run against and the README can show real output.
+#
+# A well-formed assurance case is not a safe system. The claims below are
+# fabricated for demonstration, the evidence artifacts under evidence/ are
+# fabricated, and nothing here supports a certification argument of any kind.
+# Naming follows the GSN Community Standard Version 3 (SCSC-141C, SCSC
+# Assurance Case Working Group, May 2021), Core GSN.
+
+name: "Illustrative: pitch residual monitor detection latency (SYNTHETIC, complete)"
+top_goals: [G1]
+
+nodes:
+  - id: G1
+    type: goal
+    statement: >-
+      The pitch residual monitor raises an alert within 5 samples of a 0.05 rad
+      step bias, over the twelve simulated scenarios of C1.
+  - id: C1
+    type: context
+    statement: >-
+      Scenario set: twelve recorded simulation runs SC-01 to SC-12, 100 Hz
+      sample rate, enumerated in the scenario manifest cited by Sn6.
+  - id: C2
+    type: context
+    statement: >-
+      Monitor configuration: one-sided normalised CUSUM, reference value
+      k = 0.5, threshold h = 4.0 (dimensionless).
+  - id: A1
+    type: assumption
+    statement: >-
+      The simulator noise model matches the bench sensor to within a factor of
+      two in residual variance.
+    discharged: true
+    discharged_by: Sn4
+  - id: J1
+    type: justification
+    statement: >-
+      Latency is argued by direct measurement rather than by analysis because
+      the CUSUM decision rule is non-linear in the residual.
+  - id: S1
+    type: strategy
+    statement: >-
+      Argument by decomposition over the conditions the latency claim rests on:
+      the rule fires, it fires in time, its threshold is the derived one, the
+      implementation is the reviewed one, the noise assumption holds, and the
+      scenario set is the declared one.
+
+  - id: G2
+    type: goal
+    statement: >-
+      The decision statistic exceeds the threshold in all twelve scenarios.
+  - id: G3
+    type: goal
+    statement: >-
+      First threshold crossing occurs at most 5 samples after bias onset in all
+      twelve scenarios.
+  - id: G4
+    type: goal
+    statement: >-
+      h = 4.0 is the threshold the stated derivation produces for a
+      1-in-10000-sample false-alarm rate under the stated null model.
+  - id: G5
+    type: goal
+    statement: >-
+      The implementation exercised by the tests is the implementation that was
+      reviewed.
+  - id: G6
+    type: goal
+    statement: >-
+      The simulator residual variance is within a factor of two of bench
+      measurement.
+  - id: G7
+    type: goal
+    statement: >-
+      The twelve scenarios the claims are quantified over are those enumerated
+      in the scenario manifest.
+
+  - id: Sn1
+    type: solution
+    statement: "Unit test report: statistic peak against threshold, 12 of 12 exceed."
+    evidence:
+      path: evidence/unit_test_report.txt
+      sha256: "2ff22a3805107da6de0ab2a8b2b36fb32fbf07e7b0515150a78d9d5287c1b974"
+      recorded: "2026-10-08"
+  - id: Sn2
+    type: solution
+    statement: "Threshold derivation note for the CUSUM rule."
+    evidence:
+      path: evidence/threshold_derivation.md
+      sha256: "dd4f8ed887d46dc67e90466848ae895ce2ffa7ff3cecdcf3678efb02966bba73"
+      recorded: "2026-10-08"
+  - id: Sn3
+    type: solution
+    statement: "Detection latency study: onset to first crossing, per scenario."
+    evidence:
+      path: evidence/detection_latency_study.txt
+      sha256: "ec6f5d72d6aefd6f26a0045c0dbe44f0b7fb7e32436d9b0811a007dafdf21463"
+      recorded: "2026-10-08"
+  - id: Sn4
+    type: solution
+    statement: "Simulator-to-bench residual variance comparison."
+    evidence:
+      path: evidence/noise_model_comparison.txt
+      sha256: "633ea7269a67a3e2ce00e59d538a670d42b2124d8f07d0f673151e382f391301"
+      recorded: "2026-10-08"
+  - id: Sn5
+    type: solution
+    statement: "Code review record for the monitor implementation."
+    evidence:
+      path: evidence/code_review_record.txt
+      sha256: "03c30c721cd09f3d7ff7c5759ed1ec9ee0abe6b24e732891deb113a35663905c"
+      recorded: "2026-10-08"
+  - id: Sn6
+    type: solution
+    statement: "Scenario manifest: the twelve runs and their parameters."
+    evidence:
+      path: evidence/scenario_manifest.txt
+      sha256: "7e74bd1cf827f0cf3a0102b95d03b4ec270a14c8ebef314e4cf3e0c44658a266"
+      recorded: "2026-10-08"
+
+edges:
+  - {from: G1, to: C1, type: in_context_of}
+  - {from: G1, to: A1, type: in_context_of}
+  - {from: G1, to: J1, type: in_context_of}
+  - {from: G1, to: S1, type: supported_by}
+  - {from: S1, to: C2, type: in_context_of}
+  - {from: S1, to: G2, type: supported_by}
+  - {from: S1, to: G3, type: supported_by}
+  - {from: S1, to: G4, type: supported_by}
+  - {from: S1, to: G5, type: supported_by}
+  - {from: S1, to: G6, type: supported_by}
+  - {from: S1, to: G7, type: supported_by}
+  - {from: G2, to: Sn1, type: supported_by}
+  - {from: G3, to: Sn3, type: supported_by}
+  - {from: G4, to: Sn2, type: supported_by}
+  - {from: G5, to: Sn5, type: supported_by}
+  - {from: G6, to: Sn4, type: supported_by}
+  - {from: G7, to: Sn6, type: supported_by}

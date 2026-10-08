@@ -1,0 +1,53 @@
+Content-hash staleness: what it discriminates -- assuregraph 0.1.0
+
+Hash function: SHA-256, FIPS 180-4 (NIST, August 2015).
+
+unchanged artifact                         -> fresh
+
+Representative edits (first repeat of each):
+  material    'verdict: pass\n'        -> 'verdict: fail\n'                        stale
+  material    'violations: 0\n'        -> 'violations: 17\n'                       stale
+  material    'latency_samples: 3\n'   -> 'latency_samples: 31\n'                  stale
+  material    'coverage: 100 %\n'      -> 'coverage: 42 %\n'                       stale
+  material    'threshold: 4.0\n'       -> 'threshold: 40.0\n'                      stale
+  immaterial  'verdict: pass\n'        -> 'verdict: pass\n\n'                      stale
+  immaterial  'violations: 0\n'        -> 'violations: 0\n# end of report\n'       stale
+  immaterial  'latency_samples: 3\n'   -> 'latency_samples: 3  \n'                 stale
+  immaterial  'coverage: 100 %\n'      -> 'coverage: 100 %\r\n'                    stale
+  immaterial  'threshold: 4.0\n'       -> '# regenerated 2026-10-08\nthreshold: 4.0\n' stale
+
+material edits made                       : 20
+material edits reported stale             : 20
+immaterial edits made                     : 20
+immaterial edits reported stale           : 20
+
+Discrimination between material and immaterial change:
+  material detection rate   = 20/20 = 1.000
+  immaterial detection rate = 20/20 = 1.000
+  difference in rates       = 0.000
+
+A difference of 0.000 means the check cannot tell the two apart. That is
+the intended behaviour of a content hash and the reason this package calls
+the finding 'the bytes changed' rather than 'the evidence is invalid'.
+
+History blindness
+  after a material change          -> stale
+  after reverting that change      -> fresh
+  The check reads current bytes only. An artifact changed and changed back
+  is indistinguishable from one never touched.
+
+States where no comparison is possible
+  present, no digest recorded      -> unverifiable
+  cited path absent                -> absent
+  cited path is a directory        -> unreadable
+  'unverifiable' is counted separately from 'fresh' everywhere in the
+  package and is excluded from the freshness denominator.
+
+Hashing cost (two shared contended cores; wall clock, varies run to run)
+  artifact size                    : 32.0 MiB
+  sha256_file elapsed              : 0.027 s
+  throughput                       : 1173.5 MiB/s
+  digest agrees with hashlib.sha256 of the whole file: yes
+
+FAILURES: 0
+elapsed: 0.091 s

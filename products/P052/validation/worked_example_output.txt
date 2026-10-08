@@ -1,0 +1,36 @@
+falsifyloop - worked example (this is the code in README.md)
+
+requirement        : always[1.2,2] (|error| <= 3)
+robustness         : -2.244031  (dimensionless, normalised by the 3 deg band)
+Boolean semantics  : satisfied = False
+sign agreement     : (rho < 0) == (not satisfied) -> True
+
+instance           : attitude-envelope [hard]
+requirement        : always[0,2] (|theta| <= 17)
+
+uniform-random     first violation at simulation 63
+                   min robustness -0.083447 after 63 simulations
+surrogate-guided   first violation at simulation 35
+                   min robustness -0.048979 after 35 simulations
+
+uniform-random sample-efficiency curve over 20 seeds, budget 100:
+    n  P(found by n)       95% bootstrap band
+---------------------------------------------
+   10          0.100 [    0.000,     0.250]
+   25          0.150 [    0.000,     0.300]
+   50          0.200 [    0.050,     0.400]
+   75          0.350 [    0.150,     0.550]
+  100          0.400 [    0.200,     0.600]
+
+runs that found nothing: 12 of 20
+A run that found nothing found nothing. Falsification is one-sided: finding no violation is not evidence of correctness.
+
+counterexample, replayed:
+  step_amplitude   +5.573344
+  kp_factor        +1.583907
+  kd_factor        +0.291443
+  tau_factor       +2.739523
+  gust_amplitude   +10.154826
+  gust_frequency   +1.729313
+  peak |theta|     17.8326 deg against the 17 deg envelope
+  robustness       -0.048979

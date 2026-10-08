@@ -1,0 +1,48 @@
+# validate_design_point
+python 3.13.16 on Linux-6.18.44-fc-v80-x86_64-with-glibc2.39
+os.cpu_count()=2 len(os.sched_getaffinity(0))=2
+numpy 2.5.3 scipy 1.18.1 scikit-learn 1.9.1
+
+## 1. Closed-form instances: both searches against the exact answer
+For a linear limit state the design point is beta * a exactly; for the lognormal ratio it is the projection of the origin onto the linear failure boundary in u-space, with norm beta.
+                    instance   exact beta   ray search        SLSQP   ray rel err  SLSQP rel err
+         linear beta=2.5 d=2     2.500000     2.500000     2.500000     0.000e+00      0.000e+00
+       linear beta=3.719 d=2     3.719000     3.719000     3.719000     0.000e+00      0.000e+00
+       linear beta=4.753 d=5     4.753000     4.753000     4.753000     0.000e+00      0.000e+00
+  linear beta=3.719 d=8 skew     3.719000     3.719000     3.719000    -9.543e-12     -5.881e-13
+           lognormal default     3.719000     3.719000     3.719000     4.036e-08      4.036e-08
+[PASS] both searches recover the closed-form reliability index to 1e-5 relative on every closed-form instance
+
+## 2. The rippled instances, where no closed form exists
+The two searches are each other's only reference here. The smooth design point is shown for contrast: it is what an analyst gets without a surrogate and it is not the most probable failure point.
+                    instance  smooth beta   ray search        SLSQP    agreement
+         rippled A=0.8 w=1.5     3.719000     3.072735     3.072735    6.639e-14
+   rippled A=2.0 w=2.0 b=5.0     5.000000     3.097125     3.097125    1.652e-13
+   rippled A=2.5 w=2.0 b=5.5     5.500000     3.097896     3.097896    9.370e-14
+         rippled A=0.8 w=6.0     3.719000     2.930579     2.930579    3.086e-14
+[PASS] the two searches agree to 1e-4 relative on every rippled instance
+
+## 3. Measured limitation: the ray search degrades with dimension
+Rippled limit state, beta=3.719, A=0.8, w=1.5. The design point lies in the plane of the two active directions, so the true answer is 3.072735 in every dimension. With polish=False the search is the raw ray search; with polish=True it finishes with one SLSQP step from the ray-search point.
+   d   n_dir      raw ray   raw rel err     polished   polished rel err
+   2     192     3.072738     9.702e-07     3.072735         -8.852e-08
+   2     512     3.072736     3.980e-07     3.072735         -8.852e-08
+   2    2048     3.072735    -7.977e-08     3.072735         -8.852e-08
+   4     192     3.074287     5.052e-04     3.072735         -8.852e-08
+   4     512     3.078627     1.917e-03     3.072735         -8.852e-08
+   4    2048     3.074063     4.322e-04     3.072735         -8.852e-08
+   6     192     3.338995     8.665e-02     3.072735         -8.852e-08
+   6     512     3.149534     2.499e-02     3.072735         -8.852e-08
+   6    2048     3.079961     2.352e-03     3.072735         -8.852e-08
+  10     192     3.186607     3.706e-02     3.072735         -8.852e-08
+  10     512     3.170619     3.186e-02     3.072735         -8.852e-08
+  10    2048     3.126057     1.735e-02     3.072735         -8.852e-08
+[PASS] the polished ray search is within 1e-4 relative of the true reliability index in every dimension and direction count tested
+raw ray-search relative error at 192 directions: {2: 9.702068997086144e-07, 4: 0.0005051759240277676, 6: 0.08665258384469077, 10: 0.03705879606411755}
+[PASS] the raw ray-search error grows with dimension, which is the documented limitation (d=2: 9.702e-07, d=10: 3.706e-02)
+
+## 4. Non-convergence is reported, not papered over
+beta=12 with max_radius=4: converged=False, point=[0.0, 0.0]
+[PASS] a design point outside max_radius returns converged=False
+
+all checks passed

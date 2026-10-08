@@ -1,0 +1,42 @@
+=== declared reference twin ===
+dt                    0.0500 s (20.0 Hz)
+A                     [0.9950372994536869, 0.0494208529978053, -0.19768341199122116, 0.9752689582545647]
+B                     [0.004962700546313134, 0.19768341199122116]
+Q                     [1.6666666666666674e-08, 5.000000000000001e-07, 5.000000000000001e-07, 2e-05]
+R                     1.000000e-04 rad^2
+predictor gain K      [0.15168441533094298, 0.1825958407536404]
+innovation variance S 1.165114435e-04 rad^2
+sqrt(S)               1.079404667e-02 rad
+spectral radius A-KC  0.917218411   (requirement < 1)
+Riccati residual      7.047e-19  (tolerance 1e-15)
+CHECK riccati         PASS
+CHECK stability       PASS
+
+=== innovations property: in-control residual is i.i.d. N(0,1) ===
+samples               1600000
+standard error        0.000791  (= 1/sqrt(n), the tolerance unit below)
+mean                  +0.000814   (+1.03 se)   tolerance 4 se
+std                   1.000302    (+0.38 se)   tolerance 4 se
+lag-1 autocorrelation -0.000141   (-0.18 se)   tolerance 4 se
+lag-2 autocorrelation +0.001384   (+1.75 se)   tolerance 4 se
+lag-5 autocorrelation -0.000462   (-0.58 se)   tolerance 4 se
+CHECK whiteness       PASS
+NOTE  the first version of this package used the filter gain P C^T/S
+NOTE  in the predictor recursion instead of A P C^T/S. The measured
+NOTE  lag-1 autocorrelation was then +0.0105, i.e. +13 se, and this
+NOTE  check failed. See validation/VALIDATION.md, error 1.
+
+=== parameter-step mean shift against the closed form, equation (10) ===
+delta=-0.004  predicted -0.161722  measured -0.161460  relative error 0.16 %  tolerance 3 %  PASS
+delta=-0.010  predicted -0.404305  measured -0.404970  relative error 0.16 %  tolerance 3 %  PASS
+delta=-0.030  predicted -1.212915  measured -1.216671  relative error 0.31 %  tolerance 3 %  PASS
+
+=== residual statistics of the three declared scenarios ===
+scenario               mean   variance    lag-1  excess kurt
+parameter_step      -0.4086     1.0025   0.0060       0.0056
+slow_ramp           -0.4086     1.0025   0.0060       0.0056
+noise_variance      -0.0027     1.0585   0.0579       0.0070
+NOTE  the noise_variance scenario multiplies the asset PROCESS noise by 2
+NOTE  but raises the RESIDUAL variance only to the value above, because
+NOTE  the measurement noise R dominates the innovation variance S.
+NOTE  That number is what sets the variance-CUSUM oracle's reference value.

@@ -1,0 +1,95 @@
+# validate_is_worse
+python 3.13.16 on Linux-6.18.44-fc-v80-x86_64-with-glibc2.39
+os.cpu_count()=2 len(os.sched_getaffinity(0))=2
+numpy 2.5.3 scipy 1.18.1 scikit-learn 1.9.1
+
+budget = 100000 samples, replications = 40
+
+## linear beta=3.719 d=2   reference p = 1.00006526e-04
+  crude: mean=1.017500e-04 std=3.161365e-05 cov=0.3107 relbias=+0.0174 se/std=0.997 evals=100000 R=40
+            tilt   |theta|          mean          std   rel bias          VRF        MSERF   mean ESS      verdict
+        scale=-1    3.7190   0.00000e+00   0.0000e+00    -1.0000          n/a          n/a       0.00   DEGENERATE
+      scale=-0.5    1.8595   1.58115e-03   1.0000e-02   +14.8105    9.994e-06    9.785e-06       0.03        WORSE
+     scale=-0.25    0.9297   2.33302e-04   3.9624e-04    +1.3329     0.006366     0.005722       0.35        WORSE
+      scale=-0.1    0.3719   1.02464e-04   7.2934e-05    +0.0246       0.1879       0.1878       2.13        WORSE
+       scale=0.1    0.3719   1.00086e-04   1.6797e-05    +0.0008        3.542        3.544      40.67       better
+      scale=0.25    0.9297   1.00357e-04   7.2845e-06    +0.0035        18.83         18.8     253.19       better
+       scale=0.5    1.8595   1.00614e-04   1.6357e-06    +0.0061        373.6        328.4    2610.47       better
+      scale=0.75    2.7893   9.99197e-05   9.2320e-07    -0.0009         1173         1163   10985.42       better
+         scale=1    3.7190   1.00136e-04   6.0359e-07    +0.0013         2743         2623   19268.65       better
+      scale=1.25    4.6487   9.99039e-05   7.9399e-07    -0.0010         1585         1560   14030.19       better
+       scale=1.5    5.5785   1.00264e-04   1.3074e-06    +0.0026        584.7        563.2    4252.32       better
+         scale=2    7.4380   1.00700e-04   1.5845e-05    +0.0069        3.981        3.975      29.20       better
+       scale=2.5    9.2975   1.02645e-05   3.9747e-05    -0.8974       0.6326       0.1038       2.47        WORSE
+         scale=3   11.1570   4.82921e-10   2.3334e-09    -1.0000    1.836e+08      0.09998       2.06        WORSE
+  orthogonal=0.1    0.3719   1.07473e-04   2.9282e-05    +0.0747        1.166        1.095       9.41       better
+ orthogonal=0.25    0.9297   1.12062e-04   5.5341e-05    +0.1206       0.3263       0.3117       6.27        WORSE
+  orthogonal=0.5    1.8595   1.49688e-04   3.2833e-04    +0.4968     0.009271     0.009068       3.52        WORSE
+ orthogonal=0.75    2.7893   2.70108e-04   1.2243e-03    +1.7009    0.0006667    0.0006545       2.46        WORSE
+    orthogonal=1    3.7190   3.54168e-04   1.9851e-03    +2.5414    0.0002536    0.0002497       1.97        WORSE
+  orthogonal=1.5    5.5785   6.37160e-05   3.9319e-04    -0.3629     0.006465     0.006414       1.52        WORSE
+
+## rippled beta=5.5 A=2.5 w=2.0   reference p = 1.85308155e-04
+  crude: mean=1.932500e-04 std=4.864247e-05 cov=0.2517 relbias=+0.0429 se/std=0.897 evals=100000 R=40
+            tilt   |theta|          mean          std   rel bias          VRF        MSERF   mean ESS      verdict
+        scale=-1    5.5000   0.00000e+00   0.0000e+00    -1.0000          n/a          n/a       0.00   DEGENERATE
+      scale=-0.5    2.7500   0.00000e+00   0.0000e+00    -1.0000          n/a          n/a       0.00   DEGENERATE
+     scale=-0.25    1.3750   2.99742e-04   1.0282e-03    +0.6175     0.002238     0.001731       0.10        WORSE
+      scale=-0.1    0.5500   2.01159e-04   1.3533e-04    +0.0855       0.1292       0.0998       2.63        WORSE
+       scale=0.1    0.5500   1.88174e-04   1.8016e-05    +0.0155         7.29        5.567     104.21       better
+      scale=0.25    1.3750   1.87978e-04   6.3090e-06    +0.0144        59.44        39.48     740.65       better
+       scale=0.5    2.7500   1.84547e-04   2.7603e-06    -0.0041        310.5          226    3842.47       better
+      scale=0.75    4.1250   1.85175e-04   3.1106e-06    -0.0007        244.5        191.1    2872.03       better
+         scale=1    5.5000   1.85588e-04   1.1156e-05    +0.0015        19.01        14.88     312.16       better
+      scale=1.25    6.8750   1.70477e-04   6.0772e-05    -0.0800       0.6407       0.4735       9.62        WORSE
+       scale=1.5    8.2500   3.76488e-04   2.0442e-03    +1.0317    0.0005662    0.0004395       2.50        WORSE
+         scale=2   11.0000   1.08000e-09   6.0145e-09    -1.0000    6.541e+07      0.05395       1.83        WORSE
+       scale=2.5   13.7500   1.64618e-18   9.2308e-18    -1.0000    2.777e+25      0.05395       1.75        WORSE
+         scale=3   16.5000   1.22319e-30   7.3264e-30    -1.0000    4.408e+49      0.05395       1.57        WORSE
+  orthogonal=0.1    0.5500   2.05669e-04   5.8365e-05    +0.1099       0.6946       0.4849      12.37        WORSE
+ orthogonal=0.25    1.3750   1.58181e-04   1.0695e-04    -0.1464       0.2068       0.1522       5.20        WORSE
+  orthogonal=0.5    2.7500   2.01613e-04   1.1721e-03    +0.0880     0.001722     0.001348      17.67        WORSE
+ orthogonal=0.75    4.1250   1.59660e-05   8.7608e-06    -0.9138        30.83      0.06444       4.04        WORSE
+    orthogonal=1    5.5000   4.61407e-06   1.4968e-05    -0.9751        10.56      0.05636      11.56        WORSE
+  orthogonal=1.5    8.2500   1.46083e-10   3.3346e-10    -1.0000    2.128e+10      0.05395       4.19        WORSE
+
+## Tilts that are worse than plain Monte Carlo
+  - linear beta=3.719 d=2 / scale=-1: degenerate, every run returned 0
+  - linear beta=3.719 d=2 / scale=-0.5: VRF=9.994e-06, MSERF=9.785e-06, relative bias +14.8105
+  - linear beta=3.719 d=2 / scale=-0.25: VRF=0.006366, MSERF=0.005722, relative bias +1.3329
+  - linear beta=3.719 d=2 / scale=-0.1: VRF=0.1879, MSERF=0.1878, relative bias +0.0246
+  - linear beta=3.719 d=2 / scale=2.5: VRF=0.6326, MSERF=0.1038, relative bias -0.8974
+  - linear beta=3.719 d=2 / scale=3: VRF=1.836e+08, MSERF=0.09998, relative bias -1.0000
+  - linear beta=3.719 d=2 / orthogonal=0.25: VRF=0.3263, MSERF=0.3117, relative bias +0.1206
+  - linear beta=3.719 d=2 / orthogonal=0.5: VRF=0.009271, MSERF=0.009068, relative bias +0.4968
+  - linear beta=3.719 d=2 / orthogonal=0.75: VRF=0.0006667, MSERF=0.0006545, relative bias +1.7009
+  - linear beta=3.719 d=2 / orthogonal=1: VRF=0.0002536, MSERF=0.0002497, relative bias +2.5414
+  - linear beta=3.719 d=2 / orthogonal=1.5: VRF=0.006465, MSERF=0.006414, relative bias -0.3629
+  - rippled beta=5.5 A=2.5 w=2.0 / scale=-1: degenerate, every run returned 0
+  - rippled beta=5.5 A=2.5 w=2.0 / scale=-0.5: degenerate, every run returned 0
+  - rippled beta=5.5 A=2.5 w=2.0 / scale=-0.25: VRF=0.002238, MSERF=0.001731, relative bias +0.6175
+  - rippled beta=5.5 A=2.5 w=2.0 / scale=-0.1: VRF=0.1292, MSERF=0.0998, relative bias +0.0855
+  - rippled beta=5.5 A=2.5 w=2.0 / scale=1.25: VRF=0.6407, MSERF=0.4735, relative bias -0.0800
+  - rippled beta=5.5 A=2.5 w=2.0 / scale=1.5: VRF=0.0005662, MSERF=0.0004395, relative bias +1.0317
+  - rippled beta=5.5 A=2.5 w=2.0 / scale=2: VRF=6.541e+07, MSERF=0.05395, relative bias -1.0000
+  - rippled beta=5.5 A=2.5 w=2.0 / scale=2.5: VRF=2.777e+25, MSERF=0.05395, relative bias -1.0000
+  - rippled beta=5.5 A=2.5 w=2.0 / scale=3: VRF=4.408e+49, MSERF=0.05395, relative bias -1.0000
+  - rippled beta=5.5 A=2.5 w=2.0 / orthogonal=0.1: VRF=0.6946, MSERF=0.4849, relative bias +0.1099
+  - rippled beta=5.5 A=2.5 w=2.0 / orthogonal=0.25: VRF=0.2068, MSERF=0.1522, relative bias -0.1464
+  - rippled beta=5.5 A=2.5 w=2.0 / orthogonal=0.5: VRF=0.001722, MSERF=0.001348, relative bias +0.0880
+  - rippled beta=5.5 A=2.5 w=2.0 / orthogonal=0.75: VRF=30.83, MSERF=0.06444, relative bias -0.9138
+  - rippled beta=5.5 A=2.5 w=2.0 / orthogonal=1: VRF=10.56, MSERF=0.05636, relative bias -0.9751
+  - rippled beta=5.5 A=2.5 w=2.0 / orthogonal=1.5: VRF=2.128e+10, MSERF=0.05395, relative bias -1.0000
+[PASS] at least four tilts are measurably worse than plain Monte Carlo (26 found)
+[PASS] the wrong-direction tilt at scale -1 is degenerate: no replication ever reaches the failure region
+
+## The trap the MSE metric exists to catch
+Over-tilting at scale 3 on the linear instance: the sampler is centred deep inside the failure region, almost every sample fails, and the few samples that would carry significant weight are never drawn. The result is an estimate many orders of magnitude below the truth with a standard error to match, so the variance reduction factor is enormous and meaningless. The first version of this sweep reported that tilt as 'better'.
+  reference p             : 1.00006526e-04
+  mean estimate           : 4.82921486e-10
+  relative bias           : -0.999995
+  variance reduction      : 1.83561e+08
+  MSE reduction           : 0.0999844
+[PASS] the variance verdict and the MSE verdict disagree for the over-tilted sampler, which is why both are reported
+
+all checks passed

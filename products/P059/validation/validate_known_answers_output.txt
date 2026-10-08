@@ -1,0 +1,61 @@
+1. 1-D, lambda = 0.8, |w| <= 0.1, |x| <= 1
+   threshold w/(1-|lambda|) = 0.1/0.2 = 0.5 <= 1, so S_inf = X
+  [PASS] termination                                          got converged   expected converged
+  [PASS] iterations                                           got 1   expected 1
+  [PASS] S_inf length                                         got 2.000000000000   expected 2.0
+  [PASS] worst facet margin                                   got -1.000000000000e-01   expected -0.1 exactly
+  [PASS] MAXIMAL set half-width                               got 1.000000000000   expected 1.0
+  [PASS] MINIMAL RPI half-width (different object)            got 0.500000000000   expected 0.5
+   the two differ by a factor of 2.0; using 0.5 here would be the classic error
+
+2. 1-D, lambda = 0.9, |w| <= 0.2, |x| <= 1: S_inf is EMPTY
+   r_k = 2 - (10/9)^k, empty at the first k with r_k < 0
+  [PASS] termination                                          got empty   expected empty
+  [PASS] iterations                                           got 7   expected 7
+   k   measured half-width      closed form 2 - (10/9)^k    abs diff
+   1   0.888888888889            0.888888888889            1.110e-16  PASS
+   2   0.765432098765            0.765432098765            1.110e-16  PASS
+   3   0.628257887517            0.628257887517            1.110e-16  PASS
+   4   0.475842097241            0.475842097241            5.551e-17  PASS
+   5   0.306491219157            0.306491219157            1.665e-16  PASS
+   6   0.118323576841            0.118323576841            8.327e-17  PASS
+   k=7 closed form would be -0.090751581288 < 0, hence empty
+
+3. 1-D threshold: lambda = 0.5, |w| <= 0.25, |x| <= 0.5
+   b = w/(1-lambda) = 0.5 exactly, so X is invariant with zero margin
+  [PASS] termination                                          got converged   expected converged
+  [PASS] worst facet margin                                   got 0.000e+00   expected 0 exactly
+  [PASS] b = 0.49 (just below threshold)                      got empty   expected empty
+
+4. 2-D singular A = [[0,1],[0,0]], box X half-width 1, box W half-width 0.1
+   hand trace: Omega_1 = {|x1|<=1, |x2|<=0.9}, Omega_2 = Omega_1
+  [PASS] termination                                          got converged   expected converged
+  [PASS] iterations                                           got 2   expected 2
+  [PASS] facets                                               got 4   expected 4
+  [PASS] vertices                                             got 4   expected 4
+  [PASS] h(e1)                                                got 1.000000000000   expected 1.0
+  [PASS] h(e2)                                                got 0.900000000000   expected 0.9
+  [PASS] area                                                 got 3.600000000000   expected 3.6
+  [PASS] worst facet margin                                   got 0.000e+00   expected 0 exactly
+
+5. 2-D decoupled A = 0.5 I, box X half-width 1, box W half-width 0.1
+   per-axis threshold 0.1/0.5 = 0.2 <= 1, so S_inf = X = [-1,1]^2
+  [PASS] iterations                                           got 1   expected 1
+  [PASS] area                                                 got 4.000000000000   expected 4.0
+  [PASS] worst facet margin                                   got -0.400000000000   expected -0.4 exactly
+
+6. attitude loop: gain derivation and measured outcome
+   trace(A_cl)                  = 1.800000000000   [1.8]
+   det(A_cl)                    = 0.820000000000   [0.82]
+   closed-loop poles            = 0.900000000-0.100000000j, 0.900000000+0.100000000j   [0.9 +/- 0.1j]
+   W half-widths [rad, rad/s]   = 1.500000000e-04, 6.000000000e-03   [1.5e-4, 6.0e-3]
+   iterations                   = 5
+   facets of S_inf              = 16
+   vertices of S_inf            = 16
+   area of X    [rad.rad/s]     = 0.544407894737
+   area of S_inf [rad.rad/s]    = 0.538347284806
+   S_inf covers                 = 98.886752 % of X
+   S_inf independently invariant= True, worst facet margin 0.000000e+00
+   X itself invariant           = False, worst facet margin +3.100000e-02
+
+FAILED CHECKS: 0

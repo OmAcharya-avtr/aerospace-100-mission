@@ -1,0 +1,67 @@
+=== CUSUM (Page 1954), two-sided tabular form ===
+z = [1, 1, 1], reference k = 0.25
+  derivation  S+ = max(0, S+ + z - k): 0.75, 1.50, 2.25; S- stays 0 since -1-0.25 < 0
+  expected    [0.75, 1.5, 2.25]
+  computed    [0.75, 1.5, 2.25]
+  max error   0.000e+00   tolerance 1e-12   PASS
+z = [-1, -1], reference k = 0.25
+  derivation  lower arm S- = max(0, S- - z - k): 0.75, 1.50
+  expected    [0.75, 1.5]
+  computed    [0.75, 1.5]
+  max error   0.000e+00   tolerance 1e-12   PASS
+z = [2, -5, 0], reference k = 0.5
+  derivation  S+: 1.5, 0, 0; S-: 0, 4.5, 4.0; statistic is the max of the arms
+  expected    [1.5, 4.5, 4.0]
+  computed    [1.5, 4.5, 4.0]
+  max error   0.000e+00   tolerance 1e-12   PASS
+
+=== EWMA (Roberts 1959), standardised by the asymptotic sd ===
+z = [2, -1, 0.5], lambda = 1
+  derivation  lambda=1 gives A_k = z_k and sigma = sqrt(1/1) = 1, so g = |z|
+  expected    [2.0, 1.0, 0.5]
+  computed    [2.0, 1.0, 0.5]
+  max error   0.000e+00   tolerance 1e-12   PASS
+z = [1], lambda = 0.1
+  derivation  A_0 = 0.1; sigma = sqrt(0.1/1.9) = 0.2294157339; 0.1/0.2294157339
+  expected    [0.4358898944]
+  computed    [0.4358898944]
+  max error   0.000e+00   tolerance 1e-12   PASS
+z = [2, 0], lambda = 0.5
+  derivation  A = 1.0, 0.5; sigma = sqrt(0.5/1.5) = 0.5773502692; g = sqrt(3), sqrt(3)/2
+  expected    [1.7320508076, 0.8660254038]
+  computed    [1.7320508076, 0.8660254038]
+  max error   2.220e-16   tolerance 1e-12   PASS
+
+=== windowed GLR (Willsky & Jones 1976) ===
+z = [2, 0, -3], window = 1
+  derivation  window 1 gives g = z^2/2: 4/2, 0/2, 9/2
+  expected    [2.0, 0.0, 4.5]
+  computed    [2.0, 0.0, 4.5]
+  max error   0.000e+00   tolerance 1e-12   PASS
+z = [2, 0, 0], window = 3
+  derivation  max over n of S_n^2/(2n): 4/2; max(0, 4/4); max(0, 0, 4/6)
+  expected    [2.0, 1.0, 0.6666666667]
+  computed    [2.0, 1.0, 0.6666666667]
+  max error   0.000e+00   tolerance 1e-12   PASS
+z = [1, 1, 1, 1], window = 4
+  derivation  S_n = n so g = n^2/(2n) = n/2: 0.5, 1.0, 1.5, 2.0
+  expected    [0.5, 1.0, 1.5, 2.0]
+  computed    [0.5, 1.0, 1.5, 2.0]
+  max error   0.000e+00   tolerance 1e-12   PASS
+
+=== variance-CUSUM oracle (not one of the three declared baselines) ===
+z = [2, 0, 2], reference c = 0.5
+  derivation  V = max(0, V + z^2 - 1 - c): 4-1.5 = 2.5; 2.5-1.5 = 1.0; 1.0+4-1.5 = 3.5
+  expected    [2.5, 1.0, 3.5]
+  computed    [2.5, 1.0, 3.5]
+  max error   0.000e+00   tolerance 1e-12   PASS
+
+=== first-alarm indexing ===
+statistic [[0,1,5,9],[0,0,0,0]], threshold 2
+  expected    [2, -1]   (-1 marks a right-censored run)
+  computed    [2, -1]
+  PASS
+statistic [[1,2]], threshold 2: the test is strict (> not >=)
+  expected    [-1]   computed [-1]   PASS
+
+SUMMARY  12/12 known-answer checks PASS

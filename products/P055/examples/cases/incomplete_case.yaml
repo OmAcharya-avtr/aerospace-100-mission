@@ -1,0 +1,111 @@
+# Illustrative assurance case, SYNTHETIC. Shipped with assuregraph so that the
+# checks have something real to run against and the README can show real output.
+#
+# A well-formed assurance case is not a safe system. The claims below are
+# fabricated for demonstration, the evidence artifacts under evidence/ are
+# fabricated, and nothing here supports a certification argument of any kind.
+# Naming follows the GSN Community Standard Version 3 (SCSC-141C, SCSC
+# Assurance Case Working Group, May 2021), Core GSN.
+
+# DELIBERATELY INCOMPLETE. Six error findings, one warning and one info are
+# expected; see validation/validate_known_answers.py for the expected set, which
+# is asserted by the test suite.
+
+name: "Illustrative: pitch residual monitor detection latency (SYNTHETIC, incomplete)"
+top_goals: [G1]
+
+nodes:
+  - id: G1
+    type: goal
+    statement: >-
+      The pitch residual monitor raises an alert within 5 samples of a 0.05 rad
+      step bias, over the twelve simulated scenarios of C1.
+  - id: C1
+    type: context
+    statement: >-
+      Scenario set: twelve recorded simulation runs SC-01 to SC-12, 100 Hz
+      sample rate.
+  - id: A1
+    type: assumption
+    statement: >-
+      The simulator noise model matches the bench sensor to within a factor of
+      two in residual variance.
+  - id: S1
+    type: strategy
+    statement: >-
+      Argument by decomposition over the conditions the latency claim rests on.
+
+  - id: G2
+    type: goal
+    statement: >-
+      The decision statistic exceeds the threshold in all twelve scenarios.
+  - id: G3
+    type: goal
+    statement: >-
+      First threshold crossing occurs at most 5 samples after bias onset in all
+      twelve scenarios.
+  - id: G4
+    type: goal
+    statement: >-
+      h = 4.0 is the threshold the stated derivation produces for a
+      1-in-10000-sample false-alarm rate under the stated null model.
+  - id: G5
+    type: goal
+    statement: >-
+      The implementation exercised by the tests is the implementation that was
+      reviewed.
+  - id: G7
+    type: goal
+    statement: >-
+      Timing jitter in the sample clock does not move the first crossing by more
+      than one sample.
+    undeveloped: true
+
+  # Not reachable from G1: left over from an earlier revision of the case.
+  - id: G8
+    type: goal
+    statement: >-
+      The monitor rejects a 0.01 rad bias as noise.
+    undeveloped: true
+  - id: C3
+    type: context
+    statement: "Rejection band, from the earlier revision of this case."
+
+  - id: Sn1
+    type: solution
+    statement: "Unit test report: statistic peak against threshold, 12 of 12 exceed."
+    evidence:
+      # No sha256 recorded: freshness is not computable, reported as a warning
+      # and counted as unverifiable, never as fresh.
+      path: evidence/unit_test_report.txt
+      recorded: "2026-10-08"
+  - id: Sn2
+    type: solution
+    statement: "Threshold derivation note for the CUSUM rule."
+    evidence:
+      # Digest deliberately does not match the file on disk: stale.
+      path: evidence/threshold_derivation.md
+      sha256: "dd4f8ed887d46dc67e90466848ae895ce2ffa7ff3cecdcf3678efb02966bba70"
+      recorded: "2026-10-01"
+  - id: Sn3
+    type: solution
+    statement: "Detection latency study: onset to first crossing, per scenario."
+    evidence:
+      # Path deliberately does not exist on disk: missing.
+      path: evidence/detection_latency_study_v2.txt
+      sha256: "ec6f5d72d6aefd6f26a0045c0dbe44f0b7fb7e32436d9b0811a007dafdf21463"
+      recorded: "2026-10-08"
+
+edges:
+  - {from: G1, to: C1, type: in_context_of}
+  - {from: G1, to: A1, type: in_context_of}
+  - {from: G1, to: S1, type: supported_by}
+  - {from: S1, to: G2, type: supported_by}
+  - {from: S1, to: G3, type: supported_by}
+  - {from: S1, to: G4, type: supported_by}
+  - {from: S1, to: G5, type: supported_by}
+  - {from: S1, to: G7, type: supported_by}
+  - {from: G2, to: Sn1, type: supported_by}
+  - {from: G3, to: Sn3, type: supported_by}
+  - {from: G4, to: Sn2, type: supported_by}
+  - {from: G8, to: C3, type: in_context_of}

@@ -1,0 +1,13 @@
+wrote screenshots/staleness_timeline.png
+
+step                                         state          current digest (first 10)
+----------------------------------------------------------------------------------
+1. cited, unchanged                          fresh          535f46f6e4
+2. comment line added (meaning unchanged)    stale          61d1192a96
+3. comment removed (back to the cited bytes) fresh          535f46f6e4
+4. verdict inverted (meaning reversed)       stale          06e3e932fe
+5. no digest recorded in the case            unverifiable   535f46f6e4
+6. artifact deleted                          absent         none
+
+Steps 2 and 4 are both 'stale'. The content hash reports that the bytes changed; it does not and cannot report whether the change matters.
+Step 3 returns to 'fresh': the check reads current bytes only and holds no history, so a change that was reverted leaves no trace.

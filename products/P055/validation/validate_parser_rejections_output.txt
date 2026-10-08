@@ -1,0 +1,125 @@
+Parser rejection paths -- assuregraph 0.1.0
+
+Each row is one malformed document. The parser must raise CaseFormatError
+(or CaseIOError for an I/O problem) with a message that names the location.
+A row that raised nothing, or raised the wrong type, is printed as FAIL.
+
+  1. document is a list, not a mapping
+     CaseFormatError: <string>: expected a mapping, found list
+  2. document is null
+     CaseFormatError: <string>: expected a mapping, found NoneType
+  3. unknown top-level key
+     CaseFormatError: <string>: unknown key 'nodez' (did you mean 'nodes'?); permitted keys are ['edges', 'name', 'nodes', 'top_goals']
+  4. near-miss top-level key
+     CaseFormatError: <string>: unknown key 'edgs' (did you mean 'edges'?); permitted keys are ['edges', 'name', 'nodes', 'top_goals']
+  5. missing name
+     CaseFormatError: <string>: missing required key 'name'
+  6. name is a number
+     CaseFormatError: <string>: key 'name' must be a non-empty string, found int 7
+  7. name is blank
+     CaseFormatError: <string>: key 'name' must be a non-empty string, found str '  '
+  8. missing nodes
+     CaseFormatError: <string>: missing required key 'nodes'
+  9. nodes is a mapping
+     CaseFormatError: <string>: key 'nodes' must be a list, found dict
+ 10. nodes is empty
+     CaseFormatError: <string>: key 'nodes' is empty; an assurance case needs at least one Goal
+ 11. node is a string
+     CaseFormatError: nodes[0]: expected a mapping, found str
+ 12. node has no id
+     CaseFormatError: nodes[0]: missing required key 'id'
+ 13. node id is an integer
+     CaseFormatError: nodes[0]: key 'id' must be a non-empty string, found int 1
+ 14. duplicate node id
+     CaseFormatError: nodes[1]: duplicate node id 'G1'; node ids must be unique within a case
+ 15. node has no type
+     CaseFormatError: nodes[0] (id 'G1'): missing required key 'type'
+ 16. unknown node type
+     CaseFormatError: nodes[0] (id 'G1'): unknown node type 'claim'; the six Core GSN element types are ['assumption', 'context', 'goal', 'justification', 'solution', 'strategy']
+ 17. near-miss node type
+     CaseFormatError: nodes[0] (id 'G1'): unknown node type 'goals' (did you mean 'goal'?); the six Core GSN element types are ['assumption', 'context', 'goal', 'justification', 'solution', 'strategy']
+ 18. node has no statement
+     CaseFormatError: nodes[0] (id 'G1'): missing required key 'statement'
+ 19. unknown node key
+     CaseFormatError: nodes[0]: unknown key 'colour'; permitted keys are ['discharged', 'discharged_by', 'evidence', 'id', 'statement', 'type', 'undeveloped']
+ 20. undeveloped is a string
+     CaseFormatError: nodes[0] (id 'G1'): key 'undeveloped' must be true or false, found str 'yes'
+ 21. undeveloped on a solution
+     CaseFormatError: nodes[0] (id 'Sn1'): the GSN 'Undeveloped' decorator applies only to a Goal or a Strategy; node is a solution
+ 22. discharged on a goal
+     CaseFormatError: nodes[0] (id 'G1'): keys 'discharged' and 'discharged_by' apply only to an Assumption; node is a goal
+ 23. discharged_by without discharged
+     CaseFormatError: nodes[1] (id 'A1'): 'discharged_by' names 'G1' but 'discharged' is not true; set discharged: true or remove discharged_by
+ 24. dangling discharged_by
+     CaseFormatError: node 'A1': 'discharged_by' references unknown node id 'Sn9'
+ 25. discharged_by is an integer
+     CaseFormatError: nodes[0] (id 'A1'): key 'discharged_by' must be a node id string, found int
+ 26. solution without evidence
+     CaseFormatError: nodes[0] (id 'Sn1'): a Solution must cite an evidence artifact: add an 'evidence' mapping with at least a 'path' key
+ 27. evidence on a goal
+     CaseFormatError: nodes[0] (id 'G1'): only a Solution may carry 'evidence'; node is a goal
+ 28. evidence is a string
+     CaseFormatError: nodes[0] (id 'Sn1') evidence: expected a mapping, found str
+ 29. evidence without path
+     CaseFormatError: nodes[0] (id 'Sn1') evidence: missing required key 'path'
+ 30. unknown evidence key
+     CaseFormatError: nodes[0] (id 'Sn1') evidence: unknown key 'md5'; permitted keys are ['path', 'recorded', 'sha256']
+ 31. digest too short
+     CaseFormatError: nodes[0] (id 'Sn1') evidence: key 'sha256' must be exactly 64 lowercase hexadecimal characters (a SHA-256 hex digest); found 3 characters 'abc'
+ 32. digest not hexadecimal
+     CaseFormatError: nodes[0] (id 'Sn1') evidence: key 'sha256' must be exactly 64 lowercase hexadecimal characters (a SHA-256 hex digest); found 64 characters 'zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz'
+ 33. digest is an integer
+     CaseFormatError: nodes[0] (id 'Sn1') evidence: key 'sha256' must be a string, found int
+ 34. recorded is an integer
+     CaseFormatError: nodes[0] (id 'Sn1') evidence: key 'recorded' must be a string, found int
+ 35. edges is a mapping
+     CaseFormatError: <string>: key 'edges' must be a list, found dict
+ 36. edge is a string
+     CaseFormatError: edges[0]: expected a mapping, found str
+ 37. edge without from
+     CaseFormatError: edges[0]: missing required key 'from'
+ 38. unknown relationship type
+     CaseFormatError: edges[0] ('G1' -> 'G2'): unknown relationship type 'because'; the two Core GSN relationship types are ['in_context_of', 'supported_by']
+ 39. edge to an unknown node
+     CaseFormatError: edges[0] ('G1' -> 'G2'): to references unknown node id 'G2'
+ 40. edge from an unknown node
+     CaseFormatError: edges[0] ('G0' -> 'G1'): from references unknown node id 'G0'
+ 41. self loop
+     CaseFormatError: edges[0] ('G1' -> 'G1'): a node may not be related to itself ('G1' -> 'G1')
+ 42. duplicate edge
+     CaseFormatError: edges[1]: duplicate supported_by relationship 'G1' -> 'G2'
+ 43. solution as an edge source
+     CaseFormatError: edges[0] ('Sn1' -> 'G1'): a solution may not be the source of a supported_by relationship; in Core GSN only a Goal or a Strategy may be
+ 44. context as an edge source
+     CaseFormatError: edges[0] ('C1' -> 'G1'): a context may not be the source of a supported_by relationship; in Core GSN only a Goal or a Strategy may be
+ 45. supported_by terminating on a context
+     CaseFormatError: edges[0] ('G1' -> 'C1'): Core GSN does not permit goal --supported_by--> context; permitted targets are ['goal', 'solution', 'strategy']
+ 46. in_context_of terminating on a goal
+     CaseFormatError: edges[0] ('G1' -> 'G2'): Core GSN does not permit goal --in_context_of--> goal; permitted targets are ['assumption', 'context', 'justification']
+ 47. top_goals is a string
+     CaseFormatError: <string>: key 'top_goals' must be a list, found str
+ 48. top goal is an integer
+     CaseFormatError: top_goals[0]: must be a node id string, found int
+ 49. unknown top goal
+     CaseFormatError: top_goals[0]: unknown node id 'G9'
+ 50. top goal is a strategy
+     CaseFormatError: top_goals[0]: 'S1' is a strategy; a top goal must be a Goal
+ 51. duplicate top goal
+     CaseFormatError: top_goals[1]: duplicate top goal 'G1'
+
+I/O rejection paths (CaseIOError expected):
+  - missing file: CaseIOError: cannot read case file '/nonexistent-directory-for-validation/case.yaml': [Errno 2] No such file or directory: '/nonexistent-directory-for-validation/case.yaml'
+  - a directory: CaseIOError: cannot read case file '<repo>/examples/cases': [Errno 21] Is a directory: '<repo>/examples/cases'
+  - unparsable YAML: CaseIOError: case file '<scratch>/bad.yaml' is not valid YAML: while parsing a flow sequence
+  in "<unicode string>", line 1, column 7
+did not find expected ',' or ']'
+  in "<unicode string>", line 2, column 1
+
+Summary
+  schema rejection paths exercised : 51
+  rejected with CaseFormatError   : 51
+  of those, message carried a YAML location : 51
+  I/O rejection paths exercised   : 3
+  rejected with CaseIOError       : 3
+  FAILURES                        : 0
+  elapsed                         : 0.002 s

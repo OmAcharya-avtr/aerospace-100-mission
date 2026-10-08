@@ -1,0 +1,68 @@
+system: attitude_loop
+        single-axis attitude double integrator, dt=0.05 s, K=[8.0, 3.8], closed-loop poles 0.9+/-0.1j; |theta|<=0.30 rad, |theta_dot|<=0.50 rad/s, |u|<=3.0 rad/s^2; disturbance 0.12 rad/s^2 for one sample
+        units: theta [rad], theta_dot [rad/s]; areas in rad.rad/s
+
+A. Redundancy-tolerance sweep, max_iter = 60, convergence_tol = 1e-9
+   redundancy_tol  termination     iters facets  area            inv_margin      area/reference
+   0.0e+00         converged       5     16      0.538347285     0.000000e+00    1.000000000
+   1.0e-12         converged       5     16      0.538347285     0.000000e+00    1.000000000
+   1.0e-09         converged       5     16      0.538347285     0.000000e+00    1.000000000
+   1.0e-06         converged       5     16      0.538347285     0.000000e+00    1.000000000
+   1.0e-04         converged       5     16      0.538347285     0.000000e+00    1.000000000
+   1.0e-03         converged       5     16      0.538347285     0.000000e+00    1.000000000
+   2.0e-03         converged       5     16      0.538347285     0.000000e+00    1.000000000
+   3.0e-03         converged       5     16      0.538347285     0.000000e+00    1.000000000
+   4.0e-03         iteration_cap   60    12            -               -            -
+   1.0e-02         iteration_cap   60    10            -               -            -
+   5.0e-02         iteration_cap   60    8             -               -            -
+   distinct answers across the sweep: 2
+   THE TOLERANCE CHANGED THE ANSWER.
+
+B. Why 3e-3 works and 4e-3 does not: the final shrink margin
+   per-iteration shrink margins: ['3.100000e-02', '2.150272e-02', '1.250574e-02', '3.631988e-03']
+   smallest positive shrink margin = 3.631987773647e-03
+   bisected threshold: converges up to 3.631987710483e-03
+                       fails from      3.631987802684e-03
+   the threshold brackets the final shrink margin 3.631987773647e-03: True
+   mechanism: a redundancy tolerance at or above the shrink margin
+   discards exactly the rows the pre-set contributed, so Omega_{k+1}
+   equals Omega_k in representation but not in intent, and the
+   recursion neither contracts nor terminates.
+
+C. What a loose tolerance actually returns
+   (the cap is part of the answer when the recursion does not converge)
+   tol 4e-03 cap 150 : iteration_cap, facets 12, area 0.538885985 (+0.1001 % vs reference), invariant strict False / 1e-9 False, margin +4.294737e-03
+   tol 1e-02 cap 150 : iteration_cap, facets 10, area 0.539214085 (+0.1610 % vs reference), invariant strict False / 1e-9 False, margin +5.488889e-03
+   tol 5e-02 cap 150 : iteration_cap, facets 8, area 0.595476829 (+10.6120 % vs reference), invariant strict False / 1e-9 False, margin +4.148278e-02
+   tol 5e-02 cap 400 : iteration_cap, facets 6, area 0.588122298 (+9.2459 % vs reference), invariant strict False / 1e-9 False, margin +4.158156e-02
+   each of these is a WRONG answer, not a coarse one: the returned set
+   is larger than S_inf and fails the independent invariance test.
+   note also that tol 5e-2 gives a different set at cap 150 and at cap 400:
+   a non-converged outer bound is a function of the cap, not of the system.
+
+D. Convergence-tolerance sweep, redundancy_tol = 1e-9, max_iter = 60
+   convergence_tol  iters facets  area            inv_margin      invariant(1e-9)
+   0.0e+00          5     16      0.538347285     0.000000e+00    True
+   1.0e-09          5     16      0.538347285     0.000000e+00    True
+   1.0e-06          5     16      0.538347285     0.000000e+00    True
+   1.0e-04          5     16      0.538347285     0.000000e+00    True
+   1.0e-03          5     16      0.538347285     0.000000e+00    True
+   3.0e-03          5     16      0.538347285     0.000000e+00    True
+   5.0e-03          4     14      0.538430410     3.631988e-03    False
+   1.0e-02          4     14      0.538430410     3.631988e-03    False
+   5.0e-02          1     6       0.544407895     3.100000e-02    False
+   the convergence tolerance is a slack on the guarantee, not on the
+   arithmetic: at 5e-3 the recursion stops an iteration early and the
+   set it returns violates the invariance condition by 3.63e-3 in b units,
+   which on the theta facet is 3.63e-3 rad of constraint the set does not hold.
+
+E. The same sweep on a system where no tolerance changes the answer
+   tol 1e-12: converged, facets 4, area 4.000000000
+   tol 1e-09: converged, facets 4, area 4.000000000
+   tol 1e-06: converged, facets 4, area 4.000000000
+   tol 1e-03: converged, facets 4, area 4.000000000
+   tol 1e-02: converged, facets 4, area 4.000000000
+   tol 1e-01: converged, facets 4, area 4.000000000
+   X is already invariant with margin -0.4, far larger than any tolerance
+   swept, so nothing moves. Sensitivity is a property of the system and
+   the margin, not of the implementation alone.

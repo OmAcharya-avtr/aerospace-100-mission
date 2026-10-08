@@ -1,0 +1,138 @@
+Known-answer check of the shipped example cases -- assuregraph 0.1.0
+
+Expected finding sets were written by hand from the YAML before this
+script ran. Cycle findings are compared as a set of node ids because
+the walk's starting node is a traversal detail.
+
+--- complete_case.yaml ---
+  nodes 18, edges 17
+  expected findings (0):
+  computed findings (0):
+  finding sets match: yes
+  exit code expected 0, computed 0: match
+  severity totals: 0 error, 0 warning, 0 info
+  coverage: claims argued or declared 8/8; artifacts present 6/6; fresh of checkable 6/6; assumptions discharged 1/1; unverifiable 0; orphans 0; cyclic regions 0
+
+--- incomplete_case.yaml ---
+  nodes 14, edges 12
+  expected findings (9):
+    error    missing_evidence           Sn3
+    error    orphan_nodes               C3
+    error    orphan_nodes               G8
+    error    stale_evidence             Sn2
+    warning  stale_evidence             Sn1
+    error    undischarged_assumptions   A1
+    error    unsupported_claims         G5
+    info     unsupported_claims         G7
+    info     unsupported_claims         G8
+  computed findings (9):
+    error    missing_evidence           Sn3
+    error    orphan_nodes               C3
+    error    orphan_nodes               G8
+    error    stale_evidence             Sn2
+    warning  stale_evidence             Sn1
+    error    undischarged_assumptions   A1
+    error    unsupported_claims         G5
+    info     unsupported_claims         G7
+    info     unsupported_claims         G8
+  finding sets match: yes
+  exit code expected 1, computed 1: match
+  severity totals: 6 error, 1 warning, 2 info
+  coverage: claims argued or declared 7/8; artifacts present 2/3; fresh of checkable 0/1; assumptions discharged 0/1; unverifiable 1; orphans 2; cyclic regions 0
+
+--- cyclic_case.yaml ---
+  nodes 5, edges 5
+  expected findings (1):
+    error    cycles                     G1,G2,S1,S2
+  computed findings (1):
+    error    cycles                     G1,G2,S1,S2
+  finding sets match: yes
+  exit code expected 1, computed 1: match
+  severity totals: 1 error, 0 warning, 0 info
+  coverage: claims argued or declared 4/4; artifacts present 1/1; fresh of checkable 1/1; assumptions discharged 0/0; unverifiable 0; orphans 0; cyclic regions 1
+
+Full text report for incomplete_case.yaml, verbatim, with the repository
+root replaced by <repo> so the committed output is byte-stable:
+
+assuregraph report: Illustrative: pitch residual monitor detection latency (SYNTHETIC, incomplete)
+
+assuregraph checks the structure of an assurance case and the freshness of the artifacts it cites. A well-formed assurance case is not a safe system. This tool evaluates no argument's soundness and is not a DO-178C or ARP4754A compliance tool.
+
+Findings
+
+check                     findings  by severity
+------------------------  --------  ------------------
+unsupported_claims        3         error=1, info=2
+missing_evidence          1         error=1
+stale_evidence            2         error=1, warning=1
+undischarged_assumptions  1         error=1
+cycles                    0         none
+orphan_nodes              2         error=2
+
+[error] unsupported_claims  nodes: G5
+    goal 'G5' has no SupportedBy child: nothing in the case argues for it. Add a SupportedBy edge to a Strategy, a sub-Goal or a Solution, or mark it undeveloped: true
+
+[info] unsupported_claims  nodes: G7
+    goal 'G7' is declared Undeveloped and has no SupportedBy child; this is a declaration, not a defect
+
+[info] unsupported_claims  nodes: G8
+    goal 'G8' is declared Undeveloped and has no SupportedBy child; this is a declaration, not a defect
+
+[error] missing_evidence  nodes: Sn3
+    Solution 'Sn3' cites 'evidence/detection_latency_study_v2.txt' but no file at '<repo>/examples/cases/evidence/detection_latency_study_v2.txt'. Either produce the artifact or remove the claim that rests on it
+
+[warning] stale_evidence  nodes: Sn1
+    Solution 'Sn1' cites 'evidence/unit_test_report.txt' with no recorded sha256, so freshness cannot be computed; the current digest is 2ff22a3805107da6de0ab2a8b2b36fb32fbf07e7b0515150a78d9d5287c1b974. Record it to make the artifact checkable
+
+[error] stale_evidence  nodes: Sn2
+    Solution 'Sn2' cites 'evidence/threshold_derivation.md': content hash changed since the claim cited it: recorded dd4f8ed887d46dc67e90466848ae895ce2ffa7ff3cecdcf3678efb02966bba70, found dd4f8ed887d46dc67e90466848ae895ce2ffa7ff3cecdcf3678efb02966bba73. The bytes differ; whether the difference matters is a judgement this tool does not make. Re-examine the artifact and update the recorded sha256,
+    or withdraw the claim
+
+[error] undischarged_assumptions  nodes: A1
+    Assumption 'A1' is not discharged: 'The simulator noise model matches the bench sensor to within a factor of two in residual variance.'. Set discharged: true with a discharged_by node id once something in the case addresses it
+
+[error] orphan_nodes  nodes: G8
+    goal 'G8' is not reachable from any top goal (G1): it is in the document but not in the argument
+
+[error] orphan_nodes  nodes: C3
+    context 'C3' is not reachable from any top goal (G1): it is in the document but not in the argument
+
+Coverage summary
+
+Node and edge counts
+
+prefix  GSN element    count
+------  -------------  -----
+G       goal           7
+S       strategy       1
+Sn      solution       3
+C       context        2
+A       assumption     1
+J       justification  0
+
+GSN relationship  count
+----------------  -----
+supported_by      9
+in_context_of     3
+
+Coverage, with denominators
+
+metric                                 count  fraction
+-------------------------------------  -----  -------------------------
+claims argued or declared undeveloped  7/8    87.5 % (8 in denominator)
+cited artifacts present on disk        2/3    66.7 % (3 in denominator)
+artifacts fresh, of those checkable    0/1    0.0 % (1 in denominator)
+assumptions marked discharged          0/1    0.0 % (1 in denominator)
+
+Unverifiable artifacts (no recorded sha256): 1. These are excluded from the freshness denominator; they are not fresh.
+Orphan nodes: 2. Cyclic regions: 0.
+Top goals used for reachability: G1.
+
+Verdict
+
+6 error, 1 warning, 2 info finding(s). strict=false.
+Structural verdict: INCOMPLETE. Exit code 1.
+
+COMPLETE means the case is fully drawn and its cited files are the files that were cited. It is not a statement about any system, and it is not evidence that the evidence is adequate.
+
+FAILURES: 0

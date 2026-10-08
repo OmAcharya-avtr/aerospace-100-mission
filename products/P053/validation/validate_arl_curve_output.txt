@@ -1,0 +1,243 @@
+=== configuration ===
+in-control bank      300 x 3000 samples, seed 53001
+out-of-control banks 300 x 3000 samples per scenario
+convention           zero-state ARL1: change present from sample 0,
+                     detector statistic starts at zero
+sample rate          20 Hz
+thresholds           set on the in-control bank only, by bisection onto a
+                     declared target; no delay is visible to the procedure
+
+=== headline curves: ARL0 (samples) against detection delay (samples) ===
+
+--- parameter step (actuator gain -1 %) ---
+  CUSUM (k=0.25)
+     threshold       ARL0    FA/1000h    delay  stderr    det  note
+        2.1386       11.0     6571342      9.5     0.4   1.00  
+        2.5882       15.6     4610459     12.7     0.5   1.00  
+        3.1324       24.0     3004590     17.1     0.6   1.00  
+        3.7910       36.5     1971702     22.8     0.8   1.00  
+        4.5880       57.4     1253482     28.0     1.0   1.00  
+        5.5526       93.4      770548     34.4     1.2   1.00  
+        6.7200      187.1      384780     42.8     1.5   1.00  
+        8.1329      425.0      169405     53.2     1.8   1.00  
+        9.8427     1082.5       66513     63.2     2.0   1.00  
+       11.9121     3092.2       23285     78.8     2.4   1.00  
+       14.4166    10769.4        6686     93.4     2.5   1.00  
+       17.4476    67877.0        1061    114.1     3.1   1.00  ARL0 rests on 13 alarms
+  EWMA (lambda=0.1)
+     threshold       ARL0    FA/1000h    delay  stderr    det  note
+        0.6725        5.3    13567839      5.1     0.2   1.00  
+        0.7870        7.1    10088744      6.3     0.3   1.00  
+        0.9210        9.2     7789398      8.3     0.4   1.00  
+        1.0779       13.1     5514424     11.0     0.4   1.00  
+        1.2615       19.8     3640040     14.6     0.6   1.00  
+        1.4763       27.2     2649982     19.2     0.7   1.00  
+        1.7278       41.7     1728277     23.6     0.9   1.00  
+        2.0221       75.6      952675     30.2     1.1   1.00  
+        2.3665      170.8      421480     40.3     1.5   1.00  
+        2.7695      456.9      157589     56.2     2.1   1.00  
+        3.2412     1861.2       38685     89.7     3.7   1.00  
+        3.7932    14201.8        5070    177.9     8.4   1.00  
+  GLR (window=100)
+     threshold       ARL0    FA/1000h    delay  stderr    det  note
+        1.5503        9.8     7346939      8.3     0.4   1.00  
+        1.8299       13.1     5490595     10.2     0.5   1.00  
+        2.1598       17.3     4153047     12.9     0.6   1.00  
+        2.5493       23.6     3047404     17.2     0.7   1.00  
+        3.0091       37.3     1932367     23.1     0.9   1.00  
+        3.5517       58.4     1233581     28.9     1.2   1.00  
+        4.1922       93.4      770713     36.8     1.4   1.00  
+        4.9482      175.5      410366     47.3     1.8   1.00  
+        5.8405      384.5      187263     60.0     2.2   1.00  
+        6.8938     1029.5       69940     76.5     2.5   1.00  
+        8.1369     3192.3       22554     96.8     3.1   1.00  
+        9.6043    13690.4        5259    127.1     4.8   1.00  
+  variance-CUSUM oracle (c=0.031)
+     threshold       ARL0    FA/1000h    delay  stderr    det  note
+       15.6062      185.8      387423     86.3     3.7   1.00  
+       19.2765      274.9      261904    106.3     4.4   1.00  
+       23.8100      417.0      172647    137.5     5.2   1.00  
+       29.4097      653.5      110174    172.5     6.4   1.00  
+       36.3263     1056.0       68184    219.3     8.0   1.00  
+       44.8697     1823.6       39483    280.3     9.3   1.00  
+       55.4222     3310.5       21749    356.9    11.0   1.00  
+       68.4566     6330.5       11374    453.9    13.4   1.00  
+       84.5565    11850.4        6076    569.2    15.1   1.00  
+      104.4427    29968.4        2403    698.3    17.5   1.00  ARL0 rests on 29 alarms
+      129.0058    98952.1         728    901.0    20.6   1.00  ARL0 rests on 9 alarms
+      159.3458   449047.0         160   1124.0    22.0   1.00  ARL0 rests on 2 alarms
+
+--- slow ramp (gain -1 % over 400 samples) ---
+  CUSUM (k=0.25)
+     threshold       ARL0    FA/1000h    delay  stderr    det  note
+        2.1386       11.0     6571342     10.3     0.5   1.00  
+        2.5882       15.6     4610459     13.7     0.6   1.00  
+        3.1324       24.0     3004590     20.7     1.1   1.00  
+        3.7910       36.5     1971702     32.3     1.7   1.00  
+        4.5880       57.4     1253482     50.5     2.5   1.00  
+        5.5526       93.4      770548     81.5     3.7   1.00  
+        6.7200      187.1      384780    130.6     4.8   1.00  
+        8.1329      425.0      169405    184.2     5.4   1.00  
+        9.8427     1082.5       66513    235.9     5.4   1.00  
+       11.9121     3092.2       23285    283.3     5.4   1.00  
+       14.4166    10769.4        6686    324.4     5.1   1.00  
+       17.4476    67877.0        1061    362.2     4.9   1.00  ARL0 rests on 13 alarms
+  EWMA (lambda=0.1)
+     threshold       ARL0    FA/1000h    delay  stderr    det  note
+        0.6725        5.3    13567839      5.6     0.3   1.00  
+        0.7870        7.1    10088744      7.0     0.3   1.00  
+        0.9210        9.2     7789398      8.7     0.4   1.00  
+        1.0779       13.1     5514424     11.9     0.6   1.00  
+        1.2615       19.8     3640040     17.0     0.9   1.00  
+        1.4763       27.2     2649982     24.7     1.2   1.00  
+        1.7278       41.7     1728277     41.9     2.2   1.00  
+        2.0221       75.6      952675     64.5     3.2   1.00  
+        2.3665      170.8      421480    118.4     4.7   1.00  
+        2.7695      456.9      157589    197.9     6.0   1.00  
+        3.2412     1861.2       38685    304.4     6.9   1.00  
+        3.7932    14201.8        5070    464.6    11.7   1.00  
+  GLR (window=100)
+     threshold       ARL0    FA/1000h    delay  stderr    det  note
+        1.5503        9.8     7346939      8.8     0.4   1.00  
+        1.8299       13.1     5490595     11.3     0.6   1.00  
+        2.1598       17.3     4153047     15.4     0.9   1.00  
+        2.5493       23.6     3047404     20.4     1.0   1.00  
+        3.0091       37.3     1932367     31.3     1.7   1.00  
+        3.5517       58.4     1233581     50.5     2.9   1.00  
+        4.1922       93.4      770713     82.3     4.2   1.00  
+        4.9482      175.5      410366    132.4     5.4   1.00  
+        5.8405      384.5      187263    190.9     6.2   1.00  
+        6.8938     1029.5       69940    258.9     6.5   1.00  
+        8.1369     3192.3       22554    330.6     6.1   1.00  
+        9.6043    13690.4        5259    389.6     6.0   1.00  
+  variance-CUSUM oracle (c=0.031)
+     threshold       ARL0    FA/1000h    delay  stderr    det  note
+       15.6062      185.8      387423    165.7     6.3   1.00  
+       19.2765      274.9      261904    220.7     7.4   1.00  
+       23.8100      417.0      172647    280.5     8.1   1.00  
+       29.4097      653.5      110174    348.3     9.1   1.00  
+       36.3263     1056.0       68184    412.6    11.1   1.00  
+       44.8697     1823.6       39483    491.6    11.6   1.00  
+       55.4222     3310.5       21749    570.6    13.1   1.00  
+       68.4566     6330.5       11374    661.3    14.7   1.00  
+       84.5565    11850.4        6076    786.3    16.9   1.00  
+      104.4427    29968.4        2403    937.3    18.8   1.00  ARL0 rests on 29 alarms
+      129.0058    98952.1         728   1127.4    21.6   1.00  ARL0 rests on 9 alarms
+      159.3458   449047.0         160   1347.4    23.6   1.00  ARL0 rests on 2 alarms
+
+--- noise variance (process noise x 2) ---
+  CUSUM (k=0.25)
+     threshold       ARL0    FA/1000h    delay  stderr    det  note
+        2.1386       11.0     6571342      9.7     0.4   1.00  
+        2.5882       15.6     4610459     13.5     0.6   1.00  
+        3.1324       24.0     3004590     18.9     0.8   1.00  
+        3.7910       36.5     1971702     26.2     1.2   1.00  
+        4.5880       57.4     1253482     35.7     1.6   1.00  
+        5.5526       93.4      770548     53.8     2.4   1.00  
+        6.7200      187.1      384780     86.8     4.3   1.00  
+        8.1329      425.0      169405    131.9     6.5   1.00  
+        9.8427     1082.5       66513    217.3    11.7   1.00  
+       11.9121     3092.2       23285    377.7    19.8   1.00  
+       14.4166    10769.4        6686    694.5    34.9   0.99  delay is a lower bound: runs censored
+       17.4476    67877.0        1061   1147.0    52.1   0.84  delay is a lower bound: runs censored; ARL0 rests on 13 alarms
+  EWMA (lambda=0.1)
+     threshold       ARL0    FA/1000h    delay  stderr    det  note
+        0.6725        5.3    13567839      5.4     0.2   1.00  
+        0.7870        7.1    10088744      6.9     0.3   1.00  
+        0.9210        9.2     7789398      8.9     0.4   1.00  
+        1.0779       13.1     5514424     11.2     0.4   1.00  
+        1.2615       19.8     3640040     15.3     0.7   1.00  
+        1.4763       27.2     2649982     21.3     0.9   1.00  
+        1.7278       41.7     1728277     29.7     1.4   1.00  
+        2.0221       75.6      952675     45.1     2.1   1.00  
+        2.3665      170.8      421480     79.8     4.1   1.00  
+        2.7695      456.9      157589    145.7     7.7   1.00  
+        3.2412     1861.2       38685    315.0    18.8   1.00  
+        3.7932    14201.8        5070    825.7    41.0   0.96  delay is a lower bound: runs censored
+  GLR (window=100)
+     threshold       ARL0    FA/1000h    delay  stderr    det  note
+        1.5503        9.8     7346939      8.7     0.4   1.00  
+        1.8299       13.1     5490595     11.3     0.6   1.00  
+        2.1598       17.3     4153047     14.3     0.7   1.00  
+        2.5493       23.6     3047404     19.7     1.0   1.00  
+        3.0091       37.3     1932367     26.6     1.3   1.00  
+        3.5517       58.4     1233581     38.5     1.7   1.00  
+        4.1922       93.4      770713     62.8     3.2   1.00  
+        4.9482      175.5      410366     93.0     4.7   1.00  
+        5.8405      384.5      187263    152.8     8.6   1.00  
+        6.8938     1029.5       69940    273.0    14.5   1.00  
+        8.1369     3192.3       22554    501.4    27.0   1.00  
+        9.6043    13690.4        5259    912.1    44.1   0.95  delay is a lower bound: runs censored
+  variance-CUSUM oracle (c=0.031)
+     threshold       ARL0    FA/1000h    delay  stderr    det  note
+       15.6062      185.8      387423    133.0     7.0   1.00  
+       19.2765      274.9      261904    192.0    10.9   1.00  
+       23.8100      417.0      172647    258.1    12.9   1.00  
+       29.4097      653.5      110174    345.2    18.5   1.00  
+       36.3263     1056.0       68184    477.1    22.8   1.00  
+       44.8697     1823.6       39483    646.1    29.3   1.00  delay is a lower bound: runs censored
+       55.4222     3310.5       21749    862.0    35.4   0.98  delay is a lower bound: runs censored
+       68.4566     6330.5       11374   1090.0    41.4   0.93  delay is a lower bound: runs censored
+       84.5565    11850.4        6076   1327.0    44.3   0.87  delay is a lower bound: runs censored
+      104.4427    29968.4        2403   1544.6    44.6   0.76  delay is a lower bound: runs censored; ARL0 rests on 29 alarms
+      129.0058    98952.1         728   1804.3    49.0   0.61  delay is a lower bound: runs censored; ARL0 rests on 9 alarms
+      159.3458   449047.0         160   2002.9    54.7   0.38  delay is a lower bound: runs censored; ARL0 rests on 2 alarms
+
+=== operating point at the declared target ARL0 = 1000 samples ===
+    = 72000 false alarms per 1000 h at 20 Hz
+
+  scenario                    cusum            ewma             glr        varcusum
+  parameter_step          62.3+-2.0       72.6+-2.9       75.7+-2.5      216.4+-8.0
+  slow_ramp              232.5+-5.4      258.7+-6.3      258.7+-6.5     407.9+-11.0
+  noise_variance        211.0+-11.5     223.5+-12.8     262.3+-14.1     466.6+-22.5
+  cells are mean detection delay in samples, plus or minus one standard error
+  one sample is 50 ms, so a delay of 200 samples is 10 s
+
+=== ordering of the three declared baselines ===
+  parameter_step   cusum (62) < ewma (73) < glr (76)
+  slow_ramp        cusum (232) < ewma (259) < glr (259)
+  noise_variance   cusum (211) < ewma (224) < glr (262)
+
+FINDING  CUSUM is the fastest of the three declared baselines on all three
+FINDING  change types at a matched ARL0. The windowed GLR is the slowest on
+FINDING  the parameter step and the slow ramp. This is the opposite of the
+FINDING  expectation that a GLR would be hard to beat, and the structural
+FINDING  reason is in the two statistics: a CUSUM accumulates without bound
+FINDING  so a persistent shift drives it linearly for as long as it lasts,
+FINDING  while a windowed GLR truncates accumulation at its window and pays
+FINDING  a maximum-over-onset penalty that raises the threshold needed for
+FINDING  the same ARL0. The GLR's advantage is that it needs no declared
+FINDING  shift magnitude, and that advantage is not visible in a comparison
+FINDING  where the CUSUM's reference value happens to suit the change.
+
+=== the change type on which every method does badly ===
+  detector         step     ramp   variance  variance/step
+  cusum            62.3    232.5      211.0           3.39
+  ewma             72.6    258.7      223.5           3.08
+  glr              75.7    258.7      262.3           3.47
+  varcusum        216.4    407.9      466.6           2.16
+
+ANSWER   the noise-variance change. Both it and the parameter step are
+ANSWER   fully present from sample 0, yet every method takes between 3 and
+ANSWER   4 times as long to see it. The structural reason is exact rather
+ANSWER   than statistical: a process-noise change leaves E[z] at 0, so the
+ANSWER   quantity all three baselines accumulate has no post-change drift
+ANSWER   at all, and they fire only on the increased rate of tail
+ANSWER   excursions. The slow ramp's delay looks comparable in samples but
+ANSWER   is a different kind of number: the CUSUM alarms after
+ANSWER   232 samples of a 400-sample
+ANSWER   ramp, i.e. when the change has reached 58 % of its
+ANSWER   final magnitude, which is close to the best a causal detector can
+ANSWER   do against a change that is not yet there.
+
+ANSWER   And using the right statistic does not fix it. The variance-CUSUM
+ANSWER   oracle, which is handed the post-change residual variance and
+ANSWER   accumulates the sufficient statistic z^2 - 1 for a scale change, is
+ANSWER   the SLOWEST method on the noise-variance change (467
+ANSWER   samples against 211 for the mis-specified mean CUSUM),
+ANSWER   because at this effect size its per-sample standardised shift is
+ANSWER   only 0.059/sqrt(2) = 0.042 -- Var(z^2) = 2 under H0 -- while the
+ANSWER   mean CUSUM's alarm rate responds to residual scale through its
+ANSWER   exponentially sensitive tail. Correct specification is not the
+ANSWER   same as more information per sample, and this is a measured
+ANSWER   counterexample to the usual advice.

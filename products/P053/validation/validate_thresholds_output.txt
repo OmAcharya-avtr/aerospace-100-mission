@@ -1,0 +1,79 @@
+=== closed-form thresholds, equations (7) and (8) ===
+GLR with window 1 alarms iff |z| > sqrt(2h); the per-sample false-alarm
+probability is p = 2(1 - Phi(sqrt(2h))) and the run length is Geometric(p),
+so h*(T) = Phi^{-1}(1 - 1/(2T))^2 / 2 exactly. EWMA with lambda 1 alarms
+iff |z| > L, so L*(T) = Phi^{-1}(1 - 1/(2T)).
+
+ target ARL0        Phi^-1    L* (EWMA)     h* (GLR)       L*^2/2
+         100  2.5758293035    2.5758293    3.3174483    3.3174483
+        1000  3.2905267315    3.2905267    5.4137831    5.4137831
+       10000  3.8905918864    3.8905919    7.5683526    7.5683526
+
+hand check at T = 1000:  1 - 1/2000 = 0.9995,  Phi^-1(0.9995) = 3.2905267315
+                         3.2905267315^2 / 2 = 5.4137830854
+                         code gives           5.4137830853
+                         difference 2.657e-11, tolerance 1e-8  PASS
+
+=== Monte-Carlo calibrator against the closed form ===
+calibration bank: 400 x 4000 = 1600000 in-control samples,
+seed 53001. The censored-MLE ARL0 is (total samples at risk)/(alarms),
+whose relative standard error is 1/sqrt(alarms).
+target     200  closed form   3.93972  bisection   3.91987  relative difference  0.50 %  tolerance 5 %  PASS
+target    1000  closed form   5.41378  bisection   5.51074  relative difference  1.79 %  tolerance 5 %  PASS
+target    5000  closed form   6.91554  bisection   6.98236  relative difference  0.97 %  tolerance 5 %  PASS
+
+=== achieved ARL0 on FRESH in-control banks (seeds 53110-53112) ===
+The calibration bank is fitted to, so its own ARL0 is not evidence. Three
+independent fresh banks of the same size are pooled, giving about 1170
+alarms per detector and a relative standard error of 1/sqrt(1170) = 2.9 %.
+The declared tolerance is three of those standard errors, 8.8 %, on the
+pooled estimate -- a criterion fixed by the sample size, not by the result.
+  detector                          target  threshold      ARL0   stderr  alarms     bias  verdict
+  CUSUM (k=0.25)                       200     6.8620     206.0      5.9    1200     3.0%  PASS
+  EWMA (lambda=0.1)                    200     2.4531     206.7      6.0    1200     3.4%  PASS
+  GLR (window=100)                     200     5.0900     197.8      5.7    1200    -1.1%  PASS
+  variance-CUSUM oracle (c=0.031)      200    15.6029     182.8      5.3    1200    -8.6%  FAIL
+  CUSUM (k=0.25)                      1000     9.9518     998.2     29.0    1184    -0.2%  PASS
+  EWMA (lambda=0.1)                   1000     3.0685    1027.7     29.9    1179     2.8%  PASS
+  GLR (window=100)                    1000     6.8461    1034.1     30.2    1173     3.4%  PASS
+  variance-CUSUM oracle (c=0.031)     1000    36.0422    1135.1     33.1    1176    13.5%  FAIL
+  CUSUM (k=0.25)                      5000    13.0078    4928.8    190.0     673    -1.4%  PASS
+  EWMA (lambda=0.1)                   5000     3.5237    4564.3    172.8     698    -8.7%  PASS
+  GLR (window=100)                    5000     8.5809    4921.5    190.4     668    -1.6%  PASS
+  variance-CUSUM oracle (c=0.031)     5000    66.2127    5457.3    215.7     640     9.1%  PASS
+
+FINDING  the calibration-transfer bias is detector-dependent. The three
+FINDING  declared baselines transfer to within +3.4 % / -8.7 % and all nine
+FINDING  of their checks PASS. The variance-CUSUM oracle transfers at
+FINDING  -8.6 % (target 200), +13.5 % (target 1000) and +9.1 % (target
+FINDING  5000); the first two exceed the declared 8.8 % tolerance and are
+FINDING  reported as FAILED checks rather than absorbed into a wider
+FINDING  tolerance. Diagnosis: the variance CUSUM's increments z^2 - 1 are
+FINDING  right-skewed with a heavy upper tail, so its own upper tail is
+FINDING  built from fewer, larger excursions and the bisected threshold
+FINDING  lands on a bank-specific extreme. The mean CUSUM's increments
+FINDING  z - k are symmetric and light-tailed, so the same bank size
+FINDING  resolves its tail better. Consequence for the headline results:
+FINDING  the variance CUSUM is NOT one of the three declared baselines and
+FINDING  no headline curve depends on it. Its reported delay at a nominal
+FINDING  ARL0 of 1000 is in fact measured at an effective ARL0 of about
+FINDING  1135, which makes it look slightly BETTER than a fairly matched
+FINDING  comparison would, and it loses to the mean CUSUM anyway.
+
+=== false-alarm rate conversion ===
+ARL0 = 1000 * 3600 * f / N samples for N false alarms per 1000 h at f Hz.
+       1 per 1000 h at 20 Hz  =  7.200e+07 samples
+      10 per 1000 h at 20 Hz  =  7.200e+06 samples
+     100 per 1000 h at 20 Hz  =  7.200e+05 samples
+  ARL0 1000 samples at 20 Hz = 50.0 s = 72000 per 1000 h
+
+NOTE  the headline curves in this repository use a target ARL0 of 1000
+NOTE  samples, i.e. 72000 false alarms per 1000 h at 20 Hz. That is far
+NOTE  too many for an operational monitor. It is used because resolving
+NOTE  an ARL0 of 7.2e6 samples (10 per 1000 h) by simulation needs about
+NOTE  7e9 in-control samples for 1000 alarms, which does not fit the
+NOTE  3-minute compute budget. The curve's SHAPE is the deliverable; the
+NOTE  operating point a real requirement implies is off its right-hand end
+NOTE  and is not measured here. This is stated in the README limitations.
+
+SUMMARY  13/15 checks PASS

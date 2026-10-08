@@ -1,0 +1,23 @@
+Graph identities over random GSN cases -- assuregraph 0.1.0
+
+seed = 20261008, trials = 400. Identities are exact; no tolerance applies.
+
+1. A DAG never reports a cycle
+   DAGs generated                       : 400
+   mean nodes per DAG                   : 10.57
+   mean edges per DAG                   : 11.65
+   DAGs for which a cycle was reported  : 0
+   false-positive rate                  : 0.000000
+
+2. A planted cycle is always found, and the reported walk is a real walk
+   graphs with a back-edge planted      : 372
+   graphs where no cycle was reported   : 0
+   false-negative rate                  : 0.000000
+   reported walks that were not closed, or used a non-existent edge             : 0
+
+3. Orphans are independent of the unsupported-claim check
+   trials                               : 400
+   trials where the unsupported-claim finding set changed : 0
+   trials where the orphan count moved by the wrong amount : 0
+
+FAILURES: 0

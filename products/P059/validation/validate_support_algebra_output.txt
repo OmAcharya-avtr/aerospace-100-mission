@@ -1,0 +1,30 @@
+seed = 59001
+1. box closed form vs generic LP      : 1000 cases, worst abs diff 3.552714e-15
+2. support vs vertex enumeration      : 1800 cases, worst abs diff 8.881784e-16
+3. positive homogeneity               : 400 cases, worst rel diff 2.865772e-16
+4. subadditivity slack (<=0 required) : 400 cases, worst 8.881784e-16
+5. Minkowski support additivity       : 960 cases, worst abs diff 2.109424e-15
+6. (P-Q)+Q subset P, worst escape     : 120 cases, worst margin 2.220446e-16
+   area deficit of (P-Q)+Q vs P       : median 0.0000 %, max 0.2750 %, min -0.0000 %
+7. (P+Q)-Q == P, worst either way     : 120 cases, worst margin 2.442491e-15
+8. worked triangle case (hand-computed targets in brackets)
+   area(P)                            = 0.500000000   [0.5]
+   area(P (-) Q)                      = 0.180000000   [0.18]
+   area((P (-) Q) (+) Q)              = 0.460000000   [0.46]
+   area deficit                       = 0.040000000   [0.04]
+   deficit as a fraction of P         = 8.000000 %   [8 %]
+   area((P (+) Q) (-) Q)              = 0.500000000   [0.5]
+   P subset (P (-) Q) (+) Q           = False   [False]
+   (P (-) Q) (+) Q subset P           = True   [True]
+9. h_(P&Q) <= min(h_P, h_Q), worst    : 300 cases, worst 0.000000e+00
+10. redundancy removal membership     : 4000 points over 200 polytopes, 0 mismatches, 207 rows removed
+11. when the assumed identity happens to hold
+    triangle (e1, e2 are NOT facet normals)    area 0.500000000 -> 0.460000000, deficit +4.000e-02 (+8.0000 %)
+    pentagon (e1, e2 ARE facet normals)        area 0.460000000 -> 0.460000000, deficit -5.551e-17 (-0.0000 %)
+    the opened triangle IS the pentagon: 0.46 either way, and the
+    pentagon is a fixed point of the opening while the triangle is not.
+    the same effect on the shipped S_inf, as W is scaled up:
+    W x 1  : S facets 16 -> eroded facets 16  area 0.538347285 -> 0.538347285, deficit -0.0000 %
+    W x 20 : S facets 16 -> eroded facets 16  area 0.538347285 -> 0.538347285, deficit -0.0000 %
+    W x 40 : S facets 16 -> eroded facets 14  area 0.538347285 -> 0.537410343, deficit +0.1740 %
+    W x 60 : S facets 16 -> eroded facets 8   area 0.538347285 -> 0.485505791, deficit +9.8155 %

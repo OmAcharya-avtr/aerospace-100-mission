@@ -1,0 +1,22 @@
+=== --help must exit 0 and print something ===
+  --help                      exit 0     923 chars  PASS
+  twin --help                 exit 0      98 chars  PASS
+  scenarios --help            exit 0     103 chars  PASS
+  calibrate --help            exit 0     320 chars  PASS
+  curve --help                exit 0     513 chars  PASS
+  benchmark --help            exit 0     322 chars  PASS
+  ambiguity --help            exit 0     312 chars  PASS
+
+=== subcommands must run and exit 0 ===
+  twin                                                        exit 0     616 chars  PASS
+  scenarios                                                   exit 0     431 chars  PASS
+  calibrate --runs 40 --samples 800 --target 300              exit 0     600 chars  PASS
+  curve parameter_step --runs 40 --samples 800 --points 4     exit 0    1426 chars  PASS
+  ambiguity --runs 10 --samples 600                           exit 0     460 chars  PASS
+
+=== invalid input must exit non-zero with a message, not a traceback ===
+  no subcommand               exit 2     205 chars  PASS
+  unknown scenario            exit 2     360 chars  PASS
+  target below 1              exit 2     266 chars  PASS
+
+SUMMARY  15/15 checks PASS

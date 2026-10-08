@@ -1,0 +1,53 @@
+CLI exit codes, measured from real subprocesses -- assuregraph 0.1.0
+
+Contract: 0 complete, 1 incomplete (check only), 2 malformed input or usage.
+
+invocation                                 expected  actual  verdict
+----------------------------------------------------------------------------
+--help                                            0       0  ok
+--version                                         0       0  ok
+check --help                                      0       0  ok
+mermaid --help                                    0       0  ok
+summary --help                                    0       0  ok
+no subcommand                                     2       2  ok
+check complete_case.yaml                          0       0  ok
+check complete_case.yaml --strict                 0       0  ok
+check incomplete_case.yaml                        1       1  ok
+check incomplete_case.yaml --json                 1       1  ok
+check incomplete_case.yaml --markdown             1       1  ok
+check cyclic_case.yaml                            1       1  ok
+check a missing file                              2       2  ok
+check an empty-nodes case                         2       2  ok
+check unparsable YAML                             2       2  ok
+summary complete_case.yaml                        0       0  ok
+summary incomplete_case.yaml                      0       0  ok
+mermaid incomplete_case.yaml                      0       0  ok
+mermaid --highlight                               0       0  ok
+mermaid -o <file>                                 0       0  ok
+mermaid a bad direction                           2       2  ok
+mermaid -o into a missing directory               2       2  ok
+
+mermaid -o wrote 2593 bytes to a file
+first line of that file: 'flowchart TD'
+
+JSON output of `check incomplete_case.yaml --json`:
+  exit_code in payload             : 1
+  is_complete                      : False
+  counts                           : {'error': 6, 'warning': 1, 'info': 2}
+  findings in payload              : 9
+  evidence entries in payload      : 3
+  fractions with their denominators:
+    claim_support              0.875000  denominator 8
+    evidence_present           0.666667  denominator 3
+    evidence_fresh             0.000000  denominator 1
+    assumption_discharged      0.000000  denominator 1
+
+A malformed input writes to stderr and nothing to stdout:
+  stdout length                    : 0
+  stderr (scratch directory redacted so the committed output is stable):
+    assuregraph: cannot read case file '<scratch>/nope.yaml': [Errno 2] No such file or directory: '<scratch>/nope.yaml'
+  --help (whitespace-normalised) contains 'not a safe system': yes
+  --help (whitespace-normalised) contains 'not a DO-178C or ARP4754A compliance tool': yes
+  --help (whitespace-normalised) contains 'not flight-qualified': yes
+
+FAILURES: 0

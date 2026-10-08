@@ -1,0 +1,91 @@
+A. Measured representation growth
+
+== damped_rotation_2d (dim 2): A = 0.995 R(0.2 rad), box X half-width 1, box W half-width 0.002
+   converged at k=8, elapsed 0.81 s
+   k   raw  facets  removed  vertices  vtx/facet  volume          shrink_margin   margin_ratio
+   1   8    8       0        8         1.0000     3.682831465     1.748422e-01       -    
+   2   16   12      4        12        1.0000     3.473921179     1.382588e-01    0.790763
+   3   24   16      8        16        1.0000     3.341039555     1.071330e-01    0.774873
+   4   32   20      12       20        1.0000     3.262161266     7.971337e-02    0.744060
+   5   40   24      16       24        1.0000     3.221307998     5.471075e-02    0.686343
+   6   48   28      20       28        1.0000     3.206039893     3.094795e-02    0.565665
+   7   56   32      24       32        1.0000     3.205016434     6.667467e-03    0.215441
+   8   64   32      32       32        1.0000     3.205016434     2.220446e-16    0.000000
+   measured growth: raw rows 8 -> 64 (+8.0/iter), facets 8 -> 32 (+3.4/iter), vertices 8 -> 32 (+3.4/iter)
+   independent invariance check: strict(tol=0) False, tol=1e-9 True, worst facet margin +2.220446e-16
+
+== damped_rotation_3d (dim 3): A = diag(0.99, 0.99, 0.95) R_z(0.2 rad), box X and W in 3-D
+   converged at k=7, elapsed 1.10 s
+   k   raw  facets  removed  vertices  vtx/facet  volume          shrink_margin   margin_ratio
+   1   12   10      2        16        1.6000     7.394605991     1.699485e-01       -    
+   2   20   14      6        24        1.7143     7.001386683     1.327821e-01    0.781308
+   3   28   18      10       32        1.7778     6.757995926     1.009867e-01    0.760544
+   4   36   22      14       40        1.8182     6.621443104     7.268357e-02    0.719734
+   5   44   26      18       48        1.8462     6.559763500     4.635276e-02    0.637734
+   6   52   30      22       56        1.8667     6.545828125     2.028413e-02    0.437603
+   7   60   30      30       56        1.8667     6.545828125     1.110223e-16    0.000000
+   measured growth: raw rows 12 -> 60 (+8.0/iter), facets 10 -> 30 (+3.3/iter), vertices 16 -> 56 (+6.7/iter)
+   independent invariance check: strict(tol=0) False, tol=1e-9 True, worst facet margin +1.110223e-16
+
+== attitude_loop (dim 2): single-axis attitude double integrator, dt=0.05 s, K=[8.0, 3.8], closed-loop poles 0.9+/-0.1j; |theta|<=0.30 rad, |theta_dot|<=0.50 rad/s, |u|<=3.0 rad/s^2; disturbance 0.12 rad/s^2 for one sample
+   converged at k=5, elapsed 0.32 s
+   k   raw  facets  removed  vertices  vtx/facet  volume          shrink_margin   margin_ratio
+   1   12   10      2        10        1.0000     0.540986271     3.100000e-02       -    
+   2   20   12      8        12        1.0000     0.539196584     2.150272e-02    0.693636
+   3   24   14      10       14        1.0000     0.538430410     1.250574e-02    0.581589
+   4   28   16      12       16        1.0000     0.538347285     3.631988e-03    0.290426
+   5   32   16      16       16        1.0000     0.538347285     0.000000e+00    0.000000
+   measured growth: raw rows 12 -> 32 (+5.0/iter), facets 10 -> 16 (+1.5/iter), vertices 10 -> 16 (+1.5/iter)
+   independent invariance check: strict(tol=0) True, tol=1e-9 True, worst facet margin +0.000000e+00
+
+
+B. Where the brute-force vertex enumeration gives up
+   C(m, n) bases are solved per enumeration; the budget is max_bases.
+   dim 2, m = 32  rows -> C(m, n) = 496 bases
+   dim 3, m = 30  rows -> C(m, n) = 4,060 bases
+   dim 3, m = 60  rows -> C(m, n) = 34,220 bases
+   dim 4, m = 40  rows -> C(m, n) = 91,390 bases
+   dim 5, m = 40  rows -> C(m, n) = 658,008 bases
+   default max_bases = 200000, so dim 4 with 40 rows (91,390) still runs
+   and dim 5 with 40 rows (658,008) is refused rather than left to hang.
+   4-D example, 11 rows: 25 vertices in 0.02 s
+
+
+C. Stalling and non-convergence
+   system: repeated pole at 0.999 with coupling 0.05, |w|<=0.002
+   eigenvalues of A: [0.999+0.j 0.999+0.j]
+   cap 10   iteration_cap  facets=6    area=3.440009340 invariant=False margin=+5.100000e-02 (0.26 s)
+   cap 20   iteration_cap  facets=6    area=2.879521799 invariant=False margin=+5.100000e-02 (0.62 s)
+   cap 40   iteration_cap  facets=4    area=1.758263874 invariant=False margin=+5.003431e-02 (1.14 s)
+   cap 80   iteration_cap  facets=4    area=0.591043051 invariant=False margin=+2.703876e-02 (1.89 s)
+   shrink margin over 80 iterations: min 2.730605e-02, max 5.100000e-02, ratio min 0.976652761 max 1.000000000
+   the margin does not decay at all, so the recursion cannot terminate;
+   this is reported as termination='iteration_cap', not as an answer.
+   nesting check: cap-80 result subset of cap-10 result = True
+
+   full report emitted for the non-converged case:
+     maximal robust invariant set
+       termination        : iteration_cap
+       iterations         : 5 (cap 5)
+       convergence tol    : 1.000e-09
+       redundancy tol     : 1.000e-09
+       DID NOT CONVERGE. The iteration cap was reached while the
+       sequence was still shrinking, so the returned polytope is an
+       OUTER bound on S_inf, not S_inf. Raise max_iter or accept the
+       outer bound explicitly.
+       last shrink margin : 5.100000e-02 (needs <= 1.0e-09)
+       facets of bound    : 6
+       k  raw  facets  vertices  shrink_margin
+       1  8    6       -         5.100000e-02
+       2  12   6       -         5.100000e-02
+       3  12   6       -         5.100000e-02
+       4  12   6       -         5.100000e-02
+       5  12   6       -         5.100000e-02
+
+
+D. Marginally stable system: eigenvalues exactly on the unit circle
+   cap 10   iteration_cap  facets=20   area=2.545854330 invariant=False margin=+6.403736e-02
+   cap 30   iteration_cap  facets=20   area=1.301222810 invariant=False margin=+6.108756e-02
+   cap 60   iteration_cap  facets=16   area=0.204587260 invariant=False margin=+4.511011e-02
+   |lambda| = 1 means nothing contracts; the recursion shaves a sliver
+   per iteration forever. No cap value fixes this.

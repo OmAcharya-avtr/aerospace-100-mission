@@ -1,0 +1,92 @@
+# validate_variance_reduction
+python 3.13.16 on Linux-6.18.44-fc-v80-x86_64-with-glibc2.39
+os.cpu_count()=2 len(os.sched_getaffinity(0))=2
+numpy 2.5.3 scipy 1.18.1 scikit-learn 1.9.1
+
+budget = 100000 true evaluations, replications = 40, subset n_per_level = 2000
+replication noise on a standard deviation: 0.113 relative
+
+## linear beta=3.719 d=2   reference p = 1.00006526e-04
+  crude: mean=9.325000e-05 std=3.354198e-05 cov=0.3597 relbias=-0.0676 se/std=0.894 evals=100000 R=40
+  analytic-IS: mean=1.001241e-04 std=5.748570e-07 cov=0.0057 relbias=+0.0012 se/std=1.127 evals=100000 R=40
+  oracle-IS: mean=9.996126e-05 std=7.541918e-07 cov=0.0075 relbias=-0.0005 se/std=0.858 evals=100000 R=40
+  subset-simulation: mean=9.587875e-05 std=3.193998e-05 cov=0.3331 relbias=-0.0413 se/std=0.397 evals=8525 R=40
+  analytic-IS vs crude: VRF=3405 (better than reference at 100000 evaluations), VRF_vs_exact_crude=3026, MSERF=2904 (better in MSE), relbias=+0.0012
+  oracle-IS vs crude: VRF=1978 (better than reference at 100000 evaluations), VRF_vs_exact_crude=1758, MSERF=1752 (better in MSE), relbias=-0.0005
+  subset-simulation vs crude: VRF=12.94 (better than reference at 8525 evaluations), VRF_vs_exact_crude=11.5, MSERF=11.31 (better in MSE), relbias=-0.0413
+[PASS] linear beta=3.719 d=2: analytic-IS beats crude in variance and in MSE
+[PASS] linear beta=3.719 d=2: subset simulation beats crude in variance per evaluation
+[PASS] linear beta=3.719 d=2: every method's mean is within 4 replication standard errors of the reference
+
+## linear beta=4.753 d=2   reference p = 1.00210174e-06
+  crude: mean=1.250000e-06 std=3.349321e-06 cov=2.6795 relbias=+0.2474 se/std=0.373 evals=100000 R=40
+  analytic-IS: mean=1.003581e-06 std=6.449729e-09 cov=0.0064 relbias=+0.0015 se/std=1.141 evals=100000 R=40
+  oracle-IS: mean=1.001717e-06 std=8.485972e-09 cov=0.0085 relbias=-0.0004 se/std=0.867 evals=100000 R=40
+  subset-simulation: mean=8.554125e-07 std=4.234530e-07 cov=0.4950 relbias=-0.1464 se/std=0.329 evals=12305 R=40
+  analytic-IS vs crude: VRF=2.697e+05 (better than reference at 100000 evaluations), VRF_vs_exact_crude=2.409e+05, MSERF=2.289e+05 (better in MSE), relbias=+0.0015
+  oracle-IS vs crude: VRF=1.558e+05 (better than reference at 100000 evaluations), VRF_vs_exact_crude=1.392e+05, MSERF=1.389e+05 (better in MSE), relbias=-0.0004
+  subset-simulation vs crude: VRF=508.4 (better than reference at 12305 evaluations), VRF_vs_exact_crude=454.2, MSERF=405.5 (better in MSE), relbias=-0.1464
+[PASS] linear beta=4.753 d=2: analytic-IS beats crude in variance and in MSE
+[PASS] linear beta=4.753 d=2: subset simulation beats crude in variance per evaluation
+[PASS] linear beta=4.753 d=2: every method's mean is within 4 replication standard errors of the reference
+
+## linear beta=3.719 d=6   reference p = 1.00006526e-04
+  crude: mean=9.150000e-05 std=2.760063e-05 cov=0.3016 relbias=-0.0851 se/std=1.082 evals=100000 R=40
+  analytic-IS: mean=9.999404e-05 std=7.153510e-07 cov=0.0072 relbias=-0.0001 se/std=0.905 evals=100000 R=40
+  oracle-IS: mean=1.000822e-04 std=7.752343e-07 cov=0.0077 relbias=+0.0008 se/std=0.835 evals=100000 R=40
+  subset-simulation: mean=9.879750e-05 std=3.582594e-05 cov=0.3626 relbias=-0.0121 se/std=0.364 evals=8345 R=40
+  analytic-IS vs crude: VRF=1489 (better than reference at 100000 evaluations), VRF_vs_exact_crude=1954, MSERF=1954 (better in MSE), relbias=-0.0001
+  oracle-IS vs crude: VRF=1268 (better than reference at 100000 evaluations), VRF_vs_exact_crude=1664, MSERF=1648 (better in MSE), relbias=+0.0008
+  subset-simulation vs crude: VRF=7.112 (better than reference at 8345 evaluations), VRF_vs_exact_crude=9.336, MSERF=9.325 (better in MSE), relbias=-0.0121
+[PASS] linear beta=3.719 d=6: analytic-IS beats crude in variance and in MSE
+[PASS] linear beta=3.719 d=6: subset simulation beats crude in variance per evaluation
+[PASS] linear beta=3.719 d=6: every method's mean is within 4 replication standard errors of the reference
+
+## lognormal default   reference p = 1.00006467e-04
+  crude: mean=1.052500e-04 std=3.137756e-05 cov=0.2981 relbias=+0.0524 se/std=1.023 evals=100000 R=40
+  analytic-IS: mean=9.996560e-05 std=6.846043e-07 cov=0.0068 relbias=-0.0004 se/std=0.945 evals=100000 R=40
+  oracle-IS: mean=1.000689e-04 std=6.112262e-07 cov=0.0061 relbias=+0.0006 se/std=1.060 evals=100000 R=40
+  subset-simulation: mean=1.055275e-04 std=3.197837e-05 cov=0.3030 relbias=+0.0552 se/std=0.434 evals=8300 R=40
+  analytic-IS vs crude: VRF=2101 (better than reference at 100000 evaluations), VRF_vs_exact_crude=2134, MSERF=2126 (better in MSE), relbias=-0.0004
+  oracle-IS vs crude: VRF=2635 (better than reference at 100000 evaluations), VRF_vs_exact_crude=2677, MSERF=2649 (better in MSE), relbias=+0.0006
+  subset-simulation vs crude: VRF=11.6 (better than reference at 8300 evaluations), VRF_vs_exact_crude=11.78, MSERF=11.44 (better in MSE), relbias=+0.0552
+[PASS] lognormal default: analytic-IS beats crude in variance and in MSE
+[PASS] lognormal default: subset simulation beats crude in variance per evaluation
+[PASS] lognormal default: every method's mean is within 4 replication standard errors of the reference
+
+## rippled A=0.8 w=1.5   reference p = 4.44621249e-04
+  crude: mean=4.370000e-04 std=5.412237e-05 cov=0.1238 relbias=-0.0171 se/std=1.219 evals=100000 R=40
+  analytic-IS: mean=4.456123e-04 std=5.139871e-06 cov=0.0115 relbias=+0.0022 se/std=0.988 evals=100000 R=40
+  oracle-IS: mean=4.440167e-04 std=5.966792e-06 cov=0.0134 relbias=-0.0014 se/std=0.748 evals=100000 R=40
+  subset-simulation: mean=4.516125e-04 std=1.193642e-04 cov=0.2643 relbias=+0.0157 se/std=0.449 evals=7400 R=40
+  analytic-IS vs crude: VRF=110.9 (better than reference at 100000 evaluations), VRF_vs_exact_crude=168.2, MSERF=162.2 (better in MSE), relbias=+0.0022
+  oracle-IS vs crude: VRF=82.28 (better than reference at 100000 evaluations), VRF_vs_exact_crude=124.8, MSERF=123.6 (better in MSE), relbias=-0.0014
+  subset-simulation vs crude: VRF=2.778 (better than reference at 7400 evaluations), VRF_vs_exact_crude=4.215, MSERF=4.201 (better in MSE), relbias=+0.0157
+[PASS] rippled A=0.8 w=1.5: analytic-IS beats crude in variance and in MSE
+[PASS] rippled A=0.8 w=1.5: subset simulation beats crude in variance per evaluation
+[PASS] rippled A=0.8 w=1.5: every method's mean is within 4 replication standard errors of the reference
+
+## rippled beta=5.5 A=2.5 w=2.0   reference p = 1.85308155e-04
+  crude: mean=1.850000e-04 std=3.829708e-05 cov=0.2070 relbias=-0.0017 se/std=1.117 evals=100000 R=40
+  analytic-IS: mean=1.826496e-04 std=1.008721e-05 cov=0.0552 relbias=-0.0143 se/std=1.028 evals=100000 R=40
+  oracle-IS: mean=1.847224e-04 std=3.519359e-06 cov=0.0191 relbias=-0.0032 se/std=0.912 evals=100000 R=40
+  subset-simulation: mean=1.945438e-04 std=7.390734e-05 cov=0.3799 relbias=+0.0498 se/std=0.328 evals=7490 R=40
+  analytic-IS vs crude: VRF=14.41 (better than reference at 100000 evaluations), VRF_vs_exact_crude=18.21, MSERF=17.03 (better in MSE), relbias=-0.0143
+  oracle-IS vs crude: VRF=118.4 (better than reference at 100000 evaluations), VRF_vs_exact_crude=149.6, MSERF=145.6 (better in MSE), relbias=-0.0032
+  subset-simulation vs crude: VRF=3.585 (better than reference at 7490 evaluations), VRF_vs_exact_crude=4.529, MSERF=4.459 (better in MSE), relbias=+0.0498
+[PASS] rippled beta=5.5 A=2.5 w=2.0: analytic-IS beats crude in variance and in MSE
+[PASS] rippled beta=5.5 A=2.5 w=2.0: subset simulation beats crude in variance per evaluation
+[PASS] rippled beta=5.5 A=2.5 w=2.0: every method's mean is within 4 replication standard errors of the reference
+
+## Reported standard error against the measured spread
+se_ratio = mean reported standard error / empirical standard deviation. A value near 1 means the estimator's own error bar is honest. Subset simulation's reported standard error assumes independence within a level and is therefore expected to be below 1.
+                      instance    crude  analytic-IS   subset
+         linear beta=3.719 d=2    0.967        1.172    0.330
+         linear beta=4.753 d=2    0.281        1.102    0.342
+         linear beta=3.719 d=6    1.194        1.280    0.442
+             lognormal default    0.954        1.225    0.421
+           rippled A=0.8 w=1.5    0.960        0.919    0.395
+  rippled beta=5.5 A=2.5 w=2.0    0.919        0.906    0.300
+[PASS] subset simulation's reported standard error understates its measured spread on every instance, as the module docstring states (ratios [0.33, 0.342, 0.442, 0.421, 0.395, 0.3], mean understatement factor 2.69)
+
+all checks passed

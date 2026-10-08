@@ -1,0 +1,234 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  rareverify: planning and executing a Monte-Carlo verification campaign for a
+  rare requirement violation, with defensible interval bounds
+version: 0.1.0
+date-released: 2026-10-08
+license: Apache-2.0
+abstract: >-
+  A rare-event verification campaign, treated end to end: how many runs the
+  campaign needs, how those runs should be spent, and which interval may be
+  quoted afterwards. Sample-size planning separates demonstration from
+  estimation and gives the exact closed form for the zero-failure case a real
+  campaign normally reaches. Clopper-Pearson and Wilson intervals are provided
+  with their coverage computed exactly by summation over the binomial mass
+  rather than by simulation, which shows the Wilson interval under-covering to
+  0.9046 against a nominal 0.95 and shows the usual ordering of the two
+  intervals reversing at k = 0 below n = 46. Variance reduction is offered in
+  one explicitly declared family -- the mean-shift family on standard normal
+  space, which for the Gaussian is exponential tilting -- and in subset
+  simulation, and every reduction factor reported is an empirical variance over
+  independent replications on an equal true-evaluation basis, not a formula
+  prediction. The cases where importance sampling is WORSE than no importance
+  sampling are a deliverable rather than an omission: 26 of 40 swept tilts are
+  measurably worse than plain Monte Carlo, one of them returning an estimate
+  2.07e5 times too small while its variance reduction factor reads 1.8e+08,
+  which is why a mean-squared-error reduction factor is reported beside it. A
+  Gaussian-process surrogate of the limit-state function supplies the mean
+  shift when no analytic design point exists; it is benchmarked against the
+  analytic baseline, which was implemented first, on an equal budget of true
+  limit-state evaluations with its training set counted against it. It has
+  nothing to win on a smooth analytic limit state, where it recovers the
+  analytic design point to 5.890e-06 and pays its training cost for nothing,
+  and it wins by a measured factor of 10.66 on a rough one while falling 31 per
+  cent short of an oracle tilt. Both outcomes are published. Every probability
+  the package reports is the violation probability of the model that was
+  simulated, not of any vehicle. Validation level 2, research grade. Not
+  flight-qualified, not certified, not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - rare-event-simulation
+  - monte-carlo
+  - importance-sampling
+  - exponential-tilting
+  - subset-simulation
+  - clopper-pearson
+  - wilson-interval
+  - reliability-analysis
+  - verification-campaign
+  - gaussian-process-surrogate
+references:
+  - type: article
+    authors:
+      - family-names: Clopper
+        given-names: "C. J."
+      - family-names: Pearson
+        given-names: "E. S."
+    title: >-
+      The use of confidence or fiducial limits illustrated in the case of the
+      binomial
+    journal: "Biometrika"
+    volume: 26
+    issue: 4
+    year: 1934
+    notes: >-
+      The exact interval implemented in rareverify.intervals.clopper_pearson
+      and the source of the zero-failure closed form the planner inverts.
+  - type: article
+    authors:
+      - family-names: Wilson
+        given-names: "E. B."
+    title: >-
+      Probable inference, the law of succession, and statistical inference
+    journal: "Journal of the American Statistical Association"
+    volume: 22
+    issue: 158
+    year: 1927
+    notes: >-
+      The score interval implemented in rareverify.intervals.wilson. Its exact
+      coverage is computed in validation/validate_intervals.py and dips to
+      0.9046 against a nominal 0.95 on the tested grid.
+  - type: article
+    authors:
+      - family-names: Brown
+        given-names: "L. D."
+      - family-names: Cai
+        given-names: "T. T."
+      - family-names: DasGupta
+        given-names: "A."
+    title: "Interval estimation for a binomial proportion"
+    journal: "Statistical Science"
+    volume: 16
+    issue: 2
+    year: 2001
+    notes: >-
+      The recommendation of the score interval over the Wald interval, and the
+      analysis of the oscillating coverage this package measures directly.
+  - type: article
+    authors:
+      - family-names: Agresti
+        given-names: "A."
+      - family-names: Coull
+        given-names: "B. A."
+    title: >-
+      Approximate is better than 'exact' for interval estimation of binomial
+      proportions
+    journal: "The American Statistician"
+    volume: 52
+    issue: 2
+    year: 1998
+    notes: >-
+      The case against the exact interval on grounds of length, which this
+      package quotes alongside its own coverage measurements rather than
+      choosing a side.
+  - type: article
+    authors:
+      - family-names: Hanley
+        given-names: "J. A."
+      - family-names: Lippman-Hand
+        given-names: "A."
+    title: >-
+      If nothing goes wrong, is everything all right? Interpreting zero
+      numerators
+    journal: "JAMA"
+    volume: 249
+    issue: 13
+    year: 1983
+    notes: >-
+      The rule of three, implemented as rule_of_three_upper so that its
+      relative error can be measured; it tends to 1.4246021e-3, not to zero.
+  - type: article
+    authors:
+      - family-names: Au
+        given-names: "S.-K."
+      - family-names: Beck
+        given-names: "J. L."
+    title: >-
+      Estimation of small failure probabilities in high dimensions by subset
+      simulation
+    journal: "Probabilistic Engineering Mechanics"
+    volume: 16
+    issue: 4
+    year: 2001
+    notes: >-
+      The algorithm implemented in rareverify.subset, including the modified
+      Metropolis sampler with component-wise acceptance.
+  - type: article
+    authors:
+      - family-names: Hasofer
+        given-names: "A. M."
+      - family-names: Lind
+        given-names: "N. C."
+    title: "Exact and invariant second-moment code format"
+    journal: "Journal of the Engineering Mechanics Division, ASCE"
+    volume: 100
+    year: 1974
+    notes: >-
+      The reliability index and the design point, which is the mean shift the
+      analytic importance-sampling baseline uses. No page number is quoted
+      because none was verified in this environment.
+  - type: book
+    authors:
+      - family-names: Rubinstein
+        given-names: "R. Y."
+      - family-names: Kroese
+        given-names: "D. P."
+    title: "Simulation and the Monte Carlo Method"
+    edition: "3rd"
+    publisher:
+      name: "Wiley"
+    year: 2016
+    notes: >-
+      Importance sampling, exponential tilting and the rare-event
+      coefficient-of-variation scaling quoted in rareverify.montecarlo. No page
+      number is quoted because none was verified in this environment.
+  - type: book
+    authors:
+      - family-names: Owen
+        given-names: "A. B."
+    title: "Monte Carlo theory, methods and examples"
+    year: 2013
+    notes: >-
+      Chapter 9: importance sampling, the effective sample size, and the
+      warning that a badly chosen proposal can have infinite variance, which
+      validation/validate_is_worse.py measures.
+  - type: article
+    authors:
+      - family-names: Echard
+        given-names: "B."
+      - family-names: Gayton
+        given-names: "N."
+      - family-names: Lemaire
+        given-names: "M."
+    title: >-
+      AK-MCS: an active learning reliability method combining Kriging and
+      Monte Carlo Simulation
+    journal: "Structural Safety"
+    volume: 33
+    issue: 2
+    year: 2011
+    notes: >-
+      The method family the learned surrogate belongs to. rareverify
+      implements a simplified, one-shot version with no active-learning loop,
+      and says so in MODEL_CARD.md.
+  - type: book
+    authors:
+      - family-names: Rasmussen
+        given-names: "C. E."
+      - family-names: Williams
+        given-names: "C. K. I."
+    title: "Gaussian Processes for Machine Learning"
+    publisher:
+      name: "MIT Press"
+    year: 2006
+    notes: >-
+      The Gaussian-process regression and posterior variance used for the
+      surrogate and for its uncertainty band.
+  - type: article
+    authors:
+      - family-names: Virtanen
+        given-names: "P."
+      - family-names: Gommers
+        given-names: "R."
+      - family-names: Oliphant
+        given-names: "T. E."
+    title: >-
+      SciPy 1.0: fundamental algorithms for scientific computing in Python
+    journal: "Nature Methods"
+    volume: 17
+    year: 2020
+    notes: >-
+      Beta quantiles, the normal CDF, Gauss-Hermite nodes and SLSQP, all of
+      which this package depends on.

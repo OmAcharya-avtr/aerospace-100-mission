@@ -1,0 +1,90 @@
+falsifyloop - instance difficulty measurement
+15000 uniform draws per instance from the declared box, seed 52052. The design targets were set from a 40000-draw pilot at seed 13; this run uses a different seed so the figures are a re-measurement, not a replay.
+
+instance             tier         viol   p measured   95% CI low  95% CI high   target       1/p
+------------------------------------------------------------------------------------------------
+overshoot-loose      easy         4829     0.321933     0.314458     0.329478   0.3100         3
+settling-band        easy         1592     0.106133     0.101248     0.111172   0.1000         9
+multi-requirement    moderate      986     0.065733     0.061819     0.069817   0.0630        15
+command-rate         moderate      470     0.031333     0.028603     0.034247   0.0300        32
+overshoot-tight      hard          145     0.009667     0.008163     0.011365   0.0100       103
+attitude-envelope    hard           56     0.003733     0.002821     0.004845   0.0040       268
+nested-capture       hard           68     0.004533     0.003522     0.005744   0.0035       221
+rate-envelope        very hard      19     0.001267     0.000763     0.001977   0.0014       789
+
+p is the fraction of uniform draws that violate. 1/p is the expected number of uniform simulations to the first violation. Both are properties of the instance, not of any strategy.
+
+==============================================================================
+Design target against re-measured value
+==============================================================================
+instance                target   measured   target inside the 95% CI
+--------------------------------------------------------------------
+overshoot-loose         0.3100   0.321933                         NO
+settling-band           0.1000   0.106133                         NO
+multi-requirement       0.0630   0.065733                        yes
+command-rate            0.0300   0.031333                        yes
+overshoot-tight         0.0100   0.009667                        yes
+attitude-envelope       0.0040   0.003733                        yes
+nested-capture          0.0035   0.004533                         NO
+rate-envelope           0.0014   0.001267                        yes
+
+design targets outside their re-measured interval: 3 of 8
+A target outside its interval is not a defect: the target came from a 40000-draw pilot and this is a 15000-draw re-measurement, so the two differ by sampling error plus whatever the pilot's quantile rounding cost. The measured column is the one the README quotes, and the tier labels are checked against it below.
+
+==============================================================================
+Tier labels against the measured probability
+==============================================================================
+overshoot-loose      tier easy       band [0.1, 1) measured 0.321933  ok
+settling-band        tier easy       band [0.1, 1) measured 0.106133  ok
+multi-requirement    tier moderate   band [0.01, 0.1) measured 0.065733  ok
+command-rate         tier moderate   band [0.01, 0.1) measured 0.031333  ok
+overshoot-tight      tier hard       band [0.002, 0.01) measured 0.009667  ok
+attitude-envelope    tier hard       band [0.002, 0.01) measured 0.003733  ok
+nested-capture       tier hard       band [0.002, 0.01) measured 0.004533  ok
+rate-envelope        tier very hard  band [0, 0.002) measured 0.001267  ok
+
+instances whose measured p falls outside their declared tier band: 0
+
+==============================================================================
+Robustness distribution per instance
+==============================================================================
+instance                min rho        p01     median    max rho   frac < 0
+--------------------------------------------------------------------------
+overshoot-loose        -8.93210   -3.44371    0.34246    1.04989   0.321933
+settling-band          -5.62140   -2.04452    0.80169    0.99934   0.106133
+multi-requirement      -3.96605   -1.28339    0.64640    0.94928   0.065733
+command-rate           -1.39321   -0.54964    0.68350    0.96741   0.031333
+overshoot-tight        -1.20713    0.01251    0.85388    1.01109   0.009667
+attitude-envelope      -0.51159    0.18891    0.70658    0.94017   0.003733
+nested-capture         -0.16913    0.06492    0.86534    0.99880   0.004533
+rate-envelope          -0.11569    0.23260    0.82194    0.97295   0.001267
+
+Robustness is dimensionless on every shipped instance because each predicate is normalised by its own tolerance, so these columns are comparable across rows.
+
+==============================================================================
+Analytic uniform-random curve implied by the measured difficulty
+==============================================================================
+instance                  n=10      n=50     n=100     n=200     n=500
+-----------------------------------------------------------------------
+overshoot-loose         0.9795    1.0000    1.0000    1.0000    1.0000
+settling-band           0.6744    0.9963    1.0000    1.0000    1.0000
+multi-requirement       0.4933    0.9666    0.9989    1.0000    1.0000
+command-rate            0.2726    0.7964    0.9586    0.9983    1.0000
+overshoot-tight         0.0926    0.3847    0.6214    0.8567    0.9922
+attitude-envelope       0.0367    0.1706    0.3120    0.5267    0.8459
+nested-capture          0.0444    0.2032    0.3651    0.5970    0.8969
+rate-envelope           0.0126    0.0614    0.1190    0.2239    0.4694
+
+1 - (1-p)^n, the exact probability a uniform-random search has found a violation by simulation n. This is the baseline curve every strategy in validate_benchmark.py is measured against, and it is a closed form, not an estimate.
+
+==============================================================================
+COMPUTE
+==============================================================================
+draws per instance        : 15000
+instances                 : 8
+total simulations         : 120000
+wall clock                : 51.0 s
+per simulation            : 425.1 us
+Measured on a container reporting 2 available CPU cores (os.sched_getaffinity: 2). Single process, no parallelism. A wall clock on a shared container is not a hardware characteristic and must not be read as one.
+
+Falsification is one-sided: finding no violation is not evidence of correctness.

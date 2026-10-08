@@ -1,0 +1,86 @@
+# validate_planner
+python 3.13.16 on Linux-6.18.44-fc-v80-x86_64-with-glibc2.39
+os.cpu_count()=2 len(os.sched_getaffinity(0))=2
+numpy 2.5.3 scipy 1.18.1 scikit-learn 1.9.1
+
+## 1. Demonstration sample size against the closed form
+n = ceil(ln(alpha) / ln(1 - p_target)), Clopper-Pearson one-sided
+  p_target   conf            n      closed form     bound at n   bound at n-1
+   1.0e-02   0.90          230         229.1053   9.961294e-03   1.000457e-02
+   1.0e-02   0.95          299         298.0729   9.969147e-03   1.000243e-02
+   1.0e-02   0.99          459         458.2106   9.982887e-03   1.000457e-02
+   1.0e-03   0.90         2302        2301.4336   9.997541e-04   1.000188e-03
+   1.0e-03   0.95         2995        2994.2342   9.997444e-04   1.000078e-03
+   1.0e-03   0.99         4603        4602.8672   9.999712e-04   1.000188e-03
+   1.0e-04   0.90        23025       23024.6996   9.999870e-05   1.000030e-04
+   1.0e-04   0.95        29956       29955.8248   9.999942e-05   1.000028e-04
+   1.0e-04   0.99        46050       46049.3992   9.999870e-05   1.000009e-04
+   1.0e-05   0.90       230258      230257.3580   9.999972e-06   1.000002e-05
+   1.0e-05   0.95       299572      299571.7295   9.999991e-06   1.000002e-05
+   1.0e-05   0.99       460515      460514.7160   9.999994e-06   1.000002e-05
+   1.0e-06   0.90      2302584     2302583.9417   1.000000e-06   1.000000e-06
+   1.0e-06   0.95      2995731     2995730.7757   9.999999e-07   1.000000e-06
+   1.0e-06   0.99      4605168     4605167.8834   1.000000e-06   1.000000e-06
+[PASS] the returned n is the smallest one meeting the bound, in all 15 cases
+[PASS] p_target=1e-3, 95 % gives n=2995 (hand calculation 2994.23 -> 2995)
+[PASS] p_target=1e-4, 95 % gives n=29956
+[PASS] p_target=1e-3, 99 % gives n=4603 (hand calculation 4602.87 -> 4603)
+
+## 2. Consistency identity: P(k=0) at p_target equals alpha
+By construction the demonstration size is the n at which a campaign whose true p equals p_target has probability alpha of seeing nothing.
+  p_target            n       P(k=0)    alpha    detection
+   1.0e-02          299     0.049536     0.05     0.950464
+   1.0e-03         2995     0.049962     0.05     0.950038
+   1.0e-04        29956     0.049999     0.05     0.950001
+   1.0e-05       299572     0.050000     0.05     0.950000
+[PASS] P(k=0) at p_target is 0.05 to within 2e-3
+
+## 3. The Wilson plan is SMALLER, which makes it the weaker claim
+For a one-sided demonstration the Wilson k=0 bound is z^2/(n+z^2) with z = 1.6448536, i.e. 2.70554/n asymptotically, against the exact 2.99573/n. Wilson therefore asks for about 9.7 % fewer runs for the same nominal claim, and the exact coverage study in validate_intervals.py shows its one-sided coverage dropping to 0.9308 on the same grid where Clopper-Pearson stays at or above 0.9520. Planning with Wilson buys a smaller campaign by weakening the guarantee. The default in this package is Clopper-Pearson.
+  p_target         CP n     Wilson n    ratio
+   1.0e-02          299          268   0.8963
+   1.0e-03         2995         2703   0.9025
+   1.0e-04        29956        27053   0.9031
+   1.0e-05       299572       270552   0.9031
+[PASS] the Wilson plan is smaller than the Clopper-Pearson plan at every p_target tested, and the ratio approaches 2.70554/2.99573 = 0.90313 (ratios [0.89632, 0.9025, 0.90309, 0.90313])
+
+## 4. Estimation sample size for a relative interval width
+Assumes p equals p_target and k = round(n p). The predicate is the two-sided interval width at 95 %.
+         p  rel width         n (CP)   achieved width/p   n (Wilson)
+   1.0e-03       1.00          17306           0.999985        16133
+   1.0e-03       0.50          65332           0.499994        62173
+   1.0e-03       0.25         253435           0.250000       246280
+   1.0e-04       1.00         177788           1.000000       161423
+   1.0e-04       0.50         658443           0.499999       626960
+   1.0e-04       0.25        2540404           0.250000      2468920
+[PASS] every returned estimation size meets its width predicate
+
+## 5. Non-monotonicity audit of the width predicate
+k = round(n p) jumps, so the interval width is not monotone in n. Counting the n in a window where width(n+1) > width(n).
+window 64932..65731 around the returned n = 65332
+non-monotone steps in that window: 1 of 799
+feasible n smaller than the returned one inside the window: 0
+[PASS] the predicate is genuinely non-monotone, which is why the search brackets and then scans downward (1 non-monotone steps)
+[PASS] no feasible n smaller than the returned one exists inside the 512-step back-scan window (0 found)
+
+## 6. Crude cost of the same targets, for the record
+required_samples_for_cov(p, 0.1) = (1 - p) / (p * 0.01): the run count a crude campaign needs for a 10 % coefficient of variation.
+         p    n for cov=0.1   n for cov=0.05
+   1.0e-03            99900           399600
+   1.0e-04           999900          3999600
+   1.0e-05          9999900         39999600
+   1.0e-06         99999900        399999600
+   1.0e-07        999999900       3999999600
+[PASS] p=1e-6 at cov=0.1 needs 99999900 runs, which is the arithmetic that motivates variance reduction
+
+## 7. Full plan for the package's headline target
+  target violation probability : 1.000000e-04
+  confidence                   : 0.95
+  interval method              : clopper-pearson
+  runs to demonstrate (k=0)    : 29956
+    upper bound if k=0         : 9.999942e-05
+    E[violations] at p_target  : 2.995600
+    P(k=0) at p_target         : 0.049999
+  runs to estimate to 0.5*p : 658443
+
+all checks passed

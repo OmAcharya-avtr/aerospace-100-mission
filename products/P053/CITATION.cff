@@ -1,0 +1,212 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  twininvalidate: a model-invalidation monitor for a linear-Gaussian digital
+  twin, with detection delay reported against false-alarm rate per change type
+version: 0.1.0
+date-released: 2026-10-08
+license: Apache-2.0
+abstract: >-
+  A model-invalidation monitor for a declared linear-Gaussian digital twin.
+  The residual generator is a fixed-gain steady-state Kalman filter whose
+  innovation is normalised to a dimensionless sequence that is i.i.d. standard
+  normal in control, a property measured rather than assumed. Three asset-side
+  changes are injected by committed seeded scripts: an actuator-gain step, the
+  same gain ramped, and a process-noise variance change. Three analytic
+  sequential detectors are implemented first -- a two-sided tabular CUSUM, an
+  EWMA, and a windowed generalised-likelihood-ratio test for an unknown-onset
+  mean shift -- and every threshold is set from a declared in-control
+  average-run-length target using in-control data only, by exact closed form
+  where one exists and otherwise by bisection on a right-censored
+  maximum-likelihood estimator. The deliverable is the detection-delay against
+  false-alarm-rate curve per change type. Measured results that went against
+  expectation are published rather than removed: the CUSUM is faster than the
+  windowed GLR on all three change types; the noise-variance change takes
+  three to four times longer than a comparable parameter step for every
+  method, because it leaves the residual mean at zero; a correctly specified
+  variance CUSUM given the post-change residual variance in advance is the
+  slowest method on that change, not the fastest; and an isotonic-calibrated
+  random-forest drift classifier on windowed residual features, benchmarked at
+  the same declared false-alarm budget, loses to the CUSUM on two of three
+  in-distribution scenarios and three of four out-of-distribution ones,
+  detecting two per cent of runs on a change of the same magnitude and the
+  opposite sign where every analytic baseline detects all of them. The package
+  also demonstrates, by a paired simulation whose two residual streams differ
+  by 6.17e-14, that twin invalidation and asset fault cannot be distinguished
+  from the residual alone. Validation level 3, research grade. Not
+  flight-qualified, not certified, not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - digital-twin
+  - model-invalidation
+  - change-detection
+  - cusum
+  - ewma
+  - generalised-likelihood-ratio
+  - average-run-length
+  - kalman-filter-residual
+  - aerospace-assurance
+references:
+  - type: article
+    authors:
+      - family-names: Page
+        given-names: "E. S."
+    title: "Continuous Inspection Schemes"
+    journal: "Biometrika"
+    volume: 41
+    year: 1954
+    start: 100
+    end: 115
+    doi: 10.1093/biomet/41.1-2.100
+    notes: >-
+      The CUSUM recursion and the reference-value rule k = delta/2 used in
+      twininvalidate.detectors.cusum_statistic.
+  - type: article
+    authors:
+      - family-names: Roberts
+        given-names: "S. W."
+    title: "Control Chart Tests Based on Geometric Moving Averages"
+    journal: "Technometrics"
+    volume: 1
+    year: 1959
+    start: 239
+    end: 250
+    doi: 10.1080/00401706.1959.10489860
+    notes: The EWMA recursion used in twininvalidate.detectors.ewma_statistic.
+  - type: article
+    authors:
+      - family-names: Lucas
+        given-names: "J. M."
+      - family-names: Saccucci
+        given-names: "M. S."
+    title: >-
+      Exponentially Weighted Moving Average Control Schemes: Properties and
+      Enhancements
+    journal: "Technometrics"
+    volume: 32
+    year: 1990
+    start: 1
+    end: 12
+    doi: 10.1080/00401706.1990.10484583
+    notes: >-
+      The 0.05 to 0.25 range from which the declared smoothing constant
+      lambda = 0.10 is taken.
+  - type: article
+    authors:
+      - family-names: Willsky
+        given-names: "A. S."
+      - family-names: Jones
+        given-names: "H. L."
+    title: >-
+      A Generalized Likelihood Ratio Approach to the Detection and Estimation
+      of Jumps in Linear Systems
+    journal: "IEEE Transactions on Automatic Control"
+    volume: 21
+    year: 1976
+    start: 108
+    end: 112
+    notes: >-
+      The windowed maximum-over-onset GLR implemented in
+      twininvalidate.detectors.glr_statistic.
+  - type: article
+    authors:
+      - family-names: Lorden
+        given-names: "G."
+    title: "Procedures for reacting to a change in distribution"
+    journal: "Annals of Mathematical Statistics"
+    volume: 42
+    issue: 6
+    year: 1971
+    start: 1897
+    end: 1908
+    notes: >-
+      The asymptotic optimality framework for CUSUM and the average-run-length
+      formulation this package reports against.
+  - type: book
+    authors:
+      - family-names: Basseville
+        given-names: "M."
+      - family-names: Nikiforov
+        given-names: "I. V."
+    title: "Detection of Abrupt Changes: Theory and Application"
+    publisher:
+      name: "Prentice-Hall"
+    year: 1993
+    notes: >-
+      The ARL0/ARL1 framework, the zero-state and steady-state delay
+      conventions, and the scale-change CUSUM used as the oracle. No page
+      number is quoted because none was verified in this environment.
+  - type: article
+    authors:
+      - family-names: Kailath
+        given-names: "T."
+    title: >-
+      An Innovations Approach to Least-Squares Estimation, Part I: Linear
+      Filtering in Additive Noise
+    journal: "IEEE Transactions on Automatic Control"
+    volume: 13
+    issue: 6
+    year: 1968
+    start: 646
+    end: 655
+    notes: >-
+      The innovations property that the in-control whiteness checks in
+      validation/validate_twin.py test.
+  - type: book
+    authors:
+      - family-names: Anderson
+        given-names: "B. D. O."
+      - family-names: Moore
+        given-names: "J. B."
+    title: "Optimal Filtering"
+    publisher:
+      name: "Prentice-Hall"
+    year: 1979
+    notes: >-
+      The steady-state Kalman filter and the discrete-time filtering algebraic
+      Riccati equation. No page number is quoted because none was verified in
+      this environment.
+  - type: book
+    authors:
+      - family-names: Franklin
+        given-names: "G. F."
+      - family-names: Powell
+        given-names: "J. D."
+      - family-names: Workman
+        given-names: "M. L."
+    title: "Digital Control of Dynamic Systems"
+    edition: "3rd"
+    publisher:
+      name: "Addison-Wesley"
+    year: 1998
+    notes: Zero-order-hold discretisation of the shipped reference channel.
+  - type: book
+    authors:
+      - family-names: Bar-Shalom
+        given-names: "Y."
+      - family-names: Li
+        given-names: "X.-R."
+      - family-names: Kirubarajan
+        given-names: "T."
+    title: "Estimation with Applications to Tracking and Navigation"
+    publisher:
+      name: "Wiley"
+    year: 2001
+    isbn: "978-0-471-41655-5"
+    notes: >-
+      The continuous white-noise-acceleration discrete process-noise model.
+      No page number is quoted because none was verified in this environment.
+  - type: article
+    authors:
+      - family-names: Brier
+        given-names: "G. W."
+    title: "Verification of forecasts expressed in terms of probability"
+    journal: "Monthly Weather Review"
+    volume: 78
+    issue: 1
+    year: 1950
+    notes: >-
+      The Brier score reported for the learned classifier's confidence
+      output. No page number is quoted because none was verified in this
+      environment.

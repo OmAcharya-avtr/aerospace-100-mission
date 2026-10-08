@@ -1,0 +1,110 @@
+# validate_intervals
+python 3.13.16 on Linux-6.18.44-fc-v80-x86_64-with-glibc2.39
+os.cpu_count()=2 len(os.sched_getaffinity(0))=2
+numpy 2.5.3 scipy 1.18.1 scikit-learn 1.9.1
+
+## 1. Zero-failure closed forms against hand calculation
+Clopper-Pearson one-sided: 1 - alpha**(1/n). Wilson two-sided: z^2/(n+z^2).
+       n     CP one-sided     CP two-sided   Wilson 2-sided          3/n
+      10 2.5886555089e-01 3.0849710782e-01 2.7753279986e-01 3.000000e-01
+     100 2.9513049607e-02 3.6216692645e-02 3.6993498207e-02 3.000000e-02
+    1000 2.9912495451e-03 3.6820838969e-03 3.8267584856e-03 3.000000e-03
+    2995 9.9974442090e-04 1.2309210779e-03 1.2809809633e-03 1.001669e-03
+   29956 9.9999415320e-05 1.2313567676e-04 1.2822026532e-04 1.001469e-04
+  100000 2.9956874019e-05 3.6888114158e-05 3.8413112583e-05 3.000000e-05
+[PASS] CP one-sided n=100 equals 1 - 0.05**(1/100) = 0.0295130496070399 (difference 0.000e+00)
+[PASS] closed form equals the Beta-quantile path for every n tested
+
+## 2. The rule of three does not converge to the exact bound
+3/n relative error, with its limit 3/(-ln 0.05) - 1 = 1.4246021e-3
+n=     100 exact=2.9513049607e-02 3/n=3.0000000000e-02 relative error=1.6499494e-02
+n=    1000 exact=2.9912495451e-03 3/n=3.0000000000e-03 relative error=2.9253510e-03
+n=   10000 exact=2.9952835978e-04 3/n=3.0000000000e-04 relative error=1.5746096e-03
+n=  100000 exact=2.9956874019e-05 3/n=3.0000000000e-05 relative error=1.4396022e-03
+n= 1000000 exact=2.9957277864e-06 3/n=3.0000000000e-06 relative error=1.4261021e-03
+[PASS] relative error decreases monotonically towards 1.4246021e-3 from above (limit 1.4246021e-03)
+
+## 3. At k = 0 the Wilson/Clopper-Pearson ordering crosses over
+A counter-example to the usual claim that the exact interval is always the wider one. Two-sided 95 %. The sign of (Wilson - CP) changes between n = 45 and n = 46: Wilson is NARROWER than Clopper-Pearson below that and WIDER above it. No test in this package asserts containment of one interval in the other.
+       n         CP upper     Wilson upper    Wilson - CP
+      10 3.0849710782e-01 2.7753279986e-01  -3.096431e-02
+      20 1.6843347098e-01 1.6112515805e-01  -7.308313e-03
+      40 8.8097302879e-02 8.7621601197e-02  -4.757017e-04
+      45 7.8705100407e-02 7.8651598733e-02  -5.350167e-05
+      46 7.7061827052e-02 7.7073563086e-02   1.173603e-05
+      50 7.1121736464e-02 7.1347599133e-02   2.258627e-04
+     100 3.6216692645e-02 3.6993498207e-02   7.768056e-04
+    1000 3.6820838969e-03 3.8267584856e-03   1.446746e-04
+   10000 3.6881991462e-04 3.8399837068e-04   1.517846e-05
+[PASS] exactly one sign change of (Wilson - CP) at k=0 for 2 <= n <= 400, at n=46 (sign changes at [46])
+[PASS] Wilson is wider at k=0 for n >= 46 up to 10000
+
+## 4. Exact coverage, Clopper-Pearson vs Wilson, two-sided 95 %
+Coverage computed by summing the binomial mass over covering k. Nominal 0.95.
+n = 20
+       p    CP coverage  Wilson coverage
+   0.001       0.980189         0.980189
+   0.005       0.995526         0.904610
+    0.01       0.983141         0.983141
+    0.02       0.992931         0.940101
+    0.05       0.984098         0.924516
+     0.1       0.988747         0.956826
+     0.2       0.978489         0.956328
+     0.3       0.975218         0.975218
+     0.5       0.958611         0.958611
+n = 50
+       p    CP coverage  Wilson coverage
+   0.001       0.998814         0.951206
+   0.005       0.997944         0.973868
+    0.01       0.986183         0.910565
+    0.02       0.982242         0.921572
+    0.05       0.988214         0.962224
+     0.1       0.970308         0.970308
+     0.2       0.967062         0.950701
+     0.3       0.969471         0.956660
+     0.5       0.967161         0.935091
+n = 100
+       p    CP coverage  Wilson coverage
+   0.001       0.995362         0.904792
+   0.005       0.985897         0.910178
+    0.01       0.981626         0.920627
+    0.02       0.984516         0.949170
+    0.05       0.982607         0.965891
+     0.1       0.955690         0.936398
+     0.2       0.967405         0.940520
+     0.3       0.962549         0.937190
+     0.5       0.964800         0.943112
+n = 1000
+       p    CP coverage  Wilson coverage
+   0.001       0.981073         0.919791
+   0.005       0.979877         0.961881
+    0.01       0.976095         0.963536
+    0.02       0.958862         0.946677
+    0.05       0.958095         0.950417
+     0.1       0.954907         0.949098
+     0.2       0.951900         0.947364
+     0.3       0.954609         0.950857
+     0.5       0.953709         0.946322
+[PASS] Clopper-Pearson coverage is at or above 0.95 everywhere on the grid (minimum 0.951900)
+[PASS] Wilson coverage dips below 0.95 somewhere on the grid, as expected (minimum 0.904610 at n=20, p=0.005)
+
+## 5. One-sided exact coverage
+minimum one-sided CP coverage over the grid: 0.951973
+minimum one-sided Wilson coverage over the grid: 0.930825
+[PASS] one-sided CP coverage is at or above 0.95
+
+## 6. Interior interval widths, k/n = 0.005
+       n     k       CP width   Wilson width    ratio
+     200     1   2.741532e-02   2.689054e-02   1.0195
+    1000     5   1.000405e-02   9.513420e-03   1.0516
+   10000    50   2.873320e-03   2.790356e-03   1.0297
+  100000   500   8.845970e-04   8.751384e-04   1.0108
+[PASS] Clopper-Pearson is the wider interval in the interior at k/n = 0.005
+
+## 7. Degenerate inputs
+[PASS] k=0 gives lower limit exactly 0
+[PASS] k=n gives upper limit exactly 1
+[PASS] n=1, k=0, 95 % one-sided upper is 0.95
+[PASS] coverage at p=0 and p=1 is 1 for Clopper-Pearson
+
+all checks passed

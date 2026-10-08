@@ -1,0 +1,21 @@
+wrote screenshots/findings_by_check.png
+
+incomplete_case.yaml: exit 1
+  error    unsupported_claims         G5
+  info     unsupported_claims         G7
+  info     unsupported_claims         G8
+  error    missing_evidence           Sn3
+  warning  stale_evidence             Sn1
+  error    stale_evidence             Sn2
+  error    undischarged_assumptions   A1
+  -        cycles                     no findings
+  error    orphan_nodes               G8
+  error    orphan_nodes               C3
+
+cyclic_case.yaml: exit 1
+  -        unsupported_claims         no findings
+  -        missing_evidence           no findings
+  -        stale_evidence             no findings
+  -        undischarged_assumptions   no findings
+  error    cycles                     G1,S1,G2,S2,G1
+  -        orphan_nodes               no findings

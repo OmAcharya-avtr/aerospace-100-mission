@@ -1,0 +1,38 @@
+=== paired-world simulation ===
+measurement offset b   0.02 rad (2 x the declared measurement noise sd of 0.01 rad)
+onset                  sample 400
+batch                  40 runs x 1200 samples
+residual mean before   +0.003140
+residual mean after    +0.812182
+residual sd before     1.003034
+
+max |world A - world B| 6.1728e-14
+typical |residual|      0.9640
+relative difference     6.4036e-14
+double-precision eps    2.2204e-16
+difference in ulps      about 278
+CHECK identity          tolerance 1e-10   PASS
+NOTE  the difference is NOT zero and this package does not claim it is.
+NOTE  World A adds b to the measurement and World B subtracts it from the
+NOTE  prediction, so the two sums round differently. The claim is that the
+NOTE  two streams are the same function of the same quantities, which the
+NOTE  derivation establishes and this number corroborates.
+
+=== every detector returns the same verdict in both worlds ===
+  detector                         max |stat_A - stat_B|  alarm index A  alarm index B
+  CUSUM (k=0.25)                               4.547e-13          339.2          339.2   identical alarm indices: True
+  EWMA (lambda=0.1)                            1.075e-13          325.0          325.0   identical alarm indices: True
+  GLR (window=100)                             4.121e-13          351.6          351.6   identical alarm indices: True
+  variance-CUSUM oracle (c=0.031)              1.080e-12          377.0          377.0   identical alarm indices: True
+
+CONCLUSION  an alarm from this package means the twin and the asset no
+CONCLUSION  longer agree. It does not mean the asset is faulty and it does
+CONCLUSION  not mean the twin is wrong. The two worlds above are physically
+CONCLUSION  different -- one needs a sensor replaced, the other needs a
+CONCLUSION  configuration rolled back -- and no function of the residual
+CONCLUSION  can separate them, because the residual is identical. Deciding
+CONCLUSION  which it is needs information this monitor is not given: a
+CONCLUSION  second independently instrumented measurement path, a known
+CONCLUSION  reference manoeuvre, or a maintenance record.
+
+SUMMARY  5/5 checks PASS

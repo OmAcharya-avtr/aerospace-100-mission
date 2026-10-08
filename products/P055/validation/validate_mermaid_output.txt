@@ -1,0 +1,44 @@
+Mermaid rendering -- assuregraph 0.1.0
+
+GSN Standard v3 (SCSC-141C, May 2021) draws Assumption and Justification as
+annotated ellipses and Undeveloped as a diamond. Mermaid has none of those,
+so this package substitutes a hexagon, an asymmetric shape and a label marker,
+and says so. The substitutions are checked below, not hidden.
+
+Shape mapping, declared against rendered:
+  goal           declared     '["' '"]'     rendered yes  matches module table: yes
+  strategy       declared    '[/"' '"/]'    rendered yes  matches module table: yes
+  solution       declared    '(("' '"))'    rendered yes  matches module table: yes
+  context        declared    '(["' '"])'    rendered yes  matches module table: yes
+  assumption     declared    '{{"' '"}}'    rendered yes  matches module table: yes
+  justification  declared     '>"' '"]'     rendered yes  matches module table: yes
+
+Relationship arrows:
+  supported_by  -> -->
+  in_context_of -> --o
+
+Letter markers that stand in for the GSN ellipse annotation:
+  Assumption     'A1 [A]:'    present: yes
+  Justification  'J1 [J]:'    present: yes
+  Undeveloped    '(undeveloped)' in label present: yes
+
+Escaping:
+  double quote becomes '#quot;'     : yes
+  newline becomes '<br/>'          : yes
+
+Completeness and determinism on the shipped cases:
+  case                    nodes  node lines  edges  edge lines  identical reruns
+  complete_case.yaml         18          18     17          17               yes
+  incomplete_case.yaml       14          14     12          12               yes
+  cyclic_case.yaml            5           5      5           5               yes
+
+External syntax check (performed once during the build, not by this script):
+  A seven-node excerpt of the complete_case.yaml diagram, carrying one node
+  of each of the six element types plus both relationship arrows, was passed
+  to a Mermaid renderer on 2026-10-08. It reported valid=True,
+  diagramType=flowchart, rendered all 7 node labels, and produced SVG
+  containing rect, polygon and circle elements, which is consistent with the
+  four GSN shapes plus the two substitutions. The full 18-node diagram was
+  NOT passed to a renderer. See VALIDATION.md section 6.
+
+FAILURES: 0

@@ -1,0 +1,141 @@
+=== training ===
+training windows      13440 (seeds 53002 in-control / 53010-53012 changed)
+calibration windows   6720 (seeds 53020 / 53030-53032)
+class balance         train 0.500, calibration 0.500
+training runs         240 distinct, split is by run
+fit wall clock        4.8 s on 2 cores
+architecture          random forest, 200 trees, max depth 12, min_samples_leaf 5, seed 53007
+calibration           isotonic, on the held-out calibration set, via
+                      sklearn.frozen.FrozenEstimator (cv='prefit' raises
+                      InvalidParameterError on scikit-learn 1.9.1)
+feature window        50 samples = 2.50 s at 20 Hz
+
+=== feature importances (impurity-based, descriptive only) ===
+  mean              0.5513
+  mean_square       0.0836
+  std               0.0691
+  mean_abs          0.0614
+  lag1_autocorr     0.0593
+  trend             0.0561
+  max_abs           0.0540
+  excess_kurtosis   0.0452
+  frac_abs_gt_2     0.0199
+
+=== probability calibration on a held-out evaluation set ===
+evaluation windows    90120 (seeds 53120-53123, disjoint from training and calibration)
+class balance         0.500
+Brier score           0.1589  (0 perfect; 0.25 is the constant-0.5 forecast on a balanced set)
+expected cal. error   0.0208
+           bin    count   mean conf   observed      gap
+  [0.0,0.1)       59      0.0025     0.2542  -0.2517
+  [0.1,0.2)     3928      0.1233     0.1688  -0.0455
+  [0.2,0.3)    26603      0.2581     0.2292  +0.0290
+  [0.3,0.4)    19966      0.3565     0.3285  +0.0280
+  [0.4,0.5)     3178      0.4444     0.4245  +0.0199
+  [0.5,0.6)     6062      0.5269     0.5233  +0.0036
+  [0.6,0.7)     3921      0.6620     0.6450  +0.0170
+  [0.7,0.8)     4710      0.7703     0.7896  -0.0193
+  [0.8,0.9)      670      0.8370     0.8269  +0.0101
+  [0.9,1.0)    21023      0.9654     0.9705  -0.0051
+NOTE  the Brier score cannot approach 0 here and the reason is in the
+NOTE  labels, not the model. A single 50-sample window of the declared
+NOTE  parameter step carries a mean shift of 0.40 sigma, i.e. about 2.9
+NOTE  standard errors of the window mean, so a window-level decision is
+NOTE  genuinely uncertain; and every post-onset window of the slow ramp is
+NOTE  labelled 1 including those in which the ramp has barely started and
+NOTE  which are indistinguishable from in-control. That label noise is
+NOTE  deliberate: removing it would make the training problem easier than
+NOTE  the monitoring problem is. See DATASET_CARD.md.
+
+=== matched-ARL0 threshold setting ===
+  CUSUM (k=0.25)                  threshold     9.7661
+  EWMA (lambda=0.1)               threshold     3.0424
+  GLR (window=100)                threshold     6.7863
+  variance-CUSUM oracle (c=0.031) threshold    34.9906
+  learned classifier (conservative)threshold   0.919643  ARL0 1516.2
+  learned classifier (generous)   threshold   0.918239  ARL0 874.4
+  distinct confidence levels on the bank: 1857
+NOTE  the classifier's confidence is quantised by the isotonic calibration,
+NOTE  so its achievable ARL0 jumps. The conservative threshold is used for
+NOTE  every number below, which gives the classifier a SMALLER false-alarm
+NOTE  budget than the baselines, not a larger one. The generous threshold
+NOTE  is printed so a reader can see the size of the gap.
+
+=== detection delay at a matched in-control ARL0 ===
+steady-state protocol, change at sample 50, 200 runs x 2500 samples
+  scenario                                  cusum          ewma           glr      varcusum  learned-cons   learned-gen
+                                                                                                ARL0 1516      ARL0 874
+  parameter step (actuator gain -1 %)       52/1.00       64/1.00       65/1.00      216/1.00       53/1.00       47/1.00
+  slow ramp (gain -1 % over 400 samples)      229/1.00      238/1.00      251/1.00      373/1.00      213/1.00      183/1.00
+  noise variance (process noise x 2)      200/1.00      225/1.00      277/1.00      462/0.99      445/0.99      338/1.00
+  OOD: gain +1 % (sign flipped)           54/1.00       65/1.00       67/1.00      209/1.00        8/0.02       75/0.04
+  OOD: gain -0.4 % (smaller)             225/1.00      277/1.00      312/1.00      555/0.98      174/1.00      136/1.00
+  OOD: gain -3 % (larger)                 20/1.00       19/1.00       20/1.00       32/1.00       26/1.00       23/1.00
+  OOD: process noise x 5                  71/1.00       71/1.00       76/1.00      145/1.00      184/1.00      169/1.00
+  cells are mean delay in samples / fraction of runs detected within the horizon
+  a detection fraction below 1 means the delay shown is a lower bound
+  the baselines sit at ARL0 ~1000; the classifier cannot, so BOTH of its
+  achievable bracketing thresholds are shown. learned-cons has a longer
+  ARL0 than the baselines (fewer false alarms allowed, a handicap) and
+  learned-gen a shorter one (more false alarms allowed, an advantage).
+  A fair reading takes the baselines as beaten only if learned-cons wins.
+
+=== verdict, in distribution ===
+  parameter_step   learned-cons     53 (+2 %)  learned-gen     47 (-9 %)  best baseline cusum     52   BASELINE WINS
+  slow_ramp        learned-cons    213 (-7 %)  learned-gen    183 (-20 %)  best baseline cusum    229   LEARNED WINS
+  noise_variance   learned-cons    445 (+122 %)  learned-gen    338 (+69 %)  best baseline cusum    200   BASELINE WINS
+
+=== verdict, out of distribution ===
+  OOD: gain +1 % (sign flipped)    learned      8 (det 0.02)  cusum     54
+  OOD: gain -0.4 % (smaller)       learned    174 (det 1.00)  cusum    225
+  OOD: gain -3 % (larger)          learned     26 (det 1.00)  ewma     19
+  OOD: process noise x 5           learned    184 (det 1.00)  cusum     71
+
+=== single-row inference latency ===
+learned, one window   10.469 ms per decision (forest n_jobs = 1)
+CUSUM, 200 samples    1.223 ms per call, i.e. 0.00612 ms per sample
+ratio                 1712 x per decision
+sample period at 20 Hz   50.0 ms
+learned uses          20.9 % of one sample period
+NOTE  the forest's n_jobs is set to 1 after fitting. On this container a
+NOTE  forest with n_jobs > 1 is several times slower at single-row
+NOTE  inference, because thread dispatch dominates tree traversal.
+NOTE  Wall-clock figures on this container move 10-20 % between runs and
+NOTE  are not a hardware characteristic: 2 cores, 7.8 GiB, Python 3.13.16.
+
+FINDING  1. In distribution the learned classifier does not beat the
+FINDING  CUSUM on the parameter step at a comparable false-alarm budget,
+FINDING  beats it on the slow ramp, and LOSES heavily on the
+FINDING  noise-variance change.
+FINDING
+FINDING  2. Where it does win, the win is not a win for learning. It is a
+FINDING  specification advantage: the training set contains only negative
+FINDING  gain changes of a known size, so the classifier is effectively a
+FINDING  one-sided test tuned to that magnitude, while the two-sided CUSUM
+FINDING  spends half its false-alarm budget on the other direction and is
+FINDING  tuned to a declared 0.5-sigma shift rather than the true 0.40.
+FINDING
+FINDING  3. The out-of-distribution results settle it. On a gain change of
+FINDING  the SAME MAGNITUDE and the OPPOSITE SIGN the classifier's
+FINDING  detection fraction collapses while every baseline is unaffected,
+FINDING  because a baseline's statistic does not know which way the
+FINDING  residual is supposed to move and the classifier does. A monitor
+FINDING  that cannot see half of the changes it was not trained on is not
+FINDING  a better monitor, whatever its average delay.
+FINDING
+FINDING  4. On an out-of-distribution process-noise change (x 5 instead
+FINDING  of the trained x 2) the classifier is also beaten by every
+FINDING  baseline, so the loss on variance changes is not confined to the
+FINDING  magnitude it was trained on.
+FINDING
+FINDING  5. The learned monitor costs about three orders of magnitude more
+FINDING  per decision than the CUSUM recursion, and cannot alarm earlier
+FINDING  than its 50-sample window fills.
+FINDING
+FINDING  Recommendation, stated against this package's own AI component:
+FINDING  use the CUSUM. The learned classifier earns its place only as a
+FINDING  measurement of how much a change-specific detector could gain,
+FINDING  and none of that gain survives a sign flip, a different variance
+FINDING  magnitude, or the cost of a forest evaluation per sample.
+
+total wall clock 65.3 s on 2 cores

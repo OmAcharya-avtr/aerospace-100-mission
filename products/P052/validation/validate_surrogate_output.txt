@@ -1,0 +1,92 @@
+falsifyloop - surrogate validation
+120 training points and 200 test points per instance, drawn uniformly from the declared box at seeds 4100 and 9400. The two seeds differ, so the test split is independent of the training split and no point appears in both.
+Forest: 25 trees, min_samples_leaf 1, n_jobs 1, random_state equal to the search seed. The target is the requirement robustness, which is dimensionless on every shipped instance.
+
+==============================================================================
+Check 1 - held-out accuracy against predicting the training mean
+==============================================================================
+instance              RMSE forest   RMSE mean   ratio  R^2 forest  Spearman
+----------------------------------------------------------------------------
+overshoot-loose          0.522819    0.908043   1.737      0.6670    0.9203
+settling-band            0.398536    0.623474   1.564      0.5884    0.8795
+multi-requirement        0.277745    0.422974   1.523      0.5631    0.8990
+command-rate             0.140700    0.307459   2.185      0.7876    0.9606
+overshoot-tight          0.117796    0.201787   1.713      0.6577    0.9185
+attitude-envelope        0.068163    0.165290   2.425      0.8270    0.9604
+nested-capture           0.114479    0.236708   2.068      0.7644    0.9112
+rate-envelope            0.072211    0.137141   1.899      0.7184    0.9603
+
+The ratio is how many times better than the trivial predictor. The Spearman column is the one the search actually depends on: the acquisition only needs the ordering of candidates to be roughly right, not the magnitudes.
+
+==============================================================================
+Check 2 - coverage of the reported uncertainty
+==============================================================================
+If the tree spread were a calibrated standard deviation, mean +- 1.96*spread would cover 95 % of held-out targets. Measured:
+
+instance              cover 1.96s  cover 1s  mean spread  mean |err|  spread/|err|
+--------------------------------------------------------------------------------
+overshoot-loose            0.9450    0.7450     0.380420    0.302716        1.2567
+settling-band              0.9400    0.7900     0.252350    0.208133        1.2124
+multi-requirement          0.9250    0.8000     0.157044    0.133739        1.1743
+command-rate               0.8950    0.7000     0.073828    0.070008        1.0546
+overshoot-tight            0.9450    0.7450     0.085657    0.067876        1.2620
+attitude-envelope          0.9300    0.7900     0.055565    0.042124        1.3191
+nested-capture             0.9650    0.7650     0.102883    0.075286        1.3666
+rate-envelope              0.9400    0.7700     0.045394    0.037625        1.2065
+
+mean coverage of the nominal 95 % interval across the suite: 0.9356
+pooled over all 1600 held-out points, coverage of mean +- 1.96*spread: 0.9356   (a Gaussian would give 0.9500)
+pooled over all 1600 held-out points, coverage of mean +- 1.00*spread: 0.7631   (a Gaussian would give 0.6827)
+pooled RMSE: 0.265977
+Read both coverage columns together. The 95 % column is close to nominal and slightly under it on most instances; the 68 % column is well ABOVE the 0.683 a Gaussian would give. Both at once means the held-out error is not Gaussian around the forest mean: the spread is conservative through the body of the distribution and too thin in the tails, so the near-nominal 95 % figure is two errors partly cancelling and not evidence of calibration. The spread/|err| column says the same thing from the other side -- the mean spread is 1.05 to 1.37 times the mean absolute error, so the spread is not small, it is the wrong shape.
+This contradicts the prediction the surrogate module's docstring carried before this script was first run, which said the tree spread would understate the error badly. It does not. The prediction was wrong, the docstring was corrected to the measurement, and the mistake is recorded in VALIDATION.md rather than deleted. Wager, Hastie & Efron (2014) give the correction this package still does not implement.
+
+==============================================================================
+Check 3 - is the spread useful as a ranking signal
+==============================================================================
+instance              Spearman(spread, |err|)  |err| in the top spread decile  in the bottom
+--------------------------------------------------------------------------------------------
+overshoot-loose                        0.4001                        0.686707       0.129778
+settling-band                          0.6124                        0.405111       0.035364
+multi-requirement                      0.5832                        0.237241       0.023685
+command-rate                           0.3607                        0.111166       0.022054
+overshoot-tight                        0.4106                        0.137132       0.024881
+attitude-envelope                      0.4688                        0.068830       0.020723
+nested-capture                         0.5325                        0.165422       0.014950
+rate-envelope                          0.5144                        0.060629       0.009978
+
+mean Spearman correlation across the suite: 0.4853
+pooled over all held-out points, Spearman(spread, |error|): 0.6343
+A positive correlation means the spread points at the places the forest is wrong, which is exactly what the lower-confidence-bound acquisition needs. That the magnitude is not calibrated does not hurt a ranking.
+
+==============================================================================
+Check 4 - cost against the price of a simulation
+==============================================================================
+one simulation + requirement evaluation : 0.5164 ms
+one forest refit on 120 points        : 31.9129 ms (61.8 simulations)
+scoring 256 candidates (mean + spread)   : 3.4724 ms (6.7 simulations)
+
+The surrogate strategy refits every 8 simulations and scores 256 candidates before each one, so its overhead per simulation is roughly 14.4 simulations' worth of wall clock. That is the honest exchange rate: the surrogate's sample-efficiency gain is paid for in CPU time, and on a simulator cheaper than this one the trade would go the other way. The sample-efficiency curves count simulations, not seconds, precisely so that this trade is visible rather than hidden.
+Runs during this build put the simulation at 0.31-0.37 ms, the refit at 19-27 ms (60-90 simulations' worth) and the overhead at 15-25 simulations' worth per simulation bought. The README quotes those ranges rather than any single run's figure, because a single figure here would be stale by the next execution.
+Wall-clock figures move 10-20 % between runs on this container; the seeded simulation counts in validate_benchmark.py do not move at all.
+
+==============================================================================
+Check 5 - the documented n_jobs defect, measured
+==============================================================================
+n_jobs=1   single-row predict:     2063.9 us
+n_jobs=2   single-row predict:    14205.6 us
+
+slowdown factor n_jobs=2 / n_jobs=1 : 6.9x
+The absolute microsecond figures above move substantially between runs on a shared container -- 10-40 % has been observed in this build -- so the ratio is the claim and the absolute numbers are context. Two runs during this build gave 8.9x and 7.9x.
+The package hard-codes n_jobs=1 and does not expose it, on the strength of this measurement. Earlier batches in this portfolio recorded the same effect: joblib's dispatch overhead per call dominates the work at this batch size on a 2-core container.
+
+==============================================================================
+COMPUTE
+==============================================================================
+instances                : 8
+simulations for the splits: 2560
+available CPU cores      : 2 (os.sched_getaffinity)
+Wall clocks on a shared container are not hardware characteristics and must not be presented as such.
+
+This model is not certified for operational flight use.
+Falsification is one-sided: finding no violation is not evidence of correctness.

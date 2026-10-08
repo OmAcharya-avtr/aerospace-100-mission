@@ -1,0 +1,53 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q
+      - name: CLI help exits 0
+        run: python -m assuregraph --help
+      - name: CLI exits nonzero on an incomplete case
+        run: |
+          python -m assuregraph check examples/cases/complete_case.yaml
+          if python -m assuregraph check examples/cases/incomplete_case.yaml; then
+            echo "expected a nonzero exit on the incomplete case" >&2
+            exit 1
+          fi
+      - name: Validation scripts
+        run: |
+          python validation/validate_parser_rejections.py
+          python validation/validate_known_answers.py
+          python validation/validate_staleness.py
+          python validation/validate_graph_identities.py
+          python validation/validate_cli.py
+          python validation/validate_mermaid.py
+          python validation/validate_scale.py
+          python validation/worked_example.py
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/coverage_summary.py
+          python examples/findings_by_check.py
+          python examples/render_case_graph.py
+          python examples/staleness_demo.py

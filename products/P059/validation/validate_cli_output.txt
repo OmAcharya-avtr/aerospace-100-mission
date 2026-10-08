@@ -1,0 +1,173 @@
+$ python -m invariantset --help
+  usage: python -m invariantset [-h] [--version]
+                                {systems,invariant,tolerance-sweep,algebra} ...
+  
+  Maximal robust invariant sets for discrete-time linear systems with bounded
+  disturbances. Research-grade; not flight-qualified, not certified, not
+  approved for operational aerospace use.
+  
+  positional arguments:
+    {systems,invariant,tolerance-sweep,algebra}
+      systems             list the built-in example systems
+      invariant           compute the maximal robust invariant set
+      tolerance-sweep     run the recursion once per redundancy tolerance and
+                          compare answers
+      algebra             measure the Minkowski/Pontryagin asymmetry on a worked
+                          2-D case
+  
+  options:
+    -h, --help            show this help message and exit
+    --version             show program's version number and exit
+  
+  This computes the MAXIMAL robust invariant set, not the minimal robust
+  positively invariant set of Rakovic et al. 2005.
+  -> exit status 0
+
+$ python -m invariantset --version
+  invariantset 0.1.0
+  -> exit status 0
+
+$ python -m invariantset systems
+  attitude_loop  (dim 2, 6 rows in X)
+      single-axis attitude double integrator, dt=0.05 s, K=[8.0, 3.8], closed-loop poles 0.9+/-0.1j; |theta|<=0.30 rad, |theta_dot|<=0.50 rad/s, |u|<=3.0 rad/s^2; disturbance 0.12 rad/s^2 for one sample
+      expected: converges; facet and vertex counts measured in VALIDATION.md section 5
+  damped_rotation_2d  (dim 2, 4 rows in X)
+      A = 0.995 R(0.2 rad), box X half-width 1, box W half-width 0.002
+      expected: converges at k=8 with 32 facets and 32 vertices; raw rows 8k before redundancy removal (measured, VALIDATION.md section 5)
+  damped_rotation_3d  (dim 3, 6 rows in X)
+      A = diag(0.99, 0.99, 0.95) R_z(0.2 rad), box X and W in 3-D
+      expected: converges at k=7 with 30 facets and 56 vertices; vertices grow at twice the facet rate (measured, VALIDATION.md section 5)
+  decoupled_2d  (dim 2, 4 rows in X)
+      A = 0.5 I, box X of half-width 1, box W of half-width 0.1
+      expected: S_inf = X = [-1,1]^2, converges at k=1, area 4.0
+  nilpotent_2d  (dim 2, 4 rows in X)
+      singular A, box X of half-width 1, box W of half-width 0.1
+      expected: S_inf = {|x1|<=1, |x2|<=0.9}, converges at k=2, area 3.6
+  scalar_empty  (dim 1, 2 rows in X)
+      lambda=0.9, |w|<=0.2, |x|<=1.0
+      expected: S_inf is empty, detected at k=7; r_k = 2 - (10/9)^k
+  scalar_invariant_equals_x  (dim 1, 2 rows in X)
+      lambda=0.8, |w|<=0.1, |x|<=1.0
+      expected: S_inf = X = [-1, 1]; converges at k=1; the minimal RPI set is [-0.5, 0.5], a different object
+  slow_pair  (dim 2, 4 rows in X)
+      repeated pole at 0.999 with coupling 0.05, |w|<=0.002
+      expected: does NOT converge within 40 iterations; see VALIDATION.md section 6
+  -> exit status 0
+
+$ python -m invariantset invariant --system scalar_invariant_equals_x
+  system: scalar_invariant_equals_x  (lambda=0.8, |w|<=0.1, |x|<=1.0)
+  units : dimensionless
+  maximal robust invariant set
+    termination        : converged
+    iterations         : 1 (cap 50)
+    convergence tol    : 1.000e-09
+    redundancy tol     : 1.000e-09
+    facets of S_inf    : 2
+    k  raw  facets  vertices  shrink_margin
+    1  4    2       2         -1.000000e-01
+    independent invariance check: invariant=True worst facet margin=-1.000000e-01
+    volume of returned set     : 2.000000000
+  -> exit status 0
+
+$ python -m invariantset invariant --system scalar_empty
+  system: scalar_empty  (lambda=0.9, |w|<=0.2, |x|<=1.0)
+  units : dimensionless
+  maximal robust invariant set
+    termination        : empty
+    iterations         : 7 (cap 50)
+    convergence tol    : 1.000e-09
+    redundancy tol     : 1.000e-09
+    S_inf is EMPTY: no state in X can be held in X for all
+    admissible disturbance sequences.
+    k  raw  facets  vertices  shrink_margin
+    1  4    2       2         1.000000e-01
+    2  4    2       2         1.000000e-01
+    3  4    2       2         1.000000e-01
+    4  4    2       2         1.000000e-01
+    5  4    2       2         1.000000e-01
+    6  4    2       2         1.000000e-01
+    7  4    0       0         1.000000e-01
+    NOTE: this is not S_inf. See the termination line above.
+  -> exit status 0
+
+$ python -m invariantset invariant --system nilpotent_2d
+  system: nilpotent_2d  (singular A, box X of half-width 1, box W of half-width 0.1)
+  units : dimensionless, dimensionless
+  maximal robust invariant set
+    termination        : converged
+    iterations         : 2 (cap 50)
+    convergence tol    : 1.000e-09
+    redundancy tol     : 1.000e-09
+    facets of S_inf    : 4
+    k  raw  facets  vertices  shrink_margin
+    1  8    4       4         1.000000e-01
+    2  8    4       4         0.000000e+00
+    independent invariance check: invariant=True worst facet margin=0.000000e+00
+    volume of returned set     : 3.600000000
+  -> exit status 0
+
+$ python -m invariantset invariant --system attitude_loop
+  system: attitude_loop  (single-axis attitude double integrator, dt=0.05 s, K=[8.0, 3.8], closed-loop poles 0.9+/-0.1j; |theta|<=0.30 rad, |theta_dot|<=0.50 rad/s, |u|<=3.0 rad/s^2; disturbance 0.12 rad/s^2 for one sample)
+  units : rad, rad/s
+  maximal robust invariant set
+    termination        : converged
+    iterations         : 5 (cap 50)
+    convergence tol    : 1.000e-09
+    redundancy tol     : 1.000e-09
+    facets of S_inf    : 16
+    k  raw  facets  vertices  shrink_margin
+    1  12   10      10        3.100000e-02
+    2  20   12      12        2.150272e-02
+    3  24   14      14        1.250574e-02
+    4  28   16      16        3.631988e-03
+    5  32   16      16        0.000000e+00
+    independent invariance check: invariant=True worst facet margin=0.000000e+00
+    volume of returned set     : 0.538347285
+  -> exit status 0
+
+$ python -m invariantset invariant --system slow_pair --max-iter 6 --no-geometry
+  system: slow_pair  (repeated pole at 0.999 with coupling 0.05, |w|<=0.002)
+  units : dimensionless, dimensionless
+  maximal robust invariant set
+    termination        : iteration_cap
+    iterations         : 6 (cap 6)
+    convergence tol    : 1.000e-09
+    redundancy tol     : 1.000e-09
+    DID NOT CONVERGE. The iteration cap was reached while the
+    sequence was still shrinking, so the returned polytope is an
+    OUTER bound on S_inf, not S_inf. Raise max_iter or accept the
+    outer bound explicitly.
+    last shrink margin : 5.100000e-02 (needs <= 1.0e-09)
+    facets of bound    : 6
+    k  raw  facets  vertices  shrink_margin
+    1  8    6       -         5.100000e-02
+    2  12   6       -         5.100000e-02
+    3  12   6       -         5.100000e-02
+    4  12   6       -         5.100000e-02
+    5  12   6       -         5.100000e-02
+    6  12   6       -         5.100000e-02
+    independent invariance check: invariant=False worst facet margin=5.100000e-02
+    volume of returned set     : 3.664070715
+    NOTE: this is not S_inf. See the termination line above.
+  -> exit status 2
+
+$ python -m invariantset algebra
+  P = triangle {x1>=0, x2>=0, x1+x2<=1}, Q = box of half-width 0.1
+    area(P)                      = 0.500000000
+    area(P (-) Q)                = 0.180000000
+    area((P (-) Q) (+) Q)        = 0.460000000
+    area deficit                 = 0.040000000 (8.0000 % of P)
+    (P (-) Q) (+) Q subset P     : True (worst margin 0.000e+00)  <- identity (I3), holds
+    (P (-) Q) (+) Q == P         : False   <- the identity people assume, FALSE
+    (P (+) Q) (-) Q == P         : True (margins 0.000e+00, -0.000e+00)  <- identity (I4), holds
+  -> exit status 0
+
+$ python -m invariantset tolerance-sweep --system attitude_loop --tolerances 1e-9 3e-3 4e-3 --max-iter 40
+  system: attitude_loop  redundancy-tolerance sweep, max_iter=40
+    tol        termination     iters facets volume        inv_margin    vol/ref
+    1.0e-09    converged       5     16     0.538347285   0.000000e+00  1.000000000
+    3.0e-03    converged       5     16     0.538347285   0.000000e+00  1.000000000
+    4.0e-03    iteration_cap   40    12     - - -
+    the redundancy tolerance CHANGED the computed answer across this sweep
+  -> exit status 0
+

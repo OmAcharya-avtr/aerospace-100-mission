@@ -1,0 +1,98 @@
+# validate_surrogate
+python 3.13.16 on Linux-6.18.44-fc-v80-x86_64-with-glibc2.39
+os.cpu_count()=2 len(os.sched_getaffinity(0))=2
+numpy 2.5.3 scipy 1.18.1 scikit-learn 1.9.1
+
+budget = 60000 TRUE limit-state evaluations for every method, including the surrogate's training set
+replications: 40 for the analytic methods, 12 for the surrogate (compute budget)
+
+## 1. Design-point recovery against the true answer
+Smooth instance true beta = 3.719 (closed form). Rough instance true beta = 3.097896 (ray search and SLSQP agree to 1e-13, see validate_design_point.py); its smooth-part design point is 5.5.
+  instance  n_train    beta_hat     rel err    band lo    band hi   fit s       rmse
+    smooth       25    3.718990  -2.607e-06    3.71791    3.72007    0.08  6.454e-05
+    smooth       50    3.719079   2.113e-05    3.71814    3.72002    0.03  3.905e-05
+    smooth      100    3.719014   3.793e-06    3.71810    3.71993    0.03  3.437e-05
+    smooth      200    3.719052   1.398e-05    3.71813    3.71997    0.11  4.640e-05
+     rough       25    3.099064   3.768e-04    3.09561    3.10383    0.02  3.162e-05
+     rough       50    3.098429   1.720e-04    3.08309    3.11384    0.01  7.449e-04
+     rough      100    3.097933   1.175e-05    3.09756    3.09956    0.11  4.643e-05
+     rough      200    3.097919   7.244e-06    3.09888    3.10015    0.19  5.202e-05
+[PASS] the surrogate recovers the smooth design point to better than 1e-3 relative from 50 training evaluations onward
+[PASS] the surrogate recovers the rough design point to better than 1e-2 relative from 100 training evaluations onward, where the analytic smooth design point is 77.5 % too large (analytic smooth design point error: +0.7754)
+
+## 2. The structural reason the surrogate cannot win when smooth
+analytic design point       : [3.719, 0.0]
+surrogate design point      : [3.71900589, 0.0]
+distance between them       : 5.890e-06 standard-normal units
+deterministic variance penalty at equal evaluations: 1.001669 (0.167 % worse)
+surrogate fit + design-point search wall time: 0.08 s + search, against a closed form that costs nothing
+[PASS] the surrogate's tilt is within 1e-2 standard-normal units of the analytic tilt on the smooth instance, so no variance gain is available to it (offset 5.890e-06)
+
+## 3. Replicated benchmark at equal true-evaluation budget
+### smooth: linear-gaussian, reference p = 1.00006526e-04
+  crude: mean=1.016667e-04 std=4.557327e-05 cov=0.4483 relbias=+0.0166 se/std=0.881 evals=60000 R=40
+  analytic-IS: mean=9.993796e-05 std=7.917582e-07 cov=0.0079 relbias=-0.0007 se/std=1.055 evals=60000 R=40
+  oracle-IS (reference, not a method): mean=1.000075e-04 std=9.406756e-07 cov=0.0094 relbias=+0.0000 se/std=0.889 evals=60000 R=40
+  surrogate-guided-IS (n_train=100): mean=1.000785e-04 std=7.547009e-07 cov=0.0075 relbias=+0.0007 se/std=1.109 evals=60000 R=12
+  analytic-IS vs crude: VRF=3313 (better than reference at 60000 evaluations), VRF_vs_exact_crude=2659, MSERF=2639 (better in MSE), relbias=-0.0007
+  oracle-IS (reference, not a method) vs crude: VRF=2347 (better than reference at 60000 evaluations), VRF_vs_exact_crude=1883, MSERF=1883 (better in MSE), relbias=+0.0000
+  surrogate-guided-IS (n_train=100) vs crude: VRF=3646 (better than reference at 60000 evaluations), VRF_vs_exact_crude=2926, MSERF=2900 (better in MSE), relbias=+0.0007
+  surrogate-guided-IS against analytic-IS, equal evaluations: variance ratio = 1.1006 (surrogate better)
+  relative uncertainty on that variance ratio from replication noise alone: about 0.48 (one standard deviation of the log ratio is 0.241)
+[PASS] SMOOTH INSTANCE: the surrogate does not beat the analytic baseline by more than the replication noise allows, and the structural reason is in section 2 (ratio 1.1006, 3-sigma band 0.485..2.063)
+  true reliability index used by the oracle: 3.719000
+
+### rough: rippled, reference p = 1.85308155e-04
+  crude: mean=1.995833e-04 std=5.370696e-05 cov=0.2691 relbias=+0.0770 se/std=1.064 evals=60000 R=40
+  analytic-IS: mean=1.854003e-04 std=1.404796e-05 cov=0.0758 relbias=+0.0005 se/std=0.965 evals=60000 R=40
+  oracle-IS (reference, not a method): mean=1.842105e-04 std=3.587131e-06 cov=0.0195 relbias=-0.0059 se/std=1.142 evals=60000 R=40
+  surrogate-guided-IS (n_train=100): mean=1.847665e-04 std=4.303390e-06 cov=0.0233 relbias=-0.0029 se/std=0.960 evals=60000 R=12
+  analytic-IS vs crude: VRF=14.62 (better than reference at 60000 evaluations), VRF_vs_exact_crude=15.65, MSERF=15.65 (better in MSE), relbias=+0.0005
+  oracle-IS (reference, not a method) vs crude: VRF=224.2 (better than reference at 60000 evaluations), VRF_vs_exact_crude=240, MSERF=219.4 (better in MSE), relbias=-0.0059
+  surrogate-guided-IS (n_train=100) vs crude: VRF=155.8 (better than reference at 60000 evaluations), VRF_vs_exact_crude=166.7, MSERF=164.1 (better in MSE), relbias=-0.0029
+  surrogate-guided-IS against analytic-IS, equal evaluations: variance ratio = 10.6563 (surrogate better)
+  relative uncertainty on that variance ratio from replication noise alone: about 0.48 (one standard deviation of the log ratio is 0.241)
+[PASS] ROUGH INSTANCE: the surrogate beats the analytic baseline by more than the replication noise allows (ratio 10.6563, 3-sigma upper edge 2.063)
+[PASS] ROUGH INSTANCE: the surrogate does not reach the oracle tilt
+  true reliability index used by the oracle: 3.097896
+
+## 4. Sample-efficiency curve, single run per training size
+Total true evaluations held at the budget: n_train training evaluations plus (budget - n_train) samples. The reported standard error is the estimator's own.
+  instance  n_train       estimate    rel err    std error      cov        ESS  straddle
+straddle is the fraction of 1000 samples drawn around the surrogate's design point whose posterior band mean +- 2 sigma contains zero, i.e. where the surrogate does not know which side of the limit state it is on. It is the surrogate's own confidence output.
+    smooth       25   9.942885e-05    -0.0058   8.3516e-07   0.0084    11464.4    0.0010
+    smooth      100   9.998262e-05    -0.0002   8.3681e-07   0.0084    11528.3    0.0000
+    smooth      300   1.006698e-04    +0.0066   8.4098e-07   0.0084    11555.8    0.0000
+     rough       25   1.845715e-04    -0.0040   4.1538e-06   0.0225     1911.5    0.0040
+     rough      100   1.834032e-04    -0.0103   4.0772e-06   0.0222     1957.3    0.0010
+     rough      300   1.852828e-04    -0.0001   4.3503e-06   0.0235     1760.5    0.0010
+The curve is flat on both instances: on these two-dimensional limit states 25 training evaluations already place the tilt well enough that more do not help. That is a property of the test problems, not a general result, and it means the sample-efficiency question has no interesting answer here: the surrogate's cost is dominated by its fit and search time, not by its training-set size.
+[PASS] every surrogate-guided estimate on the curve is within 5 % of its reference, because it evaluates the true limit state (worst 0.0103)
+
+## 5. The surrogate-only estimator and its bias
+Replacing the true limit state by the surrogate makes the estimator biased by the surrogate's error, and the bias is not covered by the estimator's own standard error. Measured on a high-frequency rippled instance where the surrogate has to work.
+reference p = 4.48938469e-04 (quadrature, 400 nodes)
+ n_train   surrogate-only    rel err   its own se   |err|/se  guided (true g)  guided rel err
+      20     3.298484e-05    -0.9265   8.1294e-07     511.66     7.506879e-04         +0.6721
+      30     2.823918e-04    -0.3710   9.6824e-06      17.20     4.363961e-04         -0.0279
+      60     4.500197e-04    +0.0024   1.1104e-05       0.10     4.410407e-04         -0.0176
+     120     4.451116e-04    -0.0085   1.1084e-05       0.35     4.387880e-04         -0.0226
+     240     4.369609e-04    -0.0267   1.0630e-05       1.13     4.708746e-04         +0.0489
+[PASS] the surrogate-only bias exceeds its own standard error at small training sizes (|err|/se at n_train<=30: [511.66, 17.2])
+[PASS] the surrogate-guided estimator stays within 100 % of the reference at every training size even when the surrogate is bad, because it evaluates the true limit state; the n_train=20 case shows the cost is variance, not bias (relative errors [0.6721, 0.0279, 0.0176, 0.0226, 0.0489])
+
+## 6. Compute: marginal-likelihood restarts change nothing material
+n_restarts_optimizer is 0 by default. Raising it costs fit time; the recovered reliability index is compared.
+  instance  restarts    fit s    beta_hat
+    smooth         0     2.18    3.719036
+    smooth         2     1.97    3.719036
+     rough         0     1.93    3.097913
+     rough         2     1.90    3.097913
+[PASS] restarting the marginal-likelihood optimisation does not change the recovered reliability index, so the default of 0 restarts spends the compute budget on samples instead
+Fit wall times on this container are erratic at the 2x level between otherwise identical calls, because the L-BFGS iteration count varies with the random initial kernel; they are reported for budgeting only and are not a characteristic of the method.
+
+## 7. Independent check of the oracle design point
+smooth: ray search beta = 3.7190000, smooth-part beta = 3.7190000
+rough: ray search beta = 3.0978957, smooth-part beta = 5.5000000
+
+all checks passed

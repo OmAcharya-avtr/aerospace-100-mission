@@ -1,0 +1,392 @@
+falsifyloop - sample-efficiency benchmark
+8 instances x 5 strategies x 30 seeds, budget 100 simulations, base seed 52000. Repeat r of every cell uses seed 52000 + r, so all strategies see the same seeds.
+Every strategy stops at its first violation, so the measurement is the distribution of the first-violation simulation count, right-censored at the budget. A censored run found NOTHING; it is not a late success and it is not evidence that the instance is unfalsifiable.
+
+==============================================================================
+1. PER-INSTANCE RESULTS (read this first)
+==============================================================================
+budget 100 simulations, 30 seeds per cell, base seed 52000
+instance             strategy             found/runs   rate  median sims   mean P    min rho
+--------------------------------------------------------------------------------------------
+overshoot-loose      uniform-random          30/30    1.000          2.0   0.9823    -6.2596
+overshoot-loose      latin-hypercube         30/30    1.000          2.0   0.9803    -3.4729
+overshoot-loose      simulated-annealing     30/30    1.000          6.0   0.9167    -6.2596
+overshoot-loose      cross-entropy           30/30    1.000          3.0   0.9603    -2.8151
+overshoot-loose      surrogate-guided        30/30    1.000          1.0   0.9840    -4.3195
+
+settling-band        uniform-random          30/30    1.000          5.0   0.9363    -3.8397
+settling-band        latin-hypercube         30/30    1.000          5.5   0.9273    -2.0877
+settling-band        simulated-annealing     30/30    1.000         18.0   0.8100    -3.8397
+settling-band        cross-entropy           30/30    1.000         22.0   0.7553    -1.5434
+settling-band        surrogate-guided        30/30    1.000          6.0   0.9313    -3.7901
+
+multi-requirement    uniform-random          30/30    1.000         10.0   0.9000    -2.8096
+multi-requirement    latin-hypercube         30/30    1.000         10.0   0.8563    -2.7269
+multi-requirement    simulated-annealing     30/30    1.000         23.5   0.6977    -2.6298
+multi-requirement    cross-entropy           26/30    0.867         46.5   0.4943    -0.9075
+multi-requirement    surrogate-guided        30/30    1.000          9.5   0.9117    -2.5926
+
+command-rate         uniform-random          29/30    0.967         14.0   0.8183    -1.2723
+command-rate         latin-hypercube         30/30    1.000         15.5   0.7927    -1.1192
+command-rate         simulated-annealing     30/30    1.000         38.0   0.6133    -1.2286
+command-rate         cross-entropy            6/30    0.200        > 100   0.0990    -0.1776
+command-rate         surrogate-guided        30/30    1.000         13.5   0.8750    -1.3424
+
+overshoot-tight      uniform-random          21/30    0.700         43.0   0.5047    -0.9579
+overshoot-tight      latin-hypercube         17/30    0.567         82.5   0.3233    -0.6564
+overshoot-tight      simulated-annealing     30/30    1.000         41.5   0.5260    -1.1232
+overshoot-tight      cross-entropy            6/30    0.200        > 100   0.0290    -0.2430
+overshoot-tight      surrogate-guided        30/30    1.000         26.0   0.7417    -1.3199
+
+attitude-envelope    uniform-random          12/30    0.400        > 100   0.2763    -0.3878
+attitude-envelope    latin-hypercube          8/30    0.267        > 100   0.1030    -0.1965
+attitude-envelope    simulated-annealing     28/30    0.933         60.0   0.4263    -0.4733
+attitude-envelope    cross-entropy            2/30    0.067        > 100   0.0133    -0.0523
+attitude-envelope    surrogate-guided        30/30    1.000         28.5   0.7183    -0.4811
+
+nested-capture       uniform-random          18/30    0.600         58.5   0.4233    -0.1130
+nested-capture       latin-hypercube         11/30    0.367        > 100   0.1710    -0.0786
+nested-capture       simulated-annealing     29/30    0.967         43.0   0.5737    -0.1713
+nested-capture       cross-entropy            1/30    0.033        > 100   0.0130    -0.0136
+nested-capture       surrogate-guided        30/30    1.000         26.5   0.7207    -0.2774
+
+rate-envelope        uniform-random           2/30    0.067        > 100   0.0630    -0.1034
+rate-envelope        latin-hypercube          2/30    0.067        > 100   0.0290    -0.0303
+rate-envelope        simulated-annealing     20/30    0.667         79.5   0.3137    -0.1407
+rate-envelope        cross-entropy            0/30    0.000        > 100   0.0000    +0.0213
+rate-envelope        surrogate-guided        30/30    1.000         51.0   0.5300    -0.1360
+
+==============================================================================
+2. WHERE UNIFORM RANDOM WINS
+==============================================================================
+Won on the mean curve probability -- the average probability of having found a violation over the whole budget, which uses the entire curve rather than one point on it. Ties are not wins.
+
+strategy               instances the baseline beats it on                      
+-------------------------------------------------------------------------------
+latin-hypercube        overshoot-loose, settling-band, multi-requirement, command-rate, overshoot-tight, attitude-envelope, nested-capture, rate-envelope
+simulated-annealing    overshoot-loose, settling-band, multi-requirement, command-rate
+cross-entropy          overshoot-loose, settling-band, multi-requirement, command-rate, overshoot-tight, attitude-envelope, nested-capture, rate-envelope
+surrogate-guided       settling-band                                           
+
+Hardest instance for the baseline: rate-envelope
+
+strategy                  mean P on rate-envelope   beats baseline there
+------------------------------------------------------------------------
+uniform-random                             0.0630      (is the baseline)
+latin-hypercube                            0.0290                     NO
+simulated-annealing                        0.3137                    yes
+cross-entropy                              0.0000                     NO
+surrogate-guided                           0.5300                    yes
+
+==============================================================================
+2b. ARE THOSE WINS AND LOSSES STATISTICALLY DISTINGUISHABLE
+==============================================================================
+A bare win/loss ledger over 30 seeds is itself uncertain, and saying so is part of reporting it honestly. For every instance and every non-baseline strategy, the difference in mean curve probability (strategy minus baseline) is bootstrapped with 2000 resamples of the 30 runs on each side independently, and the 95 % percentile interval is reported. An interval that straddles zero means the suite cannot tell the two apart at this repeat count, whichever way the point estimate fell.
+
+instance             strategy                 delta      95% interval on delta        verdict
+---------------------------------------------------------------------------------------------
+overshoot-loose      latin-hypercube        -0.0020 [    -0.0127,     +0.0087]      undecided
+overshoot-loose      simulated-annealing    -0.0657 [    -0.1037,     -0.0313]          LOSES
+overshoot-loose      cross-entropy          -0.0220 [    -0.0377,     -0.0070]          LOSES
+overshoot-loose      surrogate-guided       +0.0017 [    -0.0090,     +0.0127]      undecided
+
+settling-band        latin-hypercube        -0.0090 [    -0.0467,     +0.0273]      undecided
+settling-band        simulated-annealing    -0.1263 [    -0.1810,     -0.0716]          LOSES
+settling-band        cross-entropy          -0.1810 [    -0.2517,     -0.1180]          LOSES
+settling-band        surrogate-guided       -0.0050 [    -0.0397,     +0.0320]      undecided
+
+multi-requirement    latin-hypercube        -0.0437 [    -0.1130,     +0.0213]      undecided
+multi-requirement    simulated-annealing    -0.2023 [    -0.3073,     -0.1073]          LOSES
+multi-requirement    cross-entropy          -0.4057 [    -0.5200,     -0.2993]          LOSES
+multi-requirement    surrogate-guided       +0.0117 [    -0.0270,     +0.0540]      undecided
+
+command-rate         latin-hypercube        -0.0257 [    -0.1147,     +0.0704]      undecided
+command-rate         simulated-annealing    -0.2050 [    -0.3054,     -0.0957]          LOSES
+command-rate         cross-entropy          -0.7193 [    -0.8157,     -0.6010]          LOSES
+command-rate         surrogate-guided       +0.0567 [    -0.0073,     +0.1370]      undecided
+
+overshoot-tight      latin-hypercube        -0.1813 [    -0.3617,     +0.0034]      undecided
+overshoot-tight      simulated-annealing    +0.0213 [    -0.1437,     +0.1933]      undecided
+overshoot-tight      cross-entropy          -0.4757 [    -0.6093,     -0.3460]          LOSES
+overshoot-tight      surrogate-guided       +0.2370 [    +0.0943,     +0.3747] beats baseline
+
+attitude-envelope    latin-hypercube        -0.1733 [    -0.3307,     -0.0280]          LOSES
+attitude-envelope    simulated-annealing    +0.1500 [    -0.0130,     +0.3080]      undecided
+attitude-envelope    cross-entropy          -0.2630 [    -0.4070,     -0.1333]          LOSES
+attitude-envelope    surrogate-guided       +0.4420 [    +0.2953,     +0.5743] beats baseline
+
+nested-capture       latin-hypercube        -0.2523 [    -0.4224,     -0.0907]          LOSES
+nested-capture       simulated-annealing    +0.1503 [    -0.0150,     +0.3247]      undecided
+nested-capture       cross-entropy          -0.4103 [    -0.5623,     -0.2730]          LOSES
+nested-capture       surrogate-guided       +0.2973 [    +0.1433,     +0.4470] beats baseline
+
+rate-envelope        latin-hypercube        -0.0340 [    -0.1504,     +0.0553]      undecided
+rate-envelope        simulated-annealing    +0.2507 [    +0.0983,     +0.3823] beats baseline
+rate-envelope        cross-entropy          -0.0630 [    -0.1593,     +0.0000]      undecided
+rate-envelope        surrogate-guided       +0.4670 [    +0.3607,     +0.5553] beats baseline
+
+comparisons undecided at 30 seeds : 14 of 32
+losses to the baseline that the data can resolve : 13
+The undecided count is the honest caveat on section 2: a per-instance win/loss ledger at 30 seeds resolves a large difference and nothing smaller. Re-running the grid at a different base seed moves the marginal entries, and the ones that move are exactly the undecided rows here.
+
+==============================================================================
+3. CURVES WITH BOOTSTRAP BANDS
+==============================================================================
+Pointwise 95 % percentile bootstrap, 2000 resamples, resampling unit is one run. Pointwise, not simultaneous: reading the whole band as a 95 % envelope for the entire curve overstates it.
+
+--- overshoot-loose [easy] measured p = 0.312250 (95% CI [0.302103, 0.322534] from 8000 draws)
+strategy                              n=10                n=25                n=50                n=75               n=100
+--------------------------------------------------------------------------------------------------------------------------
+uniform-random             1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+latin-hypercube            0.97[0.90,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+simulated-annealing        0.73[0.57,0.90]     0.87[0.73,0.97]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+cross-entropy              0.90[0.77,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+surrogate-guided           1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+closed form 1-(1-p)^n                 0.98                1.00                1.00                1.00                1.00
+
+--- settling-band [easy] measured p = 0.100000 (95% CI [0.093510, 0.106783] from 8000 draws)
+strategy                              n=10                n=25                n=50                n=75               n=100
+--------------------------------------------------------------------------------------------------------------------------
+uniform-random             0.80[0.67,0.93]     0.97[0.90,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+latin-hypercube            0.73[0.57,0.90]     0.93[0.83,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+simulated-annealing        0.33[0.17,0.50]     0.67[0.50,0.83]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+cross-entropy              0.23[0.10,0.40]     0.57[0.37,0.73]     0.93[0.83,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+surrogate-guided           0.63[0.47,0.80]     0.93[0.83,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+closed form 1-(1-p)^n                 0.65                0.93                0.99                1.00                1.00
+
+--- multi-requirement [moderate] measured p = 0.062250 (95% CI [0.057053, 0.067768] from 8000 draws)
+strategy                              n=10                n=25                n=50                n=75               n=100
+--------------------------------------------------------------------------------------------------------------------------
+uniform-random             0.57[0.40,0.73]     0.90[0.80,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+latin-hypercube            0.53[0.37,0.70]     0.80[0.63,0.93]     0.97[0.90,1.00]     0.97[0.90,1.00]     1.00[1.00,1.00]
+simulated-annealing        0.23[0.10,0.40]     0.53[0.37,0.70]     0.80[0.67,0.93]     0.90[0.80,1.00]     1.00[1.00,1.00]
+cross-entropy              0.07[0.00,0.17]     0.17[0.03,0.30]     0.60[0.43,0.77]     0.77[0.60,0.90]     0.87[0.73,0.97]
+surrogate-guided           0.53[0.37,0.70]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+closed form 1-(1-p)^n                 0.47                0.80                0.96                0.99                1.00
+
+--- command-rate [moderate] measured p = 0.030750 (95% CI [0.027076, 0.034771] from 8000 draws)
+strategy                              n=10                n=25                n=50                n=75               n=100
+--------------------------------------------------------------------------------------------------------------------------
+uniform-random             0.30[0.13,0.47]     0.77[0.60,0.90]     0.97[0.90,1.00]     0.97[0.90,1.00]     0.97[0.90,1.00]
+latin-hypercube            0.37[0.20,0.53]     0.63[0.47,0.80]     0.97[0.90,1.00]     0.97[0.90,1.00]     1.00[1.00,1.00]
+simulated-annealing        0.13[0.03,0.27]     0.27[0.10,0.43]     0.70[0.53,0.87]     0.87[0.73,0.97]     1.00[1.00,1.00]
+cross-entropy              0.03[0.00,0.10]     0.07[0.00,0.17]     0.07[0.00,0.17]     0.13[0.03,0.27]     0.20[0.07,0.37]
+surrogate-guided           0.33[0.17,0.50]     0.97[0.90,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+closed form 1-(1-p)^n                 0.27                0.54                0.79                0.90                0.96
+
+--- overshoot-tight [hard] measured p = 0.008125 (95% CI [0.006276, 0.010344] from 8000 draws)
+strategy                              n=10                n=25                n=50                n=75               n=100
+--------------------------------------------------------------------------------------------------------------------------
+uniform-random             0.17[0.07,0.30]     0.30[0.13,0.47]     0.60[0.43,0.77]     0.70[0.53,0.87]     0.70[0.53,0.87]
+latin-hypercube            0.03[0.00,0.10]     0.20[0.07,0.37]     0.30[0.13,0.47]     0.47[0.30,0.63]     0.57[0.40,0.73]
+simulated-annealing        0.07[0.00,0.17]     0.30[0.13,0.47]     0.57[0.40,0.73]     0.77[0.60,0.90]     1.00[1.00,1.00]
+cross-entropy              0.00[0.00,0.00]     0.00[0.00,0.00]     0.00[0.00,0.00]     0.03[0.00,0.10]     0.20[0.07,0.37]
+surrogate-guided           0.10[0.00,0.20]     0.47[0.30,0.63]     1.00[1.00,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+closed form 1-(1-p)^n                 0.08                0.18                0.33                0.46                0.56
+
+--- attitude-envelope [hard] measured p = 0.003375 (95% CI [0.002225, 0.004907] from 8000 draws)
+strategy                              n=10                n=25                n=50                n=75               n=100
+--------------------------------------------------------------------------------------------------------------------------
+uniform-random             0.10[0.00,0.23]     0.20[0.07,0.33]     0.30[0.13,0.47]     0.37[0.20,0.53]     0.40[0.23,0.57]
+latin-hypercube            0.00[0.00,0.00]     0.00[0.00,0.00]     0.07[0.00,0.17]     0.17[0.03,0.30]     0.27[0.13,0.43]
+simulated-annealing        0.03[0.00,0.10]     0.13[0.03,0.27]     0.37[0.20,0.53]     0.80[0.67,0.93]     0.93[0.83,1.00]
+cross-entropy              0.00[0.00,0.00]     0.00[0.00,0.00]     0.00[0.00,0.00]     0.00[0.00,0.00]     0.07[0.00,0.17]
+surrogate-guided           0.00[0.00,0.00]     0.40[0.23,0.57]     0.97[0.90,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+closed form 1-(1-p)^n                 0.03                0.08                0.16                0.22                0.29
+
+--- nested-capture [hard] measured p = 0.006250 (95% CI [0.004642, 0.008232] from 8000 draws)
+strategy                              n=10                n=25                n=50                n=75               n=100
+--------------------------------------------------------------------------------------------------------------------------
+uniform-random             0.13[0.03,0.27]     0.30[0.13,0.47]     0.47[0.30,0.63]     0.57[0.37,0.73]     0.60[0.43,0.77]
+latin-hypercube            0.00[0.00,0.00]     0.07[0.00,0.17]     0.10[0.00,0.23]     0.30[0.13,0.47]     0.37[0.20,0.53]
+simulated-annealing        0.07[0.00,0.17]     0.27[0.13,0.43]     0.63[0.47,0.80]     0.90[0.80,1.00]     0.97[0.90,1.00]
+cross-entropy              0.00[0.00,0.00]     0.00[0.00,0.00]     0.00[0.00,0.00]     0.03[0.00,0.10]     0.03[0.00,0.10]
+surrogate-guided           0.13[0.03,0.27]     0.50[0.33,0.67]     0.93[0.83,1.00]     1.00[1.00,1.00]     1.00[1.00,1.00]
+closed form 1-(1-p)^n                 0.06                0.15                0.27                0.38                0.47
+
+--- rate-envelope [very hard] measured p = 0.000500 (95% CI [0.000136, 0.001280] from 8000 draws)
+strategy                              n=10                n=25                n=50                n=75               n=100
+--------------------------------------------------------------------------------------------------------------------------
+uniform-random             0.03[0.00,0.10]     0.07[0.00,0.17]     0.07[0.00,0.17]     0.07[0.00,0.17]     0.07[0.00,0.17]
+latin-hypercube            0.00[0.00,0.00]     0.03[0.00,0.10]     0.03[0.00,0.10]     0.03[0.00,0.10]     0.07[0.00,0.17]
+simulated-annealing        0.03[0.00,0.10]     0.13[0.03,0.27]     0.30[0.13,0.47]     0.50[0.33,0.67]     0.67[0.50,0.83]
+cross-entropy              0.00[0.00,0.00]     0.00[0.00,0.00]     0.00[0.00,0.00]     0.00[0.00,0.00]     0.00[0.00,0.00]
+surrogate-guided           0.00[0.00,0.00]     0.10[0.00,0.23]     0.47[0.30,0.63]     0.97[0.90,1.00]     1.00[1.00,1.00]
+closed form 1-(1-p)^n                 0.00                0.01                0.02                0.04                0.05
+
+==============================================================================
+4. CONSISTENCY OF THE BASELINE AGAINST ITS CLOSED FORM
+==============================================================================
+The empirical uniform-random curve must agree with 1 - (1-p)^n, since uniform random IS that process. A disagreement would mean the harness, not the strategy, is wrong.
+
+The comparison is made as an interval overlap, NOT against the bootstrap band. Reason, found while building this script and recorded rather than quietly fixed: the percentile bootstrap band has exactly zero width whenever all 30 runs agree, which happens at every n on the easy instances, so it cannot cover anything and the comparison fails by construction. The honest test is a Clopper-Pearson interval on the empirical count of runs that succeeded by n, out of 30, against the closed-form interval implied by the Clopper-Pearson interval on p itself.
+
+instance                n     k/R       empirical 95% CI     closed-form 95% CI  overlap  band width
+----------------------------------------------------------------------------------------------------
+overshoot-loose        10  30/30  [   0.8843,    1.0000] [   0.9726,    0.9796]      yes      0.0000
+overshoot-loose        25  30/30  [   0.8843,    1.0000] [   0.9999,    0.9999]      yes      0.0000
+overshoot-loose        50  30/30  [   0.8843,    1.0000] [   1.0000,    1.0000]      yes      0.0000
+overshoot-loose        75  30/30  [   0.8843,    1.0000] [   1.0000,    1.0000]      yes      0.0000
+overshoot-loose       100  30/30  [   0.8843,    1.0000] [   1.0000,    1.0000]      yes      0.0000
+settling-band          10  24/30  [   0.6143,    0.9229] [   0.6253,    0.6767]      yes      0.2675
+settling-band          25  29/30  [   0.8278,    0.9992] [   0.9141,    0.9406]      yes      0.1000
+settling-band          50  30/30  [   0.8843,    1.0000] [   0.9926,    0.9965]      yes      0.0000
+settling-band          75  30/30  [   0.8843,    1.0000] [   0.9994,    0.9998]      yes      0.0000
+settling-band         100  30/30  [   0.8843,    1.0000] [   0.9999,    1.0000]      yes      0.0000
+multi-requirement      10  17/30  [   0.3743,    0.7454] [   0.4443,    0.5043]      yes      0.3333
+multi-requirement      25  27/30  [   0.7347,    0.9789] [   0.7698,    0.8270]      yes      0.2000
+multi-requirement      50  30/30  [   0.8843,    1.0000] [   0.9470,    0.9701]      yes      0.0000
+multi-requirement      75  30/30  [   0.8843,    1.0000] [   0.9878,    0.9948]      yes      0.0000
+multi-requirement     100  30/30  [   0.8843,    1.0000] [   0.9972,    0.9991]      yes      0.0000
+command-rate           10   9/30  [   0.1473,    0.4940] [   0.2400,    0.2981]      yes      0.3333
+command-rate           25  23/30  [   0.5772,    0.9007] [   0.4965,    0.5872]      yes      0.3000
+command-rate           50  29/30  [   0.8278,    0.9992] [   0.7465,    0.8296]      yes      0.1000
+command-rate           75  29/30  [   0.8278,    0.9992] [   0.8724,    0.9296]      yes      0.1000
+command-rate          100  29/30  [   0.8278,    0.9992] [   0.9357,    0.9710]      yes      0.1000
+overshoot-tight        10   5/30  [   0.0564,    0.3472] [   0.0610,    0.0988]      yes      0.2333
+overshoot-tight        25   9/30  [   0.1473,    0.4940] [   0.1456,    0.2289]      yes      0.3333
+overshoot-tight        50  18/30  [   0.4060,    0.7734] [   0.2701,    0.4054]       NO      0.3333
+overshoot-tight        75  21/30  [   0.5060,    0.8527] [   0.3764,    0.5415]      yes      0.3333
+overshoot-tight       100  21/30  [   0.5060,    0.8527] [   0.4672,    0.6465]      yes      0.3333
+attitude-envelope      10   3/30  [   0.0211,    0.2653] [   0.0220,    0.0480]      yes      0.2333
+attitude-envelope      25   6/30  [   0.0771,    0.3857] [   0.0542,    0.1157]      yes      0.2667
+attitude-envelope      50   9/30  [   0.1473,    0.4940] [   0.1054,    0.2180]      yes      0.3333
+attitude-envelope      75  11/30  [   0.1993,    0.5614] [   0.1539,    0.3085]      yes      0.3333
+attitude-envelope     100  12/30  [   0.2266,    0.5940] [   0.1997,    0.3885]      yes      0.3333
+nested-capture         10   4/30  [   0.0376,    0.3072] [   0.0455,    0.0793]      yes      0.2333
+nested-capture         25   9/30  [   0.1473,    0.4940] [   0.1098,    0.1867]      yes      0.3333
+nested-capture         50  14/30  [   0.2834,    0.6567] [   0.2076,    0.3385]      yes      0.3333
+nested-capture         75  17/30  [   0.3743,    0.7454] [   0.2946,    0.4620]      yes      0.3667
+nested-capture        100  18/30  [   0.4060,    0.7734] [   0.3721,    0.5625]      yes      0.3333
+rate-envelope          10   1/30  [   0.0008,    0.1722] [   0.0014,    0.0127]      yes      0.1000
+rate-envelope          25   2/30  [   0.0082,    0.2207] [   0.0034,    0.0315]      yes      0.1667
+rate-envelope          50   2/30  [   0.0082,    0.2207] [   0.0068,    0.0620]      yes      0.1667
+rate-envelope          75   2/30  [   0.0082,    0.2207] [   0.0102,    0.0916]      yes      0.1667
+rate-envelope         100   2/30  [   0.0082,    0.2207] [   0.0135,    0.1202]      yes      0.1667
+
+comparisons made                                  : 40
+empirical and closed-form intervals that DISAGREE : 1
+of those comparisons, bootstrap bands of zero width: 11
+A disagreement here is a harness defect and is reported as one. The zero-width count is the methodological finding, not a failure: it is why section 3's bands must be read as estimates of run-to-run spread and not as coverage statements near a curve's floor or ceiling.
+
+==============================================================================
+5. AGGREGATE (read section 1 first)
+==============================================================================
+strategy              mean P (aggregate)  vs baseline instances where the baseline wins       
+----------------------------------------------------------------------------------------------
+uniform-random                    0.6130           -- (is the baseline)                       
+latin-hypercube                   0.5229      -0.0902 overshoot-loose, settling-band, multi-requirement, command-rate, overshoot-tight, attitude-envelope, nested-capture, rate-envelope
+simulated-annealing               0.6097      -0.0034 overshoot-loose, settling-band, multi-requirement, command-rate
+cross-entropy                     0.2955      -0.3175 overshoot-loose, settling-band, multi-requirement, command-rate, overshoot-tight, attitude-envelope, nested-capture, rate-envelope
+surrogate-guided                  0.8016      +0.1885 settling-band                           
+
+The aggregate is the unweighted mean of the per-instance curves. Read the per-instance table first: a strategy can win here and lose on the instance you care about.
+Hardest instance for the baseline: rate-envelope.
+Falsification is one-sided: finding no violation is not evidence of correctness.
+
+strategy                aggregate mean P  vs baseline  instances lost to baseline
+---------------------------------------------------------------------------------
+uniform-random                    0.6130           --                           0
+latin-hypercube                   0.5229      -0.0902                           8
+simulated-annealing               0.6097      -0.0034                           4
+cross-entropy                     0.2955      -0.3175                           8
+surrogate-guided                  0.8016      +0.1885                           1
+
+Aggregate baseline curve with its stratified bootstrap band:
+    n  aggregate P                   band
+------------------------------------------
+   10       0.3875 [   0.3458,    0.4333]
+   25       0.5625 [   0.5208,    0.6083]
+   50       0.6750 [   0.6375,    0.7167]
+   75       0.7083 [   0.6667,    0.7500]
+  100       0.7167 [   0.6750,    0.7583]
+
+==============================================================================
+6. SURROGATE WARM-START ACCOUNTING
+==============================================================================
+The surrogate strategy spends its first 16 simulations on a Latin hypercube warm start during which it is not learned at all. The learned part therefore has at most 100 - 16 = 84 simulations to beat the baseline with, and on an instance easy enough for the baseline to succeed inside 16 draws the surrogate never got a turn. Below: how often the surrogate's violation came during its warm start rather than after it.
+
+instance              found  during warm start  after warm start  median sims
+-----------------------------------------------------------------------------
+overshoot-loose          30                 30                 0          1.0
+settling-band            30                 28                 2          6.0
+multi-requirement        30                 24                 6          9.5
+command-rate             30                 19                11         13.5
+overshoot-tight          30                  6                24         26.0
+attitude-envelope        30                  2                28         28.5
+nested-capture           30                  5                25         26.5
+rate-envelope            30                  1                29         51.0
+
+==============================================================================
+7. RAW FIRST-VIOLATION INDICES
+==============================================================================
+'none' marks a run that found nothing within the budget.
+
+--- overshoot-loose
+uniform-random         [1, 1, 3, 1, 2, 2, 2, 3, 2, 2, 1, 4, 10, 3, 3, 1, 7, 4, 2, 2, 3, 3, 2, 1, 3, 2, 2, 6, 1, 4]
+latin-hypercube        [5, 3, 3, 3, 2, 4, 2, 3, 1, 2, 3, 1, 4, 1, 1, 3, 1, 2, 8, 1, 2, 1, 1, 2, 11, 7, 1, 6, 1, 4]
+simulated-annealing    [1, 1, 4, 1, 7, 29, 9, 4, 6, 31, 1, 40, 5, 6, 7, 1, 8, 12, 7, 17, 6, 10, 5, 1, 11, 11, 30, 5, 1, 3]
+cross-entropy          [7, 4, 6, 9, 1, 8, 1, 2, 8, 3, 2, 2, 6, 1, 9, 3, 1, 13, 1, 8, 1, 1, 3, 4, 9, 3, 3, 14, 3, 13]
+surrogate-guided       [10, 1, 1, 4, 2, 4, 1, 1, 4, 1, 3, 1, 4, 2, 1, 5, 1, 1, 4, 1, 3, 1, 1, 6, 9, 2, 1, 1, 1, 1]
+
+--- settling-band
+uniform-random         [5, 1, 3, 1, 2, 23, 2, 21, 4, 2, 1, 10, 10, 5, 8, 10, 10, 4, 7, 2, 3, 13, 2, 1, 12, 13, 6, 8, 28, 4]
+latin-hypercube        [8, 3, 3, 3, 2, 10, 4, 3, 10, 2, 7, 17, 7, 1, 29, 25, 3, 3, 11, 33, 15, 2, 5, 2, 11, 7, 1, 6, 11, 4]
+simulated-annealing    [3, 1, 14, 1, 11, 14, 43, 21, 16, 36, 1, 37, 47, 24, 19, 9, 42, 6, 27, 39, 21, 44, 20, 1, 33, 17, 9, 33, 2, 9]
+cross-entropy          [22, 37, 11, 19, 20, 72, 21, 36, 50, 35, 27, 23, 50, 7, 27, 3, 3, 20, 37, 33, 11, 64, 3, 4, 22, 10, 18, 43, 5, 31]
+surrogate-guided       [26, 12, 2, 12, 2, 14, 1, 7, 4, 12, 12, 1, 6, 14, 1, 5, 4, 6, 13, 8, 5, 9, 1, 11, 11, 33, 1, 1, 1, 1]
+
+--- multi-requirement
+uniform-random         [5, 1, 3, 1, 2, 23, 2, 21, 4, 2, 21, 27, 10, 12, 18, 10, 10, 12, 7, 2, 29, 13, 2, 1, 12, 13, 8, 16, 39, 4]
+latin-hypercube        [8, 3, 3, 41, 26, 10, 14, 3, 10, 2, 7, 17, 7, 1, 29, 25, 3, 3, 11, 33, 15, 15, 5, 2, 77, 48, 22, 6, 11, 4]
+simulated-annealing    [7, 1, 11, 1, 19, 38, 34, 22, 12, 46, 2, 79, 91, 70, 38, 38, 23, 24, 20, 19, 32, 62, 90, 1, 58, 45, 13, 31, 3, 7]
+cross-entropy          [52, 39, 11, 36, 46, none, 21, 43, none, 41, 47, 59, 59, 62, 27, 33, 38, 80, 65, none, 29, 96, 3, 4, 22, 91, 50, none, 48, 41]
+surrogate-guided       [18, 20, 2, 12, 21, 14, 5, 7, 4, 12, 12, 10, 11, 14, 1, 5, 8, 6, 18, 25, 5, 9, 1, 11, 16, 19, 6, 1, 1, 1]
+
+--- command-rate
+uniform-random         [5, 1, 11, 4, 35, 23, 8, 23, 9, 15, 21, 27, 17, 12, 18, none, 10, 12, 9, 11, 29, 16, 37, 1, 12, 13, 8, 30, 40, 17]
+latin-hypercube        [29, 9, 5, 46, 26, 21, 14, 3, 10, 3, 38, 45, 7, 16, 29, 41, 10, 11, 35, 3, 4, 15, 43, 21, 77, 48, 22, 6, 11, 4]
+simulated-annealing    [23, 1, 18, 39, 11, 80, 43, 28, 50, 54, 2, 34, 31, 44, 40, 9, 17, 51, 68, 33, 37, 54, 31, 1, 82, 87, 79, 26, 69, 48]
+cross-entropy          [none, none, 11, none, 69, none, none, none, none, 83, none, none, none, 82, none, none, none, none, none, none, none, none, 3, none, 61, none, none, none, none, none]
+surrogate-guided       [25, 23, 25, 12, 17, 14, 5, 26, 4, 12, 12, 25, 13, 14, 6, 5, 1, 16, 25, 19, 5, 22, 16, 11, 18, 25, 6, 1, 1, 1]
+
+--- overshoot-tight
+uniform-random         [5, none, 11, 10, 41, 65, 45, 74, 32, none, 30, 48, none, 27, none, none, 10, 12, 9, 46, none, none, none, 1, 12, none, 30, 30, 52, 17]
+latin-hypercube        [none, 23, 32, none, none, none, 88, none, 10, none, none, 52, none, none, 32, 60, 44, 11, 58, none, none, 15, 72, 89, 77, none, 22, none, 11, 51]
+simulated-annealing    [73, 3, 32, 19, 23, 38, 43, 100, 79, 73, 73, 76, 34, 25, 40, 33, 67, 95, 33, 48, 53, 86, 92, 1, 19, 24, 76, 64, 13, 17]
+cross-entropy          [none, 86, none, 91, none, none, none, none, none, none, 94, 99, none, none, none, none, none, none, 89, none, none, none, none, none, 60, none, none, none, none, none]
+surrogate-guided       [45, 25, 30, 12, 28, 14, 10, 25, 33, 22, 49, 29, 26, 22, 24, 44, 33, 16, 26, 43, 19, 30, 26, 49, 25, 26, 6, 1, 25, 42]
+
+--- attitude-envelope
+uniform-random         [none, none, 11, none, 41, none, none, 74, none, none, none, none, none, 27, none, none, 10, 12, 9, 46, none, none, none, 1, 12, none, 88, none, 52, none]
+latin-hypercube        [none, none, none, none, none, none, 88, none, none, none, none, none, none, none, 32, 60, 44, none, 58, none, none, none, none, 89, 77, none, none, none, none, 51]
+simulated-annealing    [49, 11, 72, 45, 23, 62, 55, 75, 61, 49, 58, 50, none, 96, 46, 34, 72, 13, 85, 74, 60, 72, 60, 1, 53, 63, 86, 81, none, 43]
+cross-entropy          [none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, 81, none, 81, none, none, none, none, none]
+surrogate-guided       [31, 25, 35, 12, 17, 14, 27, 25, 50, 23, 52, 36, 42, 27, 33, 31, 21, 17, 30, 36, 24, 17, 18, 27, 36, 46, 17, 32, 33, 41]
+
+--- nested-capture
+uniform-random         [5, none, 11, none, 35, 65, 45, 74, none, none, none, 27, 17, 93, none, none, 10, none, 11, 36, none, 16, none, 1, 12, none, 8, 30, 52, none]
+latin-hypercube        [none, none, none, none, 74, 21, 88, none, none, none, 55, none, none, none, 90, 60, none, 11, 58, none, none, 57, none, none, none, none, none, none, 33, 51]
+simulated-annealing    [22, 3, 63, 21, 61, 43, 59, 31, 54, 86, 51, 37, 37, 32, 24, 16, 62, 66, 47, 74, 36, none, 43, 1, 48, 32, 80, 49, 13, 17]
+cross-entropy          [none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, 62, none, none, none, none, none]
+surrogate-guided       [31, 34, 28, 12, 35, 49, 5, 22, 4, 25, 42, 32, 47, 24, 25, 66, 19, 47, 37, 34, 20, 18, 25, 59, 25, 48, 6, 1, 28, 20]
+
+--- rate-envelope
+uniform-random         [none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, 1, 12, none, none, none, none, none]
+latin-hypercube        [none, none, none, none, none, none, none, none, none, none, none, none, none, none, 93, none, none, none, none, none, none, none, none, none, none, none, 22, none, none, none]
+simulated-annealing    [87, 11, 19, 85, 42, 84, none, none, 75, 85, none, 34, none, 63, 40, 63, 69, 60, none, none, 96, none, none, 1, 38, none, none, 68, 13, 46]
+cross-entropy          [none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none, none]
+surrogate-guided       [58, 66, 28, 26, 53, 14, 19, 51, 64, 99, 42, 51, 33, 44, 52, 30, 50, 51, 25, 67, 47, 53, 57, 35, 58, 52, 60, 41, 71, 43]
+
+==============================================================================
+8. COMPUTE
+==============================================================================
+difficulty estimate      : 64000 simulations, 30.1 s
+searches run             : 1200
+budget per search        : 100 simulations (upper bound; runs stop early)
+benchmark wall clock     : 31.9 s
+total wall clock         : 62.0 s
+available CPU cores      : 2 (os.sched_getaffinity)
+Single process, no parallelism, scikit-learn forests fit with n_jobs=1. These are wall clocks on a shared container, not hardware characteristics, and they move by 10-20 % between runs. The seeded simulation counts above do not move at all, which is why they and not the timings are the primary metric.
+
+Falsification is one-sided: finding no violation is not evidence of correctness.

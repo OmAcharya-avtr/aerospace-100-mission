@@ -1,0 +1,54 @@
+# validate_known_answer
+python 3.13.16 on Linux-6.18.44-fc-v80-x86_64-with-glibc2.39
+os.cpu_count()=2 len(os.sched_getaffinity(0))=2
+numpy 2.5.3 scipy 1.18.1 scikit-learn 1.9.1
+
+tolerance = 4.0 counting-noise floors, samples = 400000
+A 4-floor two-sided normal tolerance has a 6.3e-5 false-alarm rate per check.
+
+## 1. Crude Monte Carlo against the reference
+[PASS] linear beta=2.5 crude [PASS] linear beta=2.5 crude: ref=6.209665e-03 (closed-form) est=6.092500e-03 err=1.172e-04 = 0.943 x tolerance basis 1.242e-04 (limit 4.0, evals=400000)
+[PASS] linear beta=3.719 crude [PASS] linear beta=3.719 crude: ref=1.000065e-04 (closed-form) est=8.750000e-05 err=1.251e-05 = 0.791 x tolerance basis 1.581e-05 (limit 4.0, evals=400000)
+[PASS] linear beta=4.753 crude [PASS] linear beta=4.753 crude: ref=1.002102e-06 (closed-form) est=0.000000e+00 err=1.002e-06 = 0.633 x tolerance basis 1.583e-06 (limit 4.0, evals=400000)
+[PASS] linear beta=3.719 d=6 crude [PASS] linear beta=3.719 d=6 crude: ref=1.000065e-04 (closed-form) est=9.250000e-05 err=7.507e-06 = 0.475 x tolerance basis 1.581e-05 (limit 4.0, evals=400000)
+[PASS] lognormal default crude [PASS] lognormal default crude: ref=1.000065e-04 (closed-form) est=1.125000e-04 err=1.249e-05 = 0.745 x tolerance basis 1.677e-05 (limit 4.0, evals=400000)
+[PASS] lognormal sigma_r=0.35 crude [PASS] lognormal sigma_r=0.35 crude: ref=5.670938e-04 (closed-form) est=5.300000e-04 err=3.709e-05 = 0.985 x tolerance basis 3.764e-05 (limit 4.0, evals=400000)
+[PASS] rippled A=0.8 w=1.5 crude [PASS] rippled A=0.8 w=1.5 crude: ref=4.446212e-04 (quadrature) est=4.450000e-04 err=3.788e-07 = 0.011 x tolerance basis 3.335e-05 (limit 4.0, evals=400000)
+[PASS] rippled beta=5.5 A=2.5 w=2.0 crude [PASS] rippled beta=5.5 A=2.5 w=2.0 crude: ref=1.853082e-04 (quadrature) est=1.975000e-04 err=1.219e-05 = 0.549 x tolerance basis 2.222e-05 (limit 4.0, evals=400000)
+
+## 2. Importance sampling with the analytic design-point tilt
+[PASS] linear beta=2.5 analytic-IS [PASS] linear beta=2.5 analytic-IS: ref=6.209665e-03 (closed-form) est=6.195448e-03 err=1.422e-05 = 0.114 x tolerance basis 1.242e-04 (limit 4.0, evals=400000)
+[PASS] linear beta=3.719 analytic-IS [PASS] linear beta=3.719 analytic-IS: ref=1.000065e-04 (closed-form) est=9.973079e-05 err=2.757e-07 = 0.017 x tolerance basis 1.581e-05 (limit 4.0, evals=400000)
+[PASS] linear beta=4.753 analytic-IS [PASS] linear beta=4.753 analytic-IS: ref=1.002102e-06 (closed-form) est=9.991756e-07 err=2.926e-09 = 0.002 x tolerance basis 1.583e-06 (limit 4.0, evals=400000)
+[PASS] linear beta=3.719 d=6 analytic-IS [PASS] linear beta=3.719 d=6 analytic-IS: ref=1.000065e-04 (closed-form) est=1.001461e-04 err=1.396e-07 = 0.009 x tolerance basis 1.581e-05 (limit 4.0, evals=400000)
+[PASS] lognormal default analytic-IS [PASS] lognormal default analytic-IS: ref=1.000065e-04 (closed-form) est=1.005581e-04 err=5.516e-07 = 0.035 x tolerance basis 1.581e-05 (limit 4.0, evals=400000)
+[PASS] lognormal sigma_r=0.35 analytic-IS [PASS] lognormal sigma_r=0.35 analytic-IS: ref=5.670938e-04 (closed-form) est=5.675580e-04 err=4.642e-07 = 0.012 x tolerance basis 3.764e-05 (limit 4.0, evals=400000)
+[PASS] rippled A=0.8 w=1.5 analytic-IS [PASS] rippled A=0.8 w=1.5 analytic-IS: ref=4.446212e-04 (quadrature) est=4.416466e-04 err=2.975e-06 = 0.089 x tolerance basis 3.333e-05 (limit 4.0, evals=400000)
+[PASS] rippled beta=5.5 A=2.5 w=2.0 analytic-IS [PASS] rippled beta=5.5 A=2.5 w=2.0 analytic-IS: ref=1.853082e-04 (quadrature) est=1.931952e-04 err=7.887e-06 = 0.366 x tolerance basis 2.152e-05 (limit 4.0, evals=400000)
+
+## 3. Subset simulation, mean of 20 replications
+Subset simulation is biased at finite samples per level, so a single run is not the right object to test. The check is on the mean of 20 independent runs against the reference, with the tolerance set by the standard error of that mean.
+                      instance      reference           mean   se of mean       z  empirical cov
+               linear beta=2.5   6.209665e-03   6.154500e-03    2.154e-04   0.256         0.1565
+[PASS] linear beta=2.5 subset-simulation mean within 4 se (z=0.256)
+             linear beta=3.719   1.000065e-04   9.975250e-05    9.041e-06   0.028         0.4053
+[PASS] linear beta=3.719 subset-simulation mean within 4 se (z=0.028)
+             linear beta=4.753   1.002102e-06   1.018425e-06    1.680e-07   0.097         0.7377
+[PASS] linear beta=4.753 subset-simulation mean within 4 se (z=0.097)
+         linear beta=3.719 d=6   1.000065e-04   1.044350e-04    1.265e-05   0.350         0.5417
+[PASS] linear beta=3.719 d=6 subset-simulation mean within 4 se (z=0.350)
+             lognormal default   1.000065e-04   1.002125e-04    6.220e-06   0.033         0.2776
+[PASS] lognormal default subset-simulation mean within 4 se (z=0.033)
+        lognormal sigma_r=0.35   5.670938e-04   5.459250e-04    2.156e-05   0.982         0.1766
+[PASS] lognormal sigma_r=0.35 subset-simulation mean within 4 se (z=0.982)
+           rippled A=0.8 w=1.5   4.446212e-04   4.172750e-04    3.071e-05   0.890         0.3291
+[PASS] rippled A=0.8 w=1.5 subset-simulation mean within 4 se (z=0.890)
+  rippled beta=5.5 A=2.5 w=2.0   1.853082e-04   1.855700e-04    1.344e-05   0.019         0.3239
+[PASS] rippled beta=5.5 A=2.5 w=2.0 subset-simulation mean within 4 se (z=0.019)
+
+## 4. Deliberate negative control
+The harness must fail when the estimate is wrong. Comparing a correct importance-sampling estimate against a deliberately wrong reference of 1e-2 must be reported as FAIL.
+  [FAIL] negative control: ref=1.000000e-02 (closed-form) est=9.947714e-05 err=9.901e-03 = 31.466 x tolerance basis 3.146e-04 (limit 4.0, evals=100000)
+[PASS] the harness reports FAIL for a wrong reference
+
+all checks passed

@@ -1,0 +1,325 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  falsifyloop: requirement falsification for autonomous control loops, with
+  sample-efficiency curves measured against uniform random
+version: 0.1.0
+date-released: 2026-10-08
+license: Apache-2.0
+abstract: >-
+  A requirement falsification package for simulated control loops. It provides a
+  small, fully documented requirement language -- bounded always and eventually,
+  bounds on signals and on their first differences, conjunction and disjunction
+  -- whose robustness semantics is negative exactly when the requirement is
+  violated. That equivalence is not asserted: it is checked against an
+  independently implemented Boolean semantics over 44694 exhaustively enumerated
+  formula-trace pairs with zero disagreements, including 32070 samples at
+  exactly zero robustness and 16848 at infinite robustness, and property-tested
+  with Hypothesis. The language omits negation deliberately, so that every
+  formula is in negation normal form and the sign agreement is exact at the
+  boundary rather than within a tolerance band. Eight seeded benchmark instances
+  share one declared six-dimensional search box over a synthetic single-axis
+  attitude loop with a rate-limited actuator, and span measured uniform-violation
+  probabilities from 0.321933 down to 0.001267 with exact Clopper-Pearson
+  intervals. Five search strategies run over the same instances, the same budget
+  and the same seeds: uniform random, Latin hypercube, simulated annealing,
+  cross-entropy, and a random-forest surrogate-guided search with an ensemble
+  dispersion output. The deliverable is the sample-efficiency curve -- the
+  probability of having found a violation against simulation count, with
+  pointwise bootstrap bands -- reported per instance before any aggregate.
+  Uniform random is the baseline and several published results favour it:
+  Latin hypercube and cross-entropy never beat it on any of the eight instances,
+  cross-entropy found nothing in thirty runs on the hardest one, and simulated
+  annealing loses resolvably on every easy-to-moderate instance. The
+  surrogate-guided search wins on aggregate but only where the baseline is
+  already struggling, and fourteen of thirty-two per-instance comparisons are
+  statistically undecided at thirty seeds, which is reported rather than hidden.
+  The surrogate's uncertainty output is measured and found not to be calibrated,
+  and is used only as a ranking signal. Falsification is one-sided: finding no
+  violation is not evidence of correctness, and the command-line tool cannot
+  print anything that reads as a pass. Validation level 3, research grade. Not
+  flight-qualified, not certified, not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - falsification
+  - signal-temporal-logic
+  - robustness-semantics
+  - sample-efficiency
+  - surrogate-optimisation
+  - random-forest
+  - requirement-monitoring
+  - aerospace-assurance
+references:
+  - type: article
+    authors:
+      - family-names: Fainekos
+        given-names: "G. E."
+      - family-names: Pappas
+        given-names: "G. J."
+    title: >-
+      Robustness of temporal logic specifications for continuous-time signals
+    journal: "Theoretical Computer Science"
+    volume: 410
+    issue: 42
+    year: 2009
+    notes: >-
+      The min/max robustness-degree semantics that falsifyloop.requirements
+      implements for its bounded fragment.
+  - type: conference-paper
+    authors:
+      - family-names: "Donze"
+        given-names: "A."
+      - family-names: Maler
+        given-names: "O."
+    title: "Robust satisfaction of temporal logic over real-valued signals"
+    collection-title: "FORMATS 2010, LNCS 6246"
+    year: 2010
+    notes: Time-bounded operators over sampled signals.
+  - type: conference-paper
+    authors:
+      - family-names: Maler
+        given-names: "O."
+      - family-names: "Nickovic"
+        given-names: "D."
+    title: "Monitoring temporal properties of continuous signals"
+    collection-title: "FORMATS/FTRTFT 2004, LNCS 3253"
+    year: 2004
+    notes: Signal temporal logic.
+  - type: conference-paper
+    authors:
+      - family-names: Annpureddy
+        given-names: "Y."
+      - family-names: Liu
+        given-names: "C."
+      - family-names: Fainekos
+        given-names: "G."
+      - family-names: Sankaranarayanan
+        given-names: "S."
+    title: >-
+      S-TaLiRo: a tool for temporal logic falsification for hybrid systems
+    collection-title: "TACAS 2011, LNCS 6605"
+    year: 2011
+    notes: >-
+      The falsification-as-optimisation framing. Its Python successor
+      psy-taliro 1.0.0 is named in the README's alternatives table and is the
+      more complete tool.
+  - type: article
+    authors:
+      - family-names: McKay
+        given-names: "M. D."
+      - family-names: Beckman
+        given-names: "R. J."
+      - family-names: Conover
+        given-names: "W. J."
+    title: >-
+      A comparison of three methods for selecting values of input variables in
+      the analysis of output from a computer code
+    journal: "Technometrics"
+    volume: 21
+    issue: 2
+    year: 1979
+    notes: Latin hypercube sampling.
+  - type: article
+    authors:
+      - family-names: Kirkpatrick
+        given-names: "S."
+      - family-names: Gelatt
+        given-names: "C. D."
+      - family-names: Vecchi
+        given-names: "M. P."
+    title: "Optimization by simulated annealing"
+    journal: "Science"
+    volume: 220
+    issue: 4598
+    year: 1983
+    notes: The annealing schedule used by the simulated-annealing strategy.
+  - type: article
+    authors:
+      - family-names: Metropolis
+        given-names: "N."
+      - family-names: Rosenbluth
+        given-names: "A. W."
+      - family-names: Rosenbluth
+        given-names: "M. N."
+      - family-names: Teller
+        given-names: "A. H."
+      - family-names: Teller
+        given-names: "E."
+    title: "Equation of state calculations by fast computing machines"
+    journal: "Journal of Chemical Physics"
+    volume: 21
+    issue: 6
+    year: 1953
+    notes: The Metropolis acceptance rule.
+  - type: article
+    authors:
+      - family-names: Rubinstein
+        given-names: "R. Y."
+    title: >-
+      The cross-entropy method for combinatorial optimization, rare-event
+      simulation and multi-extremal optimization
+    journal: "Methodology and Computing in Applied Probability"
+    volume: 1
+    issue: 2
+    year: 1999
+    notes: >-
+      The elite-sample distribution update. Reported here as the worst strategy
+      in the suite on this problem, which is a statement about this problem.
+  - type: article
+    authors:
+      - family-names: "De Boer"
+        given-names: "P.-T."
+      - family-names: Kroese
+        given-names: "D. P."
+      - family-names: Mannor
+        given-names: "S."
+      - family-names: Rubinstein
+        given-names: "R. Y."
+    title: "A tutorial on the cross-entropy method"
+    journal: "Annals of Operations Research"
+    volume: 134
+    issue: 1
+    year: 2005
+    notes: The Gaussian-family variant implemented here.
+  - type: article
+    authors:
+      - family-names: Breiman
+        given-names: "L."
+    title: "Random forests"
+    journal: "Machine Learning"
+    volume: 45
+    issue: 1
+    year: 2001
+    notes: The surrogate estimator.
+  - type: article
+    authors:
+      - family-names: Efron
+        given-names: "B."
+    title: "Bootstrap methods: another look at the jackknife"
+    journal: "Annals of Statistics"
+    volume: 7
+    issue: 1
+    year: 1979
+    notes: The resampling idea the tree-dispersion uncertainty stands on.
+  - type: article
+    authors:
+      - family-names: Wager
+        given-names: "S."
+      - family-names: Hastie
+        given-names: "T."
+      - family-names: Efron
+        given-names: "B."
+    title: >-
+      Confidence intervals for random forests: the jackknife and the
+      infinitesimal jackknife
+    journal: "Journal of Machine Learning Research"
+    volume: 15
+    year: 2014
+    notes: >-
+      Why the naive tree spread is not a confidence interval. falsifyloop
+      measures how far off it is and does not implement the correction.
+  - type: conference-paper
+    authors:
+      - family-names: Srinivas
+        given-names: "N."
+      - family-names: Krause
+        given-names: "A."
+      - family-names: Kakade
+        given-names: "S."
+      - family-names: Seeger
+        given-names: "M."
+    title: "Gaussian process optimization in the bandit setting"
+    collection-title: "ICML 2010"
+    year: 2010
+    notes: >-
+      The lower-confidence-bound acquisition, used here with a forest dispersion
+      in place of a GP posterior standard deviation, which voids the regret
+      bound that paper proves.
+  - type: book
+    authors:
+      - family-names: Efron
+        given-names: "B."
+      - family-names: Tibshirani
+        given-names: "R. J."
+    title: "An Introduction to the Bootstrap"
+    publisher:
+      name: "Chapman and Hall"
+    year: 1993
+    notes: >-
+      Chapter 13, the percentile interval used for every confidence band in
+      this package.
+  - type: article
+    authors:
+      - family-names: Clopper
+        given-names: "C. J."
+      - family-names: Pearson
+        given-names: "E. S."
+    title: >-
+      The use of confidence limits illustrated in the case of the binomial
+    journal: "Biometrika"
+    volume: 26
+    issue: 4
+    year: 1934
+    notes: >-
+      The exact binomial interval used for instance difficulty, chosen because
+      the hardest instances have p of order 1e-3 where a Wald interval is wrong.
+  - type: book
+    authors:
+      - family-names: Etkin
+        given-names: "B."
+      - family-names: Reid
+        given-names: "L. D."
+    title: "Dynamics of Flight: Stability and Control"
+    edition: "3rd"
+    publisher:
+      name: "Wiley"
+    year: 1996
+    notes: >-
+      The STRUCTURE of the single-axis attitude dynamics in falsifyloop.systems.
+      No parameter value in that module is taken from this or any other source;
+      the values are declared constants of a synthetic benchmark.
+  - type: book
+    authors:
+      - family-names: Stevens
+        given-names: "B. L."
+      - family-names: Lewis
+        given-names: "F. L."
+      - family-names: Johnson
+        given-names: "E. N."
+    title: "Aircraft Control and Simulation"
+    edition: "3rd"
+    publisher:
+      name: "Wiley"
+    year: 2015
+    notes: >-
+      First-order actuator models with rate and deflection limits. Structure
+      only; no value is taken from it.
+  - type: book
+    authors:
+      - family-names: Franklin
+        given-names: "G. F."
+      - family-names: Powell
+        given-names: "J. D."
+      - family-names: "Emami-Naeini"
+        given-names: "A."
+    title: "Feedback Control of Dynamic Systems"
+    edition: "7th"
+    publisher:
+      name: "Pearson"
+    year: 2015
+    notes: >-
+      Proportional-derivative control and the second-order response parameters
+      reported by LoopParameters.nominal_modes.
+  - type: book
+    authors:
+      - family-names: Butcher
+        given-names: "J. C."
+    title: "Numerical Methods for Ordinary Differential Equations"
+    edition: "3rd"
+    publisher:
+      name: "Wiley"
+    year: 2016
+    notes: >-
+      Order of the explicit Euler method, against which the convergence ratios
+      in validation/validate_simulator.py are read.
