@@ -9,14 +9,14 @@ replications: 40 for the analytic methods, 12 for the surrogate (compute budget)
 ## 1. Design-point recovery against the true answer
 Smooth instance true beta = 3.719 (closed form). Rough instance true beta = 3.097896 (ray search and SLSQP agree to 1e-13, see validate_design_point.py); its smooth-part design point is 5.5.
   instance  n_train    beta_hat     rel err    band lo    band hi   fit s       rmse
-    smooth       25    3.718990  -2.607e-06    3.71791    3.72007    0.04  6.454e-05
-    smooth       50    3.719079   2.113e-05    3.71814    3.72002    0.04  3.905e-05
-    smooth      100    3.719014   3.793e-06    3.71810    3.71993    0.03  3.437e-05
-    smooth      200    3.719052   1.398e-05    3.71813    3.71997    0.11  4.640e-05
-     rough       25    3.099064   3.768e-04    3.09561    3.10383    0.03  3.162e-05
+    smooth       25    3.718990  -2.607e-06    3.71791    3.72007    0.05  6.454e-05
+    smooth       50    3.719079   2.113e-05    3.71814    3.72002    0.03  3.905e-05
+    smooth      100    3.719014   3.793e-06    3.71810    3.71993    0.04  3.437e-05
+    smooth      200    3.719052   1.398e-05    3.71813    3.71997    0.10  4.640e-05
+     rough       25    3.099064   3.768e-04    3.09561    3.10383    0.02  3.162e-05
      rough       50    3.098429   1.720e-04    3.08309    3.11384    0.01  7.449e-04
-     rough      100    3.097933   1.175e-05    3.09756    3.09956    0.15  4.643e-05
-     rough      200    3.097919   7.244e-06    3.09888    3.10015    0.22  5.202e-05
+     rough      100    3.097933   1.175e-05    3.09756    3.09956    0.10  4.643e-05
+     rough      200    3.097919   7.244e-06    3.09888    3.10015    0.18  5.202e-05
 [PASS] the surrogate recovers the smooth design point to better than 1e-3 relative from 50 training evaluations onward
 [PASS] the surrogate recovers the rough design point to better than 1e-2 relative from 100 training evaluations onward, where the analytic smooth design point is 77.5 % too large (analytic smooth design point error: +0.7754)
 
@@ -84,10 +84,10 @@ reference p = 4.48938469e-04 (quadrature, 400 nodes)
 ## 6. Compute: marginal-likelihood restarts change nothing material
 n_restarts_optimizer is 0 by default. Raising it costs fit time; the recovered reliability index is compared.
   instance  restarts    fit s    beta_hat
-    smooth         0     2.20    3.719036
-    smooth         2     2.09    3.719036
-     rough         0     2.18    3.097913
-     rough         2     2.09    3.097913
+    smooth         0     2.17    3.719036
+    smooth         2     2.04    3.719036
+     rough         0     2.02    3.097913
+     rough         2     2.19    3.097913
 [PASS] restarting the marginal-likelihood optimisation does not change the recovered reliability index, so the default of 0 restarts spends the compute budget on samples instead
 Fit wall times on this container are erratic at the 2x level between otherwise identical calls, because the L-BFGS iteration count varies with the random initial kernel; they are reported for budgeting only and are not a characteristic of the method.
 

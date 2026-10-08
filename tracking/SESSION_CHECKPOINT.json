@@ -1,26 +1,26 @@
 {
   "batch": 6,
-  "phase": "specification_complete",
-  "phase_index": 2,
-  "updated": "2026-10-08T03:12:00Z",
-  "batch_06_status": "IN PROGRESS, session 2. P051 built 2026-10-07 and still TESTING (never gated). P052-P060 still SPECIFYING. 2026-10-07 wave 1 (P052,P053,P054,P055,P059) left NO artifact: no products/P052+ directory exists and products.yaml still shows all nine SPECIFYING, so that wave did not survive to a commit. Those same five are re-dispatched tonight in ONE tool block, per the propagated scheduling lesson.",
+  "phase": "readiness_report_complete",
+  "phase_index": 9,
+  "updated": "2026-10-08T06:40:00Z",
+  "batch_06_status": "PARTIAL AND UNPUBLISHED. Six of ten products built (P051 last night, P052/P053/P054/P055/P059 tonight). release_gate.py exited 1, so NOTHING was published, including the five products that PASS. P053 is the sole residual blocker. P056, P057, P058, P060 remain unbuilt.",
   "products_complete": [
-    "P051"
-  ],
-  "products_pending": [
+    "P051",
     "P052",
     "P053",
     "P054",
     "P055",
+    "P059"
+  ],
+  "products_pending": [
     "P056",
     "P057",
     "P058",
-    "P059",
     "P060"
   ],
-  "blocked": false,
-  "blocked_on": null,
-  "next_action": "Five agents dispatched in one block: P052 FalsifyLoop, P053 TwinInvalidate, P054 RareVerify, P055 AssureGraph, P059 InvariantSet. On completion, coordinator re-measures every critical claim, runs release_gate.py over P051 plus whatever built, and publishes what passes under ADR-017. P056, P057, P058, P060 carry forward.",
+  "blocked": true,
+  "blocked_on": "GATE EXIT 1. P053 validation/validate_thresholds.py exits 1 BY DESIGN because it publishes two failing variance-CUSUM threshold-transfer checks (bias -8.6 pct at T=200, +13.5 pct at T=1000 against a declared 8.8 pct tolerance) rather than widening the tolerance. Gate check 6 requires every validation script to exit 0. ADR-011 honest-negative policy and gate check 6 are in DIRECT CONFLICT and the gate currently punishes the behaviour the mission most wants. NOT RESOLVED HERE: the gate was not edited, no threshold loosened, no failing check hidden. Needs an OWNER convention decision.",
+  "next_action": "Read nightly_reports/2026-10-08.md FIRST; it carries two owner decisions that may already be answered. If a batch may publish partially: gate P051,P052,P054,P055,P059 and on exit 0 publish five repos under ADR-017, record URLs in products.yaml and RELEASE_LEDGER.md, verify one contributor each. Run detect-secrets, bandit and pip-audit BEFORE any release - they were NOT run this session. Then build P056,P057,P058,P060 as FIVE AGENTS IN ONE BLOCK.",
   "SCHEDULING_LESSON_PROPAGATE": "DISPATCH FIVE AGENTS IN ONE MESSAGE, AS ONE TOOL BLOCK. This session dispatched P051 alone, waited 2 hours 7 minutes for it, and thereby lost one of the two waves the window allows. The concurrency limit is five AND the target is five; one agent at a time is a serial build wearing a parallel budget. Batch 05 ran two clean waves of five and finished ten products; this session will finish six.",
   "phase_minus_1_publication_path": "VERIFIED BEFORE BUILDING, three of three PASS at 03:08-03:10 UTC 2026-10-08. Bridge alive, gh logged in as OmAcharya-avtr. Mac mission-repo clean, HEAD ec6fde7 == origin/main. Real write probe pushed refs/heads/probe-1791428909, confirmed by ls-remote, then deleted. Report pushed to origin/main as 617de05 and verified by ls-remote BEFORE any build work.",
   "DEVICE_FOLDER_GRANT_REGRESSION_PROPAGATE": "CONFIRMED AGAIN 2026-10-08. get_device_info reported connectedFolders: [] despite the task reminder naming /Users/<user>/100 Aero Prods. This run requested the grant PROACTIVELY, before the first device_commit_files call, and device_request_folder_access returned {granted:['/Users/<user>/100 Aero Prods']} immediately. Requesting it up front costs one call and removes the refusal entirely. Keep doing that. osascript works without the grant; device_commit_files does not.",
@@ -41,18 +41,86 @@
     "carried_from_batch_05": "scipy.optimize.milp needs options={'mip_rel_gap': 0.0}; numpy.polynomial.hermite weights overflow to NaN above ~350 nodes; scipy.stats.kstest(x,'norm',args=(loc,scale)) raises TypeError on the installed SciPy."
   },
   "p051_gate_cost_note": "Suite ~93 s; slowest validation script validate_invariant_set.py ~64 s; full re-run of all validation plus all examples about 3.5 minutes. The agent warns that validate_predictor.py reports WALL-CLOCK latencies that move 10-20 percent between runs, so a gate re-run will change the committed .txt and the microsecond figures in README/VALIDATION/MODEL_CARD will no longer match it exactly. Everything else in the product is seeded and stable. THIS IS A REAL RISK TO THE GATE'S ARTIFACT-DRIFT POSITION AND MUST BE CHECKED, NOT ASSUMED HARMLESS.",
-  "l4_position": "STILL 0 OF 5. Batch 06 adds no new candidate, on purpose. P031, P033, P041, P043 each wait on the identical Jetson Orin Nano measurement. This is the fifth consecutive batch blocked on one hardware session by the owner. OWNER ACTION REQUIRED; no cloud work closes it.",
+  "l4_position": "STILL 0 OF 5, FIFTH CONSECUTIVE BATCH. P031, P033, P041, P043 each complete to Level 3, each waiting on the IDENTICAL Jetson Orin Nano measurement. Batch 06 deliberately added no new candidate. OWNER HARDWARE SESSION REQUIRED; no cloud session closes it.",
   "agent_tokens_so_far": {
-    "method": "Copied verbatim from the Agent tool result. No estimates.",
+    "method": "Copied verbatim from the Agent tool results. No estimates. Coordinator's own usage is NOT reported by any tool in this environment - fifth consecutive batch with this structural gap, so every session total is a FLOOR.",
     "P051": {
       "agent": "aaef0f23b2bdc573a",
       "tokens": 537764,
       "tool_uses": 184,
       "duration_ms": 7643188
-    }
+    },
+    "P052": {
+      "agent": "aae514c1fe31b1b63",
+      "tokens": 414233,
+      "tool_uses": 131,
+      "duration_ms": 4210959
+    },
+    "P053": {
+      "agent": "af72e5461caa47b10",
+      "tokens": 409725,
+      "tool_uses": 145,
+      "duration_ms": 4598066
+    },
+    "P054": {
+      "agent": "addfab4368cafb2dd",
+      "tokens": 469073,
+      "tool_uses": 137,
+      "duration_ms": 6209451
+    },
+    "P055": {
+      "agent": "a6c539fa00de1f21e",
+      "tokens": 354923,
+      "tool_uses": 137,
+      "duration_ms": 3064096
+    },
+    "P059": {
+      "agent": "a566b71108dce3498",
+      "tokens": 315544,
+      "tool_uses": 97,
+      "duration_ms": 3727147
+    },
+    "batch_06_agent_total_tokens": 2501262
   },
-  "notes": "Rule Zero honoured: nightly_reports/2026-10-08.md written, committed 617de05, pushed and verified on origin/main BEFORE any build work. This checkpoint commit is push 2 of the ceiling of 5. No approval row written, no product set to APPROVED, no words attributed to the owner. No human spoke in this session.",
+  "notes": "Rule Zero honoured: nightly_reports/2026-10-08.md written and PUSHED (617de05) before any build work, then updated in place and pushed again with this checkpoint. Five commits pushed tonight, exactly the monorepo ceiling: 617de05, 32caca6, 85ebff8, 819c642, and this one. Every push verified on origin by git ls-remote. No per-product repository created, so none counts against the ceiling. No approval row written, no product set to APPROVED, no words attributed to the owner. No human spoke in this session.",
   "pypi_name_check_2026_10_08": "falsifyloop, twininvalidate, rareverify, assuregraph, invariantset all HTTP 404 on pypi.org/pypi/<name>/json, i.e. all free.",
-  "STALE_PROMPT_NOTE_PROPAGATE": "The scheduled prompt still asserts Batches 01-02 complete with P021/P022 the latest publications. The tree shows P001-P050 PUBLISHED and Batch 06 specified. products.yaml governed, as the prompt itself directs. The prompt also orders 'start Level 4 in the next batch'; BATCH_06_SPEC's reasoned L4 position governs instead, because L4 needs Jetson Orin Nano measurements that no cloud session can produce and the prompt's own rule forbids labelling an unmeasured product Level 4. The owner should update the prompt text.",
-  "p051_still_ungated": "P051 was built 2026-10-07 and left at TESTING. It has never been through release_gate.py. Its self-reported 218 passed is still NOT a tracker figure. The gate's artifact-drift risk flagged last night (validate_predictor.py reports wall-clock latencies that move 10-20 percent per run, so a gate re-run changes committed .txt and the microsecond figures in README/VALIDATION/MODEL_CARD) is STILL UNRESOLVED and must be checked, not assumed harmless."
+  "STALE_PROMPT_NOTE_PROPAGATE": "The scheduled prompt asserts Batches 01-02 complete with P021/P022 the latest publications; the tree shows P001-P050 PUBLISHED and Batch 06 specified. It is stale by thirty products. It also orders 'start Level 4 in the next batch', which cannot be honoured without the Jetson and would require labelling an unmeasured product Level 4 - which the SAME prompt forbids. products.yaml governed throughout. OWNER SHOULD UPDATE THE PROMPT TEXT.",
+  "p051_still_ungated": "P051 was built 2026-10-07 and left at TESTING. It has never been through release_gate.py. Its self-reported 218 passed is still NOT a tracker figure. The gate's artifact-drift risk flagged last night (validate_predictor.py reports wall-clock latencies that move 10-20 percent per run, so a gate re-run changes committed .txt and the microsecond figures in README/VALIDATION/MODEL_CARD) is STILL UNRESOLVED and must be checked, not assumed harmless.",
+  "gate_verdict_2026_10_08": {
+    "runs": 2,
+    "run1": "P051 PASS 218, P052 PASS 282, P053 BLOCKED 243, P054 PASS 203, P055 PASS 248, P059 PASS 200; repository BLOCKED on an absolute private path tracked in nightly_reports/2026-10-08.md, introduced by THIS session quoting the owner home path literally. Total tests passing 1394. VERDICT PUSH BLOCKED.",
+    "run2_after_fixing_my_own_defect": "identical per-product results; repository PASS. Total tests passing 1394. VERDICT PUSH BLOCKED. P053 is the SOLE residual blocker.",
+    "action_taken": "P053 set to NEEDS HARDENING. Nothing published. Parts that passed NOT pushed, per the standing rule."
+  },
+  "COORDINATOR_MEASURED_TEST_COUNTS_AUTHORITATIVE": {
+    "method": "Coordinator re-ran every suite itself and parsed junit XML. Agent self-reports recorded only as a cross-check.",
+    "P052": 282,
+    "P053": 243,
+    "P054": 203,
+    "P055": 248,
+    "P059": 200,
+    "P051_gate": 218,
+    "new_total": 1176,
+    "gate_total": 1394,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "agreement": "ALL FIVE self-reports matched the independent measurement EXACTLY. Five for five. The measured figure is still the one entered (ADR-008, ADR-010), but this is evidence the report-accurately instruction is working."
+  },
+  "SCHEDULING_LESSON_NOW_MEASURED": "CONFIRMED WITH NUMBERS. Five agents in one tool block: max duration 6,209,451 ms (1 h 43 m 29 s) for FIVE products, 1,963,498 agent tokens, 647 tool calls, zero usage-limit terminations, zero resumptions. 2026-10-07, one agent alone: 7,643,188 ms (2 h 07 m 23 s) for ONE product, 537,764 tokens. Five concurrent cost 1.21x the wall clock of one serial agent and produced 5x the output. DISPATCH FIVE IN ONE BLOCK.",
+  "SECURITY_SCANS_NOT_RUN_PROPAGATE": "detect-secrets, bandit -r products/ -x '*/tests/*' and pip-audit were NOT RUN for Batch 06. The gate's own repo-wide secret-pattern check passed and its private-path check failed on my report text and was fixed. The three standalone scans MUST run before P052-P059 are released. Recorded as not done rather than implied done.",
+  "new_environment_defects_PROPAGATE": {
+    "hermgauss_nan": "numpy.polynomial.hermite.hermgauss(n) returns NaN WEIGHTS for n>=400 on numpy 2.5.3, SILENTLY (finite at 200 and 300). Use scipy.special.roots_hermite, finite to >=3200. REFINES the carried note that said 'above ~350 nodes'.",
+    "whitekernel_negative_variance": "WhiteKernel with a zero lower bound makes GaussianProcessRegressor emit NEGATIVE posterior variances on sklearn 1.9.1, corrupting any uncertainty output. Bound it to 1e-8*var(g).",
+    "qhull_deprecated": "scipy.spatial.qhull is deprecated on the installed SciPy; import QhullError from scipy.spatial.",
+    "det_divide_by_zero": "np.linalg.det emits divide-by-zero RuntimeWarnings on badly scaled small matrices; an SVD rank test is quieter and faster (one suite 83 s -> 58 s).",
+    "wallclock_spread_worse_than_briefed": "Wall-clock figures move 10-40 pct in this container, NOT 10-20 pct. Quote a ratio or a measured range, never a single-run microsecond figure in prose.",
+    "crossref_blocked": "api.crossref.org is blocked by the egress proxy (connect_rejected). Verify citations from publisher-hosted PDFs or DOI landing pages.",
+    "pypi_name_traps": "PyPI 'gsn' is Global Sensor Networks (EPFL), NOT Goal Structuring Notation. PyPI 'advocate' is an SSRF library, NOT NASA AdvoCATE. There is no established GSN package on PyPI.",
+    "mermaid_graph_reserved": "Mermaid reserves 'graph' as a node id in flowchart blocks; a README diagram with a module named graph fails to parse.",
+    "njobs_worse_than_briefed": "n_jobs>1 single-row forest inference measured 7.9-8.9x slower tonight, worse than the 5.7x carried forward."
+  },
+  "fabricated_readme_output_caught_PROPAGATE": "P052's agent wrote a README output block for a command it had NOT run (a fabricated 'NO VIOLATION FOUND' with robustness +0.111672; the real command finds a violation at simulation 16). It caught this ITSELF by re-running every quoted command as its final build step, replaced the block with verbatim committed output, and added the run to validate_cli.py. RECOMMENDATION: make re-running every README-quoted command a REQUIRED final step in PRODUCT_BUILD_GUIDE.md. This is the exact failure the every-number-from-a-script rule exists to prevent and it happened once tonight.",
+  "p051_citation_correction_pending": "P059's agent verified Blanchini 1999 Automatica 35(11) as pp. 1747-1768 against the author's own listing. P051's README and VALIDATION.md cite 1747-1767. P051 is unpublished so this is correctable before release. NOT changed tonight because P051 was mid-gate and editing it would invalidate the PASS just measured.",
+  "p051_artifact_drift_PARTLY_RESOLVED": "Last night's warning was that a gate re-run of P051 would change its committed validation .txt and desynchronise the microsecond figures in README/VALIDATION/MODEL_CARD. The gate re-ran P051's full validation and examples TWICE and P051 PASSED both times, test count re-measured to exactly 218. Timings do drift as predicted, so the DOCUMENT-ACCURACY risk is real, but it is NOT a gate risk. Carried forward, not closed."
 }

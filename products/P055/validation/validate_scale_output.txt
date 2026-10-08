@@ -9,11 +9,11 @@ the largest row is a stress case, not a representative one.
 
   nodes   edges  solutions   parse s  checks s  mermaid s  findings  yaml KiB
 ------------------------------------------------------------------------------------
-    150     149         50     0.007     0.002      0.001         0      20.6
-    750     749        250     0.040     0.006      0.003         0     105.9
-   3000    2999       1000     0.238     0.032      0.013         0     433.1
-   7500    7499       2500     0.551     0.083      0.032         0    1090.8
-  30000   29999      10000     3.091     0.311      0.142         0    4457.5
+    150     149         50     0.008     0.002      0.001         0      20.6
+    750     749        250     0.042     0.009      0.006         0     105.9
+   3000    2999       1000     0.173     0.024      0.011         0     433.1
+   7500    7499       2500     0.446     0.066      0.030         0    1090.8
+  30000   29999      10000     3.186     0.300      0.142         0    4457.5
 
 Findings per size (all must be 0 for a synthetic tree of fresh evidence):
       150 nodes -> 0 findings, 0 of them errors
@@ -23,24 +23,24 @@ Findings per size (all must be 0 for a synthetic tree of fresh evidence):
     30000 nodes -> 0 findings, 0 of them errors
 
 Per-node cost of run_checks (microseconds per node):
-      150 nodes ->    10.00 us/node
-      750 nodes ->     7.97 us/node
-     3000 nodes ->    10.80 us/node
-     7500 nodes ->    11.09 us/node
-    30000 nodes ->    10.36 us/node
+      150 nodes ->    10.40 us/node
+      750 nodes ->    12.54 us/node
+     3000 nodes ->     7.90 us/node
+     7500 nodes ->     8.86 us/node
+    30000 nodes ->    10.02 us/node
 
 Growth from 3000 to 30000 nodes
   node count ratio                 : 10.0x
-  run_checks wall-clock ratio      : 9.6x
+  run_checks wall-clock ratio      : 12.7x
   A ratio near the node ratio is consistent with the linear complexity the
   modules document. It is consistent with it, not a proof of it: five sizes
   on one contended machine cannot distinguish O(V+E) from O(V log V), and
   the wall-clock figures move by 10-20 % between runs.
 
   largest case checked             : 30000 nodes, 29999 edges, 10000 evidence artifacts
-  its run_checks wall clock        : 0.311 s
-  its parse wall clock             : 3.091 s
+  its run_checks wall clock        : 0.300 s
+  its parse wall clock             : 3.186 s
   its mermaid render wall clock    : 0.142 s
 
 FAILURES: 0
-elapsed: 16.096 s
+elapsed: 15.114 s

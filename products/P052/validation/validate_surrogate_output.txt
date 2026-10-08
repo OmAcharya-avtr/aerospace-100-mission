@@ -62,21 +62,21 @@ A positive correlation means the spread points at the places the forest is wrong
 ==============================================================================
 Check 4 - cost against the price of a simulation
 ==============================================================================
-one simulation + requirement evaluation : 0.6191 ms
-one forest refit on 120 points        : 32.6305 ms (52.7 simulations)
-scoring 256 candidates (mean + spread)   : 4.4773 ms (7.2 simulations)
+one simulation + requirement evaluation : 0.3177 ms
+one forest refit on 120 points        : 21.0735 ms (66.3 simulations)
+scoring 256 candidates (mean + spread)   : 2.5892 ms (8.2 simulations)
 
-The surrogate strategy refits every 8 simulations and scores 256 candidates before each one, so its overhead per simulation is roughly 13.8 simulations' worth of wall clock. That is the honest exchange rate: the surrogate's sample-efficiency gain is paid for in CPU time, and on a simulator cheaper than this one the trade would go the other way. The sample-efficiency curves count simulations, not seconds, precisely so that this trade is visible rather than hidden.
+The surrogate strategy refits every 8 simulations and scores 256 candidates before each one, so its overhead per simulation is roughly 16.4 simulations' worth of wall clock. That is the honest exchange rate: the surrogate's sample-efficiency gain is paid for in CPU time, and on a simulator cheaper than this one the trade would go the other way. The sample-efficiency curves count simulations, not seconds, precisely so that this trade is visible rather than hidden.
 Runs during this build put the simulation at 0.31-0.37 ms, the refit at 19-27 ms (60-90 simulations' worth) and the overhead at 15-25 simulations' worth per simulation bought. The README quotes those ranges rather than any single run's figure, because a single figure here would be stale by the next execution.
 Wall-clock figures move 10-20 % between runs on this container; the seeded simulation counts in validate_benchmark.py do not move at all.
 
 ==============================================================================
 Check 5 - the documented n_jobs defect, measured
 ==============================================================================
-n_jobs=1   single-row predict:     1475.8 us
-n_jobs=2   single-row predict:    12293.3 us
+n_jobs=1   single-row predict:     1473.6 us
+n_jobs=2   single-row predict:    12022.7 us
 
-slowdown factor n_jobs=2 / n_jobs=1 : 8.3x
+slowdown factor n_jobs=2 / n_jobs=1 : 8.2x
 The absolute microsecond figures above move substantially between runs on a shared container -- 10-40 % has been observed in this build -- so the ratio is the claim and the absolute numbers are context. Two runs during this build gave 8.9x and 7.9x.
 The package hard-codes n_jobs=1 and does not expose it, on the strength of this measurement. Earlier batches in this portfolio recorded the same effect: joblib's dispatch overhead per call dominates the work at this batch size on a 2-core container.
 
