@@ -13,16 +13,16 @@ Every estimator in this package is single-threaded numpy; nothing here uses jobl
 
 ## 1. Crude Monte Carlo, samples per second
      samples  dimension    seconds      samples/s
-      100000          2      0.004       23852578
-      100000         10      0.015        6790029
-     1000000          2      0.029       34799989
-     1000000         10      0.145        6887200
-     4000000          2      0.111       36188909
-     4000000         10      0.558        7171100
+      100000          2      0.005       20689746
+      100000         10      0.016        6432267
+     1000000          2      0.030       33051222
+     1000000         10      0.154        6479973
+     4000000          2      0.108       37017738
+     4000000         10      0.546        7324848
 
 ## 2. Importance sampling and subset simulation
                       method         size    seconds
-         importance sampling      1000000      0.059
+         importance sampling      1000000      0.070
            subset simulation         1000      0.001 (3700 true evaluations, 4 levels)
            subset simulation         2000      0.002 (7400 true evaluations, 4 levels)
            subset simulation        10000      0.005 (37000 true evaluations, 4 levels)
@@ -30,12 +30,12 @@ Every estimator in this package is single-threaded numpy; nothing here uses jobl
 ## 3. The learned surrogate
 A Gaussian-process fit is cubic in the design size. These times are the reason n_train is capped at 2000 and the reason the default n_restarts_optimizer is 0.
   n_train     fit s   design-point s    total s
-       50      0.13             2.08       2.21
-      100      0.07             2.21       2.28
-      200      0.28             2.29       2.57
-      400      1.14             1.98       3.12
-      800      6.75             2.76       9.51
-[PASS] the largest single surrogate fit plus search measured here is under the 180 s per-run budget (worst 9.51 s)
+       50      0.16             2.22       2.38
+      100      0.08             2.09       2.17
+      200      0.24             2.32       2.56
+      400      1.22             2.52       3.74
+      800      7.42             2.51       9.93
+[PASS] the largest single surrogate fit plus search measured here is under the 180 s per-run budget (worst 9.93 s)
 
 ## 4. Total for each validation script, measured separately
 Run times of the validation scripts themselves, as measured when this package was built. Reproduce with: time python validation/<script>.py
