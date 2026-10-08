@@ -1,17 +1,29 @@
 {
   "batch": 6,
-  "phase": "deterministic_core_complete",
-  "phase_index": 3,
-  "updated": "2026-10-07T05:30:00Z",
-  "batch_06_status": "IN PROGRESS. P051 built (TESTING). Nine products remain specified but unbuilt. A SCHEDULING ERROR COST THIS SESSION TWO HOURS: P051 was dispatched ALONE instead of as one of five concurrent agents, and it took 7643048 ms of wall clock by itself. The remaining capacity in the window is one wave of five, not two, so BATCH 06 WILL NOT COMPLETE TONIGHT and the session is planning for a partial, honestly-labelled publication.",
-  "products_complete": ["P051"],
-  "products_pending": ["P052","P053","P054","P055","P056","P057","P058","P059","P060"],
+  "phase": "specification_complete",
+  "phase_index": 2,
+  "updated": "2026-10-08T03:12:00Z",
+  "batch_06_status": "IN PROGRESS, session 2. P051 built 2026-10-07 and still TESTING (never gated). P052-P060 still SPECIFYING. 2026-10-07 wave 1 (P052,P053,P054,P055,P059) left NO artifact: no products/P052+ directory exists and products.yaml still shows all nine SPECIFYING, so that wave did not survive to a commit. Those same five are re-dispatched tonight in ONE tool block, per the propagated scheduling lesson.",
+  "products_complete": [
+    "P051"
+  ],
+  "products_pending": [
+    "P052",
+    "P053",
+    "P054",
+    "P055",
+    "P056",
+    "P057",
+    "P058",
+    "P059",
+    "P060"
+  ],
   "blocked": false,
   "blocked_on": null,
-  "next_action": "Wave 1 of five dispatched: P052, P053, P054, P055, P059. On completion, gate the six built products and publish those that pass under ADR-017. P056, P057, P058, P060 carry to the next session, which finishes Batch 06.",
+  "next_action": "Five agents dispatched in one block: P052 FalsifyLoop, P053 TwinInvalidate, P054 RareVerify, P055 AssureGraph, P059 InvariantSet. On completion, coordinator re-measures every critical claim, runs release_gate.py over P051 plus whatever built, and publishes what passes under ADR-017. P056, P057, P058, P060 carry forward.",
   "SCHEDULING_LESSON_PROPAGATE": "DISPATCH FIVE AGENTS IN ONE MESSAGE, AS ONE TOOL BLOCK. This session dispatched P051 alone, waited 2 hours 7 minutes for it, and thereby lost one of the two waves the window allows. The concurrency limit is five AND the target is five; one agent at a time is a serial build wearing a parallel budget. Batch 05 ran two clean waves of five and finished ten products; this session will finish six.",
-  "phase_minus_1_publication_path": "VERIFIED BEFORE BUILDING, three of three PASS. Bridge alive, gh logged in as OmAcharya-avtr. Mac mission-repo clean, HEAD equal to origin/main. Real write probe pushed refs/heads/probe-1791342495, confirmed by ls-remote, then deleted.",
-  "DEVICE_FOLDER_GRANT_REGRESSION_PROPAGATE": "get_device_info reported connectedFolders: [] at session start even though the task reminder named /Users/acharya/100 Aero Prods, so the FIRST device_commit_files call was REFUSED with 'Files can't be written here without a grant'. mcp__remote-devices__device_request_folder_access for that one path returned {granted:[...]} immediately and the transfer then worked normally. A future run that hits this must request the grant rather than conclude the publication path is broken; osascript works regardless of the grant, device_commit_files does not.",
+  "phase_minus_1_publication_path": "VERIFIED BEFORE BUILDING, three of three PASS at 03:08-03:10 UTC 2026-10-08. Bridge alive, gh logged in as OmAcharya-avtr. Mac mission-repo clean, HEAD ec6fde7 == origin/main. Real write probe pushed refs/heads/probe-1791428909, confirmed by ls-remote, then deleted. Report pushed to origin/main as 617de05 and verified by ls-remote BEFORE any build work.",
+  "DEVICE_FOLDER_GRANT_REGRESSION_PROPAGATE": "CONFIRMED AGAIN 2026-10-08. get_device_info reported connectedFolders: [] despite the task reminder naming /Users/acharya/100 Aero Prods. This run requested the grant PROACTIVELY, before the first device_commit_files call, and device_request_folder_access returned {granted:['/Users/acharya/100 Aero Prods']} immediately. Requesting it up front costs one call and removes the refusal entirely. Keep doing that. osascript works without the grant; device_commit_files does not.",
   "p051_selfreport_NOT_A_TRACKER_FIGURE": "Build agent self-reported 218 passed, 0 failed, 0 skipped, ruff clean, CLI exit 0, 7 validation scripts and 5 examples exiting 0. NOT entered anywhere as fact. The release gate re-measures from junit XML and that figure governs (ADR-008, ADR-010).",
   "p051_honest_negatives_DO_NOT_REMOVE": {
     "count": "Eleven, bringing the portfolio to at least twenty-seven.",
@@ -29,10 +41,18 @@
     "carried_from_batch_05": "scipy.optimize.milp needs options={'mip_rel_gap': 0.0}; numpy.polynomial.hermite weights overflow to NaN above ~350 nodes; scipy.stats.kstest(x,'norm',args=(loc,scale)) raises TypeError on the installed SciPy."
   },
   "p051_gate_cost_note": "Suite ~93 s; slowest validation script validate_invariant_set.py ~64 s; full re-run of all validation plus all examples about 3.5 minutes. The agent warns that validate_predictor.py reports WALL-CLOCK latencies that move 10-20 percent between runs, so a gate re-run will change the committed .txt and the microsecond figures in README/VALIDATION/MODEL_CARD will no longer match it exactly. Everything else in the product is seeded and stable. THIS IS A REAL RISK TO THE GATE'S ARTIFACT-DRIFT POSITION AND MUST BE CHECKED, NOT ASSUMED HARMLESS.",
-  "l4_position": "STILL 0 OF 5 AND BATCH 06 ADDS NO NEW CANDIDATE, ON PURPOSE. P031, P033, P041, P043 wait on the identical Jetson Orin Nano measurement.",
+  "l4_position": "STILL 0 OF 5. Batch 06 adds no new candidate, on purpose. P031, P033, P041, P043 each wait on the identical Jetson Orin Nano measurement. This is the fifth consecutive batch blocked on one hardware session by the owner. OWNER ACTION REQUIRED; no cloud work closes it.",
   "agent_tokens_so_far": {
     "method": "Copied verbatim from the Agent tool result. No estimates.",
-    "P051": {"agent": "aaef0f23b2bdc573a", "tokens": 537764, "tool_uses": 184, "duration_ms": 7643188}
+    "P051": {
+      "agent": "aaef0f23b2bdc573a",
+      "tokens": 537764,
+      "tool_uses": 184,
+      "duration_ms": 7643188
+    }
   },
-  "notes": "Rule Zero honoured: nightly_reports/2026-10-07.md was written and PUSHED at the end of Phase 2 before any build work (commit d342781, push 1 of the ceiling of 5), and is updated in place. This commit is push 2. No approval row written, no product set to APPROVED, no words attributed to the owner."
+  "notes": "Rule Zero honoured: nightly_reports/2026-10-08.md written, committed 617de05, pushed and verified on origin/main BEFORE any build work. This checkpoint commit is push 2 of the ceiling of 5. No approval row written, no product set to APPROVED, no words attributed to the owner. No human spoke in this session.",
+  "pypi_name_check_2026_10_08": "falsifyloop, twininvalidate, rareverify, assuregraph, invariantset all HTTP 404 on pypi.org/pypi/<name>/json, i.e. all free.",
+  "STALE_PROMPT_NOTE_PROPAGATE": "The scheduled prompt still asserts Batches 01-02 complete with P021/P022 the latest publications. The tree shows P001-P050 PUBLISHED and Batch 06 specified. products.yaml governed, as the prompt itself directs. The prompt also orders 'start Level 4 in the next batch'; BATCH_06_SPEC's reasoned L4 position governs instead, because L4 needs Jetson Orin Nano measurements that no cloud session can produce and the prompt's own rule forbids labelling an unmeasured product Level 4. The owner should update the prompt text.",
+  "p051_still_ungated": "P051 was built 2026-10-07 and left at TESTING. It has never been through release_gate.py. Its self-reported 218 passed is still NOT a tracker figure. The gate's artifact-drift risk flagged last night (validate_predictor.py reports wall-clock latencies that move 10-20 percent per run, so a gate re-run changes committed .txt and the microsecond figures in README/VALIDATION/MODEL_CARD) is STILL UNRESOLVED and must be checked, not assumed harmless."
 }
