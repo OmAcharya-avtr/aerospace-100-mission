@@ -1,9 +1,9 @@
 {
   "batch": 6,
-  "phase": "readiness_report_complete",
-  "phase_index": 9,
-  "updated": "2026-10-08T06:40:00Z",
-  "batch_06_status": "PARTIAL AND UNPUBLISHED. Six of ten products built (P051 last night, P052/P053/P054/P055/P059 tonight). release_gate.py exited 1, so NOTHING was published, including the five products that PASS. P053 is the sole residual blocker. P056, P057, P058, P060 remain unbuilt.",
+  "phase": "mission_state_recovered",
+  "phase_index": 1,
+  "updated": "2026-10-09T03:12:00Z",
+  "batch_06_status": "SIX BUILT, FOUR UNBUILT, NONE PUBLISHED. P051/P052/P054/P055/P059 are gate-PASS and held. P053 NEEDS HARDENING is the sole residual gate blocker. P056/P057/P058/P060 dispatched tonight as FOUR AGENTS IN ONE BLOCK.",
   "products_complete": [
     "P051",
     "P052",
@@ -20,11 +20,10 @@
   ],
   "blocked": true,
   "blocked_on": "GATE EXIT 1. P053 validation/validate_thresholds.py exits 1 BY DESIGN because it publishes two failing variance-CUSUM threshold-transfer checks (bias -8.6 pct at T=200, +13.5 pct at T=1000 against a declared 8.8 pct tolerance) rather than widening the tolerance. Gate check 6 requires every validation script to exit 0. ADR-011 honest-negative policy and gate check 6 are in DIRECT CONFLICT and the gate currently punishes the behaviour the mission most wants. NOT RESOLVED HERE: the gate was not edited, no threshold loosened, no failing check hidden. Needs an OWNER convention decision.",
-  "next_action": "Read nightly_reports/2026-10-08.md FIRST; it carries two owner decisions that may already be answered. If a batch may publish partially: gate P051,P052,P054,P055,P059 and on exit 0 publish five repos under ADR-017, record URLs in products.yaml and RELEASE_LEDGER.md, verify one contributor each. Run detect-secrets, bandit and pip-audit BEFORE any release - they were NOT run this session. Then build P056,P057,P058,P060 as FIVE AGENTS IN ONE BLOCK.",
+  "next_action": "Four agents dispatched in one block for P056 CalibAudit, P057 ConformalBand, P058 TelemDrift, P060 TraceAudit. While they run: the three standalone security scans that were NEVER RUN for Batch 06 (detect-secrets, bandit -r products/ -x '*/tests/*', pip-audit against declared deps). Then coordinator re-measures every new suite from junit XML. Publication still gated on the P053 decision.",
   "SCHEDULING_LESSON_PROPAGATE": "DISPATCH FIVE AGENTS IN ONE MESSAGE, AS ONE TOOL BLOCK. This session dispatched P051 alone, waited 2 hours 7 minutes for it, and thereby lost one of the two waves the window allows. The concurrency limit is five AND the target is five; one agent at a time is a serial build wearing a parallel budget. Batch 05 ran two clean waves of five and finished ten products; this session will finish six.",
-  "phase_minus_1_publication_path": "VERIFIED BEFORE BUILDING, three of three PASS at 03:08-03:10 UTC 2026-10-08. Bridge alive, gh logged in as OmAcharya-avtr. Mac mission-repo clean, HEAD ec6fde7 == origin/main. Real write probe pushed refs/heads/probe-1791428909, confirmed by ls-remote, then deleted. Report pushed to origin/main as 617de05 and verified by ls-remote BEFORE any build work.",
+  "phase_minus_1_publication_path": "VERIFIED BEFORE BUILDING, three of three PASS at 03:08-03:09 UTC 2026-10-09. Bridge alive, gh logged in as OmAcharya-avtr. Mac mission-repo clean on main, HEAD 4a49f95 == origin/main (rev-list left-right 0 0). Real write probe pushed refs/heads/probe-1791515299, confirmed by ls-remote, then deleted. Rule Zero report pushed to origin/main as bfecc75 and verified by ls-remote BEFORE any build work.",
   "DEVICE_FOLDER_GRANT_REGRESSION_PROPAGATE": "CONFIRMED AGAIN 2026-10-08. get_device_info reported connectedFolders: [] despite the task reminder naming /Users/<user>/100 Aero Prods. This run requested the grant PROACTIVELY, before the first device_commit_files call, and device_request_folder_access returned {granted:['/Users/<user>/100 Aero Prods']} immediately. Requesting it up front costs one call and removes the refusal entirely. Keep doing that. osascript works without the grant; device_commit_files does not.",
-  "p051_selfreport_NOT_A_TRACKER_FIGURE": "Build agent self-reported 218 passed, 0 failed, 0 skipped, ruff clean, CLI exit 0, 7 validation scripts and 5 examples exiting 0. NOT entered anywhere as fact. The release gate re-measures from junit XML and that figure governs (ADR-008, ADR-010).",
   "p051_honest_negatives_DO_NOT_REMOVE": {
     "count": "Eleven, bringing the portfolio to at least twenty-seven.",
     "headline": "The learned switch predictor LOSES to the exact analytic switching condition on that condition's own criterion, on BOTH axes: F1 0.980685 against 1.000000 (18 false positives, 13 false negatives in 9600 steps) and 846x the per-decision latency (7343.16 us against 8.68 us). No forest size closes it - a 20-tree forest is still 198x at F1 0.978301 - because the latency is sklearn per-call overhead and the accuracy error is an axis-aligned staircase against fifty non-axis-aligned halfspaces. No retune was attempted.",
@@ -122,5 +121,12 @@
   },
   "fabricated_readme_output_caught_PROPAGATE": "P052's agent wrote a README output block for a command it had NOT run (a fabricated 'NO VIOLATION FOUND' with robustness +0.111672; the real command finds a violation at simulation 16). It caught this ITSELF by re-running every quoted command as its final build step, replaced the block with verbatim committed output, and added the run to validate_cli.py. RECOMMENDATION: make re-running every README-quoted command a REQUIRED final step in PRODUCT_BUILD_GUIDE.md. This is the exact failure the every-number-from-a-script rule exists to prevent and it happened once tonight.",
   "p051_citation_correction_pending": "P059's agent verified Blanchini 1999 Automatica 35(11) as pp. 1747-1768 against the author's own listing. P051's README and VALIDATION.md cite 1747-1767. P051 is unpublished so this is correctable before release. NOT changed tonight because P051 was mid-gate and editing it would invalidate the PASS just measured.",
-  "p051_artifact_drift_PARTLY_RESOLVED": "Last night's warning was that a gate re-run of P051 would change its committed validation .txt and desynchronise the microsecond figures in README/VALIDATION/MODEL_CARD. The gate re-ran P051's full validation and examples TWICE and P051 PASSED both times, test count re-measured to exactly 218. Timings do drift as predicted, so the DOCUMENT-ACCURACY risk is real, but it is NOT a gate risk. Carried forward, not closed."
+  "p051_artifact_drift_PARTLY_RESOLVED": "Last night's warning was that a gate re-run of P051 would change its committed validation .txt and desynchronise the microsecond figures in README/VALIDATION/MODEL_CARD. The gate re-ran P051's full validation and examples TWICE and P051 PASSED both times, test count re-measured to exactly 218. Timings do drift as predicted, so the DOCUMENT-ACCURACY risk is real, but it is NOT a gate risk. Carried forward, not closed.",
+  "session_date": "2026-10-09",
+  "DECISIONS_THIS_SESSION_DECLINED_TO_MAKE": {
+    "p053_exit_convention": "NOT RESOLVED AND DELIBERATELY SO. Flipping validate_thresholds.py to exit 0 would clear the gate tonight without addressing the gate's concern, and would settle unilaterally a convention question the previous session explicitly referred to the owner. An unattended session with no human input is the wrong place to overturn that referral. Gate not edited, no threshold loosened, no failing check hidden.",
+    "batch_atomicity": "NOT RESOLVED. Did NOT publish the five passing products. Running the gate over a hand-picked subset to obtain exit 0 is 'publish the parts that passed' with extra steps and is forbidden by the standing rule.",
+    "escalation_channel_changed": "Both decisions had only ever been written into reports and this checkpoint. Tonight they go to the owner as a PUSH NOTIFICATION. Three consecutive nights blocked on an unread paragraph is a reporting failure, not a build failure. FUTURE SESSIONS: notify, do not only write."
+  },
+  "pushes_used_tonight": "1 of 5 (bfecc75, Rule Zero report)"
 }
