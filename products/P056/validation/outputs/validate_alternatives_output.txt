@@ -1,0 +1,89 @@
+==============================================================================
+Alternatives named in README.md, checked against what they ship
+==============================================================================
+python 3.13.16 on Linux 6.18.44-fc-v114, 2 usable cores
+
+snapshot captured : 2026-10-10T03:58:06+00:00 UTC
+snapshot file     : validation/alternatives_snapshot.json
+capture commands  :
+  curl -s -o /dev/null -w '%{http_code}' https://pypi.org/pypi/<name>/json   (name availability)
+  curl -s https://pypi.org/pypi/<name>/json                                  (version, licence, requires_dist, upload_time)
+  pip download --no-deps <name>==<version> -d .                               (fetch the wheel actually published)
+  unzip -o <wheel>                                                            (read what the package ships)
+
+[    PASS] the PyPI name 'calibaudit' is free
+           reference   : HTTP status of https://pypi.org/pypi/calibaudit/json
+           measured    : HTTP 404
+           expectation : 404, i.e. no project of that name exists
+netcal 1.4.0, Apache-2.0, uploaded 2026-04-16T08:43:29 UTC
+  requires        : numpy>=2.0, scipy>=1.11, matplotlib>=3.8, scikit-learn>=1.3, torch>=2.3, tqdm>=4.65, pyro-ppl>=1.8.5, tensorboard>=2.12, gpytorch>=1.11
+  metrics         : ACE, ECE, ENCE, MCE, MMCE, NLL, PICP, PinballLoss, QCE, QuantileLoss, UCE
+  scaling methods : AbstractLogisticRegression, BetaCalibration, BetaCalibrationDependent, LogisticCalibration, LogisticCalibrationDependent, TemperatureScaling
+  binning methods : BBQ, ENIR, HistogramBinning, IsotonicRegression, NearIsotonicRegression
+  presentation    : ReliabilityDiagram, ReliabilityQCE, ReliabilityRegression
+  shipped modules : 56 .py files under netcal/
+
+[    PASS] netcal 1.4.0 exists and is the version the README cites
+           reference   : PyPI JSON metadata for netcal
+           measured    : version 1.4.0, 15 releases
+           expectation : version 1.4.0
+[    PASS] netcal computes ECE, ACE and MCE, as the README says it does
+           reference   : netcal/metrics/__init__.py in the published wheel
+           measured    : exports ACE, ECE, ENCE, MCE, MMCE, NLL, PICP, PinballLoss, QCE, QuantileLoss, UCE
+           expectation : ECE, ACE and MCE all present; the README must not imply netcal lacks the metric
+[    PASS] netcal ships no Brier score and therefore no Murphy decomposition
+           reference   : case-insensitive search for 'brier' and 'murphy' across every .py file under netcal/ in the published wheel
+           measured    : mentions 'brier': False; mentions 'murphy': False; mentions 'resolution': False
+           expectation : all three absent, which is what lets this package claim the decomposition as a difference rather than a duplicate
+[    PASS] netcal ships no bootstrap
+           reference   : case-insensitive search for 'bootstrap' under netcal/
+           measured    : mentions 'bootstrap': False
+           expectation : absent; its ReliabilityDiagram error bars come from Monte-Carlo-sampled input uncertainty, not from resampling the data
+[    PASS] netcal requires PyTorch, which is why it is a citation here and not an import
+           reference   : requires_dist in netcal's PyPI metadata
+           measured    : requires numpy>=2.0, scipy>=1.11, matplotlib>=3.8, scikit-learn>=1.3, torch>=2.3, tqdm>=4.65, pyro-ppl>=1.8.5, tensorboard>=2.12, gpytorch>=1.11
+           expectation : torch, pyro-ppl, gpytorch and tensorboard all required, none of which is installable in this 2-core container
+
+properscoring 0.1, Apache, uploaded 2015-11-12T19:54:24 UTC, 1 release in total
+  public API      : brier_score, crps_ensemble, crps_gaussian, crps_quadrature, threshold_brier_score
+  shipped modules : 10 .py files
+
+[    PASS] properscoring exists, at version 0.1, and has had exactly one release
+           reference   : PyPI JSON metadata for properscoring
+           measured    : version 0.1, 1 release, uploaded 2015-11-12T19:54:24
+           expectation : one release, 2015; the README must say it is unmaintained rather than imply it is current
+[    PASS] properscoring has a Brier score but no calibration analysis
+           reference   : __init__.py __all__ and a keyword search of the published wheel
+           measured    : public API brier_score, crps_ensemble, crps_gaussian, crps_quadrature, threshold_brier_score; mentions ECE: False; mentions reliability or resolution: False
+           expectation : brier_score present, no ECE, no reliability or resolution term
+[    PASS] properscoring's 'decomposition' is the CRPS threshold decomposition, not Murphy's partition
+           reference   : properscoring/thresholds.py in the published wheel
+           measured    : ships threshold_decomposition: True; ships reliability or resolution terms: False
+           expectation : threshold decomposition present, Murphy partition absent; conflating the two in the README would be a wrong claim about a competitor
+
+scikit-learn 1.9.1 on PyPI, 1.9.1 installed here
+  calibration     : BaseEstimator, CalibratedClassifierCV, CalibrationDisplay, ClassifierMixin, FrozenEstimator, HalfBinomialLoss, HalfMultinomialLoss, HalfMultinomialLossArrayAPI, HasMethods, Integral, Interval, IsotonicRegression, LabelEncoder, LeaveOneOut, LinearSVC, MetaEstimatorMixin, MetadataRouter, MethodMapping, Parallel, Real, RegressorMixin, StrOptions, calibration_curve
+  Brier metrics   : brier_score_loss, d2_brier_score, log_loss
+
+[    PASS] sklearn.calibration provides the maps and the curve the README credits it with
+           reference   : dir(sklearn.calibration) and dir(sklearn.metrics) in this interpreter
+           measured    : 4 of 4 present: CalibratedClassifierCV, CalibrationDisplay, FrozenEstimator, calibration_curve
+           expectation : all four present in 1.9.1
+[    PASS] sklearn has a Brier score but no ECE and no Brier decomposition
+           reference   : dir(sklearn.metrics) filtered for 'brier' and 'log_loss'
+           measured    : brier_score_loss, d2_brier_score, log_loss; no name containing 'calibration_error' or 'reliability' is exported
+           expectation : brier_score_loss and log_loss present, no ECE, no decomposition
+
+What this leaves as this package's difference, stated as a measured claim
+rather than a boast: netcal computes the same plug-in ECE this package
+computes, and computes more calibration metrics besides, but ships no Brier
+score, no Murphy decomposition, no bootstrap, and no estimate of its own
+ECE's binning bias. sklearn has the Brier score and the reliability curve
+but neither the decomposition nor any ECE. properscoring has the Brier score
+and the CRPS, is a decade without a release, and has no calibration
+analysis at all. The overlap is real and the README says so first.
+
+------------------------------------------------------------------------------
+checks: 11 total, 11 passed, 0 FAILED
+------------------------------------------------------------------------------
+script exit status 0 (see validation/_harness.py for why)

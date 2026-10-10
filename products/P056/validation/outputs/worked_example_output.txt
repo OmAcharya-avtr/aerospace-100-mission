@@ -1,0 +1,44 @@
+Brier decomposition (exact, n = 1200)
+  base rate                 : 0.473333333333
+  bins requested / occupied : 0 / 21
+  BS  (direct)              : 0.208443750000
+  REL reliability           : 0.007663316625
+  RES resolution            : 0.048508455514
+  UNC uncertainty           : 0.249288888889
+  WBV within-bin variance   : 0.000000000000
+  WBC within-bin covariance : 0.000000000000
+  REL - RES + UNC           : 0.208443750000
+  + WBV - 2 WBC             : 0.208443750000
+  identity residual         : +0.000e+00
+  three-term residual       : +0.000e+00
+
+three-term residual, exact grouping : +0.000e+00
+three-term residual, 10 equal bins  : -8.197e-04
+
+raw ECE, 10 bins : 0.069458
+ECE audit (equal_width, n = 1200, bins = 10, replicates = 500)
+  raw ECE                   : 0.069458333
+  null mean (binning bias)  : 0.029174500
+  null std                  : 0.007262479
+  null 5-95 pct             : [0.018037500, 0.042045833]
+  debiased ECE              : +0.040283833
+  p-value (calibrated null) : 0.0020
+
+bins flagged miscalibrated at 90 % pointwise: 5 of 10
+
+held-out audit, 600 train / 600 test
+    method  learned      brier       log       ECE       MCE     dBrier      ci_lo      ci_hi            verdict
+----------------------------------------------------------------------------------------------------------------
+       raw    False   0.207283  0.600896  0.071500  0.100000  +0.000000  +0.000000  +0.000000           baseline
+     platt     True   0.208777  0.603016  0.050742  0.151458  +0.001494  -0.006423  +0.009283  indistinguishable
+  isotonic     True   0.206148  0.597109  0.044808  0.138701  -0.001136  -0.006842  +0.004581  indistinguishable
+
+fitted Platt map: a = 0.559941, b = -0.146845  (exact inverse would be a = 0.714286, b = 0)
+  f = 0.1 -> 0.2015  90 % interval on the map [0.1529, 0.2779]
+  f = 0.5 -> 0.4634  90 % interval on the map [0.4401, 0.4844]
+  f = 0.9 -> 0.7472  90 % interval on the map [0.6558, 0.8105]
+
+same data, forecasts hard-thresholded to exactly 0 or 1:
+  log score of the raw forecast : 11.110120  (clipped at 1e-15, so this is finite only by convention)
+  Platt fit on it               : a = 0.027358, b = -0.153106
+  the slope collapses because logit(0) is clipped to -27.6 and dominates the fit

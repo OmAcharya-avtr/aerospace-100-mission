@@ -1,0 +1,112 @@
+==============================================================================
+Brier decomposition identities - calibaudit 0.1.0
+==============================================================================
+python 3.13.16 on Linux 6.18.44-fc-v114, 2 usable cores
+
+exact decomposition cases : 72
+worst three-term residual : 1.110223e-16  (overconfident, n = 100, 3 digits)
+
+[    PASS] exact Murphy identity BS = REL - RES + UNC
+           reference   : Murphy 1973, J. Appl. Meteorol. 12(4) 595-600
+           measured    : worst |residual| = 1.110223e-16 over 72 cases
+           expectation : <= 1e-14 (machine precision at this magnitude)
+binned decomposition cases : 480
+worst identity residual    : 1.720846e-15  (overconfident, n = 8000, B = 2, equal_width)
+
+[    PASS] five-term identity BS = REL - RES + UNC + WBV - 2 WBC
+           reference   : elementary algebra, derived in src/calibaudit/decomposition.py
+           measured    : worst |residual| = 1.720846e-15 over 480 cases
+           expectation : <= 1e-14
+random adversarial cases   : 600
+worst identity residual    : 6.106227e-16
+
+[    PASS] five-term identity on random inputs including all-0/1 and tied forecasts
+           reference   : same algebra, inputs drawn from four adversarial families
+           measured    : worst |residual| = 6.106227e-16 over 600 cases
+           expectation : <= 1e-14
+How much a three-term binned report drops, spec 'overconfident', n = 8000
+
+    B     strategy           BS   REL-RES+UNC         WBV          WBC  3-term resid   % of BS
+----------------------------------------------------------------------------------------------
+    2  equal_width   0.20200117    0.21540733  0.02119816   0.01730216   -0.01340616    6.6367
+    5  equal_width   0.20200117    0.20536751  0.00330107   0.00333370   -0.00336633    1.6665
+   10  equal_width   0.20200117    0.20261027  0.00081553   0.00071231   -0.00060909    0.3015
+   20  equal_width   0.20200117    0.20191022  0.00020406   0.00005655   +0.00009095    0.0450
+   50  equal_width   0.20200117    0.20199478  0.00003306   0.00001333   +0.00000640    0.0032
+  200  equal_width   0.20200117    0.20201941  0.00000203   0.00001014   -0.00001824    0.0090
+    2   equal_mass   0.20200117    0.21514219  0.02120355   0.01717228   -0.01314102    6.5054
+    5   equal_mass   0.20200117    0.20530392  0.00336665   0.00333470   -0.00330274    1.6350
+   10   equal_mass   0.20200117    0.20229620  0.00083907   0.00056705   -0.00029503    0.1461
+   20   equal_mass   0.20200117    0.20202082  0.00021194   0.00011580   -0.00001965    0.0097
+   50   equal_mass   0.20200117    0.20200053  0.00003394   0.00001665   +0.00000064    0.0003
+  200   equal_mass   0.20200117    0.20201306  0.00000226   0.00000707   -0.00001189    0.0059
+
+[    PASS] the dropped three-term residual is measurable, not negligible
+           reference   : same sample, same code path, two bins vs 200 bins
+           measured    : largest |three-term residual| = 6.6367 % of the Brier score
+           expectation : > 0.01 % at some bin count, i.e. the drop is real
+Binned terms against population values, n = 200000, 50 equal-mass bins
+
+               spec    UNC_pop   UNC_meas    RES_pop   RES_meas     REL_pop    REL_meas     BS_pop    BS_meas
+-------------------------------------------------------------------------------------------------------------
+         calibrated   0.250000   0.250000   0.050000   0.050237   0.000e+00   4.731e-05   0.200000   0.199744
+ calibrated_uniform   0.250000   0.249999   0.083333   0.083123   0.000e+00   2.711e-05   0.166667   0.166875
+    calibrated_rare   0.090000   0.089860   0.008182   0.008215   0.000e+00   1.603e-05   0.081818   0.081582
+      overconfident   0.250000   0.250000   0.050000   0.050237   6.778e-03   6.834e-03   0.206778   0.206539
+     underconfident   0.250000   0.250000   0.050000   0.050237   4.562e-03   4.651e-03   0.204562   0.204359
+        biased_high   0.250000   0.250000   0.050000   0.050237   1.498e-02   1.491e-02   0.214976   0.214618
+
+[    PASS] measured uncertainty term converges to the Beta closed form
+           reference   : UNC = obar(1-obar) with obar = a/(a+b), exact
+           measured    : worst |difference| = 1.400306e-04 at n = 200000
+           expectation : <= 5e-3 (five standard errors of a base-rate estimate at this n)
+[    PASS] measured resolution term converges to Var(p) of the Beta latent
+           reference   : RES = ab / ((a+b)^2 (a+b+1)), exact
+           measured    : worst |difference| = 2.369132e-04 at n = 200000, 50 bins
+           expectation : <= 1e-2; binning truncates resolution from below, so a one-sided shortfall is expected
+
+Population values of every shipped spec, with the absolute-error estimate
+scipy.integrate.quad returns for each integral it had to evaluate. These
+are the reference values every other script measures against, and the
+abserr column is the tolerance to quote when doing so. The three calibrated
+specs need no quadrature for REL or ECE: both are exactly 0 and are returned
+as such, so their abserr is 0.
+
+               spec     obar       UNC       RES         REL    REL err       ECE    ECE err                 LS     LS err
+--------------------------------------------------------------------------------------------------------------------------
+         calibrated   0.5000  0.250000  0.050000   0.000e+00   0.00e+00  0.000000   0.00e+00  0.583333333333047   5.66e-09
+ calibrated_uniform   0.5000  0.250000  0.083333   0.000e+00   0.00e+00  0.000000   0.00e+00 0.49999999999999983   5.55e-16
+    calibrated_rare   0.1000  0.090000  0.008182   0.000e+00   0.00e+00  0.000000   0.00e+00 0.2828968253969357   6.10e-11
+      overconfident   0.5000  0.250000  0.050000   6.778e-03   6.13e-11  0.075204   1.79e-10 0.6117980887972646   2.13e-09
+     underconfident   0.5000  0.250000  0.050000   4.562e-03   3.18e-11  0.059354   3.04e-10 0.5959512135655829   5.74e-09
+        biased_high   0.5000  0.250000  0.050000   1.498e-02   1.66e-16  0.117979   1.31e-15 0.6190284198590774   5.51e-09
+
+Hand integral, Beta(2,2) identity forecaster: density 6p(1-p), and by the
+p <-> 1-p symmetry of both density and integrand,
+  LS = -2 * int 6p(1-p) p ln p dp = -12 int (p^2 - p^3) ln p dp,
+and with int_0^1 p^n ln p dp = -1/(n+1)^2,
+  int (p^2 - p^3) ln p dp = -1/9 + 1/16 = -7/144,  so LS = 7/12.
+  7/12               = 0.5833333333333334
+  quadrature         = 0.583333333333047
+  |difference|       = 2.863e-13
+  quad's own abserr  = 5.664e-09
+
+[    PASS] quadrature log score of the Beta(2,2) identity spec matches the hand integral 7/12, and quad's own abserr is conservative
+           reference   : 7/12 = 0.5833333333333333, derived above with no numerics
+           measured    : quadrature 0.583333333333047, |difference| 2.863e-13, against a reported abserr of 5.664e-09
+           expectation : |difference| <= 1e-10, and the reported abserr larger than the actual error, i.e. conservative
+Hand integral, uniform identity forecaster: density 1, so
+  LS = -2 int_0^1 p ln p dp = -2 * (-1/4) = 1/2.
+  1/2                = 0.5
+  quadrature         = 0.49999999999999983
+  |difference|       = 1.665e-16
+
+[    PASS] quadrature log score of the uniform identity spec matches the hand integral 1/2
+           reference   : 1/2 = 0.5, derived above with no numerics
+           measured    : quadrature 0.49999999999999983, |difference| 1.665e-16
+           expectation : |difference| <= 1e-10
+
+------------------------------------------------------------------------------
+checks: 8 total, 8 passed, 0 FAILED
+------------------------------------------------------------------------------
+script exit status 0 (see validation/_harness.py for why)

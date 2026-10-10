@@ -1,0 +1,148 @@
+==============================================================================
+telemdrift 0.1.0 - known-answer validation
+==============================================================================
+script       : validation/validate_known_answers.py
+python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+cores        : os.cpu_count()=2 affinity=2
+
+
+------------------------------------------------------------------------------
+1. CUSUM ARL0 against the NIST handbook and Siegmund's formula
+------------------------------------------------------------------------------
+  Source 1: NIST/SEMATECH e-Handbook of Statistical Methods, section
+            6.3.2.3.1, 'Cusum Average Run Length',
+            https://www.itl.nist.gov/div898/handbook/pmc/section3/pmc3231.htm
+            read 2026-10-10. For k = 0.5 it tabulates the ONE-SIDED
+            in-control ARL as 336 at h = 4 and 930 at h = 5. The page
+            states: 'If one has to control both positive and negative
+            deviations, as is usually the case, two one-sided charts are
+            used'. The handbook credits no external author for the table.
+  Source 2: Siegmund's closed form, ARL = (exp(-2 D b) + 2 D b - 1)/(2 D^2)
+            with b = h + 1.166 and D = delta - k.
+
+  This package's CUSUM runs BOTH one-sided charts against the same h, so
+  it false-alarms at twice the rate and the reference is the handbook
+  value HALVED. Quoting 336 for a two-sided chart would be wrong by a
+  factor of two, which is the error this section exists to prevent.
+
+  h = 4: handbook one-sided   336.0   Siegmund  338.09   relative difference 0.62 %
+  PASS  the two references agree within 1 % at h = 4  [0.62 %]
+  h = 5: handbook one-sided   930.0   Siegmund  938.22   relative difference 0.88 %
+  PASS  the two references agree within 1 % at h = 5  [0.88 %]
+
+  Measured, 12 seeds x 60000 stationary samples = 720000 samples per h.
+
+  h    reference   measured      SEM   rel.diff   runs   censored tail
+  4        168.0      164.6      2.5     -2.0 %   4366      0.17 %
+  PASS  measured two-sided CUSUM ARL0 within 10 % of the halved handbook value at h = 4  [measured 164.6 +/- 2.5 vs reference 168, -2.0 %]
+  PASS  measured ARL0 is below the reference at h = 4, as the censored-tail exclusion predicts  [-2.0 %]
+  5        465.0      458.5     11.8     -1.4 %   1560      0.65 %
+  PASS  measured two-sided CUSUM ARL0 within 10 % of the halved handbook value at h = 5  [measured 458.5 +/- 11.8 vs reference 465, -1.4 %]
+  PASS  measured ARL0 is below the reference at h = 5, as the censored-tail exclusion predicts  [-1.4 %]
+
+  The tolerance is 10 % and was set from the Monte Carlo standard error
+  before the measurement, not after it: at these budgets the relative
+  SEM is 1.5-2.6 %, so 10 % is four to seven standard errors. The halving
+  is itself an approximation - the two arms are driven by the same
+  observations and are not independent - which is why the band is not
+  tighter.
+
+------------------------------------------------------------------------------
+2. CUSUM ARL1 against the handbook, one-sigma shift
+------------------------------------------------------------------------------
+  The handbook gives one-sided ARL1 = 8.38 at h = 4 and 10.4 at h = 5 for
+  a one-sigma shift. For a two-sided chart detecting a +1 sigma shift the
+  upper arm does essentially all the work, so the one-sided value is the
+  reference and no halving applies. Measured with the zero-state
+  convention (chart started at the change) to match the handbook, which
+  is NOT the steady-state convention used everywhere else in this
+  repository; the two are different quantities and the difference is
+  measured in validate_arl_calibration.py section 4.
+
+  h    reference   measured      SEM   rel.diff   replicates
+  4         8.38       8.22     0.19     -1.8 %          600
+  PASS  zero-state CUSUM ARL1 within 15 % of the handbook value at h = 4  [measured 8.22 +/- 0.19 vs 8.38]
+  5        10.40      10.49     0.23     +0.9 %          600
+  PASS  zero-state CUSUM ARL1 within 15 % of the handbook value at h = 5  [measured 10.49 +/- 0.23 vs 10.4]
+
+------------------------------------------------------------------------------
+3. Windowed KS statistic against scipy.stats.ks_2samp
+------------------------------------------------------------------------------
+  The detector implements the two-sample KS statistic directly because
+  the benchmark evaluates it of order 10^5 times. SciPy is the reference.
+  500 random pairs, sizes 5-119, worst absolute difference 2.220e-16
+  PASS  KS statistic matches SciPy to machine precision  [worst 2.220e-16]
+
+------------------------------------------------------------------------------
+4. Windowed KS default threshold against its own asymptotic formula
+------------------------------------------------------------------------------
+  n_ref = 200, n_det = 100, alpha = 0.005
+  c_alpha  = 0.211981094
+  P(D > c) = 0.005000000   (asymptotic, should equal alpha)
+  PASS  the shipped default c inverts to its declared alpha  [0.005000000]
+
+------------------------------------------------------------------------------
+5. ADWIN cut rule, hand-computed
+------------------------------------------------------------------------------
+  Transcribed from Bifet and Gavalda's technical report 'Adaptive
+  Parameter-free Learning from Evolving Data Streams' section 4.1.1
+  (upcommons.upc.edu), the author-hosted source this session could read:
+
+      m       = 2 / (1/|W0| + 1/|W1|)
+      eps_cut = sqrt( (1 / (2 m)) * ln(4 |W| / delta) )
+
+  With |W0| = |W1| = 10, |W| = 20, delta = 0.05:
+      m       = 2 / (1/10 + 1/10) = 10
+      eps_cut = sqrt( 0.05 * ln(1600) ) = sqrt(0.05 * 7.3777589)
+              = sqrt(0.36888794) = 0.60736146
+  recomputed here: 0.60736146
+  PASS  hand arithmetic reproduces the formula  [0.60736146]
+  detector on 10 zeros then 10 tens: cut declared = True, cut evidence = 16.4647 (ratio to eps_cut)
+  PASS  the implementation cuts on a 10-sigma split
+
+  NOTE, recorded rather than resolved: the SDM 2007 paper is widely
+  quoted with m = 1/(1/n0 + 1/n1), a factor of two smaller, which makes
+  eps_cut larger by sqrt(2). This package implements the harmonic-mean
+  form above because that is what the source it could verify states, and
+  calibrates delta to a measured ARL0, which absorbs a constant factor on
+  eps_cut exactly. No number in this repository depends on which form is
+  meant, because none of them uses the nominal delta as a false-alarm
+  rate.
+  FINDING  ADWIN cut rule: the verified author-hosted source states m = 2/(1/n0+1/n1); the SDM 2007 paper is widely quoted with m = 1/(1/n0+1/n1). Implemented as verified; delta is calibrated so the factor is absorbed.
+
+------------------------------------------------------------------------------
+6. Detector internals, hand-computed
+------------------------------------------------------------------------------
+  CUSUM, k = 0.5, h = 2, four samples of 1.0 then a fifth:
+    S+ = 0.5, 1.0, 1.5, 2.0 (not > 2), 2.5 -> alarm on the fifth
+    fired sequence [False, False, False, False, True], final S+ = 2.5, S- = 0.0
+  PASS  CUSUM alarms on exactly the fifth sample
+  PASS  CUSUM lower arm stays at zero
+
+  EWMA, r = 0.5, L = 3, two samples of 1.0:
+    z1 = 0.5, var1 = (1/3)(1 - 0.25) = 0.25, limit = 1.5
+    z2 = 0.75, var2 = (1/3)(1 - 0.0625) = 0.3125, limit = 1.677051
+    measured z1 = 0.500000 limit1 = 1.500000
+    measured z2 = 0.750000 limit2 = 1.677051
+  PASS  EWMA z follows the hand recursion
+  PASS  EWMA exact limit matches the hand variance
+
+  Page-Hinkley, delta = 0, samples 0.0, 2.0, 4.0:
+    running means 0.0, 1.0, 2.0; m = 0.0, 1.0, 3.0; m_min = 0, m_max = 3
+    measured mean = 2.000000, m = 3.000000, m_min = 0.000000, m_max = 3.000000
+  PASS  Page-Hinkley follows the hand recursion
+
+  Page-Hinkley on a constant stream cannot fire, at any threshold:
+    the running mean equals the value, so every increment is -delta.
+    1000 samples of 1000.0 at lambda = 1.0: fired = False
+  PASS  Page-Hinkley is a detector of changes in level, not of level
+
+==============================================================================
+checks passed : 18
+checks FAILED : 0
+findings recorded:
+  - ADWIN cut rule: the verified author-hosted source states m = 2/(1/n0+1/n1); the SDM 2007 paper is widely quoted with m = 1/(1/n0+1/n1). Implemented as verified; delta is calibrated so the factor is absorbed.
+wall clock    : 2.0 s (moves 10-40 % between runs on two contended cores)
+raw output    : validation/outputs/validate_known_answers.txt
+exit status   : 0 (always: see Report.check)
+==============================================================================

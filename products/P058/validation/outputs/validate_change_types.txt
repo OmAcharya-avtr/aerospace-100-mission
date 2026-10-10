@@ -1,0 +1,172 @@
+==============================================================================
+telemdrift 0.1.0 - delay by change type at equal ARL0
+==============================================================================
+script       : validation/validate_change_types.py
+python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+cores        : os.cpu_count()=2 affinity=2
+
+
+------------------------------------------------------------------------------
+0. Experiment
+------------------------------------------------------------------------------
+  target ARL0     500 samples
+  replicates      300 seeded streams per (detector, change)
+  pre-change      1000 samples, detector reset on each false alarm
+  censoring       1500 post-change samples
+  convention      steady-state; alternatives measured in validate_arl_calibration.py s.6
+
+------------------------------------------------------------------------------
+1. Calibration, analytic detectors first
+------------------------------------------------------------------------------
+  CUSUM          threshold=5.13989  calibration ARL0=   498.7  held-out ARL0 = 581.1 +/- 22.7 samples (3.9 % rel. SEM, n=679 runs, 400000 samples, censored tail 1.35 %)  target error +16.2 %
+  PASS  CUSUM bracketed its target ARL0
+  Page-Hinkley   threshold=29.9244  calibration ARL0=   499.1  held-out ARL0 = 485.7 +/- 9.3 samples (1.9 % rel. SEM, n=815 runs, 400000 samples, censored tail 1.03 %)  target error -2.9 %
+  PASS  Page-Hinkley bracketed its target ARL0
+  EWMA           threshold=2.83155  calibration ARL0=   498.8  held-out ARL0 = 527.1 +/- 20.4 samples (3.9 % rel. SEM, n=753 runs, 400000 samples, censored tail 0.77 %)  target error +5.4 %
+  PASS  EWMA bracketed its target ARL0
+  Windowed KS    threshold=0.134999  calibration ARL0=   457.5  held-out ARL0 = 467.9 +/- 7.3 samples (1.6 % rel. SEM, n=850 runs, 400000 samples, censored tail 0.56 %)  target error -6.4 %
+  PASS  Windowed KS bracketed its target ARL0
+  ADWIN          threshold=9.94156e-08  calibration ARL0=   500.4  held-out ARL0 = 520.3 +/- 16.5 samples (3.2 % rel. SEM, n=762 runs, 400000 samples, censored tail 0.89 %)  target error +4.1 %
+  PASS  ADWIN bracketed its target ARL0
+
+------------------------------------------------------------------------------
+2. The learned detector, built and calibrated after them
+------------------------------------------------------------------------------
+  training set: 78104 windows x 8 features, 2800 positive (3.6 %), window=50, horizon=50, transients_in_training=False, 8 seeds
+  negatives are stationary streams only: the transient is held out for
+  every detector equally. validate_transient.py measures what including
+  it in training would buy.
+  Learned RF     threshold=0.68375  calibration ARL0=   519.9  held-out ARL0 = 543.2 +/- 18.0 samples (3.3 % rel. SEM, n=732 runs, 400000 samples, censored tail 0.60 %)  target error +8.6 %
+  PASS  the learned detector bracketed its target ARL0
+
+------------------------------------------------------------------------------
+3. Achieved operating points, and the residual mismatch
+------------------------------------------------------------------------------
+  detector        threshold          ARL0       SEM   target error
+  CUSUM           5.13989              581.1      22.7       +16.2%
+  Page-Hinkley    29.9244              485.7       9.3        -2.9%
+  EWMA            2.83155              527.1      20.4        +5.4%
+  Windowed KS     0.134999             467.9       7.3        -6.4%
+  ADWIN           9.94156e-08          520.3      16.5        +4.1%
+  Learned RF      0.68375              543.2      18.0        +8.6%
+
+  residual spread across the six detectors: 1.24x (468 to 581 samples)
+  The delays below are therefore compared at APPROXIMATELY equal ARL0,
+  not exactly equal. The trade-off curve in validate_tradeoff.py is the
+  figure that does not depend on the residual, and its interpolation at
+  ARL0 = 500 agrees with this table.
+  PASS  residual spread is under 1.5x  [1.24x]
+
+------------------------------------------------------------------------------
+4. Un-armed fraction at these operating points
+------------------------------------------------------------------------------
+  CUSUM           un-armed   0.0 % of a stationary stream
+  Page-Hinkley    un-armed   0.0 % of a stationary stream
+  EWMA            un-armed   0.0 % of a stationary stream
+  Windowed KS     un-armed  65.9 % of a stationary stream
+  ADWIN           un-armed  12.1 % of a stationary stream
+  Learned RF      un-armed   9.7 % of a stationary stream
+
+------------------------------------------------------------------------------
+5. ARL1 by change type, at equal measured ARL0
+------------------------------------------------------------------------------
+  Lower is better for the four real changes. For the transient, which is
+  NOT a change, a higher number means the detector was less fooled.
+
+  mean_step_1.0  (mean_step, magnitude 1)
+    detector            ARL1      SEM   bootstrap 95 % CI   censored  un-armed@change
+    CUSUM                  9.4      0.3   [    8.8,    10.0]      0.0%            0.0%
+    Page-Hinkley          30.4      2.6   [   25.6,    35.8]      0.0%            0.0%
+    EWMA                   9.2      0.3   [    8.7,     9.8]      0.0%            0.0%
+    Windowed KS          102.1      6.4   [   89.8,   115.0]      0.0%           54.7%
+    ADWIN                 30.3      4.0   [   23.6,    38.6]      0.0%           11.7%
+    Learned RF            17.4      2.8   [   12.6,    23.2]      0.0%            8.0%
+    fastest: EWMA at 9.2 samples
+
+  mean_step_0.5  (mean_step, magnitude 0.5)
+    detector            ARL1      SEM   bootstrap 95 % CI   censored  un-armed@change
+    CUSUM                 38.0      2.0   [   34.1,    42.1]      0.0%            0.0%
+    Page-Hinkley          63.9      4.7   [   55.3,    73.6]      0.0%            0.0%
+    EWMA                  31.4      1.4   [   28.6,    34.2]      0.0%            0.0%
+    Windowed KS     >=   125.6      9.7   [  107.2,   145.5]      0.7%           54.7%
+    ADWIN                 56.9      5.9   [   46.4,    69.7]      0.0%           11.7%
+    Learned RF            45.5      3.5   [   38.7,    52.4]      0.0%            8.0%
+    fastest: EWMA at 31.4 samples
+
+  variance_step_2.0  (variance_step, magnitude 2)
+    detector            ARL1      SEM   bootstrap 95 % CI   censored  un-armed@change
+    CUSUM                 12.5      0.7   [   11.2,    13.9]      0.0%            0.0%
+    Page-Hinkley          90.9      4.8   [   81.4,   101.3]      0.0%            0.0%
+    EWMA                  21.2      1.2   [   19.1,    23.6]      0.0%            0.0%
+    Windowed KS     >=   126.7      8.7   [  111.0,   144.7]      0.3%           54.7%
+    ADWIN                 58.3      2.5   [   53.8,    63.0]      0.0%           11.7%
+    Learned RF            16.5      1.6   [   13.6,    19.9]      0.0%            8.0%
+    fastest: CUSUM at 12.5 samples
+
+  drift_ramp_0.02  (drift_ramp, magnitude 0.02)
+    detector            ARL1      SEM   bootstrap 95 % CI   censored  un-armed@change
+    CUSUM                 35.7      0.7   [   34.3,    37.0]      0.0%            0.0%
+    Page-Hinkley          44.1      0.9   [   42.4,    45.9]      0.0%            0.0%
+    EWMA                  33.2      0.6   [   32.0,    34.4]      0.0%            0.0%
+    Windowed KS          104.9      5.0   [   95.5,   114.9]      0.0%           54.7%
+    ADWIN                 40.9      0.7   [   39.5,    42.3]      0.0%           11.7%
+    Learned RF            34.0      0.8   [   32.5,    35.5]      0.0%            8.0%
+    fastest: EWMA at 33.2 samples
+
+  transient_4.0x20  (transient, magnitude 4, duration 20)
+    detector            ARL1      SEM   bootstrap 95 % CI   censored  un-armed@change
+    CUSUM                  0.9      0.0   [    0.8,     0.9]      0.0%            0.0%
+    Page-Hinkley           5.1      0.2   [    4.7,     5.5]      0.0%            0.0%
+    EWMA                   1.2      0.0   [    1.1,     1.2]      0.0%            0.0%
+    Windowed KS          106.9      7.6   [   92.8,   121.7]      0.0%           54.7%
+    ADWIN                 13.2      0.8   [   11.8,    14.8]      0.0%           11.7%
+    Learned RF      >=    43.2     11.6   [   21.9,    68.0]      1.0%            8.0%
+
+
+------------------------------------------------------------------------------
+6. The learned detector against the best analytic detector
+------------------------------------------------------------------------------
+  The comparison the mission asks for, at equal ARL0, on the four real
+  change types. 'Loss' is the learned delay minus the best analytic
+  delay, in samples and as a ratio; a positive loss means the learned
+  detector is slower.
+
+  change                best analytic        learned         loss      ratio  significant
+  mean_step_1.0             EWMA    9.2           17.4         +8.2       1.88x     +2.9 sigma
+  mean_step_0.5             EWMA   31.4           45.5        +14.1       1.45x     +3.7 sigma
+  variance_step_2.0        CUSUM   12.5           16.5         +3.9       1.31x     +2.2 sigma
+  drift_ramp_0.02           EWMA   33.2           34.0         +0.8       1.02x     +0.8 sigma
+
+  learned loses on 3 of 4 change types at more than 2 combined standard errors,
+  ties on 1, wins on 0.
+  PASS  the learned-versus-analytic comparison was made at equal ARL0 and recorded in full
+  FINDING  LEARNED DETECTOR LOSES AT EQUAL ARL0. mean_step_1.0: best analytic EWMA 9.2 samples vs learned 17.4 (1.88x, +2.9 sigma); mean_step_0.5: best analytic EWMA 31.4 samples vs learned 45.5 (1.45x, +3.7 sigma); variance_step_2.0: best analytic CUSUM 12.5 samples vs learned 16.5 (1.31x, +2.2 sigma); drift_ramp_0.02: best analytic EWMA 33.2 samples vs learned 34.0 (1.02x, +0.8 sigma). Loses on 3 of 4 change types at >2 sigma, ties on 1, wins on 0.
+
+------------------------------------------------------------------------------
+7. Every detector's behaviour on the transient negative control
+------------------------------------------------------------------------------
+  A +4 sigma excursion for 20 samples, then recovery. There is no change.
+  The 'ARL1' column is the mean samples to the first alarm at or after the
+  excursion starts; a small number means the detector treated a transient
+  as a change.
+
+  detector          ARL1 on transient   ARL1 on +1 sigma mean step
+  CUSUM                         0.9                          9.4
+  Page-Hinkley                  5.1                         30.4
+  EWMA                          1.2                          9.2
+  Windowed KS                 106.9                        102.1
+  ADWIN                        13.2                         30.3
+  Learned RF                   43.2                         17.4
+
+  FINDING  ALL SIX DETECTORS FIRE ON THE TRANSIENT. Mean samples to first alarm after a +4 sigma, 20-sample excursion that is not a change: CUSUM 0.9, Page-Hinkley 5.1, EWMA 1.2, Windowed KS 106.9, ADWIN 13.2, Learned RF 43.2. Detectors responding within 30 samples: CUSUM, Page-Hinkley, EWMA, ADWIN. validate_transient.py separates this from the baseline false-alarm rate.
+
+==============================================================================
+checks passed : 8
+checks FAILED : 0
+findings recorded:
+  - LEARNED DETECTOR LOSES AT EQUAL ARL0. mean_step_1.0: best analytic EWMA 9.2 samples vs learned 17.4 (1.88x, +2.9 sigma); mean_step_0.5: best analytic EWMA 31.4 samples vs learned 45.5 (1.45x, +3.7 sigma); variance_step_2.0: best analytic CUSUM 12.5 samples vs learned 16.5 (1.31x, +2.2 sigma); drift_ramp_0.02: best analytic EWMA 33.2 samples vs learned 34.0 (1.02x, +0.8 sigma). Loses on 3 of 4 change types at >2 sigma, ties on 1, wins on 0.
+  - ALL SIX DETECTORS FIRE ON THE TRANSIENT. Mean samples to first alarm after a +4 sigma, 20-sample excursion that is not a change: CUSUM 0.9, Page-Hinkley 5.1, EWMA 1.2, Windowed KS 106.9, ADWIN 13.2, Learned RF 43.2. Detectors responding within 30 samples: CUSUM, Page-Hinkley, EWMA, ADWIN. validate_transient.py separates this from the baseline false-alarm rate.
+wall clock    : 116.0 s (moves 10-40 % between runs on two contended cores)
+raw output    : validation/outputs/validate_change_types.txt
+exit status   : 0 (always: see Report.check)
+==============================================================================

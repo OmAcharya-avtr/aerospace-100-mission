@@ -1,0 +1,43 @@
+1. requirement declarations in the bundled sample document
+   hand count: REQ-001..REQ-008 as headings, plus one repeat of REQ-007
+  [PASS] declarations                                               got 9   expected 9
+  [PASS] unique ids                                                 got 8   expected 8
+  [PASS] duplicated ids                                             got ['REQ-007']   expected ['REQ-007']
+  [PASS] REQ-007 declared twice                                     got 2   expected 2
+  [PASS] first id                                                   got 'REQ-001'   expected 'REQ-001'
+  [PASS] first title                                                got 'Wheel speed input validation'   expected 'Wheel speed input validation'
+  [PASS] mid-sentence mention of REQ-002 not declared               got 1   expected 1
+
+2. requirement declarations in this package's own document
+   hand count: REQ-001..REQ-026, each a level-3 heading, no duplicates
+  [PASS] declarations                                               got 26   expected 26
+  [PASS] unique ids                                                 got 26   expected 26
+  [PASS] duplicates                                                 got {}   expected {}
+  [PASS] ids are contiguous                                         got ['REQ-001', 'REQ-002', 'REQ-003', 'REQ-004', 'REQ-005', 'REQ-006', 'REQ-007', 'REQ-008', 'REQ-009', 'REQ-010', 'REQ-011', 'REQ-012', 'REQ-013', 'REQ-014', 'REQ-015', 'REQ-016', 'REQ-017', 'REQ-018', 'REQ-019', 'REQ-020', 'REQ-021', 'REQ-022', 'REQ-023', 'REQ-024', 'REQ-025', 'REQ-026']   expected ['REQ-001', 'REQ-002', 'REQ-003', 'REQ-004', 'REQ-005', 'REQ-006', 'REQ-007', 'REQ-008', 'REQ-009', 'REQ-010', 'REQ-011', 'REQ-012', 'REQ-013', 'REQ-014', 'REQ-015', 'REQ-016', 'REQ-017', 'REQ-018', 'REQ-019', 'REQ-020', 'REQ-021', 'REQ-022', 'REQ-023', 'REQ-024', 'REQ-025', 'REQ-026']
+
+3. declaration forms, on a document written for this check
+  [PASS] heading, bullet, bold, bare                                got ['REQ-001', 'REQ-002', 'REQ-003', 'REQ-004']   expected ['REQ-001', 'REQ-002', 'REQ-003', 'REQ-004']
+  [PASS] mid-line mention excluded                                  got False   expected False
+  [PASS] fenced declaration excluded                                got False   expected False
+  [PASS] fenced declaration included when configured                got True   expected True
+
+4. junit XML outcomes in the bundled sample report
+   hand count from the fixture suite: 5 passed, 1 failed, 1 skipped, 1 xfailed
+  [PASS] cases parsed                                               got 8   expected 8
+  [PASS] outcome counts                                             got {'passed': 5, 'failed': 1, 'errored': 0, 'skipped': 1, 'xfailed': 1, 'unknown': 0}   expected {'passed': 5, 'failed': 1, 'errored': 0, 'skipped': 1, 'xfailed': 1, 'unknown': 0}
+  [PASS] header tests attribute                                     got 8   expected 8
+  [PASS] header skipped attribute counts the xfail too              got 2   expected 2
+  [PASS] counted skipped + xfailed equals the header                got 2   expected 2
+  [PASS] claimed ids                                                got ['REQ-001', 'REQ-002', 'REQ-003', 'REQ-004', 'REQ-006', 'REQ-007', 'REQ-008', 'REQ-042']   expected ['REQ-001', 'REQ-002', 'REQ-003', 'REQ-004', 'REQ-006', 'REQ-007', 'REQ-008', 'REQ-042']
+  [PASS] skip reason preserved                                      got 'simulator fixture not available in this environment'   expected 'simulator fixture not available in this environment'
+  [PASS] xfail distinguished from skip                              got 'xfailed'   expected 'xfailed'
+  [PASS] source file recovered from the xunit1 file attribute       got 'tests/test_monitor.py'   expected 'tests/test_monitor.py'
+
+5. the same suite through a collection report
+   hand count: the same 8 node ids, no outcomes, no properties
+  [PASS] cases parsed                                               got 8   expected 8
+  [PASS] every outcome unknown                                      got {'unknown'}   expected {'unknown'}
+  [PASS] no claims at all                                           got ()   expected ()
+  [PASS] node ids identical to the junit ones                       got ['tests/test_monitor.py::test_rejects_out_of_range_speed', 'tests/test_monitor.py::test_accumulates_momentum', 'tests/test_monitor.py::test_desaturation_threshold', 'tests/test_monitor.py::test_hysteresis_band', 'tests/test_monitor.py::test_request_counter', 'tests/test_monitor.py::test_reset_clears_momentum', 'tests/test_monitor.py::test_saturation_ceiling', 'tests/test_monitor.py::test_claims_an_undeclared_requirement']   expected ['tests/test_monitor.py::test_rejects_out_of_range_speed', 'tests/test_monitor.py::test_accumulates_momentum', 'tests/test_monitor.py::test_desaturation_threshold', 'tests/test_monitor.py::test_hysteresis_band', 'tests/test_monitor.py::test_request_counter', 'tests/test_monitor.py::test_reset_clears_momentum', 'tests/test_monitor.py::test_saturation_ceiling', 'tests/test_monitor.py::test_claims_an_undeclared_requirement']
+
+FAILED CHECKS: 0

@@ -1,0 +1,66 @@
+==============================================================================
+telemdrift 0.1.0 - test count from junit XML
+==============================================================================
+script       : validation/validate_tests.py
+python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+cores        : os.cpu_count()=2 affinity=2
+
+
+------------------------------------------------------------------------------
+1. Running the suite with junit XML output
+------------------------------------------------------------------------------
+  $ python -m pytest tests/ -q --junitxml=$TMPDIR/telemdrift_junit_report.xml
+    ..........................                                                                   [100%]
+    ========================================= warnings summary =========================================
+    tests/test_properties.py::test_ks_statistic_is_bounded_symmetric_and_matches_scipy
+      /usr/local/lib/python3.13/dist-packages/numpy/lib/_function_base_impl.py:2610: RuntimeWarning: ks_2samp: Exact calculation unsuccessful. Switching to method=asymp.
+        outputs = ufunc(*args, out=...)
+    
+    -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+    302 passed, 1 warning in 123.92s (0:02:03)
+    -> exit status 0
+
+------------------------------------------------------------------------------
+2. Counts parsed from the junit XML
+------------------------------------------------------------------------------
+  The junit XML's own testsuite element, verbatim:
+    <testsuite name="pytest" errors="0" failures="0" skipped="0" tests="302" time="123.910" timestamp="2026-10-10T05:41:44.526068+00:00" hostname="vm">
+
+  collected : 302
+  passed    : 302
+  failed    : 0
+  errored   : 0
+  skipped   : 0
+  suite time: 123.9 s (wall clock moves 10-40 % between runs on two contended cores)
+
+  By test module:
+    test_benchmark                 29
+    test_cli                       31
+    test_detectors                 87
+    test_features                  18
+    test_known_answers             16
+    test_learned                   24
+    test_plotting                  12
+    test_properties                18
+    test_scoring                   29
+    test_streams                   27
+    test_thresholds                11
+  PASS  the suite collected more than zero tests  [302]
+  PASS  no test failed  [0 failures]
+  PASS  no test errored  [0 errors]
+  PASS  no test was skipped or xfailed to hide a defect  [0 skipped]
+  PASS  pytest exited 0  [exit 0]
+
+  The README badge must read 302 passing. Any other number in any
+  document in this repository is wrong.
+  FINDING  junit XML: 302 collected, 302 passed, 0 failed, 0 errored, 0 skipped. This is the authoritative count.
+
+==============================================================================
+checks passed : 5
+checks FAILED : 0
+findings recorded:
+  - junit XML: 302 collected, 302 passed, 0 failed, 0 errored, 0 skipped. This is the authoritative count.
+wall clock    : 127.0 s (moves 10-40 % between runs on two contended cores)
+raw output    : validation/outputs/validate_tests.txt
+exit status   : 0 (always: see Report.check)
+==============================================================================

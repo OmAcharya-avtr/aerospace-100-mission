@@ -1,0 +1,173 @@
+==============================================================================
+Every example script, re-run, with its stdout recorded
+==============================================================================
+python 3.13.16 on Linux 6.18.44-fc-v114, 2 usable cores
+
+$ MPLBACKEND=Agg python examples/reliability_diagram.py
+  wrote screenshots/reliability_diagram.png
+   bin  lo_edge  hi_edge       n    mean_f       obs   band_lo   band_hi       gap
+  --------------------------------------------------------------------------------
+     0   0.0000   0.0833     377  0.039726  0.153846  0.123664  0.187020 -0.114120
+     1   0.0833   0.1667     386  0.125902  0.225389  0.190476  0.259390 -0.099487
+     2   0.1667   0.2500     305  0.208412  0.331148  0.290201  0.375902 -0.122736
+     3   0.2500   0.3333     322  0.290691  0.381988  0.338099  0.425888 -0.091297
+     4   0.3333   0.4167     332  0.373959  0.424699  0.382332  0.469651 -0.050740
+     5   0.4167   0.5000     315  0.459086  0.479365  0.431818  0.523707 -0.020279
+     6   0.5000   0.5833     301  0.542627  0.538206  0.492000  0.586341 +0.004421
+     7   0.5833   0.6667     294  0.626180  0.588435  0.542202  0.634237 +0.037744
+     8   0.6667   0.7500     283  0.710307  0.618375  0.570320  0.663200 +0.091932
+     9   0.7500   0.8333     314  0.792163  0.678344  0.631579  0.722231 +0.113819
+    10   0.8333   0.9167     385  0.874442  0.750649  0.715815  0.786486 +0.123792
+    11   0.9167   1.0000     386  0.959538  0.875648  0.847350  0.900764 +0.083890
+  bins whose 90 % band excludes the mean forecast: 9 of 12
+  -> exit status 0
+
+$ MPLBACKEND=Agg python examples/ece_bias_curve.py
+  wrote screenshots/ece_bias_curve.png
+   bins       n   true_ECE   mean_ECE       sem       bias  bias/sqrt(B/n)   debiased   deb_bias
+  ----------------------------------------------------------------------------------------------
+      5     200   0.000000   0.052574  0.002282   0.052574        0.332509        nan       +nan
+     10     200   0.000000   0.075285  0.002561   0.075285        0.336686        nan       +nan
+     20     200   0.000000   0.104919  0.002507   0.104919        0.331784        nan       +nan
+     50     200   0.000000   0.161741  0.002040   0.161741        0.323482        nan       +nan
+    100     200   0.000000   0.218850  0.002379   0.218850        0.309501        nan       +nan
+      5    1000   0.000000   0.024632  0.001124   0.024632        0.348344        nan       +nan
+     10    1000   0.000000   0.034618  0.001203   0.034618        0.346185        nan       +nan
+     20    1000   0.000000   0.046327  0.000975   0.046327        0.327578        nan       +nan
+     50    1000   0.000000   0.072245  0.001312   0.072245        0.323089        nan       +nan
+    100    1000   0.000000   0.102011  0.000937   0.102011        0.322586        nan       +nan
+      5    5000   0.000000   0.010811  0.000469   0.010811        0.341876        nan       +nan
+     10    5000   0.000000   0.014801  0.000431   0.014801        0.330966        nan       +nan
+     20    5000   0.000000   0.019894  0.000419   0.019894        0.314559        nan       +nan
+     50    5000   0.000000   0.031543  0.000446   0.031543        0.315433        nan       +nan
+    100    5000   0.000000   0.045512  0.000482   0.045512        0.321821        nan       +nan
+      5   20000   0.000000   0.005477  0.000239   0.005477        0.346373        nan       +nan
+     10   20000   0.000000   0.007404  0.000293   0.007404        0.331123        nan       +nan
+     20   20000   0.000000   0.010260  0.000259   0.010260        0.324442        nan       +nan
+     50   20000   0.000000   0.016108  0.000239   0.016108        0.322155        nan       +nan
+    100   20000   0.000000   0.022725  0.000247   0.022725        0.321373        nan       +nan
+  
+  power-law fit  bias = exp(-1.143679) (B/n)^0.493390, R^2 = 0.999141   [theory: exponent 0.5]
+  population ECE of spec 'calibrated' is exactly 0; every digit above is bias.
+  -> exit status 0
+
+$ MPLBACKEND=Agg python examples/decomposition_bars.py
+  wrote screenshots/decomposition_bars.png
+                 spec         BS        REL        RES        UNC        WBV         WBC  3-term resid    identity
+  ----------------------------------------------------------------------------------------------------------------
+           calibrated   0.196795   0.000255   0.052636   0.249999   0.000804    0.000814     -0.000823   -3.61e-16
+   calibrated_uniform   0.166804   0.000073   0.082511   0.250000   0.000839    0.000798     -0.000757   +1.39e-16
+      calibrated_rare   0.081381   0.000661   0.006974   0.088496   0.000791    0.000797     -0.000803   -1.39e-17
+        overconfident   0.202001   0.005264   0.052653   0.249999   0.000816    0.000712     -0.000609   -5.00e-16
+       underconfident   0.202470   0.005767   0.052153   0.249999   0.000806    0.000974     -0.001143   +2.78e-16
+          biased_high   0.212806   0.016136   0.052244   0.249999   0.000794    0.000939     -0.001085   +5.55e-16
+  -> exit status 0
+
+$ MPLBACKEND=Agg python examples/recalibration_audit.py
+  wrote screenshots/recalibration_audit.png
+   n_total     method  mean_brier    mean_dBS        sem  harm_rate  improved
+  ---------------------------------------------------------------------------
+        60        raw    0.203205   +0.000000   0.000000      0.000     0.000
+        60      platt    0.209090   +0.005885   0.003612      0.500     0.500
+        60   isotonic    0.219081   +0.015876   0.004323      0.700     0.300
+       100        raw    0.210636   +0.000000   0.000000      0.000     0.000
+       100      platt    0.211930   +0.001294   0.002253      0.433     0.567
+       100   isotonic    0.221284   +0.010648   0.002656      0.700     0.300
+       200        raw    0.209551   +0.000000   0.000000      0.000     0.000
+       200      platt    0.205913   -0.003638   0.001062      0.300     0.700
+       200   isotonic    0.214682   +0.005130   0.001403      0.650     0.350
+       400        raw    0.204890   +0.000000   0.000000      0.000     0.000
+       400      platt    0.199999   -0.004891   0.000667      0.133     0.867
+       400   isotonic    0.205240   +0.000350   0.000912      0.517     0.483
+      1000        raw    0.205357   +0.000000   0.000000      0.000     0.000
+      1000      platt    0.199522   -0.005836   0.000436      0.067     0.933
+      1000   isotonic    0.202272   -0.003086   0.000465      0.167     0.833
+      2500        raw    0.206402   +0.000000   0.000000      0.000     0.000
+      2500      platt    0.199814   -0.006588   0.000312      0.000     1.000
+      2500   isotonic    0.201304   -0.005098   0.000313      0.017     0.983
+      6000        raw    0.207409   +0.000000   0.000000      0.000     0.000
+      6000      platt    0.200625   -0.006784   0.000160      0.000     1.000
+      6000   isotonic    0.201452   -0.005956   0.000165      0.000     1.000
+  
+  platt: mean held-out Brier change turns negative from n_total = 200 upward
+  isotonic: mean held-out Brier change turns negative from n_total = 1000 upward
+  -> exit status 0
+
+$ MPLBACKEND=Agg python examples/binning_strategy.py
+  wrote screenshots/binning_strategy.png
+  === equal_width ===
+   bins       n   true_ECE   mean_ECE       sem       bias  bias/sqrt(B/n)   debiased   deb_bias
+  ----------------------------------------------------------------------------------------------
+      5     200   0.000000   0.023551  0.001706   0.023551        0.148951        nan       +nan
+     10     200   0.000000   0.032058  0.001610   0.032058        0.143369        nan       +nan
+     20     200   0.000000   0.044827  0.001512   0.044827        0.141754        nan       +nan
+     50     200   0.000000   0.070764  0.001552   0.070764        0.141528        nan       +nan
+      5    1000   0.000000   0.012269  0.000746   0.012269        0.173508        nan       +nan
+     10    1000   0.000000   0.016242  0.000689   0.016242        0.162416        nan       +nan
+     20    1000   0.000000   0.022244  0.000782   0.022244        0.157289        nan       +nan
+     50    1000   0.000000   0.034152  0.000799   0.034152        0.152731        nan       +nan
+      5    5000   0.000000   0.005366  0.000328   0.005366        0.169690        nan       +nan
+     10    5000   0.000000   0.007109  0.000374   0.007109        0.158967        nan       +nan
+     20    5000   0.000000   0.009947  0.000336   0.009947        0.157277        nan       +nan
+     50    5000   0.000000   0.015796  0.000343   0.015796        0.157960        nan       +nan
+  power-law fit  bias = exp(-2.008941) (B/n)^0.465380, R^2 = 0.997906
+  
+  === equal_mass ===
+   bins       n   true_ECE   mean_ECE       sem       bias  bias/sqrt(B/n)   debiased   deb_bias
+  ----------------------------------------------------------------------------------------------
+      5     200   0.000000   0.033542  0.001634   0.033542        0.212138        nan       +nan
+     10     200   0.000000   0.048877  0.001542   0.048877        0.218584        nan       +nan
+     20     200   0.000000   0.065755  0.001566   0.065755        0.207937        nan       +nan
+     50     200   0.000000   0.100497  0.001812   0.100497        0.200994        nan       +nan
+      5    1000   0.000000   0.016276  0.000748   0.016276        0.230172        nan       +nan
+     10    1000   0.000000   0.022517  0.000689   0.022517        0.225171        nan       +nan
+     20    1000   0.000000   0.031207  0.000698   0.031207        0.220663        nan       +nan
+     50    1000   0.000000   0.047782  0.000742   0.047782        0.213686        nan       +nan
+      5    5000   0.000000   0.006722  0.000317   0.006722        0.212554        nan       +nan
+     10    5000   0.000000   0.009809  0.000351   0.009809        0.219327        nan       +nan
+     20    5000   0.000000   0.013558  0.000365   0.013558        0.214371        nan       +nan
+     50    5000   0.000000   0.021303  0.000348   0.021303        0.213029        nan       +nan
+  power-law fit  bias = exp(-1.582181) (B/n)^0.488624, R^2 = 0.998532
+  
+   bins       n  bias_equal_width  bias_equal_mass    ratio
+      5     200          0.023551         0.033542    0.702
+     10     200          0.032058         0.048877    0.656
+     20     200          0.044827         0.065755    0.682
+     50     200          0.070764         0.100497    0.704
+      5    1000          0.012269         0.016276    0.754
+     10    1000          0.016242         0.022517    0.721
+     20    1000          0.022244         0.031207    0.713
+     50    1000          0.034152         0.047782    0.715
+      5    5000          0.005366         0.006722    0.798
+     10    5000          0.007109         0.009809    0.725
+     20    5000          0.009947         0.013558    0.734
+     50    5000          0.015796         0.021303    0.741
+  -> exit status 0
+
+[    PASS] every example script exits 0
+           reference   : subprocess returncode
+           measured    : 5 of 5 exited 0
+           expectation : all five exit 0
+screenshots present: binning_strategy.png, decomposition_bars.png, ece_bias_curve.png, recalibration_audit.png, reliability_diagram.png
+
+[    PASS] each example wrote the PNG the README embeds
+           reference   : screenshots/<example>.png for each examples/<example>.py
+           measured    : 5 PNGs present: ['binning_strategy.png', 'decomposition_bars.png', 'ece_bias_curve.png', 'recalibration_audit.png', 'reliability_diagram.png']
+           expectation : exactly ['binning_strategy.png', 'decomposition_bars.png', 'ece_bias_curve.png', 'recalibration_audit.png', 'reliability_diagram.png']
+README lines quoted from an example transcript:
+  ok      5     200   0.000000   0.052574  0.002282   0.052574        0.332509        nan       +nan
+  ok     10     200   0.000000   0.075285  0.002561   0.075285        0.336686        nan       +nan
+  ok     20     200   0.000000   0.104919  0.002507   0.104919        0.331784        nan       +nan
+  ok     50     200   0.000000   0.161741  0.002040   0.161741        0.323482        nan       +nan
+  ok    100     200   0.000000   0.218850  0.002379   0.218850        0.309501        nan       +nan
+  ok   bins       n   true_ECE   mean_ECE       sem       bias  bias/sqrt(B/n)   debiased   deb_bias
+
+[    PASS] every README line quoted from an example appears verbatim in the transcript
+           reference   : stdout of the example scripts, captured above
+           measured    : 6 quoted lines checked, 0 not found
+           expectation : 0 not found. A previous batch in this mission published a README output block for a command it had not run.
+
+------------------------------------------------------------------------------
+checks: 3 total, 3 passed, 0 FAILED
+------------------------------------------------------------------------------
+script exit status 0 (see validation/_harness.py for why)

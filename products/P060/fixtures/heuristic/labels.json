@@ -1,0 +1,29 @@
+{
+  "_about": "Hand labels for the assertion heuristic's error-rate measurement. 'asserts_something' is a human judgement, written by reading each function before running the heuristic against it: true when the function would fail if the behaviour under test were wrong, false when it would pass regardless. The 'why' field records the reason so the label can be disputed. Only functions whose name starts with test_ are labelled; helpers and fixtures in these files are not tests.",
+  "_positive_class": "the heuristic's positive class is 'flagged as having no assertion', so a true positive is a genuinely empty test that was flagged",
+  "labels": {
+    "test_empty_body": {"asserts_something": false, "why": "body is pass"},
+    "test_only_calls_code": {"asserts_something": false, "why": "mutates a dict and checks nothing"},
+    "test_builds_a_value_and_drops_it": {"asserts_something": false, "why": "computes a value and discards it"},
+    "test_assert_true_constant": {"asserts_something": false, "why": "assert True passes whatever the code does"},
+    "test_assert_one_constant": {"asserts_something": false, "why": "assert 1 passes whatever the code does"},
+    "test_vacuous_self_comparison": {"asserts_something": false, "why": "value == value is true for every non-NaN value"},
+    "test_always_true_predicate": {"asserts_something": false, "why": "len(result) >= 0 is true for every list"},
+    "test_assert_short_circuited_by_true": {"asserts_something": false, "why": "the or True arm makes the assert unconditional"},
+    "test_plain_assert": {"asserts_something": true, "why": "assert on a computed value"},
+    "test_pytest_raises": {"asserts_something": true, "why": "pytest.raises fails if nothing is raised"},
+    "test_pytest_warns": {"asserts_something": true, "why": "pytest.warns fails if no warning is issued"},
+    "test_numpy_testing": {"asserts_something": true, "why": "np.testing.assert_allclose raises on mismatch"},
+    "test_assert_inside_loop": {"asserts_something": true, "why": "assert inside a for body"},
+    "test_assert_inside_with": {"asserts_something": true, "why": "assert inside a with body"},
+    "test_assert_inside_try": {"asserts_something": true, "why": "assert after a try/except"},
+    "test_hamcrest_style": {"asserts_something": true, "why": "assert_that raises on mismatch"},
+    "test_nested_function_asserts": {"asserts_something": true, "why": "assert inside a nested def that the test then calls"},
+    "test_pytest_fail_branch": {"asserts_something": true, "why": "pytest.fail on the failing branch"},
+    "test_unittest_assert_equal": {"asserts_something": true, "why": "unittest self.assertEqual"},
+    "test_unittest_assert_raises": {"asserts_something": true, "why": "unittest self.assertRaises context manager"},
+    "test_delegates_to_module_helper": {"asserts_something": true, "why": "the assertion is in _check_nonneg, one call away"},
+    "test_delegates_to_fixture": {"asserts_something": true, "why": "the assertion is in the checker fixture"},
+    "test_delegates_to_verifier_object": {"asserts_something": true, "why": "Verifier.must_equal raises AssertionError"}
+  }
+}

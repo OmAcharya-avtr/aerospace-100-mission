@@ -1,0 +1,182 @@
+==============================================================================
+telemdrift 0.1.0 - the learned detector's own numbers
+==============================================================================
+script       : validation/validate_learned.py
+python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+cores        : os.cpu_count()=2 affinity=2
+
+
+------------------------------------------------------------------------------
+0. Problem, baseline and split
+------------------------------------------------------------------------------
+  Task        : given a trailing window of 50 standardised telemetry
+                samples, score the proposition 'a change occurred in or
+                just before this window'.
+  Baseline    : the five analytic detectors, implemented and calibrated
+                FIRST. The comparison is at equal measured ARL0 and is in
+                validate_change_types.py section 6.
+  Split       : by SEED, not by row. Training seeds [58001, 58002, 58003, 58004, 58005, 58006, 58007, 58008];
+                test seeds [58051, 58052, 58053, 58054, 58055, 58056]. A row split would leak:
+                consecutive windows overlap by 49 of 50 samples, so
+                neighbouring rows are nearly identical and a random row
+                split would put near-copies on both sides. This is the
+                single most important methodological choice here.
+  Labels      : 1 when the window's right edge is in [change, change+50).
+  Positives   : from 7 declared change specs: (('mean_step', 0.5), ('mean_step', 1.0), ('mean_step', 2.0), ('variance_step', 1.8), ('variance_step', 3.0), ('drift_ramp', 0.01), ('drift_ramp', 0.03))
+  Negatives   : stationary streams only. Transients are HELD OUT, so the
+                transient experiment is fair to all six detectors.
+
+------------------------------------------------------------------------------
+1. Training set, test set and compute
+------------------------------------------------------------------------------
+  training : 78104 windows x 8 features, 2800 positive (3.6 %), window=50, horizon=50, transients_in_training=False, 8 seeds
+  test     : 58578 windows x 8 features, 2100 positive (3.6 %), window=50, horizon=50, transients_in_training=False, 6 seeds
+  generation wall clock: 0.32 s for the training set
+  fit: RandomForestClassifier(n_estimators=100, max_depth=8, class_weight='balanced_subsample', n_jobs=1, random_state=58000)
+  fit wall clock: 12.8 s on two cores (moves 10-40 % between runs)
+  PASS  training completes well inside the three-minute batch budget  [12.8 s]
+  PASS  the training and test seed sets are disjoint
+  PASS  the model is single-threaded for inference
+
+------------------------------------------------------------------------------
+2. Window-level metrics on the held-out seeds
+------------------------------------------------------------------------------
+  train     n=  78104  positive rate  3.58 %  ROC-AUC 0.9411  average precision 0.6342  Brier 0.09157
+  held-out  n=  58578  positive rate  3.58 %  ROC-AUC 0.8229  average precision 0.3912  Brier 0.10382
+
+  Average precision is the metric to read here, not ROC-AUC: the positive
+  class is under 4 % of windows and ROC-AUC flatters a classifier on an
+  imbalanced problem. The no-skill average precision equals the positive
+  rate, 3.58 %, so the held-out figure of 0.3912 is
+  10.9x no-skill.
+
+  train-minus-held-out ROC-AUC gap           : +0.1183
+  train-minus-held-out average-precision gap : +0.2430
+  PASS  held-out average precision beats the no-skill rate by more than 3x  [0.3912 against no-skill 0.0358]
+
+  THE NEXT CHECK FAILS, AND THE FAILURE IS THE FINDING.
+  The expectation declared before the measurement was a train-to-held-out
+  ROC-AUC gap under 0.05, which is what a model that had learned the
+  change structure rather than the training seeds would show. The measured
+  gap is larger. The model overfits at the window level.
+  **FAIL**  the train-to-held-out ROC-AUC gap is under 0.05 (DECLARED EXPECTATION, MEASURED TO FAIL)  [measured +0.1183, expected < 0.05]
+
+  Why, and what follows from it:
+  * The split is by seed, so a held-out stream shares no samples with any
+    training stream. A depth-8 forest with 100 trees over 78000 windows
+    has enough capacity to fit the particular noise realisations of eight
+    seeds, and ROC-AUC on the training rows reflects that.
+  * The honest number is therefore the HELD-OUT one, and it is the only
+    one quoted anywhere outside this paragraph. A reader who sees ROC-AUC
+    0.941 quoted for this model is being shown the training
+    figure.
+  * No retuning was performed to close the gap. Reducing depth or trees
+    until the gap closed would produce a prettier number for the same
+    stream-level result, which is already a loss at equal ARL0, and this
+    portfolio's policy is that an honest negative is not retuned away.
+  PASS  the measured overfitting gap is in the documented band 0.08 to 0.16  [+0.1183]
+  FINDING  THE LEARNED MODEL OVERFITS AT THE WINDOW LEVEL: train ROC-AUC 0.941 against held-out 0.823, a gap of +0.118 against a pre-declared expectation of under 0.05; average precision 0.634 against 0.391. The split is by seed so this is not leakage, it is capacity. Not retuned: the stream-level result is already a loss at equal ARL0 and closing the gap would only change the window-level number.
+  FINDING  the learned detector's window-level held-out average precision is 0.391 against a no-skill rate of 0.036 (10.9x), ROC-AUC 0.823. These are respectable window-level numbers and they do NOT translate into a shorter detection delay at equal ARL0: see validate_change_types.py section 6.
+
+------------------------------------------------------------------------------
+3. Is the score a usable confidence output
+------------------------------------------------------------------------------
+  The model exposes the forest's vote fraction as its confidence output.
+  This section measures whether that number means what it looks like.
+
+  bin            n   mean score   observed frequency   gap
+  [0.0,0.1)      2497       0.0788               0.0088   -0.0700
+  [0.1,0.2)     19467       0.1534               0.0090   -0.1444
+  [0.2,0.3)     15716       0.2458               0.0144   -0.2314
+  [0.3,0.4)      9164       0.3444               0.0253   -0.3191
+  [0.4,0.5)      5163       0.4460               0.0405   -0.4055
+  [0.5,0.6)      3070       0.5463               0.0612   -0.4851
+  [0.6,0.7)      1729       0.6430               0.1215   -0.5215
+  [0.7,0.8)       778       0.7435               0.2751   -0.4685
+  [0.8,0.9)       627       0.8467               0.5183   -0.3284
+  [0.9,1.0)       367       0.9381               0.8093   -0.1289
+
+  worst absolute reliability gap over the populated bins: 0.5215
+
+  The score is NOT claimed to be calibrated and this is the evidence. A
+  forest vote fraction on a class-weighted, heavily imbalanced problem is
+  an ordering, not a probability. It is used in this package only as a
+  monotone score whose threshold is moved until the measured ARL0 matches
+  a target, which needs no calibration at all. A reader who wants a
+  calibrated probability should recalibrate it; a sibling product in this
+  portfolio (P056 CalibAudit) is the one that does that, and it is not
+  imported here.
+  FINDING  the learned detector's confidence output is MISCALIBRATED: the worst gap between mean predicted score and observed frequency over the populated bins is 0.522. The package uses the score only as a monotone ordering whose threshold is set by measured ARL0, which does not require calibration, and the README does not claim a probability.
+
+------------------------------------------------------------------------------
+4. Feature importances, and what they say about the model
+------------------------------------------------------------------------------
+  feature                 importance
+  mean                       0.2108
+  slope                      0.1661
+  range                      0.1514
+  std                        0.1223
+  half_mean_diff             0.1090
+  log_half_std_ratio         0.0891
+  iqr                        0.0862
+  lag1_autocorr              0.0652
+
+  The dominant feature is 'mean'.
+  The two scale features were included as a pair so the model could in
+  principle distinguish a transient (range moves, IQR does not) from a
+  variance step (both move):
+    iqr      importance 0.0862
+    range    importance 0.1514
+  validate_transient.py measures whether it actually does. It fires on
+  94 % of transients, so whatever those features carry, it is not enough.
+
+------------------------------------------------------------------------------
+5. Threshold, operating point and determinism
+------------------------------------------------------------------------------
+  Learned RF     threshold=0.68375  calibration ARL0=   519.9  held-out ARL0 = 543.2 +/- 18.0 samples (3.3 % rel. SEM, n=732 runs, 400000 samples, censored tail 0.60 %)  target error +8.6 %
+
+  Determinism: the whole pipeline is seeded. Rebuilding the training set,
+  refitting and recalibrating must give the same threshold.
+  training features identical : True
+  held-out scores identical   : True
+  PASS  the training set regenerates bit-for-bit
+  PASS  the fitted model reproduces identical scores
+
+------------------------------------------------------------------------------
+6. The batch score path gives identical results to the online one
+------------------------------------------------------------------------------
+  Every learned ARL figure in this repository comes from the batch path,
+  because the online path costs milliseconds per sample. The two must
+  agree exactly or those figures describe a different detector.
+  4000 samples, worst absolute score difference: 0.000e+00
+  PASS  the batch and online score paths are bit-identical  [worst 0.000e+00]
+  alarm indices identical: True (28 alarms)
+  PASS  the batch and online alarm sequences are identical
+
+------------------------------------------------------------------------------
+7. What this model is not
+------------------------------------------------------------------------------
+  It is not certified for operational flight use.
+  It is trained entirely on synthetic i.i.d. Gaussian streams with
+  injected changes of four declared kinds. It has never seen real
+  spacecraft telemetry, and validate_robustness.py section 1 shows what
+  autocorrelation alone does to the operating point of every detector
+  here, learned or analytic.
+  It loses to EWMA and CUSUM at equal ARL0 on three of the four change
+  types it was trained on, and ties on the fourth.
+  Its confidence output is not calibrated (section 3).
+  Its online cost is four orders of magnitude above the analytic
+  recursions with this API on this container (validate_cost.py s.3).
+
+==============================================================================
+checks passed : 9
+checks FAILED : 1
+findings recorded:
+  - the train-to-held-out ROC-AUC gap is under 0.05 (DECLARED EXPECTATION, MEASURED TO FAIL): measured +0.1183, expected < 0.05
+  - THE LEARNED MODEL OVERFITS AT THE WINDOW LEVEL: train ROC-AUC 0.941 against held-out 0.823, a gap of +0.118 against a pre-declared expectation of under 0.05; average precision 0.634 against 0.391. The split is by seed so this is not leakage, it is capacity. Not retuned: the stream-level result is already a loss at equal ARL0 and closing the gap would only change the window-level number.
+  - the learned detector's window-level held-out average precision is 0.391 against a no-skill rate of 0.036 (10.9x), ROC-AUC 0.823. These are respectable window-level numbers and they do NOT translate into a shorter detection delay at equal ARL0: see validate_change_types.py section 6.
+  - the learned detector's confidence output is MISCALIBRATED: the worst gap between mean predicted score and observed frequency over the populated bins is 0.522. The package uses the score only as a monotone ordering whose threshold is set by measured ARL0, which does not require calibration, and the README does not claim a probability.
+wall clock    : 87.8 s (moves 10-40 % between runs on two contended cores)
+raw output    : validation/outputs/validate_learned.txt
+exit status   : 0 (always: see Report.check)
+==============================================================================

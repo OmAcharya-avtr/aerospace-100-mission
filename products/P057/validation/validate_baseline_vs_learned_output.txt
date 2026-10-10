@@ -1,0 +1,44 @@
+analytic baseline against the learned model, conformalband 0.1.0
+replicates 40, n_fit 1500, n_calibration 500, n_test 1000, seed 57041
+the physics baseline fits four coefficients of the closed-form energy model and cannot represent the propulsive-efficiency curvature of the generator. The learned model is a 200-stage gradient-boosted tree ensemble with no physics at all.
+
+1. point-prediction error, root mean squared, on the same held-out test samples
+severity  physics_Wh  learned_Wh  ratio_l/p  irreducible_Wh
+-----------------------------------------------------------
+     0.0    0.202899    0.223296   1.100527        0.190008
+     1.0    0.216194    0.246565   1.140478        0.202917
+     2.0    0.232029    0.281556   1.213455        0.218479
+     3.0    0.249318    0.337629   1.354209        0.233358
+
+mean fitted baseline coefficients over the replicates
+  cd0             : 0.034970149
+  oswald          : 0.837980326
+  eta_prop        : 0.613597664
+  avionics_power  : 11.207809408
+
+  [PASS] the analytic baseline has the lower RMSE at every severity
+  [PASS] the baseline's margin widens with severity
+  FINDING: the analytic physics baseline BEATS the learned model at every severity, including in distribution: RMSE ratio learned/physics is 1.10053 at severity 0 and 1.35421 at severity 3. The learned model is not used because it is better. It is in the package because the weight estimator and the conformal machinery have to be exercised on a model that has no physics, and because that is the case a reader is likely to be in.
+
+2. interval baseline against the conformal band, in distribution
+model       sigma_hat_Wh  param_half_Wh   conf_q_Wh    ratio
+------------------------------------------------------------
+physics         0.203016       0.333931    0.325918 1.024586
+learned         0.220332       0.362413    0.348111 1.041085
+
+z_{0.95} = 1.6448536269514722. For exactly Gaussian homoscedastic residuals the parametric half-width and the conformal quantile would agree in expectation, because the 90th percentile of |e| is exactly 1.6449 sigma for a centred normal.
+  [PASS] the parametric half-width exceeds the conformal quantile for physics
+  [PASS] the parametric half-width exceeds the conformal quantile for learned
+
+3. why the parametric interval is the wider one: the residuals are not Gaussian
+  physics    excess kurtosis  +1.64873, q90(|e|) / (1.6449 sd) = 0.983569, n = 200000
+  [PASS] physics: residuals have positive excess kurtosis
+  [PASS] physics: q90(|e|) is below 1.6449 standard deviations
+  learned    excess kurtosis  +9.00989, q90(|e|) / (1.6449 sd) = 0.968426, n = 200000
+  [PASS] learned: residuals have positive excess kurtosis
+  [PASS] learned: q90(|e|) is below 1.6449 standard deviations
+  FINDING: the parametric interval is wider because the residual distribution is leptokurtic: multiplicative noise makes it a scale mixture of normals, which inflates the standard deviation faster than the 90th percentile of the absolute residual. The excess kurtosis above is the mechanism, measured on 200 000 points.
+
+summary: 8 of 8 checks passed
+findings recorded: 2
+ALL BASELINE CHECKS MATCHED THEIR DOCUMENTED EXPECTATIONS

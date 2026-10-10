@@ -1,0 +1,69 @@
+==============================================================================
+telemdrift 0.1.0 - environment and configuration record
+==============================================================================
+script       : validation/validate_environment.py
+python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+cores        : os.cpu_count()=2 affinity=2
+
+
+------------------------------------------------------------------------------
+1. Versions
+------------------------------------------------------------------------------
+  python         3.13.16
+  platform       Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+  numpy          2.5.3
+  scipy          1.18.1
+  scikit-learn   1.9.1
+  matplotlib     3.11.2
+  telemdrift     0.1.0
+  pytest         9.1.1
+  hypothesis     6.168.5
+  joblib         1.6.0
+  PASS  telemdrift version is 0.1.0
+
+------------------------------------------------------------------------------
+2. Compute budget
+------------------------------------------------------------------------------
+  os.cpu_count()               2
+  len(os.sched_getaffinity(0)) 2
+  PASS  two cores, as the batch specification assumes  [affinity=2]
+
+------------------------------------------------------------------------------
+3. The SciPy defect this package routes around
+------------------------------------------------------------------------------
+  scipy.stats.kstest(x, 'norm', args=(loc, scale)) raises TypeError on
+  the installed SciPy. This package never calls it; the windowed KS
+  detector uses its own two-sample statistic, checked against
+  scipy.stats.ks_2samp in validate_known_answers.py.
+  TypeError: ndtr() takes from 1 to 2 positional arguments but 3 were given
+  PASS  the documented SciPy defect reproduces  [ndtr() takes from 1 to 2 positional arguments but 3 were giv]
+
+------------------------------------------------------------------------------
+4. Benchmark configuration
+------------------------------------------------------------------------------
+  target ARL0            500 samples
+  calibration seeds      [58101, 58102, 58103, 58104, 58105, 58106] x 30000 samples = 180000
+  evaluation seeds       [58201, 58202, 58203, 58204, 58205, 58206, 58207, 58208] x 50000 samples = 400000
+  sweep seeds            [58301, 58302, 58303, 58304] x 25000 samples
+  ARL1 replicates        300
+  pre-change length      1000 samples
+  ARL1 censoring budget  1500 samples
+  learned window         50 samples
+  PASS  calibration and evaluation seeds are disjoint
+  PASS  pre-change length exceeds the longest detector warm-up (300)  [pre_length=1000]
+
+------------------------------------------------------------------------------
+5. Declared runtime dependencies
+------------------------------------------------------------------------------
+  numpy, scipy, scikit-learn, joblib. Nothing else, per the batch
+  specification, so the batch pip-audit stays diffable. matplotlib is
+  an optional extra needed only for the figures.
+  PASS  no alternatives-table package is imported at runtime
+
+==============================================================================
+checks passed : 6
+checks FAILED : 0
+wall clock    : 1.9 s (moves 10-40 % between runs on two contended cores)
+raw output    : validation/outputs/validate_environment.txt
+exit status   : 0 (always: see Report.check)
+==============================================================================

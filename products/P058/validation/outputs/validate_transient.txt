@@ -1,0 +1,121 @@
+==============================================================================
+telemdrift 0.1.0 - the transient negative control
+==============================================================================
+script       : validation/validate_transient.py
+python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+cores        : os.cpu_count()=2 affinity=2
+
+
+------------------------------------------------------------------------------
+0. Experiment
+------------------------------------------------------------------------------
+  transient       +A sigma for 20 samples, then recovery to N(0,1)
+  amplitudes      [2.0, 4.0, 8.0] sigma
+  alarm window    20 + 50 grace = 70 samples from the
+                  excursion start
+  replicates      250 seeded streams per detector per amplitude
+  baseline        the same measurement on a stationary stream, same seeds
+  operating point all detectors at a measured ARL0 near 500 samples
+
+------------------------------------------------------------------------------
+1. Calibration
+------------------------------------------------------------------------------
+  CUSUM          threshold=5.13989  calibration ARL0=   498.7  held-out ARL0 = 581.1 +/- 22.7 samples (3.9 % rel. SEM, n=679 runs, 400000 samples, censored tail 1.35 %)  target error +16.2 %
+  Page-Hinkley   threshold=29.9244  calibration ARL0=   499.1  held-out ARL0 = 485.7 +/- 9.3 samples (1.9 % rel. SEM, n=815 runs, 400000 samples, censored tail 1.03 %)  target error -2.9 %
+  EWMA           threshold=2.83155  calibration ARL0=   498.8  held-out ARL0 = 527.1 +/- 20.4 samples (3.9 % rel. SEM, n=753 runs, 400000 samples, censored tail 0.77 %)  target error +5.4 %
+  Windowed KS    threshold=0.134999  calibration ARL0=   457.5  held-out ARL0 = 467.9 +/- 7.3 samples (1.6 % rel. SEM, n=850 runs, 400000 samples, censored tail 0.56 %)  target error -6.4 %
+  ADWIN          threshold=9.94156e-08  calibration ARL0=   500.4  held-out ARL0 = 520.3 +/- 16.5 samples (3.2 % rel. SEM, n=762 runs, 400000 samples, censored tail 0.89 %)  target error +4.1 %
+  Learned RF     threshold=0.68375  calibration ARL0=   519.9  held-out ARL0 = 543.2 +/- 18.0 samples (3.3 % rel. SEM, n=732 runs, 400000 samples, censored tail 0.60 %)  target error +8.6 %
+
+  training set: 78104 windows x 8 features, 2800 positive (3.6 %), window=50, horizon=50, transients_in_training=False, 8 seeds
+  The learned detector has NOT seen a transient in training. That is
+  deliberate: the transient is held out for all six detectors equally.
+  Section 3 measures what the extra supervision would buy.
+
+------------------------------------------------------------------------------
+2. Firing rate on the transient against a matched baseline
+------------------------------------------------------------------------------
+  amplitude +2 sigma
+    detector        transient  Wilson 95 % CI      baseline   excess
+    CUSUM             100.0%  [ 98.5%, 100.0%]         11.2%    +88.8 pp
+    Page-Hinkley       98.8%  [ 96.5%,  99.6%]         14.4%    +84.4 pp
+    EWMA              100.0%  [ 98.5%, 100.0%]         14.0%    +86.0 pp
+    Windowed KS        49.6%  [ 43.5%,  55.8%]         18.4%    +31.2 pp
+    ADWIN             100.0%  [ 98.5%, 100.0%]         13.2%    +86.8 pp
+    Learned RF         97.6%  [ 94.9%,  98.9%]         13.2%    +84.4 pp
+
+  amplitude +4 sigma
+    detector        transient  Wilson 95 % CI      baseline   excess
+    CUSUM             100.0%  [ 98.5%, 100.0%]         11.2%    +88.8 pp
+    Page-Hinkley      100.0%  [ 98.5%, 100.0%]         14.4%    +85.6 pp
+    EWMA              100.0%  [ 98.5%, 100.0%]         14.0%    +86.0 pp
+    Windowed KS        51.2%  [ 45.0%,  57.3%]         18.4%    +32.8 pp
+    ADWIN             100.0%  [ 98.5%, 100.0%]         13.2%    +86.8 pp
+    Learned RF         94.4%  [ 90.8%,  96.6%]         13.2%    +81.2 pp
+
+  amplitude +8 sigma
+    detector        transient  Wilson 95 % CI      baseline   excess
+    CUSUM             100.0%  [ 98.5%, 100.0%]         11.2%    +88.8 pp
+    Page-Hinkley      100.0%  [ 98.5%, 100.0%]         14.4%    +85.6 pp
+    EWMA              100.0%  [ 98.5%, 100.0%]         14.0%    +86.0 pp
+    Windowed KS        51.2%  [ 45.0%,  57.3%]         18.4%    +32.8 pp
+    ADWIN             100.0%  [ 98.5%, 100.0%]         13.2%    +86.8 pp
+    Learned RF         93.2%  [ 89.4%,  95.7%]         13.2%    +80.0 pp
+
+  PASS  the matched stationary baseline is nonzero for every detector, so a raw transient rate would overstate the effect  [baselines [11.2, 14.4, 14.0, 18.4, 13.2, 13.2] %]
+
+------------------------------------------------------------------------------
+3. What training on transients buys the learned detector
+------------------------------------------------------------------------------
+  The same architecture, retrained with transient-spike streams added as
+  negatives, recalibrated to the same ARL0, and re-measured. This is the
+  one advantage a learned detector genuinely has over an analytic one:
+  it can be told what not to fire on. The question is how much it helps.
+
+  training set: 114152 windows x 8 features, 2800 positive (2.5 %), window=50, horizon=50, transients_in_training=True, 8 seeds
+  Learned RF     threshold=0.68375  calibration ARL0=   508.1  held-out ARL0 = 519.5 +/- 16.5 samples (3.2 % rel. SEM, n=764 runs, 400000 samples, censored tail 0.77 %)  target error +3.9 %
+
+  variant                      transient rate   excess   ARL1 on +1 sigma step
+  stationary negatives only             94.4%    +81.2 pp                  15.5
+  transients in training                90.8%    +77.6 pp                  10.8
+
+  change in transient firing rate: -3.6 pp
+  change in delay on a real +1 sigma step: -4.7 samples
+  FINDING  training the learned detector on transient negatives changed its transient firing rate by -3.6 pp and its delay on a real +1 sigma mean step by -4.7 samples, both at the same recalibrated ARL0. This is the only capability in this package that an analytic detector does not have, and it is measured rather than claimed.
+  PASS  the transient-trained variant was measured at the same ARL0  [target error +3.9 %]
+
+------------------------------------------------------------------------------
+4. Every detector's behaviour on the transient, as the spec asks
+------------------------------------------------------------------------------
+  At +4 sigma for 20 samples, with the matched baseline subtracted.
+
+  detector        fires on transient   attributable excess   verdict
+  CUSUM                       100.0%                 +88.8 pp   fires on essentially every transient
+  Page-Hinkley                100.0%                 +85.6 pp   fires on essentially every transient
+  EWMA                        100.0%                 +86.0 pp   fires on essentially every transient
+  Windowed KS                  51.2%                 +32.8 pp   fires on most transients
+  ADWIN                       100.0%                 +86.8 pp   fires on essentially every transient
+  Learned RF                   94.4%                 +81.2 pp   fires on most transients
+
+  There is no detector in this package that ignores a transient. The
+  windowed KS test fires least often, and that is not discrimination:
+  it is un-armed for 65.9 % of a stationary stream (see
+  validate_arl_calibration.py section 4), so it is often not watching.
+  FINDING  ALL SIX DETECTORS FIRE ON THE +4 SIGMA TRANSIENT. Attributable excess over the matched stationary baseline: CUSUM +88.8 pp, Page-Hinkley +85.6 pp, EWMA +86.0 pp, Windowed KS +32.8 pp, ADWIN +86.8 pp, Learned RF +81.2 pp. None of them is a transient-rejecting detector and the README must not be read as offering one.
+
+------------------------------------------------------------------------------
+5. Figure
+------------------------------------------------------------------------------
+  wrote screenshots/transient_validation.png
+  PASS  the transient figure was written
+
+==============================================================================
+checks passed : 3
+checks FAILED : 0
+findings recorded:
+  - training the learned detector on transient negatives changed its transient firing rate by -3.6 pp and its delay on a real +1 sigma mean step by -4.7 samples, both at the same recalibrated ARL0. This is the only capability in this package that an analytic detector does not have, and it is measured rather than claimed.
+  - ALL SIX DETECTORS FIRE ON THE +4 SIGMA TRANSIENT. Attributable excess over the matched stationary baseline: CUSUM +88.8 pp, Page-Hinkley +85.6 pp, EWMA +86.0 pp, Windowed KS +32.8 pp, ADWIN +86.8 pp, Learned RF +81.2 pp. None of them is a transient-rejecting detector and the README must not be read as offering one.
+wall clock    : 182.5 s (moves 10-40 % between runs on two contended cores)
+raw output    : validation/outputs/validate_transient.txt
+exit status   : 0 (always: see Report.check)
+==============================================================================

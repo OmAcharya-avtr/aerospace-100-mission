@@ -1,0 +1,33 @@
+1. the sample project, hand arithmetic
+   denominator = 8 unique declared ids (REQ-007 is declared twice and
+   counts once). Numerators read off the fixture by hand:
+     nominal  001 002 003 004 006 007 008        -> 7
+     executed 001 002 006 007 008                -> 5
+     passing  001 002 006 007                    -> 4
+  [PASS] nominal numerator/denominator                        got (7, 8)   expected (7, 8)
+  [PASS] executed numerator/denominator                       got (5, 8)   expected (5, 8)
+  [PASS] passing numerator/denominator                        got (4, 8)   expected (4, 8)
+       nominal coverage: 7/8 = 87.5000 %
+       executed coverage: 5/8 = 62.5000 %
+       passing coverage: 4/8 = 50.0000 %
+  [PASS] nominal percent                                      got 87.5   expected 87.5
+  [PASS] executed percent                                     got 62.5   expected 62.5
+  [PASS] passing percent                                      got 50.0   expected 50.0
+
+2. the headline overstatement this product exists to refuse
+   quoting nominal coverage alone: 87.5000 %
+   quoting passing coverage      : 50.0000 %
+   difference                    : 37.5000 percentage points
+  [PASS] the overstatement is 37.5 points on this fixture     got 37.5   expected 37.5
+
+3. a zero denominator is reported as undefined, not as zero or as 100
+  [PASS] denominator                                          got 0   expected 0
+  [PASS] percent                                              got None   expected None
+  [PASS] rendered                                             got True   expected True
+
+4. the coverage chain on random inputs, seed 60011
+   nominal >= executed >= passing must hold for every input
+  [PASS] violations over 2000 random inputs                   got 0   expected 0
+       inputs where nominal strictly exceeded passing: 822 of 2000
+
+FAILED CHECKS: 0

@@ -1,0 +1,73 @@
+1. corpus and labels
+  [PASS] labelled functions                                 got 23   expected 23
+  [PASS] inspected test functions                           got 23   expected 23
+  [PASS] label set equals corpus set                        got True   expected True
+  [PASS] hand-labelled as verifying nothing                 got 8   expected 8
+  [PASS] hand-labelled as verifying something               got 15   expected 15
+
+2. per-function verdicts (positive class = flagged as having no assertion)
+   function                                     label          verdict        cell  rules
+   test_always_true_predicate                   empty          not flagged    fn    R1
+   test_assert_inside_loop                      asserts        not flagged    tn    R1
+   test_assert_inside_try                       asserts        not flagged    tn    R1
+   test_assert_inside_with                      asserts        not flagged    tn    R1
+   test_assert_one_constant                     empty          flagged        tp    R2,R6
+   test_assert_short_circuited_by_true          empty          not flagged    fn    R1
+   test_assert_true_constant                    empty          flagged        tp    R2,R6
+   test_builds_a_value_and_drops_it             empty          flagged        tp    R6
+   test_delegates_to_fixture                    asserts        flagged        fp    R6
+   test_delegates_to_module_helper              asserts        flagged        fp    R6
+   test_delegates_to_verifier_object            asserts        flagged        fp    R6
+   test_empty_body                              empty          flagged        tp    R6
+   test_hamcrest_style                          asserts        not flagged    tn    R4
+   test_nested_function_asserts                 asserts        not flagged    tn    R1
+   test_numpy_testing                           asserts        not flagged    tn    R4
+   test_only_calls_code                         empty          flagged        tp    R6
+   test_plain_assert                            asserts        not flagged    tn    R1
+   test_pytest_fail_branch                      asserts        not flagged    tn    R5
+   test_pytest_raises                           asserts        not flagged    tn    R3
+   test_pytest_warns                            asserts        not flagged    tn    R3
+   test_unittest_assert_equal                   asserts        not flagged    tn    R4
+   test_unittest_assert_raises                  asserts        not flagged    tn    R4
+   test_vacuous_self_comparison                 empty          not flagged    fn    R1
+
+3. confusion matrix
+                       truly empty   truly asserts
+   flagged empty                 5               3
+   not flagged                   3              12
+  [PASS] true positives                                     got 5   expected 5
+  [PASS] false positives                                    got 3   expected 3
+  [PASS] false negatives                                    got 3   expected 3
+  [PASS] true negatives                                     got 12   expected 12
+  [PASS] total                                              got 23   expected 23
+
+4. rates, stated the unflattering way
+   precision                     0.625000  (5 of 8 flags were right)
+   recall                        0.625000  (5 of 8 empty tests were caught)
+   false-positive rate           0.200000  (3 of 15 asserting tests were wrongly flagged)
+   false-negative rate           0.375000  (3 of 8 empty tests were missed)
+   accuracy                      0.739130
+   Read that as: on this corpus, more than a third of the empty tests
+   are missed and three flags in eight are wrong. TA006 is a prompt to look,
+   not a result.
+
+5. the error modes, named
+   false positives, all three of the same kind -- the assertion is one
+   call away and the heuristic does not follow calls:
+     test_delegates_to_fixture                    the assertion is in the checker fixture
+     test_delegates_to_module_helper              the assertion is in _check_nonneg, one call away
+     test_delegates_to_verifier_object            Verifier.must_equal raises AssertionError
+   false negatives, all three of the same kind -- the assert statement
+   exists and is syntactically non-constant, but is vacuous:
+     test_always_true_predicate                   len(result) >= 0 is true for every list
+     test_assert_short_circuited_by_true          the or True arm makes the assert unconditional
+     test_vacuous_self_comparison                 value == value is true for every non-NaN value
+
+6. what would move these numbers
+   following one level of call into a module-level helper would remove
+   two of the three false positives and would introduce a new error mode
+   (a helper that only logs). Catching the three false negatives needs
+   data flow, not syntax. Neither is implemented, and the heuristic is
+   labelled as a heuristic everywhere it appears.
+
+FAILED CHECKS: 0

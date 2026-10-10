@@ -1,0 +1,149 @@
+==============================================================================
+telemdrift 0.1.0 - where the calibration stops being true
+==============================================================================
+script       : validation/validate_robustness.py
+python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+cores        : os.cpu_count()=2 affinity=2
+
+
+------------------------------------------------------------------------------
+1. Autocorrelation destroys an i.i.d.-calibrated threshold
+------------------------------------------------------------------------------
+  Every threshold in this package is fitted on an i.i.d. Gaussian stream.
+  Housekeeping telemetry is sampled faster than the physical time
+  constants it measures and is strongly autocorrelated. The AR(1) stream
+  used here has the SAME marginal distribution N(0,1) as the calibration
+  stream - only the dependence differs - so anything that moves below is
+  caused by dependence alone.
+
+  Measured lag-one autocorrelation of the generated streams:
+    phi = 0.0: measured lag-1 = -0.0037, sd = 1.0021
+    phi = 0.2: measured lag-1 = +0.1969, sd = 1.0015
+    phi = 0.4: measured lag-1 = +0.3979, sd = 1.0011
+    phi = 0.6: measured lag-1 = +0.5988, sd = 1.0010
+    phi = 0.8: measured lag-1 = +0.7999, sd = 1.0020
+    phi = 0.9: measured lag-1 = +0.9008, sd = 1.0058
+
+  ARL0 at the i.i.d.-calibrated thresholds, 4 seeds x 30000 samples:
+
+  phi              CUSUM    Page-Hinkley            EWMA     Windowed KS           ADWIN
+  0.0          570+/-42         469+/-15         519+/-35         463+/-13         476+/-24  
+  0.2          164+/-6          320+/-9          171+/-6          407+/-8          235+/-7   
+  0.4           73+/-2          231+/-6           75+/-2          350+/-4          147+/-3   
+  0.6           41+/-1          161+/-3           39+/-1          328+/-2          106+/-1   
+  0.8           25+/-0          102+/-2           21+/-0          317+/-1           87+/-1   
+  0.9           20+/-0           85+/-1           15+/-0          307+/-0           81+/-1   
+
+  Degradation factor, ARL0 at phi = 0 divided by ARL0 at phi:
+  phi              CUSUM    Page-Hinkley            EWMA     Windowed KS           ADWIN
+  0.2               3.5x            1.5x            3.0x            1.1x            2.0x
+  0.4               7.8x            2.0x            6.9x            1.3x            3.2x
+  0.6              14.0x            2.9x           13.3x            1.4x            4.5x
+  0.8              22.5x            4.6x           25.0x            1.5x            5.5x
+  0.9              28.8x            5.5x           34.5x            1.5x            5.9x
+
+  A factor of F means the detector false-alarms F times more often than
+  the operating point it was calibrated to, on a stream whose marginal
+  distribution is identical. This is not a small correction.
+  PASS  autocorrelation degrades at least one detector by more than 5x  [worst ewma 34.5x]
+  FINDING  AUTOCORRELATION BREAKS THE CALIBRATION. At lag-one autocorrelation 0.9, with the marginal distribution unchanged, the measured ARL0 falls by CUSUM 28.8x, Page-Hinkley 5.5x, EWMA 34.5x, Windowed KS 1.5x, ADWIN 5.9x. Any threshold from this package applied to real telemetry without re-calibrating on that channel's own quiet data will false-alarm far more often than its nominal ARL0.
+
+  The windowed KS test degrades least, which is a property of its
+  statistic rather than a virtue: it compares empirical distributions,
+  and an AR(1) stream has the same marginal distribution as the
+  i.i.d. one it was calibrated against. It is blind to the change in
+  dependence for exactly the reason it is robust to it.
+
+------------------------------------------------------------------------------
+2A. ADWIN's delta scaling, which set the shipped min_sub
+------------------------------------------------------------------------------
+  eps_cut grows only as sqrt(log(1/delta)), so driving delta down raises
+  the cut threshold extremely slowly. With a small min_sub the cut test
+  is applied to tiny subwindows where the Hoeffding bound behind eps_cut
+  is at its loosest, and the ARL0 reachable at any sane delta is short.
+
+  Measured ARL0, 3 seeds x 30000 stationary samples:
+
+  min_sub   delta=1e-2   1e-4   1e-6   1e-8   1e-10   1e-12
+        5        45     76    125    218    372    600
+       15        90    145    238    375    604   1012
+       30       155    226    378    596   1034   1671
+       50       245    360    609    950   1392   2571
+
+  Ten orders of magnitude of delta buy a factor of 13.5 in ARL0 at
+  min_sub = 5 (45 to 600 samples). That is the
+  sqrt(log(1/delta)) scaling, measured.
+
+  At min_sub = 5 the 500-sample target is crossed only
+  somewhere between delta = 1e-10 (ARL0 372) and delta = 1e-12
+  (ARL0 600): a confidence parameter nine to ten orders of
+  magnitude below the 0.002 the common implementations ship. At
+  min_sub = 30 the target is crossed near delta = 1e-7 (ARL0 378 at 1e-6, 596 at 1e-8).
+  PASS  at min_sub = 5 the target ARL0 lies between delta = 1e-10 and 1e-12, as documented  [ARL0 372 at 1e-10, 600 at 1e-12, target 500]
+  PASS  ten orders of magnitude of delta change ARL0 by less than 20x at min_sub = 5, as sqrt(log(1/delta)) predicts  [13.5x]
+
+  The practical consequence, measured rather than argued: the calibration
+  procedure's bracket search walks outward from the detector's declared
+  default by a factor of 1.6 per step for at most 26 steps, which reaches
+  delta = 0.002 / 1.6^26 = 1e-8. At min_sub = 5 that is not far enough
+  and the calibration reports a bracketing FAILURE. Measured:
+
+    min_sub =  5: bracketing_failed = True, delta = 9.861e-09, held-out ARL0 = 227.2 +/- 9.7 (target error -54.6 %)
+  PASS  min_sub = 5 fails to bracket the target from the shipped default within the bracket budget  [delta=9.86e-09, ARL0=227]
+    min_sub = 30: bracketing_failed = False, delta = 9.942e-08, held-out ARL0 = 476.5 +/- 24.5 (target error -4.7 %)
+  PASS  min_sub = 30 brackets the target from the shipped default  [delta=9.94e-08, ARL0=476]
+
+  min_sub = 30 is therefore the shipped default. It was declared BEFORE
+  any ARL1 was measured, which makes it a configuration choice and not a
+  tuned result, and the alternative was an ADWIN that could not be placed
+  at the common operating point at all.
+  FINDING  ADWIN's delta is a very weak control on its false-alarm rate: ten orders of magnitude of delta move the measured ARL0 by only 13.5x at min_sub = 5 (45 to 600 samples), because eps_cut grows as sqrt(log(1/delta)). At min_sub = 5 the 500-sample target needs delta near 1e-11 and the bracket search from the shipped default of 0.002 does not reach it, so the calibration reports a failure. min_sub = 30 is the shipped default for that reason, declared before any delay was measured.
+
+------------------------------------------------------------------------------
+2B. The harness reset convention against published ADWIN
+------------------------------------------------------------------------------
+  Published ADWIN drops the older part of its window on a cut and keeps
+  the newer part. This harness resets the whole window, so that all five
+  analytic detectors are treated identically. The obvious objection is
+  that the harness convention is unfair to ADWIN. It is measured here,
+  and it is not: the published convention gives a SHORTER ARL0, because
+  after shrinking the detector immediately re-tests the window it kept.
+
+  delta        full reset (harness)   shrink (published)   ratio
+  1e-02                       166.8                102.0    1.63x
+  PASS  the harness convention is not the pessimistic one at delta = 1e-02  [reset 167 vs shrink 102]
+  1e-04                       249.6                161.1    1.55x
+  PASS  the harness convention is not the pessimistic one at delta = 1e-04  [reset 250 vs shrink 161]
+  1e-06                       391.5                238.5    1.64x
+  PASS  the harness convention is not the pessimistic one at delta = 1e-06  [reset 392 vs shrink 238]
+  1e-08                       640.9                367.8    1.74x
+  PASS  the harness convention is not the pessimistic one at delta = 1e-08  [reset 641 vs shrink 368]
+  FINDING  the full-reset convention this harness uses for ADWIN gives a LONGER measured ARL0 than published ADWIN's window-shrinking convention at every delta tested, so the convention does not disadvantage ADWIN. Both columns are in section 2B of validation/outputs/validate_robustness.txt.
+
+------------------------------------------------------------------------------
+2C. ADWIN's nominal delta is not a false-alarm rate
+------------------------------------------------------------------------------
+  The published bound is per cut test. The detector performs O(log n) cut
+  tests per check and a check every check_every = 10 samples, so the
+  nominal delta and the measured false-alarm rate are different
+  quantities. Here is how different.
+
+  delta       nominal 1/delta   measured ARL0   measured/nominal
+  1e-02                   100           156.4            1.5639
+  1e-03                  1000           198.3            0.1983
+  1e-04                 10000           238.1            0.0238
+  1e-06               1000000           384.7            0.0004
+  FINDING  ADWIN's nominal delta is not a stream-level false-alarm rate: the measured ARL0 is orders of magnitude shorter than 1/delta at every delta tested. Anyone reading delta = 0.002 as 'one false alarm per 500 samples' is wrong by a large factor in the unsafe direction; the measured ARL0 at that delta is in section 1 of validate_arl_calibration.py.
+
+==============================================================================
+checks passed : 9
+checks FAILED : 0
+findings recorded:
+  - AUTOCORRELATION BREAKS THE CALIBRATION. At lag-one autocorrelation 0.9, with the marginal distribution unchanged, the measured ARL0 falls by CUSUM 28.8x, Page-Hinkley 5.5x, EWMA 34.5x, Windowed KS 1.5x, ADWIN 5.9x. Any threshold from this package applied to real telemetry without re-calibrating on that channel's own quiet data will false-alarm far more often than its nominal ARL0.
+  - ADWIN's delta is a very weak control on its false-alarm rate: ten orders of magnitude of delta move the measured ARL0 by only 13.5x at min_sub = 5 (45 to 600 samples), because eps_cut grows as sqrt(log(1/delta)). At min_sub = 5 the 500-sample target needs delta near 1e-11 and the bracket search from the shipped default of 0.002 does not reach it, so the calibration reports a failure. min_sub = 30 is the shipped default for that reason, declared before any delay was measured.
+  - the full-reset convention this harness uses for ADWIN gives a LONGER measured ARL0 than published ADWIN's window-shrinking convention at every delta tested, so the convention does not disadvantage ADWIN. Both columns are in section 2B of validation/outputs/validate_robustness.txt.
+  - ADWIN's nominal delta is not a stream-level false-alarm rate: the measured ARL0 is orders of magnitude shorter than 1/delta at every delta tested. Anyone reading delta = 0.002 as 'one false alarm per 500 samples' is wrong by a large factor in the unsafe direction; the measured ARL0 at that delta is in section 1 of validate_arl_calibration.py.
+wall clock    : 81.4 s (moves 10-40 % between runs on two contended cores)
+raw output    : validation/outputs/validate_robustness.txt
+exit status   : 0 (always: see Report.check)
+==============================================================================

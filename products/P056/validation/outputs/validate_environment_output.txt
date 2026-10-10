@@ -1,0 +1,37 @@
+==============================================================================
+Environment of record - calibaudit 0.1.0
+==============================================================================
+python 3.13.16 on Linux 6.18.44-fc-v114, 2 usable cores
+
+python           : 3.13.16 (main, Oct  1 2026, 15:40:24) [GCC 13.3.0]
+platform         : Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+os.cpu_count     : 2
+sched_getaffinity: 2
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.168.5
+calibaudit       : 0.1.0
+
+Declared runtime dependencies: numpy, scipy, scikit-learn.
+matplotlib is needed only for calibaudit.plotting and examples/.
+
+[    PASS] package version matches the release under validation
+           reference   : pyproject.toml version 0.1.0
+           measured    : 0.1.0
+           expectation : 0.1.0
+[    PASS] core count recorded, not assumed
+           reference   : len(os.sched_getaffinity(0))
+           measured    : 2
+           expectation : any value, recorded so timings are interpretable
+[    PASS] scikit-learn is at least 1.9, where CalibratedClassifierCV lost cv='prefit'
+           reference   : sklearn.__version__
+           measured    : 1.9.1
+           expectation : >= 1.9
+
+------------------------------------------------------------------------------
+checks: 3 total, 3 passed, 0 FAILED
+------------------------------------------------------------------------------
+script exit status 0 (see validation/_harness.py for why)

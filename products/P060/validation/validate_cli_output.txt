@@ -1,0 +1,380 @@
+Every command below is executed in this run, from the repository root.
+Commands that exit 1 are the product reporting findings, which is correct
+behaviour; this script still exits 0.
+
+$ python -m traceaudit --help
+  usage: python -m traceaudit [-h] [--version]
+                              {audit,requirements,tests,assertions,codes,config-template} ...
+  
+  Compute requirements-to-test traceability from a markdown requirements document and a
+  junit XML or pytest collection report. A clean run means the bookkeeping closes, not
+  that anything has been verified.
+  
+  positional arguments:
+    {audit,requirements,tests,assertions,codes,config-template}
+      audit               run every check and report findings
+      requirements        list the requirement declarations parsed
+      tests               list the test cases, outcomes and claims parsed
+      assertions          run the assertion heuristic over a test tree
+      codes               list the finding codes and what they mean
+      config-template     print the default configuration as JSON
+  
+  options:
+    -h, --help            show this help message and exit
+    --version             show program's version number and exit
+  
+  exit 0 = no findings, 1 = findings, 2 = could not run
+  -> exit status 0   [PASS, README section: CLI reference, expected 0]
+
+$ python -m traceaudit --version
+  traceaudit 0.1.0
+  -> exit status 0   [PASS, README section: CLI reference, expected 0]
+
+$ python -m traceaudit codes
+  TA001  requirement has no test
+  TA002  test claims an undeclared requirement
+  TA003  requirement id declared more than once
+  TA004  requirement traced only by skipped or xfailed tests
+  TA005  requirement traced only by failing or erroring tests
+  TA006  claiming test has no detectable assertion (heuristic)  [heuristic]
+  -> exit status 0   [PASS, README section: Finding codes, expected 0]
+
+$ python -m traceaudit config-template
+  {
+    "id_pattern": "REQ-\\d{3}",
+    "declaration_pattern": null,
+    "skip_code_fences": true,
+    "claim_property_names": [
+      "requirement_id",
+      "requirements",
+      "requirement"
+    ],
+    "claim_value_separators": ",; ",
+    "claim_from_node_id": true,
+    "node_id_claim_pattern": "REQ[-_ ]?(\\d{3})",
+    "node_id_claim_template": "REQ-{0}",
+    "ignored_codes": [],
+    "heuristic_assertions": true
+  }
+  -> exit status 0   [PASS, README section: Configuration, expected 0]
+
+$ python -m traceaudit requirements -r fixtures/sample_project/docs/REQUIREMENTS.md
+  9 declaration(s), 8 unique id(s)
+    REQ-001    fixtures/sample_project/docs/REQUIREMENTS.md:14 Wheel speed input validation
+    REQ-002    fixtures/sample_project/docs/REQUIREMENTS.md:18 Momentum accumulation
+    REQ-003    fixtures/sample_project/docs/REQUIREMENTS.md:22 Desaturation threshold
+    REQ-004    fixtures/sample_project/docs/REQUIREMENTS.md:27 Hysteresis
+    REQ-005    fixtures/sample_project/docs/REQUIREMENTS.md:32 Telemetry record
+    REQ-006    fixtures/sample_project/docs/REQUIREMENTS.md:36 Request counter
+    REQ-007    fixtures/sample_project/docs/REQUIREMENTS.md:40 Reset behaviour
+    REQ-008    fixtures/sample_project/docs/REQUIREMENTS.md:44 Saturation ceiling
+    REQ-007    fixtures/sample_project/docs/REQUIREMENTS.md:54 Reset behaviour (duplicated during a document merge)
+    duplicate: REQ-007 declared 2 times
+  -> exit status 0   [PASS, README section: Worked example, expected 0]
+
+$ python -m traceaudit tests -t fixtures/sample_project/junit.xml
+  fixtures/sample_project/junit.xml (junit-xml)
+    header totals : {'tests': 8, 'failures': 1, 'errors': 0, 'skipped': 2}
+    counted       : {'passed': 5, 'failed': 1, 'errored': 0, 'skipped': 1, 'xfailed': 1, 'unknown': 0}
+    passed   tests/test_monitor.py::test_rejects_out_of_range_speed     REQ-001
+    passed   tests/test_monitor.py::test_accumulates_momentum           REQ-002
+    skipped  tests/test_monitor.py::test_desaturation_threshold         REQ-003
+    xfailed  tests/test_monitor.py::test_hysteresis_band                REQ-004
+    passed   tests/test_monitor.py::test_request_counter                REQ-006
+    passed   tests/test_monitor.py::test_reset_clears_momentum          REQ-007
+    failed   tests/test_monitor.py::test_saturation_ceiling             REQ-008
+    passed   tests/test_monitor.py::test_claims_an_undeclared_requirement REQ-042
+  -> exit status 0   [PASS, README section: Worked example, expected 0]
+
+$ python -m traceaudit tests -t fixtures/sample_project/collect_only.txt
+  fixtures/sample_project/collect_only.txt (collect-only)
+    header totals : {}
+    counted       : {'passed': 0, 'failed': 0, 'errored': 0, 'skipped': 0, 'xfailed': 0, 'unknown': 8}
+    unknown  tests/test_monitor.py::test_rejects_out_of_range_speed     -
+    unknown  tests/test_monitor.py::test_accumulates_momentum           -
+    unknown  tests/test_monitor.py::test_desaturation_threshold         -
+    unknown  tests/test_monitor.py::test_hysteresis_band                -
+    unknown  tests/test_monitor.py::test_request_counter                -
+    unknown  tests/test_monitor.py::test_reset_clears_momentum          -
+    unknown  tests/test_monitor.py::test_saturation_ceiling             -
+    unknown  tests/test_monitor.py::test_claims_an_undeclared_requirement -
+  -> exit status 0   [PASS, README section: Worked example, expected 0]
+
+$ python -m traceaudit audit -r fixtures/sample_project/docs/REQUIREMENTS.md -t fixtures/sample_project/junit.xml --test-root fixtures/sample_project/tests
+  traceaudit report
+    requirements document : fixtures/sample_project/docs/REQUIREMENTS.md
+    test report           : fixtures/sample_project/junit.xml (junit-xml)
+    declarations parsed   : 9 (8 unique ids)
+    test cases parsed     : 8 (passed 5, failed 1, errored 0, skipped 1, xfailed 1, unknown 0)
+    claiming test cases   : 8
+  
+  coverage, with denominators stated
+    nominal coverage: 7/8 = 87.5000 %
+        definition: requirements with >=1 claiming test of any outcome
+    executed coverage: 5/8 = 62.5000 %
+        definition: requirements with >=1 claiming test that actually ran
+    passing coverage: 4/8 = 50.0000 %
+        definition: requirements with >=1 claiming test that passed
+  
+  findings
+    TA001 REQ-005                      no test claims this requirement  (fixtures/sample_project/docs/REQUIREMENTS.md:32)
+    TA002 REQ-042                      claimed by tests/test_monitor.py::test_claims_an_undeclared_requirement, but no declaration exists
+    TA003 REQ-007                      declared 2 times: fixtures/sample_project/docs/REQUIREMENTS.md:40, fixtures/sample_project/docs/REQUIREMENTS.md:54  (fixtures/sample_project/docs/REQUIREMENTS.md:40)
+    TA004 REQ-003                      every claiming test was skipped or xfailed: tests/test_monitor.py::test_desaturation_threshold [skipped]  (fixtures/sample_project/docs/REQUIREMENTS.md:22)
+    TA004 REQ-004                      every claiming test was skipped or xfailed: tests/test_monitor.py::test_hysteresis_band [xfailed]  (fixtures/sample_project/docs/REQUIREMENTS.md:27)
+    TA005 REQ-008                      every claiming test failed or errored: tests/test_monitor.py::test_saturation_ceiling [failed]  (fixtures/sample_project/docs/REQUIREMENTS.md:44)
+    TA006 tests/test_monitor.py::test_request_counter no assertion detected in test_request_counter: no assert, no pytest.raises, no assert* call  (tests/test_monitor.py:42)  [heuristic]
+  
+  summary by code
+    TA001    1  requirement has no test
+    TA002    1  test claims an undeclared requirement
+    TA003    1  requirement id declared more than once
+    TA004    2  requirement traced only by skipped or xfailed tests
+    TA005    1  requirement traced only by failing or erroring tests
+    TA006    1  claiming test has no detectable assertion (heuristic)
+  
+  7 finding(s), 7 blocking; exit status 1
+  NOTE: traceability is a necessary bookkeeping condition, not evidence of adequacy: a requirement traced to a test that asserts nothing is still traced.
+  -> exit status 1   [PASS, README section: Worked example, expected 1]
+
+$ python -m traceaudit audit -r fixtures/sample_project/docs/REQUIREMENTS.md -t fixtures/sample_project/junit.xml --test-root fixtures/sample_project/tests --show-matrix
+  traceaudit report
+    requirements document : fixtures/sample_project/docs/REQUIREMENTS.md
+    test report           : fixtures/sample_project/junit.xml (junit-xml)
+    declarations parsed   : 9 (8 unique ids)
+    test cases parsed     : 8 (passed 5, failed 1, errored 0, skipped 1, xfailed 1, unknown 0)
+    claiming test cases   : 8
+  
+  coverage, with denominators stated
+    nominal coverage: 7/8 = 87.5000 %
+        definition: requirements with >=1 claiming test of any outcome
+    executed coverage: 5/8 = 62.5000 %
+        definition: requirements with >=1 claiming test that actually ran
+    passing coverage: 4/8 = 50.0000 %
+        definition: requirements with >=1 claiming test that passed
+  
+  requirement -> tests
+    REQ-001    tests/test_monitor.py::test_rejects_out_of_range_speed  [passed]
+    REQ-002    tests/test_monitor.py::test_accumulates_momentum  [passed]
+    REQ-003    tests/test_monitor.py::test_desaturation_threshold  [skipped]
+    REQ-004    tests/test_monitor.py::test_hysteresis_band  [xfailed]
+    REQ-005    -
+    REQ-006    tests/test_monitor.py::test_request_counter  [passed]
+    REQ-007    tests/test_monitor.py::test_reset_clears_momentum  [passed]
+    REQ-008    tests/test_monitor.py::test_saturation_ceiling  [failed]
+  
+  findings
+    TA001 REQ-005                      no test claims this requirement  (fixtures/sample_project/docs/REQUIREMENTS.md:32)
+    TA002 REQ-042                      claimed by tests/test_monitor.py::test_claims_an_undeclared_requirement, but no declaration exists
+    TA003 REQ-007                      declared 2 times: fixtures/sample_project/docs/REQUIREMENTS.md:40, fixtures/sample_project/docs/REQUIREMENTS.md:54  (fixtures/sample_project/docs/REQUIREMENTS.md:40)
+    TA004 REQ-003                      every claiming test was skipped or xfailed: tests/test_monitor.py::test_desaturation_threshold [skipped]  (fixtures/sample_project/docs/REQUIREMENTS.md:22)
+    TA004 REQ-004                      every claiming test was skipped or xfailed: tests/test_monitor.py::test_hysteresis_band [xfailed]  (fixtures/sample_project/docs/REQUIREMENTS.md:27)
+    TA005 REQ-008                      every claiming test failed or errored: tests/test_monitor.py::test_saturation_ceiling [failed]  (fixtures/sample_project/docs/REQUIREMENTS.md:44)
+    TA006 tests/test_monitor.py::test_request_counter no assertion detected in test_request_counter: no assert, no pytest.raises, no assert* call  (tests/test_monitor.py:42)  [heuristic]
+  
+  summary by code
+    TA001    1  requirement has no test
+    TA002    1  test claims an undeclared requirement
+    TA003    1  requirement id declared more than once
+    TA004    2  requirement traced only by skipped or xfailed tests
+    TA005    1  requirement traced only by failing or erroring tests
+    TA006    1  claiming test has no detectable assertion (heuristic)
+  
+  7 finding(s), 7 blocking; exit status 1
+  NOTE: traceability is a necessary bookkeeping condition, not evidence of adequacy: a requirement traced to a test that asserts nothing is still traced.
+  -> exit status 1   [PASS, README section: Worked example, expected 1]
+
+$ python -m traceaudit audit -r fixtures/sample_project/docs/REQUIREMENTS.md -t fixtures/sample_project/junit.xml --test-root fixtures/sample_project/tests --markdown-matrix
+  | requirement | title | tests | outcomes |
+  |---|---|---|---|
+  | REQ-001 | Wheel speed input validation | tests/test_monitor.py::test_rejects_out_of_range_speed | passed |
+  | REQ-002 | Momentum accumulation | tests/test_monitor.py::test_accumulates_momentum | passed |
+  | REQ-003 | Desaturation threshold | tests/test_monitor.py::test_desaturation_threshold | skipped |
+  | REQ-004 | Hysteresis | tests/test_monitor.py::test_hysteresis_band | xfailed |
+  | REQ-005 | Telemetry record | none | - |
+  | REQ-006 | Request counter | tests/test_monitor.py::test_request_counter | passed |
+  | REQ-007 | Reset behaviour | tests/test_monitor.py::test_reset_clears_momentum | passed |
+  | REQ-008 | Saturation ceiling | tests/test_monitor.py::test_saturation_ceiling | failed |
+  -> exit status 1   [PASS, README section: Worked example, expected 1]
+
+$ python -m traceaudit audit -r fixtures/sample_project/docs/REQUIREMENTS.md -t fixtures/sample_project/junit.xml --test-root fixtures/sample_project/tests --ignore TA006
+  traceaudit report
+    requirements document : fixtures/sample_project/docs/REQUIREMENTS.md
+    test report           : fixtures/sample_project/junit.xml (junit-xml)
+    declarations parsed   : 9 (8 unique ids)
+    test cases parsed     : 8 (passed 5, failed 1, errored 0, skipped 1, xfailed 1, unknown 0)
+    claiming test cases   : 8
+  
+  coverage, with denominators stated
+    nominal coverage: 7/8 = 87.5000 %
+        definition: requirements with >=1 claiming test of any outcome
+    executed coverage: 5/8 = 62.5000 %
+        definition: requirements with >=1 claiming test that actually ran
+    passing coverage: 4/8 = 50.0000 %
+        definition: requirements with >=1 claiming test that passed
+  
+  findings
+    TA001 REQ-005                      no test claims this requirement  (fixtures/sample_project/docs/REQUIREMENTS.md:32)
+    TA002 REQ-042                      claimed by tests/test_monitor.py::test_claims_an_undeclared_requirement, but no declaration exists
+    TA003 REQ-007                      declared 2 times: fixtures/sample_project/docs/REQUIREMENTS.md:40, fixtures/sample_project/docs/REQUIREMENTS.md:54  (fixtures/sample_project/docs/REQUIREMENTS.md:40)
+    TA004 REQ-003                      every claiming test was skipped or xfailed: tests/test_monitor.py::test_desaturation_threshold [skipped]  (fixtures/sample_project/docs/REQUIREMENTS.md:22)
+    TA004 REQ-004                      every claiming test was skipped or xfailed: tests/test_monitor.py::test_hysteresis_band [xfailed]  (fixtures/sample_project/docs/REQUIREMENTS.md:27)
+    TA005 REQ-008                      every claiming test failed or errored: tests/test_monitor.py::test_saturation_ceiling [failed]  (fixtures/sample_project/docs/REQUIREMENTS.md:44)
+    TA006 tests/test_monitor.py::test_request_counter no assertion detected in test_request_counter: no assert, no pytest.raises, no assert* call  (tests/test_monitor.py:42)  [heuristic, ignored]
+  
+  summary by code
+    TA001    1  requirement has no test
+    TA002    1  test claims an undeclared requirement
+    TA003    1  requirement id declared more than once
+    TA004    2  requirement traced only by skipped or xfailed tests
+    TA005    1  requirement traced only by failing or erroring tests
+    TA006    1  claiming test has no detectable assertion (heuristic)
+  
+  7 finding(s), 6 blocking; exit status 1
+  NOTE: traceability is a necessary bookkeeping condition, not evidence of adequacy: a requirement traced to a test that asserts nothing is still traced.
+  -> exit status 1   [PASS, README section: Limitations, expected 1]
+
+$ python -m traceaudit audit -r fixtures/sample_project/docs/REQUIREMENTS.md -t fixtures/sample_project/collect_only.txt --test-root fixtures/sample_project/tests
+  traceaudit report
+    requirements document : fixtures/sample_project/docs/REQUIREMENTS.md
+    test report           : fixtures/sample_project/collect_only.txt (collect-only)
+    declarations parsed   : 9 (8 unique ids)
+    test cases parsed     : 8 (passed 0, failed 0, errored 0, skipped 0, xfailed 0, unknown 8)
+    claiming test cases   : 0
+  
+  coverage, with denominators stated
+    nominal coverage: 0/8 = 0.0000 %
+        definition: requirements with >=1 claiming test of any outcome
+    executed coverage: undefined (report carries no outcomes)
+    passing coverage : undefined (report carries no outcomes)
+  
+  notes
+    - fixtures/sample_project/collect_only.txt is a collect-only report: no outcomes, so TA004 and TA005 were not computed and executed/passing coverage are undefined
+  
+  findings
+    TA001 REQ-001                      no test claims this requirement  (fixtures/sample_project/docs/REQUIREMENTS.md:14)
+    TA001 REQ-002                      no test claims this requirement  (fixtures/sample_project/docs/REQUIREMENTS.md:18)
+    TA001 REQ-003                      no test claims this requirement  (fixtures/sample_project/docs/REQUIREMENTS.md:22)
+    TA001 REQ-004                      no test claims this requirement  (fixtures/sample_project/docs/REQUIREMENTS.md:27)
+    TA001 REQ-005                      no test claims this requirement  (fixtures/sample_project/docs/REQUIREMENTS.md:32)
+    TA001 REQ-006                      no test claims this requirement  (fixtures/sample_project/docs/REQUIREMENTS.md:36)
+    TA001 REQ-007                      no test claims this requirement  (fixtures/sample_project/docs/REQUIREMENTS.md:40)
+    TA001 REQ-008                      no test claims this requirement  (fixtures/sample_project/docs/REQUIREMENTS.md:44)
+    TA003 REQ-007                      declared 2 times: fixtures/sample_project/docs/REQUIREMENTS.md:40, fixtures/sample_project/docs/REQUIREMENTS.md:54  (fixtures/sample_project/docs/REQUIREMENTS.md:40)
+  
+  summary by code
+    TA001    8  requirement has no test
+    TA002    0  test claims an undeclared requirement
+    TA003    1  requirement id declared more than once
+    TA004    0  requirement traced only by skipped or xfailed tests
+    TA005    0  requirement traced only by failing or erroring tests
+    TA006    0  claiming test has no detectable assertion (heuristic)
+  
+  9 finding(s), 9 blocking; exit status 1
+  NOTE: traceability is a necessary bookkeeping condition, not evidence of adequacy: a requirement traced to a test that asserts nothing is still traced.
+  -> exit status 1   [PASS, README section: Limitations, expected 1]
+
+$ python -m traceaudit assertions --test-root fixtures/heuristic
+  28 function(s) inspected under fixtures/heuristic
+  HEURISTIC: calls are not followed; a test whose assertion lives in a helper reads as empty.
+    asserts      _check_nonneg                              test_assertion_elsewhere.py:14  (assert statement)
+    NO ASSERTION must_equal                                 test_assertion_elsewhere.py:20  (no assert, no pytest.raises, no assert* call)
+    asserts      checker                                    test_assertion_elsewhere.py:26  (assert statement)
+    asserts      _check                                     test_assertion_elsewhere.py:27  (assert statement)
+    NO ASSERTION test_delegates_to_module_helper            test_assertion_elsewhere.py:33  (no assert, no pytest.raises, no assert* call)
+    NO ASSERTION test_delegates_to_fixture                  test_assertion_elsewhere.py:37  (no assert, no pytest.raises, no assert* call)
+    NO ASSERTION test_delegates_to_verifier_object          test_assertion_elsewhere.py:41  (no assert, no pytest.raises, no assert* call)
+    asserts      test_plain_assert                          test_truly_asserts.py:13  (assert statement)
+    asserts      test_pytest_raises                         test_truly_asserts.py:17  (with ...raises(...))
+    asserts      test_pytest_warns                          test_truly_asserts.py:22  (with ...warns(...))
+    asserts      test_numpy_testing                         test_truly_asserts.py:27  (call to assert_allclose)
+    asserts      test_assert_inside_loop                    test_truly_asserts.py:31  (assert statement)
+    asserts      test_assert_inside_with                    test_truly_asserts.py:36  (assert statement)
+    asserts      test_assert_inside_try                     test_truly_asserts.py:41  (assert statement)
+    asserts      test_hamcrest_style                        test_truly_asserts.py:49  (call to assert_that)
+    asserts      test_nested_function_asserts               test_truly_asserts.py:53  (assert statement)
+    asserts      check                                      test_truly_asserts.py:54  (assert statement)
+    asserts      test_pytest_fail_branch                    test_truly_asserts.py:60  (call to fail)
+    asserts      test_unittest_assert_equal                 test_truly_asserts.py:67  (call to assertEqual)
+    asserts      test_unittest_assert_raises                test_truly_asserts.py:70  (call to assertRaises)
+    NO ASSERTION test_empty_body                            test_truly_empty.py:12  (no assert, no pytest.raises, no assert* call)
+    NO ASSERTION test_only_calls_code                       test_truly_empty.py:16  (no assert, no pytest.raises, no assert* call)
+    NO ASSERTION test_builds_a_value_and_drops_it           test_truly_empty.py:21  (no assert, no pytest.raises, no assert* call)
+    NO ASSERTION test_assert_true_constant                  test_truly_empty.py:28  (constant-true assert ignored; no assert, no pytest.raises, no assert* call)
+    NO ASSERTION test_assert_one_constant                   test_truly_empty.py:32  (constant-true assert ignored; no assert, no pytest.raises, no assert* call)
+    asserts      test_vacuous_self_comparison               test_truly_empty.py:36  (assert statement)
+    asserts      test_always_true_predicate                 test_truly_empty.py:41  (assert statement)
+    asserts      test_assert_short_circuited_by_true        test_truly_empty.py:46  (assert statement)
+  -> exit status 0   [PASS, README section: Limitations, expected 0]
+
+$ python -m traceaudit audit -r fixtures/sample_project/docs/REQUIREMENTS.md -t fixtures/sample_project/absent.xml
+  [stderr] traceaudit: junit XML report not found: fixtures/sample_project/absent.xml
+  -> exit status 2   [PASS, README section: CLI reference, expected 2]
+
+The self-audit pair from the Quickstart, run in full:
+$ python -m pytest tests/ -q --junitxml=junit.xml
+  .................................................................................. [ 69%]
+  ........................................................................           [100%]
+  236 passed in 11.03s
+  -> exit status 0   [PASS, expected 0]
+
+$ python -m traceaudit audit -r docs/REQUIREMENTS.md -t junit.xml --test-root tests
+  traceaudit report
+    requirements document : docs/REQUIREMENTS.md
+    test report           : junit.xml (junit-xml)
+    declarations parsed   : 26 (26 unique ids)
+    test cases parsed     : 236 (passed 236, failed 0, errored 0, skipped 0, xfailed 0, unknown 0)
+    claiming test cases   : 236
+  
+  coverage, with denominators stated
+    nominal coverage: 26/26 = 100.0000 %
+        definition: requirements with >=1 claiming test of any outcome
+    executed coverage: 26/26 = 100.0000 %
+        definition: requirements with >=1 claiming test that actually ran
+    passing coverage: 26/26 = 100.0000 %
+        definition: requirements with >=1 claiming test that passed
+  
+  findings
+    none
+  
+  summary by code
+    TA001    0  requirement has no test
+    TA002    0  test claims an undeclared requirement
+    TA003    0  requirement id declared more than once
+    TA004    0  requirement traced only by skipped or xfailed tests
+    TA005    0  requirement traced only by failing or erroring tests
+    TA006    0  claiming test has no detectable assertion (heuristic)
+  
+  0 finding(s), 0 blocking; exit status 0
+  NOTE: traceability is a necessary bookkeeping condition, not evidence of adequacy: a requirement traced to a test that asserts nothing is still traced.
+  -> exit status 0   [PASS, README section: Quickstart, expected 0]
+
+The examples quoted in the Screenshots section:
+$ python examples/audit_sample_project.py
+  
+  wrote screenshots/trace_matrix.png
+  the CLI would exit 1 on this input
+  -> exit status 0   [PASS, expected 0]
+
+$ python examples/coverage_definitions.py
+    findings: 9, exit status 1
+  
+  wrote screenshots/coverage_definitions.png
+  -> exit status 0   [PASS, expected 0]
+
+$ python examples/finding_breakdown.py
+  junit, TA006 ignored           1      1      1      2      1      1      7         6     1
+  
+  wrote screenshots/finding_breakdown.png
+  -> exit status 0   [PASS, expected 0]
+
+$ python examples/heuristic_error_rates.py
+  accuracy                        : 0.7391
+  
+  wrote screenshots/heuristic_confusion.png
+  -> exit status 0   [PASS, expected 0]
+
+COMMANDS EXECUTED: 20
+FAILED CHECKS: 0
+
+This script's own exit status: 0.

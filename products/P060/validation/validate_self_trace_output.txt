@@ -1,0 +1,68 @@
+1. running the suite
+   python -m pytest tests/ -q --junitxml=junit.xml
+   pytest exit status      : 0
+   pytest stdout last line : 236 passed in 11.44s
+   (that line is NOT the number reported below)
+
+2. counts read from the junit XML <testsuite> element
+   tests    = 236
+   failures = 0
+   errors   = 0
+   skipped  = 0   (pytest counts xfailed cases here too)
+   passed   = tests - failures - errors - skipped = 236
+  [PASS] suite collected more than zero tests                   got True   expected True
+  [PASS] zero failures                                          got 0   expected 0
+  [PASS] zero errors                                            got 0   expected 0
+
+3. the same report through this package's own parser
+   parsed <testcase> elements : 236
+   passed                     : 236
+   failed                     : 0
+   errored                    : 0
+   skipped                    : 0
+   xfailed                    : 0
+  [PASS] case count matches the header                          got 236   expected 236
+  [PASS] failed matches the header                              got 0   expected 0
+  [PASS] errored matches the header                             got 0   expected 0
+  [PASS] skipped + xfailed matches the header                   got 0   expected 0
+  [PASS] passed matches the header arithmetic                   got 236   expected 236
+
+4. auditing this package's own requirements against that report
+
+traceaudit report
+  requirements document : docs/REQUIREMENTS.md
+  test report           : junit.xml (junit-xml)
+  declarations parsed   : 26 (26 unique ids)
+  test cases parsed     : 236 (passed 236, failed 0, errored 0, skipped 0, xfailed 0, unknown 0)
+  claiming test cases   : 236
+
+coverage, with denominators stated
+  nominal coverage: 26/26 = 100.0000 %
+      definition: requirements with >=1 claiming test of any outcome
+  executed coverage: 26/26 = 100.0000 %
+      definition: requirements with >=1 claiming test that actually ran
+  passing coverage: 26/26 = 100.0000 %
+      definition: requirements with >=1 claiming test that passed
+
+findings
+  none
+
+summary by code
+  TA001    0  requirement has no test
+  TA002    0  test claims an undeclared requirement
+  TA003    0  requirement id declared more than once
+  TA004    0  requirement traced only by skipped or xfailed tests
+  TA005    0  requirement traced only by failing or erroring tests
+  TA006    0  claiming test has no detectable assertion (heuristic)
+
+0 finding(s), 0 blocking; exit status 0
+NOTE: traceability is a necessary bookkeeping condition, not evidence of adequacy: a requirement traced to a test that asserts nothing is still traced.
+
+  [PASS] declared requirements                                  got 26   expected 26
+  [PASS] findings                                               got 0   expected 0
+  [PASS] audit exit status                                      got 0   expected 0
+  [PASS] nominal coverage numerator/denominator                 got (26, 26)   expected (26, 26)
+  [PASS] passing coverage numerator/denominator                 got (26, 26)   expected (26, 26)
+   claiming test cases: 236 of 236
+
+FAILED CHECKS: 0

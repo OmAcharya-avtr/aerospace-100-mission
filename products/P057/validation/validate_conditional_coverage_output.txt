@@ -1,0 +1,41 @@
+conditional coverage by tercile of predicted energy, conformalband 0.1.0
+replicates 30, n_fit 1500, n_calibration 500, n_test 1000, seed 57031, alpha 0.1, model learned
+the tercile edges are declared on the CALIBRATION predictions and applied unchanged to the test predictions, so under shift the test terciles are not equally populated; that imbalance is itself a symptom of the shift and is reported
+
+severity 0.0
+method      tercile  coverage  width_Wh    points
+-------------------------------------------------
+split             1   0.95972   0.70027     10105
+split             2   0.91760   0.70050      9757
+split             3   0.81920   0.69988     10138
+mondrian          1   0.90559   0.57475     10105
+mondrian          2   0.90397   0.67903      9757
+mondrian          3   0.89998   0.88171     10138
+  split      coverage spread across terciles 0.14053 (min 0.81920, max 0.95972)
+  mondrian   coverage spread across terciles 0.00561 (min 0.89998, max 0.90559)
+  mondrian width across terciles: 0.57475 -> 0.88171 Wh, a factor of 1.53407
+  [PASS] severity 0.0: Mondrian spread is at most half the marginal spread
+  [PASS] severity 0.0: marginal split under-covers in the top tercile
+  [PASS] severity 0.0: Mondrian widths increase with the tercile
+  FINDING: severity 0.0: marginal split conformal covers 0.95972 in the lowest tercile and 0.81920 in the highest, against a nominal 0.9. The marginal guarantee is met on average and violated where it matters, which is the heaviest, windiest flights.
+
+severity 2.0
+method      tercile  coverage  width_Wh    points
+-------------------------------------------------
+split             1   0.95764   0.70032      3824
+split             2   0.91157   0.70082      7633
+split             3   0.77560   0.69994     18543
+mondrian          1   0.90795   0.57468      3824
+mondrian          2   0.89991   0.67892      7633
+mondrian          3   0.86146   0.88127     18543
+  split      coverage spread across terciles 0.18203 (min 0.77560, max 0.95764)
+  mondrian   coverage spread across terciles 0.04649 (min 0.86146, max 0.90795)
+  mondrian width across terciles: 0.57468 -> 0.88127 Wh, a factor of 1.53349
+  [PASS] severity 2.0: Mondrian spread is at most half the marginal spread
+  [PASS] severity 2.0: marginal split under-covers in the top tercile
+  [PASS] severity 2.0: Mondrian widths increase with the tercile
+  FINDING: severity 2.0: marginal split conformal covers 0.95764 in the lowest tercile and 0.77560 in the highest, against a nominal 0.9. The marginal guarantee is met on average and violated where it matters, which is the heaviest, windiest flights.
+
+summary: 6 of 6 checks passed
+findings recorded: 2
+ALL CONDITIONAL-COVERAGE CHECKS MATCHED THEIR DOCUMENTED EXPECTATIONS

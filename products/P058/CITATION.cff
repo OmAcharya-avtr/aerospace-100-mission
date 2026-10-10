@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "telemdrift: streaming change detection on a univariate telemetry channel"
+abstract: >-
+  A benchmark harness, not a streaming framework. Five analytic streaming change
+  detectors (CUSUM, Page-Hinkley, EWMA, a windowed two-sample Kolmogorov-Smirnov
+  test and an ADWIN-style adaptive window) plus a learned detector, each
+  calibrated to a declared mean time to false alarm and then scored on detection
+  delay, with a Monte Carlo standard error on every figure and a
+  delay-versus-false-alarm trade-off curve that makes the detectors comparable at
+  equal operating point. The learned detector loses to EWMA and CUSUM at equal
+  ARL0 and the loss is published. Research-grade; not flight-qualified, not
+  certified, not approved for operational aerospace use.
+version: 0.1.0
+date-released: "2026-10-10"
+license: Apache-2.0
+authors:
+  - family-names: Acharya
+    given-names: Om
+repository-code: "https://github.com/OmAcharya-avtr/telemdrift"
+keywords:
+  - change detection
+  - concept drift
+  - average run length
+  - CUSUM
+  - ADWIN
+  - telemetry
+  - satellite communications

@@ -1,0 +1,89 @@
+known-answer validation for conformalband 0.1.0
+seed 57101, 400000 Monte-Carlo replicates where used
+
+1. finite-sample coverage bound, k = ceil((n+1)(1-alpha)), exact = k/(n+1)
+      n  alpha     k           exact            hand            gap
+  -------------------------------------------------------------------
+       19   0.10    18  0.900000000000  0.900000000000 0.000000000000
+       18   0.10    18  0.947368421053  0.947368421053 0.047368421053
+        9   0.10     9  0.900000000000  0.900000000000 0.000000000000
+      100   0.10    91  0.900990099010  0.900990099010 0.000990099010
+      500   0.10   451  0.900199600798  0.900199600798 0.000199600798
+       99   0.05    95  0.950000000000  0.950000000000 0.000000000000
+  [PASS] every bound equals the hand arithmetic to 1e-15
+  [PASS] n=8 with alpha=0.1 is refused because k=9 > 8
+
+2. Monte-Carlo confirmation of the exact coverage, exchangeable scores
+   400000 replicates per row, standard error about 0.000474
+    n  alpha        law           exact        measured        error
+  --------------------------------------------------------------------
+     19   0.10    uniform  0.900000000000  0.899540000000 -0.000460000
+     19   0.10  lognormal  0.900000000000  0.899470000000 -0.000530000
+     19   0.10 halfcauchy  0.900000000000  0.899615000000 -0.000385000
+     18   0.10    uniform  0.947368421053  0.946905000000 -0.000463421
+     18   0.10  lognormal  0.947368421053  0.948120000000 +0.000751579
+     18   0.10 halfcauchy  0.947368421053  0.946802500000 -0.000565921
+    100   0.10    uniform  0.900990099010  0.900965000000 -0.000025099
+    100   0.10  lognormal  0.900990099010  0.900597500000 -0.000392599
+    100   0.10 halfcauchy  0.900990099010  0.901392500000 +0.000402401
+     99   0.05    uniform  0.950000000000  0.950272500000 +0.000272500
+     99   0.05  lognormal  0.950000000000  0.949410000000 -0.000590000
+     99   0.05 halfcauchy  0.950000000000  0.950605000000 +0.000605000
+  [PASS] every measured coverage is within 0.004 of k/(n+1), any score law
+  coverage at n=18 minus coverage at n=19 : +0.047365000
+  hand value 18/19 - 18/20                : +0.047368421
+  [PASS] dropping one calibration point raises coverage by 18/19 - 18/20 = 0.047368421
+
+3. the weighted quantile reduces to the order statistic
+  n=24, alpha=0.44: 25*(1-0.44) = 14.00000000000000178
+  unguarded ceil                 : 15
+  conformal_rank (guarded)       : 14
+  weighted_quantile              : 14.0
+  [PASS] the floating-point ceiling guard selects rank 14, not 15
+  split quantile                 : 0.691266925435076
+  weighted with unit weights     : 0.691266925435076
+  mondrian with one bin          : 0.691266925435076
+  [PASS] weighted with unit weights equals split exactly
+  [PASS] mondrian with one bin equals split exactly
+  [PASS] weighted conformal at severity 0 equals split exactly
+
+4. the declared likelihood ratio against the Gaussian densities
+ severity  mahalanobis   max rel err       E[w]      E[w^2]    exp(M^2)
+  -----------------------------------------------------------------------
+        0.0     0.000000     0.000e+00   1.000000    1.000000    1.000000
+        1.0     0.424264     4.996e-15   1.000639    1.198515    1.197217
+        2.0     0.848528     5.107e-15   1.001084    2.058341    2.054433
+        3.0     1.272792     5.329e-15   1.001410    5.062352    5.053090
+  [PASS] closed-form log ratio matches the density ratio to 1e-12 relative
+  [PASS] E_cal[w(X)] = 1 to within 0.01 at every severity
+
+5. the energy model, by hand
+  P_total  measured : 215.001704789323 W   hand : 215.001704789323 W
+  E_leg    measured : 2.986134788741 Wh  hand :   2.986134788741 Wh
+  [PASS] level flight power matches the hand value to 1e-12 relative
+  [PASS] leg energy matches the hand value to 1e-12 relative
+  doubling the distance : 5.972269577481 Wh = 2.000000000000000 x
+  [PASS] energy is exactly linear in distance
+
+6. diagnostics, by hand
+  ESS of 37 equal weights          : 37.000000000000
+  ESS of weights [1, 3]            : 1.600000000000
+  ESS of a single non-zero weight  : 1.000000000000
+  [PASS] ESS of n equal weights is n
+  [PASS] ESS of [1, 3] is (1+3)^2/(1+9) = 1.6
+  [PASS] ESS of one non-zero weight is 1
+  Clopper-Pearson(0, 20)           : [0.000000000000, 0.168433470983]
+  hand upper limit 1 - 0.025^(1/20): 0.168433470983
+  [PASS] Clopper-Pearson(0, 20) upper limit matches 1 - 0.025^(1/20)
+
+7. dataset statistics quoted in DATASET_CARD.md
+  make_dataset(200000, seed=1), calibration distribution
+  mean noiseless energy        : 3.117808 Wh
+  sd across covariate draws    : 0.580589 Wh
+  observation-noise sd         : 0.190197 Wh
+  0.06 * sqrt(mean^2 + sd^2)   : 0.190284 Wh
+  [PASS] the multiplicative-noise identity sd(e) = 0.06 sqrt(E[truth^2]) holds to 1 per cent
+  [PASS] mean noiseless energy is between 3.0 and 3.2 Wh
+
+summary: 19 of 19 checks passed
+ALL KNOWN-ANSWER CHECKS PASSED

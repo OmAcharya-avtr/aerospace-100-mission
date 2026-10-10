@@ -1,0 +1,179 @@
+==============================================================================
+Held-out recalibration audit - calibaudit 0.1.0
+==============================================================================
+python 3.13.16 on Linux 6.18.44-fc-v114, 2 usable cores
+
+Baseline: the raw forecast, identity map, fitted on nothing.
+Learned: Platt scaling (2 parameters, maximum likelihood) and isotonic
+regression (nonparametric, pool-adjacent-violators). 50/50 split, fresh
+data per replicate, 80 replicates per sample size.
+
+=== overconfident: sharpened logits (T = 0.6), the usual neural-network failure ===
+ n_total     method  mean_brier    mean_dBS        sem  harm_rate  improved
+---------------------------------------------------------------------------
+      60        raw    0.202773   +0.000000   0.000000      0.000     0.000
+      60      platt    0.208595   +0.005822   0.003050      0.512     0.487
+      60   isotonic    0.219621   +0.016848   0.003634      0.713     0.287
+     100        raw    0.207931   +0.000000   0.000000      0.000     0.000
+     100      platt    0.210389   +0.002458   0.001880      0.487     0.512
+     100   isotonic    0.219559   +0.011628   0.002369      0.688     0.312
+     200        raw    0.208249   +0.000000   0.000000      0.000     0.000
+     200      platt    0.205170   -0.003078   0.000942      0.350     0.650
+     200   isotonic    0.213789   +0.005541   0.001160      0.688     0.312
+     400        raw    0.206943   +0.000000   0.000000      0.000     0.000
+     400      platt    0.201588   -0.005355   0.000653      0.150     0.850
+     400   isotonic    0.206956   +0.000013   0.000825      0.525     0.475
+    1000        raw    0.205311   +0.000000   0.000000      0.000     0.000
+    1000      platt    0.199699   -0.005611   0.000383      0.062     0.938
+    1000   isotonic    0.202129   -0.003182   0.000401      0.150     0.850
+    2500        raw    0.206985   +0.000000   0.000000      0.000     0.000
+    2500      platt    0.200283   -0.006702   0.000249      0.000     1.000
+    2500   isotonic    0.201667   -0.005318   0.000259      0.013     0.988
+    6000        raw    0.207206   +0.000000   0.000000      0.000     0.000
+    6000      platt    0.200445   -0.006762   0.000145      0.000     1.000
+    6000   isotonic    0.201267   -0.005939   0.000150      0.000     1.000
+   15000        raw    0.206712   +0.000000   0.000000      0.000     0.000
+   15000      platt    0.199977   -0.006735   0.000093      0.000     1.000
+   15000   isotonic    0.200449   -0.006263   0.000093      0.000     1.000
+
+    platt: mean held-out Brier change turns negative from n_total = 200
+           worst harm rate 0.512 at n_total = 60 (mean change +0.005822)
+ isotonic: mean held-out Brier change turns negative from n_total = 1000
+           worst harm rate 0.713 at n_total = 60 (mean change +0.016848)
+
+[    PASS] [overconfident] HONEST NEGATIVE: both learned maps harm the score at n_total = 60
+           reference   : the raw forecast on the same held-out samples
+           measured    : platt: mean change +0.005822, harm rate 0.512; isotonic: mean change +0.016848, harm rate 0.713
+           expectation : positive mean change for at least one learned map at the smallest sample size, because the fit's estimation variance exceeds the miscalibration it can remove
+[    PASS] [overconfident] isotonic needs more data than Platt
+           reference   : Niculescu-Mizil and Caruana 2005, ICML, report isotonic regression needing of order 1000 samples before it beats Platt scaling
+           measured    : Platt crosses at n_total = 200, isotonic at n_total = 1000
+           expectation : isotonic's crossing point is at or above Platt's
+
+=== biased_high: logits offset by +0.6, a uniformly optimistic forecaster ===
+ n_total     method  mean_brier    mean_dBS        sem  harm_rate  improved
+---------------------------------------------------------------------------
+      60        raw    0.209748   +0.000000   0.000000      0.000     0.000
+      60      platt    0.208595   -0.001153   0.004021      0.425     0.575
+      60   isotonic    0.219558   +0.009810   0.004624      0.588     0.412
+     100        raw    0.217522   +0.000000   0.000000      0.000     0.000
+     100      platt    0.210389   -0.007133   0.002273      0.362     0.637
+     100   isotonic    0.219560   +0.002038   0.002877      0.512     0.487
+     200        raw    0.214449   +0.000000   0.000000      0.000     0.000
+     200      platt    0.205170   -0.009278   0.001544      0.188     0.812
+     200   isotonic    0.213787   -0.000662   0.001756      0.463     0.537
+     400        raw    0.214958   +0.000000   0.000000      0.000     0.000
+     400      platt    0.201588   -0.013370   0.000999      0.037     0.963
+     400   isotonic    0.206956   -0.008002   0.001195      0.150     0.850
+    1000        raw    0.213199   +0.000000   0.000000      0.000     0.000
+    1000      platt    0.199699   -0.013499   0.000516      0.000     1.000
+    1000   isotonic    0.202129   -0.011070   0.000546      0.025     0.975
+    2500        raw    0.215103   +0.000000   0.000000      0.000     0.000
+    2500      platt    0.200283   -0.014819   0.000363      0.000     1.000
+    2500   isotonic    0.201667   -0.013435   0.000393      0.000     1.000
+    6000        raw    0.215612   +0.000000   0.000000      0.000     0.000
+    6000      platt    0.200445   -0.015167   0.000238      0.000     1.000
+    6000   isotonic    0.201267   -0.014345   0.000253      0.000     1.000
+   15000        raw    0.214922   +0.000000   0.000000      0.000     0.000
+   15000      platt    0.199977   -0.014945   0.000136      0.000     1.000
+   15000   isotonic    0.200449   -0.014473   0.000140      0.000     1.000
+
+    platt: mean held-out Brier change turns negative from n_total = 60
+           worst harm rate 0.425 at n_total = 60 (mean change -0.001153)
+ isotonic: mean held-out Brier change turns negative from n_total = 200
+           worst harm rate 0.588 at n_total = 60 (mean change +0.009810)
+
+[    PASS] [biased_high] HONEST NEGATIVE: both learned maps harm the score at n_total = 60
+           reference   : the raw forecast on the same held-out samples
+           measured    : platt: mean change -0.001153, harm rate 0.425; isotonic: mean change +0.009810, harm rate 0.588
+           expectation : positive mean change for at least one learned map at the smallest sample size, because the fit's estimation variance exceeds the miscalibration it can remove
+[    PASS] [biased_high] isotonic needs more data than Platt
+           reference   : Niculescu-Mizil and Caruana 2005, ICML, report isotonic regression needing of order 1000 samples before it beats Platt scaling
+           measured    : Platt crosses at n_total = 60, isotonic at n_total = 200
+           expectation : isotonic's crossing point is at or above Platt's
+
+=== calibrated: perfectly calibrated, Beta(2,2) latent, base rate 0.5 ===
+ n_total     method  mean_brier    mean_dBS        sem  harm_rate  improved
+---------------------------------------------------------------------------
+      60        raw    0.197250   +0.000000   0.000000      0.000     0.000
+      60      platt    0.208595   +0.011345   0.002834      0.637     0.362
+      60   isotonic    0.219585   +0.022335   0.003569      0.775     0.225
+     100        raw    0.201574   +0.000000   0.000000      0.000     0.000
+     100      platt    0.210389   +0.008815   0.001520      0.725     0.275
+     100   isotonic    0.219562   +0.017988   0.002268      0.787     0.212
+     200        raw    0.201445   +0.000000   0.000000      0.000     0.000
+     200      platt    0.205170   +0.003725   0.000650      0.825     0.175
+     200   isotonic    0.213789   +0.012344   0.001072      0.963     0.037
+     400        raw    0.200065   +0.000000   0.000000      0.000     0.000
+     400      platt    0.201588   +0.001523   0.000381      0.688     0.312
+     400   isotonic    0.206956   +0.006892   0.000738      0.875     0.125
+    1000        raw    0.198921   +0.000000   0.000000      0.000     0.000
+    1000      platt    0.199699   +0.000778   0.000146      0.700     0.300
+    1000   isotonic    0.202129   +0.003207   0.000293      0.925     0.075
+    2500        raw    0.200033   +0.000000   0.000000      0.000     0.000
+    2500      platt    0.200283   +0.000250   0.000054      0.738     0.263
+    2500   isotonic    0.201667   +0.001634   0.000121      0.963     0.037
+    6000        raw    0.200357   +0.000000   0.000000      0.000     0.000
+    6000      platt    0.200445   +0.000088   0.000022      0.713     0.287
+    6000   isotonic    0.201267   +0.000910   0.000053      0.988     0.013
+   15000        raw    0.199929   +0.000000   0.000000      0.000     0.000
+   15000      platt    0.199977   +0.000048   0.000009      0.688     0.312
+   15000   isotonic    0.200449   +0.000520   0.000023      1.000     0.000
+
+    platt: mean held-out Brier change never turns negative on this grid
+           worst harm rate 0.825 at n_total = 200 (mean change +0.003725)
+ isotonic: mean held-out Brier change never turns negative on this grid
+           worst harm rate 1.000 at n_total = 15000 (mean change +0.000520)
+
+[    PASS] [calibrated] HONEST NEGATIVE: recalibration never helps a forecaster that is already calibrated
+           reference   : population reliability of this spec is exactly 0, so there is nothing for a recalibration map to remove
+           measured    : platt: mean change +0.011345 at n_total = 60, harm rate 0.637; isotonic: mean change +0.022335 at n_total = 60, harm rate 0.775
+           expectation : mean held-out Brier change positive, i.e. worse than the raw baseline, at every swept sample size
+
+Platt scaling against the exact inverse of each known distortion
+
+           spec        n   a_exact  a_fitted   b_exact  b_fitted      |da|      |db|
+------------------------------------------------------------------------------------
+     calibrated     2000    1.0000    1.0595    0.0000    0.0751   0.05952   0.07506
+     calibrated    20000    1.0000    1.0203    0.0000    0.0086   0.02031   0.00858
+     calibrated   200000    1.0000    1.0143    0.0000    0.0013   0.01429   0.00130
+  overconfident     2000    0.6000    0.6357    0.0000    0.0751   0.03571   0.07506
+  overconfident    20000    0.6000    0.6122    0.0000    0.0086   0.01218   0.00858
+  overconfident   200000    0.6000    0.6086    0.0000    0.0013   0.00858   0.00130
+ underconfident     2000    1.6000    1.6952    0.0000    0.0751   0.09524   0.07506
+ underconfident    20000    1.6000    1.6325    0.0000    0.0086   0.03249   0.00858
+ underconfident   200000    1.6000    1.6229    0.0000    0.0013   0.02287   0.00130
+    biased_high     2000    1.0000    1.0595   -0.6000   -0.5606   0.05952   0.03935
+    biased_high    20000    1.0000    1.0203   -0.6000   -0.6036   0.02031   0.00360
+    biased_high   200000    1.0000    1.0143   -0.6000   -0.6073   0.01429   0.00727
+
+[    PASS] Platt scaling recovers the exact inverse distortion at large n
+           reference   : the analytic inverse of each spec's logistic distortion, exact
+           measured    : at n = 200000, worst |da| = 0.02287, worst |db| = 0.00727
+           expectation : both below 0.03, which is about five standard errors of a two-parameter logistic fit at this sample size
+Where the Brier and logarithmic scores disagree about isotonic regression
+
+ n_total    raw_BS    iso_BS        dBS    raw_LS    iso_LS        dLS  disagree
+--------------------------------------------------------------------------------
+     200  0.212888  0.213243  +0.000355  0.645848  2.188250  +1.542402     False
+     400  0.190209  0.196939  +0.006731  0.575095  0.583535  +0.008441     False
+    1000  0.233709  0.224863  -0.008846  0.688392  0.891906  +0.203514      True
+    4000  0.208896  0.202815  -0.006081  0.619765  0.621845  +0.002080      True
+   20000  0.203721  0.198720  -0.005002  0.605180  0.584444  -0.020736     False
+
+[    PASS] the Brier and logarithmic scores can disagree about isotonic regression
+           reference   : same held-out split, same predictions, two proper scoring rules
+           measured    : 2 of 5 sample sizes disagree in sign
+           expectation : >= 1 disagreement, because pool-adjacent-violators returns exactly 0 and 1 on pure blocks and the logarithmic score punishes that while the Brier score barely notices
+isotonic on a 200-sample training split emitted an exact 0 or 1 for 24 of 200 held-out forecasts, and 4 of those were wrong.
+held-out log score: raw 0.639511, isotonic 1.272654; held-out Brier: raw 0.221221, isotonic 0.224179
+
+[    PASS] isotonic regression emits exact 0 and 1 on held-out data
+           reference   : pool-adjacent-violators returns the block mean, which is 0 or 1 on a pure block
+           measured    : 24 of 200 held-out predictions were exactly 0 or 1, 4 of them wrong
+           expectation : > 0 extreme predictions on a 200-sample training split
+
+------------------------------------------------------------------------------
+checks: 8 total, 8 passed, 0 FAILED
+------------------------------------------------------------------------------
+script exit status 0 (see validation/_harness.py for why)

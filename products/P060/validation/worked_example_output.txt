@@ -1,0 +1,26 @@
+declared ids      : 8
+test cases        : 8
+nominal coverage  : 7/8 = 87.5000 %
+executed coverage : 5/8 = 62.5000 %
+passing coverage  : 4/8 = 50.0000 %
+
+TA001 REQ-005                      no test claims this requirement  (docs/REQUIREMENTS.md:32)
+TA002 REQ-042                      claimed by tests/test_monitor.py::test_claims_an_undeclared_requirement, but no declaration exists
+TA003 REQ-007                      declared 2 times: docs/REQUIREMENTS.md:40, docs/REQUIREMENTS.md:54  (docs/REQUIREMENTS.md:40)
+TA004 REQ-003                      every claiming test was skipped or xfailed: tests/test_monitor.py::test_desaturation_threshold [skipped]  (docs/REQUIREMENTS.md:22)
+TA004 REQ-004                      every claiming test was skipped or xfailed: tests/test_monitor.py::test_hysteresis_band [xfailed]  (docs/REQUIREMENTS.md:27)
+TA005 REQ-008                      every claiming test failed or errored: tests/test_monitor.py::test_saturation_ceiling [failed]  (docs/REQUIREMENTS.md:44)
+TA006 tests/test_monitor.py::test_request_counter no assertion detected in test_request_counter: no assert, no pytest.raises, no assert* call  (tests/test_monitor.py:42)  [heuristic]
+
+exit status the CLI would use: 1
+
+| requirement | title | tests | outcomes |
+|---|---|---|---|
+| REQ-001 | Wheel speed input validation | tests/test_monitor.py::test_rejects_out_of_range_speed | passed |
+| REQ-002 | Momentum accumulation | tests/test_monitor.py::test_accumulates_momentum | passed |
+| REQ-003 | Desaturation threshold | tests/test_monitor.py::test_desaturation_threshold | skipped |
+| REQ-004 | Hysteresis | tests/test_monitor.py::test_hysteresis_band | xfailed |
+| REQ-005 | Telemetry record | none | - |
+| REQ-006 | Request counter | tests/test_monitor.py::test_request_counter | passed |
+| REQ-007 | Reset behaviour | tests/test_monitor.py::test_reset_clears_momentum | passed |
+| REQ-008 | Saturation ceiling | tests/test_monitor.py::test_saturation_ceiling | failed |

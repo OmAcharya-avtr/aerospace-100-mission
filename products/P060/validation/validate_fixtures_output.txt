@@ -1,0 +1,17 @@
+1. regenerating the fixtures into a scratch directory
+  junit.xml: committed 2513 bytes, regenerated 2513 bytes
+  [PASS] junit.xml is byte-identical                            got True   expected True
+  collect_only.txt: committed 401 bytes, regenerated 401 bytes
+  [PASS] collect_only.txt is byte-identical                     got True   expected True
+
+2. the committed fixtures contain no absolute path
+  [PASS] junit.xml has no absolute home or root path            got True   expected True
+  [PASS] collect_only.txt has no absolute home or root path     got True   expected True
+
+3. what normalisation removes, and why
+   time, timestamp and hostname attributes are not reproducible, and
+   pytest writes the absolute path of the skipping line into the text
+   of the <skipped> element. Element structure, attributes, outcomes
+   and properties are exactly as pytest wrote them.
+
+FAILED CHECKS: 0

@@ -1,0 +1,45 @@
+==============================================================================
+telemdrift 0.1.0 - the README worked example
+==============================================================================
+script       : validation/worked_example.py
+python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+cores        : os.cpu_count()=2 affinity=2
+
+
+------------------------------------------------------------------------------
+The README worked example, run
+------------------------------------------------------------------------------
+  # 1. A telemetry channel, standardised, with a mean step at sample 1000.
+  stream length 2500, change at 1000, pre-change mean -0.0051, post-change mean +1.0025
+
+  # 2. A CUSUM at its textbook default. What false-alarm rate is that?
+  h = 4  ->  ARL0 = 167.9 +/- 3.4 samples (2.0 % rel. SEM, n=2373 runs, 400000 samples, censored tail 0.39 %)
+
+  # 3. Not the one we wanted. Calibrate it to a declared target instead.
+  target ARL0 500 samples
+  h = 5.1399
+  fitted   ARL0 498.7 samples
+  held-out ARL0 = 581.1 +/- 22.7 samples (3.9 % rel. SEM, n=679 runs, 400000 samples, censored tail 1.35 %)
+  target error +16.2 % (on seeds not used for fitting)
+
+  # 4. Now the delay is a number that means something.
+  ARL1 = 9.4 +/- 0.3 samples (n=300, pre-change false alarm in 87.7 % of replicates, un-armed at change 0.0 %, censored at 1500 0.0 %)
+  median delay 8 samples, 90th percentile 17 samples
+
+  # 5. And the transient that must NOT count as a detection.
+  transient +4.0 sigma for 20 samples: ARL1 = 0.9 +/- 0.0 samples (n=300, pre-change false alarm in 84.0 % of replicates, un-armed at change 0.0 %, censored at 1500 0.0 %)
+  Every alarm there is a false alarm. CUSUM does not distinguish a
+  transient from a change, and neither does any other detector in this
+  package (validate_transient.py).
+  PASS  the calibrated threshold is above the default, as a longer ARL0 requires  [5.1399 > 4]
+  PASS  the calibrated held-out ARL0 is within 25 % of target  [+16.2 %]
+  PASS  the detection delay is at least 20x shorter than the ARL0 it was bought with  [62x]
+  PASS  CUSUM responds to the transient faster than to the real change, which is the finding not the feature  [transient 0.9 vs change 9.4 samples]
+
+==============================================================================
+checks passed : 4
+checks FAILED : 0
+wall clock    : 3.4 s (moves 10-40 % between runs on two contended cores)
+raw output    : validation/outputs/worked_example.txt
+exit status   : 0 (always: see Report.check)
+==============================================================================

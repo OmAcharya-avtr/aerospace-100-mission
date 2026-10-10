@@ -1,0 +1,47 @@
+1. the bundled sample project, junit XML, heuristic on
+   hand enumeration: TA001 REQ-005, TA002 REQ-042, TA003 REQ-007,
+   TA004 REQ-003 and REQ-004, TA005 REQ-008, TA006 test_request_counter
+  [PASS] counts by code                                           got {'TA001': 1, 'TA002': 1, 'TA003': 1, 'TA004': 2, 'TA005': 1, 'TA006': 1}   expected {'TA001': 1, 'TA002': 1, 'TA003': 1, 'TA004': 2, 'TA005': 1, 'TA006': 1}
+  [PASS] total findings                                           got 7   expected 7
+  [PASS] blocking findings                                        got 7   expected 7
+  [PASS] exit code                                                got 1   expected 1
+  [PASS] subjects in order                                        got [('TA001', 'REQ-005'), ('TA002', 'REQ-042'), ('TA003', 'REQ-007'), ('TA004', 'REQ-003'), ('TA004', 'REQ-004'), ('TA005', 'REQ-008'), ('TA006', 'tests/test_monitor.py::test_request_counter')]   expected [('TA001', 'REQ-005'), ('TA002', 'REQ-042'), ('TA003', 'REQ-007'), ('TA004', 'REQ-003'), ('TA004', 'REQ-004'), ('TA005', 'REQ-008'), ('TA006', 'tests/test_monitor.py::test_request_counter')]
+  [PASS] only TA006 is marked heuristic                           got {'TA006'}   expected {'TA006'}
+
+2. the finding messages name the evidence
+  [PASS] TA003 names both declaration lines                       got True   expected True
+  [PASS] TA002 names the claiming test                            got True   expected True
+  [PASS] TA004 names the skipped outcome for REQ-003              got True   expected True
+  [PASS] TA004 names the xfailed outcome for REQ-004              got True   expected True
+  [PASS] TA005 names the failed outcome                           got True   expected True
+
+3. the skipped and xfailed requirements are the illusory ones
+   REQ-003 and REQ-004 appear covered in nominal coverage and are not
+  [PASS] nominal counts them                                      got True   expected True
+  [PASS] executed does not                                        got False   expected False
+  [PASS] illusory set                                             got ['REQ-003', 'REQ-004']   expected ['REQ-003', 'REQ-004']
+  [PASS] nominal minus executed                                   got 2   expected 2
+
+4. withholding the test source root removes TA006 and nothing else
+  [PASS] counts by code                                           got {'TA001': 1, 'TA002': 1, 'TA003': 1, 'TA004': 2, 'TA005': 1, 'TA006': 0}   expected {'TA001': 1, 'TA002': 1, 'TA003': 1, 'TA004': 2, 'TA005': 1, 'TA006': 0}
+  [PASS] a note says why                                          got True   expected True
+
+5. ignoring a code keeps it reported and drops it from the exit status
+  [PASS] findings unchanged                                       got 7   expected 7
+  [PASS] blocking reduced                                         got 6   expected 6
+  [PASS] exit still 1 because others remain                       got 1   expected 1
+  [PASS] ignoring every code gives exit 0                         got 0   expected 0
+  [PASS] but the findings are still printed                       got 7   expected 7
+
+6. the same project through a collection report loses two checks
+   and gains six TA001, because a collection report carries no claims
+  [PASS] counts by code                                           got {'TA001': 8, 'TA002': 0, 'TA003': 1, 'TA004': 0, 'TA005': 0, 'TA006': 0}   expected {'TA001': 8, 'TA002': 0, 'TA003': 1, 'TA004': 0, 'TA005': 0, 'TA006': 0}
+  [PASS] a note says TA004 and TA005 were not computed            got True   expected True
+  [PASS] only nominal coverage is defined                         got ['nominal coverage']   expected ['nominal coverage']
+
+7. this package's own requirements document against a clean report
+   see validate_self_trace.py for the live run; here the committed
+   sample is used so the check does not depend on a pytest invocation
+   (no numbers are produced in this section)
+
+FAILED CHECKS: 0

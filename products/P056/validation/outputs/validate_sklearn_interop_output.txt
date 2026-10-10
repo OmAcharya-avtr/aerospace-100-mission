@@ -1,0 +1,94 @@
+==============================================================================
+Agreement with scikit-learn 1.9.1 - calibaudit 0.1.0
+==============================================================================
+python 3.13.16 on Linux 6.18.44-fc-v114, 2 usable cores
+
+Scores against sklearn.metrics, over every shipped spec at n = 20000
+
+               spec      ours BS   sklearn BS        |d|      ours LS   sklearn LS        |d|
+---------------------------------------------------------------------------------------------
+         calibrated  0.199834072  0.199834072   0.00e+00  0.582772241  0.582772241   0.00e+00
+ calibrated_uniform  0.168143805  0.168143805   0.00e+00  0.503625845  0.503625845   0.00e+00
+    calibrated_rare  0.081369509  0.081369509   0.00e+00  0.282576883  0.282576883   0.00e+00
+      overconfident  0.206499446  0.206499446   0.00e+00  0.610592624  0.610592624   0.00e+00
+     underconfident  0.204471576  0.204471576   0.00e+00  0.595736352  0.595736352   0.00e+00
+        biased_high  0.214788359  0.214788359   0.00e+00  0.618123951  0.618123951   0.00e+00
+
+[    PASS] Brier score agrees with sklearn.metrics.brier_score_loss
+           reference   : sklearn 1.9.1 brier_score_loss on the same arrays
+           measured    : worst absolute difference 0.000e+00 over 6 specs at n = 20000
+           expectation : <= 1e-14
+[    PASS] logarithmic score agrees with sklearn.metrics.log_loss
+           reference   : sklearn 1.9.1 log_loss with labels=[0, 1]
+           measured    : worst absolute difference 0.000e+00
+           expectation : <= 1e-12; the two clip differently in principle but not on any forecast in these samples
+Reliability curve against sklearn.calibration.calibration_curve
+
+               spec    B  our bins  their bins  worst |d obs|  worst |d mean_f|
+-------------------------------------------------------------------------------
+         calibrated   10        10          10       0.00e+00          0.00e+00
+         calibrated   20        20          20       0.00e+00          0.00e+00
+ calibrated_uniform   10        10          10       0.00e+00          0.00e+00
+ calibrated_uniform   20        20          20       0.00e+00          0.00e+00
+    calibrated_rare   10         7           7       0.00e+00          0.00e+00
+    calibrated_rare   20        13          13       0.00e+00          0.00e+00
+      overconfident   10        10          10       0.00e+00          0.00e+00
+      overconfident   20        20          20       0.00e+00          0.00e+00
+     underconfident   10        10          10       0.00e+00          0.00e+00
+     underconfident   20        20          20       0.00e+00          0.00e+00
+        biased_high   10        10          10       0.00e+00          0.00e+00
+        biased_high   20        20          20       0.00e+00          0.00e+00
+
+[    PASS] equal-width reliability curve reproduces sklearn's uniform-strategy curve
+           reference   : sklearn.calibration.calibration_curve(strategy='uniform')
+           measured    : bin counts matched in every case: True; worst |d observed| = 0.000e+00, worst |d mean forecast| = 0.000e+00
+           expectation : identical bin counts and differences <= 1e-12
+isotonic map, 1001-point grid, worst absolute difference against a direct sklearn fit: 0.000e+00  (fitted step count 48)
+
+[    PASS] IsotonicCalibration is sklearn's IsotonicRegression, with the arguments fixed
+           reference   : sklearn.isotonic.IsotonicRegression(y_min=0, y_max=1, increasing=True, out_of_bounds='clip')
+           measured    : worst absolute difference 0.000e+00 over 1001 grid points
+           expectation : exactly 0; this package wraps rather than reimplements
+Platt scaling against sklearn.linear_model.LogisticRegression on logit(f)
+
+               spec        n      our a    their a      our b    their b      |da|      |db|
+--------------------------------------------------------------------------------------------
+         calibrated     4000   0.974600   0.974600   0.061517   0.061517  4.45e-10  2.32e-10
+         calibrated    40000   0.990053   0.990053  -0.003316  -0.003316  5.09e-11  3.03e-12
+      overconfident     4000   0.584760   0.584760   0.061517   0.061517  1.36e-09  3.32e-09
+      overconfident    40000   0.594032   0.594032  -0.003316  -0.003316  1.66e-10  7.79e-10
+     underconfident     4000   1.559359   1.559359   0.061517   0.061517  4.69e-10  1.93e-09
+     underconfident    40000   1.584085   1.584085  -0.003316  -0.003316  4.99e-09  6.86e-09
+        biased_high     4000   0.974600   0.974600  -0.523243  -0.523243  7.95e-12  7.65e-10
+        biased_high    40000   0.990053   0.990053  -0.597348  -0.597348  1.09e-09  3.77e-11
+
+[    PASS] Platt scaling agrees with a near-unregularised logistic regression
+           reference   : sklearn LogisticRegression(C=1e8) on the single feature logit(f)
+           measured    : worst |da| = 4.991e-09, worst |db| = 6.858e-09
+           expectation : <= 1e-3; sklearn still applies L2 at C = 1e8 and stops on its own tolerance, so exact agreement is not expected and this package fits the two parameters directly rather than delegating
+The scikit-learn 1.9 prefit removal, which this package had to route around
+
+  attempted: CalibratedClassifierCV(base, cv='prefit', method='sigmoid')
+  raised   : InvalidParameterError
+  message  : The 'cv' parameter of CalibratedClassifierCV must be an int in the range [2, inf), an object implementing 'split' and 'get_n_splits', an iterable or None. Got 'prefit' instead.
+
+[    PASS] CalibratedClassifierCV(cv='prefit') raises on this scikit-learn
+           reference   : sklearn 1.9.1 parameter validation for CalibratedClassifierCV.cv
+           measured    : InvalidParameterError
+           expectation : InvalidParameterError; the documented prefit path of earlier versions is gone and code copied from an older tutorial will fail here
+  replacement: CalibratedClassifierCV(FrozenEstimator(base), method='sigmoid')
+  fitted, held-in Brier 0.092790644 against raw 0.092718669
+
+[    PASS] FrozenEstimator is a working replacement
+           reference   : sklearn.frozen.FrozenEstimator, new in 1.6
+           measured    : fitted and produced 400 probabilities, all in [0, 1]: True
+           expectation : fits without error and returns valid probabilities
+This package never takes that path: it fits calibration maps on forecast
+values directly, so it has no estimator to freeze. The check is here because
+anyone recalibrating a prefit classifier on scikit-learn 1.9 will hit it, and
+because an earlier session in this mission lost time to it.
+
+------------------------------------------------------------------------------
+checks: 7 total, 7 passed, 0 FAILED
+------------------------------------------------------------------------------
+script exit status 0 (see validation/_harness.py for why)

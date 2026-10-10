@@ -1,0 +1,389 @@
+==============================================================================
+telemdrift 0.1.0 - every quoted command, re-run
+==============================================================================
+script       : validation/validate_cli.py
+python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+cores        : os.cpu_count()=2 affinity=2
+
+
+------------------------------------------------------------------------------
+1. Every CLI command quoted in a document
+------------------------------------------------------------------------------
+  11 commands. COLUMNS=100, MPLBACKEND=Agg, PYTHONPATH=<repository root>/src, cwd=<repository root>.
+
+==========================================================================
+$ python -m telemdrift --help
+  quoted in: README.md - Command-line interface
+==========================================================================
+  usage: python -m telemdrift [-h] [--version]
+                              {detectors,defaults,calibrate,arl,tradeoff,transient,trace} ...
+  
+  Streaming change-detection benchmark for a univariate telemetry channel, scored on detection delay
+  against false-alarm rate. A benchmark harness, not a streaming framework: use river for production
+  streaming. Research-grade; not flight-qualified, not certified, not approved for operational
+  aerospace use.
+  
+  positional arguments:
+    {detectors,defaults,calibrate,arl,tradeoff,transient,trace}
+      detectors           list detectors and their calibrated scalar
+      defaults            measure ARL0 at each default threshold
+      calibrate           calibrate analytic detectors to a target ARL0
+      arl                 ARL0 and ARL1 at equal ARL0 for one change type
+      tradeoff            delay-versus-false-alarm curve for one detector
+      transient           firing rate on the transient negative control
+      trace               alarm-ratio traces for one seeded episode
+  
+  options:
+    -h, --help            show this help message and exit
+    --version             show program's version number and exit
+  
+  Exit status 2 means a finding (failed bracketing, or a censored ARL1 that is only a lower bound),
+  not an error.
+  -> exit status 0
+
+  PASS  `python -m telemdrift --help` exits 0 or 2 (a finding)  [exit 0]
+==========================================================================
+$ python -m telemdrift --version
+  quoted in: README.md - Install and first run
+==========================================================================
+  telemdrift 0.1.0
+  -> exit status 0
+
+  PASS  `python -m telemdrift --version` exits 0 or 2 (a finding)  [exit 0]
+==========================================================================
+$ python -m telemdrift detectors
+  quoted in: README.md - Command-line interface
+==========================================================================
+  detector       scalar  default      note
+  -------------- ------- ------------ ----------------------------------------
+  cusum          h       4            Two-sided tabular CUSUM on standardised observations (Page 1954).
+  page_hinkley   lambda  50           Two-sided Page-Hinkley test with a running mean (Page 1954, Hinkley 1971).
+  ewma           L       3            Two-sided EWMA control chart with exact time-varying limits (Roberts 1959).
+  ks             c       0.211981     Sliding-window two-sample KS test against a fixed reference window.
+  adwin          delta   0.002        ADWIN-style adaptive window, cut rule implemented as published.
+  learned        p*      0.5          Random-forest score on eight windowed features.
+  
+  Default thresholds are shipped in order to be measured, not used:
+  run `python -m telemdrift defaults` to see how far apart they are.
+  -> exit status 0
+
+  PASS  `python -m telemdrift detectors` exits 0 or 2 (a finding)  [exit 0]
+==========================================================================
+$ python -m telemdrift defaults
+  quoted in: README.md - The problem / Validation evidence
+==========================================================================
+  Measured ARL0 at each detector's own default threshold (8 seeds x 50000 samples).
+  budget=full: calibration 6x30000, held-out 8x50000 samples.
+  
+  detector        default      ARL0        SEM      rel.SEM   runs
+  --------------- ------------ ----------- -------- --------- -----
+  CUSUM           4                  167.9      3.4     2.05%  2373
+  Page-Hinkley    50                1253.4     37.9     3.02%   313
+  EWMA            3                  891.8     41.9     4.70%   442
+  Windowed KS     0.211981          7819.4   1280.7    16.38%    33
+  ADWIN           0.002              183.6      2.8     1.54%  2174
+  
+  Spread between the widest and narrowest default: 46.6x.
+  Any detector comparison made at these thresholds compares operating points, not detectors.
+  -> exit status 0
+
+  PASS  `python -m telemdrift defaults` exits 0 or 2 (a finding)  [exit 0]
+==========================================================================
+$ python -m telemdrift calibrate --budget quick
+  quoted in: README.md - Command-line interface
+==========================================================================
+  Calibrating to target ARL0 = 500 samples.
+  calibration seeds [58101, 58102] x 8000 samples; held-out seeds [58201, 58202] x 8000 samples.
+  budget=quick: calibration 2x8000, held-out 2x8000 samples.  REDUCED BUDGET: wider error bars, not the README numbers.
+  
+  CUSUM          threshold=5.42127  calibration ARL0=   495.9  held-out ARL0 = 781.6 +/- 217.5 samples (27.8 % rel. SEM, n=19 runs, 16000 samples, censored tail 7.18 %)  target error +56.3 %
+  Page-Hinkley   threshold=30.7705  calibration ARL0=   469.0  held-out ARL0 = 485.1 +/- 32.6 samples (6.7 % rel. SEM, n=31 runs, 16000 samples, censored tail 6.01 %)  target error -3.0 %
+  EWMA           threshold=2.97818  calibration ARL0=   517.4  held-out ARL0 = 968.7 +/- 220.0 samples (22.7 % rel. SEM, n=15 runs, 16000 samples, censored tail 9.19 %)  target error +93.7 %
+  Windowed KS    threshold=0.14  calibration ARL0=   638.0  held-out ARL0 = 494.8 +/- 38.0 samples (7.7 % rel. SEM, n=31 runs, 16000 samples, censored tail 4.12 %)  target error -1.0 %
+  ADWIN          threshold=0.002  calibration ARL0=   157.1  held-out ARL0 = 183.8 +/- 12.7 samples (6.9 % rel. SEM, n=86 runs, 16000 samples, censored tail 1.19 %)  target error -63.2 %  [BRACKETING FAILED]
+  
+  FINDING: at least one detector could not bracket the target ARL0. Exit status 2.
+  -> exit status 2
+
+  PASS  `python -m telemdrift calibrate --budget quick` exits 0 or 2 (a finding)  [exit 2]
+==========================================================================
+$ python -m telemdrift arl --change mean_step --magnitude 1.0 --replicates 60 --budget quick
+  quoted in: README.md - Command-line interface
+==========================================================================
+  Change: mean_step magnitude 1
+  All detectors at measured ARL0 ~ 500 samples. 60 seeded replicates, delay censored at 1500 samples.
+  budget=quick: calibration 2x8000, held-out 2x8000 samples.  REDUCED BUDGET: wider error bars, not the README numbers.
+  
+  detector        threshold    ARL0(held-out)  ARL1          SEM   censored  pre-alarm
+  --------------- ------------ --------------- ------------ ------ --------- ---------
+  CUSUM           5.42127                781.6          8.6    0.7      0.0%     88.3%
+  Page-Hinkley    30.7705                485.1         25.1    3.8      0.0%     90.0%
+  EWMA            2.97818                968.7          8.9    0.6      0.0%     76.7%
+  Windowed KS     0.14                   494.8 >=      97.1   26.8      1.7%     91.7%
+  ADWIN           0.002                  183.8         23.3    2.6      0.0%    100.0%
+  
+  FINDING: at least one ARL1 is right-censored and is a LOWER BOUND only (marked >=). Exit status 2.
+  -> exit status 2
+
+  PASS  `python -m telemdrift arl --change mean_step --magnitude 1.0 --replicates 60 --budget quick` exits 0 or 2 (a finding)  [exit 2]
+==========================================================================
+$ python -m telemdrift arl --change transient --magnitude 4.0 --replicates 60 --budget quick
+  quoted in: README.md - Change types
+==========================================================================
+  Change: transient magnitude 4 duration 20
+  All detectors at measured ARL0 ~ 500 samples. 60 seeded replicates, delay censored at 1500 samples.
+  budget=quick: calibration 2x8000, held-out 2x8000 samples.  REDUCED BUDGET: wider error bars, not the README numbers.
+  
+  detector        threshold    ARL0(held-out)  ARL1          SEM   censored  pre-alarm
+  --------------- ------------ --------------- ------------ ------ --------- ---------
+  CUSUM           5.42127                781.6          0.8    0.1      0.0%     88.3%
+  Page-Hinkley    30.7705                485.1          4.7    0.4      0.0%     90.0%
+  EWMA            2.97818                968.7          1.1    0.1      0.0%     76.7%
+  Windowed KS     0.14                   494.8         85.3   16.1      0.0%     91.7%
+  ADWIN           0.002                  183.8         18.5    2.2      0.0%    100.0%
+  
+  NOTE: the transient is a negative control. Every alarm counted above is a FALSE alarm, and a large 'ARL1' here is the good outcome, not a slow detector.
+  -> exit status 0
+
+  PASS  `python -m telemdrift arl --change transient --magnitude 4.0 --replicates 60 --budget quick` exits 0 or 2 (a finding)  [exit 0]
+==========================================================================
+$ python -m telemdrift transient --replicates 60 --budget quick
+  quoted in: README.md - Change types
+==========================================================================
+  Transient negative control: amplitude 4 sigma for 20 samples, then the channel recovers.
+  There is no change to detect. Every alarm below is a false alarm.
+  All detectors at measured ARL0 ~ 500; 60 seeded replicates.
+  budget=quick: calibration 2x8000, held-out 2x8000 samples.  REDUCED BUDGET: wider error bars, not the README numbers.
+  
+  detector        fired   rate    Wilson 95 % CI
+  --------------- ------- ------- --------------------
+  CUSUM                60  100.0% [ 94.0%, 100.0%]
+  Page-Hinkley         60  100.0% [ 94.0%, 100.0%]
+  EWMA                 60  100.0% [ 94.0%, 100.0%]
+  Windowed KS          60  100.0% [ 94.0%, 100.0%]
+  ADWIN                60  100.0% [ 94.0%, 100.0%]
+  -> exit status 0
+
+  PASS  `python -m telemdrift transient --replicates 60 --budget quick` exits 0 or 2 (a finding)  [exit 0]
+==========================================================================
+$ python -m telemdrift tradeoff --detector ks --points 4 --span 1.6 --replicates 40 --budget quick
+  quoted in: README.md - Limitations (the KS non-monotonicity)
+==========================================================================
+  Windowed KS delay-versus-false-alarm curve on mean_step magnitude 1.
+  2 x 8000 stationary samples per ARL0 point; 40 replicates per ARL1 point.
+  budget=quick: calibration 2x8000, held-out 2x8000 samples.  REDUCED BUDGET: wider error bars, not the README numbers.
+  
+  threshold      ARL0     ARL0 SEM     ARL1   ARL1 SEM  censored
+  -------------- -------- -------- -------- --------- ---------
+  0.132488          496.1     45.4    103.5      19.6      0.0%
+  0.181241         3855.0   2990.0     75.2      21.7      0.0%
+  0.247935        16000.0      nan     51.6       1.9      0.0%
+  0.33917         16000.0      nan     74.4       2.0      0.0%
+  -> exit status 0
+
+  PASS  `python -m telemdrift tradeoff --detector ks --points 4 --span 1.6 --replicates 40 --budget quick` exits 0 or 2 (a finding)  [exit 0]
+==========================================================================
+$ python -m telemdrift trace --change mean_step --magnitude 1.0 --post 400 --budget quick
+  quoted in: README.md - Command-line interface
+==========================================================================
+  Single episode, seed 58901: mean_step magnitude 1 at sample 1000.
+  All detectors at measured ARL0 ~ 500.
+  budget=quick: calibration 2x8000, held-out 2x8000 samples.  REDUCED BUDGET: wider error bars, not the README numbers.
+  
+  Alarms before the change index are false alarms, not detections, and the
+  detector is reset on each one, which is what it does in service.
+  
+  detector        first alarm   delay  pre-alarms   peak ratio
+  --------------- ------------ ------- ----------- -----------
+  CUSUM                   1007       7           3       1.522
+  Page-Hinkley            1026      26           2       1.050
+  EWMA                    1010      10           4       1.444
+  Windowed KS             1304     304           2       1.107
+  ADWIN                   1019      19           6       1.701
+  -> exit status 0
+
+  PASS  `python -m telemdrift trace --change mean_step --magnitude 1.0 --post 400 --budget quick` exits 0 or 2 (a finding)  [exit 0]
+==========================================================================
+$ python -m telemdrift detectors --json
+  quoted in: README.md - Command-line interface
+==========================================================================
+  {
+    "detectors": [
+      {
+        "default_threshold": 4.0,
+        "key": "cusum",
+        "label": "CUSUM",
+        "scalar": "h"
+      },
+      {
+        "default_threshold": 50.0,
+        "key": "page_hinkley",
+        "label": "Page-Hinkley",
+        "scalar": "lambda"
+      },
+      {
+        "default_threshold": 3.0,
+        "key": "ewma",
+        "label": "EWMA",
+        "scalar": "L"
+      },
+      {
+        "default_threshold": 0.2119810937402434,
+        "key": "ks",
+        "label": "Windowed KS",
+        "scalar": "c"
+      },
+      {
+        "default_threshold": 0.002,
+        "key": "adwin",
+        "label": "ADWIN",
+        "scalar": "delta"
+      },
+      {
+        "default_threshold": 0.5,
+        "key": "learned",
+        "label": "Learned RF",
+        "scalar": "p*"
+      }
+    ]
+  }
+  -> exit status 0
+
+  PASS  `python -m telemdrift detectors --json` exits 0 or 2 (a finding)  [exit 0]
+
+------------------------------------------------------------------------------
+2. Documented non-zero exit behaviour
+------------------------------------------------------------------------------
+  The documents state that exit status 2 means a finding and that an
+  invalid invocation exits non-zero. Both are asserted on the return
+  code here rather than described.
+
+  $ python -m telemdrift calibrate --target-arl0 100000000 --budget quick
+    an unreachable ARL0 target cannot be bracketed: exit status 2, expected 2
+      ADWIN          threshold=0.002  calibration ARL0=   157.1  held-out ARL0 = 183.8 +/- 12.7 samples (6.9 % rel. SEM, n=86 runs, 16000 samples, censored tail 1.19 %)  target error -100.0 %  [BRACKETING FAILED]
+      
+      FINDING: at least one detector could not bracket the target ARL0. Exit status 2.
+  PASS  `calibrate --target-arl0 100000000 --budget quick` exits 2 (an unreachable ARL0 target cannot be bracketed)  [exit 2]
+  $ python -m telemdrift arl --target-arl0 100000000 --replicates 12 --budget quick
+    a censored ARL1 is only a lower bound: exit status 2, expected 2
+      ADWIN           0.002                  183.8         21.5    2.5      0.0%    100.0%
+      
+      FINDING: at least one ARL1 is right-censored and is a LOWER BOUND only (marked >=). Exit status 2.
+  PASS  `arl --target-arl0 100000000 --replicates 12 --budget quick` exits 2 (a censored ARL1 is only a lower bound)  [exit 2]
+  $ python -m telemdrift kalman
+    an unknown subcommand: exit status 2, expected 2
+      usage: python -m telemdrift [-h] [--version]
+                                  {detectors,defaults,calibrate,arl,tradeoff,transient,trace} ...
+      python -m telemdrift: error: argument command: invalid choice: 'kalman' (choose from 'detectors', 'defaults', 'calibrate', 'arl', 'tradeoff', 'transient', 'trace')
+  PASS  `kalman` exits 2 (an unknown subcommand)  [exit 2]
+  $ python -m telemdrift (no arguments)
+    no subcommand at all: exit status 2, expected 2
+      usage: python -m telemdrift [-h] [--version]
+                                  {detectors,defaults,calibrate,arl,tradeoff,transient,trace} ...
+      python -m telemdrift: error: the following arguments are required: command
+  PASS  `(no arguments)` exits 2 (no subcommand at all)  [exit 2]
+  $ python -m telemdrift defaults --budget enormous
+    an invalid budget: exit status 2, expected 2
+      usage: python -m telemdrift defaults [-h] [--json] [--budget {full,quick}]
+      python -m telemdrift defaults: error: argument --budget: invalid choice: 'enormous' (choose from 'full', 'quick')
+  PASS  `defaults --budget enormous` exits 2 (an invalid budget)  [exit 2]
+
+------------------------------------------------------------------------------
+3. Every script quoted in a document
+------------------------------------------------------------------------------
+==========================================================================
+$ python examples/change_types.py
+  quoted in: README.md - Screenshots
+==========================================================================
+  mean_step      magnitude=1      seed=58501 change_index=300 length=800 pre_mean=-0.0732 post_mean=+1.0410 pre_sd=0.9997 post_sd=0.9972
+  variance_step  magnitude=2      seed=58502 change_index=300 length=800 pre_mean=+0.0563 post_mean=-0.0153 pre_sd=0.9603 post_sd=1.9874
+  drift_ramp     magnitude=0.02   seed=58503 change_index=300 length=800 pre_mean=-0.0802 post_mean=+4.9773 pre_sd=0.9769 post_sd=3.1058
+  transient      magnitude=4      seed=58504 change_index=300 length=800 pre_mean=-0.0391 post_mean=+0.1861 pre_sd=0.9644 post_sd=1.2295
+  wrote screenshots/change_types.png
+  -> exit status 0
+
+  PASS  `python examples/change_types.py` exits 0  [exit 0]
+==========================================================================
+$ python validation/worked_example.py
+  quoted in: README.md - A worked example
+==========================================================================
+  ==============================================================================
+  telemdrift 0.1.0 - the README worked example
+  ==============================================================================
+  script       : validation/worked_example.py
+  python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+  cores        : os.cpu_count()=2 affinity=2
+  
+  
+  ------------------------------------------------------------------------------
+  The README worked example, run
+  ------------------------------------------------------------------------------
+    # 1. A telemetry channel, standardised, with a mean step at sample 1000.
+    stream length 2500, change at 1000, pre-change mean -0.0051, post-change mean +1.0025
+  
+    # 2. A CUSUM at its textbook default. What false-alarm rate is that?
+    h = 4  ->  ARL0 = 167.9 +/- 3.4 samples (2.0 % rel. SEM, n=2373 runs, 400000 samples, censored tail 0.39 %)
+  
+    # 3. Not the one we wanted. Calibrate it to a declared target instead.
+    target ARL0 500 samples
+    h = 5.1399
+    fitted   ARL0 498.7 samples
+    held-out ARL0 = 581.1 +/- 22.7 samples (3.9 % rel. SEM, n=679 runs, 400000 samples, censored tail 1.35 %)
+    target error +16.2 % (on seeds not used for fitting)
+  
+    # 4. Now the delay is a number that means something.
+    ARL1 = 9.4 +/- 0.3 samples (n=300, pre-change false alarm in 87.7 % of replicates, un-armed at change 0.0 %, censored at 1500 0.0 %)
+    median delay 8 samples, 90th percentile 17 samples
+  
+    # 5. And the transient that must NOT count as a detection.
+    transient +4.0 sigma for 20 samples: ARL1 = 0.9 +/- 0.0 samples (n=300, pre-change false alarm in 84.0 % of replicates, un-armed at change 0.0 %, censored at 1500 0.0 %)
+    Every alarm there is a false alarm. CUSUM does not distinguish a
+    transient from a change, and neither does any other detector in this
+    package (validate_transient.py).
+    PASS  the calibrated threshold is above the default, as a longer ARL0 requires  [5.1399 > 4]
+    PASS  the calibrated held-out ARL0 is within 25 % of target  [+16.2 %]
+    PASS  the detection delay is at least 20x shorter than the ARL0 it was bought with  [62x]
+    PASS  CUSUM responds to the transient faster than to the real change, which is the finding not the feature  [transient 0.9 vs change 9.4 samples]
+  
+  ==============================================================================
+  checks passed : 4
+  checks FAILED : 0
+  wall clock    : 3.4 s (moves 10-40 % between runs on two contended cores)
+  raw output    : validation/outputs/worked_example.txt
+  exit status   : 0 (always: see Report.check)
+  ==============================================================================
+  -> exit status 0
+
+  PASS  `python validation/worked_example.py` exits 0  [exit 0]
+
+------------------------------------------------------------------------------
+4. The cold-clone quickstart, as the README writes it
+------------------------------------------------------------------------------
+  The README's install block is `pip install -e '.[test]'` followed by
+  pytest and an example. The pip step is not re-run here: this container
+  already has the dependencies and a fresh install would add nothing to
+  the evidence while costing minutes. What IS re-run is the pair of
+  commands whose output the README quotes, from the repository root with
+  only PYTHONPATH set -- which is what an editable install provides.
+
+  $ python -m pytest tests/ -q
+    tests/test_properties.py::test_ks_statistic_is_bounded_symmetric_and_matches_scipy
+      /usr/local/lib/python3.13/dist-packages/numpy/lib/_function_base_impl.py:2610: RuntimeWarning: ks_2samp: Exact calculation unsuccessful. Switching to method=asymp.
+        outputs = ufunc(*args, out=...)
+    
+    -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+    302 passed, 1 warning in 124.40s (0:02:04)
+    -> exit status 0
+  PASS  the test suite passes from the repository root  [exit 0]
+
+  The authoritative test count is read from junit XML, not from this
+  line: a pytest configuration that collects nothing prints success.
+  See validation/outputs/validate_tests.txt and its junit_report.xml.
+
+==============================================================================
+checks passed : 19
+checks FAILED : 0
+wall clock    : 198.1 s (moves 10-40 % between runs on two contended cores)
+raw output    : validation/outputs/validate_cli.txt
+exit status   : 0 (always: see Report.check)
+==============================================================================

@@ -1,0 +1,157 @@
+==============================================================================
+telemdrift 0.1.0 - delay against false-alarm trade-off
+==============================================================================
+script       : validation/validate_tradeoff.py
+python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+cores        : os.cpu_count()=2 affinity=2
+
+
+------------------------------------------------------------------------------
+0. Experiment
+------------------------------------------------------------------------------
+  change            mean_step, magnitude 1 sigma
+  ARL0 per point    4 seeds x 25000 samples = 100000
+  ARL1 per point    200 seeded replicates, 1000 pre-change samples, censored at 1500
+  thresholds        6 per detector, 6 detectors = 36 points
+  convention        steady-state ARL1; see validate_arl_calibration.py s.6
+
+  The learned detector is trained first so it can be swept like the
+  others. Its training set and architecture are in validate_learned.py;
+  nothing here depends on them beyond the fitted model.
+  training set      78104 windows x 8 features, 2800 positive (3.6 %), window=50, horizon=50, transients_in_training=False, 8 seeds
+
+------------------------------------------------------------------------------
+1. CUSUM
+------------------------------------------------------------------------------
+             h      ARL0  ARL0 SEM      ARL1  ARL1 SEM  censored  un-armed@change
+             3      59.4       1.4       5.3       0.3      0.0%            0.0%
+             4     163.6       6.7       6.9       0.3      0.0%            0.0%
+             5     427.4      29.1       9.3       0.4      0.0%            0.0%
+             6    1161.2     177.0      11.2       0.5      0.0%            0.0%
+             7    2252.1     602.4      13.3       0.5      0.0%            0.0%
+             8    4212.6    1181.0      15.3       0.6      0.0%            0.0%
+  PASS  CUSUM: ARL0 is monotone in its threshold sweep  [59 to 4213]
+  PASS  CUSUM: the sweep spans at least a decade of ARL0  [70.9x]
+
+------------------------------------------------------------------------------
+2. Page-Hinkley
+------------------------------------------------------------------------------
+        lambda      ARL0  ARL0 SEM      ARL1  ARL1 SEM  censored  un-armed@change
+             8      45.6       0.5       8.9       0.7      0.0%            0.0%
+            15     139.2       3.0      17.5       2.2      0.0%            0.0%
+            25     349.3      12.2      25.2       2.4      0.0%            0.0%
+            40     865.6      53.1      42.0       7.5      0.0%            0.0%
+            60    1805.8     132.4      53.7       7.5      0.5%            0.0%
+            85    3970.2     524.4      67.4       1.6      0.0%            0.0%
+  PASS  Page-Hinkley: ARL0 is monotone in its threshold sweep  [46 to 3970]
+  PASS  Page-Hinkley: the sweep spans at least a decade of ARL0  [87.0x]
+
+------------------------------------------------------------------------------
+3. EWMA
+------------------------------------------------------------------------------
+             L      ARL0  ARL0 SEM      ARL1  ARL1 SEM  censored  un-armed@change
+           2.1      78.3       2.5       6.0       0.3      0.0%            0.0%
+          2.45     186.8       8.5       7.6       0.3      0.0%            0.0%
+           2.7     346.2      21.2       8.7       0.3      0.0%            0.0%
+           2.9     565.4      40.4       9.9       0.4      0.0%            0.0%
+           3.1    1047.1     139.5      11.1       0.4      0.0%            0.0%
+          3.35    1683.5     296.3      13.2       0.5      0.0%            0.0%
+  PASS  EWMA: ARL0 is monotone in its threshold sweep  [78 to 1684]
+  PASS  EWMA: the sweep spans at least a decade of ARL0  [21.5x]
+
+------------------------------------------------------------------------------
+4. Windowed KS
+------------------------------------------------------------------------------
+             c      ARL0  ARL0 SEM      ARL1  ARL1 SEM  censored  un-armed@change
+         0.105     343.4       3.3     164.8       8.2      0.0%           82.0%
+          0.12     406.2       8.2     116.5       8.2      0.0%           69.5%
+         0.135     491.1      15.9     105.2       9.1      0.0%           53.5%
+          0.15     627.0      34.1      95.5       9.1      0.0%           43.5%
+          0.17    1243.1     121.5      64.4       8.0      0.0%           20.0%
+         0.195    4536.7    1101.9      68.5      11.3      0.5%            8.5%
+  PASS  Windowed KS: ARL0 is monotone in its threshold sweep  [343 to 4537]
+  PASS  Windowed KS: the sweep spans at least a decade of ARL0  [13.2x]
+
+------------------------------------------------------------------------------
+5. ADWIN
+------------------------------------------------------------------------------
+         delta      ARL0  ARL0 SEM      ARL1  ARL1 SEM  censored  un-armed@change
+          0.01     157.1       4.1      25.9       1.6      0.0%           34.0%
+        0.0001     265.2      11.4      26.2       2.7      0.0%           20.0%
+         1e-06     395.1      23.3      35.2       6.6      0.0%           14.5%
+         1e-08     672.6      63.9      33.6       6.0      0.0%           10.5%
+         1e-10    1106.4     120.3      28.5       6.3      0.0%            6.5%
+         1e-12    1702.4     238.6      22.4       1.1      0.0%            3.5%
+  PASS  ADWIN: ARL0 is monotone in its threshold sweep  [157 to 1702]
+  PASS  ADWIN: the sweep spans at least a decade of ARL0  [10.8x]
+
+------------------------------------------------------------------------------
+6. Learned RF
+------------------------------------------------------------------------------
+            p*      ARL0  ARL0 SEM      ARL1  ARL1 SEM  censored  un-armed@change
+           0.4      96.0       1.7      16.8       1.5      0.0%           59.0%
+          0.52     149.5       4.9      13.7       1.2      0.0%           40.5%
+          0.62     288.8      14.0      12.6       1.2      0.0%           20.5%
+           0.7     658.4      42.8      12.7       1.3      0.0%            4.5%
+          0.78    1571.4     213.4      17.6       3.3      0.0%            2.0%
+          0.86    9242.2    3057.4     129.9      26.2      6.0%            1.5%
+  PASS  Learned RF: ARL0 is monotone in its threshold sweep  [96 to 9242]
+  PASS  Learned RF: the sweep spans at least a decade of ARL0  [96.3x]
+
+------------------------------------------------------------------------------
+7. Non-monotonicity: where a wider threshold detects FASTER
+------------------------------------------------------------------------------
+  For a memoryless detector ARL1 must increase with ARL0: a less
+  sensitive detector cannot be quicker. A windowed detector breaks this,
+  because at a tight threshold it false-alarms often, resets, and spends
+  its time in warm-up where it cannot detect anything at all.
+
+  detector        ARL1 at lowest ARL0   ARL1 at highest ARL0   monotone
+  CUSUM                           5.3                   15.3   yes
+  Page-Hinkley                    8.9                   67.4   yes
+  EWMA                            6.0                   13.2   yes
+  Windowed KS                   164.8                   68.5   NO
+  FINDING  Windowed KS has a NON-MONOTONE trade-off curve: its shortest delay (64.4 samples) is at ARL0 = 1243, not at its tightest threshold (164.8 samples at ARL0 = 343). Making it more sensitive makes it slower, because its own false alarms put it back into warm-up.
+  ADWIN                          25.9                   22.4   NO
+  FINDING  ADWIN has a NON-MONOTONE trade-off curve: its shortest delay (22.4 samples) is at ARL0 = 1702, not at its tightest threshold (25.9 samples at ARL0 = 157). Making it more sensitive makes it slower, because its own false alarms put it back into warm-up.
+  Learned RF                     16.8                  129.9   NO
+  FINDING  Learned RF has a NON-MONOTONE trade-off curve: its shortest delay (12.6 samples) is at ARL0 = 289, not at its tightest threshold (16.8 samples at ARL0 = 96). Making it more sensitive makes it slower, because its own false alarms put it back into warm-up.
+  PASS  the monotonicity of each curve was measured and recorded
+
+------------------------------------------------------------------------------
+8. Comparison at the common operating point
+------------------------------------------------------------------------------
+  Interpolated ARL1 at ARL0 = 500 samples, by linear
+  interpolation in log(ARL0). This is the number the equal-ARL0 tables
+  elsewhere report directly, recovered here from the curve as a check
+  that the two routes agree.
+
+  detector        interpolated ARL1 at ARL0=500
+  CUSUM                                    9.6
+  Page-Hinkley                            31.8
+  EWMA                                     9.6
+  Windowed KS                            104.5
+  ADWIN                                   34.5
+  Learned RF                              12.6
+
+  shortest interpolated delay: EWMA at 9.6 samples
+  FINDING  interpolated at ARL0 = 500 on a +1 sigma mean step, CUSUM 9.6, Page-Hinkley 31.8, EWMA 9.6, Windowed KS 104.5, ADWIN 34.5, Learned RF 12.6 samples. The learned detector does not come first.
+
+------------------------------------------------------------------------------
+9. Figure
+------------------------------------------------------------------------------
+  wrote screenshots/tradeoff_validation.png
+  PASS  the headline figure was written
+
+==============================================================================
+checks passed : 14
+checks FAILED : 0
+findings recorded:
+  - Windowed KS has a NON-MONOTONE trade-off curve: its shortest delay (64.4 samples) is at ARL0 = 1243, not at its tightest threshold (164.8 samples at ARL0 = 343). Making it more sensitive makes it slower, because its own false alarms put it back into warm-up.
+  - ADWIN has a NON-MONOTONE trade-off curve: its shortest delay (22.4 samples) is at ARL0 = 1702, not at its tightest threshold (25.9 samples at ARL0 = 157). Making it more sensitive makes it slower, because its own false alarms put it back into warm-up.
+  - Learned RF has a NON-MONOTONE trade-off curve: its shortest delay (12.6 samples) is at ARL0 = 289, not at its tightest threshold (16.8 samples at ARL0 = 96). Making it more sensitive makes it slower, because its own false alarms put it back into warm-up.
+  - interpolated at ARL0 = 500 on a +1 sigma mean step, CUSUM 9.6, Page-Hinkley 31.8, EWMA 9.6, Windowed KS 104.5, ADWIN 34.5, Learned RF 12.6 samples. The learned detector does not come first.
+wall clock    : 66.8 s (moves 10-40 % between runs on two contended cores)
+raw output    : validation/outputs/validate_tradeoff.txt
+exit status   : 0 (always: see Report.check)
+==============================================================================

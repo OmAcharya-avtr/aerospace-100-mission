@@ -1,0 +1,172 @@
+==============================================================================
+telemdrift 0.1.0 - operating points, calibration and its cost
+==============================================================================
+script       : validation/validate_arl_calibration.py
+python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+cores        : os.cpu_count()=2 affinity=2
+
+
+------------------------------------------------------------------------------
+1. Measured ARL0 at each detector's own default threshold
+------------------------------------------------------------------------------
+  8 seeds x 50000 stationary samples = 400000 samples per detector.
+  Each default is the value the detector's literature or the common
+  implementations ship. None of them is a false-alarm rate.
+
+  detector        default              ARL0       SEM   rel.SEM    runs
+  CUSUM           h=4                    167.9       3.4    2.05%    2373
+  Page-Hinkley    lambda=50                  1253.4      37.9    3.02%     313
+  EWMA            L=3                    891.8      41.9    4.70%     442
+  Windowed KS     c=0.211981            7819.4    1280.7   16.38%      33
+  ADWIN           delta=0.002                183.6       2.8    1.54%    2174
+
+  spread, widest default / narrowest default = 46.6x
+  PASS  the five defaults span more than a factor of 20  [46.6x]
+  FINDING  the five shipped default thresholds span a measured 46.6x range of ARL0 (168 to 7819 samples). Comparing detectors at default thresholds compares operating points.
+
+  CUSUM's default h = 4 lands at an ARL0 the SPC literature predicts
+  (168 for a two-sided chart at k = 0.5; see validate_known_answers.py),
+  so this is not a measurement artefact: the defaults genuinely encode
+  different intentions.
+
+------------------------------------------------------------------------------
+2. Calibration to one target ARL0, and what it achieves
+------------------------------------------------------------------------------
+  Target ARL0 = 500 samples.
+  Fitted on seeds [58101, 58102, 58103, 58104, 58105, 58106] x 30000 samples.
+  Reported on seeds [58201, 58202, 58203, 58204, 58205, 58206, 58207, 58208] x 50000 samples,
+  which were not used for fitting. The second number is the honest one.
+
+  detector        threshold        fitted   held-out       SEM  error   runs
+  CUSUM           5.13989            498.7      581.1      22.7 +16.2%    679
+  PASS  CUSUM bracketed its target
+  Page-Hinkley    29.9244            499.1      485.7       9.3  -2.9%    815
+  PASS  Page-Hinkley bracketed its target
+  EWMA            2.83155            498.8      527.1      20.4  +5.4%    753
+  PASS  EWMA bracketed its target
+  Windowed KS     0.134999           457.5      467.9       7.3  -6.4%    850
+  PASS  Windowed KS bracketed its target
+  ADWIN           9.94156e-08        500.4      520.3      16.5  +4.1%    762
+  PASS  ADWIN bracketed its target
+
+  worst held-out error: CUSUM at +16.2 %
+  mean absolute held-out error: 7.0 %
+  residual spread after calibration: 1.24x (468 to 581 samples)
+  PASS  calibration reduces the spread by more than a factor of 10  [46.6x -> 1.24x]
+  PASS  every held-out ARL0 is within 25 % of target  [worst 16.2 %]
+  FINDING  calibrating on 180000 stationary samples lands within 16.2 % of the target ARL0 on fresh seeds (worst case CUSUM, +16.2 %). The residual 1.24x spread between detectors is NOT removed by calibration at this budget, so the equal-ARL0 tables below are approximate and the trade-off curve is the figure that does not depend on it.
+
+  Why the held-out number differs from the fitted one: bisecting against
+  a noisy objective selects the threshold whose CALIBRATION measurement
+  happened to land near target, which is a selection effect, not a bug.
+  Its size here is comparable to the combined Monte Carlo error of the
+  two estimates. Closing it needs more stationary samples than two cores
+  afford, which is why it is reported rather than removed.
+
+------------------------------------------------------------------------------
+3. Run-length distribution: is ARL0 enough to describe it
+------------------------------------------------------------------------------
+  If a detector were memoryless its run lengths would be geometric and
+  the coefficient of variation would be 1. None of these is memoryless.
+
+  detector             ARL0   median      p90   CV   runs
+  CUSUM               581.1    391.0   1335.8  1.02    679
+  Page-Hinkley        485.7    427.0    843.0  0.54    815
+  EWMA                527.1    374.0   1222.0  1.06    753
+  Windowed KS         467.9    400.0    720.0  0.45    850
+  ADWIN               520.3    385.0   1120.0  0.87    762
+
+  A CV near 1 with a median well below the mean is a heavy right tail:
+  most runs are short and a few are very long. Quoting ARL0 alone
+  therefore says little about the worst case a reviewer will ask about.
+
+------------------------------------------------------------------------------
+4. Warm-up blindness, which the ARL0/ARL1 pair hides
+------------------------------------------------------------------------------
+  Fraction of a stationary stream during which an alarm is impossible,
+  measured at each detector's calibrated threshold with reset-on-alarm.
+
+  detector        un-armed fraction   warm-up (samples)
+  CUSUM                        0.0%                   0
+  Page-Hinkley                 0.0%                   0
+  EWMA                         0.0%                   0
+  Windowed KS                 65.9%                 300
+  ADWIN                       12.1%                  60
+  PASS  memoryless detectors are never un-armed
+  FINDING  the windowed KS test is un-armed for 65.9 % of a stationary stream at its calibrated threshold: its 300-sample warm-up is comparable to its 468-sample ARL0, so it spends most of its life unable to detect anything. ADWIN is un-armed 12.1 % of the time. Neither figure is visible in an ARL0/ARL1 pair.
+
+------------------------------------------------------------------------------
+5. The KS per-test level is not a stream-level false-alarm rate
+------------------------------------------------------------------------------
+  The asymptotic KS p-value controls one test on independent data. The
+  detector runs a test every stride = 5 samples on windows overlapping by
+  95 %, so the tests are strongly dependent. The ratio between the ARL0 an
+  independence assumption predicts and the ARL0 measured is an effective
+  independent-test factor.
+
+  threshold c   per-test P(D>c)   predicted ARL0   measured ARL0   factor
+  default     0.21198         0.005000           1000.0          7878.1      7.9x
+  PASS  the independence assumption understates ARL0 at the default threshold  [7.9x]
+  calibrated  0.13500         0.176079             28.4           470.7     16.6x
+  PASS  the independence assumption understates ARL0 at the calibrated threshold  [16.6x]
+  FINDING  treating the asymptotic KS p-value as a stream-level false-alarm rate understates the measured ARL0 by about an order of magnitude at both the default and the calibrated threshold, because overlapping windows make successive tests dependent.
+
+------------------------------------------------------------------------------
+6. ARL1 conventions: how much the choice changes the answer
+------------------------------------------------------------------------------
+  Three conventions for 'detection delay', all on the same seeded
+  mean-step streams at the same calibrated thresholds:
+
+  (a) steady-state  - detector runs through the pre-change segment and is
+      reset on each false alarm. Nothing is excluded. USED EVERYWHERE
+      ELSE IN THIS REPOSITORY.
+  (b) conditioned   - replicates that false-alarm before the change are
+      DISCARDED. This is what the first version of this package did.
+  (c) zero-state    - the detector is started at the change index with no
+      pre-change history. Matches the SPC tables.
+
+  detector          (a) steady   (b) conditioned   kept   (c) zero-state
+  CUSUM                   9.4               9.1    12%            10.1
+  Page-Hinkley           30.4              21.4     5%           442.2
+  EWMA                    9.2               9.6    16%             7.7
+  Windowed KS           102.1              22.2     4%           445.3
+  ADWIN                  30.3              17.7    13%           446.7
+
+  The 'kept' column is why convention (b) was rejected: at an ARL0 of
+  500 and a 1000-sample pre-change segment, most replicates false-alarm
+  first and the conditioning discards them on a criterion correlated
+  with the detector's state. The remaining sample is not representative.
+  FINDING  the conditioning convention (discard replicates that false-alarm before the change) keeps only a small fraction of replicates at these operating points and was rejected for that reason; the kept fractions are in section 6 of validation/outputs/validate_arl_calibration.txt.
+
+  The zero-state column is the surprise, and it is not a flattering
+  convention - it is a destructive one for three of the five detectors.
+  CUSUM and EWMA standardise against a DECLARED mu0 and sigma0, so a
+  chart started at the change still sees a shifted stream and detects it
+  in single-figure samples. Page-Hinkley, the windowed KS test and ADWIN
+  are all SELF-REFERENTIAL: they compare the stream against its own
+  recent history. Started at the change with no pre-change history, they
+  are handed a perfectly stationary stream that merely sits at a
+  different level, and there is nothing in it to detect. Their zero-state
+  delays run to the censoring budget.
+
+  This is the practical distinction between the two families and it is
+  not a detail. A self-referential detector needs pre-change history it
+  trusts; a declared-nominal detector needs a nominal value it trusts.
+  Neither assumption is free, and a telemetry channel after a reboot or a
+  mode change gives you the first problem.
+  FINDING  zero-state ARL1 separates the detectors into two families: CUSUM and EWMA, which standardise against a declared nominal and detect a step started cold in under 11 samples, and Page-Hinkley / windowed KS / ADWIN, which are self-referential and cannot detect it at all (delays at the 1500-sample censoring budget) because without pre-change history a mean step is indistinguishable from a stationary stream at a different level.
+
+==============================================================================
+checks passed : 11
+checks FAILED : 0
+findings recorded:
+  - the five shipped default thresholds span a measured 46.6x range of ARL0 (168 to 7819 samples). Comparing detectors at default thresholds compares operating points.
+  - calibrating on 180000 stationary samples lands within 16.2 % of the target ARL0 on fresh seeds (worst case CUSUM, +16.2 %). The residual 1.24x spread between detectors is NOT removed by calibration at this budget, so the equal-ARL0 tables below are approximate and the trade-off curve is the figure that does not depend on it.
+  - the windowed KS test is un-armed for 65.9 % of a stationary stream at its calibrated threshold: its 300-sample warm-up is comparable to its 468-sample ARL0, so it spends most of its life unable to detect anything. ADWIN is un-armed 12.1 % of the time. Neither figure is visible in an ARL0/ARL1 pair.
+  - treating the asymptotic KS p-value as a stream-level false-alarm rate understates the measured ARL0 by about an order of magnitude at both the default and the calibrated threshold, because overlapping windows make successive tests dependent.
+  - the conditioning convention (discard replicates that false-alarm before the change) keeps only a small fraction of replicates at these operating points and was rejected for that reason; the kept fractions are in section 6 of validation/outputs/validate_arl_calibration.txt.
+  - zero-state ARL1 separates the detectors into two families: CUSUM and EWMA, which standardise against a declared nominal and detect a step started cold in under 11 samples, and Page-Hinkley / windowed KS / ADWIN, which are self-referential and cannot detect it at all (delays at the 1500-sample censoring budget) because without pre-change history a mean step is indistinguishable from a stationary stream at a different level.
+wall clock    : 57.3 s (moves 10-40 % between runs on two contended cores)
+raw output    : validation/outputs/validate_arl_calibration.txt
+exit status   : 0 (always: see Report.check)
+==============================================================================
