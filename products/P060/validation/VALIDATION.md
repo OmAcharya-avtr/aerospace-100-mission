@@ -460,3 +460,46 @@ The conventions this package reads, rather than theory it implements:
 
 No aerospace standard is implemented, cited as implemented, or claimed to be
 supported by anything in this repository.
+## 13. Security scan findings for this product
+
+Scans run by the coordinating session on 2026-10-10, not by the build agent, and
+recorded here whether or not they were comfortable.
+
+`detect-secrets scan products/P060` reports **no findings**.
+
+`bandit -r products/ -x '*/tests/*'` reports **two B314 findings in this
+product**, both for `xml.etree.ElementTree.parse` on potentially untrusted XML:
+
+| Location | Input | Exposure |
+|---|---|---|
+| `validation/validate_self_trace.py:64` | XML the same script generated moments earlier | nil; input is not attacker-controlled |
+| `src/traceaudit/testreports.py:211` | a junit XML file named by the user | **real; see below** |
+
+The product-code site is the only place in Batch 06 where a product's core
+function is to parse XML supplied from outside it, so it is treated as a genuine
+finding rather than a scanner artefact.
+
+`xml.etree.ElementTree` does not fetch external entities or remote DTDs, so XXE
+and SSRF are not reachable. It does expand internal entity declarations, so
+entity-expansion denial of service — "billion laughs", quadratic blowup — is
+reachable: a crafted report can exhaust memory in the reading process. No such
+input is produced by any pytest version; this requires a hand-built or hostile
+file.
+
+Severity is assessed as **low for the documented use and not low for untrusted
+input**, and that assessment is a judgment, not a measurement. No exploit was
+written and no memory-exhaustion run was performed, so there is no number here
+to quote.
+
+`defusedxml` was **not** added. This package declares zero runtime
+dependencies, that property is stated in the README and asserted by
+`validate_environment.py`, and trading it away to close a denial-of-service
+path on input the documented workflow already trusts is a decision for a user
+or the owner rather than for an unattended build session. The finding is
+therefore **open and documented**, which is the honest state, and it is written
+into README limitation 12 so a reader meets it without opening this file.
+
+`pip-audit` diffed against this product's declared dependencies reports
+**nothing**, trivially: there are none. Nine packages in the build container
+carry advisories and not one of them is declared, imported or shipped by this
+product.

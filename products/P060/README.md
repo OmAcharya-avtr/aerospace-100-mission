@@ -609,6 +609,24 @@ supply your own to parse, say, a table row.
     contended hardware and moves between runs. Counts are the numbers to
     quote.
 
+12. **A hostile junit XML file can exhaust memory in the process reading it,
+    and this tool does not defend against that.** `testreports.py` parses
+    reports with `xml.etree.ElementTree`, which does not retrieve external
+    entities or remote DTDs — so XXE and SSRF do not apply — but which does
+    expand internal entity declarations, leaving the "billion laughs" and
+    quadratic-blowup denial-of-service classes open. `bandit` flags the parse
+    site as B314 and the flag is correct. For the documented use, reading the
+    junit XML your own test run has just written, the exposure is low. For
+    anyone pointing this tool at a report that arrives from outside their trust
+    boundary — a vendor's or a subcontractor's build output, which in an
+    assurance context is not far-fetched — it is not low. The mitigation is to
+    parse with `defusedxml` instead. It is **not** applied here, because this
+    package declares no runtime dependency at all and that property is
+    documented and tested; adding one to close a denial-of-service path on
+    trusted input is a trade a user should make deliberately. If your reports
+    are not trusted, parse them with `defusedxml` or size-limit them before
+    they reach this tool. Recorded as an open finding, not a resolved one.
+
 ## Hardware requirements
 
 Any machine that runs CPython 3.11 or newer. No compiled extension, no GPU
