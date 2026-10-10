@@ -2,9 +2,9 @@
   "batch": 6,
   "phase": "validation_complete",
   "phase_index": 6,
-  "updated": "2026-10-10T06:30:00Z",
+  "updated": "2026-10-10T07:25:00Z",
   "session_date": "2026-10-10",
-  "batch_06_status": "TEN BUILT, NONE PUBLISHED. P051/P052/P054/P055/P059 gate-PASS and held. P056/P057/P058/P060 built tonight, coordinator-measured, HARVESTED AND PUSHED. P053 NEEDS HARDENING is still the sole gate blocker and is an owner decision at its fourth escalation.",
+  "batch_06_status": "TEN BUILT, NONE PUBLISHED. Gate COMPLETED this session: EXIT 1, PUSH BLOCKED, blocked products P053 AND P058. Eight of ten PASS (P051 218, P052 282, P054 203, P055 248, P056 405, P057 440, P059 200, P060 236). Total tests passing 2776. P053 and P058 set to NEEDS HARDENING.",
   "products_complete": [
     "P051",
     "P052",
@@ -19,7 +19,7 @@
   ],
   "products_pending": [],
   "blocked": true,
-  "blocked_on": "GATE EXIT 1, unchanged. P053 validation/validate_thresholds.py exits 1 BY DESIGN because it publishes two failing variance-CUSUM threshold-transfer checks (bias -8.6 pct at T=200, +13.5 pct at T=1000 against a declared 8.8 pct tolerance) rather than widening the tolerance. Gate check 6 requires every validation script to exit 0. ADR-011 and gate check 6 are in DIRECT CONFLICT. NOT RESOLVED HERE: gate not edited, no threshold loosened, no failing check hidden, no subset gated. NOW BLOCKS NINE PRODUCTS, NOT FIVE.",
+  "blocked_on": "GATE EXIT 1 with TWO blockers now. (1) P053 validation/validate_thresholds.py exits 1 BY DESIGN - ADR-011 honest negative versus gate check 6, an OWNER CONVENTION DECISION at its fourth escalation, now blocking nine products. (2) P058 NEW: one property test fails, test_cusum_is_invariant_under_an_affine_rescaling_of_the_channel. A ONE-ULP FLOATING-POINT BOUNDARY DEFECT, fully diagnosed below, fixable in minutes but NOT fixed here because the standing rule on gate failure is to set NEEDS HARDENING, record the exact output, and stop.",
   "THE_FIX_THAT_WORKED_PROPAGATE": "HARVEST AND PUSH THE MOMENT EACH AGENT RETURNS, BEFORE RE-MEASUREMENT, BEFORE SCANS, BEFORE THE GATE. The 2026-10-09 session pushed a pre-fan-out checkpoint, dispatched four agents, and lost all four because the session ended between dispatch and harvest; products.yaml still read SPECIFYING and no commit existed after 94625a0. Tonight the harvest commit c380ded (276 files, 44,445 insertions) was made and pushed within minutes of the four returns. Everything else tonight was done AFTER the work was already safe on origin. Phase -1 is necessary and NOT sufficient: last night could publish, proved it with a write probe, pushed twice, and still lost the build.",
   "phase_minus_1_publication_path": "VERIFIED BEFORE BUILDING, three of three PASS at 03:08-03:09 UTC 2026-10-10. Bridge alive, gh logged in as OmAcharya-avtr. Mac mission-repo clean on main, HEAD 94625a0 == origin/main. Real write probe pushed refs/heads/probe-1791601727, confirmed by ls-remote, then deleted. Rule Zero report pushed as c37dd74 and verified by ls-remote BEFORE any build work.",
   "COORDINATOR_MEASURED_TEST_COUNTS_AUTHORITATIVE": {
@@ -52,12 +52,30 @@
   },
   "gate_run_2026_10_10": {
     "command": "python3 scripts/release_gate.py P051 P052 P053 P054 P055 P056 P057 P058 P059 P060",
-    "scope": "ALL TEN. NOT a hand-picked subset - selecting products until the gate exits 0 is 'publish the parts that passed' with extra steps and is forbidden.",
-    "outcome": "DID NOT COMPLETE INSIDE THE SESSION WINDOW. Observed: 'P051 PASS 218 tests' after roughly 11 minutes. NO VERDICT IS CLAIMED. Absence of a failure is not a pass and an incomplete gate authorizes nothing.",
-    "why_it_does_not_matter_for_publication": "The batch verdict is already determined by P053's exit 1 by design; the full run exits 1 whatever the other nine do. Nothing published tonight, same as the two previous nights, for the same unresolved owner decision.",
-    "agent_self_reported_gate_runs_NOT_FACT": "P060 agent reported 'P060 PASS 236'; P057 agent reported 'P057 PASS 440 (--quick)'. Recorded as self-reports only.",
-    "GATE_COST_IS_NOW_A_FIRST_CLASS_CONSTRAINT_PROPAGATE": "Roughly 11 minutes per flagship product projects to about 110 minutes for ten, because the gate re-runs every suite, every example and every validation script. P057 alone reports a 12-14 minute footprint with one 270-second validation script. A GATE RUN AND A FOUR-AGENT FAN-OUT DO NOT FIT IN ONE WINDOW. Either the gate needs a parallel mode or gating and building must be separate nights. This session could build or verify, not both.",
-    "artifact_drift_risk_UNTESTED": "P058 and P056 commit wall-clock timings in their validation outputs and wall clock moves 10-40 pct in this container, so a gate re-run will produce a non-empty git diff on those timing lines, which the artifact-drift check may read as a dirty tree. P059 commits timings the same way and has passed, so precedent says tolerated, BUT P058's timing surface is much larger and this has NOT been tested. CHECK IT, DO NOT ASSUME."
+    "scope": "ALL TEN. NOT a hand-picked subset.",
+    "completed": true,
+    "wall_clock": "launched ~06:00 UTC, finished 07:14 UTC, roughly 4 hours of elapsed session time including contention with the re-measurement runs",
+    "verdict": "PUSH BLOCKED, exit 1",
+    "blocked": [
+      "P053",
+      "P058"
+    ],
+    "total_tests_passing": 2776,
+    "per_product": {
+      "P051": "PASS 218",
+      "P052": "PASS 282",
+      "P053": "BLOCKED 243, validation/validate_thresholds.py exit 1",
+      "P054": "PASS 203",
+      "P055": "PASS 248",
+      "P056": "PASS 405",
+      "P057": "PASS 440",
+      "P058": "BLOCKED 301, 1 test FAILED",
+      "P059": "PASS 200",
+      "P060": "PASS 236"
+    },
+    "repository_check": "PASS, repository_failures []",
+    "action_taken": "P053 and P058 set to NEEDS HARDENING in products.yaml. Nothing published. Gate not edited, no check skipped, no threshold loosened, no subset gated, parts that passed NOT pushed.",
+    "gate_confirms_coordinator_counts": "P056 405, P057 440, P060 236 all confirmed independently. P058 NOT confirmed - see below."
   },
   "agent_tokens_batch_06_part_2": {
     "method": "Copied verbatim from each Agent tool result's usage block. No estimates. The coordinator's own usage is NOT reported by any tool in this environment - SEVENTH consecutive batch with this structural gap, so every session total is a FLOOR.",
@@ -126,9 +144,9 @@
     "defusedxml_for_P060": "NOT ADDED. P060 declares zero runtime dependencies, that property is documented and asserted by its own validation script, and closing a denial-of-service path on input the documented workflow already trusts is a user's or owner's trade, not an unattended session's. Documented as an open finding instead.",
     "escalation_channel": "Both owner decisions went out as a PUSH NOTIFICATION EARLY in the session, not at the end and not only into a report. Previous session established this; tonight it was done before the fan-out so it would land regardless of how the session ended."
   },
-  "pushes_used_tonight": "5 of 5, the monorepo ceiling: c37dd74 (Rule Zero report), c380ded (harvest of four products), 2c40132 (fixture fix, scans, statuses), and this final report plus checkpoint. No per-product repository created, so none counts against the ceiling. NOTE: one earlier attempt at this final commit was reset before pushing because git add -A swept in gate-induced artifact drift; the reset commit was never pushed and does not count.",
+  "pushes_used_tonight": "5 of 5, the monorepo ceiling: c37dd74 (Rule Zero report), c380ded (harvest of four products), 2c40132 (fixture fix, scans, statuses), 7445ccb (final report and checkpoint), and this one (completed gate verdict, P058 diagnosis, P053 and P058 to NEEDS HARDENING). No per-product repository created, so none counts against the ceiling. One earlier attempt at the fourth commit was reset before pushing because git add -A swept in gate-induced artifact drift; it was never pushed and does not count.",
   "notes": "Rule Zero honoured: nightly_reports/2026-10-10.md written and PUSHED as c37dd74 before any build work, then rewritten in place with measured results and pushed again with this checkpoint. Every push verified on origin by git ls-remote. Author on every commit is Om Acharya <145807881+OmAcharya-avtr@users.noreply.github.com>, checked with git log -1 --format. No approval row written, no product set to APPROVED, no words attributed to the owner. NO HUMAN SPOKE IN THIS SESSION.",
-  "next_action": "OWNER DECISION ON P053 IS THE CRITICAL PATH AND NOW BLOCKS NINE PRODUCTS. For the next session: (1) do not run a full gate and a four-agent fan-out in the same window - the gate alone projects to ~110 minutes; (2) add a cold-clone check to release_gate.py, which is the only thing that would have caught tonight's P060 defect; (3) audit P001-P055 .gitignore files for unanchored patterns; (4) add 're-run every README-quoted command' to PRODUCT_BUILD_GUIDE.md, now recommended by three consecutive sessions; (5) pick one validation-output layout; (6) Batch 07 cannot start before the P053 convention is settled without stacking a second unpublishable batch behind the first.",
+  "next_action": "TWO things block Batch 06 now, and only one of them is the owner's. (1) OWNER DECISION ON P053 remains the critical path and blocks nine products. (2) P058's one-ulp CUSUM boundary defect is fully diagnosed in this checkpoint and is a few minutes' work for the next session - fix the tolerance, pin xs=[1.0] h=0.5 scale=0.1 as a regression test, soften the docstring's 'exactly', then RE-GATE. For the next session: (a) do NOT run a full gate and a four-agent fan-out in the same window - the completed gate took about four hours; (b) ADD A COLD-CLONE CHECK to release_gate.py, the only thing that would have caught the P060 fixture defect; (c) audit P001-P055 .gitignore files for unanchored patterns; (d) call out no-tolerance exact-equality property tests over floating-point pipelines as a defect class in PRODUCT_BUILD_GUIDE.md, now seen twice in one batch; (e) add 're-run every README-quoted command' to PRODUCT_BUILD_GUIDE.md, recommended by three consecutive sessions; (f) fix P054's kernel-string artifact drift and narrow the MISSION_STATUS.md bit-for-bit reproducibility claim to the products where it was actually checked; (g) pick one validation-output layout; (h) Batch 07 must not start before the P053 convention is settled, or it stacks a second unpublishable batch behind the first.",
   "ARTIFACT_DRIFT_NOW_MEASURED_AND_REACHES_PUBLISHED_PRODUCTS": {
     "headline": "The artifact-drift risk carried as flagged-but-untested for three sessions is now MEASURED, and it reaches products published three batches ago.",
     "how_found": "The coordinator ran git add -A for the final commit while the full gate was still running in the background. The gate re-runs every example and every validation script, so it had rewritten artifacts in the products it had already processed, and they were swept into the commit.",
@@ -140,6 +158,32 @@
     },
     "handled": "Caught before pushing. Commit reset, the three products restored to their committed state, push contains only the report and checkpoint. NO PUBLISHED PRODUCT WAS MODIFIED.",
     "process_rule": "NEVER run git add -A while the gate is running. Stage paths explicitly. The gate mutates the tree by design.",
-    "THE_LARGER_FINDING": "MISSION_STATUS.md asserts for Batch 05 that git status over products/ after the gate run was clean, 'so every committed raw validation output, PNG and benchmark record still reproduces bit-for-bit from a fresh run.' THAT PROPERTY DOES NOT HOLD FOR P001, P051 OR P052. A PNG moving 9.5 KB is not a timing string; something in that figure is genuinely non-deterministic. NOT CORRECTED HERE - it is a claim about five published batches and needs a session that can measure it properly, not a footnote. The gate should either be made artifact-idempotent or run against a throwaway copy of the tree."
+    "THE_LARGER_FINDING": "MISSION_STATUS.md asserts for Batch 05 that git status over products/ after the gate run was clean, 'so every committed raw validation output, PNG and benchmark record still reproduces bit-for-bit from a fresh run.' THAT PROPERTY DOES NOT HOLD FOR P001, P051 OR P052. A PNG moving 9.5 KB is not a timing string; something in that figure is genuinely non-deterministic. NOT CORRECTED HERE - it is a claim about five published batches and needs a session that can measure it properly, not a footnote. The gate should either be made artifact-idempotent or run against a throwaway copy of the tree.",
+    "measured_after_full_gate_run": {
+      "scale": "The finished gate left 23 TRACKED FILES MODIFIED: 9 in P054, 3 in P055, 11 in P058. All reverted, none pushed.",
+      "cause_1_kernel_string_NOT_TIMING": "P054's validation scripts record platform.platform() into committed output, so every file carries Linux-6.18.44-fc-v80-... from the session that generated it and Linux-6.18.44-fc-v114-... from tonight's. P054'S ARTIFACTS WILL BE DIRTIED BY EVERY FUTURE GATE RUN ON A DIFFERENT CONTAINER, regardless of timing. This is environment provenance baked into artifacts, and it is the easiest of the three to fix: stop recording the kernel string, or record it outside the compared artifact.",
+      "cause_2_timings": "P055's scale table moves 0.008 -> 0.011, 0.042 -> 0.064, 0.173 -> 0.299 in the three timed columns while EVERY COUNT COLUMN IS IDENTICAL. P058's outputs move similarly.",
+      "cause_3_figure_generation_UNEXPLAINED": "P001's screenshots/margin_histogram.png moved 66,047 -> 75,602 bytes, a 14 pct change. Far too large for metadata. NOT INVESTIGATED - P001 is published and this session had no mandate to modify it. RECORDED AS UNEXPLAINED."
+    }
+  },
+  "P058_DEFECT_THE_GATE_FOUND_THAT_THREE_MEASUREMENTS_MISSED": {
+    "headline": "THE STRONGEST VINDICATION YET OF ADR-008/ADR-010. The agent self-reported 302 passed / 0 failed. The coordinator's INDEPENDENT re-measurement also returned 302 passed / 0 failed. THREE MEASUREMENTS AGREED AND ALL THREE WERE WRONG. Only the gate's differently-seeded fourth execution found the defect.",
+    "test": "products/P058/tests/test_properties.py::test_cusum_is_invariant_under_an_affine_rescaling_of_the_channel",
+    "reproducibility": "NOT flaky in the ordinary sense. 1 failed / 301 passed on 3 of 3 runs after the gate finished. It is a HYPOTHESIS property test and the GATE RUN is what found the falsifying example; earlier runs explored a different part of the input space. Once Hypothesis caches the counterexample every later run replays it deterministically.",
+    "WHY_THIS_MUST_BE_WRITTEN_DOWN": ".hypothesis/ is gitignored, so A FRESH CLONE WILL PASS AGAIN until Hypothesis rediscovers the corner. The falsifying example is recorded here precisely so it is not lost with the cache directory.",
+    "falsifying_example": "xs=[1.0], h=0.5, scale=0.1 (shift fixed at 3.0 in the test body)",
+    "root_cause_measured": {
+      "y = 3.0 + 0.1*1.0": "3.1",
+      "z_plain": "1.0",
+      "z_scaled = (3.1 - 3.0)/0.1": "1.0000000000000009",
+      "S_plus_plain  = max(0, 1.0 - 0.5)": "0.5",
+      "S_plus_scaled = max(0, 1.0000000000000009 - 0.5)": "0.5000000000000009",
+      "alarm rule": "detectors.CUSUM raises on max(S_plus, S_minus) > h, a STRICT comparison, with h = 0.5",
+      "outcome": "plain False, rescaled True",
+      "gap": "8.881784197001252e-16, one ulp of slack at the exact decision boundary"
+    },
+    "assessment": "The product's mathematics is CORRECT and the invariance claim is true in exact arithmetic. What is wrong is the strength of the assertion: a test demanding bit-exact equality of a BOOLEAN derived at a threshold boundary asserts something floating point cannot deliver, and the docstring's word 'exactly' overstates the guarantee. Honest statement: threshold transfer is exact in exact arithmetic and agrees to within rounding, which can flip a single alarm decision when the statistic lands on h to within an ulp.",
+    "suggested_fix_NOT_APPLIED": "Tolerance both sides of the comparison as P057's agent did for its own instance, AND pin xs=[1.0], h=0.5, scale=0.1 as an explicit regression test rather than leaving it to Hypothesis to rediscover. NOT DONE HERE: the standing rule on gate failure is set NEEDS HARDENING, record the exact output, and stop. A one-line tolerance change is still a build action taken after a gate failure.",
+    "THIS_IS_A_DEFECT_CLASS_NOT_AN_INCIDENT": "TWO independent occurrences in ONE batch. P057's agent found and fixed its own one-ulp boundary failure at n=1249, alpha=0.18 (1-0.18 evaluates to 0.8200000000000001). P058's survived the build and three measurements. NO-TOLERANCE EXACT-EQUALITY PROPERTY TESTS OVER FLOATING-POINT PIPELINES ARE A STANDING DEFECT CLASS IN THIS MISSION and should be called out in PRODUCT_BUILD_GUIDE.md."
   }
 }
