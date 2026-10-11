@@ -44,7 +44,7 @@
 >   file, far too large for metadata, and remains **unexplained and
 >   uninvestigated**. What was verified for Batch 05 is only the narrow
 >   statement: `git status` over `products/` was clean immediately after that
->   batch own gate run. Bit-for-bit reproducibility is NOT established for any
+>   batch's own gate run. Bit-for-bit reproducibility is NOT established for any
 >   batch and must not be asserted until a session measures it against a
 >   throwaway copy of the tree.
 > - **Contributor check: exactly `OmAcharya-avtr`, one line, on all ten new
