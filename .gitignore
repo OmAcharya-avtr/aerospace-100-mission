@@ -47,3 +47,14 @@ tmp/
 # Release gate output — a per-run artifact, not source. It quotes failure
 # messages verbatim, so tracking it makes the gate trip on its own output.
 tracking/RELEASE_GATE_RESULT.json
+
+# Pytest junit reports are per-run artifacts wherever they land, so they are
+# ignored at any depth. A junit.xml that is a committed test FIXTURE is a
+# deliverable, not an artifact, and is re-included below. On 2026-10-10 P060
+# lost its required fixture to a bare junit.xml in its own .gitignore, which
+# matched at every depth. The per-product patterns are now anchored to the
+# product root and this block is the repo-wide guard. Each case below was
+# verified with git check-ignore -v on 2026-10-11.
+**/junit.xml
+**/junit_self.xml
+!products/*/fixtures/**/junit.xml
