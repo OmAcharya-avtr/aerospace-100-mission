@@ -28,9 +28,25 @@
 >   PASS plus `repository PASS`, `blocked: []`, `repository_failures: []`. The
 >   gate script was not modified, no check skipped, no threshold loosened. Unlike
 >   2026-10-05, no second run was needed: there was no hygiene defect to fix.
-> - **`git status` over `products/` after the gate run was clean**, so every
->   committed raw validation output, PNG and benchmark record still reproduces
->   bit-for-bit from a fresh run.
+> - **Reproducibility claim NARROWED 2026-10-11.** This entry originally stated
+>   that `git status` over `products/` after the gate run was clean, and inferred
+>   from that that every committed raw validation output, PNG and benchmark
+>   record still reproduces bit-for-bit from a fresh run. The inference does not
+>   hold and the stronger claim is withdrawn. On 2026-10-10 a completed gate run
+>   left **23 tracked files modified** (9 in P054, 3 in P055, 11 in P058), and a
+>   partial run moved `products/P001/screenshots/margin_histogram.png` from
+>   66,047 to 75,602 bytes, `products/P051/screenshots/predictor_benchmark.png`
+>   from 316,598 to 316,251 bytes, and two P052 validation outputs. Three
+>   distinct causes were identified: P054 records `platform.platform()` into
+>   committed output, so its artifacts are dirtied by any run on a different
+>   container kernel; P055 and P058 move only their timed columns while every
+>   count column is identical; and the P001 PNG change is 14 per cent of the
+>   file, far too large for metadata, and remains **unexplained and
+>   uninvestigated**. What was verified for Batch 05 is only the narrow
+>   statement: `git status` over `products/` was clean immediately after that
+>   batch own gate run. Bit-for-bit reproducibility is NOT established for any
+>   batch and must not be asserted until a session measures it against a
+>   throwaway copy of the tree.
 > - **Contributor check: exactly `OmAcharya-avtr`, one line, on all ten new
 >   repositories**, author email
 >   `145807881+OmAcharya-avtr@users.noreply.github.com`. Each was verified on
@@ -240,8 +256,11 @@ per-product repositories in §6 of that report are also not yet created.
 
 All ten test suites, all ten `ruff check` runs and all 37 validation scripts
 were re-executed by the coordinating session rather than accepted from build
-agents. Every validation number reproduces bit-identically; the only diffs
-against committed raw output are wall-clock timing lines. All ten package names
+agents. Every validation number reproduced to the precision quoted in
+VALIDATION.md, and the diffs against committed raw output observed in that
+session were wall-clock timing lines. That is not a bit-for-bit reproducibility
+claim and the earlier wording implying one is withdrawn; see the 2026-10-11
+narrowing in the Batch 05 section. All ten package names
 re-verified free on PyPI 2026-08-29.
 
 ## Cumulative Against Mission Targets

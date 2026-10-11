@@ -49,3 +49,65 @@ products/P0XX/
 
 ## Return format (your final message)
 Report: files created (count), test summary (passed/failed/skipped from an actual run), validation highlights (3–5 numbers with references), limitations you documented, and anything that FAILED or was cut. Raw data only — no marketing language.
+
+## Defect classes this mission has actually shipped (binding, added 2026-10-11)
+Each item below is a defect that reached a published or gate-blocked product. They
+are listed because a build agent reading a generic instruction did not avoid them.
+
+### Re-run every README-quoted command as the LAST step before you hand back
+Recommended by three consecutive sessions (2026-10-08, 2026-10-09, 2026-10-10) and
+now binding. Every command, number and output fragment quoted in README.md,
+VALIDATION.md or MODEL_CARD.md is re-executed after the final code change, and the
+quoted text is replaced with what the run actually printed. This is not ceremony:
+P052 and P056 each caught their OWN wrong README numbers this way, in consecutive
+batches. P056 found four, including three decomposition residuals that moved when it
+vectorised a binning accumulator and a hand-rendered 0.500000000000000 for a value
+that is in fact 0.49999999999999983.
+
+### Never assert bit-exact equality over a floating-point pipeline
+Two independent occurrences in Batch 06 alone, so this is a class and not an
+incident.
+
+- P057 asserted an exact coverage identity and failed at n=1249, alpha=0.18 because
+  1-0.18 evaluates to 0.8200000000000001.
+- P058 asserted that a CUSUM alarm boolean is invariant under an affine rescaling of
+  the channel. The mathematics is correct in exact arithmetic. It survived the build,
+  the agent self-report AND the coordinator re-measurement, and was falsified only by
+  the release gate at xs=[1.0], h=0.5, scale=0.1, where the statistic lands on the
+  decision interval to within one ulp and the strict comparison flips.
+
+Rules:
+
+1. Compare floating-point statistics with a tolerance on both sides.
+2. NEVER assert equality of a BOOLEAN produced by a strict threshold comparison. The
+   boolean is a step function of a rounded quantity; it is the one thing floating
+   point cannot promise. Assert the statistics agree to tolerance, and allow the
+   boolean to differ only when the statistic sits within tolerance of the threshold.
+3. Say in the docstring what is actually guaranteed. The word exactly is a claim.
+   Exact in exact arithmetic, agreeing to within rounding, is the honest phrasing.
+4. .hypothesis/ is gitignored, so a falsifying example found by one run is LOST on a
+   fresh clone. Pin every counterexample Hypothesis finds as an explicit, named
+   regression test with the literal inputs in the test body.
+
+### Anchor scratch-file patterns in .gitignore
+A gitignore pattern with no slash matches at ANY depth. A bare junit.xml in a product
+.gitignore silently excluded products/P060/fixtures/sample_project/junit.xml, a
+REQUIRED committed deliverable. P060 passed every local check because the agent
+tested an uncommitted working tree where the file was present on disk, and a cold
+clone then failed with 17 failures and 9 errors. Write /junit.xml, not junit.xml.
+Before handing back, run git check-ignore -v against every fixture and data file your
+product is supposed to ship.
+
+### Count tests from junit XML, never from pytest stdout
+A suite that collects zero tests prints success and exits 0. That is how P001 shipped
+publicly with a recorded 251 tests passing and a config that collected none, for three
+weeks. Parse the testsuite element and cross-check it against a count of testcase
+elements.
+
+### Validation output layout — one convention
+Flat: validation/<script-name>_output.txt, beside the script. This is P059 layout and
+is what P057, P059 and P060 use. Binding for Batch 07 onward. Batch 06 contains both
+this and validation/outputs/ (P056, P058); normalising those two is a git mv plus a
+path edit in the script and the README, and it must be done by a session that can
+re-run the scripts and the gate afterwards, because the quoted paths are part of the
+checked output.
