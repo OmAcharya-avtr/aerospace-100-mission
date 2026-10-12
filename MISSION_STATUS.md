@@ -1,5 +1,110 @@
 # Mission Status
 
+> ## Reconciliation — 2026-10-12 (authoritative; supersedes the 2026-10-06 block below)
+>
+> Figures measured this session: test counts from junit XML via
+> `scripts/release_gate.py`, quota from `scripts/quota_report.py`, security from
+> `bandit`, `detect-secrets` and `pip-audit` all re-run tonight. Nothing is carried.
+>
+> - **50 of 100 products PUBLISHED; 60 of 100 built.** Batches 01–05 published.
+>   **Batch 06 (P051–P060) is built and entirely unpublished.**
+> - **The gate was run in full over all ten Batch 06 products and returned
+>   exit 1: nine PASS, P053 BLOCKED, `repository PASS`. Total tests passing:
+>   2,778.** Nothing was published. The gate was not edited, no check skipped, no
+>   threshold loosened, no subset gated.
+> - **Two of the three blockers that held Batch 06 were cleared tonight and
+>   verified by the gate itself. P053 is now the single remaining blocker.**
+> - **P058 is fixed.** The one-ulp boundary defect written up on 2026-10-11 was
+>   applied, executed and gate-verified: **303 tests, 0 failed, 0 errored,
+>   0 skipped**, `ruff` clean, status `NEEDS HARDENING` → `TESTING`. The
+>   invariance test asserted bit-exact equality across a float pipeline and the
+>   strict boolean that follows it; statistics are now compared with
+>   `math.isclose` and the booleans must agree except within `1e-9` of `h`, with
+>   the literal counterexample pinned by name. **The detector was not changed.**
+> - **A repository-wide gate blocker was fixed at source.** Check 8 flagged an
+>   absolute private path in the previous session's own report plus one in the
+>   checkpoint. Repository-wide, so it blocked all sixty products. This is the
+>   **third occurrence of the class** — see 2026-10-05 and 2026-10-02. Both are
+>   now home-relative and `repository` subsequently PASSED.
+> - **P053 is an owner decision, sixth escalation, and it alone holds nine
+>   finished gate-PASS products.** `validate_thresholds.py` exits 1 by design,
+>   publishing two genuinely failing threshold-transfer checks (−8.6 % at T=200,
+>   +13.5 % at T=1000 against a declared 8.8 % tolerance) rather than widening
+>   the tolerance. **New evidence: the repository already has a settled
+>   convention — P025 carries two reported-FAILED checks and passes because they
+>   print FAILED and exit 0.** P053 and P035 deviate from it, so the fix is
+>   "bring P053 into line with P025", not "loosen a check". A 2026-10-02 attempt
+>   at the equivalent P035 edit was refused by the safety classifier as a CI
+>   bypass; it was not retried.
+> - **The gate's `no output` message is misleading and should be fixed alongside
+>   P053.** `check_scripts` prints the last line of *stderr*; P053 writes its
+>   whole diagnosis to *stdout*, so the gate presents the mission's most careful
+>   honest negative as a silent crash. Diagnostic defect, not a verdict defect.
+> - **The P001 `margin_histogram.png` mystery is CLOSED, with no defect and no
+>   data change.** The PNG records its own renderer: committed says matplotlib
+>   3.10.9, this container ships 3.11.2. Byte sizes reproduced exactly
+>   (66,047 → 75,602). It is neither metadata nor anti-aliasing — 11.56 % of
+>   pixels differ with median delta 95, ink quantity nearly unchanged
+>   (59,134 → 58,591) but ink IoU 0.257, and no shift within ±12 px exceeds
+>   0.332. Cause: 220-bin `histtype="step"` outlines at 1.2 pt are a dense thin
+>   zigzag whose rasterization is version-sensitive. **The data is unchanged** —
+>   the seeded rerun prints `P_fade=9.2667e-04` against the README's `9.27e-04`.
+>   **P001's published numbers stand.** Deliberately not regenerated. See
+>   `tracking/FINDING_P001_PNG_RENDERER_DEPENDENCE.md`.
+> - **The committed-output reproducibility question is now answered by
+>   measurement.** The gate run dirtied 28 tracked files; all 131 paired changed
+>   lines were compared token by token and every one is wall-clock timing, the
+>   `platform.platform()` kernel string (which accounts for **all nine** P054
+>   files, confirming the 2026-10-10 diagnosis), or `hypothesis 6.168.5 →
+>   6.169.0`. **No measured scientific quantity moved anywhere** — means, errors,
+>   confidence bounds, counts and every PASS/FAIL verdict are identical.
+>   **Bit-for-bit reproducibility of committed outputs is unachievable in the
+>   current format, because those outputs deliberately record their environment;
+>   numerical reproducibility IS achieved.** The 2026-10-11 narrowing is
+>   reinforced, not reversed: assert reproducibility over numbers, never bytes.
+> - **Security, all three scans run tonight.** `bandit` over 225,443 LOC across
+>   all 60 products: **0 HIGH, 4 MEDIUM, 111 LOW**. Of the MEDIUMs, P055's
+>   `yaml.load` is a **false positive** (`_LOADER = getattr(yaml, "CSafeLoader",
+>   yaml.SafeLoader)`, both safe), two are validation scripts parsing XML they
+>   just generated, and **one is genuine and open**: P060's B314 entity
+>   expansion, documented with `defusedxml` named as the mitigation and
+>   deliberately unapplied because P060 declares zero runtime dependencies.
+>   `detect-secrets` gives 31 findings and **zero real** — 11 in gitignored
+>   untracked caches, 3 "GitHub Token" all being the substring `ghs_` inside
+>   `test_raw_highs_allocation_…` (HiGHS, the solver), and 17 SHA-256 evidence
+>   digests. `pip-audit` over all 33 declared dependency specs: **no known
+>   vulnerabilities**. **No unresolved critical finding.**
+> - **Quota:** flagship 12/20, medium 18/30, compact 30/50, AI 42/70;
+>   validation L1 9/10, L2 36/60, L3 15/25, **L4 0/5**.
+> - **Level 4 is still zero, eighth consecutive batch, and that remains correct.**
+>   P031, P033, P041 and P043 are each complete to Level 3 and labelled
+>   `Level 3, hardware-pending`, all four waiting on the identical Jetson Orin
+>   Nano measurement. **No cloud session can close it** and nothing was
+>   relabelled on simulated numbers.
+> - **The gate costs ~50 minutes, not ~4 hours**, when nothing else contends for
+>   the two cores. A gate-only window is cheap; do not pair the gate with a
+>   fan-out.
+> - **Zero build agents were dispatched, deliberately.** Batch 06 cannot publish
+>   until P053 is settled and Batch 07 must not start before then, so a fan-out
+>   would have produced ten more unpublishable products. Coordinator token usage
+>   remains `not recorded` — ninth consecutive session with that structural gap,
+>   and the total is reported as unknown rather than estimated.
+> - **The container shell did not fail this session.** The classifier shutdown
+>   that crippled 2026-10-11 did not recur. Separately, the base64-through-
+>   osascript workaround that session recommended **was refused as data
+>   exfiltration** and was abandoned, not circumvented;
+>   `device_request_folder_access` granted the mission folder with no owner
+>   action and the documented `SendUserFile` → `device_commit_files` route then
+>   worked for all four transfers, each verified by `sha256` on the Mac.
+> - **The scheduled prompt is stale by thirty products**, for the second
+>   consecutive session. `products.yaml` governed every decision. The owner
+>   should update the prompt text.
+>
+> No approval row was written by any automated session, nothing was set to
+> `APPROVED`, and no words are attributed to the owner (ADR-016). No human spoke
+> in this session.
+>
+
 > ## Reconciliation — 2026-10-06 (authoritative; supersedes the 2026-10-05 block below)
 >
 > Figures derived mechanically from `products.yaml` and from

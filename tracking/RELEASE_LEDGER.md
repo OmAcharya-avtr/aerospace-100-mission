@@ -301,3 +301,36 @@ purpose and **this still needs the owner.**
 mission is exactly halfway.** Flagship 10/20, medium 15/30, compact 25/50,
 AI 35/70. Validation L1 8/10, L2 30/60, L3 12/25, **L4 0/5 — unchanged, and
 correctly so.** Every class sits at precisely half of its target.
+
+## Push accounting — 2026-10-12
+
+ADR-015 caps pushed commits at 5 per night to the mission repository.
+Per-product repositories are counted separately and none was created tonight,
+because the release gate returned exit 1 and nothing was authorized for
+publication.
+
+| # | Commit | Contents | Verified on origin |
+|---:|---|---|---|
+| 1 | `99a03b9` | Rule Zero stub, pushed before any other work | `git ls-remote` ✓ |
+| 2 | `ee46f87` | P058 one-ulp patch applied, executed, 303 tests from junit XML | `git ls-remote` ✓ |
+| 3 | `14a27eb` | Gate check-8 repository blocker cleared; P001 PNG finding closed | `git ls-remote` ✓ |
+| 4 | see below | P058 README/status/outputs; mission status; report; checkpoint; this row | `git ls-remote` ✓ |
+
+**4 of 5 used.** Author on every commit:
+`Om Acharya <145807881+OmAcharya-avtr@users.noreply.github.com>`, set explicitly
+on the container clone and read back before the first commit.
+
+**No release this night.** The gate verdict was `PUSH BLOCKED` (exit 1) with
+P053 the sole blocker, so no Batch 06 product was published, no product was set
+to `APPROVED`, and no row was written to `APPROVAL_LOG.md`. The nine products
+that passed were **not** pushed: publishing the subset that passed is forbidden.
+
+**Transfer route note for the next session.** Each of the four transfers was
+verified by comparing `sha256sum` in the container against `shasum -a 256` on
+the Mac — four transfers, four exact matches. One bundle was correctly rejected
+on first attempt because it had been built as `<sha>..HEAD` and therefore
+carried a ref named `HEAD` rather than `main`; `git fetch … main:…` found no
+`main`, `merge --ff-only` refused, and the push reported `Everything
+up-to-date`. Nothing was pushed and nothing was damaged, but the failure is
+quiet and looks like a successful no-op. **Build bundles as `<sha>..main` and
+confirm with `git bundle list-heads` before transferring.**

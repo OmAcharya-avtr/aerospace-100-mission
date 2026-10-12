@@ -31,10 +31,10 @@ cores        : os.cpu_count()=2 affinity=2
 ------------------------------------------------------------------------------
   training : 78104 windows x 8 features, 2800 positive (3.6 %), window=50, horizon=50, transients_in_training=False, 8 seeds
   test     : 58578 windows x 8 features, 2100 positive (3.6 %), window=50, horizon=50, transients_in_training=False, 6 seeds
-  generation wall clock: 0.32 s for the training set
+  generation wall clock: 0.22 s for the training set
   fit: RandomForestClassifier(n_estimators=100, max_depth=8, class_weight='balanced_subsample', n_jobs=1, random_state=58000)
-  fit wall clock: 12.8 s on two cores (moves 10-40 % between runs)
-  PASS  training completes well inside the three-minute batch budget  [12.8 s]
+  fit wall clock: 10.1 s on two cores (moves 10-40 % between runs)
+  PASS  training completes well inside the three-minute batch budget  [10.1 s]
   PASS  the training and test seed sets are disjoint
   PASS  the model is single-threaded for inference
 
@@ -176,7 +176,7 @@ findings recorded:
   - THE LEARNED MODEL OVERFITS AT THE WINDOW LEVEL: train ROC-AUC 0.941 against held-out 0.823, a gap of +0.118 against a pre-declared expectation of under 0.05; average precision 0.634 against 0.391. The split is by seed so this is not leakage, it is capacity. Not retuned: the stream-level result is already a loss at equal ARL0 and closing the gap would only change the window-level number.
   - the learned detector's window-level held-out average precision is 0.391 against a no-skill rate of 0.036 (10.9x), ROC-AUC 0.823. These are respectable window-level numbers and they do NOT translate into a shorter detection delay at equal ARL0: see validate_change_types.py section 6.
   - the learned detector's confidence output is MISCALIBRATED: the worst gap between mean predicted score and observed frequency over the populated bins is 0.522. The package uses the score only as a monotone ordering whose threshold is set by measured ARL0, which does not require calibration, and the README does not claim a probability.
-wall clock    : 87.8 s (moves 10-40 % between runs on two contended cores)
+wall clock    : 61.4 s (moves 10-40 % between runs on two contended cores)
 raw output    : validation/outputs/validate_learned.txt
 exit status   : 0 (always: see Report.check)
 ==============================================================================

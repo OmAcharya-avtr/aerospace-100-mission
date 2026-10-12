@@ -3,7 +3,7 @@
 Streaming change detection on one telemetry channel, scored on detection delay
 against false-alarm rate.
 
-![tests](https://img.shields.io/badge/tests-302%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-303%20passing-brightgreen)
 ![python](https://img.shields.io/badge/python-3.11%2B-blue)
 ![licence](https://img.shields.io/badge/licence-Apache--2.0-lightgrey)
 ![validation](https://img.shields.io/badge/validation-level%202-yellow)
@@ -13,7 +13,7 @@ against false-alarm rate.
 Test count read from junit XML, not from a pytest stdout line, because a
 configuration that collects nothing exits 0 and prints a success line.
 [`validation/outputs/validate_tests.txt`](validation/outputs/validate_tests.txt)
-quotes the XML's own `testsuite` element verbatim: **302 collected, 302 passed,
+quotes the XML's own `testsuite` element verbatim: **303 collected, 303 passed,
 0 failed, 0 errored, 0 skipped**.
 
 ## The problem
@@ -125,7 +125,7 @@ python examples/change_types.py
 section 4):
 
 ```
-302 passed, 1 warning in 124.40s (0:02:04)
+303 passed, 1 warning in 80.36s (0:01:20)
 ```
 
 The warning is `scipy.stats.ks_2samp` reporting that it fell back from its exact
