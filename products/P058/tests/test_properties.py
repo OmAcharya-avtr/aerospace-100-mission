@@ -46,16 +46,57 @@ def test_cusum_is_odd_symmetric(xs, h):
     assert a.s_minus == b.s_plus
 
 
-@given(SAMPLES, st.floats(min_value=0.5, max_value=20.0), st.floats(min_value=0.1, max_value=10.0))
+@given(SAMPLES, st.floats(min_value=0.5, max_value=20.0),
+       st.floats(min_value=0.1, max_value=10.0))
 @settings(max_examples=150, deadline=None)
 def test_cusum_is_invariant_under_an_affine_rescaling_of_the_channel(xs, h, scale):
     """CUSUM standardises by mu0 and sigma0, so feeding a + s*x with mu0 = a and
-    sigma0 = s must reproduce the plain chart exactly. This is the property that
-    lets a threshold calibrated on one channel transfer to another."""
+    sigma0 = s reproduces the plain chart to within floating-point rounding. This
+    is the property that lets a threshold calibrated on one channel transfer to
+    another.
+
+    The identity is exact in exact arithmetic and is NOT exact in binary floating
+    point: (a + s*x - a) / s need not round-trip to x. The error is a few ulp in
+    the statistic, but the alarm is max(S_plus, S_minus) > h, a strict
+    comparison, so a few ulp can flip the boolean when the statistic lands on h.
+    The statistics are therefore compared with a tolerance, and the booleans are
+    required to agree except at that boundary, which is pinned explicitly in
+    test_cusum_rescaling_disagrees_by_one_ulp_at_the_decision_boundary.
+    """
     shift = 3.0
+    tol = 1e-9
     plain, scaled = CUSUM(h=h), CUSUM(h=h, mu0=shift, sigma0=scale)
     for x in xs:
-        assert plain.update(x) == scaled.update(shift + scale * x)
+        fa = plain.update(x)
+        fb = scaled.update(shift + scale * x)
+        assert math.isclose(plain.s_plus, scaled.s_plus, rel_tol=1e-9, abs_tol=1e-12)
+        assert math.isclose(plain.s_minus, scaled.s_minus, rel_tol=1e-9, abs_tol=1e-12)
+        if fa != fb:
+            assert abs(max(plain.s_plus, plain.s_minus) - h) <= tol
+            assert abs(max(scaled.s_plus, scaled.s_minus) - h) <= tol
+
+
+def test_cusum_rescaling_disagrees_by_one_ulp_at_the_decision_boundary():
+    """Regression test for the example the 2026-10-10 release gate found.
+
+    .hypothesis/ is gitignored, so a fresh clone loses the cached counterexample
+    and this corner is rediscovered only by chance. The literal inputs are pinned.
+
+    With shift=3.0, scale=0.1, x=1.0: y = 3.1, z_plain = 1.0 exactly, while
+    z_scaled = (3.1 - 3.0) / 0.1 = 1.0000000000000009. With k = 0.5 the arms are
+    0.5 and 0.5000000000000009, a gap of 8.881784197001252e-16, and h = 0.5 falls
+    between them, so the strict comparison gives False on the plain chart and
+    True on the rescaled one. Arithmetic re-derived 2026-10-11.
+    """
+    shift, scale, h, x = 3.0, 0.1, 0.5, 1.0
+    plain, scaled = CUSUM(h=h), CUSUM(h=h, mu0=shift, sigma0=scale)
+    fa = plain.update(x)
+    fb = scaled.update(shift + scale * x)
+    assert plain.s_plus == 0.5
+    assert scaled.s_plus > plain.s_plus
+    assert scaled.s_plus - plain.s_plus < 1e-14
+    assert fa is False
+    assert fb is True
 
 
 @given(SAMPLES, st.floats(min_value=0.5, max_value=20.0),

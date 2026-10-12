@@ -165,6 +165,23 @@ class CUSUM(Detector):
     ``mu0`` and ``sigma0`` are *known* and supplied. This is the assumption that
     separates CUSUM from Page-Hinkley in this package; see
     :class:`PageHinkley`.
+
+    Channel transfer and floating point
+    -----------------------------------
+    Because the chart standardises by ``mu0`` and ``sigma0``, a threshold
+    calibrated on one channel transfers to an affinely rescaled channel: feeding
+    ``a + s*x`` with ``mu0 = a`` and ``sigma0 = s`` reproduces the plain chart.
+    That identity is exact in exact arithmetic and is **not** exact in binary
+    floating point, because ``(a + s*x - a) / s`` need not round-trip to ``x``.
+    The discrepancy is a few ulp in the statistic, but ``alarm`` is a strict
+    comparison against ``h``, so when the statistic lands on ``h`` to within an
+    ulp the two charts can disagree on a single alarm decision. Measured
+    2026-10-10 by the release gate and re-derived 2026-10-11: with ``a = 3.0``,
+    ``s = 0.1``, ``x = 1.0``, ``k = 0.5`` the arms are ``0.5`` and
+    ``0.5000000000000009``, a gap of ``8.88e-16``, which straddles ``h = 0.5``.
+    This is a property of the comparison, not a defect in the chart, and the
+    comparison inside :meth:`update` is deliberately left strict: toleranceing it
+    would move every calibrated operating point in the package.
     """
 
     name = "CUSUM"
