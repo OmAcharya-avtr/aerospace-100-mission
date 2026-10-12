@@ -30,7 +30,7 @@
     "ADD_TO_PHASE_MINUS_1": "Step 4: run python3 -c pass and git status in the container. If either is refused, the night is a repair night, not a build night. Planning a fan-out after that point is wasted usage."
   },
   "device_commit_files_UNUSABLE_AND_THE_WORKAROUND": {
-    "symptom": "get_device_info reports connectedFolders: [] although the task is configured with /Users/acharya/100 Aero Prods connected. device_commit_files fails with a grant error and device_request_folder_access needs a human.",
+    "symptom": "get_device_info reports connectedFolders: [] although the task is configured with ~/100 Aero Prods connected. device_commit_files fails with a grant error and device_request_folder_access needs a human.",
     "workaround_that_worked": "base64 the bundle in the container, carry it inside the osascript string, decode on the Mac with /usr/bin/base64 -D to ~/100 Aero Prods/aerospace-100-mission/inc.bundle, then git fetch ../inc.bundle main:refs/heads/incoming and merge --ff-only as normal. Push 1 went out this way, verified by ls-remote.",
     "better_route_once_the_shell_is_gone": "Author every edit directly on the Mac through osascript, which is a full shell and the one tool that never failed. sed -i and quoted heredocs both work. Avoid double quotes in content to keep AppleScript escaping trivial.",
     "chunking": "base64 above about 60 kB should be split and appended in several osascript calls."
