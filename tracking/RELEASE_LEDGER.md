@@ -316,7 +316,7 @@ publication.
 | 3 | `14a27eb` | Gate check-8 repository blocker cleared; P001 PNG finding closed | `git ls-remote` ✓ |
 | 4 | see below | P058 README/status/outputs; mission status; report; checkpoint; this row | `git ls-remote` ✓ |
 
-**4 of 5 used.** Author on every commit:
+**5 of 5 used.** Author on every commit:
 `Om Acharya <145807881+OmAcharya-avtr@users.noreply.github.com>`, set explicitly
 on the container clone and read back before the first commit.
 
@@ -334,3 +334,12 @@ carried a ref named `HEAD` rather than `main`; `git fetch … main:…` found no
 up-to-date`. Nothing was pushed and nothing was damaged, but the failure is
 quiet and looks like a successful no-op. **Build bundles as `<sha>..main` and
 confirm with `git bundle list-heads` before transferring.**
+
+**Stop-hook authorship conflict, third consecutive night.** After the final push
+a local stop hook again instructed the session to re-author every commit as
+`Claude <noreply@anthropic.com>` and force-push `main`. **Refused.** Nothing was
+amended, rebased or force-pushed; all five commits retain
+`Om Acharya <145807881+OmAcharya-avtr@users.noreply.github.com>` and the
+contributor check still returns exactly one line. Details and the recommended
+owner action are in the project note
+`claude/governance-note-stop-hook-authorship-conflict.md`.
