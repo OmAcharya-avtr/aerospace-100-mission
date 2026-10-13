@@ -106,8 +106,10 @@ python -m pytest tests/ -q
 python examples/example_schedule_gantt.py
 ```
 
-The test run ends with (wall-clock varies by machine; the 218 warnings are all
-`DeprecationWarning` from PuLP about its upcoming 4.0 API, surfaced rather than
+PuLP is bounded to `>=2.7,<3`. PuLP 4.0 is an incompatible rewrite and this
+package is built and validated against the 2.x API; see limitation 10. The test
+run ends with (wall-clock varies by machine; the 218 warnings are all
+`DeprecationWarning` from PuLP 2.x about the 4.0 API, surfaced rather than
 suppressed):
 
 ```
@@ -356,9 +358,21 @@ interface, radians internally, distances in km.
    returns ensemble spread, correlated with realised error at only +0.2584. Read
    it as a triage flag for epistemic disagreement.
 9. **UTC only.** Naive datetimes are interpreted as UTC by design.
-10. **PuLP deprecation warnings.** The installed PuLP emits `DeprecationWarning`
-    about its 4.0 API. The 218 warnings in the test run are all of this kind and
-    are surfaced rather than suppressed.
+10. **PuLP is bounded to the 2.x API and PuLP 4.0 is not supported.** PuLP 4.0
+    is a rewrite on a Rust core and it removed the keyword-argument constructor
+    `LpVariable(name, cat="Binary")` that `src/passplanner/scheduler.py:99` uses;
+    in 4.0.0 `LpVariable.__init__` takes a single `_rustcore.Variable`. Measured
+    2026-10-13 with PuLP 4.0.0 installed: **17 of 106 tests fail** with
+    `TypeError: LpVariable.__init__() got an unexpected keyword argument 'cat'`,
+    covering every ILP test and the end-to-end and CLI integration tests; the
+    89 non-ILP tests pass. The dependency is therefore declared `pulp>=2.7,<3`,
+    which is what the measured numbers in this README were produced under. The
+    earlier text of this limitation recorded PuLP's own deprecation warnings
+    about the coming 4.0 API and took no action; that was the warning, and it
+    was accurate. Migrating the formulation to the 4.0 API is the real fix and
+    has not been done: it would require re-measuring every ILP optimum, runtime
+    and gap figure in this README against a different solver core, which is a
+    validation campaign and not a dependency change. Until then, 2.x.
 
 ## Reproducing every number
 

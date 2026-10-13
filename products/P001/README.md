@@ -491,6 +491,26 @@ Ordered by how much they should affect your decision to use this.
     modulation, or coding.
 15. **Surrogate is 1550 nm only.** Wavelength is not a feature. The API accepts
     other wavelengths and the predictions are invalid.
+16. **The committed surrogate is a pickled scikit-learn 1.8 estimator and is
+    bound to that version.** `models/surrogate.joblib` records
+    `sklearn_version: 1.8.0`. scikit-learn does not promise pickle portability
+    across versions, and 1.9 removed the private module the ensemble's loss
+    object is pickled against. Measured 2026-10-13 with scikit-learn 1.9.1
+    installed: **4 of 251 tests error** — every test in
+    `tests/test_surrogate.py::TestCommittedModel` — with
+    `ModuleNotFoundError: No module named '_loss'` raised inside
+    `joblib.numpy_pickle`. The remaining 247 pass, because everything that is
+    not the committed artifact is computed from closed-form physics. The
+    dependency is therefore declared `scikit-learn>=1.8,<1.9`, which is the
+    range the committed artifact actually loads under. **This is a bound, not a
+    cure.** The real fix is to stop shipping a pickle: export the ensemble's
+    tree thresholds, children and leaf values to a version-neutral `.npz` and
+    reconstruct the predictor in-package, which is exactly reproducible and
+    ends the version bond permanently. That has not been done — it changes a
+    published product's model-loading path and needs its own validation run.
+    Retraining the artifact under 1.9 was rejected for the same reason the
+    `margin_histogram.png` renderer finding was: it pins the artifact to
+    today's upstream and moves the identical break to the next release.
 
 ## Reproducing every number
 
