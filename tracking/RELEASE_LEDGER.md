@@ -343,3 +343,47 @@ amended, rebased or force-pushed; all five commits retain
 contributor check still returns exactly one line. Details and the recommended
 owner action are in the project note
 `claude/governance-note-stop-hook-authorship-conflict.md`.
+
+---
+
+## 2026-10-13 — repair of five published repositories, no new publication
+
+Nothing new was published. Five already-published repositories were corrected in
+place after `scripts/cold_clone_check.py` was executed for the first time and
+found that they did not work, or did not reproduce, for anyone installing them
+today. One commit each, authored
+`Om Acharya <145807881+OmAcharya-avtr@users.noreply.github.com>`, each verified
+on origin by `git ls-remote`.
+
+| Product | Repository | Before → after | Change |
+|---|---|---|---|
+| P001 BeamTwin | `beamtwin` | `dd349b9` → `705158f` | `scikit-learn` → `>=1.8,<1.9` |
+| P004 PassPlanner | `passplanner` | `f7fd79b` → `33ada8b` | `pulp` → `>=2.7,<4` |
+| P023 AllocLab | `alloclab` | `c870d45` → `d81185b` | `pulp>=2.7` → `>=3,<4` |
+| P025 FDIScope | `fdiscope` | `6e1be2b` → `507b133` | `scikit-learn>=1.3` → `>=1.3,<1.9` |
+| P032 ConstelLink | `constellink` | `5132b95` → `ccb0a39` | `pulp>=2.7` → `>=3`, no ceiling |
+
+No source code changed in any of the five. No committed validation output was
+regenerated. Every bound was established by running that product's full suite
+against the specific upstream versions, counted from junit XML; the per-version
+tables are in each README's limitations and in
+`tracking/FINDING_UNBOUNDED_UPSTREAM_DEPENDENCIES.md`.
+
+**Contributor check after every push** —
+`gh api repos/OmAcharya-avtr/<name>/contributors --jq '.[].login'` returns
+exactly one line, `OmAcharya-avtr`, for `aerospace-100-mission`, `beamtwin`,
+`passplanner`, `alloclab`, `fdiscope` and `constellink`.
+
+**One correction worth the record.** The first bound this session applied to P004
+was `<3`, reasoned from its README rather than measured, and the same reasoning
+would have bounded P032 to `<3` as well. Execution showed P032 **loses 25 of 387
+tests on PuLP 2.9.0** because it was written against 4.0.0. The P032 bound was
+reverted before it was ever committed and the P004 bound was corrected in
+`2f83ec3`. Reasoning from a README produced a wrong answer; running the suite
+produced the right one.
+
+**Housekeeping defect.** `product-repos/alloclab` is not a clone of its own
+origin — `git merge --ff-only origin/main` refuses with *unrelated histories*,
+local `557ba3e` against remote `c870d45`. It is a stale `build_product_repo.py`
+output. Nothing was forced; the alloclab fix went through a fresh clone. **The
+other 49 local product directories were not checked.**

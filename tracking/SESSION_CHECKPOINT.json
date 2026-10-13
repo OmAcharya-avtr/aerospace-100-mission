@@ -2,15 +2,26 @@
   "batch": 6,
   "phase": "validation_complete",
   "phase_index": 6,
-  "updated": "2026-10-12T05:05:00Z",
-  "session_date": "2026-10-12",
-  "session_type": "REPAIR, RE-GATE AND MEASUREMENT. No fan-out, no products built, nothing published. Full ten-product gate run to completion. Four commits, all pushed and verified on origin.",
-  "batch_06_status": "TEN BUILT, NONE PUBLISHED. Gate re-run in full tonight: NINE PASS, P053 BLOCKED, repository PASS, exit 1. 2778 tests passing, measured from junit XML this session, not carried.",
-  "HEADLINE": "TWO OF THREE BLOCKERS CLEARED AND VERIFIED BY THE GATE ITSELF. P053 IS NOW THE SINGLE REMAINING BLOCKER FOR THE WHOLE BATCH.",
-  "products_complete": ["P051","P052","P053","P054","P055","P056","P057","P058","P059","P060"],
+  "updated": "2026-10-13T04:35:00Z",
+  "session_date": "2026-10-13",
+  "session_type": "REPAIR OF PUBLISHED PRODUCTS. No fan-out, no new products, no gate run, nothing newly published. Four monorepo commits plus one commit to each of five published product repositories, all pushed and verified on origin.",
+  "batch_06_status": "UNCHANGED. Ten built, none published. Gate verdict stands at exit 1 from 2026-10-12, P053 the sole blocker. No gate run tonight; nothing about Batch 06 changed, and cold-clone counts reproduced the gate exactly for all ten.",
+  "HEADLINE": "scripts/cold_clone_check.py WAS EXECUTED FOR THE FIRST TIME AND FOUND FIVE OF THE FIFTY PUBLISHED PRODUCTS BROKEN OR SILENTLY WRONG FOR A NEW INSTALL. ALL FIVE DIAGNOSED, BOUNDED AND PUSHED. ONE WRONG FIX WAS CAUGHT BY MEASUREMENT BEFORE IT WAS COMMITTED.",
+  "products_complete": [
+    "P051",
+    "P052",
+    "P053",
+    "P054",
+    "P055",
+    "P056",
+    "P057",
+    "P058",
+    "P059",
+    "P060"
+  ],
   "products_pending": [],
   "blocked": true,
-  "blocked_on": "P053 exit-code convention ONLY. SIXTH ESCALATION, fifth consecutive session declining. Nine finished gate-PASS products are held by this one owner decision. P058 is FIXED and P058 now PASSES the gate at 303 tests. The repository check-8 blocker is FIXED and repository now PASSES.",
+  "blocked_on": "P053 exit-code convention ONLY. SEVENTH ESCALATION, sixth consecutive session declining. Nine finished gate-PASS products held by this one owner decision.",
   "container_shell_check": "Phase -1 step 4 PASSED. The safety-classifier shutdown that disabled the 2026-10-11 session's shell DID NOT RECUR. python3 -c, git status, git -C and compound cd X && ... all worked for the whole session. Keep step 4 in Phase -1 anyway; it is cheap and it decides whether the night can gate.",
   "TRANSFER_ROUTE_CORRECTED": {
     "what_the_last_checkpoint_recommended_and_why_it_is_wrong": "base64 the bundle into the osascript string. The container's safety classifier REFUSED this as data exfiltration. It was not worked around. Do not make this the first route.",
@@ -60,18 +71,51 @@
     "building_batch_07": "DECLINED. Forbidden until P053 is settled, and it would have been unpublishable.",
     "escalation_channel": "Push notification sent to the owner EARLY, before the repair work, so it lands regardless of how the session ends. Established 2026-10-09 and kept. A second notification was sent at session end with the measured outcome."
   },
-  "pushes_used_tonight": "5 of 5. 99a03b9 Rule Zero stub before any work; ee46f87 P058 patch applied and verified; 14a27eb gate check-8 blocker cleared plus the P001 finding; and the final report/checkpoint/ledger commit. Every push verified on origin with git ls-remote. Author on all is Om Acharya <145807881+OmAcharya-avtr@users.noreply.github.com>. No per-product repository created, because nothing was authorized for publication.",
+  "pushes_used_tonight": "4 of 5 to the monorepo: b06513f Rule Zero stub before any work; 9eea674 first bounds; 2f83ec3 bounds corrected from measurement plus the finding doc and the check B probe; and the final report/checkpoint/ledger commit. Plus one commit to each of five per-product repositories, which ADR-018 does not count against the monorepo budget. Every push verified on origin with git ls-remote.",
   "agent_tokens_this_session": {
     "agents_dispatched": 0,
     "agent_tokens": 0,
     "agent_tool_uses": 0,
-    "why_zero_was_deliberate": "Batch 06 cannot publish until P053 is settled, the previous checkpoint forbids starting Batch 07 before then, and a fan-out would have produced ten more unpublishable products on top of ten already waiting.",
-    "coordinator_tokens": "not recorded - no tool in this environment reports the coordinating session's own usage. NINTH consecutive session with this structural gap. The session total is unknown rather than estimated.",
-    "dominant_cost": "The release gate. One full ten-product run at ~50 min wall clock, one single-product P058 run at ~13 min, and P058's standalone suite at 83 s. Re-measuring what ADR-008 and ADR-010 forbid taking on trust is the largest coordinator cost, and it is what caught P058."
+    "why_zero": "A fan-out needs a publication path and Batch 06's is blocked on P053. Tonight also found five PUBLISHED products broken, and repairing work the mission already told users to install outranks adding more unpublished work.",
+    "coordinator_tokens": "not recorded - no tool in this environment reports the coordinating session's own usage. TENTH consecutive session with this structural gap. Session total is UNKNOWN, not estimated.",
+    "dominant_cost": "The 35-minute cold-clone campaign over 60 products, then six pip version-swap verification runs. Both are the re-measurement ADR-008 and ADR-010 require rather than trust, and both are what caught the defects."
   },
-  "l4_position": "STILL 0 OF 5, EIGHTH CONSECUTIVE BATCH. P031 HilForge, P033 EdgeInfer, P041 CodedFade, P043 PhotonCount each complete to Level 3 and labelled 'Level 3, hardware-pending', all four waiting on the identical Jetson Orin Nano measurement. OWNER HARDWARE SESSION REQUIRED; no cloud session closes it. Nothing was relabelled on simulated numbers.",
+  "l4_position": "STILL 0 OF 5, NINTH CONSECUTIVE BATCH. P031, P033, P041, P043 each complete to Level 3 and labelled 'Level 3, hardware-pending', all four on the identical Jetson Orin Nano measurement. OWNER HARDWARE SESSION REQUIRED. Nothing relabelled on simulated numbers.",
   "quota_2026_10_12": "Registered 60/100, Built 60/100, Published 50/100. flagship 12/20, medium 18/30, compact 30/50, ai 42/70; L1 9/10, L2 36/60, L3 15/25, L4 0/5.",
   "STALE_PROMPT_NOTE_PROPAGATE": "SECOND CONSECUTIVE SESSION RAISING THIS. The scheduled prompt still asserts Batches 01-02 complete with P021/P022 the latest publications; the tree shows P001-P050 PUBLISHED and P051-P060 built. Stale by thirty products. It orders Level 4 to start in the next batch, which cannot be honoured without the Jetson and would require labelling an unmeasured product Level 4, which the same prompt forbids. It prescribes SendUserFile plus device_commit_files, which works only after device_request_folder_access. products.yaml governed throughout. OWNER SHOULD UPDATE THE PROMPT TEXT.",
-  "notes": "Rule Zero honoured: nightly_reports/2026-10-12.md written and pushed as 99a03b9 BEFORE any other work, then rewritten in place with measured results and pushed with this checkpoint. Nothing set to APPROVED, no row written to APPROVAL_LOG.md, no words attributed to the owner. NO HUMAN SPOKE IN THIS SESSION.",
-  "next_action": "ORDER MATTERS. (1) SETTLE P053 -- everything in Batch 06 is downstream and the P025 precedent should make it short; bundle the gate's 'no output' stdout fallback into the same change. (2) Re-gate all ten and publish on exit 0; ~50 minutes alone, nine already PASS and repository already PASSes, only P053 moves. (3) Fix P054's platform.platform() recording (nine files, one cause) and settle the committed-output format for Batch 07 onward, including the flat validation/<script>_output.txt layout the build guide already makes binding; normalise P056 and P058 onto it. (4) Execute cold_clone_check.py check B standalone before wiring either check into the gate. (5) Do not start Batch 07 before P053 is settled. (6) Use the documented transfer route: device_request_folder_access -> SendUserFile -> device_commit_files, sha256 compared on the Mac, bundles built from an explicit main ref and checked with git bundle list-heads. Do NOT reach for base64-through-osascript."
+  "notes": "Rule Zero honoured: nightly_reports/2026-10-13.md written and pushed as b06513f BEFORE any other work, then rewritten in place with measured results and pushed with this checkpoint. Phase -1 four of four PASS. No product set to APPROVED, no APPROVAL_LOG row, nothing attributed to the owner beyond the verbatim quote of what the owner actually typed.",
+  "next_action": "ORDER MATTERS. (1) SETTLE P053 -- the P039 precedent should make it short. (2) Re-gate all ten Batch 06 products in a window of its own, ~50 min, and publish on exit 0. (3) Decide the scikit-learn exposure; measure before pinning. (4) Check the other 49 local product-repos directories for the alloclab unrelated-history problem. (5) Add the dependency-bound lesson to PRODUCT_BUILD_GUIDE.md as a shipped-defect class: a floor with no ceiling is not a dependency specification, and a product that commits a pickled artifact must bound the library that wrote it. (6) Find the stop hook. (7) Do not wire check B into the gate without a per-product isolated install. (8) Carry-overs: P054 platform.platform() -- and tonight's census shows the same pattern in TEN products, five published, so settle it once for all of them; the flat validation output layout for P056/P058; re-run pip-audit over the new declared specs.",
+  "P053_PRECEDENT_NOW_VERIFIED_BY_EXECUTION": {
+    "p025_executed": "products/P025/validation/detection_benchmark.py was RUN this session. It prints 'C1: FAIL' and 'V3 summary: C1 FAIL, C2 PASS' and its process EXIT STATUS IS 0. P025 is published and gate-passing.",
+    "mechanism_is_weaker_than_claimed": "Not a considered convention. P025's four validation scripts contain NO exit-code logic at all -- no return 1, no sys.exit. They exit 0 because Python exits 0 when a script finishes.",
+    "P039_IS_THE_STRONGER_CASE": "products/P039/validation/validate_interval_coverage.py has 'def main() -> int:' and an UNCONDITIONAL 'return 0' at line 243, while its committed output carries 48 FAIL rows including coverage 0.267 vs 0.50 nominal at -6.46 sigma and 0.080 vs 0.50 at -18.96 sigma. Published, gate passes it.",
+    "census": "150 of 369 validation scripts encode a verdict in exit status; 219 do not. TEN of the FIFTY published products carry FAIL tokens in committed validation output.",
+    "the_argument": "Gate check 6 does not measure whether validations pass. It measures whether the author put the verdict in $?. P053's negatives (-8.6% at T=200, +13.5% at T=1000 vs 8.8% tolerance) are MILDER than P039's, which are published.",
+    "not_done": "Gate not edited, no threshold loosened, no check skipped, no passing subset gated, nothing set to APPROVED, no APPROVAL_LOG row, nothing attributed to the owner. The 2026-10-02 classifier refusal of the P035 return-code edit stands as the reason not to retry it unattended."
+  },
+  "COLD_CLONE_CAMPAIGN_EXECUTED": {
+    "coverage": "All 60 products, both checks, first execution ever. Check A clean in 0.3 s. Check B ~35 min: 56 clean, 4 findings.",
+    "real_findings": "P001 4 errored of 251 (scikit-learn 1.9 cannot unpickle a 1.8.0 model); P004 17 failed of 106 (PuLP 4.0 removed LpVariable cat=); P023 1 failed of 185 (PuLP 4.0 removed PULP_CBC_CMD, and PuLP 2.9 has no add_variable -- needs 3.x specifically); P032 found by probe, 25 failed of 387 on PuLP 2.9.0, broken at the FLOOR not the ceiling.",
+    "quiet_finding": "P025 suite passes on both versions but validation/detection_benchmark.py prints DIFFERENT NUMBERS under scikit-learn 1.9.1: 0.1500 -> 0.1444 false alarms, 220/306000 -> 208/306000, 0.7921 -> 0.8504, six of nine delay rows moved. The committed 0.1500 is quoted in its own limitation 3. Reproduces EXACTLY under 1.8.0, only campaign-build and wall-time lines differ. Seeded and reproducible AT A FIXED VERSION; random_state fixes the stream, not the algorithm. No verdict changed.",
+    "FALSE_ALARM_P037": "P037 reported 12 failed of 122 with ModuleNotFoundError: No module named reedsolo. P037 IS SOUND -- it declares reedsolo>=1.7 correctly and the container lacked it because reedsolo is not in this task's pip list. Installed: 122 passed. Check B was judging suites against the container, not against declared dependencies.",
+    "CHECK_B_HARDENED": "A declared-dependency probe now runs first and reports that class as ENVIRONMENT. Verified both ways: quiet on all 60, and it correctly flags a planted missing distribution. Two pre-existing ruff findings in that file unchanged and untouched.",
+    "DO_NOT_WIRE_CHECK_B_INTO_THE_GATE": "Wiring it as it stood would have blocked a sound PUBLISHED product on the publication gate, unattended, for a reason that is not the product's fault. It still costs ~35 min over 60 products. Check A is cheap, mechanical and quiet on all 60 and is the better candidate if only one goes in. NEITHER is wired in."
+  },
+  "fixes_pushed_to_published_repos": {
+    "P001 beamtwin": "dd349b9 -> 705158f, scikit-learn -> >=1.8,<1.9, 251 passed under 1.8.0",
+    "P004 passplanner": "f7fd79b -> 33ada8b, pulp -> >=2.7,<4, 106 passed under 2.9.0 and 3.3.2",
+    "P023 alloclab": "c870d45 -> d81185b, pulp>=2.7 -> >=3,<4, 185 passed under 3.3.2 only",
+    "P025 fdiscope": "6e1be2b -> 507b133, scikit-learn>=1.3 -> >=1.3,<1.9",
+    "P032 constellink": "5132b95 -> ccb0a39, pulp>=2.7 -> >=3 with NO ceiling",
+    "no_source_change": "No product's source code changed. No committed validation output regenerated. No product status changed in products.yaml; all five remain PUBLISHED.",
+    "contributor_check": "gh api .../contributors returns exactly one line OmAcharya-avtr for all six repositories touched: aerospace-100-mission, beamtwin, passplanner, alloclab, fdiscope, constellink."
+  },
+  "MEASUREMENT_BEAT_REASONING": "Commit 9eea674 bounded P004 to <3 by reading its README. Execution showed its numbers came from 3.x, that P023 works on 3.x ONLY, and that P032 -- which the same reasoning would have bounded to <3 -- LOSES 25 TESTS on 2.9.0 because it was written against 4.0.0. The P032 bound was reverted before commit; 2f83ec3 corrected all three. Never bound a dependency from a README.",
+  "ALLOCLAB_LOCAL_COPY_IS_NOT_A_CLONE": "product-repos/alloclab has a history UNRELATED to its own origin: git merge --ff-only origin/main refuses with 'unrelated histories', local 557ba3e vs remote c870d45. It is a stale build_product_repo.py output. Nothing was forced; the fix went through a fresh clone in /tmp. THE OTHER 49 LOCAL PRODUCT DIRECTORIES WERE NOT CHECKED and may be the same.",
+  "STOP_HOOK_RECORD_CORRECTED": "The hook fired mid-session and asked ONLY that uncommitted changes be committed and pushed, which was done. It did NOT ask for the authorship rewrite tonight. A direct search found NO hook configured: no hooks key in ~/.claude/settings.json or settings.local.json, no ~/.claude/hooks directory, no *.sh in ~/.claude, nothing matching *stop-hook* under home to depth 3, no mention in ~/.claude/CLAUDE.md. The file ~/.claude/stop-hook-git-check.sh named in all three governance notes DOES NOT EXIST. It fires anyway, so it is not where those notes say. Correction to the notes, not a resolution.",
+  "A_HUMAN_SPOKE_THIS_SESSION": "TRUE, and this is the first session in weeks where it is. Mid-session the owner interrupted: 'i think you are creating un-ncessary issues by yourself. Fix the failure points of the prods, no claude name to be mentioned as owners (follow the hard rule) - disable it completely to avoid confusions', plus a question about what was running. Recorded VERBATIM in the nightly report. That instruction is why the five products were REPAIRED rather than only written up. It was NOT read as publication authority: P053 unsettled, Batch 06 ungated, nothing APPROVED, no APPROVAL_LOG row, nothing new published.",
+  "security_note_new": "No new scans; the 2026-10-12 measurement stands. BUT five products now declare narrower ranges, three with upper bounds, so the union of declared specs is no longer what pip-audit covered on 2026-10-12. Re-run it. A product pinned below a future security release cannot take it without a port; that tension is recorded, not resolved.",
+  "quota_2026_10_13": "UNCHANGED from 2026-10-12. Registered 60/100, Built 60/100, Published 50/100. flagship 12/20, medium 18/30, compact 30/50, ai 42/70; L1 9/10, L2 36/60, L3 15/25, L4 0/5.",
+  "SCIKIT_LEARN_EXPOSURE_UNMEASURED": "36 products still declare scikit-learn>=1.3 with NO ceiling. Two were measured tonight and BOTH were affected -- P001 visibly, P025 silently. The other 36 are unmeasured. The measurement is a session's work: each product under 1.8.0 and 1.9.1 with committed outputs diffed. DO NOT PIN THEM WITHOUT IT; a sweep on the strength of two measurements is the unverified change this mission's rules exist to prevent.",
+  "TRANSFER_ROUTE_CONFIRMED_AGAIN": "connectedFolders [] for the THIRD session. device_request_folder_access returned {granted:[~/100 Aero Prods]} with no owner action. SendUserFile -> device_commit_files worked for all three transfers; sha256sum vs shasum -a 256 matched three for three. Bundles built as <sha>..main and confirmed with git bundle list-heads. base64-through-osascript NOT attempted."
 }
