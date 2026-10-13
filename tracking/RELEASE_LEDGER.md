@@ -448,6 +448,22 @@ out of it.
 | P059 InvariantSet | https://github.com/OmAcharya-avtr/invariantset |
 | P060 TraceAudit | https://github.com/OmAcharya-avtr/traceaudit |
 
+**Post-publication verification, all ten, run after the pushes:**
+`gh api repos/OmAcharya-avtr/<name>/contributors --jq '.[].login'` returns
+exactly one line, `OmAcharya-avtr`, on every one. Visibility `PUBLIC` on every
+one, default branch `main`, CI workflow present at 605 bytes on every one.
+First-commit author email `145807881+OmAcharya-avtr@users.noreply.github.com`,
+spot-checked on `simplexguard`, `twininvalidate` and `traceaudit`.
+`aerospace-100-mission` still returns a single contributor. **Zero authorship
+defects.**
+
+The mission repository was pushed `a6d782c..f69bb64` and confirmed on origin by
+`git ls-remote`. The transfer was verified by comparing `sha256sum` in the
+container against `shasum -a 256` on the Mac in both directions — inbound
+bundle `0b948c4b…c89016`, outbound bundle `710aa0c6…66f92e`, both exact
+matches — and each bundle's heads were listed before it was used, per the
+2026-10-12 note about bundles that carry `HEAD` instead of `main`.
+
 **Cumulative after this batch: 60 of 100 registered, built and published.**
 Validation **L4 remains 0 of 5** and is now nine batches overdue; it cannot
 advance without Jetson Orin Nano measurements.
