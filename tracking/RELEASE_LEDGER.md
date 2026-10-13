@@ -9,6 +9,23 @@ wrong; the ledger below reflects verified repository state.
 Verified against the GitHub API on 2026-08-29. The exact push dates were not
 recorded when the pushes happened; the commit dates are recorded instead.
 
+> **Correction, 2026-10-13.** The table immediately below is a dated snapshot
+> and three of its four rows are no longer live. `flagship-beamtwin`,
+> `flagship-trackbench` and `batch-01-suite` were retired once the per-product
+> repositories of ADR-018 superseded them, and all three are **confirmed
+> deleted on GitHub** (`git ls-remote` returns no refs for any of them,
+> 2026-10-13; `aerospace-100-mission` answers on the same check, so the
+> absence is real and not a network failure). The head commits quoted for them
+> no longer resolve. The authoritative repository list is the `repository`
+> field of every product in `products.yaml`.
+>
+> Two further claims in this section are superseded and are kept only as a
+> record of what was believed at the time: that no credential was available in
+> any permitted store, and that repository creation needs API access neither
+> environment has. Both were false generalisations from one blocked
+> environment. The owner's Mac could push throughout. See ADR-004, which now
+> states the rule: never record "GitHub writes are blocked" as a mission fact.
+
 | Repository | Head commit | Commit date | Products | License(s) | Visibility |
 |---|---|---|---|---|---|
 | `OmAcharya-avtr/aerospace-100-mission` | `22d96d2` | 2026-08-07 | P001–P010, P016–P020 (source), trackers, ADRs, templates, reports | AGPL-3.0 / Apache-2.0 / MIT per product | Public |
@@ -136,7 +153,7 @@ Twenty standalone public repositories, one per product, each named for its packa
 
 The four original repositories credited `OmAcharya-ADCL` — a different account that owns the commit email — and `aerospace-100-mission` also credited `claude` for 5 commits. Both are corrected in the new repositories by authoring as `145807881+OmAcharya-avtr@users.noreply.github.com`.
 
-**Owner action outstanding:** retire `flagship-beamtwin`, `flagship-trackbench` and `batch-01-suite`, whose contents are now superseded by the per-product repositories. Deleting a repository needs `delete_repo` scope the session does not hold, and is the owner's call in any case. `aerospace-100-mission` stays as the mission workspace.
+**Owner action outstanding: CLOSED 2026-10-13.** `flagship-beamtwin`, `flagship-trackbench` and `batch-01-suite`, whose contents were superseded by the per-product repositories, have all three been deleted by the owner (`gh auth refresh -s delete_repo` then `gh repo delete`; absence verified from the container with `git ls-remote` on 2026-10-13). `aerospace-100-mission` stays as the mission workspace. Deleting a repository was and remains the owner's action, not the session's.
 
 
 ## Batch 03 — per-product repositories
@@ -387,3 +404,50 @@ origin — `git merge --ff-only origin/main` refuses with *unrelated histories*,
 local `557ba3e` against remote `c870d45`. It is a stale `build_product_repo.py`
 output. Nothing was forced; the alloclab fix went through a fresh clone. **The
 other 49 local product directories were not checked.**
+
+---
+
+## Batch 06 (P051–P060) — published 2026-10-13
+
+**Authorization:** ADR-017 standing authorization plus `scripts/release_gate.py`
+exit 0. No per-batch approval exists, none is cited, no row was written to
+`tracking/APPROVAL_LOG.md`, and no words are attributed to the owner (ADR-016).
+`approved_for_publish` stays `false` on all ten for the same reason.
+
+**Gate verdict, full run over all ten products, nothing skipped or subset-gated:**
+
+```
+P051 PASS 218   P052 PASS 282   P053 PASS 243   P054 PASS 203   P055 PASS 248
+P056 PASS 405   P057 PASS 440   P058 PASS 303   P059 PASS 200   P060 PASS 236
+repository PASS        Total tests passing: 2778        VERDICT: PUSH ALLOWED
+```
+
+**What cleared the six-night block.** P053's two FAILED threshold-transfer
+checks were resolved by sizing its calibration bank from measurement — the bias
+was calibration-set sampling error, which the evaluation-set tolerance never
+accounted for. Bias at target 200: −8.6 % → −1.2 % → −0.8 %; at target 1000:
++13.5 % → +7.3 % → +2.8 %, across calibration banks of 1.6e6 → 4.8e6 → 1.44e7
+in-control samples, with the evaluation set, its seeds, its pooled estimator and
+the 8.8 % tolerance all held exactly as they were. No tolerance was widened, no
+exit code was changed, and both original failing numbers are reproduced on every
+run in the committed sweep. The owner's authorised option A — print FAILED and
+exit 0 — was refused by the environment's classifier as a CI bypass and was not
+retried through another host, tool or session. ADR-019 records the rule that came
+out of it.
+
+| Product | Repository |
+|---|---|
+| P051 SimplexGuard | https://github.com/OmAcharya-avtr/simplexguard |
+| P052 FalsifyLoop | https://github.com/OmAcharya-avtr/falsifyloop |
+| P053 TwinInvalidate | https://github.com/OmAcharya-avtr/twininvalidate |
+| P054 RareVerify | https://github.com/OmAcharya-avtr/rareverify |
+| P055 AssureGraph | https://github.com/OmAcharya-avtr/assuregraph |
+| P056 CalibAudit | https://github.com/OmAcharya-avtr/calibaudit |
+| P057 ConformalBand | https://github.com/OmAcharya-avtr/conformalband |
+| P058 TelemDrift | https://github.com/OmAcharya-avtr/telemdrift |
+| P059 InvariantSet | https://github.com/OmAcharya-avtr/invariantset |
+| P060 TraceAudit | https://github.com/OmAcharya-avtr/traceaudit |
+
+**Cumulative after this batch: 60 of 100 registered, built and published.**
+Validation **L4 remains 0 of 5** and is now nine batches overdue; it cannot
+advance without Jetson Orin Nano measurements.

@@ -276,9 +276,10 @@ script in this repository in the build session.
 | Parameter-step mean shift vs closed form | derived, eq. (10) in `twin.py` | 0.16 % error | 3 % | PASS |
 | Detector known answers, 12 cases | Page 1954, Roberts 1959, Willsky & Jones 1976 | max error 0.000e+00 | 1e-12 | PASS |
 | GLR(window=1) closed-form threshold | hand calculation | 5.4137830853 | 1e-8 | PASS |
-| Monte-Carlo calibrator vs closed form | internal consistency | 0.50 / 1.79 / 0.97 % | 5 % | PASS |
-| ARL0 transfer to fresh banks, three baselines | — | within +3.4 % / −8.7 % | 8.8 % (3 se) | PASS 9/9 |
-| **ARL0 transfer, variance-CUSUM oracle** | — | **−8.6 % and +13.5 %** | 8.8 % | **FAIL 2/3** |
+| Monte-Carlo calibrator vs closed form | internal consistency | 0.52 / 0.14 / 0.16 % | 5 % | PASS |
+| ARL0 transfer to fresh banks, three baselines | — | within +8.7 % / −2.2 % | 8.8 % (3 se) | PASS 9/9 |
+| ARL0 transfer, variance-CUSUM oracle | — | −0.8 %, +2.8 %, −2.3 % | 8.8 % | PASS 3/3 |
+| Calibration-bank size sweep, varcusum bias | — | +13.5 % at 1.6e6 → +2.8 % at 1.44e7 calibration samples | reported | see below |
 | Residual identity, asset fault vs twin error | derivation in `ambiguity.py` | 6.17e-14 (≈278 ulps) | 1e-10 | PASS |
 | Identical alarm indices in both worlds | — | identical in every run, 4 detectors | exact | PASS |
 | CLI exit statuses, 15 cases | — | all as specified | exact | PASS |
@@ -383,20 +384,41 @@ bins, on 90 120 held-out windows.
 </details>
 
 <details>
-<summary><b>4. A validation check that fails</b></summary>
+<summary><b>4. A validation check that failed, and what it turned out to be</b></summary>
 
-The threshold calibrated for the variance-CUSUM oracle on one in-control bank
-transfers to three pooled fresh banks with a bias of −8.6 % at a target ARL0
-of 200 and +13.5 % at 1000, both outside the declared tolerance of three
-standard errors (8.8 %). The three declared baselines transfer within
-+3.4 % / −8.7 % and pass all nine of their checks.
+**It failed.** Calibrating on 400 × 4000 = 1.6e6 in-control samples, the
+variance-CUSUM oracle's threshold transferred to three pooled fresh banks with
+a bias of −8.6 % at a target ARL0 of 200 and +13.5 % at 1000, both outside the
+declared tolerance of three standard errors (8.8 %). It was published as a
+FAILED check, not absorbed into a wider tolerance.
 
-The variance CUSUM's increments `z² − 1` are right-skewed with a heavy upper
-tail, so its own upper tail is built from fewer, larger excursions and the
-bisected threshold lands on a bank-specific extreme. The tolerance was not
-widened. The oracle is not one of the three declared baselines and no headline
-curve depends on it; the overshoot makes it look slightly *better* than a
-fairly matched comparison would, and it loses anyway.
+**What it turned out to be.** Transfer error has two parts: the evaluation
+set's sampling error, which the tolerance accounts for, and the calibration
+set's, which it does not. Holding the evaluation set and the tolerance exactly
+as they were and growing only the calibration bank:
+
+| calibration samples | bias at T = 200 | T = 1000 |
+|---|---|---|
+| 1.6e6 | **−8.6 % FAIL** | **+13.5 % FAIL** |
+| 4.8e6 | −1.2 % | +7.3 % |
+| 1.44e7 | −0.8 % | +2.8 % |
+
+Calibration-set sampling error, not a transfer bias of the method. The
+variance CUSUM's increments `z² − 1` are right-skewed with a heavy upper tail,
+so its upper tail is built from fewer, larger excursions and a small bank's
+bisected threshold lands on a bank-specific extreme; the mean CUSUM's `z − k`
+increments are symmetric and are already within 3 % at 400 runs. The declared
+calibration bank is now 1.44e7 samples, sized by that measurement.
+
+The tolerance was not widened, the evaluation set is unchanged, and both
+original failures are reproduced in the committed output of
+`validation/validate_thresholds.py` every time it runs.
+
+**Still unresolved:** the headline delay table and `examples/` calibrate on
+200–300 run banks, so their variance-CUSUM thresholds carry calibration error
+of the order of the 400-run row — roughly ±10 % on effective ARL0, direction
+not measured there. The oracle is not a declared baseline, no headline curve
+depends on it, and it loses to the mean CUSUM by far more than that error.
 </details>
 
 ## Twin invalidation is not asset fault

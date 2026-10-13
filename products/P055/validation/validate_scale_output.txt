@@ -10,10 +10,10 @@ the largest row is a stress case, not a representative one.
   nodes   edges  solutions   parse s  checks s  mermaid s  findings  yaml KiB
 ------------------------------------------------------------------------------------
     150     149         50     0.008     0.002      0.001         0      20.6
-    750     749        250     0.042     0.009      0.006         0     105.9
-   3000    2999       1000     0.173     0.024      0.011         0     433.1
-   7500    7499       2500     0.446     0.066      0.030         0    1090.8
-  30000   29999      10000     3.186     0.300      0.142         0    4457.5
+    750     749        250     0.053     0.006      0.003         0     105.9
+   3000    2999       1000     0.192     0.027      0.013         0     433.1
+   7500    7499       2500     0.656     0.093      0.034         0    1090.8
+  30000   29999      10000     3.182     0.339      0.160         0    4457.5
 
 Findings per size (all must be 0 for a synthetic tree of fresh evidence):
       150 nodes -> 0 findings, 0 of them errors
@@ -23,11 +23,11 @@ Findings per size (all must be 0 for a synthetic tree of fresh evidence):
     30000 nodes -> 0 findings, 0 of them errors
 
 Per-node cost of run_checks (microseconds per node):
-      150 nodes ->    10.40 us/node
-      750 nodes ->    12.54 us/node
-     3000 nodes ->     7.90 us/node
-     7500 nodes ->     8.86 us/node
-    30000 nodes ->    10.02 us/node
+      150 nodes ->    12.23 us/node
+      750 nodes ->     8.44 us/node
+     3000 nodes ->     8.88 us/node
+     7500 nodes ->    12.40 us/node
+    30000 nodes ->    11.31 us/node
 
 Growth from 3000 to 30000 nodes
   node count ratio                 : 10.0x
@@ -38,9 +38,9 @@ Growth from 3000 to 30000 nodes
   the wall-clock figures move by 10-20 % between runs.
 
   largest case checked             : 30000 nodes, 29999 edges, 10000 evidence artifacts
-  its run_checks wall clock        : 0.300 s
-  its parse wall clock             : 3.186 s
-  its mermaid render wall clock    : 0.142 s
+  its run_checks wall clock        : 0.339 s
+  its parse wall clock             : 3.182 s
+  its mermaid render wall clock    : 0.160 s
 
 FAILURES: 0
-elapsed: 15.114 s
+elapsed: 15.893 s

@@ -38,12 +38,13 @@ Total wall clock for the eight scripts: about 155 s on 2 cores, dominated by
 | 7 | Parameter-step mean shift vs closed form, eq. (10) | derived in `twin.py` | 0.16 % error at δ = −0.01 | 3 % | PASS |
 | 8 | Detector known answers (12 cases) | Page 1954, Roberts 1959, Willsky & Jones 1976 | max error 0.000e+00 | 1e-12 | PASS 12/12 |
 | 9 | GLR(window=1) closed-form threshold, eq. (7) | hand calculation | 5.4137830853 | 1e-8 | PASS |
-| 10 | Monte-Carlo calibrator vs closed form | internal consistency | 0.50 %, 1.79 %, 0.97 % at T = 200/1000/5000 | 5 % | PASS |
-| 11 | ARL0 transfer to fresh banks, three baselines | — | +3.0 %, +3.4 %, −1.1 % (T=200); −0.2 %, +2.8 %, +3.4 % (T=1000); −1.4 %, −8.7 %, −1.6 % (T=5000) | 8.8 % (3 se) | PASS 9/9 |
-| 12 | ARL0 transfer, variance-CUSUM oracle | — | **−8.6 % (T=200), +13.5 % (T=1000)**, +9.1 % (T=5000) | 8.8 % | **FAIL 2/3** |
+| 10 | Monte-Carlo calibrator vs closed form | internal consistency | 0.52 %, 0.14 %, 0.16 % at T = 200/1000/5000 | 5 % | PASS |
+| 11 | ARL0 transfer to fresh banks, three baselines | — | +2.0 %, +4.4 %, −1.1 % (T=200); −1.3 %, −2.2 %, +8.7 % (T=1000); +1.3 %, −2.2 %, +1.4 % (T=5000) | 8.8 % (3 se) | PASS 9/9 |
+| 12 | ARL0 transfer, variance-CUSUM oracle | — | −0.8 % (T=200), +2.8 % (T=1000), −2.3 % (T=5000) | 8.8 % | PASS 3/3 |
 | 13 | Residual identity, asset fault vs twin error | derivation in `ambiguity.py` | 6.17e-14 (≈ 278 ulps) | 1e-10 | PASS |
 | 14 | Identical alarm indices in both worlds, 4 detectors | — | identical in every run | exact | PASS 4/4 |
 | 15 | CLI exit statuses (15 cases) | — | all as specified | exact | PASS 15/15 |
+| 16 | Calibration-bank size sweep, varcusum bias vs calibration samples | — | T=200: −8.6 % → −1.2 % → −0.8 %; T=1000: +13.5 % → +7.3 % → +2.8 % at 1.6e6 → 4.8e6 → 1.44e7 calibration samples | reported, not graded | see §3.6 |
 
 Test suite: `python -m pytest tests/ -q` → **243 passed, 0 failed, 0 skipped**,
 19.7 s. `ruff check src/ tests/ examples/ validation/` → clean.
@@ -240,25 +241,50 @@ a precise number**. None of this is a hardware characteristic: 2 cores,
 `n_jobs` is forced to 1 after fitting, because on this container `n_jobs > 1`
 is several times slower at single-row inference.
 
-### 3.6 A validation check that FAILS
+### 3.6 A validation check that failed, and what it turned out to be
 
-Check 12 in the summary table. The threshold calibrated for the variance-CUSUM
-oracle on one bank transfers to three pooled fresh banks with a bias of
-**−8.6 % at a target of 200 samples and +13.5 % at 1000**, both outside the
-declared tolerance of three standard errors (8.8 %). The three declared
-baselines transfer within +3.4 % / −8.7 % and pass all nine of their checks.
+**It failed.** On a calibration bank of 400 × 4000 = 1.6e6 in-control samples,
+check 12 reported the variance-CUSUM oracle's threshold transferring to the
+three pooled fresh banks with a bias of **−8.6 % at a target of 200 samples
+and +13.5 % at 1000**, both outside the declared tolerance of three standard
+errors (8.8 %). That result was published as a FAILED check rather than
+absorbed into a wider tolerance, and it stood for several releases.
 
-Diagnosis: the variance CUSUM's increments `z² − 1` are right-skewed with a
-heavy upper tail, so its own upper tail is built from fewer, larger excursions
-and the bisected threshold lands on a bank-specific extreme; the mean CUSUM's
-increments `z − k` are symmetric and light-tailed, so the same bank resolves
-its tail better.
+**What it turned out to be.** Transfer error has two parts: the evaluation
+set's sampling error, which the 3-standard-error tolerance accounts for, and
+the *calibration* set's sampling error, which it does not. Check 16 separates
+them. It holds the evaluation set and the tolerance exactly as they are and
+varies only the calibration bank:
 
-Consequence: the variance CUSUM is **not** one of the three declared baselines
-and no headline curve depends on it. Its reported delay at a nominal ARL0 of
-1000 is in fact measured at an effective ARL0 of about 1135, which makes it
-look slightly *better* than a fairly matched comparison would, and it loses
-anyway. The tolerance was not widened to absorb the failure.
+| calibration samples | varcusum bias, T = 200 | T = 1000 | T = 5000 |
+|---|---|---|---|
+| 1.6e6 (400 runs) | **−8.6 % FAIL** | **+13.5 % FAIL** | +9.1 % |
+| 4.8e6 (1200 runs) | −1.2 % | +7.3 % | +4.6 % |
+| 1.44e7 (3600 runs) | −0.8 % | +2.8 % | −2.3 % |
+
+The bias decays monotonically toward zero. It was calibration-set sampling
+error, not a transfer bias of the method. The mean CUSUM, whose increments
+`z − k` are symmetric and light-tailed, is already within 3 % at 400 runs;
+the variance CUSUM's increments `z² − 1` are right-skewed with a heavy upper
+tail, so its upper tail is built from fewer, larger excursions and a small
+bank's bisected threshold lands on a bank-specific extreme. The declared
+calibration bank is now 1.44e7 samples, sized by this measurement, and check
+12 passes 3/3.
+
+**What was not done.** The tolerance was not widened. The evaluation set, its
+seeds and its pooled estimator are unchanged. No failing number was deleted:
+both original failures are reproduced in check 16's first row, in the
+committed output, every time the script runs. The exit convention of the
+script is unchanged.
+
+**Residual limitation, unresolved.** The headline delay table and the example
+scripts in `examples/` calibrate on 200–300 run banks. Their variance-CUSUM
+thresholds therefore still carry calibration error of the order check 16's
+400-run column shows — roughly ±10 % on effective ARL0, direction not
+measured at those bank sizes. This is one reason the oracle is reported
+separately and is **not** one of the three declared baselines, and no headline
+curve depends on it. It loses to the mean CUSUM on every change type by a
+margin far larger than that error.
 
 ---
 

@@ -518,3 +518,84 @@ creation no longer needs the owner. Two constraints found on 2026-08-30:
 - Deleting a repository needs `delete_repo` scope, which the token does not have,
   and deleting the owner's data is not the session's call regardless. Retiring
   the four original repositories is owner-executed.
+
+## ADR-019 — A failing validation check is resolved by improving the measurement, never by changing the exit code
+
+**Date:** 2026-10-13. **Status:** accepted. **Supersedes nothing; constrains
+ADR-011 and ADR-017.**
+
+### Context
+
+P053 TwinInvalidate published two FAILED checks: the variance-CUSUM oracle's
+calibrated threshold transferred to fresh in-control banks with a bias of
+−8.6 % at a target ARL0 of 200 and +13.5 % at 1000, against a declared
+tolerance of three standard errors (8.8 %). Per ADR-011 the failures were
+printed verbatim and not absorbed into a wider tolerance. P053's validation
+script then returned exit 1, the release gate treats a non-zero validation
+exit as a product failure, and the gate blocks the whole batch. Nine Batch 06
+products sat at gate PASS, unpublished, for six consecutive nights, and the
+blockage escalated to the owner six times.
+
+Two fixes were proposed and one was authorised. Option A: make the script
+print its FAILED lines and exit 0, matching the convention P025 already uses,
+so that a non-zero exit means "the validation script itself failed to run"
+rather than "a measurement missed tolerance". The owner chose A on 2026-10-13.
+
+**Option A was not applied.** The edit was refused by the environment's
+automatic-approval classifier as a CI bypass, as the same class of edit had
+been refused for P035 on 2026-10-02. That refusal was correct in substance
+even though the intent behind the change was honest, because the mechanism it
+asked for — a validation script that reports failure and exits success — is
+indistinguishable, to any automatic reviewer and to most human ones, from
+suppressing a failing test.
+
+### Decision
+
+A FAILED validation check is resolved by one of exactly three routes:
+
+1. **Improve the measurement** so the quantity is measured well enough to
+   satisfy the criterion that was declared before the result was known. The
+   criterion is not touched.
+2. **Fix the product**, where the measurement is sound and the product is
+   wrong.
+3. **Leave it failing and publish it failing**, per ADR-011, accepting that
+   the release gate blocks the batch until the owner rules on it.
+
+Changing a validation script's exit code so that a failing measurement reports
+success is not one of the three, and is not to be proposed again. Widening a
+tolerance after seeing the result was already forbidden by ADR-011 and remains
+so.
+
+### What route 1 looked like here
+
+Transfer error has two independent parts: the **evaluation** set's sampling
+error, which a 3-standard-error tolerance accounts for by construction, and
+the **calibration** set's sampling error, which it does not. Holding the
+evaluation set, its seeds, its pooled estimator and the 8.8 % tolerance
+exactly as they were, and growing only the calibration bank, the variance
+CUSUM's bias decays monotonically: at target 200, −8.6 % → −1.2 % → −0.8 %;
+at target 1000, +13.5 % → +7.3 % → +2.8 %, for calibration banks of 1.6e6,
+4.8e6 and 1.44e7 in-control samples. The failure was calibration-set sampling
+error for a right-skewed statistic whose upper tail a 1.6e6-sample bank cannot
+resolve. The declared calibration bank is now sized by that sweep, the sweep
+is committed as check 16, both original failing numbers are reproduced in its
+first row on every run, and check 12 passes 3/3. Script runtime 76 s, inside
+the 3-minute budget. The exit convention of the script was not touched.
+
+### Standing consequences
+
+- **A declared tolerance that is a function of sample size must state which
+  sample it is a function of.** P053's 8.8 % was derived from the evaluation
+  bank alone and was silently applied to a total error containing a
+  calibration term. Any check of the form "parameter fitted on set A, measured
+  on set B" must either size A by measurement or report the A-term separately.
+- **A validation failure that persists for more than one nightly session is a
+  mission-level defect, not a product-level one,** and the nightly automation
+  escalates it as such: the sixth identical escalation of P053 was evidence
+  that the escalation channel was not working, and the fix was found within
+  one session of someone asking whether the measurement itself was sound.
+- **Do not assume an owner decision is executable.** Option A was authorised
+  and still could not be applied. Where an authorised route is refused by the
+  environment, the correct response is to find a route that does not need the
+  refusal lifted, not to retry the refused route through another host, tool or
+  session.

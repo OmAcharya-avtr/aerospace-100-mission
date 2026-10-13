@@ -15,12 +15,14 @@ hand check at T = 1000:  1 - 1/2000 = 0.9995,  Phi^-1(0.9995) = 3.2905267315
                          difference 2.657e-11, tolerance 1e-8  PASS
 
 === Monte-Carlo calibrator against the closed form ===
-calibration bank: 400 x 4000 = 1600000 in-control samples,
+calibration bank: 3600 x 4000 = 14400000 in-control samples,
 seed 53001. The censored-MLE ARL0 is (total samples at risk)/(alarms),
-whose relative standard error is 1/sqrt(alarms).
-target     200  closed form   3.93972  bisection   3.91987  relative difference  0.50 %  tolerance 5 %  PASS
-target    1000  closed form   5.41378  bisection   5.51074  relative difference  1.79 %  tolerance 5 %  PASS
-target    5000  closed form   6.91554  bisection   6.98236  relative difference  0.97 %  tolerance 5 %  PASS
+whose relative standard error is 1/sqrt(alarms). The bank is sized by
+check 5 below, not by convenience: at 400 x 4000 the variance CUSUM's
+calibration-set sampling error alone exceeded the transfer tolerance.
+target     200  closed form   3.93972  bisection   3.96007  relative difference  0.52 %  tolerance 5 %  PASS
+target    1000  closed form   5.41378  bisection   5.42149  relative difference  0.14 %  tolerance 5 %  PASS
+target    5000  closed form   6.91554  bisection   6.90426  relative difference  0.16 %  tolerance 5 %  PASS
 
 === achieved ARL0 on FRESH in-control banks (seeds 53110-53112) ===
 The calibration bank is fitted to, so its own ARL0 is not evidence. Three
@@ -29,36 +31,71 @@ alarms per detector and a relative standard error of 1/sqrt(1170) = 2.9 %.
 The declared tolerance is three of those standard errors, 8.8 %, on the
 pooled estimate -- a criterion fixed by the sample size, not by the result.
   detector                          target  threshold      ARL0   stderr  alarms     bias  verdict
-  CUSUM (k=0.25)                       200     6.8620     206.0      5.9    1200     3.0%  PASS
-  EWMA (lambda=0.1)                    200     2.4531     206.7      6.0    1200     3.4%  PASS
-  GLR (window=100)                     200     5.0900     197.8      5.7    1200    -1.1%  PASS
-  variance-CUSUM oracle (c=0.031)      200    15.6029     182.8      5.3    1200    -8.6%  FAIL
-  CUSUM (k=0.25)                      1000     9.9518     998.2     29.0    1184    -0.2%  PASS
-  EWMA (lambda=0.1)                   1000     3.0685    1027.7     29.9    1179     2.8%  PASS
-  GLR (window=100)                    1000     6.8461    1034.1     30.2    1173     3.4%  PASS
-  variance-CUSUM oracle (c=0.031)     1000    36.0422    1135.1     33.1    1176    13.5%  FAIL
-  CUSUM (k=0.25)                      5000    13.0078    4928.8    190.0     673    -1.4%  PASS
-  EWMA (lambda=0.1)                   5000     3.5237    4564.3    172.8     698    -8.7%  PASS
-  GLR (window=100)                    5000     8.5809    4921.5    190.4     668    -1.6%  PASS
-  variance-CUSUM oracle (c=0.031)     5000    66.2127    5457.3    215.7     640     9.1%  PASS
+  CUSUM (k=0.25)                       200     6.8432     203.9      5.9    1200     2.0%  PASS
+  EWMA (lambda=0.1)                    200     2.4568     208.8      6.0    1200     4.4%  PASS
+  GLR (window=100)                     200     5.0896     197.8      5.7    1200    -1.1%  PASS
+  variance-CUSUM oracle (c=0.031)      200    16.2990     198.3      5.7    1200    -0.8%  PASS
+  CUSUM (k=0.25)                      1000     9.9232     986.9     28.7    1185    -1.3%  PASS
+  EWMA (lambda=0.1)                   1000     3.0539     978.5     28.5    1182    -2.2%  PASS
+  GLR (window=100)                    1000     6.9062    1086.6     31.8    1166     8.7%  PASS
+  variance-CUSUM oracle (c=0.031)     1000    34.6052    1027.6     29.9    1184     2.8%  PASS
+  CUSUM (k=0.25)                      5000    13.0715    5064.4    197.0     661     1.3%  PASS
+  EWMA (lambda=0.1)                   5000     3.5520    4887.9    189.0     669    -2.2%  PASS
+  GLR (window=100)                    5000     8.6269    5067.7    198.0     655     1.4%  PASS
+  variance-CUSUM oracle (c=0.031)     5000    63.8438    4885.4    185.8     691    -2.3%  PASS
 
-FINDING  the calibration-transfer bias is detector-dependent. The three
-FINDING  declared baselines transfer to within +3.4 % / -8.7 % and all nine
-FINDING  of their checks PASS. The variance-CUSUM oracle transfers at
-FINDING  -8.6 % (target 200), +13.5 % (target 1000) and +9.1 % (target
-FINDING  5000); the first two exceed the declared 8.8 % tolerance and are
-FINDING  reported as FAILED checks rather than absorbed into a wider
-FINDING  tolerance. Diagnosis: the variance CUSUM's increments z^2 - 1 are
+
+=== calibration-bank size sweep (check 5) ===
+The evaluation set above is held EXACTLY as it is -- same three fresh
+banks, same pooled estimator, same 3-standard-error tolerance. Only the
+calibration bank changes. Any bias that decays with calibration-bank size
+is calibration-set sampling error, not a transfer bias of the method.
+  detector    target  cal runs  cal samples  threshold     ARL0     bias    3 se  verdict
+  cusum          200       400      1600000     6.8620    206.0     3.0%    8.9%  PASS
+  varcusum       200       400      1600000    15.6029    182.8    -8.6%    7.9%  FAIL
+  cusum         1000       400      1600000     9.9518    998.2    -0.2%    8.7%  PASS
+  varcusum      1000       400      1600000    36.0422   1135.1    13.5%    9.9%  FAIL
+  cusum         5000       400      1600000    13.0078   4928.8    -1.4%   11.4%  PASS
+  varcusum      5000       400      1600000    66.2127   5457.3     9.1%   12.9%  PASS
+  cusum          200      1200      4800000     6.8531    205.2     2.6%    8.9%  PASS
+  varcusum       200      1200      4800000    16.2638    197.5    -1.2%    8.6%  PASS
+  cusum         1000      1200      4800000     9.9031    981.2    -1.9%    8.6%  PASS
+  varcusum      1000      1200      4800000    35.1057   1073.2     7.3%    9.4%  PASS
+  cusum         5000      1200      4800000    13.1441   5266.0     5.3%   12.5%  PASS
+  varcusum      5000      1200      4800000    65.4952   5232.1     4.6%   12.2%  PASS
+  cusum          200      3600     14400000     6.8432    203.9     2.0%    8.8%  PASS
+  varcusum       200      3600     14400000    16.2990    198.3    -0.8%    8.6%  PASS
+  cusum         1000      3600     14400000     9.9232    986.9    -1.3%    8.6%  PASS
+  varcusum      1000      3600     14400000    34.6052   1027.6     2.8%    9.0%  PASS
+  cusum         5000      3600     14400000    13.0715   5064.4     1.3%   11.8%  PASS
+  varcusum      5000      3600     14400000    63.8438   4885.4    -2.3%   11.2%  PASS
+
+FINDING  the calibration-transfer bias is detector-dependent, and for the
+FINDING  variance-CUSUM oracle it is dominated by CALIBRATION-set sampling
+FINDING  error. An earlier revision of this script calibrated on 1.6e6
+FINDING  samples and reported two FAILED checks: -8.6 % at target 200 and
+FINDING  +13.5 % at target 1000, against the 8.8 % tolerance. Check 5
+FINDING  reproduces both of those numbers at 400 calibration runs and
+FINDING  then shows them decaying monotonically as the calibration bank
+FINDING  grows, with the evaluation set and the tolerance untouched:
+FINDING    varcusum, target    200 runs->  400: -8.6 %  1200: -1.2 %  3600: -0.8 %
+FINDING    varcusum, target   1000 runs->  400: +13.5 %  1200: +7.3 %  3600: +2.8 %
+FINDING  Mechanism: the variance CUSUM's increments z^2 - 1 are
 FINDING  right-skewed with a heavy upper tail, so its own upper tail is
-FINDING  built from fewer, larger excursions and the bisected threshold
-FINDING  lands on a bank-specific extreme. The mean CUSUM's increments
-FINDING  z - k are symmetric and light-tailed, so the same bank size
-FINDING  resolves its tail better. Consequence for the headline results:
-FINDING  the variance CUSUM is NOT one of the three declared baselines and
-FINDING  no headline curve depends on it. Its reported delay at a nominal
-FINDING  ARL0 of 1000 is in fact measured at an effective ARL0 of about
-FINDING  1135, which makes it look slightly BETTER than a fairly matched
-FINDING  comparison would, and it loses to the mean CUSUM anyway.
+FINDING  built from fewer, larger excursions; on a small bank the bisected
+FINDING  threshold lands on a bank-specific extreme. The mean CUSUM's
+FINDING  increments z - k are symmetric and light-tailed, so the same bank
+FINDING  size resolves its tail better -- visible in the sweep as a cusum
+FINDING  bias that is already small at 400 runs.
+FINDING  What was NOT done: the tolerance was not widened, the evaluation
+FINDING  set was not changed, and no failing number was removed. The
+FINDING  calibration bank was undersized and is now sized by measurement.
+FINDING  Residual limitation: the example scripts in examples/ and the
+FINDING  headline curves calibrate on 200-300 run banks, so their
+FINDING  variance-CUSUM thresholds still carry calibration error of the
+FINDING  order the 400-run column shows. That is one reason the oracle is
+FINDING  reported separately and is not a declared baseline; the three
+FINDING  declared baselines sit near the cusum column instead.
 
 === false-alarm rate conversion ===
 ARL0 = 1000 * 3600 * f / N samples for N false alarms per 1000 h at f Hz.
@@ -76,4 +113,4 @@ NOTE  3-minute compute budget. The curve's SHAPE is the deliverable; the
 NOTE  operating point a real requirement implies is off its right-hand end
 NOTE  and is not measured here. This is stated in the README limitations.
 
-SUMMARY  13/15 checks PASS
+SUMMARY  15/15 checks PASS

@@ -2,7 +2,7 @@
 telemdrift 0.1.0 - per-sample cost, as ratios and ranges
 ==============================================================================
 script       : validation/validate_cost.py
-python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+python       : 3.13.15 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
 cores        : os.cpu_count()=2 affinity=2
 
 
@@ -19,21 +19,21 @@ cores        : os.cpu_count()=2 affinity=2
 1. Analytic detectors, online cost per sample
 ------------------------------------------------------------------------------
   detector             min      median       max    ratio to cheapest
-  CUSUM               0.223       0.233     0.238
-  Page-Hinkley        0.286       0.318     0.344
-  EWMA                0.338       0.350     0.365
-  Windowed KS         5.061       5.254     6.818
-  ADWIN               1.265       1.296     1.349
+  CUSUM               0.277       0.443     0.458
+  Page-Hinkley        0.321       0.375     0.543
+  EWMA                0.413       0.498     0.699
+  Windowed KS         5.371       5.429     7.253
+  ADWIN               1.488       1.536     1.580
 
-  cheapest: CUSUM
+  cheapest: Page-Hinkley
   detector             ratio
-  CUSUM              1.0x
-  Page-Hinkley       1.4x
-  EWMA               1.5x
-  Windowed KS       22.6x
-  ADWIN              5.6x
-  PASS  the analytic detectors are within two orders of magnitude of each other  [22.6x]
-  FINDING  analytic per-sample cost spans 22.6x between the cheapest (CUSUM) and the dearest; all five are in the microsecond range and none is a deployment constraint on this container.
+  CUSUM              1.2x
+  Page-Hinkley       1.0x
+  EWMA               1.3x
+  Windowed KS       14.5x
+  ADWIN              4.1x
+  PASS  the analytic detectors are within two orders of magnitude of each other  [14.5x]
+  FINDING  analytic per-sample cost spans 14.5x between the cheapest (Page-Hinkley) and the dearest; all five are in the microsecond range and none is a deployment constraint on this container.
 
 ------------------------------------------------------------------------------
 2. The windowed KS implementation against SciPy
@@ -42,20 +42,20 @@ cores        : os.cpu_count()=2 affinity=2
   ks_2samp is the correctness reference (validate_known_answers.py s.3);
   here it is the cost reference.
 
-  this package   median      20.6 us per evaluation (range 20.5 to 23.2)
-  scipy ks_2samp median     581.1 us per evaluation (range 522.5 to 770.2)
-  ratio          28.1x
-  PASS  the direct implementation is cheaper than the SciPy call  [28.1x]
-  FINDING  the direct KS statistic is about 28x cheaper per evaluation than scipy.stats.ks_2samp, which is why it exists; the two agree to machine precision on the statistic. SciPy additionally returns a p-value, which this package does not need and does not use.
+  this package   median      19.9 us per evaluation (range 17.4 to 20.7)
+  scipy ks_2samp median     674.4 us per evaluation (range 659.5 to 685.8)
+  ratio          34.0x
+  PASS  the direct implementation is cheaper than the SciPy call  [34.0x]
+  FINDING  the direct KS statistic is about 34x cheaper per evaluation than scipy.stats.ks_2samp, which is why it exists; the two agree to machine precision on the statistic. SciPy additionally returns a p-value, which this package does not need and does not use.
 
 ------------------------------------------------------------------------------
 3. The learned detector's online cost, and why the harness batches
 ------------------------------------------------------------------------------
-  online, one forest call per sample : median     5387.4 us/sample (range 4998.0 to 6067.6)
-  batch, whole stream at once        : median      6.120 us/sample (range 5.891 to 6.471)
-  ratio                              : 880x
-  cheapest analytic detector         : median      0.233 us/sample
-  online learned / cheapest analytic : 23154x
+  online, one forest call per sample : median     6038.9 us/sample (range 5623.8 to 6054.3)
+  batch, whole stream at once        : median      5.900 us/sample (range 5.582 to 6.437)
+  ratio                              : 1024x
+  cheapest analytic detector         : median      0.375 us/sample
+  online learned / cheapest analytic : 16103x
 
   Read that figure carefully. Most of the online cost is scikit-learn's
   fixed per-call overhead on a single row -- input validation, array
@@ -68,8 +68,8 @@ cores        : os.cpu_count()=2 affinity=2
   that needs a model call per telemetry sample is in a different cost
   class from a three-line recursion, and on a spacecraft processor that
   distinction decides whether it can run at all.
-  PASS  the batch path is at least 100x cheaper per sample than the online path  [880x]
-  FINDING  the learned detector's online per-sample cost is about 23154x the cheapest analytic detector's with this scikit-learn API on this container, because it makes one single-row forest call per sample; the batch score path is about 880x cheaper per sample and gives bit-identical results (tests/test_benchmark.py pins the identity). Most of the online figure is scikit-learn's fixed per-call overhead rather than tree traversal, so the magnitude is API-specific and only the order of magnitude and the direction should be carried elsewhere. A streaming deployment does not get the batch path.
+  PASS  the batch path is at least 100x cheaper per sample than the online path  [1024x]
+  FINDING  the learned detector's online per-sample cost is about 16103x the cheapest analytic detector's with this scikit-learn API on this container, because it makes one single-row forest call per sample; the batch score path is about 1024x cheaper per sample and gives bit-identical results (tests/test_benchmark.py pins the identity). Most of the online figure is scikit-learn's fixed per-call overhead rather than tree traversal, so the magnitude is API-specific and only the order of magnitude and the direction should be carried elsewhere. A streaming deployment does not get the batch path.
 
 ------------------------------------------------------------------------------
 4. The RandomForest n_jobs defect, re-measured for this product
@@ -79,19 +79,19 @@ cores        : os.cpu_count()=2 affinity=2
   detector makes exactly that call once per sample, so the defect is
   re-measured here rather than taken on trust.
 
-  n_jobs = 1: median    4874.3 us per single-row call (range 4627.2 to 4962.9)
-  n_jobs = 2: median   25048.4 us per single-row call (range 24825.6 to 25161.2)
-  ratio n_jobs=2 / n_jobs=1: 5.14x
-  PASS  n_jobs > 1 is slower at single-row inference, as recorded  [5.14x slower]
-  FINDING  RandomForestClassifier.predict_proba on a single row is 5.14x slower with n_jobs = 2 than with n_jobs = 1 on this container, reproducing the defect an earlier session recorded. This package sets n_jobs = 1 after fitting for that reason.
+  n_jobs = 1: median    5384.8 us per single-row call (range 5333.6 to 5598.4)
+  n_jobs = 2: median   23416.1 us per single-row call (range 23292.4 to 24407.0)
+  ratio n_jobs=2 / n_jobs=1: 4.35x
+  PASS  n_jobs > 1 is slower at single-row inference, as recorded  [4.35x slower]
+  FINDING  RandomForestClassifier.predict_proba on a single row is 4.35x slower with n_jobs = 2 than with n_jobs = 1 on this container, reproducing the defect an earlier session recorded. This package sets n_jobs = 1 after fitting for that reason.
 
 ------------------------------------------------------------------------------
 5. Feature extraction, batch against single-window
 ------------------------------------------------------------------------------
-  single window : median     117.7 us
-  batch         : median     2.043 us per window
-  ratio         : 58x
-  PASS  batch feature extraction is at least 10x cheaper per window  [58x]
+  single window : median     220.7 us
+  batch         : median     3.021 us per window
+  ratio         : 73x
+  PASS  batch feature extraction is at least 10x cheaper per window  [73x]
 
 ------------------------------------------------------------------------------
 6. Total validation compute, for the record
@@ -106,11 +106,11 @@ cores        : os.cpu_count()=2 affinity=2
 checks passed : 5
 checks FAILED : 0
 findings recorded:
-  - analytic per-sample cost spans 22.6x between the cheapest (CUSUM) and the dearest; all five are in the microsecond range and none is a deployment constraint on this container.
-  - the direct KS statistic is about 28x cheaper per evaluation than scipy.stats.ks_2samp, which is why it exists; the two agree to machine precision on the statistic. SciPy additionally returns a p-value, which this package does not need and does not use.
-  - the learned detector's online per-sample cost is about 23154x the cheapest analytic detector's with this scikit-learn API on this container, because it makes one single-row forest call per sample; the batch score path is about 880x cheaper per sample and gives bit-identical results (tests/test_benchmark.py pins the identity). Most of the online figure is scikit-learn's fixed per-call overhead rather than tree traversal, so the magnitude is API-specific and only the order of magnitude and the direction should be carried elsewhere. A streaming deployment does not get the batch path.
-  - RandomForestClassifier.predict_proba on a single row is 5.14x slower with n_jobs = 2 than with n_jobs = 1 on this container, reproducing the defect an earlier session recorded. This package sets n_jobs = 1 after fitting for that reason.
-wall clock    : 91.1 s (moves 10-40 % between runs on two contended cores)
+  - analytic per-sample cost spans 14.5x between the cheapest (Page-Hinkley) and the dearest; all five are in the microsecond range and none is a deployment constraint on this container.
+  - the direct KS statistic is about 34x cheaper per evaluation than scipy.stats.ks_2samp, which is why it exists; the two agree to machine precision on the statistic. SciPy additionally returns a p-value, which this package does not need and does not use.
+  - the learned detector's online per-sample cost is about 16103x the cheapest analytic detector's with this scikit-learn API on this container, because it makes one single-row forest call per sample; the batch score path is about 1024x cheaper per sample and gives bit-identical results (tests/test_benchmark.py pins the identity). Most of the online figure is scikit-learn's fixed per-call overhead rather than tree traversal, so the magnitude is API-specific and only the order of magnitude and the direction should be carried elsewhere. A streaming deployment does not get the batch path.
+  - RandomForestClassifier.predict_proba on a single row is 4.35x slower with n_jobs = 2 than with n_jobs = 1 on this container, reproducing the defect an earlier session recorded. This package sets n_jobs = 1 after fitting for that reason.
+wall clock    : 92.8 s (moves 10-40 % between runs on two contended cores)
 raw output    : validation/outputs/validate_cost.txt
 exit status   : 0 (always: see Report.check)
 ==============================================================================

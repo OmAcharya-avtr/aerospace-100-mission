@@ -2,7 +2,7 @@
 telemdrift 0.1.0 - delay against false-alarm trade-off
 ==============================================================================
 script       : validation/validate_tradeoff.py
-python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+python       : 3.13.15 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
 cores        : os.cpu_count()=2 affinity=2
 
 
@@ -151,7 +151,7 @@ findings recorded:
   - ADWIN has a NON-MONOTONE trade-off curve: its shortest delay (22.4 samples) is at ARL0 = 1702, not at its tightest threshold (25.9 samples at ARL0 = 157). Making it more sensitive makes it slower, because its own false alarms put it back into warm-up.
   - Learned RF has a NON-MONOTONE trade-off curve: its shortest delay (12.6 samples) is at ARL0 = 289, not at its tightest threshold (16.8 samples at ARL0 = 96). Making it more sensitive makes it slower, because its own false alarms put it back into warm-up.
   - interpolated at ARL0 = 500 on a +1 sigma mean step, CUSUM 9.6, Page-Hinkley 31.8, EWMA 9.6, Windowed KS 104.5, ADWIN 34.5, Learned RF 12.6 samples. The learned detector does not come first.
-wall clock    : 43.7 s (moves 10-40 % between runs on two contended cores)
+wall clock    : 50.7 s (moves 10-40 % between runs on two contended cores)
 raw output    : validation/outputs/validate_tradeoff.txt
 exit status   : 0 (always: see Report.check)
 ==============================================================================

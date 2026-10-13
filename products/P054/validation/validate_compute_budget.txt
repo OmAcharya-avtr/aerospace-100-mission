@@ -1,11 +1,11 @@
 # validate_compute_budget
-python 3.13.16 on Linux-6.18.44-fc-v80-x86_64-with-glibc2.39
+python 3.13.15 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
 os.cpu_count()=2 len(os.sched_getaffinity(0))=2
 numpy 2.5.3 scipy 1.18.1 scikit-learn 1.9.1
 
 ## Container
-platform            : Linux-6.18.44-fc-v80-x86_64-with-glibc2.39
-python              : 3.13.16
+platform            : Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+python              : 3.13.15
 os.cpu_count()      : 2
 schedulable cores   : 2
 MemTotal            : 7.84 GiB
@@ -13,29 +13,29 @@ Every estimator in this package is single-threaded numpy; nothing here uses jobl
 
 ## 1. Crude Monte Carlo, samples per second
      samples  dimension    seconds      samples/s
-      100000          2      0.005       19224610
-      100000         10      0.017        5974992
-     1000000          2      0.031       31868825
-     1000000         10      0.154        6479129
-     4000000          2      0.119       33618504
-     4000000         10      0.592        6755304
+      100000          2      0.005       20392145
+      100000         10      0.016        6309951
+     1000000          2      0.040       24937993
+     1000000         10      0.199        5022512
+     4000000          2      0.139       28853276
+     4000000         10      0.628        6373142
 
 ## 2. Importance sampling and subset simulation
                       method         size    seconds
-         importance sampling      1000000      0.063
-           subset simulation         1000      0.001 (3700 true evaluations, 4 levels)
-           subset simulation         2000      0.002 (7400 true evaluations, 4 levels)
-           subset simulation        10000      0.006 (37000 true evaluations, 4 levels)
+         importance sampling      1000000      0.071
+           subset simulation         1000      0.003 (3700 true evaluations, 4 levels)
+           subset simulation         2000      0.003 (7400 true evaluations, 4 levels)
+           subset simulation        10000      0.009 (37000 true evaluations, 4 levels)
 
 ## 3. The learned surrogate
 A Gaussian-process fit is cubic in the design size. These times are the reason n_train is capped at 2000 and the reason the default n_restarts_optimizer is 0.
   n_train     fit s   design-point s    total s
-       50      0.14             1.94       2.09
-      100      0.07             2.26       2.33
-      200      0.25             2.34       2.59
-      400      1.14             2.23       3.37
-      800      6.95             2.67       9.61
-[PASS] the largest single surrogate fit plus search measured here is under the 180 s per-run budget (worst 9.61 s)
+       50      0.16             2.43       2.59
+      100      0.08             2.21       2.29
+      200      0.27             2.81       3.08
+      400      1.31             2.51       3.82
+      800      8.35             2.85      11.20
+[PASS] the largest single surrogate fit plus search measured here is under the 180 s per-run budget (worst 11.20 s)
 
 ## 4. Total for each validation script, measured separately
 Run times of the validation scripts themselves, as measured when this package was built. Reproduce with: time python validation/<script>.py

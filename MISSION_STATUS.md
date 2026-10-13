@@ -1,6 +1,58 @@
 # Mission Status
 
-> ## Reconciliation — 2026-10-12 (authoritative; supersedes the 2026-10-06 block below)
+> ## Reconciliation — 2026-10-13 (authoritative; supersedes the 2026-10-12 block below)
+>
+> Figures measured this session: test counts from junit XML via
+> `scripts/release_gate.py` run in full over all ten Batch 06 products; registry
+> totals from `products.yaml`. Nothing is carried.
+>
+> - **The P053 blocker is cleared, and not by the route that was authorised.**
+>   The gate now returns **exit 0 over P051–P060: 10/10 products PASS,
+>   `repository PASS`, 2,778 tests from junit XML, `VERDICT: PUSH ALLOWED`.**
+> - **How it was cleared.** The owner authorised option A on 2026-10-13 — print
+>   the FAILED lines and exit 0, matching P025's convention. That edit was
+>   refused by the environment's automatic-approval classifier as a CI bypass,
+>   as the identical change class had been for P035 on 2026-10-02. It was not
+>   retried through another host, tool or session. Instead the measurement
+>   itself was examined, and the two failing checks turned out to be
+>   **calibration-set sampling error**: transfer error has an evaluation-set
+>   term, which the 3-standard-error tolerance accounts for, and a
+>   calibration-set term, which it does not. Holding the evaluation set, its
+>   seeds, its pooled estimator and the 8.8 % tolerance exactly as they were and
+>   growing only the calibration bank, the variance-CUSUM bias decays
+>   **−8.6 % → −1.2 % → −0.8 %** (T=200) and **+13.5 % → +7.3 % → +2.8 %**
+>   (T=1000) across calibration banks of 1.6e6 → 4.8e6 → 1.44e7 in-control
+>   samples. The declared bank is now 1.44e7, sized by that sweep.
+> - **Nothing was suppressed to achieve it.** The tolerance was not widened. The
+>   evaluation set is unchanged. The script's exit convention is untouched — it
+>   still returns non-zero on a failing check. Both original failing numbers are
+>   reproduced on every run as the first row of the new committed sweep
+>   (check 16), and the README and VALIDATION.md sections that disclosed the
+>   failure now disclose the failure *and* its resolution. Script runtime 76 s,
+>   inside the 3-minute budget. P053: **243 tests, ruff clean, 15/15 checks
+>   PASS**, status `NEEDS HARDENING` → `PUBLISHED`.
+> - **Recorded as governance, not as a one-off:** ADR-019 fixes the three
+>   legitimate routes for a failing validation check and bars the exit-code
+>   route permanently; R-21 (a tolerance applied to an error containing a term
+>   it does not account for), R-22 (an authorised owner decision that cannot be
+>   executed) and R-23 (the residual, still-unfixed calibration error in P053's
+>   headline example banks) are in the risk register.
+> - **60 of 100 products registered, 60 built, 60 marked published** in
+>   `products.yaml` on the gate's authority (ADR-017).
+>   `approved_for_publish` stays false on all ten per ADR-016 clause 3.
+> - **The three retired repositories are confirmed gone.**
+>   `flagship-beamtwin`, `flagship-trackbench` and `batch-01-suite` return no
+>   refs to `git ls-remote` while `aerospace-100-mission` answers, so the
+>   absence is real. `MISSION_STATUS.md` and `tracking/RELEASE_LEDGER.md` had
+>   been listing all three as live published repositories; both are corrected.
+> - **Still open, unchanged:** Level 4 validation is **0 of 5** and now nine
+>   batches overdue — it needs Jetson Orin Nano measurements, a hostname or IP,
+>   and passwordless SSH from the Mac. The gate still does not check for
+>   required documentation, which is how P028 passed with no README and no model
+>   card. The gate's `no output` message still reports the last line of stderr
+>   for a script that writes its diagnosis to stdout.
+>
+> ## Reconciliation — 2026-10-12 (superseded by the 2026-10-13 block above)
 >
 > Figures measured this session: test counts from junit XML via
 > `scripts/release_gate.py`, quota from `scripts/quota_report.py`, security from
@@ -394,12 +446,21 @@ past Batch 05.**
 
 ## Published Repositories
 
-| Repository | Visibility | Head | Contents |
-|---|---|---|---|
-| `OmAcharya-avtr/aerospace-100-mission` | Public | `ac798ba` | Monorepo — 15 products published; 20 built locally, 5 not yet pushed |
-| `OmAcharya-avtr/flagship-beamtwin` | Public | `e9bc0c6` | P001 BeamTwin, AGPL-3.0 |
-| `OmAcharya-avtr/flagship-trackbench` | Public | `3728b96` | P002 TrackBench, AGPL-3.0 |
-| `OmAcharya-avtr/batch-01-suite` | Public | `07ebc6c` | P003–P010, mixed licenses |
+One repository per product (ADR-018), plus the mission workspace. The
+authoritative list is the `repository` field of every product in
+`products.yaml`; this section records only the shape and the exceptions.
+
+| Repository | Visibility | Contents |
+|---|---|---|
+| `OmAcharya-avtr/aerospace-100-mission` | Public | Mission workspace — spec, trackers, templates, scripts, nightly reports, product sources |
+| `OmAcharya-avtr/<product>` × 50 | Public | One per published product, P001–P050, per-product license |
+
+**Retired, and confirmed deleted on GitHub (verified by `git ls-remote`,
+2026-10-13):** `flagship-beamtwin`, `flagship-trackbench`, `batch-01-suite`.
+Their contents were superseded by the per-product repositories. They were the
+last carriers of the `OmAcharya-ADCL` author identity. No tracker should list
+them as live; earlier revisions of this section and of
+`tracking/RELEASE_LEDGER.md` did, which was wrong.
 
 ## Allowed Status Values
 

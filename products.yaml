@@ -818,12 +818,19 @@ products:
     summary: Runtime-assurance (Simplex) architecture benchmark for a learned controller wrapped by a conservative certified one — exact invariant-set switching condition evaluated by support function on a declared polytope, switch-rate and dwell-time accounting, measured conservatism cost against an unguarded run, and a deliberate bound-violation experiment showing where the guarantee fails; learned switch predictor with calibrated confidence against the exact analytic condition as baseline.
     ai_enabled: true
     validation_level: 3
-    status: TESTING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/simplexguard
     local_path: products/P051
     approved_for_publish: false
-    published: false
+    published: true
+    publication_basis: >-
+      ADR-017 standing authorization; scripts/release_gate.py exit 0 on 2026-10-13 (10/10 products
+      PASS, 2778 tests from junit XML, repository PASS, VERDICT PUSH ALLOWED). No per-batch
+      approval exists, none is cited, and approved_for_publish stays false because ADR-016 clause
+      3 bars an unattended session from setting it. P053's two previously FAILED transfer checks
+      were resolved by sizing the calibration bank from measurement (ADR-019), not by widening any
+      tolerance and not by changing any exit code.
 
   - id: P052
     name: FalsifyLoop
@@ -833,12 +840,19 @@ products:
     summary: Requirement falsification for autonomous control loops — a documented bounded-temporal robustness semantics property-tested for sign agreement with violation, five search strategies (uniform random, Latin hypercube, simulated annealing, cross-entropy, surrogate-guided) run over the same seeded instances at the same budget, and sample-efficiency curves with bootstrap bands reported per instance so the instances where uniform random wins are visible; falsification is one-sided and no output reads as a pass.
     ai_enabled: true
     validation_level: 3
-    status: TESTING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/falsifyloop
     local_path: products/P052
     approved_for_publish: false
-    published: false
+    published: true
+    publication_basis: >-
+      ADR-017 standing authorization; scripts/release_gate.py exit 0 on 2026-10-13 (10/10 products
+      PASS, 2778 tests from junit XML, repository PASS, VERDICT PUSH ALLOWED). No per-batch
+      approval exists, none is cited, and approved_for_publish stays false because ADR-016 clause
+      3 bars an unattended session from setting it. P053's two previously FAILED transfer checks
+      were resolved by sizing the calibration bank from measurement (ADR-019), not by widening any
+      tolerance and not by changing any exit code.
 
   - id: P053
     name: TwinInvalidate
@@ -848,12 +862,19 @@ products:
     summary: Model-invalidation monitor for a digital twin — CUSUM, EWMA and windowed GLR with thresholds set from a declared false-alarm target rather than tuned to the result, detection-delay against false-alarm-rate (ARL0/ARL1) curves per change type for a parameter step, a slow ramp and a noise-variance change, and an explicit statement that twin invalidation and asset fault are not distinguishable from the residual; learned drift classifier on windowed residual features against the analytic GLR baseline.
     ai_enabled: true
     validation_level: 3
-    status: NEEDS HARDENING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/twininvalidate
     local_path: products/P053
     approved_for_publish: false
-    published: false
+    published: true
+    publication_basis: >-
+      ADR-017 standing authorization; scripts/release_gate.py exit 0 on 2026-10-13 (10/10 products
+      PASS, 2778 tests from junit XML, repository PASS, VERDICT PUSH ALLOWED). No per-batch
+      approval exists, none is cited, and approved_for_publish stays false because ADR-016 clause
+      3 bars an unattended session from setting it. P053's two previously FAILED transfer checks
+      were resolved by sizing the calibration bank from measurement (ADR-019), not by widening any
+      tolerance and not by changing any exit code.
 
   - id: P054
     name: RareVerify
@@ -863,12 +884,19 @@ products:
     summary: Monte-Carlo verification campaign planning for rare requirement violations — sample-size planner with Clopper-Pearson and Wilson intervals including the zero-failure case, importance sampling with a declared tilting family and subset simulation with measured variance-reduction factors against plain Monte Carlo on analytically known limit states, and the instances where a badly chosen tilt is worse than none; learned limit-state surrogate benchmarked against the analytic and importance-sampling baselines.
     ai_enabled: true
     validation_level: 2
-    status: TESTING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/rareverify
     local_path: products/P054
     approved_for_publish: false
-    published: false
+    published: true
+    publication_basis: >-
+      ADR-017 standing authorization; scripts/release_gate.py exit 0 on 2026-10-13 (10/10 products
+      PASS, 2778 tests from junit XML, repository PASS, VERDICT PUSH ALLOWED). No per-batch
+      approval exists, none is cited, and approved_for_publish stays false because ADR-016 clause
+      3 bars an unattended session from setting it. P053's two previously FAILED transfer checks
+      were resolved by sizing the calibration bank from measurement (ADR-019), not by widening any
+      tolerance and not by changing any exit code.
 
   - id: P055
     name: AssureGraph
@@ -878,12 +906,19 @@ products:
     summary: An assurance case as a machine-checkable evidence graph — declarative GSN-named YAML of claims, argument steps, assumptions, context and evidence artifacts, with computed checks for unsupported claims, missing evidence files, evidence staleness by content hash, undischarged assumptions, cycles and orphan nodes, plus mermaid rendering for review in a README; structural and freshness checking only, it evaluates no argument's soundness and is not a DO-178C or ARP4754A compliance tool.
     ai_enabled: false
     validation_level: 2
-    status: TESTING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/assuregraph
     local_path: products/P055
     approved_for_publish: false
-    published: false
+    published: true
+    publication_basis: >-
+      ADR-017 standing authorization; scripts/release_gate.py exit 0 on 2026-10-13 (10/10 products
+      PASS, 2778 tests from junit XML, repository PASS, VERDICT PUSH ALLOWED). No per-batch
+      approval exists, none is cited, and approved_for_publish stays false because ADR-016 clause
+      3 bars an unattended session from setting it. P053's two previously FAILED transfer checks
+      were resolved by sizing the calibration bank from measurement (ADR-019), not by widening any
+      tolerance and not by changing any exit code.
 
   - id: P056
     name: CalibAudit
@@ -893,12 +928,19 @@ products:
     summary: Calibration audit for probabilistic forecasts — Murphy decomposition of the Brier score with the reliability-resolution-uncertainty identity property-tested to machine precision, reliability diagrams with bootstrap bands, skill scores against a stated reference, and the binning bias of expected calibration error measured on synthetic forecasts of known calibration rather than merely noted; Platt and isotonic recalibration against the raw forecast as baseline, including the small-sample case where recalibration makes the score worse.
     ai_enabled: true
     validation_level: 2
-    status: TESTING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/calibaudit
     local_path: products/P056
     approved_for_publish: false
-    published: false
+    published: true
+    publication_basis: >-
+      ADR-017 standing authorization; scripts/release_gate.py exit 0 on 2026-10-13 (10/10 products
+      PASS, 2778 tests from junit XML, repository PASS, VERDICT PUSH ALLOWED). No per-batch
+      approval exists, none is cited, and approved_for_publish stays false because ADR-016 clause
+      3 bars an unattended session from setting it. P053's two previously FAILED transfer checks
+      were resolved by sizing the calibration bank from measurement (ADR-019), not by widening any
+      tolerance and not by changing any exit code.
 
   - id: P057
     name: ConformalBand
@@ -908,12 +950,19 @@ products:
     summary: Distribution-free prediction intervals for aerospace regression with coverage measured under declared covariate shift — split, Mondrian and weighted conformal with exchangeability stated as the assumption it is, empirical coverage and interval width against nominal level in distribution and under three shifts of increasing severity plotted against the finite-sample bound, and the measured point at which weighted conformal breaks; parametric Gaussian residual interval as baseline.
     ai_enabled: true
     validation_level: 2
-    status: TESTING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/conformalband
     local_path: products/P057
     approved_for_publish: false
-    published: false
+    published: true
+    publication_basis: >-
+      ADR-017 standing authorization; scripts/release_gate.py exit 0 on 2026-10-13 (10/10 products
+      PASS, 2778 tests from junit XML, repository PASS, VERDICT PUSH ALLOWED). No per-batch
+      approval exists, none is cited, and approved_for_publish stays false because ADR-016 clause
+      3 bars an unattended session from setting it. P053's two previously FAILED transfer checks
+      were resolved by sizing the calibration bank from measurement (ADR-019), not by widening any
+      tolerance and not by changing any exit code.
 
   - id: P058
     name: TelemDrift
@@ -923,12 +972,19 @@ products:
     summary: Streaming change detection on a univariate telemetry channel scored at equal operating point — Page-Hinkley, CUSUM, EWMA, windowed Kolmogorov-Smirnov and an ADWIN-style adaptive window, each with a stated threshold-setting procedure, compared by ARL0 and detection delay with confidence intervals and by the delay-versus-false-alarm trade-off curve rather than at default thresholds, including every detector's behaviour on a transient spike that should not alarm; learned windowed-feature detector against the analytic detectors at equal ARL0.
     ai_enabled: true
     validation_level: 2
-    status: TESTING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/telemdrift
     local_path: products/P058
     approved_for_publish: false
-    published: false
+    published: true
+    publication_basis: >-
+      ADR-017 standing authorization; scripts/release_gate.py exit 0 on 2026-10-13 (10/10 products
+      PASS, 2778 tests from junit XML, repository PASS, VERDICT PUSH ALLOWED). No per-batch
+      approval exists, none is cited, and approved_for_publish stays false because ADR-016 clause
+      3 bars an unattended session from setting it. P053's two previously FAILED transfer checks
+      were resolved by sizing the calibration bank from measurement (ADR-019), not by widening any
+      tolerance and not by changing any exit code.
 
   - id: P059
     name: InvariantSet
@@ -938,12 +994,19 @@ products:
     summary: Robust invariant and reachable sets for discrete-time linear systems with bounded disturbances — polytope support functions, Minkowski sum, Pontryagin difference and intersection, the recursive maximal robust invariant set with a declared convergence criterion, iteration cap and an explicit non-convergence report, hand-computed known-answer tests for 1-D and 2-D systems, and measured numerical behaviour including redundant-constraint tolerance, vertex-count growth and a documented case where a tolerance change alters the answer.
     ai_enabled: false
     validation_level: 2
-    status: TESTING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/invariantset
     local_path: products/P059
     approved_for_publish: false
-    published: false
+    published: true
+    publication_basis: >-
+      ADR-017 standing authorization; scripts/release_gate.py exit 0 on 2026-10-13 (10/10 products
+      PASS, 2778 tests from junit XML, repository PASS, VERDICT PUSH ALLOWED). No per-batch
+      approval exists, none is cited, and approved_for_publish stays false because ADR-016 clause
+      3 bars an unattended session from setting it. P053's two previously FAILED transfer checks
+      were resolved by sizing the calibration bank from measurement (ADR-019), not by widening any
+      tolerance and not by changing any exit code.
 
   - id: P060
     name: TraceAudit
@@ -953,9 +1016,16 @@ products:
     summary: Requirements-to-test traceability computed from the repository rather than maintained by hand — parses numbered requirements from markdown and test identifiers from a junit XML or pytest collection report, reports requirements with no test, tests claiming a requirement that does not exist, duplicate ids, and requirements traced only by a skipped or xfailed test, with a coverage percentage whose denominator is stated and a nonzero exit on any finding; Level 1 because it has no physical reference to validate against, and traceability is bookkeeping not evidence of adequacy.
     ai_enabled: false
     validation_level: 1
-    status: TESTING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/traceaudit
     local_path: products/P060
     approved_for_publish: false
-    published: false
+    published: true
+    publication_basis: >-
+      ADR-017 standing authorization; scripts/release_gate.py exit 0 on 2026-10-13 (10/10 products
+      PASS, 2778 tests from junit XML, repository PASS, VERDICT PUSH ALLOWED). No per-batch
+      approval exists, none is cited, and approved_for_publish stays false because ADR-016 clause
+      3 bars an unattended session from setting it. P053's two previously FAILED transfer checks
+      were resolved by sizing the calibration bank from measurement (ADR-019), not by widening any
+      tolerance and not by changing any exit code.

@@ -2,7 +2,7 @@
 telemdrift 0.1.0 - operating points, calibration and its cost
 ==============================================================================
 script       : validation/validate_arl_calibration.py
-python       : 3.13.16 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+python       : 3.13.15 on Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
 cores        : os.cpu_count()=2 affinity=2
 
 
@@ -166,7 +166,7 @@ findings recorded:
   - treating the asymptotic KS p-value as a stream-level false-alarm rate understates the measured ARL0 by about an order of magnitude at both the default and the calibrated threshold, because overlapping windows make successive tests dependent.
   - the conditioning convention (discard replicates that false-alarm before the change) keeps only a small fraction of replicates at these operating points and was rejected for that reason; the kept fractions are in section 6 of validation/outputs/validate_arl_calibration.txt.
   - zero-state ARL1 separates the detectors into two families: CUSUM and EWMA, which standardise against a declared nominal and detect a step started cold in under 11 samples, and Page-Hinkley / windowed KS / ADWIN, which are self-referential and cannot detect it at all (delays at the 1500-sample censoring budget) because without pre-change history a mean step is indistinguishable from a stationary stream at a different level.
-wall clock    : 35.8 s (moves 10-40 % between runs on two contended cores)
+wall clock    : 38.2 s (moves 10-40 % between runs on two contended cores)
 raw output    : validation/outputs/validate_arl_calibration.txt
 exit status   : 0 (always: see Report.check)
 ==============================================================================
