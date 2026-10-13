@@ -27,15 +27,26 @@ B. cold clone    Clone HEAD into a throwaway directory and run the product test
                  suite THERE, requiring >0 collected, 0 failed, 0 errored. This is
                  the slow check and it is the ground truth.
 
-NOT YET WIRED INTO release_gate.py
-----------------------------------
-Deliberate. It was written on 2026-10-11 by a session whose container shell was
-blocked by a safety classifier, so it has been syntax-checked and NEVER EXECUTED.
-The gate is the publication authority for this mission and an untested check
-inside it could block good products with nobody present to debug it. The next
-session that has a working shell should run this standalone over all products,
-confirm it is quiet on the 50 published ones, and only then wire check A and
-check B into release_gate.py as checks 10 and 11.
+CHECK B MEASURES THE CONTAINER AS WELL AS THE PRODUCT
+-----------------------------------------------------
+Check B runs pytest against whatever is installed in the container, not against
+the product's declared dependencies. On 2026-10-13 it reported P037 FrameSync as
+12 of 122 failing; P037 is sound and declares ``reedsolo>=1.7`` correctly, and
+the container simply did not have it. Installing it gave 122 passed. A
+declared-dependency probe now runs first and reports that class as ENVIRONMENT
+rather than as a product finding, because the two are not the same claim.
+
+NOT WIRED INTO release_gate.py
+------------------------------
+Still deliberate, and the 2026-10-13 run is the reason rather than an obstacle to
+it. Both checks have now been executed over all 60 products: check A clean in
+0.3 s, check B four findings of which one was the container's fault. Wiring check
+B as it stood would have blocked a sound published product on the publication
+gate, unattended, for a reason that is not the product's fault. The ENVIRONMENT
+split narrows that, but check B still costs ~35 minutes over 60 products and has
+one measured false-alarm class, so it stays out of the gate until an owner says
+otherwise. Check A is cheap, mechanical and quiet on all 60, and is the better
+candidate if only one goes in.
 
 USAGE
 -----
@@ -46,9 +57,11 @@ Exit 0 = clean. Exit 1 = at least one finding.
 '''
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 import tempfile
+from importlib import metadata
 from pathlib import Path
 from xml.etree import ElementTree
 
@@ -102,6 +115,45 @@ def count_junit(xml_path):
     return total, failed, errored
 
 
+def declared_dependencies(prod):
+    """Distribution names from the product's pyproject [project].dependencies."""
+    toml = prod / 'pyproject.toml'
+    if not toml.is_file():
+        return []
+    names, inside = [], False
+    for raw in toml.read_text(encoding='utf-8').splitlines():
+        line = raw.strip()
+        if line.startswith('dependencies'):
+            inside = True
+            if '[' not in line:
+                continue
+            line = line.split('[', 1)[1]
+        elif not inside:
+            continue
+        if inside:
+            for chunk in line.replace(']', ' ').split(','):
+                chunk = chunk.strip().strip('"\'')
+                if not chunk:
+                    continue
+                name = re.split(r'[<>=!~\[; ]', chunk, 1)[0].strip()
+                if name:
+                    names.append(name)
+            if ']' in raw:
+                break
+    return names
+
+
+def missing_declared(prod):
+    """Declared distributions that are not installed in THIS container."""
+    missing = []
+    for name in declared_dependencies(prod):
+        try:
+            metadata.version(name)
+        except metadata.PackageNotFoundError:
+            missing.append(name)
+    return missing
+
+
 def check_cold_clone(prod_names, findings):
     with tempfile.TemporaryDirectory(prefix='coldclone-') as tmp:
         dest = Path(tmp) / 'clone'
@@ -114,6 +166,14 @@ def check_cold_clone(prod_names, findings):
             prod = dest / 'products' / name
             if not (prod / 'tests').is_dir():
                 findings.append(name + ': no tests/ directory in the clone')
+                continue
+            absent = missing_declared(prod)
+            if absent:
+                findings.append(name + ': ENVIRONMENT, not a product defect - declared '
+                                'dependencies absent from this container: '
+                                + ', '.join(absent) + '. Install them and re-run; a '
+                                'suite cannot be judged against packages it declared '
+                                'and did not get.')
                 continue
             xml = prod / 'cold_junit.xml'
             res = sh([sys.executable, '-m', 'pytest', 'tests/', '-q', '-p', 'no:cacheprovider',

@@ -518,6 +518,21 @@ an `AllocationResult`.
 - **All ML data is synthetic**, from one effector configuration, with
   failed-off failures only and at most two at a time. See
   [`DATASET_CARD.md`](DATASET_CARD.md).
+- **PuLP must be 3.x; the dependency is bounded to `>=3,<4`.** This package was
+  written against PuLP 3 and breaks on the versions either side of it, which
+  the previously declared `pulp>=2.7` did not express. On **4.0.0**, which is
+  what a new install resolved to, `test_lp_solvers_agree` fails with
+  `AttributeError: module 'pulp' has no attribute 'PULP_CBC_CMD'` —
+  `src/alloclab/allocation.py:417` passes `pulp.PULP_CBC_CMD(msg=False)` to
+  `prob.solve(...)` and 4.0 removed it. On **2.9.0** the same test fails
+  earlier, with
+  `AttributeError: 'LpProblem' object has no attribute 'add_variable'. Did you
+  mean: 'addVariable'?` at `allocation.py:403` — the snake_case alias does not
+  exist before 3.x. On **3.3.2** all 185 tests pass, measured 2026-10-13. The
+  other 184 tests are unaffected in every case: only the LP leg touches PuLP.
+  Porting the solve call to the 4.0 solver interface is the real fix and has
+  not been done; it would mean re-measuring the LP comparison in this README
+  against a different solver core.
 
 ## Reproducing every number
 

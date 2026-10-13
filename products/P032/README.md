@@ -444,6 +444,25 @@ optimised for that, and no claim is made about it.
     once the destination's own contact windows bind — in
     `examples/example_flow_schedule.py` it stops growing after 1.5 h. Extending
     the horizon is not a lever past that point.
+12. **`solve_with_pulp` references two APIs that PuLP 4.0 removed, and it is
+    not reachable in this container, so it is untested.** `flow.py:356` reads
+    `pulp.LpStatus[problem.status]`; in PuLP 4.0.0 neither `pulp.LpStatus` nor
+    `LpProblem.status` exists. The function raises `NoSolverError` before
+    reaching that line whenever no MILP solver is installed, which is the case
+    here and is why limitation 10 says no `pulp` solve was performed — so the
+    broken line is never executed by the test suite and its 387 passing tests
+    say nothing about it. **A user who installs CBC, HiGHS or GLPK and calls
+    `backend="pulp"` will get `AttributeError`, not a solution.** Measured
+    2026-10-13 by attribute probe against PuLP 4.0.0, not by execution. The
+    The declared floor was also wrong and is now `pulp>=3`, with no ceiling:
+    under **2.9.0** this package's suite loses **25 of 387 tests**, because
+    `build_pulp_model` uses 3.x API, while **3.3.2** and **4.0.0** both pass
+    387. Measured 2026-10-13. No ceiling is imposed, because unlike
+    `passplanner` and `alloclab` this package works on 4.0.0 and its notes
+    above describe 4.0.0 behaviour.
+    The fix is to port the status read to the 4.0 interface, and it has not
+    been done here because no solver is installed to execute it against, and
+    an unexecutable patch to a published product is worse than this note.
 
 ## Reproducing every number
 

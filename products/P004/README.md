@@ -106,11 +106,10 @@ python -m pytest tests/ -q
 python examples/example_schedule_gantt.py
 ```
 
-PuLP is bounded to `>=2.7,<3`. PuLP 4.0 is an incompatible rewrite and this
-package is built and validated against the 2.x API; see limitation 10. The test
-run ends with (wall-clock varies by machine; the 218 warnings are all
-`DeprecationWarning` from PuLP 2.x about the 4.0 API, surfaced rather than
-suppressed):
+PuLP is bounded to `>=2.7,<4`. PuLP 4.0 is an incompatible rewrite that removes
+the constructor this package uses; see limitation 10. The test run ends with
+(wall-clock varies by machine; the 218 warnings are all `DeprecationWarning`
+from PuLP about the coming 4.0 API, surfaced rather than suppressed):
 
 ```
 106 passed, 218 warnings in 10.03s
@@ -358,21 +357,33 @@ interface, radians internally, distances in km.
    returns ensemble spread, correlated with realised error at only +0.2584. Read
    it as a triage flag for epistemic disagreement.
 9. **UTC only.** Naive datetimes are interpreted as UTC by design.
-10. **PuLP is bounded to the 2.x API and PuLP 4.0 is not supported.** PuLP 4.0
-    is a rewrite on a Rust core and it removed the keyword-argument constructor
-    `LpVariable(name, cat="Binary")` that `src/passplanner/scheduler.py:99` uses;
-    in 4.0.0 `LpVariable.__init__` takes a single `_rustcore.Variable`. Measured
-    2026-10-13 with PuLP 4.0.0 installed: **17 of 106 tests fail** with
-    `TypeError: LpVariable.__init__() got an unexpected keyword argument 'cat'`,
-    covering every ILP test and the end-to-end and CLI integration tests; the
-    89 non-ILP tests pass. The dependency is therefore declared `pulp>=2.7,<3`,
-    which is what the measured numbers in this README were produced under. The
-    earlier text of this limitation recorded PuLP's own deprecation warnings
-    about the coming 4.0 API and took no action; that was the warning, and it
-    was accurate. Migrating the formulation to the 4.0 API is the real fix and
-    has not been done: it would require re-measuring every ILP optimum, runtime
-    and gap figure in this README against a different solver core, which is a
-    validation campaign and not a dependency change. Until then, 2.x.
+10. **PuLP 4.0 is not supported; the dependency is bounded to `>=2.7,<4`.**
+    PuLP 4.0 is a rewrite on a Rust core and it removed the keyword-argument
+    constructor `LpVariable(name, cat="Binary")` that
+    `src/passplanner/scheduler.py:99` uses; in 4.0.0 `LpVariable.__init__`
+    takes a single `_rustcore.Variable`. With PuLP 4.0.0 installed, **17 of 106
+    tests fail** with
+    `TypeError: LpVariable.__init__() got an unexpected keyword argument 'cat'`
+    — every ILP test plus the end-to-end and CLI integration tests; the other
+    89 pass. The declared dependency was previously an unbounded `pulp`, so a
+    new install resolved to 4.0.0 and the package did not work.
+
+    Measured 2026-10-13 in this repository's container, full suite per version:
+
+    | PuLP | P004 | P023 | P032 |
+    |---|---|---|---|
+    | 2.9.0 | 106 pass | 1 fail (`add_variable`) | 25 fail |
+    | 3.3.2 | 106 pass | 185 pass | 387 pass |
+    | 4.0.0 | 17 fail (`cat=`) | 1 fail (`PULP_CBC_CMD`) | 387 pass |
+
+    The 218 warnings quoted above identify 3.x as the version this README's
+    numbers were produced under; 2.9.0 also passes and is kept as the floor.
+    The earlier text of this limitation recorded PuLP's own deprecation
+    warnings about the coming 4.0 API and took no action. That was the warning,
+    and it was accurate. Porting the formulation to the 4.0 API is the real fix
+    and has not been done: it would mean re-measuring every ILP optimum,
+    runtime and gap figure here against a different solver core, which is a
+    validation campaign, not a dependency change.
 
 ## Reproducing every number
 

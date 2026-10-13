@@ -608,6 +608,26 @@ library set if you need the published figures to reproduce.
    1e-3 per-sample rate to roughly ±20 % and cannot resolve 1e-5 at all.
 10. **No comparison against another FDI implementation**, and no comparison against a real
     innovation sequence. Every check is against a closed-form expression.
+11. **The `learned` detector's numbers are bound to the scikit-learn version, and the
+    dependency is now bounded to `>=1.3,<1.9`.** Every figure in this README for the
+    `learned` method — including the 0.1500 false-alarm rate in limitation 3 — was
+    produced under scikit-learn 1.8. Re-running `validation/detection_benchmark.py`
+    under 1.9.1 on 2026-10-13 moved them: false-alarm rate 0.1500 → 0.1444, alarms
+    220/306000 → 208/306000, detection AUC-equivalent 0.7921 → 0.8504, and the mean
+    delay column shifted on six of nine fault rows. **No verdict changed** — V3-C1 is
+    FAIL either way, and the closed-form methods are bit-identical — but the quoted
+    numbers are not what the script now prints. Re-run under 1.8.0 the committed output
+    reproduces exactly: the only differing lines are `campaign build` and `wall time`.
+    The cause is that a seeded scikit-learn ensemble is not promised to be identical
+    across versions; `random_state` fixes the stream, not the algorithm. The fit here is
+    seeded (`random_state=0`, `seed_train=1000`, `seed_test=5000`) and is reproducible
+    *at a fixed version*, which is the claim this package makes.
+12. **`validation/detection_benchmark.py` exits 0 while reporting `C1: FAIL`.** That is
+    deliberate under ADR-011: the script publishes the two thresholds that did not
+    transfer rather than widening the tolerance until they pass, and its exit status
+    reports whether the measurement ran, not whether every measured quantity landed
+    inside tolerance. Verified by execution 2026-10-13: `C1: FAIL` and
+    `V3 summary: C1 FAIL, C2 PASS` on stdout, process exit status 0.
 
 ## Reproducing every number
 
