@@ -111,3 +111,43 @@ this and validation/outputs/ (P056, P058); normalising those two is a git mv plu
 path edit in the script and the README, and it must be done by a session that can
 re-run the scripts and the gate afterwards, because the quoted paths are part of the
 checked output.
+
+### A dependency floor with no ceiling is not a dependency specification (added 2026-10-14)
+On 2026-10-13 `scripts/cold_clone_check.py` was executed for the first time over
+all sixty products and found **five of the fifty published products broken or
+silently wrong for a new install**. Every one of the five was a declared
+dependency range that had a floor and no ceiling, so pip resolved a major
+version released after the product was measured.
+
+- **P001** `scikit-learn>=1.3`: 4 of 251 tests errored because scikit-learn 1.9
+  cannot unpickle a model written by 1.8.0.
+- **P004** `pulp>=2.7`: 17 of 106 failed; PuLP 4.0 removed `LpVariable(cat=)`.
+- **P023** `pulp>=2.7`: 1 of 185 failed; PuLP 4.0 removed `PULP_CBC_CMD`, and
+  PuLP 2.9 has no `add_variable`, so it needs 3.x **specifically**.
+- **P032** `pulp>=2.7`: 25 of 387 failed on PuLP **2.9.0** — broken at the
+  **floor**, not the ceiling, because it was written against 4.0.0.
+- **P025** `scikit-learn>=1.3`: the suite passes on both versions and the
+  *validation numbers change* — 0.1500 → 0.1444 false alarms, 220/306000 →
+  208/306000. The silent one is the dangerous one.
+
+Rules:
+
+1. **Bound every dependency on both sides.** Declare the range you actually
+   measured: `>=1.8,<1.9`, not `>=1.3`.
+2. **Never bound a dependency from a README, a changelog or reasoning about
+   what an API probably still looks like.** Commit `9eea674` bounded P004 to
+   `<3` by reading its README; execution then showed its published numbers came
+   from 3.x, that P023 works on 3.x only, and that P032 — which the same
+   reasoning would also have bounded to `<3` — *loses 25 tests* on 2.9.0. Two
+   of three bounds derived by reasoning were wrong. Install each end of the
+   range and run the suite.
+3. **A product that commits a pickled or otherwise serialised artifact must
+   bound the library that wrote it**, to the minor version, because the
+   serialisation format is not part of that library's public API contract.
+4. **Run the suite at both ends of every declared range before handing back,
+   and diff the committed validation output, not just the test verdict.** A
+   suite that passes while its validation numbers move is the P025 class and no
+   test will catch it.
+5. A pin below a future security release is a real cost, not a free safety
+   measure: the product cannot take that release without a port. Record the
+   tension in Limitations; do not resolve it by removing the ceiling.
