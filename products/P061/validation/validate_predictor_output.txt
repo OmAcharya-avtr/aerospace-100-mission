@@ -1,0 +1,115 @@
+activityplan -- validate_predictor.py
+learned duration and energy predictor against the analytic model, and coverage
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+cpu cores        : 2
+dataset          : 1400 activities per seed, 400 held out
+seeds            : (61, 62, 63, 64, 65)
+forest           : 160 trees, min_samples_leaf 2, n_jobs 1
+
+==============================================================================
+check 1: accuracy against the analytic model on held-out activities
+==============================================================================
+the learned model is given the analytic prediction as a feature, so it fits the
+correction, and it wins because the analytic model omits the generator's
+cold-settling, gain and heater terms. This is misspecification, measured.
+
+ seed target        analytic MAE  learned MAE  MAE ratio  analytic RMSE  learned RMSE   fit s
+   61 duration [s]      35.29197     30.49709     0.8641       49.91145      46.60061    2.16
+   61 energy [W*h]       1.13401      0.41350     0.3646        1.90834       0.61294    2.16
+   62 duration [s]      32.77960     30.10231     0.9183       47.86367      45.03722    2.07
+   62 energy [W*h]       1.05378      0.42527     0.4036        1.83918       0.60024    2.07
+   63 duration [s]      26.94517     26.85921     0.9968       40.08828      40.27150    2.08
+   63 energy [W*h]       0.84649      0.38865     0.4591        1.47494       0.53996    2.08
+   64 duration [s]      31.88158     29.91845     0.9384       48.12038      44.90037    2.06
+   64 energy [W*h]       1.05400      0.42154     0.3999        1.85443       0.59619    2.06
+   65 duration [s]      31.13592     28.23165     0.9067       45.13528      43.98977    2.10
+   65 energy [W*h]       0.92822      0.39976     0.4307        1.52461       0.56346    2.10
+
+duration MAE ratio learned/analytic : mean 0.9249, range 0.8641 to 0.9968
+energy   MAE ratio learned/analytic : mean 0.4116, range 0.3646 to 0.4591
+criterion                           : ratio < 1 on every seed for both targets
+verdict                             : PASS
+
+==============================================================================
+check 2: the irreducible noise floor, so the win is readable
+==============================================================================
+duration closed form: the generator adds Normal(0, 0.08 * analytic_duration), and
+the mean absolute deviation of a centred normal is sigma * sqrt(2/pi), so the
+best achievable MAE for any predictor of the duration is the mean of that over
+the test set. The Monte Carlo estimate repeats the generator 200 times per
+request and scores against the per-request sample mean, which also covers the
+floor applied at 15 s and the energy target, where the noise enters as a product.
+
+duration floor, closed form     : 26.74746 s
+duration floor, Monte Carlo     : 26.83000 s over 150 requests
+  relative difference           : 0.0031
+energy   floor, Monte Carlo     : 0.31358 W*h
+
+duration : analytic 31.60685 s, learned 29.12174 s, floor 26.74746 s
+  the learned model closes 51.1 % of the gap between the analytic model and the floor
+energy   : analytic 1.00330 W*h, learned 0.40974 W*h, floor 0.31358 W*h
+  the learned model closes 86.1 % of the gap between the analytic model and the floor
+
+==============================================================================
+check 3: marginal coverage of the split-conformal interval
+==============================================================================
+the guarantee is marginal, distribution-free and finite-sample under
+exchangeability (Lei et al. 2018). Measured on the held-out set, per seed.
+
+ alpha mode        target        nominal  mean cov  min cov  max cov  mean width
+  0.05 absolute    duration [s]   0.9500    0.9385   0.9250   0.9500    175.5717
+  0.05 absolute    energy [W*h]   0.9500    0.9435   0.9300   0.9600      2.3987
+  0.05 normalised  duration [s]   0.9500    0.9540   0.9425   0.9750    156.3841
+  0.05 normalised  energy [W*h]   0.9500    0.9555   0.9375   0.9650      2.2263
+  0.10 absolute    duration [s]   0.9000    0.8820   0.8550   0.9075    129.5453
+  0.10 absolute    energy [W*h]   0.9000    0.8975   0.8900   0.9075      1.8155
+  0.10 normalised  duration [s]   0.9000    0.9025   0.8750   0.9475    125.6657
+  0.10 normalised  energy [W*h]   0.9000    0.8980   0.8650   0.9150      1.7568
+  0.20 absolute    duration [s]   0.8000    0.7795   0.7150   0.8175     85.2116
+  0.20 absolute    energy [W*h]   0.8000    0.8095   0.7950   0.8225      1.2666
+  0.20 normalised  duration [s]   0.8000    0.8190   0.7875   0.8375     96.1656
+  0.20 normalised  energy [W*h]   0.8000    0.8030   0.7775   0.8150      1.3580
+
+criterion : mean coverage not below nominal by more than three binomial standard
+            errors at n = 400, which is 3*sqrt(a(1-a)/n)
+rows outside that band : 0 of 12
+verdict                : PASS
+
+==============================================================================
+check 4: conditional coverage by duration tercile
+==============================================================================
+the generator's duration noise scales with the analytic duration, so a
+constant-width interval must undercover long activities. This is the
+measurement the normalised variant exists for.
+
+mode        tercile     mean cov  min cov  max cov  mean width  dev from nominal
+absolute    short         1.0000   1.0000   1.0000    129.5453           +0.1000
+absolute    middle        0.9669   0.9323   0.9925    129.5453           +0.0669
+absolute    long          0.6782   0.6316   0.7519    129.5453           -0.2218
+normalised  short         0.9343   0.8881   0.9701     62.2834           +0.0343
+normalised  middle        0.9053   0.8647   0.9549     99.5930           +0.0053
+normalised  long          0.8677   0.8421   0.9173    215.5972           -0.0323
+
+worst tercile shortfall, absolute mode   : -0.2218
+worst tercile shortfall, normalised mode : -0.0323
+this check has no pass criterion: both numbers are reported because conditional
+coverage is not guaranteed by either construction, and the comparison between
+them is the result.
+
+==============================================================================
+summary
+==============================================================================
+duration MAE ratio learned/analytic   mean 0.9249
+energy   MAE ratio learned/analytic   mean 0.4116
+duration irreducible floor            26.74746 s (closed form)
+marginal coverage at alpha 0.10       absolute 0.8820, normalised 0.9025
+mean interval width at alpha 0.10     absolute 129.5453 s, normalised 125.6657 s
+worst tercile shortfall absolute      -0.2218
+worst tercile shortfall normalised    -0.0323
+wall clock                            73.8 s
+overall                               PASS
+raw output written to                 validate_predictor_output.txt
+reference temperature used by the generator: 10.0 C

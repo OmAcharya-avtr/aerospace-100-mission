@@ -1,0 +1,97 @@
+Three-strategy benchmark on the committed fixture history
+======================================================================================
+history                history.json, seed 20261015
+revisions              320 total; 224 train, 96 test
+split                  chronological at 0.70
+test nodes             24
+evaluation revisions   37 of 96 have a real failure
+declared noise         out-of-closure coupling 0.01, flake 0.003 per test per revision
+training rows          5376 (334 positives, 0.0621)
+
+APFD over the full order, averaged over the evaluation revisions
+--------------------------------------------------------------------------------------
+lexical control (no information)            0.703266
+dependency                                  0.836149
+history                                     0.795608
+learned                                     0.814752
+
+safety loss and cost against budget
+strategy       budget     cost  safety loss   caught  revisions
+--------------------------------------------------------------------------------------
+dependency     0.1000   0.4077     0.172072   0.8649         37
+dependency     0.2500   0.4077     0.172072   0.8649         37
+dependency     0.4167   0.4077     0.172072   0.8649         37
+dependency     0.5000   0.4077     0.172072   0.8649         37
+dependency     0.7500   0.4077     0.172072   0.8649         37
+dependency     1.0000   0.4077     0.172072   0.8649         37
+history        0.1000   0.1250     0.740970   0.4865         37
+history        0.2500   0.2500     0.491549   0.7297         37
+history        0.4167   0.4583     0.271396   0.8649         37
+history        0.5000   0.5000     0.232282   0.8919         37
+history        0.7500   0.7500     0.122523   0.9459         37
+history        1.0000   1.0000     0.000000   1.0000         37
+learned        0.1000   0.1250     0.633569   0.6486         37
+learned        0.2500   0.2500     0.484599   0.7027         37
+learned        0.4167   0.4583     0.261411   0.8108         37
+learned        0.5000   0.5000     0.214264   0.8378         37
+learned        0.7500   0.7500     0.063063   0.9459         37
+learned        1.0000   1.0000     0.000000   1.0000         37
+
+equal-cost comparison at the dependency baseline's measured cost 0.4077
+strategy         cost  safety loss        APFD  verdict
+--------------------------------------------------------------------------------------
+dependency     0.4077     0.172072    0.836149  <- lowest safety loss
+history        0.4167     0.299399    0.795608
+learned        0.4167     0.282883    0.814752
+
+per-revision dependency-baseline cost over the whole history
+--------------------------------------------------------------------------------------
+mean 0.4066  min 0.1250  max 1.0000  revisions selecting the whole suite 14/320 (0.0437)
+
+learned selector diagnostics
+--------------------------------------------------------------------------------------
+Brier score, training slice   0.025500
+Brier score, held-out slice   0.061151
+feature importances, descending
+  log1p_nearest_churn         0.2891
+  cofail_max                  0.2046
+  log1p_total_churn           0.1802
+  cofail_mean                 0.1534
+  log1p_max_churn             0.1194
+  name_overlap                0.0185
+  test_base_failure_rate      0.0168
+  n_changed_modules           0.0119
+  inverse_distance            0.0038
+  distance_hops               0.0022
+  reachable                   0.0001
+
+FINDINGS, stated as measured
+--------------------------------------------------------------------------------------
+1. The dependency baseline has the highest APFD (0.836149) and, at matched
+   cost, the lowest safety loss (0.172072 against 0.282883 for the
+   learned selector). Baseline 1 wins this comparison outright.
+2. The learned selector beats the history baseline on APFD (0.814752
+   against 0.795608) and on safety loss at every budget, so the model is
+   not a no-op; it is just not better than the safe baseline.
+3. The dependency baseline's safety loss is 0.172072, not zero.
+   Safe by construction means safe with respect to the declared import graph;
+   the fixture history declares two channels the graph cannot see.
+4. The learned selector's Brier score roughly doubles from the training slice
+   to the held-out slice, so its probabilities are over-confident out of sample.
+5. Import distance and reachability carry almost no weight in the fitted model
+   (combined importance 0.0061); it keys on churn and co-failure.
+   That is the mechanical reason it is less safe than the baseline that uses
+   nothing but the dependency structure.
+
+checks
+--------------------------------------------------------------------------------------
+dependency APFD > lexical control                           PASS
+history APFD > lexical control                              PASS
+learned APFD > lexical control                              PASS
+learned APFD > history APFD                                 PASS
+safety loss is 0 at full budget for both ranked strategies  PASS
+safety loss is non-increasing in the budget                 PASS
+
+wall clock 1.5 s
+checks run 6, failures 0
+RESULT: PASS

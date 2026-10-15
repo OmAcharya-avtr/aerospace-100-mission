@@ -1,0 +1,42 @@
+{
+ "schema": "regressselect-historyparams/1",
+ "seed": 20261015,
+ "n_revisions": 320,
+ "train_fraction": 0.7,
+ "change_weight": {
+  "sampleproj.vecops": 0.22,
+  "sampleproj.quat": 0.18,
+  "sampleproj.kinematics": 0.15,
+  "sampleproj.stats": 0.12,
+  "sampleproj.filters": 0.12,
+  "sampleproj.integrate": 0.1,
+  "sampleproj.orbit": 0.08,
+  "sampleproj": 0.03
+ },
+ "fault_proneness": {
+  "sampleproj.vecops": 0.3,
+  "sampleproj.quat": 0.4,
+  "sampleproj.kinematics": 0.45,
+  "sampleproj.stats": 0.25,
+  "sampleproj.filters": 0.35,
+  "sampleproj.integrate": 0.2,
+  "sampleproj.orbit": 0.15,
+  "sampleproj": 0.1
+ },
+ "churn_range_lines": [
+  2,
+  80
+ ],
+ "distance_decay": 0.9,
+ "out_of_closure_coupling_rate": 0.01,
+ "flake_rate_per_test_per_revision": 0.003,
+ "n_changed_modules_choices": [
+  1,
+  1,
+  1,
+  2,
+  2,
+  3
+ ],
+ "note": "Synthetic. Failures are drawn from the sample project's real import graph plus the declared rates above. out_of_closure_coupling_rate and flake_rate_per_test_per_revision are the two channels that make the dependency-based baseline measurably unsafe; both are declared, not hidden."
+}

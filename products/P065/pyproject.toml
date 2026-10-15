@@ -1,0 +1,72 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hazardtrace"
+version = "0.1.0"
+description = "STPA control-structure hazard analysis as a machine-checkable artifact"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Om Acharya" }]
+keywords = ["stpa", "stamp", "hazard analysis", "safety", "assurance", "aerospace"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Software Development :: Quality Assurance",
+]
+
+# Every range below is bounded on BOTH sides and both ends were installed and
+# the whole suite run at them in this repository. See validation/VALIDATION.md
+# section 8 for the two measured configurations and the diff of the committed
+# validation output between them. The ceilings are a real cost, not free
+# safety: this package cannot take a future major of PyYAML without a port and
+# a re-measurement. That tension is recorded in README.md under Limitations.
+dependencies = [
+  "pyyaml>=6.0.1,<6.1",
+]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.11.0,<3.12"]
+test = [
+  "pytest>=8.3.5,<9.2",
+  "hypothesis>=6.100.0,<6.170",
+  "matplotlib>=3.11.0,<3.12",
+  "ruff>=0.16.8,<0.17",
+]
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/hazardtrace"
+Source = "https://github.com/OmAcharya-avtr/hazardtrace"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+# xunit1 records the file and line of every test case. hazardtrace itself does
+# not need them, because it matches on the dotted classname as well, but a
+# repository citing `tests/path.py::name` identifiers in its hazard analysis
+# gets a better error message when they are present.
+junit_family = "xunit1"
+filterwarnings = ["error::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "C4"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]

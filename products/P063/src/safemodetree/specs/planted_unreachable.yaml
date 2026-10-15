@@ -1,0 +1,81 @@
+# A deliberately broken declaration, used as the planted case for the
+# reachability checker. Two defects are planted:
+#
+#   1. sensor_fail has exactly one response, into the absorbing non-safe mode
+#      `degraded`, so no declared safe mode is reachable from (ops, sensor_fail).
+#   2. `orphan_safe` is declared safe and no response targets it, so no fault
+#      state can reach it.
+#
+# Expected findings: 1 fault state with no reachable safe mode, 1 unreachable
+# declared safe mode, 1 fault state with no enabled response. Checked by
+# validation/validate_planted_case.py and by tests/test_known_answers.py.
+
+name: planted_unreachable
+description: >-
+  Deliberately broken declaration with one unreachable-safe-mode fault state
+  and one orphan safe mode. Used as the planted case for the checker.
+
+initial_mode: ops
+
+modes:
+  - id: ops
+    description: Operational mode.
+  - id: degraded
+    description: >-
+      Degraded non-safe mode, declared absorbing: nothing leaves it. This is
+      the planted trap.
+    absorbing: true
+  - id: safe_hold
+    description: Reachable safe mode.
+    safe: true
+  - id: orphan_safe
+    description: Declared safe and targeted by no response. The planted orphan.
+    safe: true
+
+faults:
+  - id: sensor_fail
+    effect: Primary sensor fails; only response is a downmode into the trap.
+    severity: "II"
+    detectable: true
+    detection_latency_s: 4.0
+    occurs_in_modes: [ops]
+  - id: actuator_fail
+    effect: Actuator fails; response reaches the safe hold.
+    severity: "II"
+    detectable: true
+    detection_latency_s: 9.0
+    occurs_in_modes: [ops]
+
+responses:
+  - id: sensor_downmode
+    fault: sensor_fail
+    from_mode: ops
+    to_mode: degraded
+    cost_min: 3.0
+  - id: actuator_safe_hold
+    fault: actuator_fail
+    from_mode: ops
+    to_mode: safe_hold
+    cost_min: 11.0
+
+channels:
+  - id: sensor_residual
+    unit: deg
+    nominal: 0.05
+    threshold: 0.40
+    faulted: 1.10
+    direction: above
+    noise_sd: 0.08
+  - id: actuator_torque_error
+    unit: mN*m
+    nominal: 0.30
+    threshold: 2.50
+    faulted: 5.00
+    direction: above
+    noise_sd: 0.50
+
+signatures:
+  sensor_fail:
+    sensor_residual: 1
+  actuator_fail:
+    actuator_torque_error: 1

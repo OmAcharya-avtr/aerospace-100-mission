@@ -1,0 +1,616 @@
+activityplan -- validate_cli.py
+every documented command-line invocation, run and recorded
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+cpu cores        : 2
+
+==============================================================================
+invocation 1: python -m activityplan instances
+==============================================================================
+instance         acts  horizon/s  step/s  priority  demand/Wh  surplus/Wh  usable/Wh  data/Mbit  recorder  contacts
+---------------  ----  ---------  ------  --------  ---------  ----------  ---------  ---------  --------  --------
+tiny-enumerable  4     1200       100     7.5       10.24      1.97        7.00       410        300       200
+energy-bound     12    10800      150     30.0      123.00     11.23       36.00      2640       6000      10800
+recorder-bound   8     10800      150     15.0      32.42      137.01      72.00      4080       1400      720
+window-bound     6     10800      150     12.0      42.00      174.98      117.00     1440       9000      12600
+leo-imaging      10    16200      150     30.0      76.56      102.73      45.00      3160       700       2160
+
+demand/Wh is the activity energy if every activity is placed.
+surplus/Wh is generated minus fixed load, both closed form over the horizon.
+
+exit status : 0
+wall clock  : 0.00 s
+
+==============================================================================
+invocation 2: python -m activityplan declare --instance leo-imaging
+==============================================================================
+instance            : leo-imaging
+horizon             : 16200.0 s (3.00 declared orbit periods)
+grid step           : 150.0 s -> 108 steps
+activities          : 10, total priority 30.0
+precedences         : 2
+exclusions          : 4
+require empty rec.  : False
+
+battery             : 150.0 W*h nameplate, DoD limit 0.300, floor 105.00 W*h, usable 45.00 W*h
+initial state       : 0.920 of nameplate = 138.00 W*h
+bus load            : 44.0 W over the whole horizon
+array               : peak 165.0 W, period 5400.0 s, eclipse fraction 0.340, phase 900.0 s
+recorder            : 700.0 Mbit, initially 0.0 Mbit
+contacts            : 3, total capacity 2160.0 Mbit
+
+energy generated    : 311.976 W*h (closed form over the horizon)
+energy fixed load   : 209.250 W*h (bus plus transmitters)
+energy if all placed: 76.560 W*h of activity demand
+data if all placed  : 3160.0 Mbit
+
+discretisation, per activity
+activity       steps  admissible starts  window float lost/s
+-------------  -----  -----------------  -------------------
+cal-boresight  2      23                 0.0
+image-01       2      63                 0.0
+image-02       2      63                 0.0
+image-03       2      51                 60.0
+radar-01       2      47                 60.0
+radar-02       2      47                 60.0
+spectro-01     3      54                 30.0
+spectro-02     3      42                 30.0
+housekeep-01   2      39                 120.0
+housekeep-02   2      31                 120.0
+
+exit status : 0
+wall clock  : 0.00 s
+
+==============================================================================
+invocation 3: python -m activityplan declare --instance tiny-enumerable
+==============================================================================
+instance            : tiny-enumerable
+horizon             : 1200.0 s (1.00 declared orbit periods)
+grid step           : 100.0 s -> 12 steps
+activities          : 4, total priority 7.5
+precedences         : 0
+exclusions          : 1
+require empty rec.  : False
+
+battery             : 20.0 W*h nameplate, DoD limit 0.350, floor 13.00 W*h, usable 7.00 W*h
+initial state       : 1.000 of nameplate = 20.00 W*h
+bus load            : 30.0 W over the whole horizon
+array               : peak 90.0 W, period 1200.0 s, eclipse fraction 0.350, phase 0.0 s
+recorder            : 300.0 Mbit, initially 0.0 Mbit
+contacts            : 1, total capacity 200.0 Mbit
+
+energy generated    : 12.414 W*h (closed form over the horizon)
+energy fixed load   : 10.444 W*h (bus plus transmitters)
+energy if all placed: 10.244 W*h of activity demand
+data if all placed  : 410.0 Mbit
+
+discretisation, per activity
+activity   steps  admissible starts  window float lost/s
+---------  -----  -----------------  -------------------
+image-a    2      11                 0.0
+radar-b    1      12                 0.0
+spectro-c  2      11                 0.0
+cal-d      1      12                 0.0
+
+exit status : 0
+wall clock  : 0.00 s
+
+==============================================================================
+invocation 4: python -m activityplan plan --instance leo-imaging --planner greedy
+==============================================================================
+planner             : greedy, 247 full-horizon simulations
+activity order      : radar-01, radar-02, image-03, spectro-01, cal-boresight, image-01, image-02, spectro-02, housekeep-01, housekeep-02
+
+activity      step  start/s  finish/s  dur/s  energy/Wh  peak/W  data/Mbit  priority
+------------  ----  -------  --------  -----  ---------  ------  ---------  --------
+housekeep-01  0     0.0      180.0     180.0  2.610      52.2    40.0       1.0
+radar-01      0     0.0      240.0     240.0  11.177     217.5   620.0      4.0
+radar-02      48    7200.0   7440.0    240.0  11.177     217.5   620.0      4.0
+image-03      64    9600.0   9840.0    240.0  7.105      174.0   330.0      3.0
+spectro-02    70    10500.0  10920.0   420.0  9.292      137.8   280.0      2.0
+housekeep-02  72    10800.0  10980.0   180.0  2.610      52.2    40.0       1.0
+
+placed   : 6 of 10, priority 15.0 of 30.0
+not placed: cal-boresight, image-01, image-02, spectro-01
+
+------------------------------------------------------------------------------
+feasibility report  : leo-imaging
+------------------------------------------------------------------------------
+verdict             : FEASIBLE
+objective           : 15.0 of 30.0 priority units placed (6 of 10 activities)
+forgone             : 15.0 priority units on 4 activities: cal-boresight, image-01, image-02, spectro-01
+BINDING CONSTRAINT  : battery-depth-of-discharge
+                      slack 0.758164 W*h = +0.016848 of 45 W*h
+                      at step 72 ending t=10950.0 s, E=105.7582 W*h against floor 105.0000 W*h
+
+constraints, tightest normalised slack first
+constraint                   slack     unit  normaliser  normalised  status  where
+---------------------------  --------  ----  ----------  ----------  ------  ---------------------------------------------------------------------
+battery-depth-of-discharge   0.758164  W*h   45          +0.016848   ok      step 72 ending t=10950.0 s, E=105.7582 W*h against floor 105.0000 W*h
+recorder-capacity            40        Mbit  700         +0.057143   ok      step 1 ending t=300.0 s, S=660.0000 Mbit of 700.0000 Mbit
+horizon                      5220      s     16200       +0.322222   ok      last finish t=10980.0 s (housekeep-02)
+window:image-03              3360      s     7560        +0.444444   ok      placed [9600.0, 9840.0] s inside declared [5400.0, 13200.0] s
+window:spectro-02            4680      s     6180        +0.757282   ok      placed [10500.0, 10920.0] s inside declared [9000.0, 15600.0] s
+window:radar-01              6960      s     6960        +1.000000   ok      placed [0.0, 240.0] s inside declared [0.0, 7200.0] s
+window:radar-02              6960      s     6960        +1.000000   ok      placed [7200.0, 7440.0] s inside declared [7200.0, 14400.0] s
+window:housekeep-01          5820      s     5820        +1.000000   ok      placed [0.0, 180.0] s inside declared [0.0, 6000.0] s
+window:housekeep-02          4620      s     4620        +1.000000   ok      placed [10800.0, 10980.0] s inside declared [10800.0, 15600.0] s
+exclusion:image-03|radar-02  2160      s     240         +9.000000   ok      image-03 [9600.0, 9840.0] s, radar-02 [7200.0, 7440.0] s
+
+diagnostics, never named as binding (cannot be violated by construction)
+diagnostic                 slack    unit  normalised  where
+-------------------------  -------  ----  ----------  ----------------------------------------------------------------------------------------------
+battery-upper-headroom     0        W*h   +0.000000   step 5, E=150.0000 W*h; 70.2473 W*h shunted over the horizon
+recorder-within-step-peak  -126.25  Mbit  -0.180357   step 64, pre-downlink content 826.2500 Mbit (diagnostic only)
+downlink-volume            230      Mbit  +0.106481   1930.0000 Mbit to downlink against 2160.0000 Mbit of declared contact capacity over 3 contacts
+
+energy audit, W*h
+quantity               value
+---------------------  ---------------
+generated_closed_form  311.975519
+generated_steps        311.975519
+fixed_closed_form      209.25
+fixed_steps            209.25
+activity_energy        43.97125
+consumed_steps         253.22125
+shunted                70.2472915
+battery_delta          -11.4930221
+residual               -1.98951966e-13
+
+the two generated entries compare the whole-horizon closed-form solar integral
+against the sum of the per-step closed-form integrals; residual is the closure
+of the battery recursion. Both are reported, not asserted.
+------------------------------------------------------------------------------
+
+dropped        starts tried  dominant binding constraint         binding breakdown
+-------------  ------------  ----------------------------------  -------------------------------------------------------
+spectro-01     54            recorder-capacity                   recorder-capacity x52, exclusion:radar-01|spectro-01 x2
+cal-boresight  23            recorder-capacity                   recorder-capacity x23
+image-01       63            precedence:cal-boresight->image-01  precedence:cal-boresight->image-01 x63
+image-02       63            precedence:cal-boresight->image-02  precedence:cal-boresight->image-02 x63
+
+exit status : 0
+wall clock  : 0.09 s
+
+==============================================================================
+invocation 5: python -m activityplan plan --instance leo-imaging --planner exact --time-limit 150
+==============================================================================
+planner             : exact MILP, 460 binaries, 892 columns, 498 rows
+solver              : status 0, gap 2.780e-15, 1 nodes, 0.807 s, proven optimal True
+
+activity       step  start/s  finish/s  dur/s  energy/Wh  peak/W  data/Mbit  priority
+-------------  ----  -------  --------  -----  ---------  ------  ---------  --------
+cal-boresight  1     150.0    450.0     300.0  6.283      101.5   90.0       2.0
+housekeep-01   4     600.0    780.0     180.0  2.610      52.2    40.0       1.0
+image-01       12    1800.0   2100.0    300.0  8.507      174.0   430.0      5.0
+image-02       38    5700.0   6000.0    300.0  8.507      174.0   430.0      5.0
+image-03       65    9750.0   9990.0    240.0  7.105      174.0   330.0      3.0
+housekeep-02   72    10800.0  10980.0   180.0  2.610      52.2    40.0       1.0
+radar-02       75    11250.0  11490.0   240.0  11.177     217.5   620.0      4.0
+spectro-02     101   15150.0  15570.0   420.0  9.292      137.8   280.0      2.0
+
+placed   : 8 of 10, priority 23.0 of 30.0
+not placed: radar-01, spectro-01
+
+------------------------------------------------------------------------------
+feasibility report  : leo-imaging
+------------------------------------------------------------------------------
+verdict             : FEASIBLE
+objective           : 23.0 of 30.0 priority units placed (8 of 10 activities)
+forgone             : 7.0 priority units on 2 activities: radar-01, spectro-01
+BINDING CONSTRAINT  : recorder-capacity
+                      slack 0 Mbit = +0.000000 of 700 Mbit
+                      at step 76 ending t=11550.0 s, S=700.0000 Mbit of 700.0000 Mbit
+
+constraints, tightest normalised slack first
+constraint                          slack    unit  normaliser  normalised  status  where
+----------------------------------  -------  ----  ----------  ----------  ------  ----------------------------------------------------------------------
+recorder-capacity                   0        Mbit  700         +0.000000   ok      step 76 ending t=11550.0 s, S=700.0000 Mbit of 700.0000 Mbit
+window:spectro-02                   30       s     6180        +0.004854   ok      placed [15150.0, 15570.0] s inside declared [9000.0, 15600.0] s
+horizon                             630      s     16200       +0.038889   ok      last finish t=15570.0 s (spectro-02)
+battery-depth-of-discharge          5.83362  W*h   45          +0.129636   ok      step 103 ending t=15600.0 s, E=110.8336 W*h against floor 105.0000 W*h
+window:radar-02                     2910     s     6960        +0.418103   ok      placed [11250.0, 11490.0] s inside declared [7200.0, 14400.0] s
+window:image-03                     3210     s     7560        +0.424603   ok      placed [9750.0, 9990.0] s inside declared [5400.0, 13200.0] s
+window:image-02                     5400     s     9300        +0.580645   ok      placed [5700.0, 6000.0] s inside declared [1800.0, 11400.0] s
+window:housekeep-01                 5220     s     5820        +0.896907   ok      placed [600.0, 780.0] s inside declared [0.0, 6000.0] s
+window:cal-boresight                3150     s     3300        +0.954545   ok      placed [150.0, 450.0] s inside declared [0.0, 3600.0] s
+window:image-01                     9300     s     9300        +1.000000   ok      placed [1800.0, 2100.0] s inside declared [1800.0, 11400.0] s
+window:housekeep-02                 4620     s     4620        +1.000000   ok      placed [10800.0, 10980.0] s inside declared [10800.0, 15600.0] s
+precedence:cal-boresight->image-01  1350     s     300         +4.500000   ok      cal-boresight finishes t=450.0 s, image-01 starts t=1800.0 s
+exclusion:image-03|radar-02         1260     s     240         +5.250000   ok      image-03 [9750.0, 9990.0] s, radar-02 [11250.0, 11490.0] s
+precedence:cal-boresight->image-02  5250     s     300         +17.500000  ok      cal-boresight finishes t=450.0 s, image-02 starts t=5700.0 s
+
+diagnostics, never named as binding (cannot be violated by construction)
+diagnostic                 slack  unit  normalised  where
+-------------------------  -----  ----  ----------  ----------------------------------------------------------------------------------------------
+battery-upper-headroom     0      W*h   +0.000000   step 4, E=150.0000 W*h; 67.4198 W*h shunted over the horizon
+recorder-within-step-peak  0      Mbit  +0.000000   step 76, pre-downlink content 700.0000 Mbit (diagnostic only)
+downlink-volume            -100   Mbit  -0.046296   2260.0000 Mbit to downlink against 2160.0000 Mbit of declared contact capacity over 3 contacts
+
+energy audit, W*h
+quantity               value
+---------------------  ---------------
+generated_closed_form  311.975519
+generated_steps        311.975519
+fixed_closed_form      209.25
+fixed_steps            209.25
+activity_energy        56.0908333
+consumed_steps         265.340833
+shunted                67.4197915
+battery_delta          -20.7851054
+residual               -1.84741111e-13
+
+the two generated entries compare the whole-horizon closed-form solar integral
+against the sum of the per-step closed-form integrals; residual is the closure
+of the battery recursion. Both are reported, not asserted.
+------------------------------------------------------------------------------
+
+exit status : 0
+wall clock  : 0.83 s
+
+==============================================================================
+invocation 6: python -m activityplan plan --instance energy-bound --planner greedy
+==============================================================================
+planner             : greedy, 612 full-horizon simulations
+activity order      : obs-03, obs-07, obs-11, obs-02, obs-06, obs-10, obs-01, obs-05, obs-09, obs-00, obs-04, obs-08
+
+activity  step  start/s  finish/s  dur/s  energy/Wh  peak/W  data/Mbit  priority
+--------  ----  -------  --------  -----  ---------  ------  ---------  --------
+obs-03    0     0.0      300.0     300.0  10.550     185.0   180.0      4.0
+obs-07    0     0.0      300.0     300.0  10.650     191.0   220.0      4.0
+obs-11    0     0.0      300.0     300.0  10.750     197.0   260.0      4.0
+obs-02    40    6000.0   6300.0    300.0  10.483     197.0   260.0      3.0
+
+placed   : 4 of 12, priority 15.0 of 30.0
+not placed: obs-00, obs-01, obs-04, obs-05, obs-06, obs-08, obs-09, obs-10
+
+------------------------------------------------------------------------------
+feasibility report  : energy-bound
+------------------------------------------------------------------------------
+verdict             : FEASIBLE
+objective           : 15.0 of 30.0 priority units placed (4 of 12 activities)
+forgone             : 15.0 priority units on 8 activities: obs-00, obs-01, obs-04, obs-05, obs-06, obs-08, obs-09, obs-10
+BINDING CONSTRAINT  : battery-depth-of-discharge
+                      slack 0.0920288 W*h = +0.002556 of 36 W*h
+                      at step 41 ending t=6300.0 s, E=54.0920 W*h against floor 54.0000 W*h
+
+constraints, tightest normalised slack first
+constraint                  slack      unit  normaliser  normalised  status  where
+--------------------------  ---------  ----  ----------  ----------  ------  ------------------------------------------------------------------
+battery-depth-of-discharge  0.0920288  W*h   36          +0.002556   ok      step 41 ending t=6300.0 s, E=54.0920 W*h against floor 54.0000 W*h
+horizon                     4500       s     10800       +0.416667   ok      last finish t=6300.0 s (obs-02)
+window:obs-02               4500       s     10500       +0.428571   ok      placed [6000.0, 6300.0] s inside declared [0.0, 10800.0] s
+recorder-capacity           5340       Mbit  6000        +0.890000   ok      step 1 ending t=300.0 s, S=660.0000 Mbit of 6000.0000 Mbit
+window:obs-03               10500      s     10500       +1.000000   ok      placed [0.0, 300.0] s inside declared [0.0, 10800.0] s
+window:obs-07               10500      s     10500       +1.000000   ok      placed [0.0, 300.0] s inside declared [0.0, 10800.0] s
+window:obs-11               10500      s     10500       +1.000000   ok      placed [0.0, 300.0] s inside declared [0.0, 10800.0] s
+
+diagnostics, never named as binding (cannot be violated by construction)
+diagnostic                 slack    unit  normalised  where
+-------------------------  -------  ----  ----------  ----------------------------------------------------------------------------------------------
+battery-upper-headroom     1.38742  W*h   +0.015416   step 19, E=88.6126 W*h; 0.0000 W*h shunted over the horizon
+recorder-within-step-peak  5340     Mbit  +0.890000   step 1, pre-downlink content 660.0000 Mbit (diagnostic only)
+downlink-volume            9880     Mbit  +0.914815   920.0000 Mbit to downlink against 10800.0000 Mbit of declared contact capacity over 2 contacts
+
+energy audit, W*h
+quantity               value
+---------------------  ---------------
+generated_closed_form  144.232576
+generated_steps        144.232576
+fixed_closed_form      133
+fixed_steps            133
+activity_energy        42.4333333
+consumed_steps         175.433333
+shunted                0
+battery_delta          -31.2007577
+residual               -5.68434189e-14
+
+the two generated entries compare the whole-horizon closed-form solar integral
+against the sum of the per-step closed-form integrals; residual is the closure
+of the battery recursion. Both are reported, not asserted.
+------------------------------------------------------------------------------
+
+dropped  starts tried  dominant binding constraint  binding breakdown
+-------  ------------  ---------------------------  ------------------------------
+obs-06   71            battery-depth-of-discharge   battery-depth-of-discharge x71
+obs-10   71            battery-depth-of-discharge   battery-depth-of-discharge x71
+obs-01   71            battery-depth-of-discharge   battery-depth-of-discharge x71
+obs-05   71            battery-depth-of-discharge   battery-depth-of-discharge x71
+obs-09   71            battery-depth-of-discharge   battery-depth-of-discharge x71
+obs-00   71            battery-depth-of-discharge   battery-depth-of-discharge x71
+obs-04   71            battery-depth-of-discharge   battery-depth-of-discharge x71
+obs-08   71            battery-depth-of-discharge   battery-depth-of-discharge x71
+
+exit status : 0
+wall clock  : 0.24 s
+
+==============================================================================
+invocation 7: python -m activityplan plan --instance recorder-bound --planner exact --time-limit 150
+==============================================================================
+planner             : exact MILP, 568 binaries, 856 columns, 152 rows
+solver              : status 0, gap 0.000e+00, 1 nodes, 0.038 s, proven optimal True
+
+activity  step  start/s  finish/s  dur/s  energy/Wh  peak/W  data/Mbit  priority
+--------  ----  -------  --------  -----  ---------  ------  ---------  --------
+swath-07  4     600.0    900.0     300.0  4.083      49.0    600.0      2.0
+swath-05  43    6450.0   6750.0    300.0  4.333      52.0    480.0      3.0
+swath-02  46    6900.0   7200.0    300.0  4.333      52.0    540.0      3.0
+swath-01  47    7050.0   7350.0    300.0  4.083      49.0    480.0      2.0
+
+placed   : 4 of 8, priority 10.0 of 15.0
+not placed: swath-00, swath-03, swath-04, swath-06
+
+------------------------------------------------------------------------------
+feasibility report  : recorder-bound
+------------------------------------------------------------------------------
+verdict             : FEASIBLE
+objective           : 10.0 of 15.0 priority units placed (4 of 8 activities)
+forgone             : 5.0 priority units on 4 activities: swath-00, swath-03, swath-04, swath-06
+BINDING CONSTRAINT  : recorder-capacity
+                      slack 20 Mbit = +0.014286 of 1400 Mbit
+                      at step 48 ending t=7350.0 s, S=1380.0000 Mbit of 1400.0000 Mbit
+
+constraints, tightest normalised slack first
+constraint                  slack    unit  normaliser  normalised  status  where
+--------------------------  -------  ----  ----------  ----------  ------  --------------------------------------------------------------------
+recorder-capacity           20       Mbit  1400        +0.014286   ok      step 48 ending t=7350.0 s, S=1380.0000 Mbit of 1400.0000 Mbit
+horizon                     3450     s     10800       +0.319444   ok      last finish t=7350.0 s (swath-01)
+window:swath-01             3450     s     10500       +0.328571   ok      placed [7050.0, 7350.0] s inside declared [0.0, 10800.0] s
+window:swath-02             3600     s     10500       +0.342857   ok      placed [6900.0, 7200.0] s inside declared [0.0, 10800.0] s
+window:swath-05             4050     s     10500       +0.385714   ok      placed [6450.0, 6750.0] s inside declared [0.0, 10800.0] s
+battery-depth-of-discharge  52.5063  W*h   72          +0.729254   ok      step 37 ending t=5700.0 s, E=160.5063 W*h against floor 108.0000 W*h
+window:swath-07             9900     s     10500       +0.942857   ok      placed [600.0, 900.0] s inside declared [0.0, 10800.0] s
+
+diagnostics, never named as binding (cannot be violated by construction)
+diagnostic                 slack  unit  normalised  where
+-------------------------  -----  ----  ----------  ---------------------------------------------------------------------------------------------
+battery-upper-headroom     0      W*h   +0.000000   step 3, E=180.0000 W*h; 138.4687 W*h shunted over the horizon
+recorder-within-step-peak  20     Mbit  +0.014286   step 48, pre-downlink content 1380.0000 Mbit (diagnostic only)
+downlink-volume            -1380  Mbit  -1.916667   2100.0000 Mbit to downlink against 720.0000 Mbit of declared contact capacity over 1 contacts
+
+energy audit, W*h
+quantity               value
+---------------------  ---------------
+generated_closed_form  254.011289
+generated_steps        254.011289
+fixed_closed_form      117
+fixed_steps            117
+activity_energy        16.8333333
+consumed_steps         133.833333
+shunted                138.468682
+battery_delta          -18.2907259
+residual               -1.42108547e-13
+
+the two generated entries compare the whole-horizon closed-form solar integral
+against the sum of the per-step closed-form integrals; residual is the closure
+of the battery recursion. Both are reported, not asserted.
+------------------------------------------------------------------------------
+
+exit status : 0
+wall clock  : 0.05 s
+
+==============================================================================
+invocation 8: python -m activityplan plan --instance window-bound --planner exact --time-limit 150
+==============================================================================
+planner             : exact MILP, 18 binaries, 306 columns, 165 rows
+solver              : status 0, gap 0.000e+00, 1 nodes, 0.017 s, proven optimal True
+
+activity   step  start/s  finish/s  dur/s  energy/Wh  peak/W  data/Mbit  priority
+---------  ----  -------  --------  -----  ---------  ------  ---------  --------
+target-01  14    2100.0   2520.0    420.0  7.000      85.0    240.0      2.0
+target-02  16    2400.0   2820.0    420.0  7.000      85.0    240.0      3.0
+target-05  44    6600.0   7020.0    420.0  7.000      85.0    240.0      3.0
+
+placed   : 3 of 6, priority 8.0 of 12.0
+not placed: target-00, target-03, target-04
+
+------------------------------------------------------------------------------
+feasibility report  : window-bound
+------------------------------------------------------------------------------
+verdict             : FEASIBLE
+objective           : 8.0 of 12.0 priority units placed (3 of 6 activities)
+forgone             : 4.0 priority units on 3 activities: target-00, target-03, target-04
+BINDING CONSTRAINT  : window:target-01
+                      slack 30 s = +0.090909 of 330 s
+                      at placed [2100.0, 2520.0] s inside declared [1800.0, 2550.0] s
+tightest resource   : battery-depth-of-discharge, slack 101.903 W*h = +0.870963 of its normaliser
+
+constraints, tightest normalised slack first
+constraint                  slack    unit  normaliser  normalised  status  where
+--------------------------  -------  ----  ----------  ----------  ------  --------------------------------------------------------------------
+window:target-01            30       s     330         +0.090909   ok      placed [2100.0, 2520.0] s inside declared [1800.0, 2550.0] s
+window:target-02            30       s     330         +0.090909   ok      placed [2400.0, 2820.0] s inside declared [2100.0, 2850.0] s
+horizon                     3780     s     10800       +0.350000   ok      last finish t=7020.0 s (target-05)
+battery-depth-of-discharge  101.903  W*h   117         +0.870963   ok      step 37 ending t=5700.0 s, E=244.9027 W*h against floor 143.0000 W*h
+recorder-capacity           8588.57  Mbit  9000        +0.954286   ok      step 17 ending t=2700.0 s, S=411.4286 Mbit of 9000.0000 Mbit
+window:target-05            330      s     330         +1.000000   ok      placed [6600.0, 7020.0] s inside declared [6600.0, 7350.0] s
+
+diagnostics, never named as binding (cannot be violated by construction)
+diagnostic                 slack  unit  normalised  where
+-------------------------  -----  ----  ----------  ----------------------------------------------------------------------------------------------
+battery-upper-headroom     0      W*h   +0.000000   step 3, E=260.0000 W*h; 168.0900 W*h shunted over the horizon
+recorder-within-step-peak  8520   Mbit  +0.946667   step 18, pre-downlink content 480.0000 Mbit (diagnostic only)
+downlink-volume            11880  Mbit  +0.942857   720.0000 Mbit to downlink against 12600.0000 Mbit of declared contact capacity over 2 contacts
+
+energy audit, W*h
+quantity               value
+---------------------  --------------
+generated_closed_form  286.478898
+generated_steps        286.478898
+fixed_closed_form      111.5
+fixed_steps            111.5
+activity_energy        21
+consumed_steps         132.5
+shunted                168.090045
+battery_delta          -14.1111477
+residual               8.52651283e-14
+
+the two generated entries compare the whole-horizon closed-form solar integral
+against the sum of the per-step closed-form integrals; residual is the closure
+of the battery recursion. Both are reported, not asserted.
+------------------------------------------------------------------------------
+
+exit status : 0
+wall clock  : 0.02 s
+
+==============================================================================
+invocation 9: python -m activityplan compare --instance leo-imaging --time-limit 150
+==============================================================================
+planner  objective  placed  cost              binding constraint          normalised slack
+-------  ---------  ------  ----------------  --------------------------  ----------------
+greedy   15.0       6       247 simulations   battery-depth-of-discharge  +0.016848
+exact    23.0       8       1 nodes, 0.875 s  recorder-capacity           +0.000000
+
+instance            : leo-imaging
+total priority      : 30.0
+exact dual bound    : 23.000000, gap 2.780e-15
+greedy shortfall    : 34.78 % below the exact optimum
+
+the exact optimum is the optimum of the DISCRETISED problem at this step,
+not of the continuous-time problem. A finer step can only help it.
+
+exit status : 0
+wall clock  : 0.98 s
+
+==============================================================================
+invocation 10: python -m activityplan compare --instance tiny-enumerable --time-limit 150
+==============================================================================
+planner  objective  placed  cost              binding constraint         normalised slack
+-------  ---------  ------  ----------------  -------------------------  ----------------
+greedy   6.5        3       22 simulations    exclusion:image-a|radar-b  +0.000000
+exact    6.5        3       1 nodes, 0.021 s  horizon                    +0.000000
+
+instance            : tiny-enumerable
+total priority      : 7.5
+exact dual bound    : 6.500000, gap 0.000e+00
+greedy shortfall    : 0.00 % below the exact optimum
+
+the exact optimum is the optimum of the DISCRETISED problem at this step,
+not of the continuous-time problem. A finer step can only help it.
+
+exit status : 0
+wall clock  : 0.03 s
+
+==============================================================================
+invocation 11: python -m activityplan predict --n-train 900 --n-test 300 --mode normalised
+==============================================================================
+target        analytic MAE  learned MAE  interval coverage  mean width
+------------  ------------  -----------  -----------------  ----------
+duration [s]  34.4048       31.0487      0.8700             116.2050
+energy [W*h]  1.0813        0.4747       0.9000             1.9343
+
+mode                : normalised split conformal, alpha 0.1
+split               : 585 proper-train, 315 calibration, 300 test
+nominal coverage    : 0.9000
+
+the learned model is given the analytic prediction as a feature, so it fits the
+correction rather than relearning the model. It also beats the analytic model
+because the analytic model omits two terms the generator contains. See
+MODEL_CARD.md; this is not evidence about a real spacecraft.
+
+exit status : 0
+wall clock  : 2.62 s
+
+==============================================================================
+invocation 12: python -m activityplan predict --n-train 900 --n-test 300 --mode absolute
+==============================================================================
+target        analytic MAE  learned MAE  interval coverage  mean width
+------------  ------------  -----------  -----------------  ----------
+duration [s]  34.4048       31.0487      0.8733             125.9386
+energy [W*h]  1.0813        0.4747       0.8900             1.9888
+
+mode                : absolute split conformal, alpha 0.1
+split               : 585 proper-train, 315 calibration, 300 test
+nominal coverage    : 0.9000
+
+the learned model is given the analytic prediction as a feature, so it fits the
+correction rather than relearning the model. It also beats the analytic model
+because the analytic model omits two terms the generator contains. See
+MODEL_CARD.md; this is not evidence about a real spacecraft.
+
+exit status : 0
+wall clock  : 1.10 s
+
+==============================================================================
+invocation 13: python -m activityplan robust --n-train 600 --n-instances 4 --instance-seed 9000
+==============================================================================
+mode       feasible  feasible rate  planned priority  realised priority
+---------  --------  -------------  ----------------  -----------------
+oracle     4/4       1.0000         128.0             128.0
+analytic   0/4       0.0000         133.0             0.0
+ml-point   2/4       0.5000         130.0             59.0
+ml-robust  2/4       0.5000         124.0             57.0
+
+instances           : 4 from seed 9000
+a realised plan that violates any declared constraint scores zero, not partial
+credit; see activityplan.robust for why.
+
+exit status : 0
+wall clock  : 6.11 s
+
+==============================================================================
+invocation 14: python -m activityplan warmstart --n-train 600 --n-instances 4 --instance-seed 9000 --time-limit 150
+==============================================================================
+instance     warm value  verified  optimum  cold nodes  cold s  warm nodes  warm s  optimum kept
+-----------  ----------  --------  -------  ----------  ------  ----------  ------  ------------
+family-9000  28.0        True      28.0     1           0.408   1           0.119   True
+family-9001  43.0        True      43.0     1           0.692   1           0.269   True
+family-9002  28.0        True      30.0     1           0.896   1           0.564   True
+family-9003  31.0        True      39.0     1           0.119   1           0.122   True
+
+presolve            : True
+scipy.optimize.milp exposes no MIP start, so the warm start is a primal-bound
+cut. With presolve on these instances are solved before branching and the node
+counts measure presolve, not search. See activityplan.warmstart.
+
+exit status : 0
+wall clock  : 6.55 s
+
+==============================================================================
+--help
+==============================================================================
+usage: python -m activityplan [-h] [--version]
+                              {instances,declare,plan,compare,predict,robust,warmstart} ...
+
+Onboard activity planning with an auditable feasibility report: a timeline, the binding constraint, and the slack on every other constraint.
+
+positional arguments:
+  {instances,declare,plan,compare,predict,robust,warmstart}
+    instances           list the shipped hand-declared instances
+    declare             print one instance's declaration and its
+                        discretisation
+    plan                plan one instance and print the timeline and
+                        feasibility report
+    compare             greedy against the exact optimum
+    predict             learned duration and energy predictor against the
+                        analytic model
+    robust              the four planning modes under realised durations
+    warmstart           does a learned warm start help the exact solver
+
+options:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+
+activityplan is research-grade software. It is not flight-qualified, not
+certified, and not approved for operational aerospace use. Every constant in
+every shipped instance is a declared input of a synthetic benchmark and none was
+identified from any spacecraft.
+
+A plan this tool calls feasible is feasible with respect to the declaration you
+supplied, on the discretised timeline you chose, under a resource model whose
+assumptions are listed in the module docstrings. Change the step and you change
+the answer.
+
+exit status : 0
+
+==============================================================================
+summary
+==============================================================================
+invocations run          : 14 plus --help
+non-zero exit statuses   : 0
+forbidden-word failures  : 0
+wall clock               : 18.6 s
+overall                  : PASS
+raw output written to    : validate_cli_output.txt

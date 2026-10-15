@@ -1,0 +1,147 @@
+validate_model.py -- twin models, integrator and closed forms
+numpy 2.5.3, scipy scipy.constants loaded for its constants
+
+==============================================================================
+1. Physical constants against scipy.constants
+==============================================================================
+twincalib STEFAN_BOLTZMANN   = 5.670374419184431e-08 W/m^2/K^4
+scipy.constants              = 5.670374419184431e-08 W/m^2/K^4
+relative difference          = 1.110e-16   tolerance 1e-12
+verdict: PASS
+
+==============================================================================
+2. Single-node integrator against the closed-form solution
+==============================================================================
+C dT/dt = q - k (T - T_sink); Incropera and DeWitt Chapter 5.
+C = 800 J/K, k = 2.5 W/K, q = 40 W, T_sink = 280 K, T0 = 300 K,
+so tau = C/k = 320.000 s and the steady state is 280 + q/k = 296.000 K.
+steady state from the closed form = 296.000000 K
+
+    dt [s]   worst |numeric - exact| [K]   ratio to previous
+      80.0                  5.903294e-05                    
+      40.0                  3.323002e-06              17.765
+      20.0                  1.971245e-07              16.857
+      10.0                  1.200323e-08              16.423
+       5.0                  7.404992e-10              16.210
+
+a fourth-order scheme gives a ratio near 16 per halving (Butcher 2016, section 23)
+measured ratios: 17.765, 16.857, 16.423, 16.210
+verdict: PASS  criterion every ratio in (10, 24)
+
+==============================================================================
+3. Single-node closed form against a hand calculation
+==============================================================================
+At t = tau = 320 s: T = 296 + (300 - 296) exp(-1) = 296 + 4 * 0.36787944
+hand value   = 297.47151776 K
+closed form  = 297.47151776 K
+difference   = 0.000e+00 K   tolerance 1e-9
+verdict: PASS
+
+==============================================================================
+4. Two-node model relaxes to its algebraic equilibrium
+==============================================================================
+h_rad (T2^4 - T_space^4) = P_dis + q_sun s + q_par and T1 = T2 + P_dis/k12
+    P [W]    s   T1 algebraic   T2 algebraic   T1 integrated   T2 integrated  worst diff [K]
+     12.0 0.00     228.174480     223.374480      228.174480      223.374480       1.307e-12
+     25.0 0.65     294.325545     284.325545      294.325545      284.325545       1.251e-12
+     35.0 1.00     321.687022     307.687022      321.687022      307.687022       9.663e-13
+
+worst discrepancy = 1.307e-12 K   tolerance 1e-3 K after 400000 s
+verdict: PASS
+
+==============================================================================
+5a. Two-node integrator alone, on an input the grid represents exactly
+==============================================================================
+The design's 30 s step against the same scheme at 30/8 = 3.75 s, with the
+SAME zero-order-hold input profile resampled onto the fine grid, so that
+this number is the integrator's error and nothing else.
+worst |T(dt=30 s) - T(dt=3.75 s)| = 4.761541e-06 K
+thermometer noise for comparison  = 0.300 K
+ratio to the noise                = 1.587e-05
+verdict: PASS  criterion below 1 per cent of the measurement noise
+
+==============================================================================
+5b. The input grid itself, which is a larger error than the integrator
+==============================================================================
+This check FAILED on its first run and the failure is the finding, kept
+here rather than removed. Refining the grid also refines the zero-order
+hold on the exogenous inputs, and the eclipse edge at
+0.65 * 5700 s = 3705 s is NOT a multiple of 30 s, so a 30 s grid places
+that edge up to 15 s away from where a 3.75 s grid places it. The
+resulting temperature difference is far larger than the integrator's own
+error measured in 5a.
+
+eclipse edge                       = 3705.000 s
+edge / dt                          = 123.5000  (not an integer)
+worst |T(30 s grid) - T(3.75 s grid, true edges)| = 0.625662 K
+ratio to the integrator error in 5a = 131399.1
+ratio to the thermometer noise      = 2.086
+
+CONSEQUENCE, recorded in README Limitations: the zero-order-hold input
+grid is part of the model, not an implementation detail. Every number in
+this repository is internally consistent because the data generator and
+the fitter use the same grid, so the quantisation cancels exactly. A real
+calibration against real telemetry would not have that cancellation and
+would carry this as a model error of order 0.6 K on this design.
+verdict: REPORTED, not bounded
+
+==============================================================================
+6. Linearised time constants against the sampling interval
+==============================================================================
+fast mode from the 2x2 eigenvalues      = 263.379 s
+series-capacitance estimate C_eq/k12    = 266.667 s
+slow mode from the 2x2 eigenvalues      = 4593.112 s
+radiative estimate (C1+C2)/(4 h T2^3)   = 4536.492 s
+design sampling interval                = 30 s
+dt / tau_fast                           = 0.1139
+the step is a ninth of the fastest time constant, which is why the
+fixed-step scheme in check 5 agrees with itself to 1e-5 K
+
+==============================================================================
+7. Stability limit is reported, not silently wrong
+==============================================================================
+k12 = 400 W/K at dt = 30 s raised ValueError: the integration diverged: the fixed-step explicit scheme is unstable at dt = 30 s for a fastest time constant of about 1.67 s. Reduce the design's dt and raise sample_stride to keep the same observation interval.
+verdict: PASS
+
+==============================================================================
+8. Declared model discrepancy, measured
+==============================================================================
+truth model: k12_eff = k12 (1 + 1.5 (T1 - 290 K)/100 K)
+The calibration model has no such term and cannot reproduce it.
+  design               RMS [K]  max |diff| [K]  RMS/sigma
+  baseline-eclipse      0.5061          1.8201      1.687
+  full-sun              0.9600          2.6907      3.200
+  lumped-nodes          0.0636          0.1618      0.212
+  weak-excitation       0.4845          0.9378      1.615
+
+lumped-nodes is the control design: its discrepancy is well below the
+noise, so a residual model has almost nothing real to find there.
+
+==============================================================================
+9. Model validity range on the shipped designs
+==============================================================================
+The declared validity range of the two-node model is 200-350 K.
+  design              min T [K]  max T [K]  inside 200-350
+  baseline-eclipse      274.554    301.761            True
+  full-sun              275.000    309.789            True
+  lumped-nodes          274.496    292.023            True
+  weak-excitation       275.000    298.180            True
+
+verdict: PASS
+
+==============================================================================
+10. Negative controls on the input validation
+==============================================================================
+  times with 1 entry               rejected: times must be a 1-D array with at least 2 entries
+  non-monotone times               rejected: times must be strictly increasing
+  non-uniform times                rejected: times must be uniformly spaced
+  sun outside [0, 1]               rejected: sun must lie in [0, 1]
+  negative parameter               rejected: these parameters must be strictly positive: ['C1', 'C2', 'k1
+  wrong parameter count            rejected: expected 6 parameters ('C1', 'C2', 'k12', 'h_rad', 'q_sun', 
+  negative sink temperature        rejected: t_sink must be a positive, finite temperature in K
+  non-finite discrepancy slope     rejected: conductance_slope must be finite
+  total heat input not positive    rejected: total heat input must be positive for an equilibrium
+
+verdict: PASS  9 negative controls
+
+elapsed 0.2 s

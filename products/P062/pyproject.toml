@@ -1,0 +1,90 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "twincalib"
+version = "0.1.0"
+description = "Fit a digital twin, and say which parameters the data can actually pin down."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "digital-twin",
+    "identifiability",
+    "profile-likelihood",
+    "fisher-information",
+    "parameter-estimation",
+    "model-discrepancy",
+    "spacecraft-thermal",
+    "aerospace",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+]
+# Both ends of every range below were installed in a clean virtual environment
+# and the full test suite, every validation script and every example were run at
+# both, and the committed validation output was DIFFED, not just the test
+# verdict. The measured versions and the diffs are in validation/VALIDATION.md,
+# section "Dependency range measurement".
+#
+# The ranges are one minor version wide on purpose, and that is a cost, not
+# caution. A wider range was measured first and rejected: at
+# numpy 2.3.5 / scipy 1.16.0 / scikit-learn 1.8.0 the whole suite still passes,
+# and the absorption fraction this product's central claim rests on moves from
+# 0.12715 to 0.04621 -- a factor of 2.75 -- because scikit-learn's Gaussian
+# process fits a different kernel. Every verdict survives; the published number
+# does not. That is the defect class recorded in the mission's build guide as
+# P025, and the only honest response is to bound the range to what was measured
+# and to say in Limitations that a security release inside these libraries
+# cannot be taken without re-measuring.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scipy>=1.18,<1.19",
+    "scikit-learn>=1.9,<1.10",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.4,<10", "hypothesis>=6.140,<7"]
+examples = ["matplotlib>=3.9,<4"]
+dev = [
+    "pytest>=8.4,<10",
+    "hypothesis>=6.140,<7",
+    "matplotlib>=3.9,<4",
+    "ruff>=0.6,<0.17",
+]
+
+[project.scripts]
+twincalib = "twincalib.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/twincalib"
+Source = "https://github.com/OmAcharya-avtr/twincalib"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+filterwarnings = [
+    "error::RuntimeWarning",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["twincalib"]
+known-local-folder = ["_bootstrap"]

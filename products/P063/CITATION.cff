@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "safemodetree: from an FMEA table to a checked fault-response policy, with safe-mode reachability and ambiguity-class analysis"
+abstract: >-
+  Takes an FMEA-shaped declaration - faults with an effect, an ordinal severity
+  category, a detectability flag and a declared detection latency; modes
+  including declared safe modes; responses with a transition, a cost and a
+  precondition; and an observability model of which faults are distinguishable
+  from which observations - builds the response automaton and checks that a
+  declared safe mode is reachable from every fault state under the declared
+  detection assumption. Reports unreachable safe modes, fault states with no
+  response, responses whose preconditions can never hold, and ambiguity classes
+  where two faults are indistinguishable but demand different responses. A
+  calibrated multinomial-logistic fault classifier is benchmarked against the
+  declared threshold-logic baseline at an equal false-alarm rate, and the
+  policy consumes its confidence: a low-confidence identification is routed to
+  the conservative response for the whole ambiguity class, and the cost of that
+  conservatism is measured in declared outage minutes. The threshold baseline
+  is not beaten on identification accuracy and that result is reported.
+  Research-grade; not flight-qualified, not certified, not approved for
+  operational aerospace use.
+version: 0.1.0
+date-released: "2026-10-15"
+license: Apache-2.0
+authors:
+  - family-names: Acharya
+    given-names: Om
+repository-code: "https://github.com/OmAcharya-avtr/safemodetree"
+keywords:
+  - FMEA
+  - FMECA
+  - FDIR
+  - safe mode
+  - fault response
+  - reachability
+  - diagnosability
+  - ambiguity class
+  - calibration
+  - aerospace

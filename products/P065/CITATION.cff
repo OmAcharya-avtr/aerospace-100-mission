@@ -1,0 +1,60 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "hazardtrace: STPA control-structure hazard analysis as a machine-checkable artifact"
+abstract: >-
+  Reads a declared System-Theoretic Process Analysis from YAML - losses,
+  hazards, system-level constraints, the control structure, unsafe control
+  actions in the four STPA classes, loss scenarios, mitigations and evidence -
+  and computes what is missing from it: enumeration gaps over the control
+  action by class grid, hazards with no constraint, constraints with no
+  requirement, unsafe control actions with no loss scenario, loss scenarios
+  with no mitigation, mitigations with no evidence, and cited requirement and
+  test identifiers that do not resolve against the repository. Deterministic,
+  with no learned component. It checks the completeness of a declared argument
+  and evaluates no argument's correctness or adequacy. Research-grade; not
+  flight-qualified, not certified, not approved for operational aerospace use,
+  and it discharges no safety obligation.
+version: 0.1.0
+date-released: "2026-10-15"
+license: Apache-2.0
+authors:
+  - family-names: Acharya
+    given-names: Om
+repository-code: "https://github.com/OmAcharya-avtr/hazardtrace"
+keywords:
+  - stpa
+  - stamp
+  - hazard analysis
+  - safety
+  - assurance
+  - aerospace
+references:
+  - type: book
+    title: "STPA Handbook"
+    authors:
+      - family-names: Leveson
+        given-names: "Nancy G."
+      - family-names: Thomas
+        given-names: "John P."
+    year: 2018
+  - type: book
+    title: "Engineering a Safer World: Systems Thinking Applied to Safety"
+    authors:
+      - family-names: Leveson
+        given-names: "Nancy G."
+    publisher:
+      name: "MIT Press"
+    year: 2011
+    isbn: "978-0-262-01662-9"
+  - type: article
+    title: "A new accident model for engineering safer systems"
+    authors:
+      - family-names: Leveson
+        given-names: "Nancy G."
+    journal: "Safety Science"
+    volume: 42
+    issue: 4
+    start: 237
+    end: 270
+    year: 2004
+    doi: "10.1016/S0925-7535(03)00047-X"

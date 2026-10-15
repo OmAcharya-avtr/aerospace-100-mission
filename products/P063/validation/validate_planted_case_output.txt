@@ -1,0 +1,63 @@
+safemodetree planted-case detection
+============================================================================
+
+1. the shipped planted declaration
+----------------------------------------------------------------------------
+declaration: planted_unreachable
+assumption:  declared detectability, latency budget unbounded
+
+findings
+--------
+  fault_states_without_safe_mode             1
+  unreachable_safe_modes                     1
+  fault_states_without_response              0
+  faults_without_response                    0
+  vacuous_responses                          0
+  conflicting_ambiguity_classes              0
+  classes_without_conservative_response      0
+
+fault states with no reachable safe mode:
+  (ops, sensor_fail)
+declared safe modes no fault state can reach: orphan_safe
+
+total findings: 2
+
+  [PASS] (ops, sensor_fail) is reported as unable to reach a safe mode
+  [PASS] its reported cost is infinite
+  [PASS] (ops, actuator_fail) is still reported as reachable
+  [PASS] its cheapest cost is the declared 11.0 min (measured 11.000000)
+  [PASS] orphan_safe is reported as an unreachable declared safe mode
+  [PASS] exactly one fault state is reported unreachable
+  [PASS] exhaustive enumeration agrees with the fixpoint on the planted case
+
+2. the shipped declaration with safe_mode_entry removed
+----------------------------------------------------------------------------
+mode             fault              safe?  hops  cost_min  path
+--------------------------------------------------------------------------------------------
+coarse_pointing  bat_cell_short     yes       1    60.000  bat_cell_bypass
+coarse_pointing  pcdu_shunt_stuck   yes       1   480.000  survival_entry
+coarse_pointing  rw_bearing_drag    yes       1   480.000  survival_entry
+coarse_pointing  rw_motor_open      yes       1   480.000  survival_entry
+coarse_pointing  rw_tach_stale      yes       1   480.000  survival_entry
+coarse_pointing  sa_string_open     yes       1   480.000  survival_entry
+coarse_pointing  st_blinding        yes       1   480.000  survival_entry
+coarse_pointing  st_latchup         yes       1   480.000  survival_entry
+fine_pointing    bat_cell_short     yes       1    60.000  bat_cell_bypass
+fine_pointing    pcdu_shunt_stuck   yes       1   480.000  survival_entry
+fine_pointing    rw_bearing_drag    yes       1   480.000  survival_entry
+fine_pointing    rw_motor_open      yes       1   480.000  survival_entry
+fine_pointing    rw_tach_stale      yes       1   480.000  survival_entry
+fine_pointing    sa_string_open     yes       1   480.000  survival_entry
+fine_pointing    st_blinding        yes       1   480.000  survival_entry
+fine_pointing    st_latchup         yes       1   480.000  survival_entry
+
+  [PASS] the intact declaration reaches a safe mode from every fault state
+  [PASS] the stripped declaration still reaches one, through survival_entry
+  [PASS] its worst cost rises from 53.0 min to 480.0 min
+  [PASS] the surviving witness paths are exactly [('bat_cell_bypass',), ('survival_entry',)]
+  [PASS] the one route into sun_safe that survives is bat_cell_bypass at 60.0 min
+  [PASS] no declared safe mode becomes unreachable, because bat_cell_bypass remains
+  [PASS] 14 of 16 fault states fall back to survival_entry at 480.0 min (bat_cell_short keeps its own route in both operational modes)
+
+summary: 14 of 14 checks passed
+PLANTED-CASE DETECTION COMPLETE

@@ -1,0 +1,41 @@
+subspace decomposition of the learned residual field on held-out data
+strong: the parameters could have done this and the data would have seen it
+weak  : the parameters could have done this and the data cannot tell  <- absorption
+orth  : no parameter value can reproduce this  <- genuine model-form error
+
+cut s/s_max = 0.1
+  design                strong      weak      orth  n_strong  n_weak
+  baseline-eclipse     0.00015   0.35610   0.64375         1       5
+  full-sun             0.00205   0.16147   0.83648         1       5
+  lumped-nodes         0.85117   0.14407   0.00476         1       5
+  weak-excitation      0.66095   0.31182   0.02723         1       5
+
+cut s/s_max = 0.01
+  design                strong      weak      orth  n_strong  n_weak
+  baseline-eclipse     0.35463   0.00161   0.64375         5       1
+  full-sun             0.03637   0.12715   0.83648         4       2
+  lumped-nodes         0.99512   0.00011   0.00476         4       2
+  weak-excitation      0.97137   0.00140   0.02723         4       2
+
+cut s/s_max = 0.001
+  design                strong      weak      orth  n_strong  n_weak
+  baseline-eclipse     0.35625   0.00000   0.64375         6       0
+  full-sun             0.08193   0.08159   0.83648         5       1
+  lumped-nodes         0.99524   0.00000   0.00476         6       0
+  weak-excitation      0.97176   0.00102   0.02723         5       1
+
+absorption ratio against the sound design, at the default cut
+  baseline-eclipse weak fraction = 0.001613
+  baseline-eclipse   weak fraction 0.001613   ratio     1.00
+  full-sun           weak fraction 0.127150   ratio    78.83
+  lumped-nodes       weak fraction 0.000115   ratio     0.07
+  weak-excitation    weak fraction 0.001399   ratio     0.87
+
+parameter drift under the learned discrepancy term
+  design              RMS log err before       after         verdict
+  baseline-eclipse              0.132553    0.178772           WORSE
+  full-sun                      0.076650    0.091097           WORSE
+  lumped-nodes                  0.040403    0.034044          better
+  weak-excitation               4.684348    4.863888           WORSE
+
+wrote screenshots/absorption_subspaces.png

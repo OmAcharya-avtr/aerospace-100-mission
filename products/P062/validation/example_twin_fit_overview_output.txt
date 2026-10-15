@@ -1,0 +1,72 @@
+design            : baseline-eclipse
+measured channels : T1, T2
+record            : 12000 s at dt = 30 s, stride 1 -> 401 samples per channel
+observations      : 802 scalar values
+thermometer noise : 0.3 K, independent Gaussian, known to the fitter
+illumination      : orbital, period 5700 s, eclipse fraction 0.35
+unit dissipation  : square wave 12/35 W, period 4000 s, duty 0.5
+note              : Both nodes measured over two orbits with eclipses and a duty-cycled unit. Nothing is wrong with this design: all six parameters are identifiable from it.
+
+VERDICT: full numerical rank 6, condition number 326; no near-null direction found at this point
+
+rank              : 6 of 6 at s/s_max >= 1e-08
+condition number  : 325.925
+collinearity index: 119.015  (Brun et al. 2001; above 10-15 is their non-identifiable range)
+
+singular spectrum of the weighted log-sensitivity matrix
+    i    singular value     s_i/s_max
+    0            5450.1             1
+    1            571.67       0.10489
+    2            462.25      0.084814
+    3            122.68      0.022509
+    4            91.301      0.016752
+    5            16.722     0.0030682
+
+no parameter combination has s/s_max below 0.001; nothing is reported as unconstrained at this point
+
+Cramer-Rao relative standard deviations (lower bound, log coordinates)
+  parameter        rel. sd    delta_msqr
+  C1             0.0082346        5.7943
+  C2              0.009539        14.678
+  k12            0.0021656        20.681
+  h_rad            0.01875        169.29
+  q_sun          0.0092264        77.751
+  q_par           0.056305         48.58
+
+CAVEATS, which travel with every number below:
+  - reduced chi-squared is 2.088, so the model does not reproduce the data to within the stated measurement noise; this is model error and no parameter covariance accounts for it
+
+weighted least-squares estimate
+  parameter       estimate     rel. sd          true  rel. error   unit
+  C1                846.29   0.0082346           800    0.057861   J/K
+  C2                  4026    0.009539          4000   0.0064977   J/K
+  k12               2.6571   0.0021656           2.5    0.062849   W/K
+  h_rad         1.2999e-08     0.01875    1.2050e-08    0.078749   W/K^4
+  q_sun             54.924   0.0092264            55  -0.0013833   W
+  q_par             24.285    0.056305            18     0.34919   W
+
+chi-squared        : 1662.03
+reduced chi-squared: 2.08798  (about 1 if the model is right)
+residual RMS       : 0.43187 K
+residual evaluations: 17
+converged          : True  (`ftol` termination condition is satisfied.)
+
+the relative standard deviations above are a LOCAL QUADRATIC approximation; read
+the profile intervals before reporting any of them
+
+parameter correlation
+                C1      C2     k12   h_rad   q_sun   q_par
+  C1        1.0000  0.0648 -0.0819  0.2436  0.2833  0.2103
+  C2        0.0648  1.0000 -0.1333  0.6727  0.9416  0.5498
+  k12      -0.0819 -0.1333  1.0000 -0.1132 -0.1190 -0.0927
+  h_rad     0.2436  0.6727 -0.1132  1.0000  0.7119  0.9848
+  q_sun     0.2833  0.9416 -0.1190  0.7119  1.0000  0.5799
+  q_par     0.2103  0.5498 -0.0927  0.9848  0.5799  1.0000
+
+pairs with |correlation| >= 0.95:
+  h_rad    q_par    +0.984849
+
+linearised time constants at the fit: 259.6 s and 4327.6 s; the record is 12000 s at 30 s sampling
+algebraic equilibrium at full sun and 35 W: T1 = 319.332 K, T2 = 306.160 K
+
+wrote screenshots/twin_fit_overview.png

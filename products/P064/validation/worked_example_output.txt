@@ -1,0 +1,47 @@
+Worked example: 31 lines changed in sampleproj/quat.py
+==============================================================================
+suite size          24 test nodes
+training history    224 revisions
+budget              0.25 of the suite
+
+Baseline 1, import-graph reachability (safe, budget does not apply)
+  selects 8/24 nodes, cost 0.3333
+    tests/test_kinematics.py::test_angular_momentum_known_answer
+    tests/test_kinematics.py::test_propagate_keeps_unit_norm
+    tests/test_kinematics.py::test_propagate_small_angle_about_x
+    tests/test_kinematics.py::test_propagate_zero_rate_is_identity
+    tests/test_quat.py::test_conjugate_flips_vector_part
+    tests/test_quat.py::test_identity_multiply
+    tests/test_quat.py::test_rotate_90_about_z
+    tests/test_quat.py::test_rotate_preserves_length
+
+Baseline 2, co-failure history: top 6 of 24
+    0.290123  tests/test_kinematics.py::test_propagate_keeps_unit_norm
+    0.290123  tests/test_kinematics.py::test_propagate_zero_rate_is_identity
+    0.253086  tests/test_kinematics.py::test_propagate_small_angle_about_x
+    0.216049  tests/test_quat.py::test_identity_multiply
+    0.141975  tests/test_quat.py::test_rotate_90_about_z
+    0.129630  tests/test_quat.py::test_rotate_preserves_length
+
+Learned selector: top 6 of 24, score is P(this test fails)
+    0.072772  tests/test_kinematics.py::test_propagate_keeps_unit_norm
+    0.072772  tests/test_kinematics.py::test_propagate_zero_rate_is_identity
+    0.063925  tests/test_kinematics.py::test_propagate_small_angle_about_x
+    0.061986  tests/test_quat.py::test_identity_multiply
+    0.046955  tests/test_quat.py::test_rotate_90_about_z
+    0.046955  tests/test_quat.py::test_rotate_preserves_length
+
+test files touched by each selection
+  Baseline 1   ['tests/test_kinematics.py', 'tests/test_quat.py']
+  Baseline 2   ['tests/test_kinematics.py', 'tests/test_quat.py']
+  learned      ['tests/test_kinematics.py', 'tests/test_quat.py']
+
+Baseline 1 picks the two test files that import quat, directly or through
+kinematics, and nothing else.
+On this change all three strategies land on the same two test files, so the
+only difference is cost: Baseline 1 runs 8 nodes and the two
+ranked strategies run 6 each at the 0.25 budget. The ranked
+strategies drop two of the eight reachable nodes to get there, and whether
+that is a good trade is the safety-loss question; the measured answer over
+the held-out revisions is in validate_benchmark_output.txt, and there the
+dependency baseline has the lower loss.

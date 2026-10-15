@@ -1,0 +1,289 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  activityplan: onboard spacecraft activity planning with an auditable
+  feasibility report naming the binding constraint
+version: 0.1.0
+date-released: 2026-10-15
+license: Apache-2.0
+abstract: >-
+  An onboard activity planner whose deliverable is a feasibility report rather
+  than a timeline. It takes declared activities -- piecewise-constant power
+  profile, data volume, priority, time window, precedence and exclusion
+  constraints -- and a declared resource model -- battery capacity with a
+  depth-of-discharge limit, an analytic eclipse-aware solar profile with a
+  closed-form energy integral, a solid-state recorder, and contact windows with
+  declared rates and transmitter power -- and reports the slack on every
+  constraint in its own physical unit and normalised by a declared scale, with
+  the binding constraint named. Two planners share one resource simulator: a
+  priority-ordered earliest-feasible-start greedy baseline, and the exact
+  optimum of the discretised problem by a time-indexed mixed-integer program
+  over HiGHS. The exact optimum is cross-checked against exhaustive enumeration
+  on nine small instances with zero disagreements, and the battery energy
+  balance closes to 2.274e-13 watt-hours over twenty-one traces against a
+  closed-form solar integral that agrees with adaptive quadrature to 4.743e-10
+  relative. Over twenty-four seeded instances the greedy baseline reaches 95.11
+  per cent of the proven optimum on average, 85.00 per cent at worst, and ties
+  it on nine. A learned random-forest predictor of activity duration and energy
+  with a split-conformal prediction interval is benchmarked against the analytic
+  model on held-out activities: it wins, by a mean mean-absolute-error ratio of
+  0.9249 on duration and 0.4116 on energy, and it wins because the analytic
+  model omits two terms the declared synthetic generator contains, which is
+  stated rather than elided. The interval attains marginal coverage on twelve of
+  twelve level-mode-target combinations and fails conditional coverage,
+  covering the longest third of activities 0.6782 of the time against a nominal
+  0.90. Two negative results are reported in full. The learned warm start does
+  not help the exact solver, because HiGHS closes the gap at the root node on
+  thirty-one of thirty-four measured solves and a primal-bound cut has nothing
+  to prune; what the learned predictor buys is that its candidate plan verifies
+  as feasible on the target problem eight times out of eight against five of
+  eight for the analytic model. And planning against the conformal upper bound
+  on duration produces worse plans than planning against the point prediction,
+  0.4167 against 0.4722 realised feasibility, because an activity's data volume
+  is declared rather than predicted, so booking a longer duration books a lower
+  production rate and the recorder overflows: duration robustness is
+  anti-robust for the recorder, measured at a realised-to-planned rate ratio of
+  1.1911 and an underbooking on 99.40 per cent of activities. Validation level
+  3, research grade. Not flight-qualified, not certified, not approved for
+  operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - activity-planning
+  - mission-planning
+  - oversubscribed-scheduling
+  - mixed-integer-programming
+  - spacecraft-power-budget
+  - conformal-prediction
+  - autonomous-aerospace-systems
+  - feasibility-analysis
+references:
+  - type: article
+    authors:
+      - family-names: Pritsker
+        given-names: "A. A. B."
+      - family-names: Watters
+        given-names: "L. J."
+      - family-names: Wolfe
+        given-names: "P. M."
+    title: >-
+      Multiproject scheduling with limited resources: a zero-one programming
+      approach
+    journal: "Management Science"
+    volume: 16
+    issue: 1
+    year: 1969
+    notes: >-
+      The time-indexed binary start-variable formulation that
+      activityplan.exact implements.
+  - type: conference-paper
+    authors:
+      - family-names: Chien
+        given-names: "S."
+      - family-names: Rabideau
+        given-names: "G."
+      - family-names: Knight
+        given-names: "R."
+      - family-names: Sherwood
+        given-names: "R."
+      - family-names: Engelhardt
+        given-names: "B."
+      - family-names: Mutz
+        given-names: "D."
+      - family-names: Estlin
+        given-names: "T."
+      - family-names: Smith
+        given-names: "B."
+      - family-names: Fisher
+        given-names: "F."
+      - family-names: Barrett
+        given-names: "T."
+      - family-names: Stebbins
+        given-names: "G."
+      - family-names: Tran
+        given-names: "D."
+    title: >-
+      ASPEN -- Automating Space Mission Operations using Automated Planning and
+      Scheduling
+    collection-title: "SpaceOps 2000"
+    year: 2000
+    notes: >-
+      The oversubscribed-activity framing: more requested activities than
+      resources allow, each with a priority, and a timeline that selects among
+      them. ASPEN is named in the README's alternatives table as the mature
+      system this package does not replace.
+  - type: conference-paper
+    authors:
+      - family-names: Rabideau
+        given-names: "G."
+      - family-names: Knight
+        given-names: "R."
+      - family-names: Chien
+        given-names: "S."
+      - family-names: Fukunaga
+        given-names: "A."
+      - family-names: Govindjee
+        given-names: "A."
+    title: >-
+      Iterative Repair Planning for Spacecraft Operations using the ASPEN System
+    collection-title: "i-SAIRAS 1999"
+    year: 1999
+    notes: >-
+      Priority-ordered insertion as the baseline that repair iterations improve
+      on. activityplan.greedy implements the insertion and no repair phase.
+  - type: article
+    authors:
+      - family-names: Huangfu
+        given-names: "Q."
+      - family-names: Hall
+        given-names: "J. A. J."
+    title: "Parallelizing the dual revised simplex method"
+    journal: "Mathematical Programming Computation"
+    volume: 10
+    issue: 1
+    year: 2018
+    notes: >-
+      HiGHS, the solver behind scipy.optimize.milp and therefore behind every
+      exact optimum in this repository.
+  - type: book
+    authors:
+      - family-names: Pinedo
+        given-names: "M. L."
+    title: "Scheduling: Theory, Algorithms, and Systems"
+    edition: "5th"
+    publisher:
+      name: "Springer"
+    year: 2016
+    notes: >-
+      Chapter 3, for the complexity of the underlying resource-constrained
+      scheduling problem and the time-indexed formulation.
+  - type: book
+    editors:
+      - family-names: Wertz
+        given-names: "J. R."
+      - family-names: Larson
+        given-names: "W. J."
+    title: "Space Mission Analysis and Design"
+    edition: "3rd"
+    publisher:
+      name: "Microcosm Press / Kluwer"
+    year: 1999
+    notes: >-
+      Chapter 11 for the orbit-average power budget formulation with eclipse
+      fraction and depth-of-discharge-sized battery; chapters 2 and 14 for the
+      slew-settle-collect timeline arithmetic the analytic duration model uses.
+      STRUCTURE only; no numerical value in this repository is taken from it.
+  - type: book
+    authors:
+      - family-names: Patel
+        given-names: "M. R."
+    title: "Spacecraft Power Systems"
+    publisher:
+      name: "CRC Press"
+    year: 2004
+    notes: >-
+      Chapters 6 and 8, for the depth-of-discharge limit as the operative
+      battery constraint and for the shunt treatment of surplus array power.
+      Structure only.
+  - type: article
+    authors:
+      - family-names: Breiman
+        given-names: "L."
+    title: "Random forests"
+    journal: "Machine Learning"
+    volume: 45
+    issue: 1
+    year: 2001
+    notes: The point estimator for both learned targets.
+  - type: conference-paper
+    authors:
+      - family-names: Papadopoulos
+        given-names: "H."
+      - family-names: Proedrou
+        given-names: "K."
+      - family-names: Vovk
+        given-names: "V."
+      - family-names: Gammerman
+        given-names: "A."
+    title: "Inductive confidence machines for regression"
+    collection-title: "ECML 2002, LNCS 2430"
+    year: 2002
+    notes: >-
+      Split (inductive) conformal prediction, including the locally weighted
+      variant implemented here as mode="normalised".
+  - type: book
+    authors:
+      - family-names: Vovk
+        given-names: "V."
+      - family-names: Gammerman
+        given-names: "A."
+      - family-names: Shafer
+        given-names: "G."
+    title: "Algorithmic Learning in a Random World"
+    publisher:
+      name: "Springer"
+    year: 2005
+    notes: The exchangeability argument the coverage guarantee rests on.
+  - type: article
+    authors:
+      - family-names: Lei
+        given-names: "J."
+      - family-names: "G'Sell"
+        given-names: "M."
+      - family-names: Rinaldo
+        given-names: "A."
+      - family-names: Tibshirani
+        given-names: "R. J."
+      - family-names: Wasserman
+        given-names: "L."
+    title: "Distribution-free predictive inference for regression"
+    journal: "Journal of the American Statistical Association"
+    volume: 113
+    issue: 523
+    year: 2018
+    notes: >-
+      The finite-sample marginal guarantee and the quantile index
+      ceil((n+1)(1-alpha))/n used verbatim, and the statement that conditional
+      coverage is not guaranteed, which this package measures and reports
+      failing.
+  - type: article
+    authors:
+      - family-names: Wager
+        given-names: "S."
+      - family-names: Hastie
+        given-names: "T."
+      - family-names: Efron
+        given-names: "B."
+    title: >-
+      Confidence intervals for random forests: the jackknife and the
+      infinitesimal jackknife
+    journal: "Journal of Machine Learning Research"
+    volume: 15
+    year: 2014
+    notes: >-
+      Why the naive tree-to-tree spread is not a confidence interval, which is
+      why this package uses conformal prediction instead of reporting it.
+  - type: article
+    authors:
+      - family-names: Kahn
+        given-names: "A. B."
+    title: "Topological sorting of large networks"
+    journal: "Communications of the ACM"
+    volume: 5
+    issue: 11
+    year: 1962
+    notes: >-
+      The ordering the greedy planner uses so that a successor is never
+      considered before its predecessor.
+  - type: article
+    authors:
+      - family-names: Bentley
+        given-names: "J."
+    title: "Programming pearls: algorithm design techniques"
+    journal: "Communications of the ACM"
+    volume: 27
+    issue: 9
+    year: 1984
+    notes: >-
+      The maximum-subarray algorithm used to compute the worst empty-plan
+      battery drawdown when sizing the random instance family.

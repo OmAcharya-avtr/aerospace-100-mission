@@ -1,0 +1,223 @@
+validate_residual.py -- physics alone against physics plus learned residual
+4 training trajectories, 3 held-out trajectories per design
+Training and held-out trajectories differ in input phase and in noise seed;
+no held-out sample appears in training in any form.
+
+==============================================================================
+1. Held-out improvement, physics-only against physics+residual
+==============================================================================
+The signal there is to find is the declared model-form discrepancy; it is
+known here only because the data is synthetic.
+
+  design              discrep K  noise K  phys RMSE  comb RMSE  improve            winner
+  baseline-eclipse       0.5537    0.300     0.6642     0.4052  +0.3899  physics+residual
+  full-sun               0.9795    0.300     0.4816     0.3187  +0.3382  physics+residual
+  lumped-nodes           0.1268    0.300     0.3051     0.2993  +0.0189               tie
+  weak-excitation        0.6171    0.300     0.3363     0.3200  +0.0485  physics+residual
+
+Per held-out trajectory, so that a pooled number cannot hide a bad one:
+  --- baseline-eclipse ---
+      phase   seed   phys RMSE   comb RMSE   improve
+      0.500   5200    0.686336    0.392777   +0.4277
+      0.667   5201    0.748430    0.468942   +0.3734
+      0.833   5202    0.540635    0.344209   +0.3633
+  --- full-sun ---
+      phase   seed   phys RMSE   comb RMSE   improve
+      0.500   5200    0.483455    0.315261   +0.3479
+      0.667   5201    0.483370    0.329387   +0.3186
+      0.833   5202    0.478021    0.311216   +0.3489
+  --- lumped-nodes ---
+      phase   seed   phys RMSE   comb RMSE   improve
+      0.500   5200    0.304850    0.296040   +0.0289
+      0.667   5201    0.307937    0.302279   +0.0184
+      0.833   5202    0.302435    0.299556   +0.0095
+  --- weak-excitation ---
+      phase   seed   phys RMSE   comb RMSE   improve
+      0.500   5200    0.335353    0.316653   +0.0558
+      0.667   5201    0.352550    0.333020   +0.0554
+      0.833   5202    0.320295    0.309920   +0.0324
+
+Read the lumped-nodes row before the baseline-eclipse one. Its declared
+discrepancy is 0.13 K against 0.30 K of noise, there is essentially
+nothing real to learn, and the residual model correctly finds almost
+nothing: the improvement is inside the decision margin and the verdict is
+a tie. That is the control that makes the other rows readable.
+
+==============================================================================
+2. Uncertainty: coverage of the predictive interval
+==============================================================================
+The band is sqrt(GP predictive variance + thermometer variance), so it is
+a predictive interval for a new measurement, not a confidence interval
+for the mean function. Nominal 0.9500 and 0.6827.
+
+  design                cov 95    cov 68  mean GP sd [K]
+  baseline-eclipse      0.9709    0.7573        0.333346
+  full-sun              0.9900    0.8313        0.305800
+  lumped-nodes          0.9933    0.8437        0.299475
+  weak-excitation       0.9900    0.8221        0.303518
+
+Every number above is ABOVE nominal, so the interval is conservative --
+too wide, not too narrow. That is the safer direction to be wrong in and
+it is still wrong: an interval reported as 95 per cent that covers 97 to
+99 per cent is not calibrated, and must not be quoted as a 95 per cent
+interval. It is usable as a conservative bound and as a ranking signal.
+
+==============================================================================
+3. Absorption by subspace decomposition
+==============================================================================
+strong: the parameters could have produced this and the data would have
+        seen it
+weak  : the parameters could have produced this and the data cannot tell
+        -- THIS IS THE ABSORPTION TERM
+orth  : no parameter value can produce this -- genuine model-form error
+
+  cut s/s_max = 0.1
+    design                strong      weak      orth  n_strong  n_weak      sum
+    baseline-eclipse     0.00015   0.35610   0.64375         1       5 1.000000
+    full-sun             0.00205   0.16147   0.83648         1       5 1.000000
+    lumped-nodes         0.85117   0.14407   0.00476         1       5 1.000000
+    weak-excitation      0.66095   0.31182   0.02723         1       5 1.000000
+
+  cut s/s_max = 0.01
+    design                strong      weak      orth  n_strong  n_weak      sum
+    baseline-eclipse     0.35463   0.00161   0.64375         5       1 1.000000
+    full-sun             0.03637   0.12715   0.83648         4       2 1.000000
+    lumped-nodes         0.99512   0.00011   0.00476         4       2 1.000000
+    weak-excitation      0.97137   0.00140   0.02723         4       2 1.000000
+
+  cut s/s_max = 0.001
+    design                strong      weak      orth  n_strong  n_weak      sum
+    baseline-eclipse     0.35625   0.00000   0.64375         6       0 1.000000
+    full-sun             0.08193   0.08159   0.83648         5       1 1.000000
+    lumped-nodes         0.99524   0.00000   0.00476         6       0 1.000000
+    weak-excitation      0.97176   0.00102   0.02723         5       1 1.000000
+
+The three fractions sum to 1 by construction; the last column is the
+arithmetic check and is 1.000000 everywhere.
+
+THE HEADLINE MEASUREMENT, at the default cut:
+  design              weak fraction   ratio to baseline
+  baseline-eclipse         0.001613                1.00
+  full-sun                 0.127150               78.83
+  lumped-nodes             0.000115                0.07
+  weak-excitation          0.001399                0.87
+
+On the structurally non-identifiable design the learned residual puts 78.8 times
+as large a share of its energy into directions the data cannot constrain
+as it does on the sound design, AT THIS ONE CONFIGURATION. Both designs
+show a similar held-out improvement: +0.34 against +0.39. That is what it
+means to say an improvement is partly real and partly absorption, stated
+as a number rather than as a caveat.
+
+DO NOT QUOTE THAT RATIO ON ITS OWN. validate_absorption.py varies the
+training-set size and the noise seed and finds the ratio swinging from
+3.3 to 96.7, because the sound design's absorption fraction is small and
+its run-to-run variation is a large share of itself. What survives every
+configuration tried is a SEPARATION: the degenerate design's absorption
+fraction stays in [0.08144, 0.15605] and the sound design's in
+[0.00161, 0.02441], and the two ranges do not overlap, while the held-out
+improvement does not separate the two designs at all.
+
+HOW MUCH OF THIS DEPENDS ON THE CUT, stated plainly because it matters:
+at the two usable cuts, 1e-2 and 1e-3, full-sun's absorption fraction is
+one to three orders of magnitude above every other design's, and the
+ordering is the same. At the loosest cut, 1e-1, the ordering INVERTS:
+baseline-eclipse reads 0.356 and full-sun 0.161. That is not a
+contradiction, it is the cut becoming meaningless -- at 1e-1 only ONE of
+the six parameter directions is called strong on every design, so the
+weak subspace is five-sixths of the parameter space and the measure stops
+separating 'the data cannot constrain this' from 'the data constrains
+this less well than the single best direction'. The singular spectra
+below show why: the second singular value is already 6 to 9 per cent of
+the first on every design, so a 1e-1 cut lands above almost everything.
+Conclusion: the absorption measure is meaningful for cuts below the
+spectrum's own second value and is reported at 1e-2 and 1e-3 for that
+reason. The 1e-1 row is printed rather than dropped so that the
+sensitivity of the conclusion to this choice is visible.
+
+Singular-value ratios of the held-out design's sensitivity matrix:
+  baseline-eclipse  1.000e+00, 9.036e-02, 8.036e-02, 2.356e-02, 1.741e-02, 7.095e-03
+  full-sun          1.000e+00, 6.489e-02, 4.664e-02, 1.565e-02, 9.211e-03, 7.831e-12
+  lumped-nodes      1.000e+00, 9.042e-02, 1.713e-02, 1.216e-02, 4.918e-03, 4.177e-03
+  weak-excitation   1.000e+00, 8.357e-02, 5.855e-02, 1.647e-02, 7.854e-03, 1.555e-08
+
+==============================================================================
+4. Absorption by parameter drift
+==============================================================================
+Refit the physics with the learned discrepancy subtracted from the data,
+and ask whether the physical parameters moved towards the truth or away
+from it (Brynjarsdottir and O'Hagan 2014).
+
+  design              RMS log err before      after    change   verdict
+  baseline-eclipse              0.132553   0.178772 +0.046219     WORSE
+  full-sun                      0.076650   0.091097 +0.014447     WORSE
+  lumped-nodes                  0.040403   0.034044 -0.006359    better
+  weak-excitation               4.684348   4.863888 +0.179540     WORSE
+
+the physical parameters got worse on 3 of 4 designs
+
+Per parameter, on the design the residual model wins on:
+parameter drift caused by the learned discrepancy term
+  parameter    physics only  with residual   log shift
+  C1                846.746        844.959    -0.00211
+  C2                4036.92        4142.22    +0.02575
+  k12               2.65049        2.66579    +0.00576
+  h_rad         1.30353e-08    1.35772e-08    +0.04073
+  q_sun             55.1111        56.4072    +0.02325
+  q_par             24.3987        27.1375    +0.10638
+  training chi2: 1628.25 -> 864
+  RMS log error against truth: 0.132553 -> 0.178772
+  the physical parameters got WORSE
+
+This is the finding that must not be softened. On baseline-eclipse the
+residual model reduces the held-out error by 39 per cent and makes the
+physical parameters WORSE by 35 per cent in root-mean-square log error.
+If the deliverable is a prediction, use it. If the deliverable is a
+physical parameter -- a heat capacity to put in a thermal report -- the
+residual model is actively harmful and the physics-only fit, with its
+profile intervals, is the thing to report.
+
+==============================================================================
+5. The Gaussian-process fits themselves
+==============================================================================
+A collapsed amplitude is a result: it means the model found nothing.
+
+  baseline-eclipse  1.42**2 * RBF(length_scale=2.46) + WhiteKernel(noise_level=0.409)
+                    training samples 600 used of 3208 offered
+  full-sun          1.16**2 * RBF(length_scale=1.5) + WhiteKernel(noise_level=0.383)
+                    training samples 600 used of 3208 offered
+  lumped-nodes      7.64e-05**2 * RBF(length_scale=91.4) + WhiteKernel(noise_level=1)
+                    training samples 600 used of 1604 offered
+  weak-excitation   0.0933**2 * RBF(length_scale=1.38) + WhiteKernel(noise_level=0.993)
+                    training samples 600 used of 1604 offered
+
+==============================================================================
+6. The residual model never sees a measurement it predicts
+==============================================================================
+Structural check on the feature builder: build_features does not take the
+measurements at all, so the same features come out whatever the noise.
+worst |features(seed 100) - features(seed 200)| = 0.000e+00
+worst |prediction difference|                   = 0.000e+00
+the two records differ in their measurements by  1.488763 K
+verdict: PASS   criterion exactly zero
+
+==============================================================================
+7. A decomposition sanity check with a constructed field
+==============================================================================
+A residual field built as an exact parameter perturbation must have zero
+energy orthogonal to the parameters; a field orthogonal to the column
+space must have all of it there.
+parameter-perturbation field, orthogonal fraction = 0.000e+00
+orthogonal field, orthogonal fraction             = 1.000000000
+verdict: PASS
+
+==============================================================================
+8. Coverage helper against a known answer
+==============================================================================
+coverage_fraction on 200000 standard normal draws, seed 1:
+  z = 1.000000  measured 0.683680  nominal 0.682689  difference +0.000991
+  z = 1.959964  measured 0.950165  nominal 0.950000  difference +0.000165
+  z = 3.000000  measured 0.996915  nominal 0.997300  difference -0.000385
+tolerance 0.005 at this sample size
+
+elapsed 44.5 s

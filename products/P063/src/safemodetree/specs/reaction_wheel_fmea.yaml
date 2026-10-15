@@ -1,0 +1,263 @@
+# An FMEA-shaped fault-response declaration for a small three-axis stabilised
+# spacecraft: one reaction-wheel assembly, one star tracker, one power chain.
+#
+# This declaration is ILLUSTRATIVE. The failure modes, the mode ladder and the
+# shape of the worksheet follow the FMEA/FMECA practice of MIL-STD-1629A
+# (Task 101, severity categories I to IV) and ECSS-Q-ST-30-02C clause 6. The
+# numbers are not a measurement of any vehicle, were not taken from any
+# programme's FMECA, and are chosen to exercise every check in this package,
+# including two ambiguity classes and two responses whose preconditions can
+# never hold.
+#
+# Costs are declared in minutes of mission outage (min). Detection latencies
+# are declared in seconds (s). Channel values carry the unit on the channel.
+
+name: reaction_wheel_fmea
+description: >-
+  Illustrative FMEA-shaped declaration for a small three-axis spacecraft with
+  one reaction-wheel assembly, one star tracker and one power chain. Contains
+  two declared ambiguity classes and two deliberately vacuous responses.
+
+initial_mode: fine_pointing
+
+modes:
+  - id: fine_pointing
+    description: Star-tracker-referenced fine pointing, the operational mode.
+  - id: coarse_pointing
+    description: Coarse-sensor-referenced pointing, reduced performance, still operational.
+  - id: sun_safe
+    description: Sun-pointing safe mode, payload off, attitude held on coarse sensors.
+    safe: true
+  - id: survival
+    description: >-
+      Hardware-commanded survival state awaiting ground action. Safe and
+      absorbing: no onboard response leaves it.
+    safe: true
+    absorbing: true
+
+conditions:
+  - id: wheels_available
+    description: At least one reaction wheel is usable for torque.
+    available_in_modes: [fine_pointing, coarse_pointing]
+  - id: tracker_powered
+    description: >-
+      The star tracker is powered. The tracker is unpowered in sun_safe and in
+      survival, so any response requiring it can only fire in an operational
+      mode.
+    available_in_modes: [fine_pointing, coarse_pointing]
+  - id: redundant_wheel_available
+    description: >-
+      A spare reaction wheel is populated. Declared always_false on this build:
+      the spare slot is not populated. Any response requiring it is dead.
+    always_false: true
+
+faults:
+  - id: rw_bearing_drag
+    effect: Wheel bearing drag torque rises; control authority and wheel life reduced.
+    severity: "II"
+    detectable: true
+    detection_latency_s: 30.0
+    occurs_in_modes: [fine_pointing, coarse_pointing]
+  - id: rw_motor_open
+    effect: Wheel motor winding open circuit; no torque from that wheel.
+    severity: "II"
+    detectable: true
+    detection_latency_s: 10.0
+    occurs_in_modes: [fine_pointing, coarse_pointing]
+  - id: rw_tach_stale
+    effect: Wheel tachometer telemetry stale; wheel speed unknown, torque unaffected.
+    severity: "III"
+    detectable: true
+    detection_latency_s: 5.0
+    occurs_in_modes: [fine_pointing, coarse_pointing]
+  - id: st_blinding
+    effect: >-
+      Star tracker blinded by a bright body in the field of view; attitude
+      knowledge lost, recovers on its own when the body leaves the field.
+    severity: "III"
+    detectable: true
+    detection_latency_s: 60.0
+    occurs_in_modes: [fine_pointing, coarse_pointing]
+  - id: st_latchup
+    effect: >-
+      Star tracker electronics single-event latch-up; attitude knowledge lost
+      and does not recover without a power cycle.
+    severity: "II"
+    detectable: true
+    detection_latency_s: 60.0
+    occurs_in_modes: [fine_pointing, coarse_pointing]
+  - id: bat_cell_short
+    effect: Battery cell internal short; bus voltage droops, capacity lost.
+    severity: "I"
+    detectable: true
+    detection_latency_s: 15.0
+    occurs_in_modes: [fine_pointing, coarse_pointing]
+  - id: sa_string_open
+    effect: Solar array string open circuit; array current and power input reduced.
+    severity: "III"
+    detectable: true
+    detection_latency_s: 120.0
+    occurs_in_modes: [fine_pointing, coarse_pointing]
+  - id: pcdu_shunt_stuck
+    effect: >-
+      Power conditioning unit shunt regulator stuck on; array current is
+      shunted to ground and the bus is undersupplied.
+    severity: "II"
+    detectable: true
+    detection_latency_s: 120.0
+    occurs_in_modes: [fine_pointing, coarse_pointing]
+
+responses:
+  # Fault-agnostic responses. These are the only responses available when the
+  # fault is not identified, and the conservative route for an ambiguity class
+  # is always one of these.
+  - id: coarse_downmode
+    from_mode: fine_pointing
+    to_mode: coarse_pointing
+    cost_min: 8.0
+  - id: safe_mode_entry
+    from_mode: coarse_pointing
+    to_mode: sun_safe
+    cost_min: 45.0
+  - id: survival_entry
+    to_mode: survival
+    cost_min: 480.0
+
+  # Fault-specific responses.
+  - id: rw_drag_derate
+    fault: rw_bearing_drag
+    to_mode: coarse_pointing
+    cost_min: 18.0
+    clears_fault: true
+    precondition: [wheels_available]
+  - id: rw_motor_isolate
+    fault: rw_motor_open
+    to_mode: coarse_pointing
+    cost_min: 30.0
+    clears_fault: true
+    precondition: [wheels_available]
+  - id: rw_swap_to_spare
+    fault: rw_motor_open
+    to_mode: fine_pointing
+    cost_min: 5.0
+    clears_fault: true
+    precondition: [redundant_wheel_available]
+  - id: rw_tach_estimator
+    fault: rw_tach_stale
+    to_mode: fine_pointing
+    cost_min: 4.0
+    clears_fault: true
+  - id: st_wait_and_reacquire
+    fault: st_blinding
+    from_mode: fine_pointing
+    to_mode: fine_pointing
+    cost_min: 6.0
+    clears_fault: true
+  - id: st_power_cycle
+    fault: st_latchup
+    to_mode: coarse_pointing
+    cost_min: 25.0
+    clears_fault: true
+    precondition: [tracker_powered]
+  - id: st_power_cycle_in_safe
+    fault: st_latchup
+    from_mode: sun_safe
+    to_mode: sun_safe
+    cost_min: 25.0
+    clears_fault: true
+    precondition: [tracker_powered]
+  - id: bat_cell_bypass
+    fault: bat_cell_short
+    to_mode: sun_safe
+    cost_min: 60.0
+    clears_fault: true
+  - id: array_reconfigure
+    fault: sa_string_open
+    to_mode: coarse_pointing
+    cost_min: 15.0
+    clears_fault: true
+  - id: pcdu_reset
+    fault: pcdu_shunt_stuck
+    to_mode: coarse_pointing
+    cost_min: 35.0
+    clears_fault: true
+
+channels:
+  - id: wheel_current
+    unit: A
+    nominal: 0.22
+    threshold: 0.42
+    faulted: 0.68
+    direction: above
+    noise_sd: 0.05
+  - id: wheel_speed_age
+    unit: s
+    nominal: 0.25
+    threshold: 2.00
+    faulted: 6.00
+    direction: above
+    noise_sd: 0.45
+  - id: attitude_residual
+    unit: deg
+    nominal: 0.08
+    threshold: 0.50
+    faulted: 1.40
+    direction: above
+    noise_sd: 0.10
+  - id: bus_voltage
+    unit: V
+    nominal: 28.00
+    threshold: 26.00
+    faulted: 24.20
+    direction: below
+    noise_sd: 0.40
+  - id: array_current
+    unit: A
+    nominal: 2.10
+    threshold: 1.20
+    faulted: 0.55
+    direction: below
+    noise_sd: 0.18
+  - id: tracker_valid_fraction
+    unit: dimensionless
+    nominal: 0.98
+    threshold: 0.80
+    faulted: 0.35
+    direction: below
+    noise_sd: 0.05
+  - id: wheel_torque_error
+    unit: mN*m
+    nominal: 0.40
+    threshold: 3.00
+    faulted: 6.50
+    direction: above
+    noise_sd: 0.60
+
+# Declared observability. Channels not listed for a fault are 0. Two pairs of
+# faults have identical signatures and are therefore declared
+# indistinguishable: (st_blinding, st_latchup) and
+# (sa_string_open, pcdu_shunt_stuck).
+signatures:
+  rw_bearing_drag:
+    wheel_current: 1
+    attitude_residual: 1
+    wheel_torque_error: 1
+  rw_motor_open:
+    attitude_residual: 1
+    wheel_torque_error: 1
+  rw_tach_stale:
+    wheel_speed_age: 1
+  st_blinding:
+    attitude_residual: 1
+    tracker_valid_fraction: 1
+  st_latchup:
+    attitude_residual: 1
+    tracker_valid_fraction: 1
+  bat_cell_short:
+    bus_voltage: 1
+  sa_string_open:
+    bus_voltage: 1
+    array_current: 1
+  pcdu_shunt_stuck:
+    bus_voltage: 1
+    array_current: 1

@@ -1,0 +1,392 @@
+# STPA hazard analysis of the B-dot detumble control loop implemented in
+# P024 DetumbleSim of this portfolio.
+#
+# Every statement about the implementation below was read out of P024's own
+# source: src/detumblesim/control.py (the B-dot law and the perpendicular
+# -torque result), src/detumblesim/simulate.py (backward-difference derivative,
+# zero-order hold, first-step zero command, seeded magnetometer noise, the
+# interpolated threshold crossing) and src/detumblesim/spacecraft.py (per-axis
+# dipole clipping).
+#
+# THIS ANALYSIS IS DELIBERATELY NOT COMPLETE. It is the Level 2 worked example
+# of hazardtrace, and its purpose is to be carried end to end with the gaps it
+# actually has. Those gaps are reported by `python -m hazardtrace check`, are
+# listed in validation/VALIDATION.md, and have NOT been filled in to make the
+# example look finished. Two of them - an unanalysed enumeration cell for the
+# duration of magnetorquer actuation, and no system-level constraint on rate
+# divergence - correspond to functions P024 does not have.
+
+meta:
+  title: B-dot magnetorquer detumble loop (P024 DetumbleSim)
+  system: 3U-class spacecraft, three-axis magnetorquer, magnetometer-only detumble
+  revision: "0.1.0, worked example, incomplete by design"
+  notes: >-
+    Scope is the detumble mode only. Attitude determination, pointing modes,
+    reaction wheels, power generation and the launch-vehicle interface are out
+    of scope and are not modelled in P024 either.
+
+losses:
+  - id: L-1
+    description: >-
+      Loss of the mission: the spacecraft never establishes the attitude its
+      payload requires.
+    stakeholders: [mission owner, payload provider]
+  - id: L-2
+    description: Loss or degradation of payload data return.
+    stakeholders: [payload provider, data users]
+  - id: L-3
+    description: >-
+      Loss of the spacecraft through battery depletion during an extended
+      detumble.
+    stakeholders: [mission owner, operator]
+  - id: L-4
+    description: >-
+      Damage to the spacecraft structure, appendages or coils from sustained
+      high body rates or from over-driving a coil.
+    stakeholders: [mission owner, launch provider]
+
+hazards:
+  - id: H-1
+    description: >-
+      The spacecraft body rate remains above the magnitude attitude acquisition
+      requires, beyond the declared detumble window.
+    losses: [L-1, L-2]
+  - id: H-2
+    description: >-
+      The spacecraft leaves detumble mode while the body-rate magnitude is
+      above the magnitude attitude acquisition requires.
+    losses: [L-1, L-2]
+  - id: H-3
+    description: >-
+      The commanded magnetic dipole exceeds the coil's qualified operating
+      limit.
+    losses: [L-4]
+  - id: H-4
+    description: >-
+      The body-rate magnitude increases while the detumble controller is
+      active.
+    losses: [L-1, L-4]
+  - id: H-5
+    description: >-
+      Magnetorquer actuation continues beyond the energy allocated to
+      detumbling.
+    losses: [L-3]
+  - id: H-6
+    description: >-
+      The control law acts on a magnetic measurement corrupted by the
+      spacecraft's own actuation.
+    losses: [L-1, L-2]
+
+constraints:
+  - id: SC-1
+    description: >-
+      The detumble controller shall reduce the body-rate magnitude to the
+      acquisition threshold within the declared detumble window for every
+      declared initial tumble state and orbit geometry.
+    hazards: [H-1]
+    requirements: [REQ-001, REQ-002]
+  - id: SC-2
+    description: >-
+      Detumble shall not be declared complete unless the body-rate magnitude
+      is at or below the declared target rate.
+    hazards: [H-2]
+    requirements: [REQ-009, REQ-010]
+  - id: SC-3
+    description: >-
+      The dipole applied to any coil shall never exceed that coil's declared
+      per-axis limit.
+    hazards: [H-3]
+    requirements: [REQ-005]
+  - id: SC-4
+    description: >-
+      Magnetorquer actuation shall cease when the energy allocated to
+      detumbling is exhausted.
+    hazards: [H-5]
+    requirements: [REQ-022]
+  - id: SC-5
+    description: >-
+      The magnetic measurement used by the control law shall not be corrupted
+      by the dipole the control law is itself commanding.
+    hazards: [H-6]
+
+control_structure:
+  controllers:
+    - id: CTRL-BDOT
+      name: B-dot detumble control law
+      process_model:
+        - previous body-frame field sample B[i-1]
+        - current body-frame field sample B[i]
+        - control interval dt
+    - id: CTRL-MODE
+      name: ADCS mode manager (detumble entry and exit)
+      process_model:
+        - body-rate magnitude relative to the target rate
+  actuators:
+    - id: ACT-MTQ
+      name: three-axis magnetorquer set, per-axis dipole limit
+    - id: ACT-MODEFLAG
+      name: ADCS mode flag read by the control-law dispatcher
+  sensors:
+    - id: SNS-MAG
+      name: three-axis magnetometer, one sample per control interval
+  controlled_processes:
+    - id: PROC-ATT
+      name: spacecraft rigid-body attitude and body rate
+  control_actions:
+    - id: CA-DIPOLE
+      name: commanded magnetorquer dipole vector
+      controller: CTRL-BDOT
+      actuator: ACT-MTQ
+      process: PROC-ATT
+      continuous: true
+    - id: CA-EXIT
+      name: declare detumble complete and leave detumble mode
+      controller: CTRL-MODE
+      actuator: ACT-MODEFLAG
+      process: PROC-ATT
+      continuous: false
+  feedback:
+    - id: FB-BFIELD
+      name: body-frame magnetic field sample
+      sensor: SNS-MAG
+      controller: CTRL-BDOT
+      process: PROC-ATT
+
+ucas:
+  - id: UCA-1
+    control_action: CA-DIPOLE
+    uca_class: not_provided
+    description: >-
+      No dipole is commanded on the first control step, because the backward
+      difference has no previous magnetometer sample.
+    context: >-
+      P024 simulate.py commands zero on step 0 by construction. One control
+      interval of lost damping is negligible against a detumble of thousands of
+      seconds, but the same branch is taken on every controller restart, and
+      P024 declares no restart behaviour at all.
+    hazards: [H-1]
+  - id: UCA-2
+    control_action: CA-DIPOLE
+    uca_class: provided
+    description: >-
+      A dipole is commanded whose direction is not anti-parallel to dB/dt,
+      because per-axis clipping to the coil box changes the vector's direction
+      and not only its magnitude.
+    context: >-
+      Whenever any axis saturates. The energy-decrease argument for B-dot
+      assumes the unsaturated law; P024's own gain sweep shows an interior
+      optimum in gain at a 0.2 A m^2 limit, which the unsaturated 1/k law does
+      not predict, so saturation is the operating regime and not an edge case.
+    hazards: [H-1, H-4]
+  - id: UCA-3
+    control_action: CA-DIPOLE
+    uca_class: provided
+    description: >-
+      A dipole is commanded that is dominated by magnetometer noise rather than
+      by the field's rate of change.
+    context: >-
+      Late in the detumble, when the body rate and therefore |dB/dt| are small.
+      The backward difference divides the per-sample noise by the control
+      interval, so the noise contribution to the estimated derivative scales as
+      1/dt and P024 declares no filter and no derivative deadband.
+    hazards: [H-1, H-5]
+  - id: UCA-4
+    control_action: CA-DIPOLE
+    uca_class: wrong_timing_or_order
+    description: >-
+      The dipole commanded for the interval that has just ended is applied over
+      the interval that follows, by which time the body-frame field direction
+      has rotated.
+    context: >-
+      At body rates where the field direction turns appreciably within one
+      control interval. The zero-order hold is correct flight practice and is
+      what P024 models; the hazard is that the control interval is a declared
+      constant with no stated validity bound on body rate.
+    hazards: [H-1, H-4]
+  - id: UCA-7
+    control_action: CA-DIPOLE
+    uca_class: provided
+    description: >-
+      A dipole is commanded that increases the body-rate magnitude.
+    context: >-
+      Admissible for an asymmetric inertia even under the ideal law: P024's own
+      test suite carries an explicit counterexample in which the angular
+      momentum magnitude rises while the kinetic energy falls. Under saturation
+      and noise the guarantee is weaker still, and nothing onboard detects it.
+    hazards: [H-4]
+  - id: UCA-5
+    control_action: CA-EXIT
+    uca_class: not_provided
+    description: >-
+      Detumble is never declared complete, and the spacecraft remains in
+      detumble mode indefinitely.
+    context: >-
+      The completion criterion in P024 is a threshold on the true body-rate
+      magnitude, evaluated in post-processing. The loop as implemented carries
+      no rate estimate at all, so there is no onboard signal the criterion
+      could be evaluated against, and no declared timeout.
+    hazards: [H-1, H-5]
+  - id: UCA-6
+    control_action: CA-EXIT
+    uca_class: provided
+    description: >-
+      Detumble is declared complete while a body-rate component along the
+      instantaneous field direction remains above the acquisition threshold.
+    context: >-
+      Any geometry where the residual rate is field-parallel. The realised
+      torque of any magnetorquer is m x B, identically perpendicular to B, so
+      the field-parallel rate component is not damped at that instant; a small
+      |dB/dt| is therefore not evidence of a small |omega|.
+    hazards: [H-2]
+
+exclusions:
+  - control_action: CA-EXIT
+    uca_class: stopped_too_soon_or_applied_too_long
+    justification: >-
+      The mode-exit command is a single discrete state change, not a sustained
+      control action, so it has no duration that could be stopped too soon or
+      applied too long. The STPA Handbook restricts this class to continuous
+      control actions. The duration of detumble actuation itself is carried by
+      CA-DIPOLE, not here.
+    author: worked example, hazardtrace 0.1.0
+    date: "2026-10-15"
+
+loss_scenarios:
+  - id: LS-1
+    description: >-
+      The controller restarts, takes the first-sample branch and commands no
+      dipole; if restarts are frequent relative to the control interval the
+      duty cycle of damping falls without any indication.
+    ucas: [UCA-1]
+    causal_factor_class: controller
+    mitigations: [M-2]
+  - id: LS-2
+    description: >-
+      The commanded dipole saturates on one or two axes; the applied torque is
+      no longer the one the stability argument assumes, and the detumble takes
+      several times longer than the unsaturated law predicts.
+    ucas: [UCA-2]
+    causal_factor_class: actuator
+    mitigations: [M-1, M-6]
+  - id: LS-3
+    description: >-
+      At a high initial tumble rate the field direction rotates within one
+      control interval, so the held dipole opposes a field derivative that no
+      longer applies and the damping per interval is reduced or reversed.
+    ucas: [UCA-4]
+    causal_factor_class: controller
+    mitigations: [M-6]
+  - id: LS-4
+    description: >-
+      No onboard signal can evaluate the completion criterion, so the mode
+      manager never commands the exit and the spacecraft torques indefinitely,
+      consuming the energy allocated to detumbling.
+    ucas: [UCA-5]
+    causal_factor_class: feedback
+    mitigations: [M-3, M-4]
+  - id: LS-5
+    description: >-
+      The magnetometer samples the field while a coil is driven, so the sample
+      contains the spacecraft's own dipole; the derivative estimate and hence
+      the command are biased by the command itself.
+    ucas: [UCA-6]
+    causal_factor_class: feedback
+  - id: LS-6
+    description: >-
+      Under a saturated command on an asymmetric inertia the body-rate
+      magnitude rises for an extended period; nothing onboard observes the rate,
+      so nothing detects it and no safe mode is entered.
+    ucas: [UCA-7]
+    causal_factor_class: controller
+    mitigations: [M-5]
+
+mitigations:
+  - id: M-1
+    description: >-
+      Clip the commanded dipole per axis to the declared coil limit, so the
+      applied dipole can never exceed the qualified value even though its
+      direction is changed by the clip.
+    requirements: [REQ-005]
+    evidence: [EV-1]
+  - id: M-2
+    description: >-
+      Command a zero dipole on any control step that has no previous
+      magnetometer sample, rather than an undefined or extrapolated one.
+    requirements: [REQ-003]
+    evidence: [EV-2]
+  - id: M-3
+    description: >-
+      Report a detumble that never reaches the target rate as not-a-number, so
+      that a non-completion is never read as a completion at the span length.
+    requirements: [REQ-010]
+    evidence: [EV-3]
+  - id: M-4
+    description: >-
+      Bound the deployment tumble rate by operational agreement with the launch
+      provider, so that the declared detumble window is achievable.
+    requirements: []
+  - id: M-5
+    description: >-
+      Monitor the body-rate magnitude onboard and command a safe mode when it
+      rises for longer than a declared interval while the detumble controller
+      is active.
+    requirements: [REQ-021]
+    evidence: [EV-6]
+  - id: M-6
+    description: >-
+      Publish the field-parallel controllability deficit and the saturated gain
+      optimum with the detumble-time numbers, so that a sizing decision is made
+      against the measured surface rather than the unsaturated 1/k law.
+    requirements: [REQ-006, REQ-012]
+    evidence: [EV-4, EV-5, EV-7]
+
+evidence:
+  - id: EV-1
+    kind: test
+    description: >-
+      Per-axis clipping is exercised directly and the applied dipole is checked
+      against the limit on every step of a full simulation.
+    tests:
+      - tests/test_spacecraft.py::TestMagnetorquer::test_known_answer_saturation
+      - tests/test_spacecraft.py::TestMagnetorquer::test_per_axis_limits
+      - tests/test_simulate.py::TestSimulation::test_dipole_never_exceeds_the_limit
+  - id: EV-2
+    kind: test
+    description: The first control step is checked to command no dipole.
+    tests:
+      - tests/test_simulate.py::TestSimulation::test_first_step_commands_no_dipole
+  - id: EV-3
+    kind: test
+    description: >-
+      A run that never crosses the target rate is checked to report
+      not-a-number.
+    tests:
+      - tests/test_simulate.py::TestCrossingTime::test_returns_nan_when_never_crossed
+  - id: EV-4
+    kind: test
+    description: >-
+      The applied torque is checked to be perpendicular to the field, which is
+      the controllability deficit stated as a property.
+    tests:
+      - tests/test_control.py::TestPerpendicularTorque::test_torque_is_always_perpendicular_to_b
+  - id: EV-5
+    kind: analysis
+    description: >-
+      The worst-axis damping deficit and the detumble-time penalty on an
+      equatorial orbit, measured over a seeded orbit family.
+    path: validation/controllability_gap_output.txt
+  - id: EV-6
+    kind: test
+    description: >-
+      The onboard divergence monitor is checked to command a safe mode when the
+      body rate rises. This test does not exist; M-5 is a proposed mitigation
+      and the citation is left in place so that the gap is reported.
+    tests:
+      - tests/test_divergence_monitor.py::test_rate_increase_commands_safe_mode
+  - id: EV-7
+    kind: test
+    description: >-
+      The ideal unsaturated law is checked never to increase the rotational
+      kinetic energy, for any admissible inertia.
+    tests:
+      - tests/test_control.py::TestIdealBDotEnergyAndMomentum::test_kinetic_energy_never_increases_for_any_inertia

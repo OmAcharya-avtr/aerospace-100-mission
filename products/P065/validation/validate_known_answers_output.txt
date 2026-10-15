@@ -1,0 +1,71 @@
+hazardtrace validation: known answers on hand-constructed cases
+
+A. planted_gaps.yaml: one planted instance of every check
+   checks implemented      : 16
+   findings raised         : 16
+   exit code               : 1
+
+   code    expected subject                          actual subject                            verdict
+   HT001   CA-1,stopped_too_soon_or_applied_too_long CA-1,stopped_too_soon_or_applied_too_long match
+   HT002   CA-1,wrong_timing_or_order                CA-1,wrong_timing_or_order                match
+   HT003   CA-2,not_provided                         CA-2,not_provided                         match
+   HT004   H-2                                       H-2                                       match
+   HT005   SC-2                                      SC-2                                      match
+   HT006   UCA-3                                     UCA-3                                     match
+   HT007   LS-2                                      LS-2                                      match
+   HT008   M-2                                       M-2                                       match
+   HT009   H-3                                       H-3                                       match
+   HT010   UCA-2                                     UCA-2                                     match
+   HT011   L-2                                       L-2                                       match
+   HT012   REQ-299                                   REQ-299                                   match
+   HT013   tests/test_planted.py::test_absent        tests/test_planted.py::test_absent        match
+   HT014   tests/test_planted.py::test_fails         tests/test_planted.py::test_fails         match
+   HT015   CTRL-B                                    CTRL-B                                    match
+   HT016   SNS-ORPHAN                                SNS-ORPHAN                                match
+
+  [PASS] every check raises exactly one finding  16 findings, 16 checks
+  [PASS] every planted subject matches
+  [PASS] planted case exits 1
+  [PASS] severity split is 14 error and 2 warning  14 error, 2 warning, 0 info
+  [PASS] enumeration coverage is 7/8  7/8 = 87.5000 %
+
+B. complete_minimal.yaml: every link closed
+   findings raised         : 0
+   exit code               : 0
+   enumeration coverage    : 4/4 = 100.0000 %
+  [PASS] clean case raises nothing
+  [PASS] clean case exits 0
+  [PASS] clean case enumeration is 4/4
+
+C. p024_bdot_detumble.yaml: the Level 2 worked example
+   The findings below are the genuine gaps in this analysis. They are
+   reported, not fixed; see VALIDATION.md section 6.
+   findings raised         : 11
+   exit code               : 1
+
+   HT001  x2  UCA enumeration gap: cell has no UCA and no exclusion
+   HT004  x1  hazard with no system-level constraint
+   HT005  x1  constraint with no requirement identifier
+   HT006  x1  UCA with no loss scenario
+   HT007  x1  loss scenario with no mitigation
+   HT008  x1  mitigation with no evidence artifact
+   HT012  x2  requirement identifier not declared in the document
+   HT013  x1  test identifier not present in the test report
+   HT015  x1  controller with no feedback path
+
+   enumeration completeness        6/8 = 75.0000 %
+   hazards with a constraint       5/6 = 83.3333 %
+   constraints with a requirement  4/5 = 80.0000 %
+   UCAs with a loss scenario       6/7 = 85.7143 %
+   scenarios with a mitigation     5/6 = 83.3333 %
+   mitigations with evidence       5/6 = 83.3333 %
+   cited requirements resolved     8/10 = 80.0000 %
+   cited tests resolved            7/8 = 87.5000 %
+   cited tests passing             7/8 = 87.5000 %
+
+  [PASS] worked example raises 11 findings  11
+  [PASS] worked example per-code counts are the pinned ones
+  [PASS] worked example exits 1
+  [PASS] worked example enumeration is 6/8  6/8 = 75.0000 %
+
+RESULT: every check in this script passed

@@ -1,0 +1,45 @@
+safemodetree environment record
+========================================================================
+safemodetree version   0.1.0
+python                 3.13.16
+implementation         CPython
+platform               Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+machine                x86_64
+
+installed versions of every library a number here depends on
+------------------------------------------------------------------------
+  numpy            2.5.3
+  scikit-learn     1.9.1
+  PyYAML           6.0.3
+  matplotlib       3.11.2
+  pytest           9.1.1
+  hypothesis       6.169.3
+  ruff             0.17.0
+
+declared dependency ranges in pyproject.toml; BOTH ends were installed
+and the whole suite plus every validation script was run at each end
+------------------------------------------------------------------------
+  numpy         >=2.1.3,<2.6
+  scikit-learn  >=1.5.2,<1.10
+  pyyaml        >=6.0.2,<6.1
+  matplotlib    >=3.9.2,<3.12      (plot extra)
+  pytest        >=8.3.3,<9.2       (test extra)
+  hypothesis    >=6.112.1,<6.170   (test extra)
+  ruff          >=0.6.9,<0.18      (test extra)
+
+note: two ruff builds are present in this container. The CLI on PATH is
+0.16.8 (a uv tool install) and the importable package is 0.17.0. Both were
+run clean over src/, tests/, examples/ and validation/, as was 0.6.9 in the
+floor virtual environment, so the declared range is >=0.6.9,<0.18.
+
+alternatives named in the README must NOT be importable here
+------------------------------------------------------------------------
+  [PASS] transitions is not installed
+  [PASS] statemachine is not installed
+  [PASS] pynusmv is not installed
+  [PASS] nusmv is not installed
+  [PASS] pysmt is not installed
+  [PASS] sismic is not installed
+
+summary: 6 of 6 checks passed
+ENVIRONMENT RECORD COMPLETE

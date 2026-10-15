@@ -1,0 +1,137 @@
+{
+ "schema": "regressselect-faultmatrix/1",
+ "fault_ids": [
+  "F01",
+  "F02",
+  "F03",
+  "F04",
+  "F05",
+  "F06",
+  "F07",
+  "F08",
+  "F09",
+  "F10",
+  "F11",
+  "F12",
+  "F13",
+  "F14"
+ ],
+ "node_ids": [
+  "tests/test_filters.py::test_moving_average_known_answer",
+  "tests/test_filters.py::test_moving_average_window_one_is_identity",
+  "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset",
+  "tests/test_integrate.py::test_simpson_quadratic_is_exact",
+  "tests/test_integrate.py::test_simpson_rejects_even_sample_count",
+  "tests/test_integrate.py::test_trapezoid_linear_is_exact",
+  "tests/test_kinematics.py::test_angular_momentum_known_answer",
+  "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+  "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+  "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+  "tests/test_orbit.py::test_circular_velocity_leo",
+  "tests/test_orbit.py::test_period_matches_vis_viva",
+  "tests/test_orbit.py::test_rejects_non_positive_radius",
+  "tests/test_quat.py::test_conjugate_flips_vector_part",
+  "tests/test_quat.py::test_identity_multiply",
+  "tests/test_quat.py::test_rotate_90_about_z",
+  "tests/test_quat.py::test_rotate_preserves_length",
+  "tests/test_stats.py::test_mean_known_answer",
+  "tests/test_stats.py::test_rms_known_answer",
+  "tests/test_stats.py::test_variance_bessel_corrected",
+  "tests/test_vecops.py::test_cross_right_handed",
+  "tests/test_vecops.py::test_dot_known_answer",
+  "tests/test_vecops.py::test_norm_known_answer",
+  "tests/test_vecops.py::test_normalize_is_unit"
+ ],
+ "detecting": {
+  "F01": [
+   "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+   "tests/test_vecops.py::test_norm_known_answer",
+   "tests/test_vecops.py::test_normalize_is_unit"
+  ],
+  "F02": [
+   "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+   "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+   "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+   "tests/test_quat.py::test_rotate_90_about_z",
+   "tests/test_quat.py::test_rotate_preserves_length",
+   "tests/test_vecops.py::test_dot_known_answer",
+   "tests/test_vecops.py::test_norm_known_answer",
+   "tests/test_vecops.py::test_normalize_is_unit"
+  ],
+  "F03": [
+   "tests/test_vecops.py::test_cross_right_handed"
+  ],
+  "F04": [],
+  "F05": [
+   "tests/test_quat.py::test_conjugate_flips_vector_part",
+   "tests/test_quat.py::test_rotate_90_about_z"
+  ],
+  "F06": [
+   "tests/test_integrate.py::test_simpson_quadratic_is_exact"
+  ],
+  "F07": [
+   "tests/test_integrate.py::test_simpson_rejects_even_sample_count"
+  ],
+  "F08": [
+   "tests/test_stats.py::test_variance_bessel_corrected"
+  ],
+  "F09": [
+   "tests/test_filters.py::test_moving_average_known_answer",
+   "tests/test_filters.py::test_moving_average_window_one_is_identity",
+   "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset"
+  ],
+  "F10": [
+   "tests/test_kinematics.py::test_propagate_small_angle_about_x"
+  ],
+  "F11": [
+   "tests/test_orbit.py::test_period_matches_vis_viva"
+  ],
+  "F12": [],
+  "F13": [],
+  "F14": []
+ },
+ "changed_modules": {
+  "F01": [
+   "sampleproj.vecops"
+  ],
+  "F02": [
+   "sampleproj.vecops"
+  ],
+  "F03": [
+   "sampleproj.vecops"
+  ],
+  "F04": [
+   "sampleproj.quat"
+  ],
+  "F05": [
+   "sampleproj.quat"
+  ],
+  "F06": [
+   "sampleproj.integrate"
+  ],
+  "F07": [
+   "sampleproj.integrate"
+  ],
+  "F08": [
+   "sampleproj.stats"
+  ],
+  "F09": [
+   "sampleproj.filters"
+  ],
+  "F10": [
+   "sampleproj.kinematics"
+  ],
+  "F11": [
+   "sampleproj.orbit"
+  ],
+  "F12": [
+   "sampleproj.orbit"
+  ],
+  "F13": [
+   "sampleproj.kinematics"
+  ],
+  "F14": [
+   "sampleproj.stats"
+  ]
+ }
+}

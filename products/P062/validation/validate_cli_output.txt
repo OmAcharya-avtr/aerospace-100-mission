@@ -1,0 +1,147 @@
+validate_cli.py -- every CLI invocation, its exit status and its output
+
+==============================================================================
+1. Exit statuses
+==============================================================================
+   status  expected  command
+        0         0  python -m twincalib designs
+        0         0  python -m twincalib identify --design baseline-eclipse --exact
+        0         0  python -m twincalib identify --design coarse-sampled --exact
+        0         0  python -m twincalib identify --design lumped-nodes --exact
+        0         0  python -m twincalib identify --design weak-excitation --exact
+        1         1  python -m twincalib identify --design full-sun --exact
+        0         0  python -m twincalib fit --design baseline-eclipse --exact --show-truth
+        1         1  python -m twincalib fit --design full-sun --exact
+        0         0  python -m twincalib fit --design lumped-nodes
+        0         0  python -m twincalib profile --design coarse-sampled --exact --points 3
+        1         1  python -m twincalib profile --design full-sun --exact --points 2
+        0         0  python -m twincalib residual --design baseline-eclipse --n-train 2 --n-test 1
+        0         0  python -m twincalib residual --design lumped-nodes --n-train 2 --n-test 1
+
+verdict: PASS  13 invocations
+
+==============================================================================
+2. --help and --version
+==============================================================================
+  --help       exit 0
+  first line: usage: python -m twincalib [-h] [--version]
+  --version    exit 0
+  first line: twincalib 0.1.0
+
+  argparse exits 2 on a bad argument:
+    [] exited 2
+    ['identify', '--design', 'nope'] exited 2
+
+==============================================================================
+3. No parameter value is printed without the verdict above it
+==============================================================================
+  fit --design baseline-eclipse --exact        verdict at 555, estimate at 1605, ordered True
+  fit --design full-sun --exact                verdict at 575, estimate at 2347, ordered True
+
+verdict: PASS
+
+==============================================================================
+4. Full output of the two invocations the README quotes
+==============================================================================
+
+$ python -m twincalib identify --design full-sun --exact
+design            : full-sun
+measured channels : T1, T2
+record            : 12000 s at dt = 30 s, stride 1 -> 401 samples per channel
+observations      : 802 scalar values
+thermometer noise : 0.3 K, independent Gaussian, known to the fitter
+illumination      : CONSTANT at 1
+unit dissipation  : square wave 12/35 W, period 4000 s, duty 0.5
+note              : Continuous sunlight, so the absorbed solar load and the parasitic load enter the equations identically and only their sum is identifiable. Structurally non-identifiable, with a null direction known in closed form.
+
+per-parameter sensitivity (Brun et al. 2001 delta_msqr)
+  a value of 1 means a 100 per cent change in the parameter moves the
+  data by about one measurement standard deviation per sample
+
+  parameter     delta_msqr   column norm
+  C1                6.0922        172.53
+  C2                19.545        553.51
+  k12               20.542        581.75
+  h_rad             172.94        4897.6
+  q_sun             108.93          3085
+  q_par             35.651        1009.6
+
+VERDICT: NOT IDENTIFIABLE: rank 5 of 6, 1 unconstrained parameter combination at this design
+
+rank              : 5 of 6 at s/s_max >= 1e-08
+condition number  : 9.46773e+10
+collinearity index: 2.17598e+10  (Brun et al. 2001; above 10-15 is their non-identifiable range)
+
+singular spectrum of the weighted log-sensitivity matrix
+    i    singular value     s_i/s_max
+    0            5904.4             1
+    1            477.17      0.080816
+    2            306.03      0.051831
+    3            112.41      0.019039
+    4            39.598     0.0067066
+    5        6.2363e-08    1.0562e-11
+
+1 unconstrained or near-unconstrained parameter combination(s), written out:
+  direction 5  s/s_max = 1.0562e-11  [UNCONSTRAINED]
+    +0.950 d ln q_par -0.311 d ln q_sun
+    moving the parameters along this combination leaves the predictions
+    unchanged to within 6.2363e-08 noise units per unit log step
+
+Cramer-Rao relative standard deviations (lower bound, log coordinates)
+  parameter        rel. sd    delta_msqr
+  C1             0.0091837        6.0922
+  C2              0.010076        19.545
+  k12            0.0023886        20.542
+  h_rad           0.012186        172.94
+  q_sun                inf        108.93
+  q_par                inf        35.651
+
+  the Fisher matrix is rank deficient, so the above is a pseudo-inverse; the
+  entries marked inf are the parameters loading on an unconstrained direction
+
+parameter correlation
+                C1      C2     k12   h_rad   q_sun   q_par
+  C1        1.0000  0.1443 -0.3907  0.3389  0.3345  0.3345
+  C2        0.1443  1.0000 -0.1372  0.9126  0.9224  0.9224
+  k12      -0.3907 -0.1372  1.0000 -0.1493 -0.1414 -0.1414
+  h_rad     0.3389  0.9126 -0.1493  1.0000  0.9995  0.9995
+  q_sun     0.3345  0.9224 -0.1414  0.9995  1.0000  1.0000
+  q_par     0.3345  0.9224 -0.1414  0.9995  1.0000  1.0000
+
+pairs with |correlation| >= 0.95:
+  q_sun    q_par    +1.000000
+  h_rad    q_sun    +0.999472
+  h_rad    q_par    +0.999472
+[exit status 1]
+
+$ python -m twincalib profile --design full-sun --exact --points 2
+design            : full-sun
+measured channels : T1, T2
+record            : 12000 s at dt = 30 s, stride 1 -> 401 samples per channel
+observations      : 802 scalar values
+thermometer noise : 0.3 K, independent Gaussian, known to the fitter
+illumination      : CONSTANT at 1
+unit dissipation  : square wave 12/35 W, period 4000 s, duty 0.5
+note              : Continuous sunlight, so the absorbed solar load and the parasitic load enter the equations identically and only their sum is identifiable. Structurally non-identifiable, with a null direction known in closed form.
+
+profile-likelihood intervals at level 0.95 (Wilks threshold delta chi2 = 3.8415)
+
+  parameter      estimate   profile low  profile high      quad low     quad high  width ratio
+  C1               797.68        783.36        812.14        783.44        812.18        1.002
+  C2               3957.1        3881.1        4035.9        3880.5        4035.2            1
+  k12              2.5033        2.4916        2.5151        2.4916        2.5151       0.9998
+  h_rad        1.1958e-08    1.1679e-08    1.2247e-08    1.1678e-08    1.2245e-08        1.001
+  q_sun            54.399          OPEN         72.01           n/a           n/a          nan
+  q_par            17.805          OPEN         66.74           n/a           n/a          nan
+
+OPEN means the profile did not cross the threshold inside the searched range:
+  q_sun: open below; searched [2.7084, 1092.6] and the likelihood did not rise by 3.8415 on the open side
+  q_par: open below; searched [0.88646, 357.62] and the likelihood did not rise by 3.8415 on the open side
+  a parameter with an open side is NOT determined by this data set, whatever
+  quadratic standard deviation the covariance matrix reports for it
+
+largest finite profile-to-quadratic width ratio: 1.002 on C1
+[exit status 1]
+
+total mismatches: 0
+elapsed 43.1 s

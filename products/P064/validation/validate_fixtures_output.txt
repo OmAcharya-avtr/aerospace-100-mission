@@ -1,0 +1,81 @@
+Cold-clone fixture check: git check-ignore -v on every shipped file
+================================================================================================
+repository root   /home/claude/mission
+product root      products/P064
+command           git check-ignore -v --no-index <path>, run in the product root
+verdict           a pattern matched AND it is not a negation
+cross-check       membership of git ls-files --others --exclude-standard
+
+git would add 82 untracked, non-ignored paths under the product root
+
+REQUIRED fixtures: every one of these must NOT be ignored
+------------------------------------------------------------------------------------------------
+PASS  on disk   git would add   fixtures/sample_project/junit.xml
+      matched: .gitignore:60:!products/*/fixtures/**/junit.xml	fixtures/sample_project/junit.xml
+PASS  on disk   git would add   fixtures/sample_project/pytest.ini
+PASS  on disk   git would add   fixtures/sample_project/sampleproj/__init__.py
+PASS  on disk   git would add   fixtures/sample_project/sampleproj/filters.py
+PASS  on disk   git would add   fixtures/sample_project/sampleproj/integrate.py
+PASS  on disk   git would add   fixtures/sample_project/sampleproj/kinematics.py
+PASS  on disk   git would add   fixtures/sample_project/sampleproj/orbit.py
+PASS  on disk   git would add   fixtures/sample_project/sampleproj/quat.py
+PASS  on disk   git would add   fixtures/sample_project/sampleproj/stats.py
+PASS  on disk   git would add   fixtures/sample_project/sampleproj/vecops.py
+PASS  on disk   git would add   fixtures/sample_project/tests/test_filters.py
+PASS  on disk   git would add   fixtures/sample_project/tests/test_integrate.py
+PASS  on disk   git would add   fixtures/sample_project/tests/test_kinematics.py
+PASS  on disk   git would add   fixtures/sample_project/tests/test_orbit.py
+PASS  on disk   git would add   fixtures/sample_project/tests/test_quat.py
+PASS  on disk   git would add   fixtures/sample_project/tests/test_stats.py
+PASS  on disk   git would add   fixtures/sample_project/tests/test_vecops.py
+PASS  on disk   git would add   fixtures/faults/faults.json
+PASS  on disk   git would add   fixtures/faults/fault_matrix.json
+PASS  on disk   git would add   fixtures/history/history.json
+PASS  on disk   git would add   fixtures/history/generation_parameters.json
+PASS  on disk   git would add   fixtures/regenerate_fixtures.py
+
+MUST BE IGNORED: per-run artifacts
+------------------------------------------------------------------------------------------------
+PASS  junit.xml
+      products/P064/.gitignore:12:/junit.xml	junit.xml
+PASS  junit_self.xml
+      products/P064/.gitignore:13:/junit_self.xml	junit_self.xml
+PASS  .coverage
+      products/P064/.gitignore:18:/.coverage	.coverage
+PASS  src/regressselect/__pycache__/metrics.cpython-313.pyc
+      products/P064/.gitignore:31:__pycache__/	src/regressselect/__pycache__/metrics.cpython-313.pyc
+PASS  fixtures/sample_project/__pycache__/anything.pyc
+      products/P064/.gitignore:31:__pycache__/	fixtures/sample_project/__pycache__/anything.pyc
+PASS  .pytest_cache/CACHEDIR.TAG
+      products/P064/.gitignore:33:.pytest_cache/	.pytest_cache/CACHEDIR.TAG
+PASS  .hypothesis/unicode_data/x
+      products/P064/.gitignore:34:.hypothesis/	.hypothesis/unicode_data/x
+
+NOT SHIPPED: probed so the decision is recorded, not asserted
+------------------------------------------------------------------------------------------------
+      fixtures/sample_project/.coverage
+      on disk: False   ignored: False
+      no pattern matches
+      fixtures/sample_project/__pycache__/vecops.cpython-313.pyc
+      on disk: False   ignored: True
+      products/P064/.gitignore:31:__pycache__/	fixtures/sample_project/__pycache__/vecops.cpython-313.pyc
+
+The junit.xml case, stated explicitly
+-------------------------------------
+The repository root .gitignore carries `**/junit.xml`, which matches at every
+depth, and `!products/*/fixtures/**/junit.xml`, which re-includes a committed
+fixture. This product's fixture sits at
+products/P064/fixtures/sample_project/junit.xml, which matches that negation,
+and the measurement above confirms it is not ignored. This product's own
+.gitignore anchors its pattern as `/junit.xml`, so it applies only to
+products/P064/junit.xml -- the per-run artifact -- and cannot reach into
+fixtures/ at all.
+
+A `__pycache__` fixture is unshippable, not merely unwanted: the repository
+root ignores `__pycache__/` at every depth, and git cannot re-include a file
+whose parent directory is excluded. The probe above records that. The sample
+project therefore needs no bytecode fixture, and the mutation harness copies
+the project with __pycache__ excluded before every run.
+
+checks run 29, failures 0
+RESULT: PASS

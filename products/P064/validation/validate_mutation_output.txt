@@ -1,0 +1,103 @@
+Mutation-style evaluation on the bundled sample project
+============================================================================================
+clean run              tests=24 failures=0 errors=0 skipped=0 testcase elements=24 cross-check=PASS
+seeded faults          14
+
+per-fault detection, measured by execution
+fault  module                  operator                                           tests failing
+--------------------------------------------------------------------------------------------
+F01    sampleproj.vecops       statement-deletion (sqrt dropped)                              3
+F02    sampleproj.vecops       arithmetic-operator-replacement (* -> +)                       8
+F03    sampleproj.vecops       index-replacement                                              1
+F04    sampleproj.quat         arithmetic-operator-replacement (- -> +)                       0
+F05    sampleproj.quat         unary-operator-deletion                                        2
+F06    sampleproj.integrate    constant-swap                                                  1
+F07    sampleproj.integrate    condition-deletion                                             1
+F08    sampleproj.stats        constant-replacement (Bessel correction removed)               1
+F09    sampleproj.filters      off-by-one                                                     3
+F10    sampleproj.kinematics   constant-deletion (0.5 factor dropped)                         1
+F11    sampleproj.orbit        constant-replacement (exponent 3 -> 2)                         1
+F12    sampleproj.orbit        relational-operator-replacement (<= -> <)                      0
+F13    sampleproj.kinematics   condition-deletion                                             0
+F14    sampleproj.stats        constant-replacement                                           0
+
+full-suite detection   0.714286 (10/14)
+detected by no test    ['F04', 'F12', 'F13', 'F14']
+Those four faults are real holes in the sample project's own suite. They are
+kept in the denominator so that no strategy can read as perfect on a suite
+that is not.
+
+committed fault_matrix.json reproduces this run: PASS
+
+faults detected against tests run -- churn = 1 line, the truthful churn of a one-line mutation
+strategy      budget     cost   det/all  det/detectable  upper bound
+--------------------------------------------------------------------------------------------
+dependency      0.10   0.2589    0.7143          1.0000       0.7143
+dependency      0.25   0.2589    0.7143          1.0000       0.7143
+dependency      0.50   0.2589    0.7143          1.0000       0.7143
+dependency      0.75   0.2589    0.7143          1.0000       0.7143
+dependency      1.00   0.2589    0.7143          1.0000       0.7143
+history         0.10   0.1250    0.2857          0.4000       0.7143
+history         0.25   0.2500    0.3571          0.5000       0.7143
+history         0.50   0.5000    0.5714          0.8000       0.7143
+history         0.75   0.7500    0.7143          1.0000       0.7143
+history         1.00   1.0000    0.7143          1.0000       0.7143
+learned         0.10   0.1250    0.2857          0.4000       0.7143
+learned         0.25   0.2500    0.5714          0.8000       0.7143
+learned         0.50   0.5000    0.6429          0.9000       0.7143
+learned         0.75   0.7500    0.7143          1.0000       0.7143
+learned         1.00   1.0000    0.7143          1.0000       0.7143
+multi-fault APFD over the union change (all mutated modules changed)
+  dependency  0.591667
+  history     0.525000
+  learned     0.550000
+
+faults detected against tests run -- churn = 20 lines, a sensitivity check on the churn features
+strategy      budget     cost   det/all  det/detectable  upper bound
+--------------------------------------------------------------------------------------------
+dependency      0.10   0.2589    0.7143          1.0000       0.7143
+dependency      0.25   0.2589    0.7143          1.0000       0.7143
+dependency      0.50   0.2589    0.7143          1.0000       0.7143
+dependency      0.75   0.2589    0.7143          1.0000       0.7143
+dependency      1.00   0.2589    0.7143          1.0000       0.7143
+history         0.10   0.1250    0.2857          0.4000       0.7143
+history         0.25   0.2500    0.3571          0.5000       0.7143
+history         0.50   0.5000    0.5714          0.8000       0.7143
+history         0.75   0.7500    0.7143          1.0000       0.7143
+history         1.00   1.0000    0.7143          1.0000       0.7143
+learned         0.10   0.1250    0.6429          0.9000       0.7143
+learned         0.25   0.2500    0.7143          1.0000       0.7143
+learned         0.50   0.5000    0.7143          1.0000       0.7143
+learned         0.75   0.7500    0.7143          1.0000       0.7143
+learned         1.00   1.0000    0.7143          1.0000       0.7143
+multi-fault APFD over the union change (all mutated modules changed)
+  dependency  0.591667
+  history     0.525000
+  learned     0.562500
+
+FINDINGS, stated as measured
+--------------------------------------------------------------------------------------------
+1. The dependency baseline detects every detectable seeded fault while running
+   0.2589 of the suite. Neither ranked strategy reaches that
+   detection rate at that cost.
+2. At a 25 per cent budget the learned selector reaches 0.8000 of detectable
+   faults with the truthful one-line churn, and 1.0000 when the same faults
+   are presented as 20-line changes. The selector keys on churn, so a one-line
+   fix -- the case where selection matters most -- is where it is weakest.
+3. The history baseline needs a 75 per cent budget to reach full detectable
+   coverage; at 25 per cent it finds 0.5000.
+4. The full-suite upper bound is 0.7143: running
+   everything still misses four of the fourteen seeded faults, and no selection
+   strategy can recover a fault the suite cannot see.
+
+checks
+--------------------------------------------------------------------------------------------
+clean run is green and cross-checks                                   PASS
+committed fault matrix reproduces this run                            PASS
+dependency baseline detects all detectable faults                     PASS
+no strategy exceeds the full-suite upper bound                        PASS
+detection is non-decreasing in the budget for the ranked strategies   PASS
+
+wall clock 15.1 s
+checks run 5, failures 0
+RESULT: PASS

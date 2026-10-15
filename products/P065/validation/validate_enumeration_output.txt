@@ -1,0 +1,28 @@
+hazardtrace validation: UCA enumeration completeness
+
+Reference: STPA Handbook (Leveson and Thomas, 2018), step 3 - each
+control action is considered in four classes, so the grid is 4n cells
+and completeness is a count against a denominator known in advance.
+
+A. exhaustive cross-check
+   n=1: 4 cells, cumulative cases 81
+   n=2: 8 cells, cumulative cases 6642
+   cases enumerated        : 6642
+   completeness mismatches : 0
+   HT001-count mismatches  : 0
+  [PASS] exhaustive completeness matches brute force
+  [PASS] HT001 count equals uncovered-cell count
+
+B. seeded random cross-check
+   trials                  : 2000  (seed 20261015)
+   actions per trial       : 0 to 8
+   wrong cell totals       : 0
+   wrong covered counts    : 0
+   broken partitions       : 0
+   non-deterministic runs  : 0
+  [PASS] grid size is always 4n
+  [PASS] covered count always equals the filled-cell union
+  [PASS] covered plus gaps always equals the total
+  [PASS] run_checks is deterministic
+
+RESULT: every check in this script passed

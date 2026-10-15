@@ -1,0 +1,31 @@
+hazardtrace validation: environment
+
+  python            : 3.13.16
+  implementation    : CPython
+  platform          : Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+  machine           : x86_64
+
+  hazardtrace       : 0.1.0
+  yaml              : 6.0.3
+  matplotlib        : 3.11.2
+  pytest            : 9.1.1
+  hypothesis        : 6.169.3
+
+  declared ranges (pyproject.toml):
+    pyyaml      >=6.0.1,<6.1
+    matplotlib  >=3.11.0,<3.12  (optional, figures only)
+    pytest      >=8.3.5,<9.2    (test extra)
+    hypothesis  >=6.100.0,<6.170 (test extra)
+    ruff        >=0.16.8,<0.17  (test extra)
+
+  Two floors are set by measurement, not by preference:
+   - PyYAML 6.0 has no cp313 wheel and fails to build against Cython 3
+     on Python 3.13, so 6.0.1 is the lowest version measurable here.
+   - matplotlib 3.9.2 and 3.10.0 both fail this suite at COLLECTION
+     time: they call pyparsing's deprecated oneOf, pyparsing 3.3.3
+     warns, and [tool.pytest.ini_options] filterwarnings turns a
+     DeprecationWarning into an error. matplotlib 3.11.0 does not.
+  [PASS] hazardtrace version is 0.1.0
+  [PASS] python is 3.11 or newer, as pyproject declares  found 3.13.16
+
+RESULT: every check in this script passed

@@ -1,0 +1,56 @@
+Baseline 1 applied to regressselect's own source tree
+====================================================================================
+source modules              12
+selectable test modules     11
+conftest imports:
+  regressselect.history
+  regressselect.importgraph
+  regressselect.inventory
+  regressselect.prioritise
+  regressselect.selector
+
+changed module                  imports only  with conftest   increase
+------------------------------------------------------------------------------------
+regressselect                         0.0909         0.0909     0.0000
+regressselect.__main__                0.0909         0.0909     0.0000
+regressselect.benchmark               0.3636         0.3636     0.0000
+regressselect.features                0.4545         1.0000     0.5455
+regressselect.history                 0.6364         1.0000     0.3636
+regressselect.importgraph             0.5455         1.0000     0.4545
+regressselect.inventory               0.5455         1.0000     0.4545
+regressselect.metrics                 0.5455         0.5455     0.0000
+regressselect.mutation                0.4545         0.4545     0.0000
+regressselect.plotting                0.0909         0.0909     0.0000
+regressselect.prioritise              0.5455         1.0000     0.4545
+regressselect.selector                0.4545         1.0000     0.5455
+
+mean                                  0.4015         0.6364
+max                                   0.6364         1.0000
+modules selecting everything               0              6
+
+What this measures
+------------------
+From the import text alone, a single-module change on this repository
+selects a mean 0.4015 of the suite and no single module selects all of it.
+That does NOT support the common claim that a dependency-based selector is
+near-useless because it selects almost everything.
+
+With pytest's conftest dependency included -- which is a real dependency, not
+a modelling choice -- the mean rises to 0.6364 and 6 of the 12 source modules
+select every test module, because conftest imports them. That is where the
+claim comes from, and it holds only once the fixture coupling is counted.
+
+The consequence for this product is the one worth stating: a selector built
+from imports alone is not safe for a pytest suite. For regressselect.features
+the import-only selection misses 0.5455 of the suite -- tests that depend
+on it only through a fixture.
+
+checks
+------------------------------------------------------------------------------------
+every source module selects at least one test module                  PASS
+conftest coupling never shrinks a selection                           PASS
+conftest coupling grows at least one selection to the whole suite     PASS
+a module imported by conftest reaches the whole suite once coupled    PASS
+
+checks run 4, failures 0
+RESULT: PASS

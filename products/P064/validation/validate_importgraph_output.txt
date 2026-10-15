@@ -1,0 +1,42 @@
+Baseline 1: import-graph reachability, known-answer check
+==============================================================================
+project root      sample_project
+modules parsed    15
+test modules      7
+
+selection per changed module (hand-written table vs computed)
+changed module           selected  of  fraction  verdict
+------------------------------------------------------------------------------
+sampleproj.vecops               3   7    0.4286  PASS
+sampleproj.stats                2   7    0.2857  PASS
+sampleproj.integrate            1   7    0.1429  PASS
+sampleproj.orbit                1   7    0.1429  PASS
+sampleproj.quat                 2   7    0.2857  PASS
+sampleproj.filters              1   7    0.1429  PASS
+sampleproj.kinematics           1   7    0.1429  PASS
+sampleproj                      7   7    1.0000  PASS
+
+hop distances (hand-written table vs computed)
+test module             source module            expected   got  verdict
+------------------------------------------------------------------------------
+tests.test_vecops       sampleproj.vecops               1     1  PASS
+tests.test_quat         sampleproj.quat                 1     1  PASS
+tests.test_quat         sampleproj.vecops               2     2  PASS
+tests.test_kinematics   sampleproj.kinematics           1     1  PASS
+tests.test_kinematics   sampleproj.vecops               1     1  PASS
+tests.test_kinematics   sampleproj.quat                 2     2  PASS
+tests.test_filters      sampleproj.filters              1     1  PASS
+tests.test_filters      sampleproj.stats                2     2  PASS
+tests.test_filters      sampleproj.vecops            None  None  PASS
+tests.test_orbit        sampleproj.quat              None  None  PASS
+tests.test_stats        sampleproj.integrate         None  None  PASS
+
+mean selection fraction over the 8 single-module changes above: 0.3214
+A change to sampleproj/__init__.py selects 7/7 test modules, which is the
+behaviour a dependency-based selector shows on any module that everything
+imports. The sample project has seven largely independent leaf modules and
+no shared utility hub, so its mean is well below 1; a repository with a
+common helper module does not have that property.
+
+checks run 19, failures 0
+RESULT: PASS

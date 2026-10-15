@@ -1,0 +1,46 @@
+hazardtrace validation: CLI exit-code contract (real subprocesses)
+
+   invocation                                                        want  got   verdict
+   --help                                                            0     0     ok
+   --version                                                         0     0     ok
+   (none)                                                            2     2     ok
+   codes                                                             0     0     ok
+   check examples/cases/complete_minimal.yaml                        0     0     ok
+   check examples/cases/complete_minimal.yaml --strict               0     0     ok
+   check examples/cases/complete_minimal.yaml -f json                0     0     ok
+   check examples/cases/complete_minimal.yaml -f markdown            0     0     ok
+   check examples/cases/planted_gaps.yaml                            1     1     ok
+   check examples/cases/planted_gaps.yaml -r fixtures/planted/docs…  1     1     ok
+   check examples/cases/planted_gaps.yaml -r fixtures/planted/docs…  1     1     ok
+   check examples/cases/p024_bdot_detumble.yaml                      1     1     ok
+   check examples/cases/p024_bdot_detumble.yaml -r fixtures/p024_b…  1     1     ok
+   check examples/cases/p024_bdot_detumble.yaml -r fixtures/p024_b…  1     1     ok
+   check <tmp>/warning_only.yaml                                     0     0     ok
+   check <tmp>/warning_only.yaml --strict                            1     1     ok
+   grid examples/cases/planted_gaps.yaml                             0     0     ok
+   grid examples/cases/p024_bdot_detumble.yaml                       0     0     ok
+   coverage examples/cases/p024_bdot_detumble.yaml -r fixtures/p02…  0     0     ok
+   diagram examples/cases/p024_bdot_detumble.yaml --mermaid <tmp>/…  0     0     ok
+   diagram examples/cases/p024_bdot_detumble.yaml --png <tmp>/s.png  0     0     ok
+   diagram examples/cases/p024_bdot_detumble.yaml --mermaid -        0     0     ok
+   diagram examples/cases/p024_bdot_detumble.yaml                    2     2     ok
+   check examples/cases/absent.yaml                                  2     2     ok
+   check <tmp>/malformed.yaml                                        2     2     ok
+   check examples/cases/complete_minimal.yaml -r docs/absent.md      2     2     ok
+   check examples/cases/complete_minimal.yaml -t absent.xml          2     2     ok
+   check examples/cases/complete_minimal.yaml -r fixtures/p024_bdo…  2     2     ok
+
+   invocations run         : 28
+   exit code mismatches    : 0
+
+  [PASS] every invocation matched its documented exit code  28/28 matched
+
+   content of the two reports
+     planted verdict line  : 14 error, 2 warning, 0 info finding(s)
+     worked verdict line   : 11 error, 0 warning, 0 info finding(s)
+  [PASS] every check code appears in the planted report  all 16 present
+  [PASS] the planted report says 14 error and 2 warning
+  [PASS] the worked report says 11 error and 0 warning
+  [PASS] a cannot-run failure writes to stderr and not stdout
+
+RESULT: every check in this script passed

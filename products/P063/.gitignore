@@ -1,0 +1,19 @@
+# Python build and cache artifacts
+__pycache__/
+*.py[cod]
+*.egg-info/
+/build/
+/dist/
+/.venv/
+/venv/
+/.pytest_cache/
+/.hypothesis/
+/.ruff_cache/
+/.coverage
+/htmlcov/
+
+# Per-run artifacts. Anchored with a leading slash so a pattern cannot match a
+# committed deliverable at another depth: a bare junit.xml would also exclude
+# any fixture of that name, which is how P060 lost a required file.
+/junit.xml
+/junit_self.xml

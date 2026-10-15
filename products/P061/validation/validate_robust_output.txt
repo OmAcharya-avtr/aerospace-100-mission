@@ -1,0 +1,147 @@
+activityplan -- validate_robust.py
+four planning modes under realised durations, on identical instances
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+cpu cores        : 2
+predictor        : 1000 training activities, seed 61, normalised conformal, alpha 0.1
+instances        : 12 from seed 9000, family defaults
+realisations     : 3 per instance, so 36 scored plans per mode
+planner          : greedy, so that all four modes pay the same planning cost
+predictor fit    : 1.85 s
+
+==============================================================================
+check 1: how far each estimator's duration sits from the realised one
+==============================================================================
+signed error = estimate - realised, in seconds. A negative mean is optimism,
+which is what makes a plan fail; ml-robust is deliberately pessimistic.
+
+mode         mean err/s  median err/s  p05 err/s  p95 err/s  frac optimistic
+oracle            0.000         0.000      0.000      0.000           0.0000
+analytic        -14.995       -11.119    -67.217     28.265           0.7619
+ml-point          0.216         0.348    -46.054     49.072           0.4940
+ml-robust        48.963        37.212      6.508    122.634           0.0060
+
+==============================================================================
+check 2: realised feasibility and realised objective, per mode
+==============================================================================
+mode         plans  feasible    rate  mean placed  mean planned  mean realised  realised/oracle
+oracle          36        36  1.0000        8.333        28.083         28.083           1.0000
+analytic        36         9  0.2500        8.667        28.750          5.500           0.1958
+ml-point        36        17  0.4722        8.500        28.250         12.472           0.4441
+ml-robust       36        15  0.4167        8.000        27.167         11.333           0.4036
+
+why the infeasible plans failed, by binding constraint
+  oracle      none
+  analytic    battery-depth-of-discharge x22, exclusion:act004|act007 x3, recorder-capacity x2
+  ml-point    battery-depth-of-discharge x9, recorder-capacity x7, exclusion:act003|act011 x3
+  ml-robust   recorder-capacity x21
+
+==============================================================================
+check 3: per-instance detail, so the aggregate is not the only view
+==============================================================================
+instance        rep                 oracle               analytic               ml-point              ml-robust
+                         feas/value/placed      feas/value/placed      feas/value/placed      feas/value/placed
+family-9000       0    y      28.0       8    n       0.0       8    n       0.0       8    n       0.0       8
+family-9000       1    y      28.0       8    n       0.0       8    y      28.0       8    y      28.0       8
+family-9000       2    y      28.0       8    n       0.0       8    n       0.0       8    n       0.0       8
+family-9001       0    y      41.0      11    n       0.0      12    n       0.0      12    n       0.0      10
+family-9001       1    y      43.0      12    n       0.0      12    n       0.0      12    n       0.0      10
+family-9001       2    y      41.0      11    n       0.0      12    n       0.0      12    y      39.0      10
+family-9002       0    y      28.0       9    n       0.0       9    n       0.0       9    y      28.0       9
+family-9002       1    y      28.0       9    n       0.0       9    y      28.0       9    y      28.0       9
+family-9002       2    y      28.0       9    n       0.0       9    y      28.0       9    y      28.0       9
+family-9003       0    y      31.0       7    n       0.0       8    n       0.0       7    y      28.0       6
+family-9003       1    y      31.0       7    n       0.0       8    y      31.0       7    n       0.0       6
+family-9003       2    y      31.0       7    n       0.0       8    y      31.0       7    n       0.0       6
+family-9004       0    y      39.0       9    n       0.0      11    y      40.0      11    n       0.0      10
+family-9004       1    y      39.0       9    n       0.0      11    n       0.0      11    n       0.0      10
+family-9004       2    y      40.0      11    n       0.0      11    y      40.0      11    n       0.0      10
+family-9005       0    y      27.0       9    n       0.0      10    n       0.0       9    y      25.0       8
+family-9005       1    y      27.0       9    n       0.0      10    n       0.0       9    y      25.0       8
+family-9005       2    y      27.0       9    n       0.0      10    n       0.0       9    y      25.0       8
+family-9006       0    y      21.0       9    n       0.0       9    n       0.0       9    n       0.0       9
+family-9006       1    y      21.0       9    y      21.0       9    y      21.0       9    y      21.0       9
+family-9006       2    y      21.0       9    y      21.0       9    y      21.0       9    y      21.0       9
+family-9007       0    y      20.0       6    y      20.0       6    y      20.0       6    n       0.0       6
+family-9007       1    y      20.0       6    y      20.0       6    y      20.0       6    n       0.0       6
+family-9007       2    y      20.0       6    y      20.0       6    y      20.0       6    n       0.0       6
+family-9008       0    y      33.0       9    n       0.0       9    n       0.0       9    n       0.0       9
+family-9008       1    y      33.0       9    y      33.0       9    y      33.0       9    y      33.0       9
+family-9008       2    y      33.0       9    n       0.0       9    n       0.0       9    y      33.0       9
+family-9009       0    y      22.0       8    n       0.0       8    n       0.0       8    n       0.0       8
+family-9009       1    y      22.0       8    n       0.0       8    n       0.0       8    n       0.0       8
+family-9009       2    y      22.0       8    n       0.0       8    n       0.0       8    n       0.0       8
+family-9010       0    y      25.0       8    n       0.0       8    y      25.0       8    y      23.0       7
+family-9010       1    y      25.0       8    n       0.0       8    n       0.0       8    y      23.0       7
+family-9010       2    y      25.0       8    n       0.0       8    n       0.0       8    n       0.0       7
+family-9011       0    y      21.0       6    y      21.0       6    y      21.0       6    n       0.0       6
+family-9011       1    y      21.0       6    y      21.0       6    y      21.0       6    n       0.0       6
+family-9011       2    y      21.0       6    y      21.0       6    y      21.0       6    n       0.0       6
+
+==============================================================================
+check 4: what the robust plan costs when nothing goes wrong
+==============================================================================
+the robust plan books the conformal upper bound on every duration and energy, so
+it places fewer activities. The cost is the planned objective it gives up
+against the point plan; the benefit is in the feasibility rate above.
+
+mean activities placed    : oracle 8.333, analytic 8.667, ml-point 8.500, ml-robust 8.000
+mean realised objective   : oracle 28.083, analytic 5.500, ml-point 12.472, ml-robust 11.333
+feasibility rate          : oracle 1.0000, analytic 0.2500, ml-point 0.4722, ml-robust 0.4167
+
+best achievable mode on realised objective : ml-point
+oracle is unachievable by construction and is reported only as the ceiling.
+
+==============================================================================
+check 5: why duration robustness is ANTI-robust for the recorder
+==============================================================================
+The result above is not what a reader would expect, so here is the mechanism,
+measured. An activity's data volume is DECLARED, not predicted. Its production
+rate is therefore data_mbit / duration_s, which is INVERSELY proportional to the
+duration. Booking the conformal upper bound on the duration makes the plan
+assume a LOW production rate; the realised duration is shorter, so the real rate
+is HIGHER, and the recorder fills faster than the plan allowed for.
+
+Planning against an upper bound on duration is conservative for time and for
+energy and anti-conservative for the recorder. A duration-robust plan is not a
+resource-robust plan.
+
+mode         planned rate  realised rate  rate ratio  frac rate underbooked
+oracle            0.93753        0.93753      1.0000                 0.0000
+analytic          0.99237        0.93753      0.9473                 0.2381
+ml-point          0.94028        0.93753      1.0032                 0.5060
+ml-robust         0.79408        0.93753      1.1911                 0.9940
+
+rates are Mbit/s. A rate ratio above 1 means the realised production outran the
+plan's assumption. ml-robust has the largest ratio of the three achievable modes,
+which is the quantitative statement of the mechanism above, and it is why
+ml-robust fails recorder-capacity more often than ml-point does.
+
+==============================================================================
+check 6: the analytic duration model's own bias, for reference
+==============================================================================
+analytic duration mean signed error : -16.7371 s
+analytic duration fraction optimistic: 0.6783
+the analytic model is optimistic on average because the generator's two omitted
+terms are both non-negative, which is why its plans fail more often than the
+learned ones when they fail.
+
+Taken with check 5, the two failure mechanisms are opposite: the analytic model
+underbooks DURATION and breaks the battery, while the duration-robust plan
+underbooks the data RATE and breaks the recorder. Neither is fixed by a better
+duration predictor alone, and this package does not claim to fix either.
+
+==============================================================================
+summary
+==============================================================================
+oracle      feasible 1.0000  realised 28.083  placed 8.333
+analytic    feasible 0.2500  realised 5.500  placed 8.667
+ml-point    feasible 0.4722  realised 12.472  placed 8.500
+ml-robust   feasible 0.4167  realised 11.333  placed 8.000
+wall clock  38.6 s
+this script has no pass criterion: every number is a measurement of the
+robustness trade and all of them are reported, including the ones that favour
+the analytic baseline.
+raw output written to validate_robust_output.txt

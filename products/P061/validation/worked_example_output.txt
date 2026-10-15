@@ -1,0 +1,71 @@
+instance            : leo-imaging
+activities          : 10, total priority 30.0
+grid                : 108 steps of 150 s
+greedy objective    : 15.0 in 247 simulations
+exact objective     : 23.0, 1 nodes, 0.840 s, proven optimal True
+greedy shortfall    : 34.78 %
+
+------------------------------------------------------------------------------
+feasibility report  : leo-imaging
+------------------------------------------------------------------------------
+verdict             : FEASIBLE
+objective           : 23.0 of 30.0 priority units placed (8 of 10 activities)
+forgone             : 7.0 priority units on 2 activities: radar-01, spectro-01
+BINDING CONSTRAINT  : recorder-capacity
+                      slack 0 Mbit = +0.000000 of 700 Mbit
+                      at step 76 ending t=11550.0 s, S=700.0000 Mbit of 700.0000 Mbit
+
+constraints, tightest normalised slack first
+constraint                          slack    unit  normaliser  normalised  status  where
+----------------------------------  -------  ----  ----------  ----------  ------  ----------------------------------------------------------------------
+recorder-capacity                   0        Mbit  700         +0.000000   ok      step 76 ending t=11550.0 s, S=700.0000 Mbit of 700.0000 Mbit
+window:spectro-02                   30       s     6180        +0.004854   ok      placed [15150.0, 15570.0] s inside declared [9000.0, 15600.0] s
+horizon                             630      s     16200       +0.038889   ok      last finish t=15570.0 s (spectro-02)
+battery-depth-of-discharge          5.83362  W*h   45          +0.129636   ok      step 103 ending t=15600.0 s, E=110.8336 W*h against floor 105.0000 W*h
+window:radar-02                     2910     s     6960        +0.418103   ok      placed [11250.0, 11490.0] s inside declared [7200.0, 14400.0] s
+window:image-03                     3210     s     7560        +0.424603   ok      placed [9750.0, 9990.0] s inside declared [5400.0, 13200.0] s
+window:image-02                     5400     s     9300        +0.580645   ok      placed [5700.0, 6000.0] s inside declared [1800.0, 11400.0] s
+window:housekeep-01                 5220     s     5820        +0.896907   ok      placed [600.0, 780.0] s inside declared [0.0, 6000.0] s
+window:cal-boresight                3150     s     3300        +0.954545   ok      placed [150.0, 450.0] s inside declared [0.0, 3600.0] s
+window:image-01                     9300     s     9300        +1.000000   ok      placed [1800.0, 2100.0] s inside declared [1800.0, 11400.0] s
+window:housekeep-02                 4620     s     4620        +1.000000   ok      placed [10800.0, 10980.0] s inside declared [10800.0, 15600.0] s
+precedence:cal-boresight->image-01  1350     s     300         +4.500000   ok      cal-boresight finishes t=450.0 s, image-01 starts t=1800.0 s
+exclusion:image-03|radar-02         1260     s     240         +5.250000   ok      image-03 [9750.0, 9990.0] s, radar-02 [11250.0, 11490.0] s
+precedence:cal-boresight->image-02  5250     s     300         +17.500000  ok      cal-boresight finishes t=450.0 s, image-02 starts t=5700.0 s
+
+diagnostics, never named as binding (cannot be violated by construction)
+diagnostic                 slack  unit  normalised  where
+-------------------------  -----  ----  ----------  ----------------------------------------------------------------------------------------------
+battery-upper-headroom     0      W*h   +0.000000   step 4, E=150.0000 W*h; 67.4198 W*h shunted over the horizon
+recorder-within-step-peak  0      Mbit  +0.000000   step 76, pre-downlink content 700.0000 Mbit (diagnostic only)
+downlink-volume            -100   Mbit  -0.046296   2260.0000 Mbit to downlink against 2160.0000 Mbit of declared contact capacity over 3 contacts
+
+energy audit, W*h
+quantity               value
+---------------------  ---------------
+generated_closed_form  311.975519
+generated_steps        311.975519
+fixed_closed_form      209.25
+fixed_steps            209.25
+activity_energy        56.0908333
+consumed_steps         265.340833
+shunted                67.4197915
+battery_delta          -20.7851054
+residual               -1.84741111e-13
+
+the two generated entries compare the whole-horizon closed-form solar integral
+against the sum of the per-step closed-form integrals; residual is the closure
+of the battery recursion. Both are reported, not asserted.
+------------------------------------------------------------------------------
+
+learned duration and energy predictions with 90 % conformal intervals
+activity   type          duration/s     lower     upper  energy/Wh    lower    upper
+new000     calibration       740.05    590.12    889.97     4.7509   3.7047   5.7970
+new001     spectro           555.93    495.23    616.64     6.3645   5.1523   7.5767
+new002     spectro           332.79    274.31    391.28     4.8202   3.8597   5.7807
+new003     calibration       578.47    513.59    643.34     4.4672   3.2675   5.6669
+new004     image             264.11    217.49    310.72     2.7315   2.1635   3.2994
+
+calibration split   : 650 proper-train, 350 calibration
+duration quantile   : 2.003076 (normalised nonconformity, dimensionless)
+level attainable    : True

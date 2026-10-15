@@ -1,0 +1,119 @@
+
+==============================================================================
+baseline-eclipse
+==============================================================================
+held-out benchmark on design baseline-eclipse
+  VERDICT: physics+residual (decision margin 0.02 relative)
+
+  true discrepancy RMS on the test set : 0.553702 K
+  thermometer noise                    : 0.300000 K
+  physics-only pooled test RMSE        : 0.664202 K
+  physics+residual pooled test RMSE    : 0.405241 K
+  pooled improvement                   : +0.389883
+  predictive interval coverage, 95 / 68 : 0.9709 / 0.7573 (nominal 0.9500 / 0.6827)
+
+  per held-out trajectory
+      phase   seed   rmse phys   rmse comb   improve   cov95
+      0.500   5200    0.686336    0.392777   +0.4277   0.975
+      0.667   5201    0.748430    0.468942   +0.3734   0.955
+      0.833   5202    0.540635    0.344209   +0.3633   0.983
+
+subspace decomposition of the learned residual field (cut s/s_max = 0.01)
+  total weighted energy        : 1856.55
+  strong-sensitivity subspace  : 0.354635  (5 directions) -- the parameters could have done this and the data would have seen it
+  weak-sensitivity subspace    : 0.001613  (1 directions) -- ABSORPTION: the parameters could have done this and the data cannot tell
+  orthogonal to all parameters : 0.643752  -- genuine model-form error, which no parameter value can reproduce
+
+fitted kernel: 1.42**2 * RBF(length_scale=2.46) + WhiteKernel(noise_level=0.409)
+
+==============================================================================
+full-sun
+==============================================================================
+held-out benchmark on design full-sun
+  VERDICT: physics+residual (decision margin 0.02 relative)
+
+  true discrepancy RMS on the test set : 0.979497 K
+  thermometer noise                    : 0.300000 K
+  physics-only pooled test RMSE        : 0.481622 K
+  physics+residual pooled test RMSE    : 0.318716 K
+  pooled improvement                   : +0.338243
+  predictive interval coverage, 95 / 68 : 0.9900 / 0.8313 (nominal 0.9500 / 0.6827)
+
+  per held-out trajectory
+      phase   seed   rmse phys   rmse comb   improve   cov95
+      0.500   5200    0.483455    0.315261   +0.3479   0.990
+      0.667   5201    0.483370    0.329387   +0.3186   0.990
+      0.833   5202    0.478021    0.311216   +0.3489   0.990
+
+subspace decomposition of the learned residual field (cut s/s_max = 0.01)
+  total weighted energy        : 1252.02
+  strong-sensitivity subspace  : 0.036370  (4 directions) -- the parameters could have done this and the data would have seen it
+  weak-sensitivity subspace    : 0.127150  (2 directions) -- ABSORPTION: the parameters could have done this and the data cannot tell
+  orthogonal to all parameters : 0.836480  -- genuine model-form error, which no parameter value can reproduce
+
+fitted kernel: 1.16**2 * RBF(length_scale=1.5) + WhiteKernel(noise_level=0.383)
+
+==============================================================================
+lumped-nodes
+==============================================================================
+held-out benchmark on design lumped-nodes
+  VERDICT: tie (decision margin 0.02 relative)
+
+  true discrepancy RMS on the test set : 0.126831 K
+  thermometer noise                    : 0.300000 K
+  physics-only pooled test RMSE        : 0.305082 K
+  physics+residual pooled test RMSE    : 0.299303 K
+  pooled improvement                   : +0.018944
+  predictive interval coverage, 95 / 68 : 0.9933 / 0.8437 (nominal 0.9500 / 0.6827)
+
+  per held-out trajectory
+      phase   seed   rmse phys   rmse comb   improve   cov95
+      0.500   5200    0.304850    0.296040   +0.0289   0.990
+      0.667   5201    0.307937    0.302279   +0.0184   0.995
+      0.833   5202    0.302435    0.299556   +0.0095   0.995
+
+subspace decomposition of the learned residual field (cut s/s_max = 0.01)
+  total weighted energy        : 7.19138
+  strong-sensitivity subspace  : 0.995125  (4 directions) -- the parameters could have done this and the data would have seen it
+  weak-sensitivity subspace    : 0.000115  (2 directions) -- ABSORPTION: the parameters could have done this and the data cannot tell
+  orthogonal to all parameters : 0.004760  -- genuine model-form error, which no parameter value can reproduce
+
+fitted kernel: 7.64e-05**2 * RBF(length_scale=91.4) + WhiteKernel(noise_level=1)
+
+==============================================================================
+weak-excitation
+==============================================================================
+held-out benchmark on design weak-excitation
+  VERDICT: physics+residual (decision margin 0.02 relative)
+
+  true discrepancy RMS on the test set : 0.617139 K
+  thermometer noise                    : 0.300000 K
+  physics-only pooled test RMSE        : 0.336324 K
+  physics+residual pooled test RMSE    : 0.320012 K
+  pooled improvement                   : +0.048503
+  predictive interval coverage, 95 / 68 : 0.9900 / 0.8221 (nominal 0.9500 / 0.6827)
+
+  per held-out trajectory
+      phase   seed   rmse phys   rmse comb   improve   cov95
+      0.500   5200    0.335353    0.316653   +0.0558   0.990
+      0.667   5201    0.352550    0.333020   +0.0554   0.985
+      0.833   5202    0.320295    0.309920   +0.0324   0.995
+
+subspace decomposition of the learned residual field (cut s/s_max = 0.01)
+  total weighted energy        : 11.757
+  strong-sensitivity subspace  : 0.971372  (4 directions) -- the parameters could have done this and the data would have seen it
+  weak-sensitivity subspace    : 0.001399  (2 directions) -- ABSORPTION: the parameters could have done this and the data cannot tell
+  orthogonal to all parameters : 0.027228  -- genuine model-form error, which no parameter value can reproduce
+
+fitted kernel: 0.0933**2 * RBF(length_scale=1.38) + WhiteKernel(noise_level=0.993)
+
+==============================================================================
+verdict ledger
+==============================================================================
+  design              discrep K  phys RMSE  comb RMSE  improve  weak frac            winner
+  baseline-eclipse       0.5537     0.6642     0.4052  +0.3899    0.00161  physics+residual
+  full-sun               0.9795     0.4816     0.3187  +0.3382    0.12715  physics+residual
+  lumped-nodes           0.1268     0.3051     0.2993  +0.0189    0.00011               tie
+  weak-excitation        0.6171     0.3363     0.3200  +0.0485    0.00140  physics+residual
+
+wrote screenshots/residual_benchmark.png

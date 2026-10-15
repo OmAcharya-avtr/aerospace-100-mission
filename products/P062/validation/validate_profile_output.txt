@@ -1,0 +1,141 @@
+validate_profile.py -- profile-likelihood intervals
+Wilks threshold at 0.95 with one degree of freedom = 3.8414588207
+grid: 5 points each side plus 4 bisections per crossing
+
+==============================================================================
+1. Profile against the quadratic interval on a sound design
+==============================================================================
+profile-likelihood intervals at level 0.95 (Wilks threshold delta chi2 = 3.8415)
+
+  parameter      estimate   profile low  profile high      quad low     quad high  width ratio
+  C1               795.79        783.59        808.07        783.64        808.12            1
+  C2               4039.4        3965.9        4115.6        3965.2          4115       0.9998
+  k12              2.4941        2.4842         2.504        2.4841         2.504            1
+  h_rad        1.2315e-08    1.1864e-08    1.2779e-08    1.1865e-08    1.2783e-08       0.9975
+  q_sun            55.372        54.388        56.389        54.381         56.38        1.001
+  q_par             19.47        16.943        22.054        17.069        22.208        1.002
+
+every profile closed on both sides inside the searched range
+
+largest finite profile-to-quadratic width ratio: 1.002 on q_par
+
+width ratios: 1.0003, 0.9998, 1.0003, 0.9975, 1.0009, 1.0016
+worst deviation from 1 = 0.0025
+verdict: PASS   criterion every ratio in (0.85, 1.20)
+
+truth inside the interval: C1=True, C2=True, k12=True, h_rad=True, q_sun=True, q_par=True
+
+==============================================================================
+2. The deliberately non-identifiable design, reported as such
+==============================================================================
+Quadratic standard deviations the fit reports, after the infinities have
+been put back by twincalib.identifiability.null_direction_loading:
+  C1          0.00920834
+  C2           0.0100829
+  k12         0.00239413
+  h_rad        0.0121866
+  q_sun              inf
+  q_par              inf
+
+What the RAW pseudo-inverse diagonal would have printed instead, which is
+the trap this package exists to close:
+  C1          0.00920834
+  C2           0.0100829
+  k12         0.00239413
+  h_rad        0.0121866
+  q_sun        0.0187905
+  q_par       0.00615671
+
+profile-likelihood intervals at level 0.95 (Wilks threshold delta chi2 = 3.8415)
+
+  parameter      estimate   profile low  profile high      quad low     quad high  width ratio
+  C1               800.44        785.95        815.08        786.13        815.02        1.008
+  C2               4003.7        3926.1        4084.3        3925.4        4083.7       0.9994
+  k12              2.5061        2.4944        2.5179        2.4944        2.5179        1.002
+  h_rad        1.2113e-08    1.1829e-08    1.2407e-08    1.1827e-08    1.2406e-08       0.9997
+  q_sun            55.335          OPEN        73.309           n/a           n/a          nan
+  q_par             18.13          OPEN        68.267           n/a           n/a          nan
+
+OPEN means the profile did not cross the threshold inside the searched range:
+  q_sun: open below; searched [2.755, 1111.4] and the likelihood did not rise by 3.8415 on the open side
+  q_par: open below; searched [0.90266, 364.16] and the likelihood did not rise by 3.8415 on the open side
+  a parameter with an open side is NOT determined by this data set, whatever
+  quadratic standard deviation the covariance matrix reports for it
+
+largest finite profile-to-quadratic width ratio: 1.008 on C1
+
+identified total heat load q_sun + q_par = 73.465262 W
+true total                               = 73.000000 W
+relative error on the total              = +0.006373
+
+So the design determines the SUM to better than one per cent and neither
+part at all. Each part is open below -- it can go to zero with the other
+taking up the slack -- and bounded above only by the positivity of its
+partner, at or a little below the identified total:
+  q_sun   upper limit 73.3087 W = 0.9979 of the identified total
+  q_par   upper limit 68.2670 W = 0.9292 of the identified total
+The partner is confined to the nuisance box of plus or minus two natural
+log units, which is why q_par's limit is the lower of the two: q_sun
+cannot be pushed below exp(-2) of its estimate to make room.
+open-sided parameters: ['q_sun', 'q_par']
+verdict: PASS   criterion exactly q_sun and q_par are open
+
+Total identifiability over 8 seeds, to show this is not one draw:
+    seed   q_sun + q_par [W]   relative error
+    8401           73.105189        +0.001441
+    8402           72.354666        -0.008840
+    8403           74.518883        +0.020807
+    8404           74.521463        +0.020842
+    8405           72.831349        -0.002310
+    8406           72.975544        -0.000335
+    8407           72.731406        -0.003679
+    8408           71.757141        -0.017025
+
+worst |relative error| on the total = 0.020842
+verdict: PASS   criterion below 0.05
+
+==============================================================================
+3. The practically non-identifiable design
+==============================================================================
+fit converged: False  (The maximum number of function evaluations is exceeded.)
+residual evaluations: 400
+reduced chi-squared : 0.962148
+
+The rank test passes on this design (validate_identifiability.py check 4)
+and the parameters are still worthless:
+  parameter       estimate         truth   rel. error   quad rel sd
+  C1               6865.16           800      +7.5814        0.9271
+  C2               1950.94          4000      -0.5123        0.7083
+  k12              3.49755           2.5      +0.3990        0.3311
+  h_rad        3.63377e-08     1.205e-08      +2.0156          1.29
+  q_sun            163.603            55      +1.9746          1.31
+  q_par            114.829            18      +5.3794         1.627
+
+profile-likelihood intervals at level 0.95 (Wilks threshold delta chi2 = 3.8415)
+
+  parameter      estimate   profile low  profile high      quad low     quad high  width ratio
+  C1               6865.2        715.09         25705        1115.5         42250       0.9856
+  C2               1950.9        1209.2        4718.1        486.75        7819.6       0.4903
+  k12              3.4976        2.6531        7.8416        1.8279        6.6923        0.835
+  h_rad        3.6338e-08    1.0408e-08    2.1534e-07    2.8971e-09    4.5577e-07        0.599
+  q_sun             163.6        63.975        1134.4         12.55        2132.8       0.5599
+  q_par            114.83          OPEN        1119.7        4.7374        2783.3          inf
+
+OPEN means the profile did not cross the threshold inside the searched range:
+  q_par: open below; searched [5.717, 2306.4] and the likelihood did not rise by 3.8415 on the open side
+  a parameter with an open side is NOT determined by this data set, whatever
+  quadratic standard deviation the covariance matrix reports for it
+
+largest finite profile-to-quadratic width ratio: 0.9856 on C1
+
+Caveats this fit carries:
+  - the optimiser did not report convergence: The maximum number of function evaluations is exceeded.
+  - the worst relative standard deviation is 1.63 on q_par, i.e. above 50 per cent; do not report that parameter as determined
+
+Reported, not bounded. The nuisance box of plus or minus two natural log
+units is active on this design, so these profiles are box-constrained
+profiles and the intervals are narrower than true profiles would be. The
+verdict a user needs is the one the fit already prints: do not report
+these parameters.
+
+elapsed 72.7 s

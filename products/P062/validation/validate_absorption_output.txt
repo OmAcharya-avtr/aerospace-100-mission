@@ -1,0 +1,48 @@
+validate_absorption.py -- stability of the absorption measurement
+cut s/s_max = 0.01, 3 held-out trajectories throughout
+
+==============================================================================
+1. Against the number of training trajectories
+==============================================================================
+   n_train     baseline-eclipse weak             full-sun weak    ratio
+         2                   0.00365                   0.13426     36.8
+         3                   0.02441                   0.12028      4.9
+         4                   0.00161                   0.12715     78.8
+         5                   0.01171                   0.15605     13.3
+
+==============================================================================
+2. Against the noise seed, at four training trajectories
+==============================================================================
+   base seed     baseline-eclipse weak             full-sun weak    ratio
+        4200                   0.00161                   0.12715     78.8
+        6100                   0.01668                   0.08144      4.9
+
+==============================================================================
+3. What survives
+==============================================================================
+  design                min weak    max weak   min improve   max improve
+  baseline-eclipse       0.00161     0.02441       +0.2738       +0.4486
+  full-sun               0.08144     0.15605       +0.2934       +0.3589
+
+the two ranges are disjoint: True
+  sound design   absorption fraction in [0.00161, 0.02441]
+  degenerate one absorption fraction in [0.08144, 0.15605]
+  worst-case separation factor = 3.34
+  best-case separation factor  = 96.74
+
+THE CLAIM THAT IS SUPPORTED: the absorption fraction separates the two
+designs cleanly, by a factor of at least
+3.3 over every configuration tried, while the held-out
+improvement does NOT separate them at all -- both designs improve by
+27 to 44 per cent. A reader looking only at the improvement would not be
+able to tell the two apart.
+
+THE CLAIM THAT IS NOT SUPPORTED: any particular ratio. The ratio ranges
+over the configurations above by a factor of 29, because the sound
+design's absorption fraction is small and its run-to-run variation is a
+large share of itself. The single figure quoted in
+validate_residual.py is the value at ONE configuration and is labelled
+as such; the range above is what should be cited.
+verdict: PASS   criterion the two ranges do not overlap
+
+elapsed 46.0 s

@@ -1,0 +1,171 @@
+# A hand-constructed case with a known answer, carrying exactly one planted
+# instance of every one of the sixteen checks.
+#
+# Expected result, run as
+#   python -m hazardtrace check examples/cases/planted_gaps.yaml \
+#       -r fixtures/planted/docs/REQUIREMENTS.md \
+#       -t fixtures/planted/junit.xml
+# is 16 findings, one per code, 14 error and 2 warning, exit code 1, with
+# enumeration coverage 7/8. The planted subject of each code is named in the
+# comment beside it below. tests/test_known_answers.py asserts the whole set,
+# and validation/validate_known_answers.py prints it.
+#
+# This is a fixture. It describes no real system.
+
+meta:
+  title: Planted-gaps known-answer case
+  system: Not a system. A fixture carrying one instance of each check.
+  revision: "0.1.0"
+
+losses:
+  - id: L-1
+    description: Planted loss, reached by a hazard.
+  - id: L-2
+    description: Planted loss, reached by no hazard.   # HT011
+
+hazards:
+  - id: H-1
+    description: Planted hazard, constrained and linked to a loss.
+    losses: [L-1]
+  - id: H-2
+    description: Planted hazard with no system-level constraint.   # HT004
+    losses: [L-1]
+  - id: H-3
+    description: Planted hazard linked to no loss.   # HT009
+    losses: []
+
+constraints:
+  - id: SC-1
+    description: Planted constraint, citing a requirement that is declared.
+    hazards: [H-1]
+    requirements: [REQ-201]
+  - id: SC-2
+    description: Planted constraint citing no requirement identifier.   # HT005
+    hazards: [H-3]
+    requirements: []
+  - id: SC-3
+    description: Planted constraint citing a requirement that is not declared.
+    hazards: [H-1]
+    requirements: [REQ-299]   # HT012
+
+control_structure:
+  controllers:
+    - id: CTRL-A
+      name: Planted controller with a feedback path
+      process_model: [planted process-model variable]
+    - id: CTRL-B
+      name: Planted controller with no feedback path   # HT015
+  actuators:
+    - id: ACT-A
+      name: Planted actuator
+  sensors:
+    - id: SNS-A
+      name: Planted sensor on the feedback path
+    - id: SNS-ORPHAN
+      name: Planted sensor referenced by nothing   # HT016
+  controlled_processes:
+    - id: PROC-A
+      name: Planted controlled process
+  control_actions:
+    - id: CA-1
+      name: Planted control action, continuous
+      controller: CTRL-A
+      actuator: ACT-A
+      process: PROC-A
+      continuous: true
+    - id: CA-2
+      name: Planted control action, discrete
+      controller: CTRL-B
+      actuator: ACT-A
+      process: PROC-A
+      continuous: false
+  feedback:
+    - id: FB-1
+      name: Planted feedback path
+      sensor: SNS-A
+      controller: CTRL-A
+      process: PROC-A
+
+ucas:
+  - id: UCA-1
+    control_action: CA-1
+    uca_class: not_provided
+    description: Planted UCA, fully linked.
+    context: Planted context.
+    hazards: [H-1]
+  - id: UCA-2
+    control_action: CA-1
+    uca_class: provided
+    description: Planted UCA linked to no hazard.   # HT010
+    context: Planted context.
+    hazards: []
+  - id: UCA-3
+    control_action: CA-2
+    uca_class: not_provided
+    description: Planted UCA with no loss scenario, in a cell that is also
+      excluded.   # HT006, and HT003 with the exclusion below
+    context: Planted context.
+    hazards: [H-1]
+
+exclusions:
+  - control_action: CA-1
+    uca_class: wrong_timing_or_order
+    justification: not applicable   # HT002: 14 characters, below the 20 required
+  - control_action: CA-2
+    uca_class: not_provided
+    justification: >-
+      Planted exclusion contradicted by UCA-3, which occupies the same cell;
+      the two records disagree and both are reported.
+  # HT003
+  - control_action: CA-2
+    uca_class: provided
+    justification: >-
+      Planted exclusion with a justification long enough to be accepted by the
+      twenty-character policy, so that this cell is covered cleanly.
+  - control_action: CA-2
+    uca_class: wrong_timing_or_order
+    justification: >-
+      Planted exclusion with a justification long enough to be accepted, so
+      that this cell is covered cleanly.
+  - control_action: CA-2
+    uca_class: stopped_too_soon_or_applied_too_long
+    justification: >-
+      Planted exclusion with a justification long enough to be accepted, so
+      that this cell is covered cleanly.
+  # CA-1 / stopped_too_soon_or_applied_too_long is deliberately absent: HT001
+
+loss_scenarios:
+  - id: LS-1
+    description: Planted loss scenario with a mitigation.
+    ucas: [UCA-1, UCA-2]
+    causal_factor_class: controller
+    mitigations: [M-1, M-2]
+  - id: LS-2
+    description: Planted loss scenario with no mitigation.   # HT007
+    ucas: [UCA-1]
+    causal_factor_class: feedback
+    mitigations: []
+
+mitigations:
+  - id: M-1
+    description: Planted mitigation with evidence.
+    requirements: [REQ-201]
+    evidence: [EV-1, EV-2]
+  - id: M-2
+    description: Planted mitigation with no evidence artifact.   # HT008
+    requirements: []
+    evidence: []
+
+evidence:
+  - id: EV-1
+    kind: test
+    description: Planted evidence citing a test that exists and passed.
+    tests:
+      - tests/test_planted.py::test_passes
+  - id: EV-2
+    kind: test
+    description: Planted evidence citing a test that failed and a test that is
+      absent from the report.
+    tests:
+      - tests/test_planted.py::test_fails     # HT014
+      - tests/test_planted.py::test_absent    # HT013

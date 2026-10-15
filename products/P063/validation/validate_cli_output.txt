@@ -1,0 +1,406 @@
+safemodetree CLI transcript
+====================================================================================
+interpreter: /usr/bin/python
+working directory: /home/claude/mission/products/P063
+
+$ python -m safemodetree --version
+safemodetree 0.1.0
+exit 0 (expected 0)
+  [PASS] python -m safemodetree --version exits 0
+
+$ python -m safemodetree info
+reaction_wheel_fmea: 4 modes (2 safe), 8 faults, 13 responses, 7 channels, 2 declared ambiguity class(es)
+36 states, 64 transitions, 18 safe, 16 fault states; declared detectability, latency budget unbounded
+indistinguishable: pcdu_shunt_stuck, sa_string_open
+indistinguishable: st_blinding, st_latchup
+exit 0 (expected 0)
+  [PASS] python -m safemodetree info exits 0
+
+$ python -m safemodetree info --json
+{
+  "ambiguity_groups": [
+    [
+      "pcdu_shunt_stuck",
+      "sa_string_open"
+    ],
+    [
+      "st_blinding",
+      "st_latchup"
+    ]
+  ],
+  "channels": [
+... 39 lines elided ...
+    "array_reconfigure",
+    "pcdu_reset"
+  ],
+  "safe_modes": [
+    "sun_safe",
+    "survival"
+  ]
+}
+exit 0 (expected 0)
+  [PASS] python -m safemodetree info --json exits 0
+
+$ python -m safemodetree check
+declaration: reaction_wheel_fmea
+assumption:  declared detectability, latency budget unbounded
+
+findings
+--------
+  fault_states_without_safe_mode             0
+  unreachable_safe_modes                     0
+  fault_states_without_response              0
+  faults_without_response                    0
+  vacuous_responses                          2
+  conflicting_ambiguity_classes              4
+  classes_without_conservative_response      0
+
+responses whose precondition can never hold:
+  rw_swap_to_spare: in coarse_pointing: requires redundant_wheel_available, declared always_false; in fine_pointing: requires redundant_wheel_available, declared always_false; in sun_safe: requires redundant_wheel_available, declared always_false
+  st_power_cycle_in_safe: in sun_safe: requires tracker_powered, which is only available in fine_pointing, coarse_pointing, not in sun_safe
+ambiguity classes:
+  [pcdu_shunt_stuck, sa_string_open] in fine_pointing: CONFLICTING; conservative=coarse_downmode (53 min)
+  [pcdu_shunt_stuck, sa_string_open] in coarse_pointing: CONFLICTING; conservative=safe_mode_entry (45 min)
+  [st_blinding, st_latchup] in fine_pointing: CONFLICTING; conservative=coarse_downmode (53 min)
+  [st_blinding, st_latchup] in coarse_pointing: CONFLICTING; conservative=safe_mode_entry (45 min)
+
+total findings: 6
+exit 0 (expected 0)
+  [PASS] python -m safemodetree check exits 0
+
+$ python -m safemodetree check --fail-on-findings
+declaration: reaction_wheel_fmea
+assumption:  declared detectability, latency budget unbounded
+
+findings
+--------
+  fault_states_without_safe_mode             0
+  unreachable_safe_modes                     0
+  fault_states_without_response              0
+  faults_without_response                    0
+  vacuous_responses                          2
+  conflicting_ambiguity_classes              4
+  classes_without_conservative_response      0
+
+responses whose precondition can never hold:
+  rw_swap_to_spare: in coarse_pointing: requires redundant_wheel_available, declared always_false; in fine_pointing: requires redundant_wheel_available, declared always_false; in sun_safe: requires redundant_wheel_available, declared always_false
+  st_power_cycle_in_safe: in sun_safe: requires tracker_powered, which is only available in fine_pointing, coarse_pointing, not in sun_safe
+ambiguity classes:
+  [pcdu_shunt_stuck, sa_string_open] in fine_pointing: CONFLICTING; conservative=coarse_downmode (53 min)
+  [pcdu_shunt_stuck, sa_string_open] in coarse_pointing: CONFLICTING; conservative=safe_mode_entry (45 min)
+  [st_blinding, st_latchup] in fine_pointing: CONFLICTING; conservative=coarse_downmode (53 min)
+  [st_blinding, st_latchup] in coarse_pointing: CONFLICTING; conservative=safe_mode_entry (45 min)
+
+total findings: 6
+exit 1 (expected 1)
+  [PASS] python -m safemodetree check --fail-on-findings exits 1
+
+$ python -m safemodetree check --spec planted_unreachable
+declaration: planted_unreachable
+assumption:  declared detectability, latency budget unbounded
+
+findings
+--------
+  fault_states_without_safe_mode             1
+  unreachable_safe_modes                     1
+  fault_states_without_response              0
+  faults_without_response                    0
+  vacuous_responses                          0
+  conflicting_ambiguity_classes              0
+  classes_without_conservative_response      0
+
+fault states with no reachable safe mode:
+  (ops, sensor_fail)
+declared safe modes no fault state can reach: orphan_safe
+
+total findings: 2
+exit 0 (expected 0)
+  [PASS] python -m safemodetree check --spec planted_unreachable exits 0
+
+$ python -m safemodetree check --spec planted_unreachable --fail-on-findings
+declaration: planted_unreachable
+assumption:  declared detectability, latency budget unbounded
+
+findings
+--------
+  fault_states_without_safe_mode             1
+  unreachable_safe_modes                     1
+  fault_states_without_response              0
+  faults_without_response                    0
+  vacuous_responses                          0
+  conflicting_ambiguity_classes              0
+  classes_without_conservative_response      0
+
+fault states with no reachable safe mode:
+  (ops, sensor_fail)
+declared safe modes no fault state can reach: orphan_safe
+
+total findings: 2
+exit 1 (expected 1)
+  [PASS] python -m safemodetree check --spec planted_unreachable --fail-on-findings exits 1
+
+$ python -m safemodetree check --latency-budget 60
+declaration: reaction_wheel_fmea
+assumption:  declared detectability, latency budget 60 s
+
+findings
+--------
+  fault_states_without_safe_mode             0
+  unreachable_safe_modes                     0
+  fault_states_without_response              0
+  faults_without_response                    0
+  vacuous_responses                          2
+  conflicting_ambiguity_classes              2
+  classes_without_conservative_response      0
+
+responses whose precondition can never hold:
+  rw_swap_to_spare: in coarse_pointing: requires redundant_wheel_available, declared always_false; in fine_pointing: requires redundant_wheel_available, declared always_false; in sun_safe: requires redundant_wheel_available, declared always_false
+  st_power_cycle_in_safe: in sun_safe: requires tracker_powered, which is only available in fine_pointing, coarse_pointing, not in sun_safe
+faults whose declared detection latency exceeds the budget: sa_string_open, pcdu_shunt_stuck
+ambiguity classes:
+  [pcdu_shunt_stuck, sa_string_open] in fine_pointing: consistent; conservative=coarse_downmode (53 min)
+  [pcdu_shunt_stuck, sa_string_open] in coarse_pointing: consistent; conservative=safe_mode_entry (45 min)
+  [st_blinding, st_latchup] in fine_pointing: CONFLICTING; conservative=coarse_downmode (53 min)
+  [st_blinding, st_latchup] in coarse_pointing: CONFLICTING; conservative=safe_mode_entry (45 min)
+
+total findings: 4
+exit 0 (expected 0)
+  [PASS] python -m safemodetree check --latency-budget 60 exits 0
+
+$ python -m safemodetree check --assume-perfect-detection
+declaration: reaction_wheel_fmea
+assumption:  detection assumed perfect (require_detection=False)
+
+findings
+--------
+  fault_states_without_safe_mode             0
+  unreachable_safe_modes                     0
+  fault_states_without_response              0
+  faults_without_response                    0
+  vacuous_responses                          2
+  conflicting_ambiguity_classes              4
+  classes_without_conservative_response      0
+
+responses whose precondition can never hold:
+  rw_swap_to_spare: in coarse_pointing: requires redundant_wheel_available, declared always_false; in fine_pointing: requires redundant_wheel_available, declared always_false; in sun_safe: requires redundant_wheel_available, declared always_false
+  st_power_cycle_in_safe: in sun_safe: requires tracker_powered, which is only available in fine_pointing, coarse_pointing, not in sun_safe
+ambiguity classes:
+  [pcdu_shunt_stuck, sa_string_open] in fine_pointing: CONFLICTING; conservative=coarse_downmode (53 min)
+  [pcdu_shunt_stuck, sa_string_open] in coarse_pointing: CONFLICTING; conservative=safe_mode_entry (45 min)
+  [st_blinding, st_latchup] in fine_pointing: CONFLICTING; conservative=coarse_downmode (53 min)
+  [st_blinding, st_latchup] in coarse_pointing: CONFLICTING; conservative=safe_mode_entry (45 min)
+
+total findings: 6
+exit 0 (expected 0)
+  [PASS] python -m safemodetree check --assume-perfect-detection exits 0
+
+$ python -m safemodetree reach
+mode             fault              safe?  hops  cost_min  path
+--------------------------------------------------------------------------------------------
+coarse_pointing  bat_cell_short     yes       1    45.000  safe_mode_entry
+coarse_pointing  pcdu_shunt_stuck   yes       1    45.000  safe_mode_entry
+coarse_pointing  rw_bearing_drag    yes       1    45.000  safe_mode_entry
+coarse_pointing  rw_motor_open      yes       1    45.000  safe_mode_entry
+coarse_pointing  rw_tach_stale      yes       1    45.000  safe_mode_entry
+coarse_pointing  sa_string_open     yes       1    45.000  safe_mode_entry
+coarse_pointing  st_blinding        yes       1    45.000  safe_mode_entry
+coarse_pointing  st_latchup         yes       1    45.000  safe_mode_entry
+fine_pointing    bat_cell_short     yes       2    53.000  coarse_downmode -> safe_mode_entry
+fine_pointing    pcdu_shunt_stuck   yes       2    53.000  coarse_downmode -> safe_mode_entry
+fine_pointing    rw_bearing_drag    yes       2    53.000  coarse_downmode -> safe_mode_entry
+fine_pointing    rw_motor_open      yes       2    53.000  coarse_downmode -> safe_mode_entry
+fine_pointing    rw_tach_stale      yes       2    53.000  coarse_downmode -> safe_mode_entry
+fine_pointing    sa_string_open     yes       2    53.000  coarse_downmode -> safe_mode_entry
+fine_pointing    st_blinding        yes       2    53.000  coarse_downmode -> safe_mode_entry
+fine_pointing    st_latchup         yes       2    53.000  coarse_downmode -> safe_mode_entry
+all fault states reach a declared safe mode: True
+exit 0 (expected 0)
+  [PASS] python -m safemodetree reach exits 0
+
+$ python -m safemodetree reach --spec planted_unreachable --fail-on-findings
+mode             fault              safe?  hops  cost_min  path
+--------------------------------------------------------------------------------------------
+ops              actuator_fail      yes       1    11.000  actuator_safe_hold
+ops              sensor_fail        NO        0       inf  (already safe)
+all fault states reach a declared safe mode: False
+unreachable declared safe modes: orphan_safe
+exit 1 (expected 1)
+  [PASS] python -m safemodetree reach --spec planted_unreachable --fail-on-findings exits 1
+
+$ python -m safemodetree reach --json --latency-budget 20
+{
+  "all_reachable": true,
+  "assumption": "declared detectability, latency budget 20 s",
+  "rows": [
+    {
+      "cost_min": 45.0,
+      "fault": "bat_cell_short",
+      "hops": 1,
+      "mode": "coarse_pointing",
+      "path": [
+        "safe_mode_entry"
+      ],
+... 171 lines elided ...
+        "safe_mode_entry"
+      ],
+      "reachable": true,
+      "safe_mode": "sun_safe"
+    }
+  ],
+  "unreachable_safe_modes": []
+}
+exit 0 (expected 0)
+  [PASS] python -m safemodetree reach --json --latency-budget 20 exits 0
+
+$ python -m safemodetree ambiguity
+faults                               mode             conflict  conservative        cons_min  cost_of_cons
+----------------------------------------------------------------------------------------------------------
+pcdu_shunt_stuck+sa_string_open      fine_pointing    YES       coarse_downmode       53.000        28.000
+pcdu_shunt_stuck+sa_string_open      coarse_pointing  YES       safe_mode_entry       45.000        20.000
+st_blinding+st_latchup               fine_pointing    YES       coarse_downmode       53.000        37.500
+st_blinding+st_latchup               coarse_pointing  YES       safe_mode_entry       45.000        20.000
+exit 0 (expected 0)
+  [PASS] python -m safemodetree ambiguity exits 0
+
+$ python -m safemodetree ambiguity --json
+{
+  "assumption": "declared detectability, latency budget unbounded",
+  "classes": [
+    {
+      "conflicting": true,
+      "conservatism_cost_min": 28.0,
+      "conservative": "coarse_downmode",
+      "conservative_cost_min": 53.0,
+      "faults": [
+        "pcdu_shunt_stuck",
+        "sa_string_open"
+      ],
+... 97 lines elided ...
+      ],
+      "specific_cost_min": {
+        "st_blinding": Infinity,
+        "st_latchup": 25.0
+      }
+    }
+  ]
+}
+exit 0 (expected 0)
+  [PASS] python -m safemodetree ambiguity --json exits 0
+
+$ python -m safemodetree ambiguity --spec planted_unreachable
+no declared ambiguity class in this declaration
+exit 0 (expected 0)
+  [PASS] python -m safemodetree ambiguity --spec planted_unreachable exits 0
+
+$ python -m safemodetree benchmark --noise-scale 2.0 --n-per-fault 120
+noise_scale 2  seed 63001  train/cal/test (960, 480, 480)
+baseline false-alarm rate on the calibration split: 0.103448  matched tau 0.018251
+accuracy ceiling from the declared observability model: 0.876042
+
+detector               op_point       FAR    detect ident_acc   overall      ECE      MCE     brier
+---------------------------------------------------------------------------------------------------
+threshold logic         0.00000   0.11837   1.00000   0.71915   0.80208  0.03345  0.13462         -
+learned (matched FAR)   0.01825   0.09796   1.00000   0.72766   0.81667  0.03148  0.24743   0.17020
+learned (argmax)        0.00000   0.00408   0.99574   0.72340   0.86250  0.03148  0.22222   0.17020
+exit 0 (expected 0)
+  [PASS] python -m safemodetree benchmark --noise-scale 2.0 --n-per-fault 120 exits 0
+
+$ python -m safemodetree benchmark --noise-scale 2.0 --n-per-fault 120 --json
+{
+  "accuracy_ceiling": 0.8760416666666667,
+  "noise_scale": 2.0,
+  "scores": {
+    "baseline": {
+      "brier": null,
+      "detection_rate": 1.0,
+      "ece": 0.03344907407407408,
+      "false_alarm_rate": 0.11836734693877551,
+      "identification_accuracy": 0.7191489361702128,
+      "mce": 0.13461538461538464,
+      "operating_point": 0.0,
+... 24 lines elided ...
+  "sizes": [
+    960,
+    480,
+    480
+  ],
+  "target_false_alarm_rate": 0.10344827586206896,
+  "tau": 0.018250955773028158
+}
+exit 0 (expected 0)
+  [PASS] python -m safemodetree benchmark --noise-scale 2.0 --n-per-fault 120 --json exits 0
+
+$ python -m safemodetree policy --noise-scale 2.0 --n-per-fault 120
+mode fine_pointing  detector learned  noise_scale 2  threshold 0.7
+
+policy                    thr   cmded  missed   cost_min misrout  unsafe cons_fr    fa_cost
+-------------------------------------------------------------------------------------------
+oracle                  0.000     235       0    21.7234       0       0  0.0000     0.0000
+always_specific         0.000     235       0    34.9957      64       0  0.0000     4.4980
+confidence_routed       0.700     235       0    44.9064       5       0  0.6213     0.7837
+always_conservative     2.000     235       0    53.0000       0       0  1.0000     0.7837
+
+cost of conservatism against the oracle:   +23.1830 min per commanded event
+cost of conservatism against always-specific: +9.9106 min per commanded event
+mis-routes avoided: 59
+exit 0 (expected 0)
+  [PASS] python -m safemodetree policy --noise-scale 2.0 --n-per-fault 120 exits 0
+
+$ python -m safemodetree policy --noise-scale 2.0 --n-per-fault 120 --mode coarse_pointing --detector baseline
+mode coarse_pointing  detector baseline  noise_scale 2  threshold 0.7
+
+policy                    thr   cmded  missed   cost_min misrout  unsafe cons_fr    fa_cost
+-------------------------------------------------------------------------------------------
+oracle                  0.000     235       0    26.0851       0       0  0.0000     0.0000
+always_specific         0.000     235       0    39.0128      33       0  0.2723     5.0898
+confidence_routed       0.700     235       0    36.2043       2       0  0.5319     5.1143
+always_conservative     2.000     235       0    45.0000       0       0  1.0000     5.3265
+
+cost of conservatism against the oracle:   +10.1191 min per commanded event
+cost of conservatism against always-specific: -2.8085 min per commanded event
+mis-routes avoided: 31
+exit 0 (expected 0)
+  [PASS] python -m safemodetree policy --noise-scale 2.0 --n-per-fault 120 --mode coarse_pointing --detector baseline exits 0
+
+$ python -m safemodetree policy --noise-scale 2.0 --n-per-fault 120 --sweep
+mode fine_pointing  detector learned  noise_scale 2  threshold 0.7
+
+policy                    thr   cmded  missed   cost_min misrout  unsafe cons_fr    fa_cost
+-------------------------------------------------------------------------------------------
+oracle                  0.000     235       0    21.7234       0       0  0.0000     0.0000
+always_specific         0.000     235       0    34.9957      64       0  0.0000     4.4980
+confidence_routed       0.700     235       0    44.9064       5       0  0.6213     0.7837
+always_conservative     2.000     235       0    53.0000       0       0  1.0000     0.7837
+
+cost of conservatism against the oracle:   +23.1830 min per commanded event
+cost of conservatism against always-specific: +9.9106 min per commanded event
+mis-routes avoided: 59
+... 7 lines elided ...
+threshold 0.40          0.400     235       0    34.9574      63       0  0.0085     0.9959
+threshold 0.50          0.500     235       0    35.7574      56       0  0.0809     0.7837
+threshold 0.60          0.600     235       0    42.1957      12       0  0.5149     0.7837
+threshold 0.70          0.700     235       0    44.9064       5       0  0.6213     0.7837
+threshold 0.80          0.800     235       0    45.5574       0       0  0.6638     0.7837
+threshold 0.90          0.900     235       0    47.2340       0       0  0.7234     0.7837
+threshold 1.00          1.000     235       0    50.6511       0       0  0.8809     0.7837
+threshold 2.00          2.000     235       0    53.0000       0       0  1.0000     0.7837
+exit 0 (expected 0)
+  [PASS] python -m safemodetree policy --noise-scale 2.0 --n-per-fault 120 --sweep exits 0
+
+$ python -m safemodetree check --spec no_such_declaration
+stderr: error: "no packaged declaration 'no_such_declaration'; available: planted_unreachable, reaction_wheel_fmea"
+exit 2 (expected 2)
+  [PASS] python -m safemodetree check --spec no_such_declaration exits 2
+
+$ python -m safemodetree reach --spec /nonexistent/path.yaml
+stderr: error: "no packaged declaration '/nonexistent/path.yaml'; available: planted_unreachable, reaction_wheel_fmea"
+exit 2 (expected 2)
+  [PASS] python -m safemodetree reach --spec /nonexistent/path.yaml exits 2
+
+$ python -m safemodetree policy --mode nowhere --n-per-fault 60
+stderr: error: "no declared mode 'nowhere'"
+exit 2 (expected 2)
+  [PASS] python -m safemodetree policy --mode nowhere --n-per-fault 60 exits 2
+
+summary: 23 of 23 commands behaved as declared
+CLI TRANSCRIPT COMPLETE

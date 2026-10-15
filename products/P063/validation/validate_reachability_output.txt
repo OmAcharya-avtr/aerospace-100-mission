@@ -1,0 +1,21 @@
+safemodetree reachability cross-check against exhaustive enumeration
+============================================================================
+declarations: 2000 random, seeds 0..1999
+shape: 4 modes, 3 faults, 6 responses, 3 observation channels
+tolerance on costs: 1e-09 relative, 1e-09 absolute
+
+
+states examined:      32000
+transitions examined: 32581
+declarations with at least one unreachable fault state: 1218 of 2000
+elapsed: 1.72 s
+
+results
+----------------------------------------------------------------------------
+  [PASS] reachable-state sets agree on all 2000 declarations
+  [PASS] cheapest-cost supports agree on every declaration
+  [PASS] worst cheapest-cost deviation 0.000e+00 min at seed -1 is within tolerance
+  [PASS] worst witness-path sum deviation 0.000e+00 min at seed -1 is within tolerance
+
+summary: 4 of 4 checks passed
+REACHABILITY CROSS-CHECK COMPLETE

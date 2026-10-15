@@ -1,0 +1,126 @@
+activityplan -- validate_energy.py
+energy conservation over the timeline against a closed-form integral
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+cpu cores        : 2
+
+==============================================================================
+check 1: closed-form solar integral against scipy.integrate.quad
+==============================================================================
+the closed form accumulates whole orbits analytically; quad is an independent
+adaptive quadrature of the same declared power profile.
+
+profile                         horizon/s      closed/Wh        quad/Wh     rel diff
+no eclipse                         1000.0   17.683882566   17.683882566    2.009e-16
+no eclipse                         3000.0   53.051647697   53.051647697    5.357e-16
+eclipse 0.34, phase 900 s          5400.0  103.991839816  103.991839816    3.628e-13
+eclipse 0.34, phase 900 s         16200.0  311.975519449  311.975519597    4.743e-10
+eclipse 0.36, phase 0              5400.0   72.116287814   72.116287814    2.695e-12
+eclipse 0.36, phase 0             16200.0  216.348863441  216.348863535    4.328e-10
+eclipse 0.5, negative phase         600.0    2.652582385    2.652582385    3.348e-16
+eclipse 0.5, negative phase        1800.0    7.957747155    7.957747155    1.116e-16
+
+worst relative difference against quad : 4.743e-10
+criterion                               : < 1e-8 (quad's own tolerance)
+verdict                                 : PASS
+
+==============================================================================
+check 2: per-step closed-form integrals sum to the whole-horizon closed form
+==============================================================================
+exercises the orbit-accumulation branch against the partial-arc branch.
+
+instance            steps    sum of steps/Wh         whole/Wh     abs diff
+tiny-enumerable        12    12.414085561168  12.414085561168    1.776e-15
+energy-bound           72   144.232575627599 144.232575627599    0.000e+00
+recorder-bound         72   254.011289174665 254.011289174665    0.000e+00
+window-bound           72   286.478897565412 286.478897565412    0.000e+00
+leo-imaging           108   311.975519448733 311.975519448733    0.000e+00
+
+worst absolute difference : 1.776e-15 W*h
+criterion                 : < 1e-9 W*h (floating-point accumulation only)
+verdict                   : PASS
+
+==============================================================================
+check 3: what midpoint sampling would cost, and its convergence order
+==============================================================================
+the package integrates the solar profile in closed form per step. This check
+measures the alternative. On a smooth profile the midpoint rule is second
+order; across the eclipse kink it is not, which is the reason for the choice.
+
+profile: no eclipse, horizon 2000.0 s, exact 35.367765132 W*h
+    step/s       sampled/Wh     abs err/Wh  err ratio
+     55.56     35.412695203      4.493e-02          -
+     27.78     35.378990164      1.123e-02      4.003
+     13.89     35.370570922      2.806e-03      4.001
+      6.94     35.368466550      7.014e-04      4.000
+
+profile: eclipse 0.34, phase 900 s, horizon 10800.0 s, exact 207.983679632 W*h
+    step/s       sampled/Wh     abs err/Wh  err ratio
+    300.00    208.538426726      5.547e-01          -
+    150.00    208.082867556      9.919e-02      5.593
+     75.00    207.969195511      1.448e-02      6.848
+     37.50    207.993058045      9.378e-03      1.544
+
+the no-eclipse ratios are near 4, which is second order. The eclipse profile's
+ratios are not, and are reported as measured.
+
+==============================================================================
+check 4: battery recursion closure under both planners
+==============================================================================
+residual = (E_final - E_initial) - (effective generated - consumed - shunted)
+
+instance           planner   placed      gen/Wh     cons/Wh    shunt/Wh       dE/Wh     residual
+tiny-enumerable    empty          0    12.41409    10.44444     6.03909    -4.06945    5.329e-15
+tiny-enumerable    greedy         3    12.41409    18.74444     0.00000    -6.33036    0.000e+00
+tiny-enumerable    exact          3    12.41409    18.74444     0.20576    -6.53612    5.329e-15
+energy-bound       empty          0   144.23258   133.00000    36.17886   -24.94629   -5.684e-14
+energy-bound       greedy         4   144.23258   175.43333     0.00000   -31.20076   -5.684e-14
+energy-bound       exact          4   144.23258   175.33333     0.00000   -31.10076   -2.842e-14
+recorder-bound     empty          0   254.01129   117.00000   155.30202   -18.29073   -1.705e-13
+recorder-bound     greedy         4   254.01129   133.83333   138.46868   -18.29073   -1.705e-13
+recorder-bound     exact          4   254.01129   133.83333   138.46868   -18.29073   -1.421e-13
+window-bound       empty          0   286.47890   111.50000   189.09005   -14.11115    1.421e-13
+window-bound       greedy         3   286.47890   132.50000   168.09005   -14.11115    1.421e-13
+window-bound       exact          3   286.47890   132.50000   168.09005   -14.11115    8.527e-14
+leo-imaging        empty          0   311.97552   209.25000   114.21854   -11.49302   -2.274e-13
+leo-imaging        greedy         6   311.97552   253.22125    70.24729   -11.49302   -1.990e-13
+leo-imaging        exact          8   311.97552   265.34083    67.41979   -20.78511   -1.847e-13
+family-9000        greedy         8   152.36561   156.70634     0.00000    -4.34073    2.842e-14
+family-9001        greedy        12   161.19179   175.19887    21.37749   -35.38456    2.274e-13
+family-9002        greedy         9   158.02616   173.99144     0.00000   -15.96527    1.137e-13
+family-9003        greedy         8   155.26090   169.84966    28.05753   -42.64630    8.527e-14
+family-9004        greedy        11   156.24566   173.20026    26.47411   -43.42871    1.563e-13
+family-9005        greedy        10   119.31190   129.97960     0.00000   -10.66770   -1.421e-13
+
+traces checked            : 21
+worst absolute residual   : 2.274e-13 W*h
+criterion                 : < 1e-9 W*h
+verdict                   : PASS
+
+==============================================================================
+check 5: the fixed-load closed form against the per-step sum
+==============================================================================
+instance              fixed closed/Wh     fixed steps/Wh     abs diff
+tiny-enumerable       10.444444444444    10.444444444444    0.000e+00
+energy-bound         133.000000000000   133.000000000000    0.000e+00
+recorder-bound       117.000000000000   117.000000000000    0.000e+00
+window-bound         111.500000000000   111.500000000000    0.000e+00
+leo-imaging          209.250000000000   209.250000000000    0.000e+00
+
+worst absolute difference : 0.000e+00 W*h
+criterion                 : < 1e-9 W*h
+verdict                   : PASS
+
+==============================================================================
+summary
+==============================================================================
+check 1 quad cross-check        worst rel diff 4.743e-10
+check 2 per-step additivity     worst abs diff 1.776e-15 W*h
+check 3 midpoint sampling       reported, no pass criterion
+check 4 battery closure         worst residual 2.274e-13 W*h over 21 traces
+check 5 fixed-load additivity   worst abs diff 0.000e+00 W*h
+wall clock                      3.8 s
+overall                         PASS
+raw output written to           validate_energy_output.txt

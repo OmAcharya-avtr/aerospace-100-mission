@@ -1,0 +1,96 @@
+activityplan -- validate_gap.py
+greedy against the exact optimum, and the dominance lemma, over a seeded family
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+cpu cores        : 2
+family           : 24 instances, seeds 9000..9023
+sizing           : activityplan.instances.sample_instance_spec defaults
+                   (14 activities, 2 orbits, 150 s step)
+
+==============================================================================
+part 1: the five shipped hand-declared instances
+==============================================================================
+instance             total  greedy   exact   ratio  short %   nodes  greedy s  exact s binding (exact)
+tiny-enumerable        7.5     6.5     6.5  1.0000     0.00       1     0.005    0.027 horizon
+energy-bound          30.0    15.0    15.0  1.0000     0.00     263     0.158    1.420 battery-depth-of-discharge
+recorder-bound        15.0    10.0    10.0  1.0000     0.00       1     0.098    0.034 recorder-capacity
+window-bound          12.0     8.0     8.0  1.0000     0.00       1     0.003    0.016 window:target-01
+leo-imaging           30.0    15.0    23.0  0.6522    34.78       1     0.088    0.728 recorder-capacity
+
+==============================================================================
+part 2: the seeded family
+==============================================================================
+instance         total  greedy   exact   ratio   nodes       gap  greedy s  exact s  sim ok binding (exact)
+family-9000       36.0    28.0    28.0  1.0000       1  0.00e+00     0.203    0.381     yes horizon
+family-9001       47.0    43.0    43.0  1.0000       1  0.00e+00     0.167    0.080     yes horizon
+family-9002       35.0    28.0    30.0  0.9333       1  0.00e+00     0.176    0.690     yes horizon
+family-9003       46.0    34.0    40.0  0.8500       1  0.00e+00     0.230    0.913     yes battery-depth-of-discharge
+family-9004       45.0    42.0    42.0  1.0000       1  0.00e+00     0.169    0.645     yes horizon
+family-9005       34.0    28.0    30.0  0.9333      46  0.00e+00     0.212    1.264     yes battery-depth-of-discharge
+family-9006       28.0    21.0    22.0  0.9545       1  0.00e+00     0.284    0.863     yes horizon
+family-9007       33.0    20.0    21.0  0.9524       1  0.00e+00     0.215    0.702     yes horizon
+family-9008       43.0    33.0    37.0  0.8919       1  0.00e+00     0.175    0.745     yes horizon
+family-9009       30.0    22.0    23.0  0.9565       1  0.00e+00     0.207    0.154     yes recorder-capacity
+family-9010       33.0    25.0    26.0  0.9615       1  0.00e+00     0.219    0.185     yes horizon
+family-9011       35.0    21.0    24.0  0.8750       1  0.00e+00     0.205    0.076     yes recorder-capacity
+family-9012       35.0    30.0    31.0  0.9677       1  6.88e-16     0.227    0.986     yes horizon
+family-9013       40.0    25.0    28.0  0.8929       1  0.00e+00     0.323    1.070     yes recorder-capacity
+family-9014       40.0    31.0    31.0  1.0000       1  0.00e+00     0.262    1.233     yes recorder-capacity
+family-9015       42.0    26.0    28.0  0.9286       1  0.00e+00     0.208    0.595     yes recorder-capacity
+family-9016       38.0    28.0    28.0  1.0000       1  0.00e+00     0.257    0.538     yes recorder-capacity
+family-9017       39.0    30.0    33.0  0.9091       1  0.00e+00     0.205    0.542     yes recorder-capacity
+family-9018       39.0    30.0    30.0  1.0000       1  0.00e+00     0.196    0.570     yes recorder-capacity
+family-9019       49.0    37.0    42.0  0.8810       1  1.08e-13     0.221    1.025     yes horizon
+family-9020       38.0    31.0    31.0  1.0000       1  6.42e-15     0.216    0.887     yes horizon
+family-9021       36.0    32.0    32.0  1.0000       1  0.00e+00     0.185    0.762     yes recorder-capacity
+family-9022       44.0    32.0    32.0  1.0000       1  1.15e-13     0.230    0.226     yes recorder-capacity
+family-9023       35.0    30.0    32.0  0.9375       1  0.00e+00     0.187    0.112     yes horizon
+
+optimality ratio greedy/exact over the family
+  instances               : 24
+  mean                    : 0.9511
+  median                  : 0.9555
+  minimum                 : 0.8500
+  maximum                 : 1.0000
+  standard deviation      : 0.0479
+  10th percentile         : 0.8842
+  instances where greedy ties the optimum : 9 of 24
+  pooled ratio sum(greedy)/sum(exact)     : 0.9503
+  pooled shortfall                        : 4.97 %
+
+cost
+  greedy wall clock, mean : 0.216 s
+  exact wall clock, mean  : 0.635 s
+  exact wall clock, max   : 1.264 s
+  exact/greedy time ratio : 2.94
+
+dominance lemma: every MILP plan simulated
+  MILP plans rejected by the simulator : 0 of 24
+  greedy plans rejected                : 0 of 24
+  instances not proven optimal         : 0 of 24
+  criterion                            : all three zero
+  verdict                              : PASS
+
+which constraint the exact optimum leaves binding
+  horizon                         12 of 24
+  recorder-capacity               10 of 24
+  battery-depth-of-discharge       2 of 24
+
+tightest RESOURCE constraint, reported separately because the objective gives no
+reward for finishing early, so an optimal plan may place an activity arbitrarily
+late and leave a one-step horizon slack that is tie-breaking, not a resource limit
+  recorder-capacity               22 of 24
+  battery-depth-of-discharge       2 of 24
+
+==============================================================================
+summary
+==============================================================================
+greedy/exact mean ratio          0.9511
+greedy/exact worst ratio         0.8500
+pooled shortfall                 4.97 %
+MILP plans rejected by simulator 0
+wall clock                       23.7 s
+overall                          PASS
+raw output written to            validate_gap_output.txt

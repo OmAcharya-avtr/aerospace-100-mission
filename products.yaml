@@ -1037,7 +1037,7 @@ products:
     summary: Onboard activity planning with an auditable timeline — declared activities (duration, power profile, data produced, priority, windows, precedence, exclusions) against a declared resource model (battery capacity and depth-of-discharge limit, solar input, recorder capacity, contact windows and rates); greedy earliest-feasible-start and exact MILP baselines, a learned duration/energy predictor with calibrated prediction intervals used to warm-start the solver and to build a robust plan, scored against the exact optimum on optimality gap and solve time, and a feasibility report naming the binding constraint and the slack on every other one.
     ai_enabled: true
     validation_level: 3
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P061
@@ -1054,7 +1054,7 @@ products:
     summary: Digital-twin parameter identification that reports identifiability before it reports a fitted value — Fisher-information and sensitivity-Jacobian rank, condition number and near-null parameter combinations, profile-likelihood intervals that expose practical non-identifiability a Hessian approximation hides, weighted nonlinear least squares as the physics-only baseline with parameter covariance, and a learned residual model benchmarked on held-out trajectories with an explicit measurement of how much of its improvement is absorbing identifiability failure rather than fixing physics.
     ai_enabled: true
     validation_level: 3
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P062
@@ -1071,7 +1071,7 @@ products:
     summary: Fault-response policy synthesis and checking from an FMEA-shaped declaration — faults with effect, detectability and declared detection latency, modes including declared safe modes, responses with cost and precondition, and an observability model; builds the response automaton and checks that a declared safe mode is reachable from every fault state, reporting unreachable safe modes, fault states with no response, responses whose preconditions can never hold, and ambiguity classes where two faults are indistinguishable but demand different responses; a calibrated-confidence learned classifier routes low-confidence cases to the conservative response for the whole ambiguity class and the cost of that conservatism is measured.
     ai_enabled: true
     validation_level: 3
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P063
@@ -1088,7 +1088,7 @@ products:
     summary: Regression test selection and prioritisation for numerical suites, scored on what skipping costs — import-graph reachability as the safe baseline, historical co-failure prioritisation measured by APFD, and a learned ranker over change features, all three evaluated by seeded fault injection into a bundled sample project on faults-detected against tests-run with the full-suite upper bound shown, and safety-loss (the fraction of real failures a selection would have missed) reported as the number that decides usability.
     ai_enabled: true
     validation_level: 2
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P064
@@ -1105,7 +1105,7 @@ products:
     summary: STPA control-structure hazard analysis as a machine-checkable artifact — declarative losses, hazards, system-level constraints, control structure and unsafe control actions in the four STPA classes, with computed checks for UCA enumeration completeness against every control action, hazards with no constraint, constraints with no requirement, UCAs with no loss scenario, scenarios with no mitigation and mitigations with no evidence artifact, cross-linked to requirement identifiers and junit test identifiers so coverage is computed from the repository; deliberately has no learned component, because what is being checked is a declared argument and a model here would generate text that reads like analysis.
     ai_enabled: false
     validation_level: 2
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P065

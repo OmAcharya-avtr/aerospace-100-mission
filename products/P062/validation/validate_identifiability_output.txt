@@ -1,0 +1,212 @@
+validate_identifiability.py -- rank, null directions, collinearity
+
+==============================================================================
+1. Known answer: the single-node model's exact null direction
+==============================================================================
+parameters            : ('C', 'k', 'q')
+numerical rank        : 2 of 3   expected 2
+singular value ratios : 1.0000e+00, 3.1786e-02, 2.4711e-10
+condition number      : 4.046724e+09
+
+expected null direction : +0.577350269, +0.577350269, +0.577350269
+measured null direction : +0.577350260, +0.577350274, +0.577350273
+worst component error   : 8.783e-09   tolerance 1e-6
+verdict: PASS
+
+Direct consequence, checked independently of the SVD: scaling all three
+parameters by a common factor must not move the trajectory.
+    factor   worst |T(scaled) - T(base)| [K]
+      0.25                      0.000000e+00
+      0.50                      0.000000e+00
+      2.00                      0.000000e+00
+      4.00                      0.000000e+00
+     10.00                      0.000000e+00
+
+worst over all factors = 0.000e+00 K   tolerance 1e-5 K
+verdict: PASS
+
+==============================================================================
+2. Known answer: the full-sun design's exact null direction
+==============================================================================
+numerical rank        : 5 of 6   expected 5
+condition number      : 9.467730e+10
+collinearity index    : 2.175980e+10
+
+  parameter       expected      measured    difference
+  C1          +0.000000000  -0.000000000    -2.212e-10
+  C2          +0.000000000  +0.000000000    +3.443e-11
+  k12         +0.000000000  +0.000000000    +6.953e-12
+  h_rad       +0.000000000  -0.000000001    -1.079e-09
+  q_sun       +0.311039060  +0.311039059    -1.341e-09
+  q_par       -0.950397129  -0.950397129    -4.390e-10
+
+worst component error = 1.341e-09   tolerance 1e-5
+verdict: PASS
+
+Direct consequence: moving heat from the solar load to the parasitic load
+must not move the trajectory, because only the sum enters.
+   shift [W]    worst |T(shifted) - T(base)| [K]
+         1.0                        0.000000e+00
+         5.0                        0.000000e+00
+        10.0                        0.000000e+00
+        17.0                        0.000000e+00
+
+worst over all shifts = 0.000e+00 K   tolerance 1e-9 K
+verdict: PASS
+
+==============================================================================
+3. Rank verdicts do not balance on the tolerance
+==============================================================================
+The rank cut must not be the thing that decides the verdict.
+
+  design               tol 1e-05   tol 1e-06   tol 1e-08   tol 1e-10   tol 1e-12
+  baseline-eclipse             6           6           6           6           6
+  full-sun                     5           5           5           5           6
+  lumped-nodes                 6           6           6           6           6
+  coarse-sampled               6           6           6           6           6
+  weak-excitation              5           6           6           6           6
+
+  design                smallest s/s_max   decades from 1e-8
+  baseline-eclipse            2.5190e-03                5.40
+  full-sun                    1.0562e-11               -2.98
+  lumped-nodes                2.8160e-03                5.45
+  coarse-sampled              2.5399e-03                5.40
+  weak-excitation             4.2156e-06                2.62
+
+Read this table honestly. Within two decades of the default cut -- that
+is, for tol in [1e-10, 1e-6] -- every verdict is stable: full-sun is rank
+5 and the other four are rank 6. Outside that band two verdicts do move,
+and both moves are expected from the spectrum above:
+  tol = 1e-12 puts the cut BELOW full-sun's structural null at 1.06e-11,
+    so that design is then called full rank. The cut has gone past the
+    accuracy of the differentiation itself (validate_sensitivity.py check
+    2 measures that floor at about 5e-08 relative), so 1e-12 is not a
+    tolerance this machinery can support.
+  tol = 1e-05 puts the cut ABOVE weak-excitation's smallest ratio of
+    4.22e-06, so that design is then called rank deficient. That is a
+    defensible reading of a design whose relative standard deviations run
+    to several hundred per cent; it is a change of reporting threshold,
+    not a disagreement about the numbers.
+The default 1e-08 is two decades above the measured differentiation floor
+and three decades above the structural null it has to detect.
+
+==============================================================================
+4. Every shipped design, in full
+==============================================================================
+
+--- baseline-eclipse (802 observations, channels ('T1', 'T2')) ---
+  full numerical rank 6, condition number 397; no near-null direction found at this point
+  condition number   : 396.978
+  collinearity index : 118.377
+  singular ratios    : 1.0000e+00, 1.0946e-01, 9.1693e-02, 2.4226e-02, 1.6668e-02, 2.5190e-03
+  relative sd        : C1=0.007836, C2=0.009387, k12=0.002037, h_rad=0.0191, q_sun=0.009129, q_par=0.07149
+  most collinear pairs:
+    h_rad + q_par        90.11
+    h_rad + q_sun        7.365
+    q_sun + q_par        7.28
+
+--- full-sun (802 observations, channels ('T1', 'T2')) ---
+  NOT IDENTIFIABLE: rank 5 of 6, 1 unconstrained parameter combination at this design
+  condition number   : 9.46773e+10
+  collinearity index : 2.17598e+10
+  singular ratios    : 1.0000e+00, 8.0816e-02, 5.1831e-02, 1.9039e-02, 6.7066e-03, 1.0562e-11
+  relative sd        : C1=0.009184, C2=0.01008, k12=0.002389, h_rad=0.01219, q_sun=inf, q_par=inf
+  [UNCONSTRAINED] s/s_max = 1.0562e-11
+    +0.950 d ln q_par -0.311 d ln q_sun
+  most collinear pairs:
+    q_sun + q_par        5.265e+09
+    h_rad + q_par        29.2
+    h_rad + q_sun        29.2
+
+--- lumped-nodes (401 observations, channels ('T1',)) ---
+  full numerical rank 6, condition number 355; no near-null direction found at this point
+  condition number   : 355.107
+  collinearity index : 101.789
+  singular ratios    : 1.0000e+00, 1.1041e-01, 1.9742e-02, 6.4222e-03, 4.1255e-03, 2.8160e-03
+  relative sd        : C1=0.0475, C2=0.01114, k12=0.06131, h_rad=0.02273, q_sun=0.01144, q_par=0.08782
+  most collinear pairs:
+    h_rad + q_par        86.51
+    h_rad + q_sun        7.267
+    q_sun + q_par        7.139
+
+--- coarse-sampled (402 observations, channels ('T1', 'T2')) ---
+  full numerical rank 6, condition number 394; no near-null direction found at this point
+  condition number   : 393.713
+  collinearity index : 117.27
+  singular ratios    : 1.0000e+00, 1.0968e-01, 9.1615e-02, 2.4184e-02, 1.6722e-02, 2.5399e-03
+  relative sd        : C1=0.01106, C2=0.0131, k12=0.002881, h_rad=0.02671, q_sun=0.01278, q_par=0.1002
+  most collinear pairs:
+    h_rad + q_par        90.11
+    h_rad + q_sun        7.364
+    q_sun + q_par        7.275
+
+--- weak-excitation (401 observations, channels ('T1',)) ---
+  full numerical rank, but 1 near-null direction(s) below s/s_max = 0.001; treat the covariance as a lower bound and read the profiles
+  condition number   : 237212
+  collinearity index : 84728.9
+  singular ratios    : 1.0000e+00, 1.0524e-01, 4.1138e-02, 1.4858e-02, 1.5246e-03, 4.2156e-06
+  relative sd        : C1=6.073, C2=26.65, k12=0.2487, h_rad=20.88, q_sun=20.78, q_par=48.76
+  [near-null] s/s_max = 4.2156e-06
+    -0.772 d ln q_par -0.422 d ln C2 -0.330 d ln h_rad -0.329 d ln q_sun +0.096 d ln C1
+  most collinear pairs:
+    h_rad + q_par        88.74
+    q_sun + q_par        7.515
+    h_rad + q_sun        7.467
+
+==============================================================================
+5. Correlation matrices, and the pairs that are nearly degenerate
+==============================================================================
+
+--- baseline-eclipse ---
+parameter correlation
+                C1      C2     k12   h_rad   q_sun   q_par
+  C1        1.0000  0.0838 -0.0911  0.2542  0.2903  0.2181
+  C2        0.0838  1.0000 -0.1355  0.6607  0.9451  0.5251
+  k12      -0.0911 -0.1355  1.0000 -0.1138 -0.1207 -0.0918
+  h_rad     0.2542  0.6607 -0.1138  1.0000  0.6991  0.9826
+  q_sun     0.2903  0.9451 -0.1207  0.6991  1.0000  0.5544
+  q_par     0.2181  0.5251 -0.0918  0.9826  0.5544  1.0000
+
+pairs with |correlation| >= 0.95:
+  h_rad    q_par    +0.982554
+
+--- weak-excitation ---
+parameter correlation
+                C1      C2     k12   h_rad   q_sun   q_par
+  C1        1.0000 -1.0000  0.9996 -0.9999 -0.9999 -0.9999
+  C2       -1.0000  1.0000 -0.9994  1.0000  1.0000  1.0000
+  k12       0.9996 -0.9994  1.0000 -0.9993 -0.9994 -0.9992
+  h_rad    -0.9999  1.0000 -0.9993  1.0000  1.0000  1.0000
+  q_sun    -0.9999  1.0000 -0.9994  1.0000  1.0000  1.0000
+  q_par    -0.9999  1.0000 -0.9992  1.0000  1.0000  1.0000
+
+pairs with |correlation| >= 0.95:
+  C2       q_sun    +1.000000
+  h_rad    q_par    +0.999997
+  h_rad    q_sun    +0.999996
+  C2       h_rad    +0.999994
+  q_sun    q_par    +0.999987
+  C2       q_par    +0.999983
+  C1       C2       -0.999950
+  C1       q_sun    -0.999942
+  C1       h_rad    -0.999911
+  C1       q_par    -0.999878
+  C1       k12      +0.999568
+  C2       k12      -0.999378
+  k12      q_sun    -0.999356
+  k12      h_rad    -0.999290
+  k12      q_par    -0.999224
+
+==============================================================================
+6. Negative controls
+==============================================================================
+  rank_tol = 0         rejected: rank_tol must be finite and lie in (0, 1]
+  rank_tol = 1.5       rejected: rank_tol must be finite and lie in (0, 1]
+  weak_ratio = -1      rejected: weak_ratio must be finite and lie in (0, 1]
+  subset size 1        rejected: size must lie in [2, 6]
+  subset size 7        rejected: size must lie in [2, 6]
+  top = 0              rejected: top must be >= 1
+
+verdict: PASS  6 negative controls
+
+elapsed 0.5 s

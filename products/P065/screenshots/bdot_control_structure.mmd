@@ -1,0 +1,13 @@
+flowchart TD
+    CTRL-BDOT["CTRL-BDOT: B-dot detumble control law"]
+    CTRL-MODE["CTRL-MODE: ADCS mode manager (detumble entr…"]
+    ACT-MTQ(["ACT-MTQ: three-axis magnetorquer set, per-a…"])
+    ACT-MODEFLAG(["ACT-MODEFLAG: ADCS mode flag read by the co…"])
+    SNS-MAG(["SNS-MAG: three-axis magnetometer, one sampl…"])
+    PROC-ATT[["PROC-ATT: spacecraft rigid-body attitude an…"]]
+    CTRL-BDOT -->|"CA-DIPOLE: commanded magnetorquer dipole ve…"| ACT-MTQ  %% enumeration gap
+    ACT-MTQ --> PROC-ATT
+    CTRL-MODE -->|"CA-EXIT: declare detumble complete and leav…"| ACT-MODEFLAG  %% enumeration gap
+    ACT-MODEFLAG --> PROC-ATT
+    PROC-ATT --> SNS-MAG
+    SNS-MAG -.->|"FB-BFIELD: body-frame magnetic field sample"| CTRL-BDOT

@@ -1,0 +1,46 @@
+
+==============================================================================
+coarse-sampled
+==============================================================================
+profile-likelihood intervals at level 0.95 (Wilks threshold delta chi2 = 3.8415)
+
+  parameter      estimate   profile low  profile high      quad low     quad high  width ratio
+  C1               796.33         779.1        813.71        779.28        813.74        1.005
+  C2               3997.8        3897.3        4103.2        3896.3        4101.9        1.001
+  k12              2.4922        2.4782        2.5063        2.4782        2.5062        1.001
+  h_rad        1.2377e-08    1.1748e-08    1.3030e-08    1.1755e-08    1.3031e-08        1.004
+  q_sun            54.877        53.532        56.288        53.518        56.271        1.001
+  q_par            20.209        16.675        23.856        16.933        24.119        1.012
+
+every profile closed on both sides inside the searched range
+
+largest finite profile-to-quadratic width ratio: 1.012 on q_par
+
+true values: C1 = 800, C2 = 4000, k12 = 2.5, h_rad = 1.205e-08, q_sun = 55, q_par = 18
+truth inside the profile interval: C1=True, C2=True, k12=True, h_rad=True, q_sun=True, q_par=True
+
+==============================================================================
+full-sun
+==============================================================================
+profile-likelihood intervals at level 0.95 (Wilks threshold delta chi2 = 3.8415)
+
+  parameter      estimate   profile low  profile high      quad low     quad high  width ratio
+  C1               793.56        779.26           808        779.32        808.06            1
+  C2               4023.7        3945.6        4104.7          3945          4104        1.001
+  k12              2.5026         2.491        2.5144        2.4909        2.5144            1
+  h_rad        1.2024e-08    1.1741e-08    1.2318e-08    1.1740e-08    1.2316e-08        1.001
+  q_sun            54.902          OPEN        72.712           n/a           n/a          nan
+  q_par            17.956          OPEN        67.651           n/a           n/a          nan
+
+OPEN means the profile did not cross the threshold inside the searched range:
+  q_sun: open below; searched [2.7334, 1102.7] and the likelihood did not rise by 3.8415 on the open side
+  q_par: open below; searched [0.89397, 360.66] and the likelihood did not rise by 3.8415 on the open side
+  a parameter with an open side is NOT determined by this data set, whatever
+  quadratic standard deviation the covariance matrix reports for it
+
+largest finite profile-to-quadratic width ratio: 1.001 on h_rad
+
+true values: C1 = 800, C2 = 4000, k12 = 2.5, h_rad = 1.205e-08, q_sun = 55, q_par = 18
+truth inside the profile interval: C1=True, C2=True, k12=True, h_rad=True, q_sun=True, q_par=True
+
+wrote screenshots/profile_likelihood.png

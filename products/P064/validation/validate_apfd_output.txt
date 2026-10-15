@@ -1,0 +1,34 @@
+APFD known-answer check (Rothermel, Untch, Chu and Harrold 2001)
+==================================================================================
+formula: APFD = 1 - (sum TF_i) / (n * m) + 1 / (2 n)
+
+case                            hand-worked         computed    abs diff  verdict
+----------------------------------------------------------------------------------
+n=5 m=2, TF=(1,3)            0.700000000000   0.700000000000   0.000e+00  PASS
+n=5 m=2, TF=(5,5)            0.100000000000   0.100000000000   0.000e+00  PASS
+n=4 m=3, TF=(1,1,1)          0.875000000000   0.875000000000   0.000e+00  PASS
+n=4 m=3, TF=(4,4,4)          0.125000000000   0.125000000000   0.000e+00  PASS
+n=1 m=1, TF=(1,)             0.500000000000   0.500000000000   0.000e+00  PASS
+n=10 m=1, TF=(1,)            0.950000000000   0.950000000000   0.000e+00  PASS
+n=10 m=1, TF=(10,)           0.050000000000   0.050000000000   0.000e+00  PASS
+n=24 m=4, TF=(1,2,3,4)       0.916666666667   0.916666666667   0.000e+00  PASS
+
+undefined cases are rejected rather than substituted
+----------------------------------------------------------------------------------
+empty order                             PASS (APFD is undefined for an empty tes)
+empty fault set                         PASS (APFD is undefined for an empty fau)
+fault detected by no test               PASS (APFD is undefined: these faults ar)
+duplicate test ids                      PASS (order contains duplicate test iden)
+
+APFD on the committed fixture history
+----------------------------------------------------------------------------------
+history file           history.json (seed 20261015)
+revisions              320 total, 224 train, 96 test
+test nodes             24
+evaluation revisions   37 with at least one failing test
+lexical control APFD   0.703266  (no information; ordering by node id)
+Baseline 2 APFD        0.795608
+Baseline 2 beats the no-information control: PASS (margin +0.092342)
+
+checks run 13, failures 0
+RESULT: PASS

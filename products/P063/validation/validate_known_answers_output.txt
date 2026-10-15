@@ -1,0 +1,140 @@
+safemodetree known answers
+============================================================================
+declaration: reaction_wheel_fmea: 4 modes (2 safe), 8 faults, 13 responses, 7 channels, 2 declared ambiguity class(es)
+tolerance: 1e-12 absolute and relative on every comparison
+
+1. automaton size
+----------------------------------------------------------------------------
+  4 declared modes x (8 declared faults + 1 no-fault) = 36 states
+  measured: 36 states, 64 transitions
+  [PASS] state count is 36
+  survival is declared absorbing: its 9 states have no outgoing transition
+  [PASS] the 9 survival states have no outgoing transition
+  faults are declared to occur only in fine_pointing and coarse_pointing, so 8 x 2 = 16 fault states
+  [PASS] fault-state count is 16
+
+2. cheapest route to a declared safe mode
+----------------------------------------------------------------------------
+  declared: coarse_downmode fine_pointing -> coarse_pointing, 8.0 min
+            safe_mode_entry coarse_pointing -> sun_safe,      45.0 min
+            survival_entry  any -> survival,                 480.0 min
+  from coarse_pointing: min(45.0, 480.0) = 45.0 min in 1 hop
+  from fine_pointing:   min(8.0 + 45.0, 480.0) = 53.0 min in 2 hops
+  measured fine_pointing:   53.000000000000 min, 2 hops
+  measured coarse_pointing: 45.000000000000 min, 1 hops
+  [PASS] fine_pointing route is 53.0 min in 2 hops
+  [PASS] coarse_pointing route is 45.0 min in 1 hop
+  [PASS] every fault state reaches a declared safe mode
+  [PASS] no declared safe mode is unreachable
+
+3. resolution cost of a right and a wrong response
+----------------------------------------------------------------------------
+  st_wait_and_reacquire on st_blinding  (correct, clears)
+      6.0 declared, fault cleared, nothing onward
+      measured 6.000000000000 min, expected 6.0 min
+  [PASS] st_wait_and_reacquire on st_blinding  (correct, clears) costs 6.0 min
+  st_power_cycle on st_latchup          (correct, clears)
+      25.0 declared, fault cleared, nothing onward
+      measured 25.000000000000 min, expected 25.0 min
+  [PASS] st_power_cycle on st_latchup          (correct, clears) costs 25.0 min
+  st_wait_and_reacquire on st_latchup   (WRONG)
+      6.0 + ladder from fine_pointing 53.0 = 59.0
+      measured 59.000000000000 min, expected 59.0 min
+  [PASS] st_wait_and_reacquire on st_latchup   (WRONG) costs 59.0 min
+  st_power_cycle on st_blinding         (WRONG)
+      25.0 + ladder from coarse_pointing 45.0 = 70.0
+      measured 70.000000000000 min, expected 70.0 min
+  [PASS] st_power_cycle on st_blinding         (WRONG) costs 70.0 min
+
+4. ambiguity classes and the cost of conservatism
+----------------------------------------------------------------------------
+  declared signatures make two pairs indistinguishable:
+      pcdu_shunt_stuck, sa_string_open share signature (0, 0, 0, 1, 1, 0, 0)
+      st_blinding, st_latchup share signature (0, 0, 1, 0, 0, 1, 0)
+  star-tracker class in fine_pointing:
+      specific 6.0 (wait) and 25.0 (power cycle), mean 15.5
+      conservative 8.0 (coarse_downmode) + 45.0 (safe_mode_entry) = 53.0
+      cost of conservatism 53.0 - 15.5 = 37.5 min
+      measured 37.500000000000 min
+  [PASS] star-tracker conservatism cost is 37.5 min
+  power class in fine_pointing:
+      specific 15.0 (array_reconfigure) and 35.0 (pcdu_reset), mean 25.0
+      conservative 53.0; cost of conservatism 53.0 - 25.0 = 28.0 min
+      measured 28.000000000000 min
+  [PASS] power conservatism cost is 28.0 min
+  [PASS] all four ambiguity classes are reported conflicting
+  [PASS] two responses are reported vacuous
+
+5. the declared specific response is not always the cheaper one
+----------------------------------------------------------------------------
+  bat_cell_short: specific bat_cell_bypass = 60.0 min
+                  conservative coarse_downmode = 53.0 min
+  the oracle therefore takes the conservative route: 53.0 min
+  [PASS] bat_cell_bypass costs the declared 60.0 min
+  [PASS] the conservative ladder costs 53.0 min
+  [PASS] the oracle takes the cheaper of the two, 53.0 min
+
+6. declared threshold-logic confidence
+----------------------------------------------------------------------------
+  the declared nominal vector gives label 'nominal' at confidence 1.000000000000
+  [PASS] the nominal vector is labelled nominal at confidence 1
+  rule 3: a unique declared signature gives confidence 1
+      bat_cell_short -> 'bat_cell_short' at 1.000000000000
+  [PASS] a unique signature gives confidence 1
+  rule 4: an ambiguity class of size m = 2 gives confidence 1/2
+      shared star-tracker signature -> 'st_blinding' at 0.500000000000
+  [PASS] an ambiguity class of size 2 gives confidence 0.5
+  rule 5: attitude_residual alone is at Hamming distance 1 from three
+          declared signatures (rw_motor_open, st_blinding, st_latchup),
+          so the confidence is 1 / (3 * (1 + 1)) = 1/6 = 0.166666666667
+      measured -> 'rw_motor_open' at 0.166666666667
+  [PASS] the Hamming-1 tie of three gives 1/6
+
+7. channel margin arithmetic
+----------------------------------------------------------------------------
+  wheel_torque_error: threshold 3.00 mN*m, sd 0.60, (4.20-3.00)/0.60 = 2.0 sigma
+      measured 2.000000000000
+  [PASS] wheel_torque_error margin at 4.2 is 2.0 sigma
+  array_current: threshold 1.20 A, sd 0.18, (1.20-0.84)/0.18 = 2.0 sigma
+      measured 2.000000000000
+  [PASS] array_current margin at 0.84 is 2.0 sigma
+  bus_voltage: threshold 26.00 V, sd 0.40, (26.00-25.60)/0.40 = 1.0 sigma
+      measured 1.000000000000
+  [PASS] bus_voltage margin at 25.6 is 1.0 sigma
+  attitude_residual: threshold 0.50 deg, sd 0.10, (0.80-0.50)/0.10 = 3.0 sigma
+      measured 3.000000000000
+  [PASS] attitude_residual margin at 0.8 is 3.0 sigma
+  a reading exactly on the threshold does not assert (strict comparison)
+  [PASS] a reading on the threshold does not assert
+
+8. calibration metric arithmetic
+----------------------------------------------------------------------------
+  ECE over 5 bins on confidences 0.9, 0.9, 0.6, 0.2 with
+  correctness True, False, True, False:
+      [0.8,1.0] acc 0.5 conf 0.9 gap 0.4 weight 0.50 -> 0.200
+      [0.6,0.8) acc 1.0 conf 0.6 gap 0.4 weight 0.25 -> 0.100
+      [0.2,0.4) acc 0.0 conf 0.2 gap 0.2 weight 0.25 -> 0.050
+      ECE = 0.350, MCE = 0.400
+      measured ECE 0.350000000000, MCE 0.400000000000
+  [PASS] ECE is 0.35
+  [PASS] MCE is 0.40
+  multi-class Brier on one row, three classes, true class 'b':
+      (0.2-0)^2 + (0.5-1)^2 + (0.3-0)^2 = 0.04 + 0.25 + 0.09 = 0.38
+      measured 0.380000000000
+  [PASS] Brier is 0.38
+
+9. detection latency budget boundary
+----------------------------------------------------------------------------
+  rw_bearing_drag declares detection_latency_s: 30.0
+  the comparison is latency <= budget, so 30.0 s admits it and 29.9 s does not
+  [PASS] a 30.0 s budget admits a 30.0 s latency
+  [PASS] a 29.9 s budget does not
+  with a 60 s budget the two 120 s power faults lose their specific responses
+      over budget: sa_string_open, pcdu_shunt_stuck
+      conflicting ambiguity classes fall from 4 to 2
+  [PASS] the two power faults are reported over budget
+  [PASS] conflicting classes fall to 2
+  [PASS] reachability survives the tighter budget
+
+summary: 35 of 35 checks passed
+ALL KNOWN-ANSWER CHECKS PASSED

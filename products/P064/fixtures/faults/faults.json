@@ -1,0 +1,132 @@
+{
+ "schema": "regressselect-faults/1",
+ "note": "Hand-seeded mutation-style faults in the bundled sample project. Each entry is a single textual substitution written as a classical mutation operator. The detection outcome of every fault is measured by execution in validation/validate_mutation.py and recorded in fault_matrix.json; nothing here asserts what a fault breaks.",
+ "faults": [
+  {
+   "fault_id": "F01",
+   "module": "sampleproj.vecops",
+   "relative_path": "sampleproj/vecops.py",
+   "old_text": "    return math.sqrt(dot(v, v))",
+   "new_text": "    return dot(v, v)",
+   "operator": "statement-deletion (sqrt dropped)",
+   "description": "norm returns the squared norm"
+  },
+  {
+   "fault_id": "F02",
+   "module": "sampleproj.vecops",
+   "relative_path": "sampleproj/vecops.py",
+   "old_text": "    return sum(ai * bi for ai, bi in zip(a, b))",
+   "new_text": "    return sum(ai + bi for ai, bi in zip(a, b))",
+   "operator": "arithmetic-operator-replacement (* -> +)",
+   "description": "dot sums instead of multiplying the component pairs"
+  },
+  {
+   "fault_id": "F03",
+   "module": "sampleproj.vecops",
+   "relative_path": "sampleproj/vecops.py",
+   "old_text": "        a[0] * b[1] - a[1] * b[0],",
+   "new_text": "        a[0] * b[0] - a[1] * b[1],",
+   "operator": "index-replacement",
+   "description": "cross product z component uses the wrong indices"
+  },
+  {
+   "fault_id": "F04",
+   "module": "sampleproj.quat",
+   "relative_path": "sampleproj/quat.py",
+   "old_text": "        pw * qx + px * qw + py * qz - pz * qy,",
+   "new_text": "        pw * qx + px * qw + py * qz + pz * qy,",
+   "operator": "arithmetic-operator-replacement (- -> +)",
+   "description": "Hamilton product x term has a sign error"
+  },
+  {
+   "fault_id": "F05",
+   "module": "sampleproj.quat",
+   "relative_path": "sampleproj/quat.py",
+   "old_text": "    return [q[0], -q[1], -q[2], -q[3]]",
+   "new_text": "    return [q[0], -q[1], -q[2], q[3]]",
+   "operator": "unary-operator-deletion",
+   "description": "conjugate leaves the z component unflipped"
+  },
+  {
+   "fault_id": "F06",
+   "module": "sampleproj.integrate",
+   "relative_path": "sampleproj/integrate.py",
+   "old_text": "        total += 4.0 * ys[i] if i % 2 == 1 else 2.0 * ys[i]",
+   "new_text": "        total += 2.0 * ys[i] if i % 2 == 1 else 4.0 * ys[i]",
+   "operator": "constant-swap",
+   "description": "Simpson weights 4 and 2 are exchanged"
+  },
+  {
+   "fault_id": "F07",
+   "module": "sampleproj.integrate",
+   "relative_path": "sampleproj/integrate.py",
+   "old_text": "    if n < 3 or n % 2 == 0:",
+   "new_text": "    if n < 3:",
+   "operator": "condition-deletion",
+   "description": "simpson no longer rejects an even sample count"
+  },
+  {
+   "fault_id": "F08",
+   "module": "sampleproj.stats",
+   "relative_path": "sampleproj/stats.py",
+   "old_text": "    return sum((x - m) ** 2 for x in xs) / (len(xs) - 1)",
+   "new_text": "    return sum((x - m) ** 2 for x in xs) / len(xs)",
+   "operator": "constant-replacement (Bessel correction removed)",
+   "description": "variance uses the population denominator n"
+  },
+  {
+   "fault_id": "F09",
+   "module": "sampleproj.filters",
+   "relative_path": "sampleproj/filters.py",
+   "old_text": "    for i in range(window - 1, len(xs)):",
+   "new_text": "    for i in range(window, len(xs)):",
+   "operator": "off-by-one",
+   "description": "moving_average drops its first output sample"
+  },
+  {
+   "fault_id": "F10",
+   "module": "sampleproj.kinematics",
+   "relative_path": "sampleproj/kinematics.py",
+   "old_text": "    advanced = [q[i] + 0.5 * dt * rate[i] for i in range(4)]",
+   "new_text": "    advanced = [q[i] + dt * rate[i] for i in range(4)]",
+   "operator": "constant-deletion (0.5 factor dropped)",
+   "description": "quaternion kinematics loses the one-half factor"
+  },
+  {
+   "fault_id": "F11",
+   "module": "sampleproj.orbit",
+   "relative_path": "sampleproj/orbit.py",
+   "old_text": "    return 2.0 * math.pi * math.sqrt(radius**3 / MU_EARTH)",
+   "new_text": "    return 2.0 * math.pi * math.sqrt(radius**2 / MU_EARTH)",
+   "operator": "constant-replacement (exponent 3 -> 2)",
+   "description": "Keplerian period uses r^2 instead of r^3"
+  },
+  {
+   "fault_id": "F12",
+   "module": "sampleproj.orbit",
+   "relative_path": "sampleproj/orbit.py",
+   "old_text": "def circular_velocity(radius):\n    \"\"\"Circular orbital speed at radius (m) in m/s.\"\"\"\n    if radius <= 0.0:",
+   "new_text": "def circular_velocity(radius):\n    \"\"\"Circular orbital speed at radius (m) in m/s.\"\"\"\n    if radius < 0.0:",
+   "operator": "relational-operator-replacement (<= -> <)",
+   "description": "circular_velocity no longer rejects a zero radius"
+  },
+  {
+   "fault_id": "F13",
+   "module": "sampleproj.kinematics",
+   "relative_path": "sampleproj/kinematics.py",
+   "old_text": "    if len(inertia_diag) != 3 or len(omega) != 3:",
+   "new_text": "    if len(inertia_diag) != 3:",
+   "operator": "condition-deletion",
+   "description": "angular_momentum stops validating the rate vector length"
+  },
+  {
+   "fault_id": "F14",
+   "module": "sampleproj.stats",
+   "relative_path": "sampleproj/stats.py",
+   "old_text": "    if len(xs) < 2:",
+   "new_text": "    if len(xs) < 1:",
+   "operator": "constant-replacement",
+   "description": "variance guard admits a single-sample input"
+  }
+ ]
+}

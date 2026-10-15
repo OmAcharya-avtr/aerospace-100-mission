@@ -1,0 +1,133 @@
+# A minimal but structurally complete analysis: a thermostat-shaped loop with
+# one continuous control action, carried far enough that every check passes.
+#
+# `python -m hazardtrace check examples/cases/complete_minimal.yaml` exits 0.
+# Adding `-r` and `-t` additionally resolves the two cited identifiers against
+# fixtures/p024_bdot/, which do not contain them, so the cross-link checks then
+# report two unresolved identifiers. That is the correct behaviour and it is
+# why the first-run command in README.md omits those flags for this case.
+#
+# Complete here means fully drawn. It is not a safety claim about anything.
+
+meta:
+  title: Battery heater control loop (minimal complete example)
+  system: Single-string survival heater on a spacecraft battery pack
+  revision: "0.1.0"
+
+losses:
+  - id: L-1
+    description: Loss of the spacecraft through battery failure below its qualified
+      temperature range.
+    stakeholders: [mission owner]
+
+hazards:
+  - id: H-1
+    description: The battery pack temperature falls below its qualified minimum
+      while the spacecraft is operating.
+    losses: [L-1]
+
+constraints:
+  - id: SC-1
+    description: The heater controller shall maintain the battery pack above its
+      qualified minimum temperature whenever the spacecraft is powered.
+    hazards: [H-1]
+    requirements: [REQ-101]
+
+control_structure:
+  controllers:
+    - id: CTRL-THERM
+      name: Thermal controller, hysteresis band on measured pack temperature
+      process_model:
+        - measured pack temperature
+        - commanded heater state
+  actuators:
+    - id: ACT-HEATER
+      name: Survival heater element with a solid-state switch
+  sensors:
+    - id: SNS-THERM
+      name: Pack thermistor, one sample per second
+  controlled_processes:
+    - id: PROC-PACK
+      name: Battery pack thermal state
+  control_actions:
+    - id: CA-HEAT
+      name: Energise the survival heater
+      controller: CTRL-THERM
+      actuator: ACT-HEATER
+      process: PROC-PACK
+      continuous: true
+  feedback:
+    - id: FB-TEMP
+      name: Measured pack temperature
+      sensor: SNS-THERM
+      controller: CTRL-THERM
+      process: PROC-PACK
+
+ucas:
+  - id: UCA-1
+    control_action: CA-HEAT
+    uca_class: not_provided
+    description: The heater is not energised while the pack is below the lower
+      hysteresis bound.
+    context: Any orbit night with the pack already near the lower bound.
+    hazards: [H-1]
+  - id: UCA-2
+    control_action: CA-HEAT
+    uca_class: provided
+    description: The heater is energised while the pack is above the upper
+      hysteresis bound, drawing power that the night energy budget does not have.
+    context: A failed-high thermistor reading inverts the comparison.
+    hazards: [H-1]
+  - id: UCA-3
+    control_action: CA-HEAT
+    uca_class: wrong_timing_or_order
+    description: The heater is energised only after the pack has already crossed
+      the qualified minimum, because the thermistor lags the pack bulk.
+    context: Rapid cooling at eclipse entry.
+    hazards: [H-1]
+  - id: UCA-4
+    control_action: CA-HEAT
+    uca_class: stopped_too_soon_or_applied_too_long
+    description: The heater is de-energised before the pack bulk has recovered,
+      because the thermistor is local to the switch end of the pack.
+    context: A pack with a thermal gradient across it.
+    hazards: [H-1]
+
+loss_scenarios:
+  - id: LS-1
+    description: The thermistor fails low, the controller believes the pack is cold
+      and holds the heater on until the night budget is exhausted.
+    ucas: [UCA-2]
+    causal_factor_class: feedback
+    mitigations: [M-1]
+  - id: LS-2
+    description: The thermistor lags the pack bulk at eclipse entry and the heater
+      is commanded late.
+    ucas: [UCA-1, UCA-3, UCA-4]
+    causal_factor_class: feedback
+    mitigations: [M-1, M-2]
+
+mitigations:
+  - id: M-1
+    description: Reject a thermistor reading outside the physically plausible range
+      and command the heater on at a fixed duty cycle while the reading is rejected.
+    requirements: [REQ-101]
+    evidence: [EV-1]
+  - id: M-2
+    description: Set the hysteresis band from the measured thermistor-to-bulk lag
+      rather than from the qualified limit directly.
+    requirements: [REQ-101]
+    evidence: [EV-2]
+
+evidence:
+  - id: EV-1
+    kind: test
+    description: Out-of-range thermistor readings are rejected and the fallback
+      duty cycle is commanded.
+    tests:
+      - tests/test_thermal.py::test_rejects_implausible_thermistor_reading
+  - id: EV-2
+    kind: analysis
+    description: Measured thermistor-to-bulk lag across the pack, from thermal
+      vacuum data.
+    path: validation/pack_lag_output.txt

@@ -1,0 +1,43 @@
+validate_coverage.py -- coverage of the profile-likelihood intervals
+Wilks threshold at 0.95 with one degree of freedom = 3.8414588207
+grid: 4 points each side plus 3 bisections per crossing
+
+==============================================================================
+Coverage over seeded repetitions
+==============================================================================
+design coarse-sampled, 402 observations, 12 seeds
+Nominal coverage 0.95. Each cell is one parameter over all seeds; the
+pooled row is all six parameters together. The interval on the coverage
+estimate is exact (Clopper-Pearson), because 12 seeds is a small
+sample and a bare fraction would overstate what has been measured.
+
+--- no model discrepancy ---
+  parameter    covered   of   coverage      95% exact interval  open sides
+  C1                11   12     0.9167   [0.6152, 0.9979]           0
+  C2                11   12     0.9167   [0.6152, 0.9979]           0
+  k12                9   12     0.7500   [0.4281, 0.9451]           0
+  h_rad             12   12     1.0000   [0.7354, 1.0000]           0
+  q_sun             12   12     1.0000   [0.7354, 1.0000]           0
+  q_par             12   12     1.0000   [0.7354, 1.0000]           0
+  POOLED            67   72     0.9306   [0.8453, 0.9771]           0
+  nominal 0.95 inside the exact interval: True   verdict: PASS
+
+--- declared model discrepancy present ---
+  parameter    covered   of   coverage      95% exact interval  open sides
+  C1                 0   12     0.0000   [0.0000, 0.2646]           0
+  C2                10   12     0.8333   [0.5159, 0.9791]           0
+  k12                0   12     0.0000   [0.0000, 0.2646]           0
+  h_rad              5   12     0.4167   [0.1517, 0.7233]           0
+  q_sun             10   12     0.8333   [0.5159, 0.9791]           0
+  q_par              2   12     0.1667   [0.0209, 0.4841]           0
+  POOLED            27   72     0.3750   [0.2636, 0.4970]           0
+  nominal 0.95 inside the exact interval: False   verdict: REPORTED AS MEASURED
+
+The second block is the honest limit of the whole method: a profile
+interval is computed under the assumption that the calibration model is
+the model that generated the data. When it is not, the interval is a
+statement about the best fit of the wrong model and its coverage of the
+true parameters collapses. No amount of profiling repairs that; only a
+better model does.
+
+elapsed 128.2 s

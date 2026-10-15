@@ -1,0 +1,28 @@
+regressselect environment record
+========================================================================
+python              3.13.16
+implementation      CPython
+platform            Linux-6.18.44-fc-v114-x86_64-with-glibc2.39
+machine             x86_64
+cpu count           2
+
+package         installed     declared range
+------------------------------------------------------------------------
+numpy           2.5.3         >=2.5.3,<2.6
+scipy           1.18.1        not declared; imported by scikit-learn, not by regressselect
+scikit-learn    1.9.1         >=1.9.1,<1.10
+matplotlib      3.11.2        >=3.11.2,<3.12  [plot, test]
+pytest          9.1.1         >=9.1.1,<9.2  [test]
+hypothesis      6.169.3       >=6.169.3,<6.170  [test]
+ruff            0.17.0        >=0.17.0,<0.18  [test]
+
+Every range above is bounded on both sides. The floor of each range is the
+version installed in this container, which is the only version the suite was
+executed at; the ceiling excludes the next minor release. The build
+environment forbids installing other versions, so a wider floor cannot be
+claimed by execution and is therefore not claimed. See README Limitations.
+
+Serialised artifacts committed by this product: none.
+No model is pickled, so there is no serialisation-format dependency on
+scikit-learn beyond the numeric behaviour of GradientBoostingClassifier,
+which is why that bound is to the minor version.

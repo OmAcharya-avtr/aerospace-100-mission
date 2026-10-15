@@ -1,0 +1,35 @@
+# Every scratch pattern below is ANCHORED with a leading slash so that it
+# matches only at the product root. A pattern with no slash matches at every
+# depth: on 2026-10-10 a bare `junit.xml` in P060's own .gitignore silently
+# excluded products/P060/fixtures/sample_project/junit.xml, a required
+# committed fixture, and a cold clone of that product failed with 17 failures
+# and 9 errors. This product ships fixtures named exactly like scratch
+# artifacts, so every pattern here was checked with `git check-ignore -v`
+# against every shipped fixture path; the results are in
+# validation/validate_fixtures_output.txt.
+
+# Per-run pytest artifacts at the product root only.
+/junit.xml
+/junit_self.xml
+
+# Coverage artifacts at the product root only. This product ships no
+# .coverage fixture: a .coverage file is a coverage.py SQLite database whose
+# schema is not a public interface, and nothing here reads coverage data.
+/.coverage
+/.coverage.*
+/htmlcov/
+
+# Build artifacts at the product root only.
+/build/
+/dist/
+/src/*.egg-info/
+/.venv/
+/venv/
+
+# Caches. These are intentionally UNANCHORED: there is no depth at which any
+# of them is a deliverable, and no fixture of this product is named after one.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.hypothesis/
+.ruff_cache/

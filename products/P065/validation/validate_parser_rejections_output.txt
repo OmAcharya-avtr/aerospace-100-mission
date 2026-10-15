@@ -1,0 +1,69 @@
+hazardtrace validation: malformed-document rejection paths
+
+   label                                         expected key path                             outcome
+   empty document                                (whole document)                              rejected, key path matches
+   whitespace only                               (whole document)                              rejected, key path matches
+   top-level sequence                            <document>                                    rejected, key path matches
+   bare scalar                                   <document>                                    rejected, key path matches
+   YAML syntax error                             (whole document)                              rejected, key path matches
+   unknown top-level key                         <document>                                    rejected, key path matches
+   meta missing title                            meta                                          rejected, key path matches
+   meta title blank                              meta.title                                    rejected, key path matches
+   meta title not a string                       meta.title                                    rejected, key path matches
+   meta unknown key                              meta                                          rejected, key path matches
+   meta is a sequence                            meta                                          rejected, key path matches
+   losses not a list                             losses                                        rejected, key path matches
+   loss not a mapping                            losses[0]                                     rejected, key path matches
+   loss missing id                               losses[0]                                     rejected, key path matches
+   loss blank id                                 losses[0].id                                  rejected, key path matches
+   loss missing description                      losses[0]                                     rejected, key path matches
+   loss unknown key                              losses[0]                                     rejected, key path matches
+   loss stakeholders not a list                  losses[0].stakeholders                        rejected, key path matches
+   loss stakeholder blank                        losses[0].stakeholders[0]                     rejected, key path matches
+   duplicate stakeholder                         losses[0].stakeholders[1]                     rejected, key path matches
+   duplicate loss id                             losses[1].id                                  rejected, key path matches
+   hazard names an undeclared loss               hazards[0].losses[0]                          rejected, key path matches
+   a top-level key declared twice                line 30                                       rejected, key path matches
+   constraint names an undeclared hazard         constraints[0].hazards[0]                     rejected, key path matches
+   constraint requirements not a list            constraints[0].requirements                   rejected, key path matches
+   uca names an undeclared control action        ucas[0].control_action                        rejected, key path matches
+   uca names an undeclared hazard                ucas[0].hazards[0]                            rejected, key path matches
+   uca class is not one of the four              ucas[0].uca_class                             rejected, key path matches
+   uca missing description                       ucas[0]                                       rejected, key path matches
+   duplicate uca id                              ucas[1].id                                    rejected, key path matches
+   exclusion names an undeclared control action  exclusions[0].control_action                  rejected, key path matches
+   exclusion with no justification key           exclusions[0]                                 rejected, key path matches
+   exclusion justification is blank              exclusions[0].justification                   rejected, key path matches
+   two exclusions of one cell                    exclusions[1]                                 rejected, key path matches
+   scenario names an undeclared uca              loss_scenarios[0].ucas[0]                     rejected, key path matches
+   scenario names an undeclared mitigation       loss_scenarios[0].mitigations[0]              rejected, key path matches
+   mitigation names an undeclared evidence artifactmitigations[0].evidence[0]                    rejected, key path matches
+   evidence kind is unknown                      evidence[0].kind                              rejected, key path matches
+   test ids on non-test evidence                 evidence[0].tests                             rejected, key path matches
+   unknown control-structure section             control_structure                             rejected, key path matches
+   process model on an actuator                  control_structure.actuators[0].process_model  rejected, key path matches
+   component missing a name                      control_structure.controllers[0]              rejected, key path matches
+   feedback names an actuator as its sensor      control_structure.feedback[0].sensor          rejected, key path matches
+   feedback names a sensor as its controller     control_structure.feedback[0].controller      rejected, key path matches
+   continuous is not a boolean                   control_structure.control_actions[1].continuousrejected, key path matches
+   control action names a sensor as its actuator control_structure.control_actions[1].actuator rejected, key path matches
+   control action names a controller as its processcontrol_structure.control_actions[1].process  rejected, key path matches
+   duplicate control action id                   control_structure.control_actions[1].id       rejected, key path matches
+   component id collides with a control action idcontrol_structure.control_actions[0].id       rejected, key path matches
+
+   schema rejection paths exercised : 49
+   raised AnalysisFormatError       : 49/49
+   key path exactly as expected     : 49/49
+   malformed documents accepted     : 0
+
+   I/O rejection paths exercised    : 3
+   raised AnalysisFormatError       : 3/3
+
+   control: the base document, which is well formed, must parse
+
+  [PASS] every malformed document is rejected  none accepted
+  [PASS] every rejection names the expected key path  all matched
+  [PASS] every I/O failure is rejected
+  [PASS] the well-formed base document parses
+
+RESULT: every check in this script passed

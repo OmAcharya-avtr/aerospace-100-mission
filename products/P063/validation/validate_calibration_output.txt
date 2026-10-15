@@ -1,0 +1,110 @@
+safemodetree classifier calibration, learned against threshold logic
+==============================================================================================
+declaration: reaction_wheel_fmea: 4 modes (2 safe), 8 faults, 13 responses, 7 channels, 2 declared ambiguity class(es)
+seed 63001, 400 samples per fault, nominal_fraction 0.5
+split: 50 per cent train, 25 per cent calibration, 25 per cent test
+the learned threshold is tuned on the CALIBRATION split only
+
+1. detector scores on the test split
+---------------------------------------------------------------------------------------------------------------
+ scale detector                 op_point       FAR    detect  ident_acc   overall       ECE       MCE     brier
+---------------------------------------------------------------------------------------------------------------
+   1.0 threshold logic          0.000000   0.00000   1.00000    0.74650   0.87562   0.00156   0.00620         -
+   1.0 learned (matched FAR)    0.072033   0.00368   1.00000    0.72739   0.86438   0.01567   0.35719   0.12924
+   1.0 learned (argmax)         0.000000   0.00000   1.00000    0.72739   0.86625   0.01507   0.24101   0.12924
+   1.5 threshold logic          0.000000   0.02209   1.00000    0.74522   0.86375   0.00778   0.04444         -
+   1.5 learned (matched FAR)    0.000000   0.01595   1.00000    0.74013   0.86438   0.00816   0.38845   0.13893
+   1.5 learned (argmax)         0.000000   0.00245   0.99873    0.73885   0.87062   0.00746   0.52338   0.13893
+   2.0 threshold logic          0.000000   0.12147   0.99873    0.73503   0.80812   0.02783   0.66667         -
+   2.0 learned (matched FAR)    0.000000   0.07117   0.99745    0.73503   0.83375   0.02448   0.27764   0.16237
+   2.0 learned (argmax)         0.000000   0.00245   0.98854    0.72739   0.86500   0.02502   0.71111   0.16237
+   2.5 threshold logic          0.000000   0.27239   0.99745    0.71592   0.72188   0.05521   0.66667         -
+   2.5 learned (matched FAR)    0.004762   0.26135   0.99618    0.71720   0.72813   0.04972   0.27497   0.19523
+   2.5 learned (argmax)         0.000000   0.00491   0.96306    0.69427   0.84750   0.04439   0.27770   0.19523
+   3.0 threshold logic          0.000000   0.40859   0.99236    0.68153   0.63562   0.07371   0.33333         -
+   3.0 learned (matched FAR)    0.014681   0.44172   0.99745    0.70064   0.62813   0.06463   0.26824   0.23383
+   3.0 learned (argmax)         0.000000   0.00736   0.91975    0.65223   0.82563   0.05440   0.37436   0.23383
+
+accuracy ceiling from the declared observability model: 0.874062
+(four of eight faults sit in declared ambiguity classes of size two,
+ so no classifier can exceed (800 + 400 + 200) / 1600 = 0.875 here)
+elapsed: 2.51 s
+
+2. who wins at an equal false-alarm rate
+----------------------------------------------------------------------------------------------
+ scale  target_FAR  base_FAR  learn_FAR  base_ident  learn_ident     delta winner          
+-------------------------------------------------------------------------------------------
+   1.0     0.00000   0.00000    0.00368     0.74650      0.72739  -0.01911 threshold logic 
+   1.5     0.02439   0.02209    0.01595     0.74522      0.74013  -0.00510 threshold logic 
+   2.0     0.13736   0.12147    0.07117     0.73503      0.73503  +0.00000 tie             
+   2.5     0.30167   0.27239    0.26135     0.71592      0.71720  +0.00127 learned         
+   3.0     0.45186   0.40859    0.44172     0.68153      0.70064  +0.01911 learned         
+
+FINDING: the learned classifier beats the declared threshold baseline on
+identification accuracy at 2 of 5 noise scales. This is the
+measured result and is reported as measured. The baseline is correctly
+specified for this generator -- the declared thresholds are the Bayes
+boundary of an isotropic Gaussian per class -- so beating it was never the
+likely outcome, and a reader should not take the learned model as the
+better detector here.
+
+3. ECE at three bin counts, because binned ECE depends on the binning
+----------------------------------------------------------------------------------------------
+ scale detector                   ECE@5    ECE@10    ECE@20
+-----------------------------------------------------------
+   1.0 threshold logic          0.00156   0.00156   0.00156
+   1.0 learned (matched FAR)    0.01478   0.01567   0.01611
+   1.5 threshold logic          0.00778   0.00778   0.00778
+   1.5 learned (matched FAR)    0.00588   0.00816   0.01162
+   2.0 threshold logic          0.02689   0.02783   0.02783
+   2.0 learned (matched FAR)    0.02448   0.02448   0.02901
+   2.5 threshold logic          0.05521   0.05521   0.05521
+   2.5 learned (matched FAR)    0.04972   0.04972   0.05256
+   3.0 threshold logic          0.07371   0.07371   0.07576
+   3.0 learned (matched FAR)    0.06431   0.06463   0.06634
+
+FINDING: the learned classifier has the lower ECE at 10 bins at 3 of 5 scales.
+The declared threshold logic is well calibrated when the thresholds are
+far from the noise and becomes overconfident as the noise grows, because
+its confidence is a lookup on a latched symptom word and carries no
+information about how close the measurement was to the threshold.
+
+4. reliability table at the headline scale
+----------------------------------------------------------------------------------------------
+  threshold logic (operating point 0.000000)
+    bin              count      conf       acc       gap
+    ----------------------------------------------------
+    [0.10,0.20)        44   0.13510   0.06818  -0.06692
+    [0.20,0.30)        63   0.25000   0.23810  -0.01190
+    [0.30,0.40)         2   0.33333   1.00000   0.66667
+    [0.50,0.60)       403   0.50000   0.52854   0.02854
+    [0.90,1.00)      1088   1.00000   0.97426  -0.02574
+    ECE 0.027830  MCE 0.666667  acc 0.808125  mean conf 0.819913
+
+  learned (matched FAR) (operating point 0.000000)
+    bin              count      conf       acc       gap
+    ----------------------------------------------------
+    [0.00,0.10)        33   0.04233   0.03030  -0.01202
+    [0.10,0.20)        12   0.14651   0.08333  -0.06318
+    [0.20,0.30)        11   0.26024   0.18182  -0.07842
+    [0.30,0.40)        23   0.35680   0.34783  -0.00897
+    [0.40,0.50)        61   0.46992   0.49180   0.02188
+    [0.50,0.60)       363   0.52165   0.56749   0.04585
+    [0.60,0.70)        39   0.64544   0.92308   0.27764
+    [0.70,0.80)        24   0.74469   0.79167   0.04698
+    [0.80,0.90)        47   0.86120   0.97872   0.11752
+    [0.90,1.00)       987   0.99647   0.99797   0.00150
+    ECE 0.024478  MCE 0.277639  acc 0.833750  mean conf 0.812052
+
+5. checks
+----------------------------------------------------------------------------------------------
+  [PASS] no detector exceeds the declared accuracy ceiling
+  [PASS] the matched false-alarm rates are within 0.06 of each other at every scale
+  [PASS] matching moves the learned false-alarm rate towards the baseline at every scale with a non-zero target rate (4 of 5)
+  [PASS] at noise scale 1.0 the zero target rate makes the match no closer than the argmax, as recorded above
+  [PASS] the baseline false-alarm rate rises monotonically with the noise scale
+  [PASS] the baseline ECE rises monotonically with the noise scale
+  [PASS] the learned posterior is a probability distribution on every test row
+
+summary: 7 of 7 checks passed
+CALIBRATION MEASUREMENT COMPLETE

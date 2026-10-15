@@ -1,0 +1,87 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "regressselect: regression test selection with measured safety loss"
+abstract: >-
+  Three regression test selection strategies scored on the same held-out
+  revisions: import-graph reachability as the dependency-based baseline,
+  smoothed historical co-failure prioritisation measured with APFD, and a
+  gradient-boosted selector over change features producing a ranked order with
+  a per-test probability. All three are evaluated by seeded fault injection into
+  a bundled sample project on faults detected against tests run with the
+  full-suite upper bound shown, and on safety loss, the fraction of real
+  failures a selection would have missed. On the bundled fixtures the
+  dependency baseline wins on both metrics and that result is reported
+  unchanged. Research-grade; not flight-qualified, not certified, not approved
+  for operational aerospace use.
+version: 0.1.0
+date-released: "2026-10-15"
+license: Apache-2.0
+authors:
+  - family-names: Acharya
+    given-names: Om
+repository-code: "https://github.com/OmAcharya-avtr/regressselect"
+keywords:
+  - regression-test-selection
+  - test-prioritisation
+  - apfd
+  - safety-loss
+  - mutation-analysis
+  - pytest
+references:
+  - type: article
+    title: "Prioritizing Test Cases For Regression Testing"
+    authors:
+      - family-names: Rothermel
+        given-names: Gregg
+      - family-names: Untch
+        given-names: "Roland H."
+      - family-names: Chu
+        given-names: Chengyun
+      - family-names: Harrold
+        given-names: "Mary Jean"
+    journal: "IEEE Transactions on Software Engineering"
+    volume: 27
+    issue: 10
+    start: 929
+    end: 948
+    year: 2001
+    doi: "10.1109/32.962562"
+  - type: article
+    title: "Analyzing Regression Test Selection Techniques"
+    authors:
+      - family-names: Rothermel
+        given-names: Gregg
+      - family-names: Harrold
+        given-names: "Mary Jean"
+    journal: "IEEE Transactions on Software Engineering"
+    volume: 22
+    issue: 8
+    year: 1996
+  - type: article
+    title: "Regression testing minimization, selection and prioritization: a survey"
+    authors:
+      - family-names: Yoo
+        given-names: Shin
+      - family-names: Harman
+        given-names: Mark
+    journal: "Software Testing, Verification and Reliability"
+    volume: 22
+    issue: 2
+    start: 67
+    end: 120
+    year: 2012
+  - type: article
+    title: "Hints on Test Data Selection: Help for the Practicing Programmer"
+    authors:
+      - family-names: DeMillo
+        given-names: "Richard A."
+      - family-names: Lipton
+        given-names: "Richard J."
+      - family-names: Sayward
+        given-names: "Frederick G."
+    journal: "Computer"
+    volume: 11
+    issue: 4
+    start: 34
+    end: 41
+    year: 1978

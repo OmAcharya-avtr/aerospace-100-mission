@@ -1,0 +1,44 @@
+hazardtrace validation: grid and finding identities
+
+   trials                  : 1500  (seed 20261015)
+   actions per trial       : 0 to 6, cells filled at random
+
+   identity                                                  holds     of applicable
+   grid size is 4n                                           1500      1500
+   states partition the grid                                 1500      1500
+   covered plus gaps equals total                            1500      1500
+   HT001 count equals the gap count                          1500      1500
+   HT003 count equals the conflict count                     1500      1500
+   every cell appears exactly once                           1500      1500
+   run_checks is deterministic                               1500      1500
+   declaration order does not change the findings            1500      1500
+   enumeration ratio agrees with the grid to 1e-12           1276      1276
+   enumeration ratio lies in [0, 1]                          1276      1276
+   excluding a gap cell removes exactly that gap             1110      1110
+   adding a UCA to a filled cell leaves the gap set alone    1041      1041
+   adding an orphan component adds exactly one HT016         1500      1500
+
+  [PASS] grid size is 4n  1500/1500
+  [PASS] states partition the grid  1500/1500
+  [PASS] covered plus gaps equals total  1500/1500
+  [PASS] HT001 count equals the gap count  1500/1500
+  [PASS] HT003 count equals the conflict count  1500/1500
+  [PASS] every cell appears exactly once  1500/1500
+  [PASS] run_checks is deterministic  1500/1500
+  [PASS] declaration order does not change the findings  1500/1500
+  [PASS] enumeration ratio agrees with the grid to 1e-12  1276/1276
+  [PASS] enumeration ratio lies in [0, 1]  1276/1276
+  [PASS] excluding a gap cell removes exactly that gap  1110/1110
+  [PASS] adding a UCA to a filled cell leaves the gap set alone  1041/1041
+  [PASS] adding an orphan component adds exactly one HT016  1500/1500
+
+   The claim that was FALSIFIED, reported as a measurement:
+     filling one enumeration gap with a UCA increased the total finding
+     count in 1110 of 1110 applicable trials.
+     Filling a cell removes one HT001 and can add HT006 and HT010, so the
+     finding COUNT is not a progress measure. The enumeration ratio is.
+     Counterexample pinned in tests/test_regression.py as
+     test_filling_an_enumeration_gap_can_increase_the_finding_count.
+  [PASS] the non-monotonicity is real and is reproduced here  1110/1110 trials
+
+RESULT: every check in this script passed

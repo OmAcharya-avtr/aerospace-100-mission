@@ -1,0 +1,9 @@
+reaction_wheel_fmea: 4 modes (2 safe), 8 faults, 13 responses, 7 channels, 2 declared ambiguity class(es)
+assumption: declared detectability, latency budget 90 s
+findings: 4  ok: False
+every fault state reaches a safe mode: True
+worst cheapest route: 53.0 min
+ambiguous in fine_pointing: st_blinding vs st_latchup -> st_wait_and_reacquire vs st_power_cycle; conservative coarse_downmode at 53.0 min (+37.5 min over the mean specific route)
+ambiguous in coarse_pointing: st_blinding vs st_latchup -> None vs st_power_cycle; conservative safe_mode_entry at 45.0 min (+20.0 min over the mean specific route)
+conf 0.96 -> st_power_cycle; cost if the fault really is st_latchup 25.0 min, if it is st_blinding 70.0 min
+conf 0.48 -> coarse_downmode (conservative); cost if the fault really is st_latchup 53.0 min, if it is st_blinding 53.0 min

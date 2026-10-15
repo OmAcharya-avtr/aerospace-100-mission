@@ -1,0 +1,107 @@
+validate_sensitivity.py -- sensitivity matrix, step study, Fisher matrix
+
+==============================================================================
+1. Central differences against the closed-form sensitivity
+==============================================================================
+Reference: LinearNodeModel.analytic_sensitivity, differentiated by hand
+from the closed-form lumped-capacitance solution. Scaled to log
+coordinates by multiplying column j by theta_j.
+
+largest |exact log-sensitivity| = 16.026952 K per log unit
+    log step h   worst abs error [K]   relative to scale
+         1e-01          2.667774e-02        1.664555e-03
+         1e-02          2.666412e-04        1.663705e-05
+         1e-03          5.674157e-06        3.540385e-07
+         1e-04          3.968773e-06        2.476312e-07
+         1e-05          3.957689e-06        2.469396e-07
+         1e-06          3.926425e-06        2.449889e-07
+         1e-07          3.814831e-06        2.380260e-07
+         1e-08          1.039156e-05        6.483804e-07
+
+best step 1e-07 with worst error 3.815e-06 K
+the default step is 1e-04; the table shows a flat region from 1e-3 down,
+which is the error floor of the integrator rather than of the difference
+formula, so the default sits inside the flat region by two decades.
+error at the default step = 3.968773e-06 K  (2.476e-07 relative)
+verdict: PASS  tolerance 1e-6 relative
+
+==============================================================================
+2. Step insensitivity on the two-node model
+==============================================================================
+No closed form exists here, so the check is self-consistency: a hundred-
+fold change in the step must not move the Jacobian.
+
+largest |log-sensitivity| at the default step = 66.0352 K
+    log step h   worst diff vs 1e-4 [K]      relative
+         1e-01             3.457357e-02     5.236e-04
+         1e-02             3.457631e-04     5.236e-06
+         1e-03             3.423310e-06     5.184e-08
+         1e-04             0.000000e+00     0.000e+00
+         1e-05             5.087486e-08     7.704e-10
+         1e-06             3.171863e-07     4.803e-09
+         1e-07             1.980709e-06     2.999e-08
+         1e-08             2.853341e-05     4.321e-07
+
+worst relative movement over h in [1e-6, 1e-2] = 5.236e-06
+verdict: PASS  tolerance 1e-4
+
+==============================================================================
+3. Weighting identity
+==============================================================================
+The weighted matrix must be the log Jacobian divided by sigma, exactly.
+worst |J_w * sigma - J| = 7.105e-15 K   tolerance 1e-12
+verdict: PASS
+
+==============================================================================
+4. Fisher information: symmetry, positive semidefiniteness, Gram identity
+==============================================================================
+worst asymmetry                 = 0.000e+00   tolerance 0 (symmetrised)
+smallest eigenvalue             = 1.811599e+02
+largest eigenvalue              = 2.854922e+07
+smallest / largest              = 6.345528e-06
+relative difference from J_w^T J_w = 0.000e+00   tolerance 1e-9
+verdict: PASS
+
+==============================================================================
+5. Structural proportionality on the full-sun design
+==============================================================================
+With s(t) = 1 the two heat loads enter only through q_sun + q_par, so
+dy/d(ln q_sun) = (q_sun/q_par) dy/d(ln q_par), exactly.
+predicted factor q_sun/q_par = 3.055556
+worst relative residual      = 1.014e-09   tolerance 1e-7
+verdict: PASS
+
+The same comparison on baseline-eclipse, where the eclipse separates them:
+worst relative residual      = 0.6539   must exceed 0.1
+verdict: PASS
+
+==============================================================================
+6. Per-parameter sensitivity measure on every design
+==============================================================================
+delta_msqr = ||J_w[:, j]|| / sqrt(n_obs): the root-mean-square change in
+the data, in units of the measurement noise, for one natural log unit of
+the parameter (Brun et al. 2001).
+
+  design                     C1         C2        k12      h_rad      q_sun      q_par
+  baseline-eclipse        6.016     15.175     21.959    165.539     82.214     37.992
+  full-sun                6.092     19.545     20.542    172.939    108.934     35.651
+  lumped-nodes            2.465     16.082      2.020    168.230     82.699     38.314
+  coarse-sampled          6.020     15.199     21.940    165.563     82.153     37.980
+  weak-excitation         5.407     14.090     29.636    162.464     81.782     37.623
+
+Every parameter moves the data by many noise standard deviations per log
+unit on every design, which is why the MAGNITUDE of the sensitivity is
+not what goes wrong here. What goes wrong is collinearity, and that is
+what validate_identifiability.py measures.
+
+==============================================================================
+7. Negative controls
+==============================================================================
+  log_step = 0           rejected: log_step must be finite and lie in (0, 1)
+  log_step = 1           rejected: log_step must be finite and lie in (0, 1)
+  sigma = 0              rejected: sigma must be finite and strictly positive
+  sigma wrong length     rejected: sigma must be a scalar or have shape (802,), got (3,)
+
+verdict: PASS  4 negative controls
+
+elapsed 0.7 s

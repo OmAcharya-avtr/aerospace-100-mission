@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hand-written junit XML fixture, not the output of a pytest run. It exists
+     so that the cross-link checks HT013 and HT014 can be exercised against all
+     five outcomes pytest records, including the two this container's own suites
+     never produce. The element shapes follow pytest's own junit writer with
+     junit_family = xunit1: a failure is <failure>, an error is <error>, a skip
+     is <skipped>, and an expected failure is <skipped type="pytest.xfail">.
+     An xpass is indistinguishable from a pass in junit XML, which is pytest's
+     limitation and is recorded in the README rather than worked around. -->
+<testsuites name="pytest tests"><testsuite name="pytest" errors="1" failures="1" skipped="2" tests="5" time="0.000" timestamp="2026-10-15T00:00:00+00:00" hostname="fixture"><testcase classname="tests.test_planted" name="test_passes" file="tests/test_planted.py" line="4" time="0.000" /><testcase classname="tests.test_planted" name="test_fails" file="tests/test_planted.py" line="9" time="0.000"><failure message="assert 1 == 2">planted failure for the HT014 fixture</failure></testcase><testcase classname="tests.test_planted" name="test_skipped" file="tests/test_planted.py" line="14" time="0.000"><skipped type="pytest.skip" message="planted skip for the HT014 fixture" /></testcase><testcase classname="tests.test_planted" name="test_xfailed" file="tests/test_planted.py" line="19" time="0.000"><skipped type="pytest.xfail" message="planted expected failure for the HT014 fixture" /></testcase><testcase classname="tests.test_planted" name="test_errored" file="tests/test_planted.py" line="24" time="0.000"><error message="fixture 'missing' not found">planted error for the HT014 fixture</error></testcase></testsuite></testsuites>

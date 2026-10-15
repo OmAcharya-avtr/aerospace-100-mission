@@ -1,0 +1,147 @@
+hazardtrace Level 2 worked example
+STPA of the B-dot detumble loop implemented in P024 DetumbleSim
+
+Method: STPA Handbook, Leveson and Thomas, 2018 (four steps, four UCA
+classes). Accident model: STAMP, Leveson, Engineering a Safer World,
+MIT Press, 2011.
+
+This analysis is INCOMPLETE and is published incomplete. The findings
+below are its real gaps. Research-grade: nothing here is flight
+qualified, certified or approved for operational aerospace use, and
+none of it discharges any safety obligation.
+
+control actions   : 2
+feedback paths     : 1
+UCAs / exclusions  : 7 / 1
+enumeration        : 6/8 = 75.0000 %
+complete           : False   exit code: 1
+
+UCA enumeration grid  (U declared, x excluded, ! both, . gap)
+  control action  not_provided          provided              wrong_timing_or_orde  stopped_too_soon_or_
+  CA-DIPOLE       U UCA-1               U UCA-2,UCA-3,UCA-7   U UCA-4               .
+  CA-EXIT         U UCA-5               U UCA-6               .                     x
+  cells covered: 6/8; gaps: 2
+
+coverage, with denominators stated
+  enumeration completeness        6/8 = 75.0000 %
+      definition: cells with a UCA or a justified exclusion, of 4 per action
+  hazards with a constraint       5/6 = 83.3333 %
+      definition: hazards named by >=1 system-level constraint
+  constraints with a requirement  4/5 = 80.0000 %
+      definition: constraints citing >=1 requirement identifier
+  UCAs with a loss scenario       6/7 = 85.7143 %
+      definition: UCAs named by >=1 loss scenario
+  scenarios with a mitigation     5/6 = 83.3333 %
+      definition: loss scenarios citing >=1 mitigation
+  mitigations with evidence       5/6 = 83.3333 %
+      definition: mitigations citing >=1 evidence artifact
+  cited requirements resolved     8/10 = 80.0000 %
+      definition: cited requirement identifiers found in the requirements document
+  cited tests resolved            7/8 = 87.5000 %
+      definition: cited test identifiers found in the junit report
+  cited tests passing             7/8 = 87.5000 %
+      definition: cited test identifiers whose every matching case passed
+
+  HT001  error   control action CA-DIPOLE (commanded magnetorquer dipole vector) has no UCA and no justified exclusion for class 'stopped too soon / applied too long'
+  HT001  error   control action CA-EXIT (declare detumble complete and leave detumble mode) has no UCA and no justified exclusion for class 'wrong timing or order'
+  HT004  error   hazard H-4 has no system-level constraint
+  HT005  error   constraint SC-5 cites no requirement identifier
+  HT006  error   UCA UCA-3 has no loss scenario
+  HT007  error   loss scenario LS-5 has no mitigation
+  HT008  error   mitigation M-4 cites no evidence artifact
+  HT012  error   requirement REQ-021 is cited by this analysis but is not declared in fixtures/p024_bdot/docs/REQUIREMENTS.md
+  HT012  error   requirement REQ-022 is cited by this analysis but is not declared in fixtures/p024_bdot/docs/REQUIREMENTS.md
+  HT013  error   test tests/test_divergence_monitor.py::test_rate_increase_commands_safe_mode is cited as evidence but is not present in fixtures/p024_bdot/junit.xml
+  HT015  error   controller CTRL-MODE (ADCS mode manager (detumble entry and exit)) has no feedback path: it is declared open loop
+
+==============================================================================
+The gaps, stated plainly, with the source fact behind each
+==============================================================================
+
+A. gaps inside the analysis (8 findings)
+
+   HT001  CA-DIPOLE x stopped too soon / applied too long
+         P024 ends actuation when simulate.py reaches duration_s. There is no
+         onboard termination of the dipole command, no timeout and no declared
+         response when the rate threshold is never reached, so there is nothing
+         in the source to write a UCA context against and nothing that would
+         justify excluding the class.
+
+   HT001  CA-EXIT x wrong timing or order
+         P024 has no mode sequencing at all: detumble entry and exit are not
+         implemented, and detumble_time_s is computed in post-processing from
+         the true body rate. There is no order of operations to analyse.
+
+   HT004  H-4 has no system-level constraint
+         H-4 is the body rate increasing while the controller is active. P024's
+         own test suite carries an explicit counterexample in which |J omega|
+         rises for an asymmetric inertia under the ideal law, and there is no
+         divergence monitor anywhere in the package, so no constraint can be
+         traced to anything.
+
+   HT005  SC-5 cites no requirement identifier
+         SC-5 says the magnetic measurement must not be corrupted by the dipole
+         the control law is commanding. P024 models no coil-to-magnetometer
+         cross-talk, so there is no requirement to cite and the constraint is
+         an unbacked assertion.
+
+   HT006  UCA-3 has no loss scenario
+         UCA-3 is the command being dominated by magnetometer noise late in the
+         detumble. The backward difference divides per-sample noise by the
+         control interval, so the noise term in dB/dt scales as 1/dt, but P024
+         declares no noise floor, no filter and no deadband, so the causal
+         scenario cannot be written from the source.
+
+   HT007  LS-5 has no mitigation
+         LS-5 is the magnetometer sampling the field while a coil is driven.
+         P024 neither models nor mitigates this; there is no sample-and-settle
+         schedule in simulate.py, which samples and commands at the same
+         instant.
+
+   HT008  M-4 cites no evidence artifact
+         M-4 bounds the deployment tumble rate by operational agreement. That
+         is a procedural control with nothing in the repository behind it,
+         which is exactly the case this check exists to surface.
+
+   HT015  CTRL-MODE has no feedback path
+         The mode manager is declared open loop, and it genuinely is: B-dot is
+         a magnetometer-only law, P024 carries no rate estimator, and the exit
+         criterion is evaluated on the true state. The controller that decides
+         detumble is finished has no measurement of the quantity it decides on.
+
+B. gaps found by cross-linking against the repository (3 findings)
+
+   HT012  REQ-021 is not declared
+         Cited by M-5, the proposed divergence monitor. The requirement does
+         not exist because the function does not exist.
+
+   HT012  REQ-022 is not declared
+         Cited by SC-4, the energy-exhaustion constraint. P024 has no power or
+         energy model at all.
+
+   HT013  tests/test_divergence_monitor.py::test_rate_increase_commands_safe_mode
+         Cited by EV-6. Absent from a junit report of 305 real P024 tests,
+         because the test and the code it would test are both unwritten.
+
+C. what the analysis does NOT claim
+
+   Every UCA and loss scenario above was written from P024's source and
+   docstrings. None of them was reviewed by anybody, none is traced to a
+   hazard log, and the losses and hazards are the author's judgement about a
+   3U-class mission that does not exist. The analysis is a demonstration that
+   the checks compute something real on a real control loop. It is not a
+   hazard analysis of any flight system, and no part of it should be
+   presented as one.
+
+D. verification of this script's own claims
+
+  [PASS] the analysis parses and every internal reference resolves
+  [PASS] 11 findings are raised  11
+  [PASS] the narrative in A names every in-analysis finding
+  [PASS] the narrative in B names every cross-link finding
+  [PASS] enumeration coverage is 6 of 8 cells  6/8 = 75.0000 %
+  [PASS] two enumeration cells are unanalysed  2
+  [PASS] the exit code is 1
+  [PASS] the junit report cross-linked against holds 305 cases  305
+
+RESULT: every check in this script passed

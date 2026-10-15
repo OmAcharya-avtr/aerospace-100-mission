@@ -1,0 +1,120 @@
+activityplan -- validate_warmstart.py
+does a learned warm start help the exact solver
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+cpu cores        : 2
+warm-start mechanism : primal-bound cut (scipy.optimize.milp has no MIP start)
+
+==============================================================================
+part 1: census of cold node counts -- is there a search to prune at all
+==============================================================================
+instance           bins  presolve   nodes   solve s  optimum       gap
+tiny-enumerable      46      True       1     0.020      6.5  0.00e+00
+tiny-enumerable      46     False       1     0.019      6.5  0.00e+00
+energy-bound        852      True     263     1.380     15.0  0.00e+00
+energy-bound        852     False       1     0.169     15.0  0.00e+00
+recorder-bound      568      True       1     0.034     10.0  0.00e+00
+recorder-bound      568     False       1     0.038     10.0  0.00e+00
+window-bound         18      True       1     0.016      8.0  0.00e+00
+window-bound         18     False       1     0.012      8.0  0.00e+00
+leo-imaging         460      True       1     0.742     23.0  2.78e-15
+leo-imaging         460     False    2064    23.346     23.0  0.00e+00
+family-9000         987      True       1     0.429     28.0  0.00e+00
+family-9000         987     False       1     1.037     28.0  0.00e+00
+family-9001         995      True       1     0.085     43.0  0.00e+00
+family-9001         995     False       1     0.060     43.0  0.00e+00
+family-9002         994      True       1     0.684     30.0  0.00e+00
+family-9002         994     False       1     0.906     30.0  0.00e+00
+family-9003         986      True       1     0.815     40.0  0.00e+00
+family-9003         986     False       1     1.432     40.0  0.00e+00
+family-9004         990      True       1     0.677     42.0  0.00e+00
+family-9004         990     False       1     0.816     42.0  0.00e+00
+family-9005         990      True      46     1.129     30.0  0.00e+00
+family-9005         990     False       1     0.618     30.0  0.00e+00
+family-9006         996      True       1     0.817     22.0  0.00e+00
+family-9006         996     False       1     0.549     22.0  0.00e+00
+family-9007         991      True       1     0.886     21.0  0.00e+00
+family-9007         991     False       1     0.790     21.0  3.89e-15
+family-9008         990      True       1     0.695     37.0  0.00e+00
+family-9008         990     False       1     0.709     37.0  8.64e-15
+family-9009         986      True       1     0.156     23.0  0.00e+00
+family-9009         986     False       1     0.979     23.0  0.00e+00
+family-9010         996      True       1     0.218     26.0  0.00e+00
+family-9010         996     False       1     0.175     26.0  0.00e+00
+family-9011         991      True       1     0.093     24.0  0.00e+00
+family-9011         991     False       1     0.160     24.0  0.00e+00
+
+solves in the census                      : 34
+solved with a node count of 1             : 31
+solves with an actual branch-and-bound tree: 3
+
+Reading: the time-indexed formulation's root relaxation plus HiGHS's cuts close
+the gap outright on every instance in the seeded family. On those instances a
+primal bound has nothing to prune and no warm start of any kind can help. That
+is a property of the formulation and the solver, not of the predictor.
+
+==============================================================================
+part 2: warm against cold on the instances that actually branch
+==============================================================================
+instance          presolve  warm bound  optimum  cold nodes  warm nodes  node ratio   cold s   warm s  time ratio  opt kept
+energy-bound          True        15.0     15.0         263           1      0.0038    1.508    0.979      0.6493      True
+leo-imaging          False        15.0     23.0        2064         420      0.2035   22.260    5.411      0.2431      True
+family-9005           True        28.0     30.0          46           1      0.0217    1.248    0.845      0.6768      True
+
+Wall clocks on a shared 2-core container move by tens of percent between runs.
+Read the node ratio first.
+
+==============================================================================
+part 3: learned against analytic as the warm-start SOURCE
+==============================================================================
+The target problem is built from the learned point predictions, which is what an
+onboard planner would actually solve. Two candidate plans are offered to it:
+  greedy-ml       the greedy plan on that same target
+  greedy-analytic the greedy plan on the analytic problem, transferred across
+A transferred plan is a plan for a different problem, so it has to be verified
+against the target before its value can be used as a bound.
+
+instance        optimum  ml bound  ml ok  ana bound  ana ok  cold nodes  ml nodes  ana nodes   cold s    ml s   ana s
+family-9000        20.0      20.0   True       20.0    True           1         1          1    0.540   0.555   0.558
+family-9001        31.0      31.0   True        nan   False           1         1         -1    0.555   0.528     nan
+               analytic candidate refused: rejected: battery-depth-of-discharge has slack -2.81873 W*h on the target problem, so the value is not a valid bound
+family-9002        23.0      20.0   True        nan   False           1         1         -1    0.463   0.514     nan
+               analytic candidate refused: rejected: recorder-capacity has slack -10.1567 Mbit on the target problem, so the value is not a valid bound
+family-9003        24.0      21.0   True        nan   False         613       510         -1    3.460   4.380     nan
+               analytic candidate refused: rejected: battery-depth-of-discharge has slack -3.14506 W*h on the target problem, so the value is not a valid bound
+family-9004        24.0      24.0   True       24.0    True           1         1          1    0.254   0.175   0.181
+family-9005        17.0      15.0   True       15.0    True           1         1          1    0.274   0.187   0.194
+family-9006        14.0      14.0   True       14.0    True           1         1          1    0.876   0.410   0.435
+family-9007        19.0      19.0   True       19.0    True           1         1          1    0.402   0.272   0.249
+
+instances                               : 8
+greedy-ml candidate verified            : 8 of 8
+greedy-analytic candidate verified      : 5 of 8
+greedy-ml bound as a fraction of the optimum   : mean 0.9534, min 0.8696
+greedy-analytic bound as a fraction of the optimum: mean 0.9765, min 0.8824
+optima lost to a bad bound              : 0
+criterion                               : 0 optima lost
+verdict                                 : PASS
+
+Reading: on these instances the cold node count is 1, so neither source changes
+the node count and there is no speed-up to attribute to either. The learned
+warm start does NOT help here, and that is the measured result. What the
+verification gate does buy is safety: a bound is used only after the simulator
+has confirmed the candidate plan is feasible for the target problem.
+
+==============================================================================
+summary
+==============================================================================
+census solves                           34
+solved at the root (node count 1)       31
+instances with a real search            3
+greedy-ml candidates verified           8 of 8
+greedy-analytic candidates verified     5 of 8
+optima lost to a warm-start bound       0
+headline                                the warm start helps only where HiGHS actually branches,
+                                        which is 3 of 34 census solves; elsewhere it is neutral
+wall clock                              95.1 s
+overall                                 PASS
+raw output written to                   validate_warmstart_output.txt

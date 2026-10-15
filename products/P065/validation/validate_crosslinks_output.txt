@@ -1,0 +1,73 @@
+hazardtrace validation: requirement and test identifier resolution
+
+A. requirement declaration forms, hand-counted
+   declarations found      : 4
+   unique identifiers      : 3  ['REQ-001', 'REQ-002', 'REQ-003']
+   expected: 4 declarations over 3 unique ids. The heading, bullet and
+   bold forms declare; the mid-sentence mention and the fenced line do
+   not; REQ-001 is declared twice.
+  [PASS] declaration count is 4  ('REQ-001', 'REQ-002', 'REQ-003', 'REQ-001')
+  [PASS] unique identifiers are REQ-001..003
+  [PASS] a mid-sentence mention is not a declaration
+  [PASS] a fenced line is not a declaration
+
+B. junit outcome classification, all five pytest outcomes
+   passed                1
+   failed                1
+   errored               1
+   skipped               1
+   xfailed               1
+  [PASS] each of the five outcomes is classified once  {'passed': 1, 'failed': 1, 'errored': 1, 'skipped': 1, 'xfailed': 1}
+  [PASS] only a passed case counts as a pass
+
+C. identifier alias forms accepted for one test case
+   t_pass                                    1 match(es)
+   tests.test_x::t_pass                      1 match(es)
+   tests.test_x.t_pass                       1 match(es)
+   tests/test_x.py::t_pass                   1 match(es)
+   tests/test_y.py::t_pass                   0 match(es)  (correctly none)
+  [PASS] all four alias forms resolve
+  [PASS] an identifier naming the wrong file does not resolve
+
+D. committed fixtures for the P024 worked example
+   junit test cases        : 305
+   outcomes                : passed 305, failed 0, errored 0, skipped 0, xfailed 0
+   requirements declared   : 13
+  [PASS] the P024 junit fixture holds 305 passing cases
+  [PASS] the P024 requirements fixture declares 13
+  [PASS] REQ-021 and REQ-022 are deliberately absent
+
+E. resolution of the worked example against those fixtures
+   requirement ids cited   : 10
+   test ids cited          : 8
+   figure                          value
+   cited requirements resolved     8/10 = 80.0000 %
+   cited tests resolved            7/8 = 87.5000 %
+   cited tests passing             7/8 = 87.5000 %
+
+   unresolved identifiers, named:
+     HT012  REQ-021
+     HT012  REQ-022
+     HT013  tests/test_divergence_monitor.py::test_rate_increase_commands_safe_mode
+
+  [PASS] 8 of 10 cited requirements resolve
+  [PASS] 7 of 8 cited tests resolve and all 7 passed
+
+F. planted fixture: a cited test that did not pass
+   junit test cases        : 5
+   outcomes                : passed 1, failed 1, errored 1, skipped 1, xfailed 1
+   cited requirements resolved     1/2 = 50.0000 %
+   cited tests resolved            2/3 = 66.6667 %
+   cited tests passing             1/3 = 33.3333 %
+  [PASS] the failing cited test raises HT014
+  [PASS] cited test resolution is 2/3 and passing is 1/3
+
+G. with no requirements document and no test report
+   cited requirements resolved     0/0 = undefined
+   cited tests resolved            0/0 = undefined
+   cited tests passing             0/0 = undefined
+   findings                : 8 (against 11 with the sources supplied)
+  [PASS] withheld sources give undefined ratios, not 100 %
+  [PASS] supplying the sources can only add findings
+
+RESULT: every check in this script passed

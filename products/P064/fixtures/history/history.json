@@ -1,0 +1,4223 @@
+{
+ "schema": "regressselect-history/1",
+ "project_root": "fixtures/sample_project",
+ "seed": 20261015,
+ "test_ids": [
+  "tests/test_filters.py::test_moving_average_known_answer",
+  "tests/test_filters.py::test_moving_average_window_one_is_identity",
+  "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset",
+  "tests/test_integrate.py::test_simpson_quadratic_is_exact",
+  "tests/test_integrate.py::test_simpson_rejects_even_sample_count",
+  "tests/test_integrate.py::test_trapezoid_linear_is_exact",
+  "tests/test_kinematics.py::test_angular_momentum_known_answer",
+  "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+  "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+  "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+  "tests/test_orbit.py::test_circular_velocity_leo",
+  "tests/test_orbit.py::test_period_matches_vis_viva",
+  "tests/test_orbit.py::test_rejects_non_positive_radius",
+  "tests/test_quat.py::test_conjugate_flips_vector_part",
+  "tests/test_quat.py::test_identity_multiply",
+  "tests/test_quat.py::test_rotate_90_about_z",
+  "tests/test_quat.py::test_rotate_preserves_length",
+  "tests/test_stats.py::test_mean_known_answer",
+  "tests/test_stats.py::test_rms_known_answer",
+  "tests/test_stats.py::test_variance_bessel_corrected",
+  "tests/test_vecops.py::test_cross_right_handed",
+  "tests/test_vecops.py::test_dot_known_answer",
+  "tests/test_vecops.py::test_norm_known_answer",
+  "tests/test_vecops.py::test_normalize_is_unit"
+ ],
+ "revisions": [
+  {
+   "revision": "r0001",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.quat",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 35,
+    "sampleproj.quat": 53,
+    "sampleproj.vecops": 55
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0002",
+   "changed_modules": [
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 41
+   },
+   "failed_tests": [
+    "tests/test_integrate.py::test_simpson_quadratic_is_exact",
+    "tests/test_integrate.py::test_simpson_rejects_even_sample_count",
+    "tests/test_integrate.py::test_trapezoid_linear_is_exact"
+   ]
+  },
+  {
+   "revision": "r0003",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 22
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0004",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 13
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0005",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 3
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_preserves_length",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0006",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 55,
+    "sampleproj.stats": 44
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0007",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 8
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset"
+   ]
+  },
+  {
+   "revision": "r0008",
+   "changed_modules": [
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 75
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0009",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.vecops",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 63,
+    "sampleproj.stats": 12,
+    "sampleproj.vecops": 20
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0010",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 68
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0011",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 58
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0012",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 77
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0013",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 45,
+    "sampleproj.orbit": 25
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_known_answer",
+    "tests/test_filters.py::test_moving_average_window_one_is_identity"
+   ]
+  },
+  {
+   "revision": "r0014",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 27
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0015",
+   "changed_modules": [
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 73
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0016",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 68
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0017",
+   "changed_modules": [
+    "sampleproj.integrate",
+    "sampleproj.filters",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.filters": 19,
+    "sampleproj.integrate": 41,
+    "sampleproj.kinematics": 54
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0018",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 38,
+    "sampleproj.vecops": 29
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0019",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 3,
+    "sampleproj.quat": 79
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_window_one_is_identity",
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset"
+   ]
+  },
+  {
+   "revision": "r0020",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 46
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0021",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 42,
+    "sampleproj.vecops": 51
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_window_one_is_identity",
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset",
+    "tests/test_stats.py::test_rms_known_answer",
+    "tests/test_vecops.py::test_norm_known_answer"
+   ]
+  },
+  {
+   "revision": "r0022",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.filters",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.filters": 58,
+    "sampleproj.integrate": 78,
+    "sampleproj.vecops": 18
+   },
+   "failed_tests": [
+    "tests/test_integrate.py::test_trapezoid_linear_is_exact"
+   ]
+  },
+  {
+   "revision": "r0023",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 61
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0024",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 63
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0025",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 35
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0026",
+   "changed_modules": [
+    "sampleproj.filters",
+    "sampleproj"
+   ],
+   "churn": {
+    "sampleproj": 79,
+    "sampleproj.filters": 34
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_window_one_is_identity",
+    "tests/test_integrate.py::test_simpson_rejects_even_sample_count"
+   ]
+  },
+  {
+   "revision": "r0027",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 49
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0028",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.stats",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.quat": 54,
+    "sampleproj.stats": 4,
+    "sampleproj.vecops": 49
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0029",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.quat",
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 50,
+    "sampleproj.quat": 76,
+    "sampleproj.stats": 71
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0030",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 16
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0031",
+   "changed_modules": [
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 62
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0032",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 28
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_quat.py::test_rotate_preserves_length",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_dot_known_answer",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0033",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 66
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_quat.py::test_rotate_preserves_length"
+   ]
+  },
+  {
+   "revision": "r0034",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.quat": 73,
+    "sampleproj.vecops": 61
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0035",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 17
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0036",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 78
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0037",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 64,
+    "sampleproj.quat": 25
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0038",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 28,
+    "sampleproj.stats": 69
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0039",
+   "changed_modules": [
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 16
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0040",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj"
+   ],
+   "churn": {
+    "sampleproj": 34,
+    "sampleproj.vecops": 30
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0041",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 30
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0042",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 27,
+    "sampleproj.vecops": 18
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_quat.py::test_rotate_preserves_length",
+    "tests/test_vecops.py::test_norm_known_answer"
+   ]
+  },
+  {
+   "revision": "r0043",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 27,
+    "sampleproj.quat": 28
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0044",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 39
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0045",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 34
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0046",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 28,
+    "sampleproj.quat": 37
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0047",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 33
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0048",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 8
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0049",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 28,
+    "sampleproj.vecops": 21
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0050",
+   "changed_modules": [
+    "sampleproj.filters",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.filters": 47,
+    "sampleproj.vecops": 63
+   },
+   "failed_tests": [
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0051",
+   "changed_modules": [
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 46
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0052",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 36
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0053",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.quat",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 19,
+    "sampleproj.quat": 76,
+    "sampleproj.vecops": 17
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_vecops.py::test_dot_known_answer",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0054",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.orbit",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.orbit": 72,
+    "sampleproj.stats": 6,
+    "sampleproj.vecops": 39
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0055",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.orbit": 70,
+    "sampleproj.quat": 64
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0056",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 14,
+    "sampleproj.vecops": 76
+   },
+   "failed_tests": [
+    "tests/test_vecops.py::test_norm_known_answer"
+   ]
+  },
+  {
+   "revision": "r0057",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 22
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_vecops.py::test_norm_known_answer"
+   ]
+  },
+  {
+   "revision": "r0058",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 18
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0059",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 4,
+    "sampleproj.vecops": 66
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_vecops.py::test_norm_known_answer"
+   ]
+  },
+  {
+   "revision": "r0060",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 55
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0061",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.orbit",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.orbit": 40,
+    "sampleproj.quat": 11,
+    "sampleproj.vecops": 7
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0062",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 15
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0063",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 63
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_window_one_is_identity",
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset",
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm"
+   ]
+  },
+  {
+   "revision": "r0064",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 75
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0065",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 23
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0066",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 16
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0067",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.quat": 64,
+    "sampleproj.vecops": 40
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z"
+   ]
+  },
+  {
+   "revision": "r0068",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 24
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_quat.py::test_rotate_preserves_length",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0069",
+   "changed_modules": [
+    "sampleproj.integrate",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.integrate": 37,
+    "sampleproj.vecops": 72
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0070",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 5
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0071",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 9
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x"
+   ]
+  },
+  {
+   "revision": "r0072",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 61,
+    "sampleproj.vecops": 67
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_rotate_preserves_length",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0073",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 23
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0074",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.stats": 4,
+    "sampleproj.vecops": 77
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0075",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 27
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0076",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 42,
+    "sampleproj.kinematics": 18
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0077",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 71
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0078",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 74
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_known_answer",
+    "tests/test_filters.py::test_moving_average_window_one_is_identity",
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset"
+   ]
+  },
+  {
+   "revision": "r0079",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 46,
+    "sampleproj.quat": 52
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_quat.py::test_rotate_preserves_length"
+   ]
+  },
+  {
+   "revision": "r0080",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.quat",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 31,
+    "sampleproj.orbit": 21,
+    "sampleproj.quat": 21
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0081",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 77
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0082",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 36
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0083",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.quat",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 18,
+    "sampleproj.kinematics": 36,
+    "sampleproj.quat": 19
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_quat.py::test_rotate_preserves_length"
+   ]
+  },
+  {
+   "revision": "r0084",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.vecops",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 54,
+    "sampleproj.orbit": 63,
+    "sampleproj.vecops": 29
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0085",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 78,
+    "sampleproj.stats": 62
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x"
+   ]
+  },
+  {
+   "revision": "r0086",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj": 18,
+    "sampleproj.quat": 79,
+    "sampleproj.vecops": 18
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0087",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 4
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0088",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 79
+   },
+   "failed_tests": [
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0089",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 46
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0090",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 15
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0091",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.stats",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 16,
+    "sampleproj.orbit": 26,
+    "sampleproj.stats": 79
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0092",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 67
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0093",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 52
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z"
+   ]
+  },
+  {
+   "revision": "r0094",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 16
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0095",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 45
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0096",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 76,
+    "sampleproj.stats": 64
+   },
+   "failed_tests": [
+    "tests/test_integrate.py::test_simpson_quadratic_is_exact",
+    "tests/test_integrate.py::test_trapezoid_linear_is_exact",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0097",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.stats",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 50,
+    "sampleproj.quat": 7,
+    "sampleproj.stats": 79
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_window_one_is_identity",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_stats.py::test_mean_known_answer",
+    "tests/test_stats.py::test_rms_known_answer"
+   ]
+  },
+  {
+   "revision": "r0098",
+   "changed_modules": [
+    "sampleproj.integrate",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.integrate": 32,
+    "sampleproj.quat": 46
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0099",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 65,
+    "sampleproj.orbit": 43
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0100",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 56
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0101",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 75
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0102",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj"
+   ],
+   "churn": {
+    "sampleproj": 49,
+    "sampleproj.stats": 16
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0103",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.stats",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.quat": 37,
+    "sampleproj.stats": 28,
+    "sampleproj.vecops": 45
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_quat.py::test_rotate_preserves_length"
+   ]
+  },
+  {
+   "revision": "r0104",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 75
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0105",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 44,
+    "sampleproj.quat": 46
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0106",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.orbit": 22,
+    "sampleproj.quat": 50
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0107",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 41
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0108",
+   "changed_modules": [
+    "sampleproj.integrate",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.integrate": 41,
+    "sampleproj.kinematics": 56
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0109",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.kinematics",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 50,
+    "sampleproj.kinematics": 76,
+    "sampleproj.quat": 74
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0110",
+   "changed_modules": [
+    "sampleproj.filters",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.filters": 38,
+    "sampleproj.integrate": 56
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0111",
+   "changed_modules": [
+    "sampleproj.integrate",
+    "sampleproj.quat",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.integrate": 33,
+    "sampleproj.kinematics": 38,
+    "sampleproj.quat": 55
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0112",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.integrate",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 28,
+    "sampleproj.integrate": 57,
+    "sampleproj.kinematics": 53
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0113",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 56
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0114",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 70,
+    "sampleproj.stats": 36
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_window_one_is_identity",
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset",
+    "tests/test_stats.py::test_mean_known_answer",
+    "tests/test_stats.py::test_rms_known_answer"
+   ]
+  },
+  {
+   "revision": "r0115",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 52
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0116",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 63
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0117",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 17
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0118",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 29
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_vecops.py::test_norm_known_answer"
+   ]
+  },
+  {
+   "revision": "r0119",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 73
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0120",
+   "changed_modules": [
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 43
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0121",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 20,
+    "sampleproj.vecops": 15
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0122",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.quat",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 63,
+    "sampleproj.quat": 43,
+    "sampleproj.vecops": 25
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_preserves_length",
+    "tests/test_vecops.py::test_norm_known_answer"
+   ]
+  },
+  {
+   "revision": "r0123",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 49
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0124",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 63
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0125",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj"
+   ],
+   "churn": {
+    "sampleproj": 72,
+    "sampleproj.orbit": 73
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0126",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 65
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0127",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.quat": 2,
+    "sampleproj.vecops": 49
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0128",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 33
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0129",
+   "changed_modules": [
+    "sampleproj.filters",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.filters": 3,
+    "sampleproj.quat": 7
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0130",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 10,
+    "sampleproj.quat": 51
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_identity_multiply"
+   ]
+  },
+  {
+   "revision": "r0131",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 61
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0132",
+   "changed_modules": [
+    "sampleproj.filters",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.filters": 49,
+    "sampleproj.stats": 15
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0133",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 26,
+    "sampleproj.vecops": 61
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0134",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.quat": 22,
+    "sampleproj.vecops": 33
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0135",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 5,
+    "sampleproj.quat": 45
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0136",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 34
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0137",
+   "changed_modules": [
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 2
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0138",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.quat": 47,
+    "sampleproj.vecops": 10
+   },
+   "failed_tests": [
+    "tests/test_stats.py::test_rms_known_answer"
+   ]
+  },
+  {
+   "revision": "r0139",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.filters",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.filters": 71,
+    "sampleproj.kinematics": 46,
+    "sampleproj.quat": 69
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0140",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 10
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0141",
+   "changed_modules": [
+    "sampleproj.integrate",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.integrate": 59,
+    "sampleproj.kinematics": 32
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0142",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 44,
+    "sampleproj.quat": 43
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0143",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 80
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0144",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 78,
+    "sampleproj.stats": 41
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0145",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.quat": 22,
+    "sampleproj.vecops": 77
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0146",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 7
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0147",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 20,
+    "sampleproj.quat": 69
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0148",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.filters",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.filters": 72,
+    "sampleproj.stats": 36,
+    "sampleproj.vecops": 21
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0149",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 79
+   },
+   "failed_tests": [
+    "tests/test_integrate.py::test_trapezoid_linear_is_exact"
+   ]
+  },
+  {
+   "revision": "r0150",
+   "changed_modules": [
+    "sampleproj.integrate",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.integrate": 8,
+    "sampleproj.vecops": 22
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0151",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 24
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0152",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.vecops",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.quat": 17,
+    "sampleproj.stats": 29,
+    "sampleproj.vecops": 49
+   },
+   "failed_tests": [
+    "tests/test_stats.py::test_mean_known_answer",
+    "tests/test_stats.py::test_rms_known_answer"
+   ]
+  },
+  {
+   "revision": "r0153",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 70,
+    "sampleproj.vecops": 62
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_stats.py::test_variance_bessel_corrected",
+    "tests/test_vecops.py::test_dot_known_answer",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0154",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.filters",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.filters": 68,
+    "sampleproj.quat": 47,
+    "sampleproj.vecops": 45
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0155",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 43
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_vecops.py::test_dot_known_answer",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0156",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.integrate",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 28,
+    "sampleproj.integrate": 36,
+    "sampleproj.vecops": 78
+   },
+   "failed_tests": [
+    "tests/test_stats.py::test_variance_bessel_corrected"
+   ]
+  },
+  {
+   "revision": "r0157",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.filters",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.filters": 74,
+    "sampleproj.quat": 57,
+    "sampleproj.stats": 12
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0158",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 13
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0159",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.quat": 42,
+    "sampleproj.vecops": 39
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply"
+   ]
+  },
+  {
+   "revision": "r0160",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.filters",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.filters": 44,
+    "sampleproj.kinematics": 31,
+    "sampleproj.stats": 44
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_window_one_is_identity",
+    "tests/test_integrate.py::test_trapezoid_linear_is_exact",
+    "tests/test_stats.py::test_mean_known_answer",
+    "tests/test_stats.py::test_rms_known_answer"
+   ]
+  },
+  {
+   "revision": "r0161",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 47
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0162",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 58
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0163",
+   "changed_modules": [
+    "sampleproj.filters",
+    "sampleproj.vecops",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.filters": 76,
+    "sampleproj.stats": 15,
+    "sampleproj.vecops": 58
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset",
+    "tests/test_stats.py::test_mean_known_answer",
+    "tests/test_stats.py::test_rms_known_answer",
+    "tests/test_stats.py::test_variance_bessel_corrected",
+    "tests/test_vecops.py::test_cross_right_handed"
+   ]
+  },
+  {
+   "revision": "r0164",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 35,
+    "sampleproj.stats": 79
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0165",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 61,
+    "sampleproj.quat": 60
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_rotate_90_about_z"
+   ]
+  },
+  {
+   "revision": "r0166",
+   "changed_modules": [
+    "sampleproj.filters",
+    "sampleproj.quat",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.filters": 58,
+    "sampleproj.quat": 66,
+    "sampleproj.stats": 77
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0167",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 40
+   },
+   "failed_tests": [
+    "tests/test_quat.py::test_rotate_90_about_z"
+   ]
+  },
+  {
+   "revision": "r0168",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 12
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0169",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 51,
+    "sampleproj.vecops": 14
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_quat.py::test_rotate_preserves_length",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_dot_known_answer",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0170",
+   "changed_modules": [
+    "sampleproj.filters",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.filters": 52,
+    "sampleproj.kinematics": 18
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0171",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 58
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0172",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.filters",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.filters": 74,
+    "sampleproj.kinematics": 8,
+    "sampleproj.quat": 52
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_known_answer",
+    "tests/test_filters.py::test_moving_average_window_one_is_identity",
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0173",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.vecops",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 33,
+    "sampleproj.orbit": 3,
+    "sampleproj.vecops": 5
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0174",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 54
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0175",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 55
+   },
+   "failed_tests": [
+    "tests/test_orbit.py::test_circular_velocity_leo"
+   ]
+  },
+  {
+   "revision": "r0176",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 52
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0177",
+   "changed_modules": [
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 51
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0178",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.orbit": 31,
+    "sampleproj.stats": 50
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0179",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 14
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0180",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 18
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0181",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 34
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0182",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 5
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0183",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 60
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0184",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 30
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0185",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 62,
+    "sampleproj.vecops": 36
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0186",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 15
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0187",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 51
+   },
+   "failed_tests": [
+    "tests/test_quat.py::test_rotate_90_about_z"
+   ]
+  },
+  {
+   "revision": "r0188",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.quat",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 27,
+    "sampleproj.quat": 23,
+    "sampleproj.stats": 72
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0189",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 24
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0190",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 35
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0191",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 79
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0192",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.vecops",
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 24,
+    "sampleproj.quat": 41,
+    "sampleproj.vecops": 70
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_quat.py::test_rotate_preserves_length"
+   ]
+  },
+  {
+   "revision": "r0193",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 42,
+    "sampleproj.quat": 67
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0194",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 20,
+    "sampleproj.quat": 63
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_identity_multiply"
+   ]
+  },
+  {
+   "revision": "r0195",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 20
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0196",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 22
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0197",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 53,
+    "sampleproj.vecops": 33
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0198",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 30
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0199",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.quat": 58,
+    "sampleproj.vecops": 11
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset"
+   ]
+  },
+  {
+   "revision": "r0200",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj"
+   ],
+   "churn": {
+    "sampleproj": 39,
+    "sampleproj.kinematics": 30
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0201",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 9
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0202",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 52,
+    "sampleproj.stats": 70
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0203",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 26
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0204",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 80,
+    "sampleproj.vecops": 38
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_dot_known_answer",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0205",
+   "changed_modules": [
+    "sampleproj.filters",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.filters": 19,
+    "sampleproj.quat": 47
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0206",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 33
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0207",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 8
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0208",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 61
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0209",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.filters",
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.filters": 9,
+    "sampleproj.orbit": 75,
+    "sampleproj.vecops": 16
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0210",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 68
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_window_one_is_identity",
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset",
+    "tests/test_stats.py::test_mean_known_answer",
+    "tests/test_stats.py::test_variance_bessel_corrected"
+   ]
+  },
+  {
+   "revision": "r0211",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 10
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0212",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 18
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_known_answer",
+    "tests/test_filters.py::test_moving_average_window_one_is_identity"
+   ]
+  },
+  {
+   "revision": "r0213",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj"
+   ],
+   "churn": {
+    "sampleproj": 52,
+    "sampleproj.quat": 21
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0214",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 45,
+    "sampleproj.quat": 16
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_preserves_length"
+   ]
+  },
+  {
+   "revision": "r0215",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 57
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0216",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 74
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_preserves_length"
+   ]
+  },
+  {
+   "revision": "r0217",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 54
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0218",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 64
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_preserves_length"
+   ]
+  },
+  {
+   "revision": "r0219",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 43,
+    "sampleproj.orbit": 17
+   },
+   "failed_tests": [
+    "tests/test_integrate.py::test_trapezoid_linear_is_exact"
+   ]
+  },
+  {
+   "revision": "r0220",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 18
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0221",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.filters",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.filters": 30,
+    "sampleproj.orbit": 26,
+    "sampleproj.stats": 3
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_window_one_is_identity",
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_stats.py::test_mean_known_answer",
+    "tests/test_stats.py::test_rms_known_answer",
+    "tests/test_stats.py::test_variance_bessel_corrected"
+   ]
+  },
+  {
+   "revision": "r0222",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 69
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0223",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 76
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0224",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 55
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0225",
+   "changed_modules": [
+    "sampleproj",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj": 44,
+    "sampleproj.filters": 43
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0226",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 72
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0227",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 52
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0228",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 34
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0229",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 72
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0230",
+   "changed_modules": [
+    "sampleproj.integrate",
+    "sampleproj.stats",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.integrate": 45,
+    "sampleproj.kinematics": 9,
+    "sampleproj.stats": 80
+   },
+   "failed_tests": [
+    "tests/test_integrate.py::test_simpson_quadratic_is_exact",
+    "tests/test_integrate.py::test_simpson_rejects_even_sample_count",
+    "tests/test_integrate.py::test_trapezoid_linear_is_exact"
+   ]
+  },
+  {
+   "revision": "r0231",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 40
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0232",
+   "changed_modules": [
+    "sampleproj"
+   ],
+   "churn": {
+    "sampleproj": 28
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0233",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 58,
+    "sampleproj.vecops": 57
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0234",
+   "changed_modules": [
+    "sampleproj.integrate",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.integrate": 63,
+    "sampleproj.vecops": 2
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_preserves_length",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_dot_known_answer",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0235",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.filters",
+    "sampleproj"
+   ],
+   "churn": {
+    "sampleproj": 19,
+    "sampleproj.filters": 40,
+    "sampleproj.vecops": 31
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_known_answer",
+    "tests/test_filters.py::test_moving_average_window_one_is_identity",
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset"
+   ]
+  },
+  {
+   "revision": "r0236",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 9,
+    "sampleproj.orbit": 21
+   },
+   "failed_tests": [
+    "tests/test_orbit.py::test_period_matches_vis_viva",
+    "tests/test_orbit.py::test_rejects_non_positive_radius",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0237",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 16,
+    "sampleproj.vecops": 43
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0238",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 52
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset",
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0239",
+   "changed_modules": [
+    "sampleproj.filters",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.filters": 23,
+    "sampleproj.vecops": 38
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0240",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 32,
+    "sampleproj.vecops": 22
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0241",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 80
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0242",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 67
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0243",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 77
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0244",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 61
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0245",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 56,
+    "sampleproj.vecops": 78
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x"
+   ]
+  },
+  {
+   "revision": "r0246",
+   "changed_modules": [
+    "sampleproj.filters",
+    "sampleproj.stats",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.filters": 12,
+    "sampleproj.integrate": 60,
+    "sampleproj.stats": 43
+   },
+   "failed_tests": [
+    "tests/test_quat.py::test_rotate_90_about_z"
+   ]
+  },
+  {
+   "revision": "r0247",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 23
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0248",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.vecops",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 17,
+    "sampleproj.quat": 69,
+    "sampleproj.vecops": 11
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0249",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.filters",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.filters": 25,
+    "sampleproj.orbit": 62,
+    "sampleproj.stats": 43
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0250",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 18
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0251",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 32
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0252",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 54,
+    "sampleproj.stats": 52
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0253",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 14
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0254",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 32,
+    "sampleproj.stats": 58
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0255",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 64
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_vecops.py::test_dot_known_answer",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0256",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 58,
+    "sampleproj.quat": 5
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_quat.py::test_rotate_preserves_length"
+   ]
+  },
+  {
+   "revision": "r0257",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 33,
+    "sampleproj.vecops": 58
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0258",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 51
+   },
+   "failed_tests": [
+    "tests/test_orbit.py::test_period_matches_vis_viva"
+   ]
+  },
+  {
+   "revision": "r0259",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 8,
+    "sampleproj.vecops": 80
+   },
+   "failed_tests": [
+    "tests/test_vecops.py::test_cross_right_handed"
+   ]
+  },
+  {
+   "revision": "r0260",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.kinematics",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 23,
+    "sampleproj.orbit": 6,
+    "sampleproj.quat": 10
+   },
+   "failed_tests": [
+    "tests/test_quat.py::test_rotate_90_about_z"
+   ]
+  },
+  {
+   "revision": "r0261",
+   "changed_modules": [
+    "sampleproj.integrate",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.integrate": 43,
+    "sampleproj.kinematics": 43
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0262",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.vecops",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 33,
+    "sampleproj.stats": 15,
+    "sampleproj.vecops": 6
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0263",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 36
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0264",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 55
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer"
+   ]
+  },
+  {
+   "revision": "r0265",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 6,
+    "sampleproj.quat": 33
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0266",
+   "changed_modules": [
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 35
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0267",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 75
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0268",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 32
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0269",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 58
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_quat.py::test_rotate_preserves_length",
+    "tests/test_vecops.py::test_dot_known_answer",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0270",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 51,
+    "sampleproj.quat": 79
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset",
+    "tests/test_orbit.py::test_circular_velocity_leo",
+    "tests/test_orbit.py::test_period_matches_vis_viva",
+    "tests/test_orbit.py::test_rejects_non_positive_radius"
+   ]
+  },
+  {
+   "revision": "r0271",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.vecops",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 51,
+    "sampleproj.quat": 27,
+    "sampleproj.vecops": 59
+   },
+   "failed_tests": [
+    "tests/test_integrate.py::test_trapezoid_linear_is_exact"
+   ]
+  },
+  {
+   "revision": "r0272",
+   "changed_modules": [
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 49
+   },
+   "failed_tests": [
+    "tests/test_integrate.py::test_simpson_quadratic_is_exact",
+    "tests/test_integrate.py::test_trapezoid_linear_is_exact"
+   ]
+  },
+  {
+   "revision": "r0273",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 35
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0274",
+   "changed_modules": [
+    "sampleproj.filters",
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.filters": 2,
+    "sampleproj.stats": 78
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0275",
+   "changed_modules": [
+    "sampleproj.integrate",
+    "sampleproj.orbit",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.integrate": 41,
+    "sampleproj.orbit": 26,
+    "sampleproj.vecops": 13
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0276",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 39
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_known_answer",
+    "tests/test_filters.py::test_moving_average_window_one_is_identity",
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset",
+    "tests/test_stats.py::test_mean_known_answer",
+    "tests/test_stats.py::test_rms_known_answer"
+   ]
+  },
+  {
+   "revision": "r0277",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 26,
+    "sampleproj.vecops": 19
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0278",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.quat": 32,
+    "sampleproj.vecops": 4
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0279",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.filters",
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.filters": 4,
+    "sampleproj.integrate": 45,
+    "sampleproj.orbit": 60
+   },
+   "failed_tests": [
+    "tests/test_integrate.py::test_simpson_rejects_even_sample_count",
+    "tests/test_integrate.py::test_trapezoid_linear_is_exact"
+   ]
+  },
+  {
+   "revision": "r0280",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 48
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0281",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 28
+   },
+   "failed_tests": [
+    "tests/test_orbit.py::test_circular_velocity_leo",
+    "tests/test_orbit.py::test_period_matches_vis_viva",
+    "tests/test_orbit.py::test_rejects_non_positive_radius",
+    "tests/test_stats.py::test_mean_known_answer"
+   ]
+  },
+  {
+   "revision": "r0282",
+   "changed_modules": [
+    "sampleproj"
+   ],
+   "churn": {
+    "sampleproj": 51
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0283",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 26
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0284",
+   "changed_modules": [
+    "sampleproj.filters",
+    "sampleproj"
+   ],
+   "churn": {
+    "sampleproj": 10,
+    "sampleproj.filters": 12
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0285",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.filters",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.filters": 49,
+    "sampleproj.quat": 55,
+    "sampleproj.vecops": 63
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_window_one_is_identity"
+   ]
+  },
+  {
+   "revision": "r0286",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.integrate",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.integrate": 43,
+    "sampleproj.kinematics": 71,
+    "sampleproj.orbit": 54
+   },
+   "failed_tests": [
+    "tests/test_integrate.py::test_simpson_quadratic_is_exact",
+    "tests/test_integrate.py::test_simpson_rejects_even_sample_count",
+    "tests/test_integrate.py::test_trapezoid_linear_is_exact"
+   ]
+  },
+  {
+   "revision": "r0287",
+   "changed_modules": [
+    "sampleproj"
+   ],
+   "churn": {
+    "sampleproj": 56
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0288",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 56
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0289",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 78
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0290",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 22
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0291",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 67
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0292",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 75
+   },
+   "failed_tests": [
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_preserves_length",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0293",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 54
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0294",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 50
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0295",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 36
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0296",
+   "changed_modules": [
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 11
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0297",
+   "changed_modules": [
+    "sampleproj.integrate",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.integrate": 49,
+    "sampleproj.kinematics": 17
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0298",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 76
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0299",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 63
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_quat.py::test_identity_multiply",
+    "tests/test_quat.py::test_rotate_90_about_z",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0300",
+   "changed_modules": [
+    "sampleproj.orbit",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 3,
+    "sampleproj.orbit": 79
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_known_answer",
+    "tests/test_filters.py::test_moving_average_window_one_is_identity",
+    "tests/test_filters.py::test_residual_rms_of_a_ramp_is_the_half_window_offset"
+   ]
+  },
+  {
+   "revision": "r0301",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 52
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0302",
+   "changed_modules": [
+    "sampleproj.stats"
+   ],
+   "churn": {
+    "sampleproj.stats": 52
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0303",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 43,
+    "sampleproj.quat": 59
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity"
+   ]
+  },
+  {
+   "revision": "r0304",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 79
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0305",
+   "changed_modules": [
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 26
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0306",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 26,
+    "sampleproj.quat": 20
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0307",
+   "changed_modules": [
+    "sampleproj.quat",
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 28,
+    "sampleproj.quat": 57
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0308",
+   "changed_modules": [
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.vecops": 46
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0309",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 33
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0310",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 5
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0311",
+   "changed_modules": [
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 29
+   },
+   "failed_tests": [
+    "tests/test_orbit.py::test_circular_velocity_leo"
+   ]
+  },
+  {
+   "revision": "r0312",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.filters",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.filters": 32,
+    "sampleproj.stats": 78,
+    "sampleproj.vecops": 44
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0313",
+   "changed_modules": [
+    "sampleproj.filters",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.filters": 64,
+    "sampleproj.quat": 54
+   },
+   "failed_tests": [
+    "tests/test_filters.py::test_moving_average_known_answer"
+   ]
+  },
+  {
+   "revision": "r0314",
+   "changed_modules": [
+    "sampleproj.kinematics"
+   ],
+   "churn": {
+    "sampleproj.kinematics": 13
+   },
+   "failed_tests": [
+    "tests/test_stats.py::test_mean_known_answer"
+   ]
+  },
+  {
+   "revision": "r0315",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.integrate",
+    "sampleproj"
+   ],
+   "churn": {
+    "sampleproj": 73,
+    "sampleproj.integrate": 6,
+    "sampleproj.stats": 20
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0316",
+   "changed_modules": [
+    "sampleproj.stats",
+    "sampleproj.vecops"
+   ],
+   "churn": {
+    "sampleproj.stats": 8,
+    "sampleproj.vecops": 51
+   },
+   "failed_tests": [
+    "tests/test_kinematics.py::test_angular_momentum_known_answer",
+    "tests/test_kinematics.py::test_propagate_keeps_unit_norm",
+    "tests/test_kinematics.py::test_propagate_small_angle_about_x",
+    "tests/test_kinematics.py::test_propagate_zero_rate_is_identity",
+    "tests/test_quat.py::test_conjugate_flips_vector_part",
+    "tests/test_vecops.py::test_cross_right_handed",
+    "tests/test_vecops.py::test_norm_known_answer",
+    "tests/test_vecops.py::test_normalize_is_unit"
+   ]
+  },
+  {
+   "revision": "r0317",
+   "changed_modules": [
+    "sampleproj.integrate"
+   ],
+   "churn": {
+    "sampleproj.integrate": 35
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0318",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.stats",
+    "sampleproj.quat"
+   ],
+   "churn": {
+    "sampleproj.quat": 2,
+    "sampleproj.stats": 46,
+    "sampleproj.vecops": 80
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0319",
+   "changed_modules": [
+    "sampleproj.kinematics",
+    "sampleproj.filters"
+   ],
+   "churn": {
+    "sampleproj.filters": 8,
+    "sampleproj.kinematics": 67
+   },
+   "failed_tests": []
+  },
+  {
+   "revision": "r0320",
+   "changed_modules": [
+    "sampleproj.vecops",
+    "sampleproj.orbit"
+   ],
+   "churn": {
+    "sampleproj.orbit": 63,
+    "sampleproj.vecops": 20
+   },
+   "failed_tests": []
+  }
+ ]
+}

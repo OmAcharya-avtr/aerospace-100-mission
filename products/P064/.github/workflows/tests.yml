@@ -1,0 +1,40 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[test]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Confirm the committed fixtures survived the clone
+        run: |
+          test -f fixtures/sample_project/junit.xml
+          test -f fixtures/faults/faults.json
+          test -f fixtures/faults/fault_matrix.json
+          test -f fixtures/history/history.json
+          test -f fixtures/history/generation_parameters.json
+      - name: Test
+        env:
+          MPLBACKEND: Agg
+        run: python -m pytest tests/ -q --junitxml=junit.xml
+      - name: CLI smoke test
+        run: python -m regressselect --help
+      - name: Benchmark on the committed history
+        run: >
+          python -m regressselect benchmark fixtures/sample_project
+          --history fixtures/history/history.json --budgets 0.25 1.0
