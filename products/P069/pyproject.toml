@@ -1,0 +1,75 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scenariocov"
+version = "0.1.0"
+description = "Scenario-space coverage reporting for a verification campaign that has already run"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Om Acharya" }]
+keywords = [
+  "combinatorial-testing",
+  "t-way-coverage",
+  "scenario-coverage",
+  "verification",
+  "equivalence-partitioning",
+  "aerospace",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Software Development :: Testing",
+]
+# Every range below is bounded on BOTH sides and both ends of every range were
+# installed and the full suite executed at each, in this build session. The
+# exact versions and the two runs are recorded in
+# validation/validate_environment_output.txt and
+# validation/validate_dependency_ends_output.txt. No model is serialised by
+# this package, so no range here is a serialisation-format bound.
+dependencies = [
+  "numpy>=2.3.4,<2.6",
+  "scikit-learn>=1.8.0,<1.10",
+]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.10.7,<3.12"]
+test = [
+  "pytest>=9.0.1,<9.2",
+  "hypothesis>=6.169.3,<6.171",
+  "matplotlib>=3.10.7,<3.12",
+  "ruff>=0.17.0,<0.18",
+]
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/scenariocov"
+Source = "https://github.com/OmAcharya-avtr/scenariocov"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+junit_family = "xunit1"
+filterwarnings = ["error::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "C4"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]

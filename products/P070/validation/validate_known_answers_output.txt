@@ -1,0 +1,92 @@
+watchdogspec validation: known answers
+
+1. planted fixture, examples/specs/planted_defects.yaml
+  findings              : 12
+  codes that fired      : 12 of 12
+  severity split        : {'warning': 5, 'error': 7}
+  exit code             : 1
+
+  code    expected subject actual subject match
+  WS001   T-WS001        T-WS001        yes
+  WS002   T-WS002        T-WS002        yes
+  WS003   T-WS003        T-WS003        yes
+  WS004   T-WS004        T-WS004        yes
+  WS005   T-WS005        T-WS005        yes
+  WS006   T-WS006        T-WS006        yes
+  WS007   T-WS007        T-WS007        yes
+  WS008   T-WS008        T-WS008        yes
+  WS009   L-NORECOVER    L-NORECOVER    yes
+  WS010   L-DISORDER     L-DISORDER     yes
+  WS011   L-COSTDROP     L-COSTDROP     yes
+  WS012   T-WS012        T-WS012        yes
+
+  [PASS] every one of the twelve checks fired exactly once  12 findings
+  [PASS] code to subject mapping is as hand-written
+  [PASS] severity split is 7 error and 5 warning
+  [PASS] exit code is 1
+  [PASS] the clean task carries no finding
+
+2. the planted tolerance-exceeds-deadline defect, in detail
+  task                  : T-WS002
+  heartbeat period P    : 50 ms
+  jitter bound J        : 5 ms
+  beat window W = P + J : 55.000000 ms
+  missed beats k        : 4
+  tolerated silence k*W : 220.000000 ms
+  liveness deadline D   : 200.000000 ms
+  slack D - k*W         : -20.000000 ms
+  margin                : missed
+  finding               : WS002 error T-WS002
+  [PASS] tolerated silence is 220 ms
+  [PASS] deadline is 200 ms
+  [PASS] slack is -20 ms
+  [PASS] margin is missed
+  [PASS] WS002 was raised against T-WS002
+
+3. the deliberate floating-point boundary case, T-WS004
+  worst-case completion : 229.0 ms
+  declared deadline     : 229.0 ms
+  slack                 : 0.0 ms
+  comparison tolerance  : 1.000e-09 ms
+  margin                : marginal
+  [PASS] the boundary case is reported as marginal, not met or missed
+  [PASS] a marginal final rung is a warning and does not set the exit code
+
+4. the clean specification, examples/specs/minimal_consistent.yaml
+  findings              : 0
+  exit code             : 0
+    TASK-CTRL  WCDL   75.5000 ms   ladder  537.5000 ms   D  800.0000 ms   slack  262.5000 ms
+    TASK-HK    WCDL  446.5000 ms   ladder  908.5000 ms   D 2000.0000 ms   slack 1091.5000 ms
+  [PASS] the clean specification raises no finding
+  [PASS] the clean specification exits 0
+
+5. the worked example, examples/specs/smallsat_fc.yaml
+  WS003  error   task TASK-FDIR cannot reach rung 4 ('reset') of ladder LADDER-FULL within its liveness deadline: worst case 1078.5 ms against 500 ms; deepest rung reachable is 1
+  WS005  warning task TASK-TLM false-trip rate 89.1155 per hour exceeds its declared budget of 1 per hour (jitter sigma 90 ms, trip threshold 250 ms, 1.964 sigma of the gap)
+  [PASS] the worked example ships exactly its two known findings
+  [PASS] the worked example exits 1
+
+6. hand-calculated escalation arithmetic, worked example
+  task            W/ms    WCDL/ms   ladder/ms      D/ms    slack/ms   rungs
+  TASK-GNC     23.0000    75.5000    687.5000  800.0000    112.5000     4/4
+  [PASS] TASK-GNC beat window is 23.0 ms
+  [PASS] TASK-GNC worst-case detection latency is 75.5 ms
+  [PASS] TASK-GNC ladder completion is 687.5 ms
+  [PASS] TASK-GNC deepest reachable rung is 4
+  TASK-IMU      6.0000    18.5000    134.5000  300.0000    165.5000     3/3
+  [PASS] TASK-IMU beat window is 6.0 ms
+  [PASS] TASK-IMU worst-case detection latency is 18.5 ms
+  [PASS] TASK-IMU ladder completion is 134.5 ms
+  [PASS] TASK-IMU deepest reachable rung is 3
+  TASK-TLM   1250.0000  1256.5000   1372.5000 4000.0000   2627.5000     3/3
+  [PASS] TASK-TLM beat window is 1250.0 ms
+  [PASS] TASK-TLM worst-case detection latency is 1256.5 ms
+  [PASS] TASK-TLM ladder completion is 1372.5 ms
+  [PASS] TASK-TLM deepest reachable rung is 3
+  TASK-FDIR   115.0000   466.5000   1078.5000  500.0000   -578.5000     1/4
+  [PASS] TASK-FDIR beat window is 115.0 ms
+  [PASS] TASK-FDIR worst-case detection latency is 466.5 ms
+  [PASS] TASK-FDIR ladder completion is 1078.5 ms
+  [PASS] TASK-FDIR deepest reachable rung is 1
+
+RESULT: every check in this script passed

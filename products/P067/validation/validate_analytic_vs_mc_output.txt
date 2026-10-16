@@ -1,0 +1,33 @@
+==============================================================================
+acqsearch expected acquisition time: analytic against Monte Carlo
+==============================================================================
+cells 89   prior mass in grid 0.954498   outside 0.045502
+dwell 1.400000e-03 s   P_fa 0.008130742   verification 0.5 s
+cell detection probability: mean 0.897684, min 0.895224, max 0.898766
+
+1. E[T | target in grid]: analytic against Monte Carlo over five seeds
+pattern            period_s  analytic_s   MC mean_s   MC s.e.  difference  |d|/s.e.
+spiral             1.416526    0.548183    0.548423  0.000567   +0.000241      0.42
+raster             1.420374    0.929262    0.929622  0.000535   +0.000360      0.67
+lissajous          1.681476    1.084705    1.085138  0.000638   +0.000432      0.68
+random_restart     3.880439    2.409379    2.410481  0.001471   +0.001102      0.75
+
+2. P(acquired by a deadline of two pass periods), spiral order
+deadline                                   2.833052 s
+analytic P(acquired)                       0.944505
+Monte Carlo, expected false-alarm charge   0.944690  (s.e. 0.000512)
+Monte Carlo, drawn false alarms            0.942455
+effect of making the penalty stochastic    -0.002235
+mean time, expected charge                 0.546525 s
+mean time, drawn false alarms              0.542937 s
+
+3. Cost of the cell abstraction, spiral order
+analytic cell model, E[T | in grid]        0.548183 s
+continuous geometry, targets in grid       0.341280 s +- 0.001872 s  (38125 trials)
+continuous geometry, whole prior           0.402173 s +- 0.002918 s  (acquired 1.000000)
+cell model is pessimistic by               37.74 percent
+The cell model forbids a dwell from acquiring a target in a neighbouring
+cell. The continuous geometry allows it, so the abstraction is a bound in a
+known direction rather than an unquantified error.
+==============================================================================
+checks failed: 0

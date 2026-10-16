@@ -1,0 +1,63 @@
+watchdogspec validation: algebraic identities over a deterministic sweep
+
+1. equation (3) against an independent re-association of the same sum
+  parameter sets         : 8100
+  largest absolute difference : 4.547e-13 ms
+  largest difference in ulp   : 1.0
+  [PASS] the two summation orders agree to within 8 units in the last place  1.0 ulp
+  [PASS] the two summation orders are NOT bit-identical, which is why the deadline verdict is three-valued  4.547e-13 ms apart at worst
+
+2. the three-valued verdict is stable under that re-association
+  parameter sets         : 8100
+  two-valued 'slack > 0' flips           : 137
+  three-valued flips, absolute band only : 0
+  three-valued flips, scale-aware band   : 0
+  [PASS] the scale-aware three-valued verdict never flips under re-association
+  [PASS] the two-valued boolean does flip, which is the behaviour being avoided  137 of 8100 parameter sets
+
+2b. the same, at latencies where one ulp exceeds the absolute tolerance
+    An ABSOLUTE band of 1e-9 ms is below one ulp above about 4.5e6 ms.
+  parameter sets         : 135
+  largest re-association error          : 1.0 ulp
+  three-valued flips, absolute band only: 14
+  three-valued flips, scale-aware band  : 0
+  [PASS] the absolute band alone is NOT sufficient at these magnitudes  14 of 135 flip; found by Hypothesis at the dependency floor
+  [PASS] the scale-aware band is sufficient at these magnitudes
+
+3. escalation timing identities
+  parameter sets         : 40500
+  non-monotone rung finish times        : 0
+  first rung not starting at detection  : 0
+  ladder total not equal to last finish : 0
+  deepest rung outside 0..len(rungs)    : 0
+  deepest rung falling with a wider D   : 0
+  [PASS] rung finish times are non-decreasing
+  [PASS] rung 1 starts at the detection instant
+  [PASS] the ladder total equals the last rung finish
+  [PASS] the deepest reachable rung is in range
+  [PASS] the deepest reachable rung never falls when the deadline widens
+
+4. the largest admissible missed-beat tolerance
+  parameter sets         : 6750
+  returned k that does not fit          : 0
+  k + 1 that would also have fitted     : 0
+  [PASS] the returned tolerance always fits
+  [PASS] the returned tolerance is the largest that fits
+
+5. false-trip monotonicity and range
+  parameter sets         : 720
+  probabilities outside [0, 0.5]        : 0
+  rate rising with the tolerance        : 0
+  rate rising with the jitter bound     : 0
+  rate falling with sigma               : 0
+  [PASS] every false-trip probability is in [0, 0.5]
+  [PASS] the rate never rises with the tolerance
+  [PASS] the rate never rises with the jitter bound
+  [PASS] the rate never falls with sigma
+
+6. the verdict partitions the real line
+  parameter sets         : 36
+  disagreements          : 0
+  [PASS] the verdict agrees with its definition everywhere
+
+RESULT: every check in this script passed

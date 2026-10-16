@@ -1,0 +1,23 @@
+watchdogspec validation: parser rejections
+
+  schema rejection cases : 73
+  raised SpecFormatError : 73/73
+  named the key path     : 73/73
+  silently accepted      : 0
+  [PASS] every malformed document was rejected
+  [PASS] every rejection named the offending key path
+  [PASS] no malformed document was accepted
+
+  input and output paths
+    missing file  : no such specification file: /home/claude/aerospace-100-mission/products/P070/validation/does-not-exist.yaml
+    directory     : specification path is a directory: /home/claude/aerospace-100-mission/products/P070/validation
+    invalid utf-8 : specification file is not valid UTF-8: /home/claude/aerospace-100-mission/products/P070/validation/_invalid_utf8_probe.yaml
+  [PASS] every input/output path raised SpecFormatError  3/3
+
+  the three shipped specifications all parse
+    minimal_consistent.yaml    tasks  2  ladders  1
+    planted_defects.yaml       tasks 13  ladders  4
+    smallsat_fc.yaml           tasks  4  ladders  2
+  [PASS] all three shipped specifications parse
+
+RESULT: every check in this script passed

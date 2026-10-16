@@ -1,0 +1,78 @@
+command line, every documented invocation
+==============================================================================
+
+python -m scenariocov report --space fixtures/space.json --campaign fixtures/campaign_executed.json --classes fixtures/classes.json
+-----------------------------------------------------------------------------------------------------------------------------------
+exit status: 0
+scenariocov report: 240 executed scenarios
+==============================================================================
+Discretisation (an assumption imposed by this report, not a measurement):
+  closing_speed          continuous, 4 bins, edges [0.01, 0.05, 0.1, 0.2, 0.5] m/s
+  range_at_handover      continuous, 4 bins, edges [20, 50, 100, 200, 400] m
+  target_tumble_rate     continuous, 3 bins, edges [0, 0.5, 2, 5] deg/s
+  nav_position_error     continuous, 3 bins, edges [0, 0.1, 0.5, 2] m
+  lighting               categorical, 3 levels: full_sun, terminator, eclipse
+  sensor_mode            categorical, 3 levels: lidar_only, camera_only, fused
+  thruster_health        categorical, 3 levels: nominal, one_degraded, one_failed
+  fully crossed discretised space: 3888 combinations
+
+1-way coverage  23/23 = 1.000000
+2-way coverage  223/226 = 0.986726   (3 uncovered)
+... 21 further lines
+
+python -m scenariocov uncovered --space fixtures/space.json --campaign fixtures/campaign_executed.json
+------------------------------------------------------------------------------------------------------
+exit status: 0
+closing_speed=[0.2,0.5] & range_at_handover=[200,400]
+closing_speed=[0.2,0.5] & lighting=eclipse
+sensor_mode=camera_only & thruster_health=one_failed
+# 3 uncovered of 226 2-way tuples
+
+python -m scenariocov uncovered --space fixtures/space.json --campaign fixtures/campaign_executed.json --strength 3
+-------------------------------------------------------------------------------------------------------------------
+exit status: 0
+closing_speed=[0.2,0.5] & range_at_handover=[200,400] & target_tumble_rate=[0,0.5)
+closing_speed=[0.2,0.5] & range_at_handover=[200,400] & target_tumble_rate=[0.5,2)
+closing_speed=[0.2,0.5] & range_at_handover=[200,400] & target_tumble_rate=[2,5]
+closing_speed=[0.2,0.5] & range_at_handover=[20,50) & nav_position_error=[0,0.1)
+closing_speed=[0.2,0.5] & range_at_handover=[200,400] & nav_position_error=[0,0.1)
+closing_speed=[0.2,0.5] & range_at_handover=[200,400] & nav_position_error=[0.1,0.5)
+closing_speed=[0.2,0.5] & range_at_handover=[200,400] & nav_position_error=[0.5,2]
+closing_speed=[0.2,0.5] & range_at_handover=[20,50) & lighting=eclipse
+closing_speed=[0.2,0.5] & range_at_handover=[50,100) & lighting=eclipse
+closing_speed=[0.2,0.5] & range_at_handover=[100,200) & lighting=eclipse
+closing_speed=[0.2,0.5] & range_at_handover=[200,400] & lighting=full_sun
+closing_speed=[0.2,0.5] & range_at_handover=[200,400] & lighting=terminator
+closing_speed=[0.2,0.5] & range_at_handover=[200,400] & lighting=eclipse
+closing_speed=[0.2,0.5] & range_at_handover=[200,400] & sensor_mode=lidar_only
+... 38 further lines
+
+python -m scenariocov occupancy --space fixtures/space.json --campaign fixtures/campaign_executed.json --blocks 3
+-----------------------------------------------------------------------------------------------------------------
+exit status: 0
+grid over (closing_speed, range_at_handover, target_tumble_rate, nav_position_error) shape (4, 4, 3, 3): 108/144 occupied = 0.750000
+uniform-random reference (Feller eq. 3, equiprobable cells): 0.812219
+empty block of 11 cells, first cell (2, 3, 0, 0)
+empty block of 6 cells, first cell (3, 0, 0, 0)
+empty block of 3 cells, first cell (0, 2, 1, 0)
+
+python -m scenariocov propose --space fixtures/space.json --campaign fixtures/campaign_executed.json --pool fixtures/candidate_pool.json --count 3 --bootstrap 16
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+exit status: 0
+  #   log_density      sd  confidence  scenario
+  0      -10.9784  0.0644      1.0000  closing_speed=0.4052 range_at_handover=184.848 target_tumble_rate=4.975 nav_position_error=1.966 lighting=full_sun sensor_mode=camera_only thruster_health=one_failed
+  1      -10.9556  0.0797      1.0000  closing_speed=0.4949 range_at_handover=293.262 target_tumble_rate=0.403 nav_position_error=1.845 lighting=eclipse sensor_mode=camera_only thruster_health=nominal
+  2      -10.8924  0.0756      1.0000  closing_speed=0.4306 range_at_handover=398.681 target_tumble_rate=2.767 nav_position_error=1.845 lighting=eclipse sensor_mode=fused thruster_health=one_degraded
+
+python -m scenariocov benchmark --space fixtures/space.json --campaign fixtures/campaign_executed.json --pool fixtures/candidate_pool.json --start 20 --steps 20 --pool-size 200 --seeds 12 --with-reference
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+exit status: 0
+2-way coverage, 12 seeds, start 20, +20 scenarios from a pool of 200
+strategy                      final mean        sd       min       max     gain/sc
+uniform_random                  0.948746  0.021049  0.902655  0.977876    0.006232
+greedy_maxmin                   0.952802  0.013386  0.933628  0.973451    0.006434
+learned_gapfinder               0.960177  0.011933  0.933628  0.977876    0.006803
+coverage_greedy_reference       0.995944  0.004408  0.986726  1.000000    0.008591
+best mean gain per scenario: coverage_greedy_reference (0.008591)
+
+failures: 0

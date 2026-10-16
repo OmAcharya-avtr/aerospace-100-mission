@@ -1,0 +1,89 @@
+validate_baselines.py -- inverse-regression intervals for the analytic baselines
+python           : 3.13.16
+numpy            : 2.5.4
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+cpu cores        : 2
+seed             : 20261016
+limit            : 80.0 percent of BOL
+
+==============================================================================
+1. interval coverage when the fitted shape is CORRECT
+==============================================================================
+Data generated from exactly the shape being fitted, with additive
+Gaussian noise on the scale the fit assumes. The crossing time is the
+crossing of the true mean curve. Nominal two-sided level 0.90.
+
+shape           n win   noise  trials  Fieller cov  delta cov  unbounded
+linear             30    0.30    2000       0.8925     0.8935     0.0000
+linear             60    0.30    2000       0.8835     0.8850     0.0000
+linear             60    1.00    2000       0.9010     0.8995     0.0000
+linear             15    1.00    2000       0.9275     0.8565     0.2620
+exponential        30    0.30    2000       0.9165     0.9105     0.0000
+exponential        60    0.30    2000       0.9005     0.8980     0.0000
+exponential        60    1.00    2000       0.9080     0.9100     0.0000
+exponential        15    1.00    2000       0.9405     0.8780     0.2005
+
+Fieller coverage is counted against ALL trials, so a window the fit
+refuses counts as a miss. Refusal counts, by row: 0, 0, 0, 13, 0, 0, 0, 9
+lowest Fieller coverage over the eight rows: 0.8835 against nominal 0.90
+PASS
+
+==============================================================================
+2. Fieller against delta as a function of g
+==============================================================================
+g = t_crit**2 * sigma**2 / (Sxx * slope**2). The delta-method interval
+is the g -> 0 limit of the Fieller set, so the two must converge as g
+falls and diverge as g approaches 1.
+
+g bin                   n  unbounded    median width ratio       max
+[0, 0.001)            176          0              1.000388    1.0010
+[0.001, 0.01)         531          0              1.004112    1.0100
+[0.01, 0.1)          1192          0              1.034501    1.1102
+[0.1, 0.5)            869          0              1.255887    1.9960
+[0.5, 1)              278          0              3.724207  228.2004
+[1, inf)              650        650                   nan       nan
+
+windows fitted           : 3696
+windows with g >= 1      : 650 (0.1759)
+windows with unbounded set: 650 (0.1759)
+width ratio for g < 1e-3 : median 1.00038784, max 1.00099484
+the two intervals agree to better than one part in a thousand once g
+is below 1e-3, which is the regime the shipped windows sit in.
+
+==============================================================================
+3. parameter recovery against known truth
+==============================================================================
+200 seeded replicates per row. The estimate is the mean over replicates
+and the spread is the standard deviation; the truth is exact.
+
+quantity                             truth      mean est          sd    rel bias
+linear slope [%/d]               -0.020000     -0.020039    0.000319     -0.0020
+linear crossing [d]              1000.0000      998.8101     12.6629     -0.0012
+exponential k [1/d]             0.00022314    0.00022314  0.00000329     -0.0000
+exponential crossing [d]         1000.0000     1000.1636     11.6028      0.0002
+
+The crossing estimate is a ratio of estimates and is therefore biased in
+finite samples even when the slope estimate is unbiased; the relative
+bias above is the size of that effect at these sample sizes.
+
+==============================================================================
+4. degeneracy handling
+==============================================================================
+window                            outcome                                     
+improving window (slope > 0)      DegradationFitError: fitted slope 0.0100385 is not negative
+flat window with noise            fitted, crossing 18369.37 d                 
+already below the limit           DegradationFitError: the fitted line reaches the limit at a
+near-noise-free line (residual at rounding)fitted, crossing 1000.00 d                  
+
+Every refusal is an explicit exception, never a negative or infinite
+crossing time returned as though it were an estimate. The benchmark
+harness substitutes a declared uninformative fallback and counts it.
+
+==============================================================================
+summary
+==============================================================================
+Fieller coverage on correctly specified data, worst row : 0.8835 (nominal 0.90)
+Fieller/delta width ratio for g < 1e-3, median         : 1.00038784
+windows with an unbounded exact set                     : 0.1759 of 3696
+linear crossing relative bias at n=60, sigma=0.3        : -0.0012

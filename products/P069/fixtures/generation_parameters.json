@@ -1,0 +1,17 @@
+{
+  "seed": 20261016,
+  "n_nominal_block": 60,
+  "fill_rule": "uniform draws accepted only when they add a 2-way tuple",
+  "tail_rule": "cell-stratified draws up to the target size, gaps rejected",
+  "target_total": 240,
+  "pool_size": 400,
+  "pool_rule": "uniform over declared intervals and level sets, gaps INCLUDED",
+  "planted_gaps": {
+    "G1": "lighting == eclipse AND closing_speed >= 0.20 m/s",
+    "G2": "thruster_health == one_failed AND sensor_mode == camera_only",
+    "G3": "closing_speed >= 0.20 m/s AND range_at_handover >= 200 m",
+    "G4": "nav_position_error >= 1.5 m",
+    "G5": "|range_at_handover - 200.0| <= 2.5 m"
+  },
+  "rounding": "continuous values rounded to 3 or 4 decimals before writing"
+}

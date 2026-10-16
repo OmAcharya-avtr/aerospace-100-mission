@@ -1,0 +1,19 @@
+worked_example.py -- the README example, executed
+python           : 3.13.16
+numpy            : 2.5.4
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+cpu cores        : 2
+
+unit 0: 25 samples to day 168, true crossing 3470 d (right-censored)
+model                   median d        90% interval d
+linear                    3601.5      [1510.9, 5715.4]
+exponential               4008.4      [1684.3, 6358.2]
+powerlaw-fade            40798.6     [8682.6, 93723.4]
+learned-ipcw              1057.4       [706.0, 1102.3]
+truth                     3301.5                      
+
+90% interval coverage over 400 held-out units:
+  complete (173)  : 0.7630
+  censored (227)  : 0.3348
+  pooled                : 0.5200  <- matches neither

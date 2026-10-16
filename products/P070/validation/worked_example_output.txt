@@ -1,0 +1,36 @@
+system            : small-satellite flight computer supervision
+tasks             : 4
+ladders           : 2
+supervisor        : poll 5 ms, jitter 1 ms, overhead 0.5 ms
+observation delay : 6.5 ms
+consistent        : False   exit code: 1
+
+worst-case timing, all from the last accepted heartbeat
+  task                W/ms    k*W/ms    WCDL/ms   ladder/ms       D/ms    slack/ms  rung
+  TASK-FDIR       115.0000  345.0000   466.5000   1078.5000   500.0000   -578.5000   1/4
+  TASK-GNC         23.0000   46.0000    75.5000    687.5000   800.0000    112.5000   4/4
+  TASK-IMU          6.0000    6.0000    18.5000    134.5000   300.0000    165.5000   3/3
+  TASK-TLM       1250.0000    0.0000  1256.5000   1372.5000  4000.0000   2627.5000   3/3
+  W = P + J beat window; k*W tolerated silence; WCDL worst-case detection latency;
+  ladder = WCDL + every rung; slack = D - ladder; rung = deepest rung reachable.
+
+false-trip rate per task
+  TASK-FDIR  threshold   360.000 ms   p            0   per hour            0
+  TASK-GNC   threshold    49.000 ms   p            0   per hour            0
+  TASK-IMU   threshold     7.000 ms   p  1.04424e-45   per hour  7.51856e-40
+  TASK-TLM   threshold   250.000 ms   p    0.0247543   per hour      89.1155
+
+closed form against the seeded simulation, 8 seeds of 500 trials
+  TASK-FDIR  closed  466.500000 ms   adversarial  466.500000 ms   difference -4.55e-13 ms   stochastic max  466.330801 ms
+  TASK-GNC   closed   75.500000 ms   adversarial   75.500000 ms   difference -1.14e-13 ms   stochastic max   75.330801 ms
+  TASK-IMU   closed   18.500000 ms   adversarial   18.500000 ms   difference -4.26e-14 ms   stochastic max   18.330801 ms
+  TASK-TLM   closed 1256.500000 ms   adversarial 1256.500000 ms   difference -3.64e-12 ms   stochastic max 1256.330801 ms
+
+findings
+  WS003  error   task TASK-FDIR cannot reach rung 4 ('reset') of ladder LADDER-FULL within its liveness deadline: worst case 1078.5 ms against 500 ms; deepest rung reachable is 1
+  WS005  warning task TASK-TLM false-trip rate 89.1155 per hour exceeds its declared budget of 1 per hour (jitter sigma 90 ms, trip threshold 250 ms, 1.964 sigma of the gap)
+
+  [PASS] the worked example raises its two known findings
+  [PASS] the worked example exits 1
+
+RESULT: every check in this script passed

@@ -1,0 +1,58 @@
+budgetroll validation: CubeSat S-band downlink budget
+========================================================================
+Educational-grade (validation level 1). Not flight-qualified, not certified,
+not approved for operational aerospace use. Every spacecraft and ground
+station parameter below is illustrative; the published constants are what
+is reproduced here.
+
+1. Published constants reproduced from first principles
+   free-space path loss constant (d in km, f in GHz)  92.447783 dB
+   published value                                     92.45 dB
+  [PASS] FSPL constant agrees with the published 92.45 dB to 0.005 dB  difference -0.002217 dB
+   Boltzmann constant                                  -228.599167 dBW/K/Hz
+   published value                                     -228.6 dBW/K/Hz
+  [PASS] Boltzmann constant agrees with the published -228.6 dBW/K/Hz to 0.005 dB  difference +0.000833 dB
+   aperture gain constant at eta = 0.55                17.810210 dB
+   published value                                     17.8 dB
+  [PASS] aperture gain constant agrees with the published 17.8 dB to 0.02 dB  difference +0.010210 dB
+   uncoded coherent BPSK at BER 1e-5                   9.587858 dB
+   published value                                     9.6 dB
+  [PASS] BPSK requirement agrees with the published 9.6 dB to 0.02 dB  difference -0.012142 dB
+
+2. Free-space path loss computed two independent ways
+   d = 1000 km, f = 2.2 GHz
+   from metres and hertz        159.296236838 dB
+   from the 92.45 dB form       159.296236838 dB
+  [PASS] the two forms agree to 1e-9 dB  difference +2.842e-14 dB
+
+3. Assembled downlink budget
+   transmit power              2.0 W                    +3.0103 dBW
+   transmit line loss                                   -1.0000 dB
+   spacecraft antenna gain     patch                    +6.0000 dBi
+   EIRP                                                 +8.0103 dBW
+   free-space path loss        1000 km                -159.2962 dB
+   other propagation losses                             -2.5000 dB
+   ground station gain         3.0 m, eta 0.55         +34.2011 dBi
+   system noise temperature    150 K                 
+   G/T                                                 +12.4402 dB/K
+   Boltzmann constant                                 +228.5992 dBW/K/Hz
+   data rate                   1.0 Mbit/s              -60.0000 dB
+   received Eb/N0                                      +27.2534 dB
+   required Eb/N0              BPSK, BER 1e-5           -9.5879 dB
+   gross link margin                                   +17.6655 dB
+
+4. The gross margin as the allocation of the shipped degradation budget
+   declared allocation in the YAML  17.6655 dB
+   gross margin computed above      17.6655 dB
+  [PASS] the YAML allocation matches the computed gross margin to 0.0001 dB  difference -0.000048 dB
+   predicted degradation            6.8650 dB
+   remaining margin                 10.8005 dB
+   1 sigma on the degradation       0.839643 dB
+   margin at k = 1 sigma            9.9609 dB
+  [PASS] predicted degradation is 6.8650 dB  6.8650000000
+  [PASS] remaining margin is 10.8005 dB  10.8005000000
+  [PASS] declared hierarchical 1 sigma is sqrt(0.7050) dB  0.8396427812
+   findings                         {'error': 0, 'warning': 0, 'info': 2}
+  [PASS] the degradation budget raises no error and no warning  {'error': 0, 'warning': 0, 'info': 2}
+
+RESULT: every check in this script passed

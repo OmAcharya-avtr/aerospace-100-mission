@@ -1,0 +1,72 @@
+budgetroll validation: 3U CubeSat orbit-average power budget
+========================================================================
+Educational-grade (validation level 1). Not flight-qualified, not certified,
+not approved for operational aerospace use. Every load below is an
+illustrative figure; the geometry is computed from closed-form expressions
+whose sources are in this script's docstring.
+
+1. Orbit geometry for the stated 500 km circular orbit
+   orbital radius                   6878.137 km
+   period                           5676.978 s = 94.6163 min
+   eclipse fraction at beta = 0     0.377882
+   eclipse duration                 35.7538 min
+   sunlit duration                  58.8625 min
+  [PASS] period is between 94 and 95 minutes, as expected at 500 km  94.6163 min
+  [PASS] eclipse fraction at beta = 0 lies in the 0.35 to 0.40 band for low Earth orbit  0.377882
+  [PASS] the eclipse fraction agrees with the arc-length form to 1e-12  difference +0.000e+00
+
+2. Rollup against the hand arithmetic
+   nominal                          7.1500 W
+   contingency allowance            0.7525 W
+   predicted                        7.9025 W
+   allocation                       8.4000 W
+   margin                           0.4975 W
+   margin fraction                  5.9226 %
+   margin at k = 2 sigma            -0.158244 W
+  [PASS] nominal is 7.1500 W  7.1500000000
+  [PASS] allowance is 0.7525 W  0.7525000000
+  [PASS] predicted is 7.9025 W  7.9025000000
+  [PASS] margin is 0.4975 W  0.4975000000
+  [PASS] margin at 2 sigma is negative  -0.158244 W
+
+3. The four combination rules at the root
+   linear (fully correlated)        0.790000 W
+   root-sum-square (independent)    0.322335 W
+   declared hierarchy at the root   0.327872 W
+   exact with declared correlations 0.351198 W
+  [PASS] RSS does not exceed the linear sum  0.322335 <= 0.790000
+  [PASS] flat RSS is sqrt(0.1039) W  0.3223352292
+  [PASS] the declared hierarchy at the root is sqrt(0.1075) W  0.3278719262
+  [PASS] the exact correlated form at the root is sqrt(0.12334) W  0.3511979499
+   RSS understates the exact form by 6.6418 %
+
+4. Sensitivity ranking, +10 % on each leaf in turn
+   Transmitter, duty cycled              1.7600  value  22.27 %  var  32.43 %  d margin  -0.1760 W
+   Detector and front end                1.4400  value  18.22 %  var  34.15 %  d margin  -0.1440 W
+   Reaction wheel assembly               1.1550  value  14.62 %  var   2.92 %  d margin  -0.1155 W
+   Processing FPGA                       0.9900  value  12.53 %  var  14.45 %  d margin  -0.0990 W
+   Survival heater, eclipse duty         0.7200  value   9.11 %  var  11.68 %  d margin  -0.0720 W
+   Command and data handling             0.5775  value   7.31 %  var   1.30 %  d margin  -0.0577 W
+   EPS conversion and distribution lo    0.4725  value   5.98 %  var   2.03 %  d margin  -0.0472 W
+   Receiver, continuous                  0.4200  value   5.31 %  var   0.32 %  d margin  -0.0420 W
+   Magnetorquers                         0.3675  value   4.65 %  var   0.73 %  d margin  -0.0367 W
+  [PASS] the transmitter is the leaf that costs the most margin  radio_tx at -0.1760 W
+  [PASS] its margin delta is -0.1760 W, which is 0.10 * 1.60 * 1.10  -0.1760000000
+
+5. Findings
+   [ERROR  ] BR001 payload: declares 'rss', which asserts mutual independence, but the budget declares 1 non-zero correlation(s) among its descendants (payload_detector-payload_fpga rho=+0.6); declared uncertainty 0.201246 W against exact correlated 0.244826 W
+   [ERROR  ] BR001 total_load: declares 'rss', which asserts mutual independence, but the budget declares 1 non-zero correlation(s) among its descendants (payload_detector-payload_fpga rho=+0.6); declared uncertainty 0.327872 W against exact correlated 0.351198 W
+   [ERROR  ] BR002 payload: combination 'rss' gives 0.201246 W and understates the exact correlated form over its 2 descendant leaves, which gives 0.244826 W (relative difference 0.178)
+   [ERROR  ] BR002 total_load: combination 'rss' gives 0.327872 W and understates the exact correlated form over its 9 descendant leaves, which gives 0.351198 W (relative difference 0.06642)
+   [WARNING] BR004 total_load: margin is 0.4975 W on predicted values but -0.158244 W at k=2 sigma (uncertainty 0.327872 W); the budget closes only if the declared dispersion is ignored
+   [WARNING] BR010 radio_tx,eps_losses: both declare common driver 'bus_28v_rail' and no correlation is declared between them, so every root-sum-square above them treats them as independent
+   [INFO   ] BR002 adcs: combination 'linear' gives 0.09 W and overstates the exact correlated form over its 2 descendant leaves, which gives 0.067082 W (relative difference 0.2546)
+   [INFO   ] BR002 bus: combination 'rss' gives 0.229347 W and overstates the exact correlated form over its 6 descendant leaves, which gives 0.221359 W (relative difference 0.03483)
+   [INFO   ] BR007 thermal: declares combination 'rss' over a single child ('survival_heater'); every rule gives the same result here, so the declaration states an assumption it does not use
+   counts {'error': 4, 'warning': 2, 'info': 3}
+  [PASS] the declared correlation is caught: BR001 on the payload node and the root  ['payload', 'total_load']
+  [PASS] the two-sigma shortfall is caught by BR004
+  [PASS] the undeclared shared bus rail is caught by BR010
+  [PASS] counts are 4 error, 2 warning, 3 info  {'error': 4, 'warning': 2, 'info': 3}
+
+RESULT: every check in this script passed

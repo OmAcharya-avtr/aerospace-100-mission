@@ -1,0 +1,47 @@
+grid occupancy validation
+==============================================================================
+
+1. hand-counted occupancy on a 3 x 4 grid
+-----------------------------------------
+  PASS  cells 12, occupied 2, count at (0,0) = 2, count at (2,3) = 1
+  largest empty connected block: 10 of 10 empty cells
+
+2. equation (3) versus Monte Carlo, equiprobable cells
+------------------------------------------------------
+     n     C   predicted    measured    4 s.e.  verdict
+     5    10      4.0951      4.1043    0.0456  PASS
+    30    25     17.6536     17.7127    0.1014  PASS
+   100    50     43.3690     43.3795    0.1261  PASS
+   144   144     91.2098     91.1743    0.2393  PASS
+   500   144    139.5829    139.5620    0.1229  PASS
+
+3. unequal cell probabilities: the generalised expectation
+----------------------------------------------------------
+Equation (3) assumes equiprobable cells. Drawing a continuous parameter
+uniformly over its declared interval does NOT make unequal-width bins
+equiprobable, so the correct expectation is the sum over cells of
+1 - (1 - p_c)^n, with p_c the product of the bin probabilities.
+  bin probabilities, closing_speed: [0.081633, 0.102041, 0.204082, 0.612245]
+  bin probabilities, range:         [0.078947, 0.131579, 0.263158, 0.526316]
+     n    equiprob   generalised    measured    4 s.e.  verdict
+    40     14.7895       11.0812     11.0968    0.0895  PASS
+   120     15.9931       14.3867     14.3780    0.0662  PASS
+   240     16.0000       15.5020     15.4972    0.0415  PASS
+  The equiprobable column is the one that is wrong for this sampling
+  rule, and it is wrong by roughly 3 cells in 16 at n = 240. The
+  package reports the equiprobable reference because it is the only one
+  computable without a model of how the campaign was sampled, and the
+  README says so.
+
+4. the committed campaign
+-------------------------
+  occupied 108/144 = 0.750000
+  equiprobable reference, eq. (3):  0.812219
+  The campaign is below the equiprobable reference because 60 of its
+  240 scenarios are a nominal-weighted block and 9 of its 144 cells are
+  a planted hole. Neither is a defect in the measure.
+  empty cells: 36, largest connected block: 11
+  empty-block sizes: [11, 6, 3, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+  PASS  block sizes sum to the empty-cell count
+
+failures: 0

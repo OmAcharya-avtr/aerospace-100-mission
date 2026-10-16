@@ -1,0 +1,192 @@
+# A specification built to contain EXACTLY ONE instance of each of the twelve
+# checks, so that the known-answer test and validate_known_answers.py have a
+# fixed expected mapping of code to subject. Nothing here is a plausible
+# design; every task is named for the defect it carries.
+#
+# Expected: 12 findings, 7 error and 5 warning, one per code, exit code 1.
+#
+# T-WS004 is the deliberate floating-point boundary case. Its deadline is
+# exactly the worst-case ladder completion time, 229 ms, so the slack is 0.0
+# and the met/missed comparison is decided by the last bit of a sum rather
+# than by the specification. The package reports it as MARGINAL and raises a
+# warning rather than answering the question.
+spec_version: 1
+system: "planted defect catalogue (one instance of every check)"
+notes: >-
+  Not a design. A fixture. Supervisor observation delay is
+  Q + Jq + O = 10 + 2 + 1 = 13 ms throughout, which makes every expected
+  number in the test comments hand-checkable.
+
+supervisor:
+  name: "planted-supervisor"
+  poll_period_ms: 10.0
+  poll_jitter_ms: 2.0
+  declaration_overhead_ms: 1.0
+
+ladders:
+  - id: L-GOOD
+    description: "clean ladder: total latency 172 ms, costs 0.1 / 2 / 10 / 80"
+    rungs:
+      - action: log
+        latency_ms: 2.0
+        recovery_cost: 0.1
+      - action: restart_task
+        latency_ms: 20.0
+        recovery_cost: 2.0
+      - action: safe_mode
+        latency_ms: 50.0
+        recovery_cost: 10.0
+      - action: reset
+        latency_ms: 100.0
+        recovery_cost: 80.0
+
+  - id: L-NORECOVER
+    description: "WS009: ends with an observing action, so it never recovers"
+    rungs:
+      - action: log
+        latency_ms: 1.0
+        recovery_cost: 0.1
+      - action: notify
+        latency_ms: 2.0
+        recovery_cost: 0.2
+
+  - id: L-DISORDER
+    description: "WS010: rung 3 is less severe than rung 2"
+    rungs:
+      - action: log
+        latency_ms: 1.0
+        recovery_cost: 0.1
+      - action: safe_mode
+        latency_ms: 30.0
+        recovery_cost: 5.0
+      - action: restart_task
+        latency_ms: 10.0
+        recovery_cost: 8.0
+
+  - id: L-COSTDROP
+    description: "WS011: rung 3 is declared cheaper than rung 2"
+    rungs:
+      - action: log
+        latency_ms: 1.0
+        recovery_cost: 0.1
+      - action: restart_task
+        latency_ms: 20.0
+        recovery_cost: 9.0
+      - action: safe_mode
+        latency_ms: 40.0
+        recovery_cost: 3.0
+
+tasks:
+  # Carries no finding. W = 22, WCDL = 3*22 + 13 = 79, ladder 79 + 172 = 251.
+  - id: T-CLEAN
+    heartbeat_period_ms: 20.0
+    heartbeat_jitter_ms: 2.0
+    missed_beats_tolerated: 2
+    liveness_deadline_ms: 1000.0
+    escalation: L-GOOD
+
+  # WS001. W = 110, k*W = 110 < 200 so WS002 does not fire; W < 200 so WS006
+  # does not fire; WCDL = 2*110 + 13 = 233 > 200.
+  - id: T-WS001
+    heartbeat_period_ms: 100.0
+    heartbeat_jitter_ms: 10.0
+    missed_beats_tolerated: 1
+    liveness_deadline_ms: 200.0
+    escalation: L-GOOD
+
+  # WS002. W = 55, k*W = 4*55 = 220 >= 200, and W < 200 so WS006 does not fire.
+  - id: T-WS002
+    heartbeat_period_ms: 50.0
+    heartbeat_jitter_ms: 5.0
+    missed_beats_tolerated: 4
+    liveness_deadline_ms: 200.0
+    escalation: L-GOOD
+
+  # WS003. W = 22, WCDL = 2*22 + 13 = 57 <= 100, ladder 57 + 172 = 229 > 100.
+  # Deepest rung reachable: 59, 79 fit; 129 does not. So 2 of 4.
+  - id: T-WS003
+    heartbeat_period_ms: 20.0
+    heartbeat_jitter_ms: 2.0
+    missed_beats_tolerated: 1
+    liveness_deadline_ms: 100.0
+    escalation: L-GOOD
+
+  # WS004. Same timing as T-WS003 but the deadline is exactly 229 ms, so the
+  # final-rung slack is 0.0 and the verdict is MARGINAL, not met or missed.
+  - id: T-WS004
+    heartbeat_period_ms: 20.0
+    heartbeat_jitter_ms: 2.0
+    missed_beats_tolerated: 1
+    liveness_deadline_ms: 229.0
+    escalation: L-GOOD
+
+  # WS005. k = 0 so the trip threshold is J = 200 ms; sigma = 80 ms gives
+  # p = 0.5*erfc(200/160) = 0.5*erfc(1.25) per gap, about 138 trips per hour
+  # at one beat per second, against a declared budget of 0.5 per hour.
+  - id: T-WS005
+    heartbeat_period_ms: 1000.0
+    heartbeat_jitter_ms: 200.0
+    jitter_sigma_ms: 80.0
+    missed_beats_tolerated: 0
+    liveness_deadline_ms: 5000.0
+    escalation: L-GOOD
+    false_trip_budget_per_hour: 0.5
+
+  # WS006. W = 550 > D = 400. Suppresses WS002 (k = 0 anyway) and WS001.
+  - id: T-WS006
+    heartbeat_period_ms: 500.0
+    heartbeat_jitter_ms: 50.0
+    missed_beats_tolerated: 0
+    liveness_deadline_ms: 400.0
+    escalation: L-GOOD
+
+  # WS007. W = 5 ms is finer than the 10 ms supervisor poll, so the poll
+  # granularity dominates: WCDL = 2*5 + 13 = 23 ms, of which 13 is the poll.
+  - id: T-WS007
+    heartbeat_period_ms: 4.0
+    heartbeat_jitter_ms: 1.0
+    missed_beats_tolerated: 1
+    liveness_deadline_ms: 500.0
+    escalation: L-GOOD
+
+  # WS008. J = P = 10 ms, so two heartbeats may arrive out of order.
+  - id: T-WS008
+    heartbeat_period_ms: 10.0
+    heartbeat_jitter_ms: 10.0
+    missed_beats_tolerated: 0
+    liveness_deadline_ms: 1000.0
+    escalation: L-GOOD
+
+  # WS009 comes from L-NORECOVER. This task's own timing is clean:
+  # WCDL = 2*22 + 13 = 57, ladder 57 + 3 = 60 <= 1000.
+  - id: T-NORECOVER
+    heartbeat_period_ms: 20.0
+    heartbeat_jitter_ms: 2.0
+    missed_beats_tolerated: 1
+    liveness_deadline_ms: 1000.0
+    escalation: L-NORECOVER
+
+  # WS010 comes from L-DISORDER. Ladder total 41 ms; 57 + 41 = 98 <= 1000.
+  - id: T-DISORDER
+    heartbeat_period_ms: 20.0
+    heartbeat_jitter_ms: 2.0
+    missed_beats_tolerated: 1
+    liveness_deadline_ms: 1000.0
+    escalation: L-DISORDER
+
+  # WS011 comes from L-COSTDROP. Ladder total 61 ms; 57 + 61 = 118 <= 1000.
+  - id: T-COSTDROP
+    heartbeat_period_ms: 20.0
+    heartbeat_jitter_ms: 2.0
+    missed_beats_tolerated: 1
+    liveness_deadline_ms: 1000.0
+    escalation: L-COSTDROP
+
+  # WS012. No ladder with this identifier is declared, so the task is not
+  # timed at all and carries no other finding.
+  - id: T-WS012
+    heartbeat_period_ms: 20.0
+    heartbeat_jitter_ms: 2.0
+    missed_beats_tolerated: 1
+    liveness_deadline_ms: 1000.0
+    escalation: L-ABSENT

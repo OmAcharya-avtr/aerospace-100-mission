@@ -1,0 +1,29 @@
+# Byte-compiled and build products
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Tool caches
+.pytest_cache/
+.hypothesis/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Scratch output of a local run.
+#
+# Every pattern here is ANCHORED with a leading slash so that it matches only
+# at the repository root. A gitignore pattern with no slash matches at ANY
+# depth: a bare `junit.xml` in this file would also exclude any fixture of
+# that name anywhere in the tree. That exact defect shipped in P060 of this
+# portfolio, where a required committed fixture was silently excluded and a
+# cold clone failed with 17 failures and 9 errors. The slashes are why this
+# repository does not repeat it.
+/junit.xml
+/report.json
+/report.md
+/report.txt

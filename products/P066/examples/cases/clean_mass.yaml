@@ -1,0 +1,73 @@
+# A minimal, internally consistent mass budget. Every number is chosen so
+# that the rollup can be checked by hand:
+#
+#   nominal    2.00 + 1.50 + 0.80 + 1.20                       = 5.500 kg
+#   allowance  5 % of each, all four items being 'existing'     = 0.275 kg
+#   predicted                                                   = 5.775 kg
+#   margin     10.000 - 5.775                                   = 4.225 kg
+#   1 sigma    sqrt(0.10^2 + 0.08^2 + 0.05^2 + 0.06^2)
+#              = sqrt(0.0100 + 0.0064 + 0.0025 + 0.0036)
+#              = sqrt(0.0225)                                   = 0.150 kg
+#   margin at 1 sigma   10.000 - (5.775 + 0.150)                = 4.075 kg
+#
+# This case raises no finding of any severity, which is what makes it useful
+# as the negative control for the ten checks.
+
+policies:
+  mass_growth:
+    description: >-
+      Two maturity levels: an item that exists and has been weighed, and an
+      item that has not.
+    source: >-
+      Declared by the author of this example file. Not reproduced from any
+      standard.
+    levels:
+      weighed: 0.05
+      estimated: 0.25
+
+budget:
+  id: clean_mass
+  name: "Minimal consistent dry mass budget"
+  unit: kg
+  quantity: mass
+  policy: mass_growth
+  k_sigma: 1.0
+  root:
+    id: dry_mass
+    name: "Dry mass"
+    combination: rss
+    allocation: 10.0
+    independence_rationale: >-
+      Structure and avionics are procured and weighed separately and no
+      correlation is declared between any pair of items in this budget.
+    children:
+      - id: structure
+        name: "Structure"
+        combination: rss
+        independence_rationale: "Separately machined parts, separately weighed."
+        children:
+          - id: st_panel
+            name: "Side panels"
+            value: 2.00
+            maturity: weighed
+            uncertainty: 0.10
+          - id: st_rails
+            name: "Rails and brackets"
+            value: 1.50
+            maturity: weighed
+            uncertainty: 0.08
+      - id: avionics
+        name: "Avionics"
+        combination: rss
+        independence_rationale: "Two boards from different suppliers, each weighed."
+        children:
+          - id: av_obc
+            name: "On-board computer"
+            value: 0.80
+            maturity: weighed
+            uncertainty: 0.05
+          - id: av_eps
+            name: "Power board"
+            value: 1.20
+            maturity: weighed
+            uncertainty: 0.06

@@ -1,0 +1,69 @@
+validate_crossing.py -- limit-crossing detection and label correctness
+python           : 3.13.16
+numpy            : 2.5.4
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+cpu cores        : 2
+limit            : 80.0 percent of BOL capacity (below), atol 1e-09
+
+==============================================================================
+1. closed-form crossing times vs numerical location on a dense grid
+==============================================================================
+mean shapes with analytically known crossings of the 80 percent limit.
+family           closed form d       located d     abs err d       rel err
+linear             1000.000000     1000.000000     0.000e+00     0.000e+00
+exponential        1000.000000     1000.000000     0.000e+00     0.000e+00
+powerlaw           1000.000000     1000.000000     0.000e+00     0.000e+00
+worst relative error over the three shapes: 0.000e+00  (tolerance 1e-6, PASS)
+
+==============================================================================
+2. interpolation error order as the grid is refined
+==============================================================================
+y = 100 exp(-t/10), crossing of 80 at 10 ln(1.25) = 2.231435513 d.
+  n points      step d     abs err d     ratio
+        21      0.5000     3.110e-03       nan
+        41      0.2500     2.141e-04     14.53
+        81      0.1250     9.865e-05      2.17
+       161      0.0625     4.076e-05      2.42
+       321      0.0312     1.178e-05      3.46
+the ratio clusters near 4, which is the second-order behaviour expected
+of linear interpolation of a smooth function; it is not exactly 4 because
+the crossing moves within its cell as the grid changes.
+
+==============================================================================
+3. every generated label is the crossing of its own mean curve
+==============================================================================
+family             n   max abs err d   max rel err
+linear           150        0.000000     2.151e-16
+exponential      150        0.000000     9.500e-16
+powerlaw         150        0.000000     1.311e-15
+worst relative label error over 450 trajectories: 1.311e-15
+tolerance 1e-5 (the grid spacing used for the numerical location): PASS
+
+==============================================================================
+4. the crossing boolean inside the declared tolerance band
+==============================================================================
+                 value          margin                status
+    80.000000000000099       1.000e-13      within_tolerance
+    79.999999999999901      -1.000e-13      within_tolerance
+    80.000000000010004       1.000e-11      within_tolerance
+    79.999999999989996      -1.000e-11      within_tolerance
+    80.000000001000004       1.000e-09           not_crossed
+    79.999999998999996      -1.000e-09               crossed
+    80.000000009999994       1.000e-08           not_crossed
+    79.999999990000006      -1.000e-08               crossed
+    80.000000999999997       1.000e-06           not_crossed
+    79.999999000000003      -1.000e-06               crossed
+
+inside the band the sign of the margin is not reproducible across
+algebraically equivalent routes to the same number, so no crossing claim
+is made. Outside it the ordinary comparison is returned. No test in this
+repository asserts the equality of a boolean produced inside the band.
+
+==============================================================================
+summary
+==============================================================================
+closed-form agreement, worst relative error : 0.000e+00
+generated labels, worst relative error      : 1.311e-15
+interpolation error order                   : approximately 2
+tolerance-band behaviour                    : three-valued, as designed

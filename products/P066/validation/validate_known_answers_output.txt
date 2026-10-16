@@ -1,0 +1,85 @@
+budgetroll validation: hand-calculated known answers
+========================================================================
+Educational-grade (validation level 1). Not flight-qualified, not certified,
+not approved for operational aerospace use.
+
+1. clean_mass.yaml, the negative control
+   nominal    2.00 + 1.50 + 0.80 + 1.20                    = 5.500 kg
+   allowance  5 % of each, all four 'weighed'              = 0.275 kg
+   predicted                                               = 5.775 kg
+   1 sigma    sqrt(0.0100 + 0.0064 + 0.0025 + 0.0036)
+              = sqrt(0.0225)                               = 0.150 kg
+   margin     10.000 - 5.775                               = 4.225 kg
+   margin@1s  10.000 - 5.925                               = 4.075 kg
+  [PASS] clean_mass nominal is 5.5 kg  computed 5.500000000000
+  [PASS] clean_mass allowance is 0.275 kg  computed 0.275000000000
+  [PASS] clean_mass predicted is 5.775 kg  computed 5.775000000000
+  [PASS] clean_mass 1 sigma is 0.15 kg  computed 0.150000000000
+  [PASS] clean_mass margin is 4.225 kg  computed 4.225000000000
+  [PASS] clean_mass margin at 1 sigma is 4.075 kg  computed 4.075000000000
+  [PASS] clean_mass raises no finding of any severity  {'error': 0, 'warning': 0, 'info': 0}
+
+2. planted_findings.yaml, the positive control
+   structure nominal 6.0 + 3.0 + 2.0                       = 11.00 kg
+   structure allowance 0.30 + 0.30 + 0.40                  =  1.00 kg
+   structure predicted                                     = 12.00 kg
+   structure allocation 11.50, so the overrun is              0.50 kg
+   structure rss sqrt(4 + 1 + 9) = sqrt(14)                =  3.741657 kg
+   structure exact var = 14 + 2*0.9*2*1 + 2*0.9*2*3
+                       = 14 + 3.6 + 10.8 = 28.4
+                       sqrt(28.4)                          =  5.329165 kg
+   root nominal 11.0 + 3.5 + 1.8 + 1.8                     = 18.10 kg
+   root allowance 1.00 + 0.60 + 0.18 + 0.13                =  1.91 kg
+   root predicted                                          = 20.01 kg
+   root linear 3.741657 + 0.5 + 0.4 + 0.5                  =  5.141657 kg
+   root exact var 28.4 + 0.25 + 0 + 0.16 + 0.04 + 0.09
+                  = 28.94, sqrt                            =  5.379591 kg
+  [PASS] planted structure nominal is 11.000000 kg  computed 11.000000000000
+  [PASS] planted structure allowance is 1.000000 kg  computed 1.000000000000
+  [PASS] planted structure predicted is 12.000000 kg  computed 12.000000000000
+  [PASS] planted structure margin is -0.500000 kg  computed -0.500000000000
+  [PASS] planted structure declared 1 sigma is 3.741657 kg  computed 3.741657386774
+  [PASS] planted structure exact 1 sigma is 5.329165 kg  computed 5.329165037790
+  [PASS] planted root nominal is 18.100000 kg  computed 18.100000000000
+  [PASS] planted root allowance is 1.910000 kg  computed 1.910000000000
+  [PASS] planted root predicted is 20.010000 kg  computed 20.010000000000
+  [PASS] planted root declared 1 sigma is 5.141657 kg  computed 5.141657386774
+  [PASS] planted root exact 1 sigma is 5.379591 kg  computed 5.379591062525
+
+3. planted_findings.yaml raises every check, with these counts
+   BR001  expected 1  got 1
+   BR002  expected 3  got 3
+   BR003  expected 1  got 1
+   BR004  expected 1  got 1
+   BR005  expected 1  got 1
+   BR006  expected 1  got 1
+   BR007  expected 1  got 1
+   BR008  expected 1  got 1
+   BR009  expected 1  got 1
+   BR010  expected 1  got 1
+  [PASS] the per-code finding counts are exactly as declared  {'BR001': 1, 'BR002': 3, 'BR003': 1, 'BR008': 1, 'BR009': 1, 'BR004': 1, 'BR005': 1, 'BR006': 1, 'BR010': 1, 'BR007': 1}
+  [PASS] the severity counts are 6 error, 4 warning, 2 info  {'error': 6, 'warning': 4, 'info': 2}
+
+4. cubesat_power.yaml
+   nominal 1.20+0.90+1.10+0.35+0.55+0.40+1.60+0.45+0.60    = 7.1500 W
+   allowance 0.2400+0.0900+0.0550+0.0175+0.0275
+             +0.0200+0.1600+0.0225+0.1200                  = 0.7525 W
+   predicted                                               = 7.9025 W
+   margin    8.4000 - 7.9025                               = 0.4975 W
+  [PASS] cubesat_power nominal is 7.15 W  computed 7.150000000000
+  [PASS] cubesat_power allowance is 0.7525 W  computed 0.752500000000
+  [PASS] cubesat_power predicted is 7.9025 W  computed 7.902500000000
+  [PASS] cubesat_power margin is 0.4975 W  computed 0.497500000000
+
+5. cubesat_link.yaml
+   nominal 1.50+0.50+1.00+0.30+0.50+0.40+0.80+0.70+0.60    = 6.3000 dB
+   allowance 0.0750+0.0500+0.2000+0.0150+0.0250
+             +0.0200+0.0800+0.0700+0.0300                  = 0.5650 dB
+   predicted                                               = 6.8650 dB
+   margin    17.6655 - 6.8650                              = 10.8005 dB
+  [PASS] cubesat_link nominal is 6.3 dB  computed 6.300000000000
+  [PASS] cubesat_link allowance is 0.565 dB  computed 0.565000000000
+  [PASS] cubesat_link predicted is 6.865 dB  computed 6.865000000000
+  [PASS] cubesat_link margin is 10.8005 dB  computed 10.800500000000
+
+RESULT: every check in this script passed

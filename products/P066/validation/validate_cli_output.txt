@@ -1,0 +1,53 @@
+budgetroll validation: CLI exit-status contract
+========================================================================
+Educational-grade (validation level 1). Not flight-qualified, not certified,
+not approved for operational aerospace use.
+
+1. 32 real subprocesses against the documented contract
+   [OK ] exit 0 (expected 0)  python -m budgetroll check examples/cases/clean_mass.yaml
+   [OK ] exit 0 (expected 0)  python -m budgetroll check examples/cases/cubesat_link.yaml
+   [OK ] exit 1 (expected 1)  python -m budgetroll check examples/cases/cubesat_power.yaml
+   [OK ] exit 1 (expected 1)  python -m budgetroll check examples/cases/planted_findings.yaml
+   [OK ] exit 0 (expected 0)  python -m budgetroll rollup examples/cases/clean_mass.yaml
+   [OK ] exit 0 (expected 0)  python -m budgetroll rollup examples/cases/cubesat_link.yaml
+   [OK ] exit 1 (expected 1)  python -m budgetroll rollup examples/cases/cubesat_power.yaml
+   [OK ] exit 1 (expected 1)  python -m budgetroll rollup examples/cases/planted_findings.yaml
+   [OK ] exit 0 (expected 0)  python -m budgetroll sensitivity examples/cases/clean_mass.yaml
+   [OK ] exit 0 (expected 0)  python -m budgetroll sensitivity examples/cases/cubesat_link.yaml
+   [OK ] exit 1 (expected 1)  python -m budgetroll sensitivity examples/cases/cubesat_power.yaml
+   [OK ] exit 1 (expected 1)  python -m budgetroll sensitivity examples/cases/planted_findings.yaml
+   [OK ] exit 0 (expected 0)  python -m budgetroll compare examples/cases/clean_mass.yaml
+   [OK ] exit 0 (expected 0)  python -m budgetroll compare examples/cases/cubesat_link.yaml
+   [OK ] exit 1 (expected 1)  python -m budgetroll compare examples/cases/cubesat_power.yaml
+   [OK ] exit 1 (expected 1)  python -m budgetroll compare examples/cases/planted_findings.yaml
+   [OK ] exit 0 (expected 0)  python -m budgetroll rollup --format text examples/cases/clean_mass.yaml
+   [OK ] exit 1 (expected 1)  python -m budgetroll rollup --format text examples/cases/planted_findings.yaml
+   [OK ] exit 0 (expected 0)  python -m budgetroll rollup --format json examples/cases/clean_mass.yaml
+   [OK ] exit 1 (expected 1)  python -m budgetroll rollup --format json examples/cases/planted_findings.yaml
+   [OK ] exit 0 (expected 0)  python -m budgetroll rollup --format markdown examples/cases/clean_mass.yaml
+   [OK ] exit 1 (expected 1)  python -m budgetroll rollup --format markdown examples/cases/planted_findings.yaml
+   [OK ] exit 0 (expected 0)  python -m budgetroll rollup --format full examples/cases/clean_mass.yaml
+   [OK ] exit 1 (expected 1)  python -m budgetroll rollup --format full examples/cases/planted_findings.yaml
+   [OK ] exit 0 (expected 0)  python -m budgetroll codes
+   [OK ] exit 0 (expected 0)  python -m budgetroll --help
+   [OK ] exit 2 (expected 2)  python -m budgetroll (no arguments)
+   [OK ] exit 2 (expected 2)  python -m budgetroll nosuchcommand examples/cases/clean_mass.yaml
+   [OK ] exit 2 (expected 2)  python -m budgetroll check examples/cases/absent.yaml
+   [OK ] exit 2 (expected 2)  python -m budgetroll check <tmp>/bad.yaml
+   [OK ] exit 2 (expected 2)  python -m budgetroll check <tmp>/empty.yaml
+   [OK ] exit 2 (expected 2)  python -m budgetroll check <tmp>/unknown.yaml
+
+  [PASS] every invocation matched the documented exit status  0 mismatches out of 32
+
+2. The scope statement appears in the output of every reporting command
+  [PASS] 'check' prints the not-flight-qualified statement
+  [PASS] 'rollup' prints the not-flight-qualified statement
+  [PASS] 'sensitivity' prints the not-flight-qualified statement
+  [PASS] 'compare' prints the not-flight-qualified statement
+  [PASS] 'codes' prints the not-flight-qualified statement
+
+3. Errors go to stderr and carry the offending key path
+  [PASS] a missing file writes to stderr
+  [PASS] the message names the missing file  error: no such budget declaration: examples/cases/absent.yaml
+
+RESULT: every check in this script passed

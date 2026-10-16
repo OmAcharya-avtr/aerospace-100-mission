@@ -1,0 +1,56 @@
+validation numbers at both ends of every declared dependency range
+==============================================================================
+
+environment this run was made in
+--------------------------------
+  numpy           2.5.0
+  scikit-learn    1.9.0
+  scipy           1.18.0
+  matplotlib      3.11.2
+  pytest          9.1.1
+  hypothesis      6.170.0
+  ruff            0.17.1
+  python          3.13.16
+
+floor run versus this run
+-------------------------
+quantity                                       floor          this run    difference
+two_way_covered                                  223               223            +0
+two_way_total                                    226               226            +0
+two_way_fraction                        0.9867256637      0.9867256637            +0
+n_uncovered                                        3                 3            +0
+class_covered                                     14                14            +0
+boundary_nearest_handover                      3.586             3.586            +0
+occupancy_fraction                              0.75              0.75            +0
+occupancy_largest_empty_block                     11                11            +0
+gapfinder_bandwidth                     0.7244152329      0.7244152329            +0
+gapfinder_top_log_density               -10.97837978      -10.97837978            +0
+gapfinder_top_sd                       0.06439671852     0.06439671852            +0
+bench_uniform_final                     0.9487463127      0.9487463127            +0
+bench_maxmin_final                      0.9528023599      0.9528023599            +0
+bench_learned_final                     0.9601769912      0.9601769912            +0
+bench_reference_final                   0.9959439528      0.9959439528            +0
+bench_learned_minus_maxmin            0.007374631268    0.007374631268            +0
+
+quantities that moved by more than 1e-09: 0 of 16
+
+measured values, for pasting into FLOOR_REFERENCE
+-------------------------------------------------
+{
+    "bench_learned_final": 0.9601769911504424,
+    "bench_learned_minus_maxmin": 0.007374631268436553,
+    "bench_maxmin_final": 0.9528023598820058,
+    "bench_reference_final": 0.9959439528023598,
+    "bench_uniform_final": 0.9487463126843657,
+    "boundary_nearest_handover": 3.5860000000000127,
+    "class_covered": 14.0,
+    "gapfinder_bandwidth": 0.7244152328943627,
+    "gapfinder_top_log_density": -10.978379779526692,
+    "gapfinder_top_sd": 0.0643967185168227,
+    "n_uncovered": 3.0,
+    "occupancy_fraction": 0.75,
+    "occupancy_largest_empty_block": 11.0,
+    "two_way_covered": 223.0,
+    "two_way_fraction": 0.9867256637168141,
+    "two_way_total": 226.0
+}

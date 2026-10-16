@@ -1,0 +1,127 @@
+# S-band downlink degradation budget for a CubeSat at 2.2 GHz, 1000 km slant
+# range, 1 Mbit/s, uncoded coherent BPSK.
+#
+# The allocation of 17.6655 dB is the gross link margin computed in
+# validation/validate_link_budget.py from the Friis transmission equation and
+# the standard link equation, using published constants that the script
+# reproduces from first principles: the free-space path loss constant
+# 92.45 dB for range in km and frequency in GHz, the Boltzmann constant as
+# -228.6 dBW/K/Hz, the 17.8 dB coefficient of the aperture gain expression at
+# 55 per cent efficiency, and the 9.6 dB uncoded coherent BPSK requirement at
+# a bit error ratio of 1e-5. The script states each source and shows the
+# agreement to the rounding of the published form.
+#
+# The individual loss line items below are illustrative figures chosen for
+# this example. They are not measured and are not taken from any programme.
+#
+# Every item is a DEGRADATION entered as a positive number of dB consumed out
+# of the gross margin. Link budget terms are additive in the log domain,
+# which is exactly the additive model this package implements; the same
+# budget in linear power units would be multiplicative and outside the
+# validity range stated in budgetroll.model.
+
+policies:
+  link_maturity:
+    description: >-
+      Three maturity levels for link line items: measured on this hardware,
+      measured on comparable hardware, and predicted from analysis only.
+    source: >-
+      Declared by the author of this example file. Not reproduced from any
+      standard.
+    levels:
+      measured: 0.05
+      comparable: 0.10
+      analysis_only: 0.20
+
+budget:
+  id: cubesat_sband_downlink
+  name: "CubeSat S-band downlink degradation budget"
+  unit: dB
+  quantity: link
+  policy: link_maturity
+  k_sigma: 1.0
+  root:
+    id: total_degradation
+    name: "Total degradation against gross margin"
+    combination: rss
+    allocation: 17.6655
+    independence_rationale: >-
+      The four groups below arise from unrelated mechanisms: modem
+      implementation, geometry, atmosphere and ageing. No correlation is
+      declared in this budget, so RSS at this node is consistent with the
+      declaration.
+    children:
+      - id: implementation
+        name: "Modem implementation"
+        combination: rss
+        independence_rationale: >-
+          Implementation loss and synchronisation loss are measured
+          separately on the bench and no common driver is declared.
+        children:
+          - id: modem_impl_loss
+            name: "Modem implementation loss"
+            value: 1.50
+            maturity: measured
+            uncertainty: 0.30
+          - id: sync_loss
+            name: "Carrier and symbol synchronisation loss"
+            value: 0.50
+            maturity: comparable
+            uncertainty: 0.20
+      - id: geometry
+        name: "Pointing and polarisation"
+        combination: rss
+        independence_rationale: >-
+          Spacecraft pointing, ground station pointing and polarisation
+          mismatch are independent error sources in this declaration.
+        children:
+          - id: sc_pointing
+            name: "Spacecraft antenna pointing loss"
+            value: 1.00
+            maturity: analysis_only
+            uncertainty: 0.40
+          - id: gs_pointing
+            name: "Ground station pointing loss"
+            value: 0.30
+            maturity: measured
+            uncertainty: 0.10
+          - id: polarisation
+            name: "Polarisation mismatch"
+            value: 0.50
+            maturity: measured
+            uncertainty: 0.15
+      - id: propagation
+        name: "Propagation"
+        combination: rss
+        independence_rationale: >-
+          Clear-air absorption and rain attenuation are reported separately
+          by the propagation model used and are treated as independent here.
+        children:
+          - id: atmos_absorption
+            name: "Clear-air atmospheric absorption at 10 deg elevation"
+            value: 0.40
+            maturity: measured
+            uncertainty: 0.10
+          - id: rain_fade
+            name: "Rain attenuation at the stated availability"
+            value: 0.80
+            maturity: comparable
+            uncertainty: 0.50
+      - id: ageing
+        name: "Ageing and installation"
+        combination: linear
+        independence_rationale: >-
+          Linear on purpose. Transmitter output degradation and ground
+          station feed loss both drift with time in service and the
+          conservative reading is to add their dispersions.
+        children:
+          - id: tx_ageing
+            name: "Transmitter output degradation over three years"
+            value: 0.70
+            maturity: comparable
+            uncertainty: 0.20
+          - id: gs_feed
+            name: "Ground station feed and radome loss"
+            value: 0.60
+            maturity: measured
+            uncertainty: 0.15

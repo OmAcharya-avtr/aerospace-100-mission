@@ -1,0 +1,95 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "budgetroll: hierarchical margin and budget rollup with explicit combination rules"
+abstract: >-
+  Reads a hierarchical engineering budget from YAML - mass, power, data
+  volume or the log-domain terms of a link budget - with a per-item
+  contingency keyed to a declared maturity policy, a declared combination
+  rule at every node, and a declared leaf-to-leaf correlation structure. It
+  keeps deterministic contingency and random uncertainty strictly apart,
+  summing the first and propagating the second by the law of propagation of
+  uncertainty; it reports the linear, root-sum-square, declared-hierarchy and
+  exact correlated combinations side by side at every node; and it checks the
+  independence assumption that root-sum-square requires against the declared
+  correlations, reporting ten named findings. Deterministic, with no learned
+  component. Educational-grade (validation level 1): not flight-qualified, not
+  certified, not approved for operational aerospace use, and it discharges no
+  engineering obligation.
+version: 0.1.0
+date-released: "2026-10-16"
+license: Apache-2.0
+authors:
+  - family-names: Acharya
+    given-names: Om
+repository-code: "https://github.com/OmAcharya-avtr/budgetroll"
+keywords:
+  - margin
+  - budget
+  - mass budget
+  - power budget
+  - link budget
+  - uncertainty propagation
+  - systems engineering
+  - aerospace
+references:
+  - type: report
+    title: >-
+      JCGM 100:2008, Evaluation of measurement data - Guide to the expression
+      of uncertainty in measurement
+    institution:
+      name: "Joint Committee for Guides in Metrology, BIPM"
+    year: 2008
+    notes: >-
+      Section 5.1.2, the law of propagation of uncertainty for uncorrelated
+      inputs, and section 5.2.2, the correlated case. These are the two
+      equations the aggregation in this package implements.
+  - type: article
+    title: "A Note on a Simple Transmission Formula"
+    authors:
+      - family-names: Friis
+        given-names: "Harald T."
+    journal: "Proceedings of the I.R.E."
+    volume: 34
+    issue: 5
+    start: 254
+    end: 256
+    year: 1946
+    notes: >-
+      The free-space transmission formula reproduced in
+      validation/validate_link_budget.py.
+  - type: book
+    title: "Space Mission Analysis and Design"
+    editors:
+      - family-names: Wertz
+        given-names: "James R."
+      - family-names: Larson
+        given-names: "Wiley J."
+    edition: "3rd"
+    publisher:
+      name: "Microcosm Press and Kluwer Academic Publishers"
+    year: 1999
+    notes: >-
+      Chapter 13, Communications Architecture, cited by chapter title for the
+      decibel form of the link equation. No equation number and no page number
+      is quoted anywhere in this repository, because the edition was not
+      available in the container the validation was run in; every constant the
+      equation uses is instead reproduced from first principles in
+      validation/validate_link_budget.py.
+  - type: standard
+    title: "ANSI/AIAA S-120A-2015, Mass Properties Control for Space Systems"
+    institution:
+      name: "American Institute of Aeronautics and Astronautics"
+    year: 2015
+    notes: >-
+      Cited as the published source of maturity-keyed mass growth allowance
+      practice. No table from it is reproduced in this repository; the margin
+      policies in the example cases are declared by the author of those files.
+  - type: report
+    title: "NASA Systems Engineering Handbook"
+    number: "NASA/SP-2016-6105 Rev 2"
+    institution:
+      name: "National Aeronautics and Space Administration"
+    year: 2016
+    notes: >-
+      Cited as the published source of margin and contingency practice,
+      section 6.5. No table from it is reproduced here.

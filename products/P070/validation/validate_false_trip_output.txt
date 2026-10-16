@@ -1,0 +1,64 @@
+watchdogspec validation: false-trip rate
+
+Equation (7): p = 0.5 * erfc((k P + (k+1) J) / (2 sigma)) per heartbeat gap.
+The simulation draws arrivals n P + d_n with d_n ~ N(0, sigma^2) and steps
+the deadline chain; a declaration against a healthy task is a false trip.
+
+  config        P/ms    J/ms  sig/ms   k      gaps      seed     closed p    sampled p   Wilson low  Wilson high   in
+  p ~ 2.4e-1    20.0     1.0    1.00   0    200000  20261016      0.23975     0.239405      0.23754      0.24128  yes
+  p ~ 2.4e-1    20.0     1.0    1.00   0    200000        11      0.23975      0.24015     0.238283     0.242027  yes
+  p ~ 2.4e-1    20.0     1.0    1.00   0    200000     12345      0.23975     0.238855     0.236991     0.240729  yes
+  p ~ 4.5e-2    20.0     2.4    1.00   0    200000  20261016     0.044843      0.04453    0.0436347    0.0454428  yes
+  p ~ 4.5e-2    20.0     2.4    1.00   0    200000        11     0.044843      0.04463    0.0437337    0.0455437  yes
+  p ~ 4.5e-2    20.0     2.4    1.00   0    200000     12345     0.044843      0.04476    0.0438625     0.045675  yes
+  p ~ 6.7e-3    20.0     3.5    1.00   0    300000  20261016   0.00666416   0.00648667   0.00620565   0.00678032  yes
+  p ~ 6.7e-3    20.0     3.5    1.00   0    300000        11   0.00666416   0.00656333   0.00628064   0.00685867  yes
+  p ~ 6.7e-3    20.0     3.5    1.00   0    300000     12345   0.00666416      0.00665   0.00636541   0.00694722  yes
+  p ~ 9.3e-4    20.0     4.4    1.00   0    400000  20261016  0.000931423      0.00091  0.000821229   0.00100836  yes
+  p ~ 9.3e-4    20.0     4.4    1.00   0    400000        11  0.000931423     0.000995  0.000901971   0.00109761  yes
+  p ~ 9.3e-4    20.0     4.4    1.00   0    400000     12345  0.000931423      0.00091  0.000821229   0.00100836  yes
+  p ~ 2.0e-4    20.0     5.0    1.00   0    900000  20261016  0.000203476  0.000207778  0.000180058  0.000239764  yes
+  p ~ 2.0e-4    20.0     5.0    1.00   0    900000        11  0.000203476  0.000216667  0.000188318  0.000249282  yes
+  p ~ 2.0e-4    20.0     5.0    1.00   0    900000     12345  0.000203476      0.00022  0.000191419  0.000252847  yes
+  k = 1         10.0     1.0    5.00   1    300000  20261016     0.044843      0.04468    0.0439465    0.0454251  yes
+  k = 1         10.0     1.0    5.00   1    300000        11     0.044843    0.0445167    0.0437845    0.0452605  yes
+  k = 1         10.0     1.0    5.00   1    300000     12345     0.044843    0.0446433    0.0439101    0.0453882  yes
+  k = 2         10.0     1.0    9.00   2    300000  20261016    0.0353772    0.0351633    0.0345102    0.0358284  yes
+  k = 2         10.0     1.0    9.00   2    300000        11    0.0353772    0.0352233    0.0345696     0.035889  yes
+  k = 2         10.0     1.0    9.00   2    300000     12345    0.0353772    0.0351367    0.0344837    0.0358015  yes
+
+  closed form inside the 95 % Wilson interval : 21 of 21
+  largest relative deviation of the sample    : 0.0812
+  [PASS] the closed form is inside the 95 % interval in at least 19 of every 20 comparisons  21/21
+
+2. the worked example's telemetry task, which exceeds its declared budget
+  P                      : 1000 ms
+  J                      : 250 ms
+  sigma                  : 90 ms
+  k                      : 0
+  trip threshold k P + (k+1) J : 250 ms
+  z = threshold / (sigma sqrt 2) : 1.964186
+  closed-form p per gap  : 0.02475429
+  closed-form per hour   : 89.1155
+  mean time between trips: 0.011221 hours
+  declared budget        : 1 per hour
+  simulated p per gap    : 0.02444750 over 400000 gaps
+  Wilson 95 % interval   : [0.02397346, 0.02493067]
+  simulated hours        : 111.11
+  simulated trips/hour   : 88.0110
+  [PASS] the closed form for TASK-TLM is inside the 95 % interval
+  [PASS] the declared budget of 1 per hour is exceeded by about two orders of magnitude  89.1 against 1
+
+3. a declared sigma of zero is an exact zero, not a small number
+  TASK-GNC sigma         : 0.9 ms (declared, non-zero)
+  TASK-GNC p per gap     : 0  (erfc underflowed)
+  TASK-GNC z             : 38.4980 sigma of the gap
+  sigma = 0 gives p      : 0.0
+  [PASS] a declared sigma of zero gives exactly 0.0
+  [PASS] a tail beyond the double range is reported as 0, not as a wrong small number  z = 38.50
+
+  wall clock            : 1.4 s on 2 cores
+  heartbeat gaps simulated : 8200000
+  [PASS] the script finished inside the three-minute compute budget
+
+RESULT: every check in this script passed

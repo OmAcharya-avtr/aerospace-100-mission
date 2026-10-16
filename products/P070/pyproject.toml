@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "watchdogspec"
+version = "0.1.0"
+description = "Watchdog and liveness supervision as a checkable specification"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Om Acharya" }]
+keywords = [
+  "watchdog",
+  "heartbeat",
+  "liveness",
+  "real-time",
+  "supervision",
+  "fault detection",
+  "aerospace",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+  "Topic :: Software Development :: Quality Assurance",
+]
+
+# Every range below is bounded on BOTH sides, and both ends of every range
+# were installed and the whole test suite plus every validation script run
+# against them in this repository. See validation/VALIDATION.md section 8 for
+# the two measured configurations and the diff of the committed validation
+# output between them. The ceilings are a real cost and not free safety: this
+# package cannot take a future major of NumPy or PyYAML without a port and a
+# re-measurement, and that tension is recorded in README.md under Limitations.
+dependencies = [
+  "numpy>=2.1.0,<2.6",
+  "pyyaml>=6.0.1,<6.1",
+]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.10.7,<3.12"]
+test = [
+  "pytest>=8.3.5,<9.2",
+  "hypothesis>=6.100.0,<6.171",
+  "matplotlib>=3.10.7,<3.12",
+  "ruff>=0.16.0,<0.18",
+]
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/watchdogspec"
+Source = "https://github.com/OmAcharya-avtr/watchdogspec"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+junit_family = "xunit1"
+filterwarnings = ["error::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests", "examples", "validation"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "C4"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]

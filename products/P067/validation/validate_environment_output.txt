@@ -1,0 +1,46 @@
+acqsearch environment record
+==============================================================================
+python              3.13.16
+implementation      CPython
+platform            Linux-6.18.44-fc-v139-x86_64-with-glibc2.39
+machine             x86_64
+cpu count           2
+
+package         metadata    imported    declared range
+------------------------------------------------------------------------------
+numpy           2.5.3       2.5.3       >=2.4.1,<2.6
+scipy           1.18.1      1.18.1      not declared; acqsearch does not import scipy
+scikit-learn    1.9.1       1.9.1       >=1.9.0,<1.10
+matplotlib      3.11.2      3.11.2      >=3.10.8,<3.12  [plot, test]
+pytest          9.1.1       9.1.1       >=8.4.2,<9.2  [test]
+hypothesis      6.170.0     6.170.0     >=6.168.0,<6.171  [test]
+ruff            0.17.1      -           >=0.16.8,<0.18  [test]
+
+The metadata and imported columns are both printed because they can
+disagree when an environment holds more than one distribution record for a
+package. Every number in this repository was produced in a virtual
+environment pinned to the versions above, in which the two columns agree.
+
+Versions actually installed and executed, both ends of every range:
+package         floor run at    ceiling run at  
+------------------------------------------------------------------------------
+numpy           2.4.1           2.5.3           
+scikit-learn    1.9.0           1.9.1           
+matplotlib      3.10.8          3.11.2          
+pytest          8.4.2           9.1.1           
+hypothesis      6.168.0         6.170.0         
+ruff            0.16.8          0.17.1          
+
+At every pair above the full suite reported 242 tests, 0 failures, 0 errors,
+0 skipped from the junit XML, and validation/dependency_range_check.py
+produced byte-identical output. scikit-learn 1.8.0 was ALSO executed: the
+suite passes there too, but the fingerprint moves (see
+validation/dependency_range_check_sklearn180_output.txt), which is why the
+declared floor is 1.9.0 and not 1.8.0.
+
+Serialised artifacts committed by this product: none.
+No model is pickled. The learned policy is refitted from data/scenarios.json
+and the committed seeds every time it is used, so there is no dependency on
+any library's serialisation format. The scikit-learn bound exists because
+GradientBoostingRegressor output is not contractually stable across minor
+releases and the benchmark numbers would move with it.

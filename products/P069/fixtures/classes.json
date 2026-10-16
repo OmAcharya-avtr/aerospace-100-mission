@@ -1,0 +1,152 @@
+{
+  "classes": [
+    {
+      "parameter": "closing_speed",
+      "name": "creep",
+      "expected": true,
+      "lower": 0.01,
+      "upper": 0.05,
+      "closed_upper": false
+    },
+    {
+      "parameter": "closing_speed",
+      "name": "slow",
+      "expected": true,
+      "lower": 0.05,
+      "upper": 0.1,
+      "closed_upper": false
+    },
+    {
+      "parameter": "closing_speed",
+      "name": "nominal",
+      "expected": true,
+      "lower": 0.1,
+      "upper": 0.2,
+      "closed_upper": false
+    },
+    {
+      "parameter": "closing_speed",
+      "name": "fast",
+      "expected": false,
+      "lower": 0.2,
+      "upper": 0.5,
+      "closed_upper": true
+    },
+    {
+      "parameter": "nav_position_error",
+      "name": "tight",
+      "expected": true,
+      "lower": 0.0,
+      "upper": 0.1,
+      "closed_upper": false
+    },
+    {
+      "parameter": "nav_position_error",
+      "name": "moderate",
+      "expected": true,
+      "lower": 0.1,
+      "upper": 0.5,
+      "closed_upper": false
+    },
+    {
+      "parameter": "nav_position_error",
+      "name": "degraded",
+      "expected": true,
+      "lower": 0.5,
+      "upper": 1.5,
+      "closed_upper": false
+    },
+    {
+      "parameter": "nav_position_error",
+      "name": "excessive",
+      "expected": false,
+      "lower": 1.5,
+      "upper": 2.0,
+      "closed_upper": true
+    },
+    {
+      "parameter": "target_tumble_rate",
+      "name": "stable",
+      "expected": true,
+      "lower": 0.0,
+      "upper": 0.5,
+      "closed_upper": false
+    },
+    {
+      "parameter": "target_tumble_rate",
+      "name": "slow_tumble",
+      "expected": true,
+      "lower": 0.5,
+      "upper": 2.0,
+      "closed_upper": false
+    },
+    {
+      "parameter": "target_tumble_rate",
+      "name": "fast_tumble",
+      "expected": false,
+      "lower": 2.0,
+      "upper": 5.0,
+      "closed_upper": true
+    },
+    {
+      "parameter": "lighting",
+      "name": "lit",
+      "expected": true,
+      "labels": [
+        "full_sun"
+      ]
+    },
+    {
+      "parameter": "lighting",
+      "name": "degraded_light",
+      "expected": false,
+      "labels": [
+        "terminator",
+        "eclipse"
+      ]
+    },
+    {
+      "parameter": "thruster_health",
+      "name": "healthy",
+      "expected": true,
+      "labels": [
+        "nominal"
+      ]
+    },
+    {
+      "parameter": "thruster_health",
+      "name": "faulted",
+      "expected": false,
+      "labels": [
+        "one_degraded",
+        "one_failed"
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "parameter": "closing_speed",
+      "name": "speed_limit_0p20",
+      "value": 0.2,
+      "tolerance": 0.005
+    },
+    {
+      "parameter": "nav_position_error",
+      "name": "nav_limit_0p50",
+      "value": 0.5,
+      "tolerance": 0.01
+    },
+    {
+      "parameter": "target_tumble_rate",
+      "name": "tumble_limit_2p0",
+      "value": 2.0,
+      "tolerance": 0.02
+    },
+    {
+      "parameter": "range_at_handover",
+      "name": "handover_200m",
+      "value": 200.0,
+      "tolerance": 2.0
+    }
+  ]
+}

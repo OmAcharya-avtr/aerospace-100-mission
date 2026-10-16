@@ -1,0 +1,147 @@
+# Orbit-average electrical power budget for a 3U CubeSat in a 500 km
+# circular orbit.
+#
+# EVERY NUMBER IN THIS FILE IS AN ILLUSTRATIVE FIGURE CHOSEN FOR THE EXAMPLE.
+# None of them is measured, none is taken from a flight programme, and none
+# should be reused. What is reproducible here is the arithmetic that the
+# package performs on them, not the inputs themselves.
+#
+# The allocation of 8.40 W is the orbit-average power the array is assumed to
+# deliver. validation/validate_power_budget.py derives the orbit geometry that
+# an allocation of this kind has to be built on - orbital period and eclipse
+# fraction for this orbit - from closed-form expressions and states their
+# sources there; it does not claim 8.40 W itself is derived from anything.
+#
+# k_sigma is 2 deliberately, so that this budget closes on predicted values
+# and does not close at two standard deviations. That is check BR004 and it
+# is the point of the example.
+
+policies:
+  maturity_default:
+    description: >-
+      Four maturity levels keyed to how much is known about an item: flight
+      heritage with measured power, a modified unit, a new design, and a
+      concept with no hardware behind it.
+    source: >-
+      Declared by the author of this example file. Maturity-keyed contingency
+      schedules are standard practice in space systems; published schedules
+      appear in ANSI/AIAA S-120A-2015, Mass Properties Control for Space
+      Systems, and NASA/SP-2016-6105 Rev 2, NASA Systems Engineering Handbook,
+      section 6.5. The numbers below are NOT reproduced from either document;
+      budgetroll ships no schedule of its own and asserts nothing about the
+      correctness of this one.
+    levels:
+      existing: 0.05
+      modified: 0.10
+      new_design: 0.20
+      conceptual: 0.30
+
+budget:
+  id: cubesat_power
+  name: "3U CubeSat orbit-average power budget"
+  unit: W
+  quantity: power
+  policy: maturity_default
+  k_sigma: 2.0
+  root:
+    id: total_load
+    name: "Total orbit-average load"
+    combination: rss
+    allocation: 8.40
+    independence_rationale: >-
+      Asserted by this declaration and contradicted by it: the payload
+      subtree carries a declared correlation of 0.6, so check BR001 fires on
+      this node. The contradiction is deliberate and is what the example
+      exists to show.
+    children:
+      - id: payload
+        name: "Payload"
+        combination: rss
+        independence_rationale: >-
+          Asserted and contradicted: both payload items are fed by the same
+          DC/DC converter and the declaration says so.
+        children:
+          - id: payload_detector
+            name: "Detector and front end"
+            value: 1.20
+            maturity: new_design
+            uncertainty: 0.18
+            common_driver: payload_dcdc
+          - id: payload_fpga
+            name: "Processing FPGA"
+            value: 0.90
+            maturity: modified
+            uncertainty: 0.09
+            common_driver: payload_dcdc
+      - id: bus
+        name: "Bus"
+        combination: rss
+        independence_rationale: >-
+          The four bus subtotals are driven by unrelated duty cycles and no
+          correlation is declared between their items.
+        children:
+          - id: adcs
+            name: "Attitude determination and control"
+            combination: linear
+            independence_rationale: >-
+              Linear on purpose: both actuators are commanded by the same
+              control law, so their demands move together and summing the
+              dispersions is the conservative reading.
+            children:
+              - id: adcs_wheels
+                name: "Reaction wheel assembly"
+                value: 1.10
+                maturity: existing
+                uncertainty: 0.06
+              - id: adcs_mtq
+                name: "Magnetorquers"
+                value: 0.35
+                maturity: existing
+                uncertainty: 0.03
+          - id: cdh
+            name: "Command and data handling"
+            value: 0.55
+            maturity: existing
+            uncertainty: 0.04
+          - id: comms
+            name: "Communications"
+            combination: rss
+            independence_rationale: >-
+              Receive and transmit chains are powered on different duty
+              cycles and share no declared driver.
+            children:
+              - id: radio_rx
+                name: "Receiver, continuous"
+                value: 0.40
+                maturity: existing
+                uncertainty: 0.02
+              - id: radio_tx
+                name: "Transmitter, duty cycled"
+                value: 1.60
+                maturity: modified
+                uncertainty: 0.20
+                common_driver: bus_28v_rail
+          - id: eps_losses
+            name: "EPS conversion and distribution losses"
+            value: 0.45
+            maturity: existing
+            uncertainty: 0.05
+            common_driver: bus_28v_rail
+      - id: thermal
+        name: "Thermal control"
+        combination: rss
+        independence_rationale: >-
+          One item, so the rule has no effect; check BR007 says so.
+        children:
+          - id: survival_heater
+            name: "Survival heater, eclipse duty"
+            value: 0.60
+            maturity: new_design
+            uncertainty: 0.12
+
+correlations:
+  - items: [payload_detector, payload_fpga]
+    rho: 0.6
+    rationale: >-
+      Both loads are supplied through the same payload DC/DC converter, so
+      an error in its assumed efficiency moves both in the same direction.

@@ -1,0 +1,129 @@
+# A hand-constructed declaration built to raise every one of the ten checks
+# BR001 to BR010 at least once. It is a test fixture, not a plausible
+# spacecraft: the numbers are chosen to make the arithmetic checkable by hand
+# and to place each defect where it can be seen.
+#
+# The declared correlation matrix over the structure items is deliberately
+# NOT positive semi-definite: s1 is correlated 0.9 with s2 and 0.9 with s3
+# while s2 and s3 are declared independent of each other. The 3 by 3 block
+#
+#     [ 1.0  0.9  0.9 ]
+#     [ 0.9  1.0  0.0 ]
+#     [ 0.9  0.0  1.0 ]
+#
+# has determinant 1 - 0.81 - 0.81 = -0.62, so it has a negative eigenvalue
+# and describes no joint distribution. That is check BR008, and it is the
+# reason the linear rollup at the root can come out BELOW the exact quadratic
+# form here, which cannot happen for an admissible matrix.
+#
+# Expected findings are listed in validation/VALIDATION.md section 3 with the
+# count per code, and are asserted in tests/test_known_answers.py.
+
+policies:
+  mass_growth:
+    description: >-
+      Three maturity levels keyed to whether an item has been weighed.
+    source: >-
+      Declared by the author of this test fixture. Not reproduced from any
+      standard.
+    levels:
+      weighed: 0.05
+      modified: 0.10
+      new_design: 0.20
+
+budget:
+  id: planted
+  name: "Planted-defect dry mass budget"
+  unit: kg
+  quantity: mass
+  policy: mass_growth
+  k_sigma: 1.0
+  root:
+    id: dry_mass
+    name: "Dry mass"
+    combination: linear
+    allocation: 22.0
+    independence_rationale: >-
+      Linear at the root, so no independence is asserted here. The root is
+      still reported by BR002 because the declared correlation matrix is
+      inadmissible and the exact form exceeds even the linear sum.
+    children:
+      - id: structure
+        name: "Primary structure"
+        combination: rss
+        allocation: 11.5
+        independence_rationale: >-
+          Asserted and contradicted: two correlations are declared among
+          these three items.
+        children:
+          - id: s1
+            name: "Machined chassis"
+            value: 6.0
+            maturity: weighed
+            uncertainty: 2.0
+          - id: s2
+            name: "Deck plates"
+            value: 3.0
+            maturity: modified
+            uncertainty: 1.0
+          - id: s3
+            name: "Launch adapter ring"
+            value: 2.0
+            maturity: new_design
+            uncertainty: 3.0
+      - id: avionics
+        name: "Avionics"
+        combination: correlated
+        independence_rationale: >-
+          Declares the correlated rule while no correlation is declared
+          among its items, which is check BR009.
+        children:
+          - id: a1
+            name: "On-board computer"
+            value: 2.0
+            maturity: weighed
+            contingency: 0.15
+            uncertainty: 0.5
+          - id: a2
+            name: "Harness"
+            value: 1.5
+            maturity: new_design
+            uncertainty: 0.0
+      - id: propulsion
+        name: "Cold gas module"
+        combination: rss
+        independence_rationale: "One item, so the rule does nothing."
+        children:
+          - id: p1
+            name: "Tank and plenum"
+            value: 1.8
+            maturity: modified
+            uncertainty: 0.4
+      - id: thermal
+        name: "Thermal control"
+        combination: linear
+        independence_rationale: >-
+          Linear, and the two items share a supplier, which is check BR010.
+        children:
+          - id: t1
+            name: "Multi-layer insulation blankets"
+            value: 1.0
+            maturity: weighed
+            uncertainty: 0.2
+            common_driver: mli_supplier
+          - id: t2
+            name: "Radiator and interface filler"
+            value: 0.8
+            maturity: modified
+            uncertainty: 0.3
+            common_driver: mli_supplier
+
+correlations:
+  - items: [s1, s2]
+    rho: 0.9
+    rationale: >-
+      Both are cut from the same plate stock, so a density error moves both.
+  - items: [s1, s3]
+    rho: 0.9
+    rationale: >-
+      Both carry the same machining allowance assumption.

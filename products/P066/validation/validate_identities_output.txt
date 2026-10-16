@@ -1,0 +1,40 @@
+budgetroll validation: algebraic identities
+========================================================================
+Educational-grade (validation level 1). Not flight-qualified, not certified,
+not approved for operational aerospace use.
+grid values (0.0, 0.25, 1.0, 3.5, 12.0, 100.0); random cases 5000; seed 20261016
+
+1. RSS <= linear over 5258 cases (258 exhaustive, 5000 random)
+   smallest (linear - RSS) seen     0.000e+00
+  [PASS] no case violated RSS <= linear  0 violations
+
+2. Associativity of independent aggregation over 5258 cases
+   worst relative disagreement      3.076e-16
+   worst case, 10 leaves split after 6
+     u = [22.9097125647, 445.608899931, 376.062211883, 764.786533924, 222.14782918, 275.812422181, 404.72980846, 764.753434154, 388.57591375, 485.078605134]
+     grouped 1478.43905973717  flat 1478.43905973717
+  [PASS] every grouping agrees with the flat RSS to 1e-12 relative  0 cases above 1e-12
+
+3. R = I reduces the quadratic form to RSS, over 5258 cases
+   worst relative disagreement      2.602e-16
+  [PASS] R = I agrees with RSS to 1e-12 relative  2.602e-16
+
+4. R = J reduces the quadratic form to the linear sum, over 5258 cases
+   worst relative disagreement      2.428e-16
+  [PASS] R = J agrees with the linear sum to 1e-12 relative  2.428e-16
+
+5. Variance shares sum to 1, over 5258 cases with a declared rho
+   worst absolute drift from 1      4.441e-16
+  [PASS] the shares sum to 1 to 1e-9 absolute  4.441e-16
+
+6. Two-sided reference points for the correlated form
+   rho = +1.0  computed 7.000000000000  expected 7.000000000000
+  [PASS] rho = 1 gives the linear sum 3 + 4  7.000000000000
+   rho = +0.5  computed 6.082762530298  expected 6.082762530298
+  [PASS] rho = 0.5 gives sqrt(9 + 16 + 12) = sqrt(37)  6.082762530298
+   rho = +0.0  computed 5.000000000000  expected 5.000000000000
+  [PASS] rho = 0 gives the RSS sqrt(9 + 16) = 5  5.000000000000
+   rho = -1.0  computed 1.000000000000  expected 1.000000000000
+  [PASS] rho = -1 gives the absolute difference |3 - 4|  1.000000000000
+
+RESULT: every check in this script passed

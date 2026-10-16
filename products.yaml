@@ -1122,7 +1122,7 @@ products:
     summary: Margin and budget rollup arithmetic that is explicit about how uncertainties combine — hierarchical mass, power, data-volume and link-margin budgets with per-item contingency and maturity-based margin policies, linear against root-sum-square aggregation with the independence assumption RSS requires stated at every node and checked against a declared correlation structure, leaf-to-top sensitivity, and the margin remaining at each level; Level 1 because the arithmetic has no physical reference to validate against beyond hand calculation and published worked budgets.
     ai_enabled: false
     validation_level: 1
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P066
@@ -1139,7 +1139,7 @@ products:
     summary: Spatial acquisition search for an optical terminal — spiral, raster, Lissajous and random-restart scan patterns over a declared 2-D pointing-uncertainty cone with declared beam divergence, detector field of view, dwell time, slew rate and per-dwell detection probability including false alarms; coverage fraction against time, expected acquisition time computed analytically where the geometry allows and by seeded Monte Carlo otherwise with the two cross-checked, optimal dwell from the detection-probability trade, and a learned adaptive scan-order policy benchmarked against both the fixed pattern and the Bayesian-greedy posterior update.
     ai_enabled: true
     validation_level: 2
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P067
@@ -1156,7 +1156,7 @@ products:
     summary: Limit-crossing forecasting for a degrading subsystem from housekeeping telemetry, with censoring handled rather than ignored — linear, exponential and cited physics-shaped degradation fits with analytic prediction intervals as baselines, a learned forecaster producing a distribution over crossing time, and prediction-interval coverage measured separately on complete and right-censored trajectories because scoring only the ones that have already crossed is survivorship bias; CRPS and crossing-time calibration reported against both baselines.
     ai_enabled: true
     validation_level: 2
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P068
@@ -1173,7 +1173,7 @@ products:
     summary: Scenario-space coverage reporting for a verification campaign that has already run — t-way combinatorial coverage with the uncovered tuples enumerated rather than summarised as a percentage, equivalence-class and boundary coverage against declared classes, grid occupancy over continuous parameters with the discretisation stated as the assumption it is, and a learned sparse-region gap finder benchmarked against uniform random and greedy max-min-distance on coverage achieved per scenario executed; package named scenariocov because covmetrics was already taken on PyPI.
     ai_enabled: true
     validation_level: 2
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P069
@@ -1190,7 +1190,7 @@ products:
     summary: Watchdog and liveness supervision as a checkable specification — tasks with heartbeat periods, missed-beat tolerances and liveness deadlines, escalation ladders from log through task restart and safe mode to reset with per-rung latency and declared recovery cost; worst-case detection latency per fault class computed from the spec arithmetic and cross-checked against a seeded discrete-event simulation of jittered beat arrivals, false-trip probability from declared jitter statistics, escalation ladders that can never reach their final rung inside a declared deadline, and tasks whose missed-beat tolerance exceeds the deadline they are meant to protect.
     ai_enabled: false
     validation_level: 2
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P070

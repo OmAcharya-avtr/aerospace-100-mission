@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "acqsearch"
+version = "0.1.0"
+description = "Spatial acquisition search for an optical terminal: expected time to acquire, and which scan pattern wins"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Om Acharya" }]
+keywords = [
+  "optical-communications",
+  "pointing-acquisition-tracking",
+  "spatial-acquisition",
+  "scan-pattern",
+  "search-theory",
+  "aerospace",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Physics",
+]
+# Every range below is bounded on BOTH sides and both ends were installed and
+# executed in the build session. The exact versions, and the diff of the
+# committed validation output between them, are in
+# validation/validate_environment_output.txt and
+# validation/dependency_range_check_output.txt.
+dependencies = [
+  "numpy>=2.4.1,<2.6",
+  "scikit-learn>=1.9.0,<1.10",
+]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.10.8,<3.12"]
+test = [
+  "pytest>=8.4.2,<9.2",
+  "hypothesis>=6.168.0,<6.171",
+  "matplotlib>=3.10.8,<3.12",
+  "ruff>=0.16.8,<0.18",
+]
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/acqsearch"
+Source = "https://github.com/OmAcharya-avtr/acqsearch"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+junit_family = "xunit1"
+filterwarnings = ["error::DeprecationWarning"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "C4"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]

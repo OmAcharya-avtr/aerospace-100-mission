@@ -1,0 +1,41 @@
+watchdogspec validation: closed form against the discrete-event simulation
+
+Equation (3): WCDL = (k + 1)(P + J) + Q + Jq + O, all in ms.
+The simulation generates beat arrivals, places the fault at a continuous
+instant inside a beat interval, steps the supervisor deadline chain and
+poll loop, and reports the latency it observed. It never consults
+equation (3) while running.
+
+1. the shipped worked example, per task
+  task         closed form/ms   adversarial/ms  difference/ms   ulp  stochastic max/ms  shortfall/ms  violations
+  TASK-GNC       75.500000000     75.500000000      -1.14e-13   8.0       75.370093974      0.129906           0
+  [PASS] TASK-GNC: the adversarial trial attains the closed form  difference -1.137e-13 ms, 8.0 ulp
+  [PASS] TASK-GNC: no stochastic trial exceeded the bound over 19200 trials
+  TASK-IMU       18.500000000     18.500000000      -4.26e-14  12.0       18.370093974      0.129906           0
+  [PASS] TASK-IMU: the adversarial trial attains the closed form  difference -4.263e-14 ms, 12.0 ulp
+  [PASS] TASK-IMU: no stochastic trial exceeded the bound over 19200 trials
+  TASK-TLM     1256.500000000   1256.500000000      -3.64e-12  16.0     1256.370093974      0.129906           0
+  [PASS] TASK-TLM: the adversarial trial attains the closed form  difference -3.638e-12 ms, 16.0 ulp
+  [PASS] TASK-TLM: no stochastic trial exceeded the bound over 19200 trials
+  TASK-FDIR     466.500000000    466.500000000      -4.55e-13   8.0      466.370093974      0.129906           0
+  [PASS] TASK-FDIR: the adversarial trial attains the closed form  difference -4.547e-13 ms, 8.0 ulp
+  [PASS] TASK-FDIR: no stochastic trial exceeded the bound over 19200 trials
+
+2. a grid of synthetic declarations
+  configurations        : 400
+  seeds per config      : 4
+  trials per seed       : 200
+  configurations with Jq <= Q (bound claimed tight) : 320
+  configurations with Jq >  Q (bound only an upper bound) : 80
+  largest adversarial difference where tight        : -1.819e-11 ms (10.0 ulp)
+  at                                                 : P=1000 J=0.1 k=9 Q=1 Jq=0 O=0
+  largest shortfall where Jq > Q                     : 4.000000 ms
+  total bound violations over 320000 trials : 0
+  [PASS] the bound is never violated anywhere on the grid
+  [PASS] the adversarial trial attains the closed form wherever Jq <= Q  worst -1.819e-11 ms
+  [PASS] with Jq > Q the closed form over-estimates rather than under-estimates  largest shortfall 4.000000 ms; the bound still holds
+
+  wall clock            : 5.2 s on 2 cores
+  [PASS] the script finished inside the three-minute compute budget
+
+RESULT: every check in this script passed

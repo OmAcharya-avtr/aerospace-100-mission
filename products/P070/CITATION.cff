@@ -1,0 +1,139 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "watchdogspec: watchdog and liveness supervision as a checkable specification"
+abstract: >-
+  Reads a declared watchdog and liveness specification from YAML - a
+  supervisor with its poll period, release jitter and declaration overhead;
+  escalation ladders of log, notify, restart_task, safe_mode and reset rungs
+  with per-rung worst-case latency and declared recovery cost; and supervised
+  tasks with heartbeat periods, jitter bounds and statistics, missed-beat
+  tolerances and liveness deadlines - and computes what the declaration
+  implies: the worst-case detection latency per task, which rung of each
+  escalation ladder can be reached before the deadline, the false-trip rate
+  implied by the declared jitter statistics, and twelve ways in which such a
+  declaration can contradict itself, including a missed-beat tolerance that
+  permits a silence longer than the deadline it is declared to protect. The
+  closed-form worst case is cross-checked against a seeded discrete-event
+  simulation of heartbeat arrivals. Deterministic, with no learned component.
+  It checks a declaration for internal consistency and says nothing about
+  whether the declaration matches the system it describes. Research-grade;
+  not flight-qualified, not certified, not approved for operational aerospace
+  use.
+version: 0.1.0
+date-released: "2026-10-16"
+license: Apache-2.0
+authors:
+  - family-names: Acharya
+    given-names: Om
+repository-code: "https://github.com/OmAcharya-avtr/watchdogspec"
+keywords:
+  - watchdog
+  - heartbeat
+  - liveness
+  - real-time
+  - supervision
+  - fault detection
+  - aerospace
+references:
+  - type: article
+    title: >-
+      Scheduling Algorithms for Multiprogramming in a Hard-Real-Time
+      Environment
+    authors:
+      - family-names: Liu
+        given-names: "C. L."
+      - family-names: Layland
+        given-names: "James W."
+    journal: "Journal of the ACM"
+    volume: 20
+    issue: 1
+    start: 46
+    end: 61
+    year: 1973
+    doi: "10.1145/321738.321743"
+  - type: book
+    title: >-
+      Real-Time Systems and Programming Languages: Ada, Real-Time Java and
+      C/Real-Time POSIX
+    edition: "4th"
+    authors:
+      - family-names: Burns
+        given-names: Alan
+      - family-names: Wellings
+        given-names: Andy
+    publisher:
+      name: "Addison-Wesley"
+    year: 2009
+    isbn: "978-0-321-41745-9"
+  - type: book
+    title: >-
+      Real-Time Systems: Design Principles for Distributed Embedded
+      Applications
+    edition: "2nd"
+    authors:
+      - family-names: Kopetz
+        given-names: Hermann
+    publisher:
+      name: "Springer"
+    year: 2011
+    isbn: "978-1-4419-8236-0"
+  - type: article
+    title: >-
+      Applying new scheduling theory to static priority pre-emptive scheduling
+    authors:
+      - family-names: Audsley
+        given-names: "Neil C."
+      - family-names: Burns
+        given-names: Alan
+      - family-names: Richardson
+        given-names: "Mike F."
+      - family-names: Tindell
+        given-names: Ken
+      - family-names: Wellings
+        given-names: "Andy J."
+    journal: "Software Engineering Journal"
+    volume: 8
+    issue: 5
+    start: 284
+    end: 292
+    year: 1993
+    doi: "10.1049/sej.1993.0034"
+  - type: article
+    title: "Holistic schedulability analysis for distributed hard real-time systems"
+    authors:
+      - family-names: Tindell
+        given-names: Ken
+      - family-names: Clark
+        given-names: John
+    journal: "Microprocessors and Microsystems"
+    volume: 18
+    issue: 4
+    start: 40
+    end: 50
+    year: 1994
+    doi: "10.1016/0141-9331(94)90080-9"
+  - type: book
+    title: >-
+      Handbook of Mathematical Functions with Formulas, Graphs, and
+      Mathematical Tables
+    authors:
+      - family-names: Abramowitz
+        given-names: Milton
+      - family-names: Stegun
+        given-names: "Irene A."
+    publisher:
+      name: "National Bureau of Standards, Applied Mathematics Series 55"
+    year: 1964
+  - type: article
+    title: >-
+      Probable inference, the law of succession, and statistical inference
+    authors:
+      - family-names: Wilson
+        given-names: "Edwin B."
+    journal: "Journal of the American Statistical Association"
+    volume: 22
+    issue: 158
+    start: 209
+    end: 212
+    year: 1927
+    doi: "10.1080/01621459.1927.10502953"

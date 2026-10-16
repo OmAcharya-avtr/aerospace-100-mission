@@ -1,0 +1,48 @@
+==============================================================================
+acqsearch detection model
+==============================================================================
+
+1. Poisson upper tail against closed forms (Abramowitz & Stegun 26.4)
+case                                    computed         closed form   abs error
+P(N>=1|1) = 1 - e^-1           0.632120558828558   0.632120558828558    0.00e+00
+P(N>=2|1) = 1 - 2 e^-1         0.264241117657115   0.264241117657115    0.00e+00
+P(N>=3|2) = 1 - 5 e^-2         0.323323583816936   0.323323583816936    0.00e+00
+P(N>=1|0) = 0                  0.000000000000000   0.000000000000000    0.00e+00
+P(N>=4|3)                      0.352768111217769   0.352768111217769    0.00e+00
+
+2. Gaussian-beam shape factor (Siegman 1986 Ch. 17)
+   rho/w        computed P_d     1 - exp(-lam tau)   abs error
+    0.00   0.999954600070238     0.999954600070238    0.00e+00
+    0.50   0.997677954027242     0.997677954027242    0.00e+00
+    1.00   0.741627472995003     0.741627472995003    0.00e+00
+    1.50   0.105141760956156     0.105141760956156    0.00e+00
+    2.00   0.003349005806907     0.003349005806907    0.00e+00
+
+3. Lognormal irradiance quadrature (Andrews & Phillips 2005 Ch. 9)
+   rytov  nodes               sum W                E[I]   E[I] error
+    0.00      1   1.000000000000000   1.000000000000000     0.00e+00
+    0.05     24   1.000000000000000   1.000000000000000     0.00e+00
+    0.20     24   1.000000000000000   1.000000000000000     2.22e-16
+    0.60     24   1.000000000000000   1.000000000000000     2.22e-16
+    1.00     24   1.000000000000000   1.000000000000000     2.22e-16
+
+4. Quadrature convergence of P_d in the number of Hermite nodes
+   nodes     max abs error vs 96 nodes
+       8                     4.950e-05
+      16                     1.399e-07
+      24                     1.316e-09
+      48                     1.199e-14
+
+5. Interpolation error of the 1025-point P_d table, out to five half-widths
+max absolute error      1.959952e-05
+at offset               5.481557e-05 rad (1.096 w)
+mean absolute error     1.593020e-06
+
+6. False alarm and detection at the reference configuration
+dwell                   1.400000e-03 s
+P_fa                    0.008130742
+P_d at rho = 0.0 w      0.995647312
+P_d at rho = 0.5 w      0.963260627
+P_d at rho = 1.0 w      0.339826444
+==============================================================================
+checks failed: 0

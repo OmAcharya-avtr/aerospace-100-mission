@@ -1,0 +1,341 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  degradepredict: calibrated limit-crossing forecasts for a degrading
+  subsystem, with right censoring handled and measured
+version: 0.1.0
+date-released: 2026-10-16
+license: Apache-2.0
+abstract: >-
+  Forecasting of the time at which a degrading housekeeping health metric
+  crosses a declared limit, with the prediction interval around that date
+  measured rather than asserted. Three analytic baselines are implemented and
+  validated first: a straight-line fade, an exponential fade, and a
+  physics-shaped sublinear power-law capacity fade with the exponent taken from
+  Wang et al. (2011). All three reduce to ordinary least squares of a
+  transformed metric on a transformed time, so the crossing time is an inverse
+  regression and is reported with both the delta-method interval and the exact
+  Fieller (1954) confidence set, including the unbounded case that arises on
+  17.59 per cent of randomly drawn windows. On correctly specified data the
+  Fieller interval attains between 0.8835 and 0.9405 coverage against a nominal
+  0.90 over eight configurations, and the delta-method interval under-covers at
+  0.8565 in precisely the configuration where the exact set is often unbounded.
+  A gradient-boosted quantile forecaster on nineteen lag and shape features
+  produces a distribution over the crossing time and is benchmarked against all
+  three baselines on held-out seeded trajectories. The contribution that makes
+  the benchmark honest is censoring. Most units have not crossed their limit
+  yet, scoring only the ones that have is survivorship bias, and this package
+  therefore handles right censoring explicitly through inverse probability of
+  censoring weighting and reports coverage, CRPS and pinball loss separately
+  for complete and right-censored trajectories. The result is that the
+  comparison has two different winners. On the 173 complete test trajectories
+  the learned forecaster wins, with a CRPS of 30.80 days against 90.74 for the
+  best baseline. On the 227 right-censored trajectories, 56.75 per cent of the
+  test set, the exponential baseline wins, with a CRPS of 346.37 days against
+  435.56, on all three independent seed pairs measured. That baseline win is
+  reported rather than removed. Interval coverage at a nominal 0.90 is 0.7630
+  on complete trajectories and 0.3348 on censored ones for the learned model,
+  so the pooled figure of 0.5200 describes neither half; no model in the
+  repository is probabilistically calibrated, the best Kolmogorov-Smirnov
+  distance of the probability integral transform from uniformity being 0.1970
+  on complete trajectories against a sampling floor of 0.0398. Holding the
+  cited power-law fade exponent fixed at 0.55 when the truth is 0.45 biases the
+  crossing estimate by 181 days on a 1200-day crossing while the reported
+  interval is 62 days wide and covers the truth 0.0000 of the time, which is
+  the clearest statement available of what a declared physical form costs when
+  it is slightly wrong. Finally, only 0.0396 of the learned model's censored
+  intervals are refuted by the censoring alone, against a true non-coverage of
+  0.6652, so a deployment measuring what it can measure would see about six per
+  cent of its own failure. Validation level 2, research grade. Not
+  flight-qualified, not certified, not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - degradation-modelling
+  - remaining-useful-life
+  - limit-crossing
+  - right-censoring
+  - prediction-intervals
+  - quantile-regression
+  - spacecraft-telemetry
+  - autonomous-aerospace-systems
+references:
+  - type: article
+    authors:
+      - family-names: Fieller
+        given-names: "E. C."
+    title: "Some problems in interval estimation"
+    journal: "Journal of the Royal Statistical Society Series B"
+    volume: 16
+    issue: 2
+    year: 1954
+    start: 175
+    end: 185
+    notes: >-
+      The exact confidence set for a ratio of normally distributed estimates,
+      which is what the crossing time of a fitted line is. Implemented in
+      degradepredict.baselines, including the unbounded case g >= 1.
+  - type: book
+    authors:
+      - family-names: Draper
+        given-names: "N. R."
+      - family-names: Smith
+        given-names: "H."
+    title: "Applied Regression Analysis"
+    edition: "3rd"
+    publisher:
+      name: "Wiley"
+    year: 1998
+    notes: >-
+      Section 3.2, inverse regression and calibration: the variance expression
+      used for the delta-method interval on the crossing time.
+  - type: article
+    authors:
+      - family-names: Wang
+        given-names: "J."
+      - family-names: Liu
+        given-names: "P."
+      - family-names: Hicks-Garner
+        given-names: "J."
+      - family-names: Sherman
+        given-names: "E."
+      - family-names: Soukiazian
+        given-names: "S."
+      - family-names: Verbrugge
+        given-names: "M."
+      - family-names: Tataria
+        given-names: "H."
+      - family-names: Musser
+        given-names: "J."
+      - family-names: Finamore
+        given-names: "P."
+    title: "Cycle-life model for graphite-LiFePO4 cells"
+    journal: "Journal of Power Sources"
+    volume: 196
+    issue: 8
+    year: 2011
+    start: 3942
+    end: 3948
+    notes: >-
+      The sublinear power-law capacity-fade form and the exponent z = 0.55 used
+      as the declared physics-shaped baseline. Fitted there against charge
+      throughput at controlled temperature; used here against calendar time,
+      which is an assumption stated in the dataset card.
+  - type: article
+    authors:
+      - family-names: Broussely
+        given-names: "M."
+      - family-names: Biensan
+        given-names: "Ph."
+      - family-names: Bonhomme
+        given-names: "F."
+      - family-names: Blanchard
+        given-names: "Ph."
+      - family-names: Herreyre
+        given-names: "S."
+      - family-names: Nechev
+        given-names: "K."
+      - family-names: Staniewicz
+        given-names: "R. J."
+    title: "Main aging mechanisms in Li ion batteries"
+    journal: "Journal of Power Sources"
+    volume: 146
+    issue: "1-2"
+    year: 2005
+    start: 90
+    end: 96
+    notes: >-
+      The diffusion-limited square-root-of-time calendar-fade regime, z = 0.5,
+      which brackets the Wang et al. exponent and sets the lower end of the
+      generator's z range.
+  - type: standard
+    authors:
+      - name: "IEEE"
+    title: >-
+      IEEE Std 1188-2005, IEEE Recommended Practice for Maintenance, Testing,
+      and Replacement of Valve-Regulated Lead-Acid (VRLA) Batteries for
+      Stationary Applications
+    year: 2005
+    notes: >-
+      The 80 per cent of rated capacity end-of-life convention used as the
+      declared limit. Borrowed, not derived; the standard concerns a different
+      cell chemistry and this is stated in the dataset card.
+  - type: article
+    authors:
+      - family-names: Kaplan
+        given-names: "E. L."
+      - family-names: Meier
+        given-names: "P."
+    title: "Nonparametric estimation from incomplete observations"
+    journal: "Journal of the American Statistical Association"
+    volume: 53
+    issue: 282
+    year: 1958
+    start: 457
+    end: 481
+    notes: The product-limit estimator used for the censoring distribution.
+  - type: article
+    authors:
+      - family-names: Graf
+        given-names: "E."
+      - family-names: Schmoor
+        given-names: "C."
+      - family-names: Sauerbrei
+        given-names: "W."
+      - family-names: Schumacher
+        given-names: "M."
+    title: >-
+      Assessment and comparison of prognostic classification schemes for
+      survival data
+    journal: "Statistics in Medicine"
+    volume: 18
+    issue: "17-18"
+    year: 1999
+    start: 2529
+    end: 2545
+    notes: >-
+      Inverse probability of censoring weighting, the scheme used to let
+      right-censored units influence the learned fit instead of being dropped.
+  - type: article
+    authors:
+      - family-names: Koenker
+        given-names: "R."
+      - family-names: Bassett
+        given-names: "G."
+    title: "Regression quantiles"
+    journal: "Econometrica"
+    volume: 46
+    issue: 1
+    year: 1978
+    start: 33
+    end: 50
+    notes: The pinball loss minimised by the quantile gradient boosting models.
+  - type: article
+    authors:
+      - family-names: Friedman
+        given-names: "J. H."
+    title: "Greedy function approximation: a gradient boosting machine"
+    journal: "Annals of Statistics"
+    volume: 29
+    issue: 5
+    year: 2001
+    start: 1189
+    end: 1232
+    notes: The estimator behind sklearn.ensemble.GradientBoostingRegressor.
+  - type: article
+    authors:
+      - family-names: Gneiting
+        given-names: "T."
+      - family-names: Raftery
+        given-names: "A. E."
+    title: "Strictly proper scoring rules, prediction, and estimation"
+    journal: "Journal of the American Statistical Association"
+    volume: 102
+    issue: 477
+    year: 2007
+    start: 359
+    end: 378
+    notes: CRPS and its propriety, which is why it is the headline score here.
+  - type: article
+    authors:
+      - family-names: Laio
+        given-names: "F."
+      - family-names: Tamea
+        given-names: "S."
+    title: >-
+      Verification tools for probabilistic forecasts of continuous hydrological
+      variables
+    journal: "Hydrology and Earth System Sciences"
+    volume: 11
+    issue: 4
+    year: 2007
+    start: 1267
+    end: 1277
+    notes: >-
+      The quantile representation of CRPS as twice the integral of the pinball
+      loss, which is how it is computed here from a finite set of quantiles.
+  - type: article
+    authors:
+      - family-names: Gneiting
+        given-names: "T."
+      - family-names: Balabdaoui
+        given-names: "F."
+      - family-names: Raftery
+        given-names: "A. E."
+    title: "Probabilistic forecasts, calibration and sharpness"
+    journal: "Journal of the Royal Statistical Society Series B"
+    volume: 69
+    issue: 2
+    year: 2007
+    start: 243
+    end: 268
+    notes: >-
+      Probabilistic calibration as uniformity of the probability integral
+      transform, the diagnostic reported separately for complete and censored
+      trajectories.
+  - type: article
+    authors:
+      - family-names: Chernozhukov
+        given-names: "V."
+      - family-names: "Fernandez-Val"
+        given-names: "I."
+      - family-names: Galichon
+        given-names: "A."
+    title: "Quantile and probability curves without crossing"
+    journal: "Econometrica"
+    volume: 78
+    issue: 3
+    year: 2010
+    start: 1093
+    end: 1125
+    notes: >-
+      The rearrangement argument justifying the cumulative maximum applied to
+      independently fitted quantile levels.
+  - type: article
+    authors:
+      - family-names: Buckley
+        given-names: "J."
+      - family-names: James
+        given-names: "I."
+    title: "Linear regression with censored data"
+    journal: "Biometrika"
+    volume: 66
+    issue: 3
+    year: 1979
+    start: 429
+    end: 436
+    notes: >-
+      A better treatment of censored responses than the IPCW used here. Named
+      as a known omission, not implemented.
+  - type: article
+    authors:
+      - family-names: Portnoy
+        given-names: "S."
+    title: "Censored regression quantiles"
+    journal: "Journal of the American Statistical Association"
+    volume: 98
+    issue: 464
+    year: 2003
+    start: 1001
+    end: 1012
+    notes: >-
+      The principled censored quantile regression estimator for exactly this
+      problem. Named as a known omission, not implemented; lifelines and
+      scikit-survival are the libraries that provide this class of estimator.
+  - type: article
+    authors:
+      - family-names: Strobl
+        given-names: "C."
+      - family-names: Boulesteix
+        given-names: "A.-L."
+      - family-names: Zeileis
+        given-names: "A."
+      - family-names: Hothorn
+        given-names: "T."
+    title: "Bias in random forest variable importance measures"
+    journal: "BMC Bioinformatics"
+    volume: 8
+    year: 2007
+    notes: >-
+      Why the impurity-based feature importances reported in the model card
+      carry no conclusion.

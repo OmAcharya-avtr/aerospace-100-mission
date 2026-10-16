@@ -1,0 +1,47 @@
+gap finder uncertainty output
+==============================================================================
+bootstrap replicates: 24   candidate pool: 400
+
+1. bootstrap spread against the size of the executed campaign
+-------------------------------------------------------------
+  n executed   bandwidth     mean sd   median sd
+          20    0.838434    0.144124    0.141873
+          40    0.804936    0.119270    0.114572
+          80    0.772776    0.089001    0.088823
+         160    0.741901    0.069697    0.068436
+         240    0.724415    0.063551    0.062643
+  PASS  mean spread falls from 0.144124 nats at n=20 to 0.063551 at n=240
+  monotone across the five sizes; monotonicity is not claimed, only the end-to-end fall.
+
+2. agreement against whether the candidate's cell is empty
+----------------------------------------------------------
+candidates in an EMPTY grid cell:    153
+candidates in an OCCUPIED grid cell: 247
+group                                 mean agreement    median     n
+candidate in an empty cell                  0.181100    0.0000   153
+candidate in an occupied cell               0.049764    0.0000   247
+  PASS  mean agreement is higher for candidates in empty cells, by +0.131336
+  The grid cell is a coarse ground truth: a candidate can sit in an
+  occupied cell and still be in a thin part of it, which is precisely
+  the case the density model exists to see and the grid cannot.
+
+3. is the agreement number saturated
+------------------------------------
+  fraction of the pool at agreement 1.0:  0.0450
+  fraction of the pool at agreement 0.0:  0.8050
+  fraction strictly between:              0.1500
+  declared sparsity quantile: 0.10, so about 10% of the pool
+  is inside the sparse set in any one resample and a saturated 1.0 for most of
+  the pool would be the warning sign.
+  PASS  fewer than half the pool sits at agreement 1.0
+
+4. the top five proposals, with their uncertainty
+-------------------------------------------------
+  #   log_density       sd  confidence  scenario
+  0      -10.9579   0.0674      1.0000  closing_speed=0.4052 range_at_handover=184.848 target_tumble_rate=4.975 nav_position_error=1.966 lighting=full_sun sensor_mode=camera_only thruster_health=one_failed
+  1      -10.9215   0.0751      1.0000  closing_speed=0.4949 range_at_handover=293.262 target_tumble_rate=0.403 nav_position_error=1.845 lighting=eclipse sensor_mode=camera_only thruster_health=nominal
+  2      -10.8973   0.0689      1.0000  closing_speed=0.4306 range_at_handover=398.681 target_tumble_rate=2.767 nav_position_error=1.845 lighting=eclipse sensor_mode=fused thruster_health=one_degraded
+  3      -10.9191   0.0495      1.0000  closing_speed=0.4564 range_at_handover=396.97 target_tumble_rate=0.546 nav_position_error=1.087 lighting=eclipse sensor_mode=camera_only thruster_health=one_failed
+  4      -10.8231   0.0722      1.0000  closing_speed=0.4854 range_at_handover=289.401 target_tumble_rate=2.687 nav_position_error=1.829 lighting=eclipse sensor_mode=camera_only thruster_health=one_degraded
+
+failures: 0

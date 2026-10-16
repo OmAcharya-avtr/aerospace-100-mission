@@ -1,0 +1,27 @@
+scenariocov environment record
+==============================================================================
+python              3.13.16
+implementation      CPython
+platform            Linux-6.18.44-fc-v139-x86_64-with-glibc2.39
+machine             x86_64
+cpu count           2
+
+installed versus declared
+-------------------------
+package         installed     declared range
+numpy           2.5.0         >=2.3.4,<2.6
+scikit-learn    1.9.0         >=1.8.0,<1.10
+scipy           1.18.0        not declared; pulled in by scikit-learn, never imported by scenariocov
+matplotlib      3.11.2        >=3.10.7,<3.12  [plot, test]
+pytest          9.1.1         >=9.0.1,<9.2  [test]
+hypothesis      6.170.0       >=6.169.3,<6.171  [test]
+ruff            0.17.1        >=0.17.0,<0.18  [test]
+
+serialised artifacts
+--------------------
+None. This package trains a kernel density estimate at call time and
+never writes a model to disk, so no dependency bound here is a
+serialisation-format bound. The scikit-learn ceiling is a numeric
+behaviour bound: KernelDensity bandwidth selection and the value of
+score_samples are not contractually stable across minor releases, and
+the benchmark numbers would move with them.

@@ -1,0 +1,66 @@
+coverage achieved per scenario executed: head to head
+==============================================================================
+start 20 scenarios, +20 from a pool of 200, 60 seeds, paired
+
+metric 1: 2-way combinatorial coverage (headline)
+-------------------------------------------------
+strategy                      final mean        sd       min       max   gain/scen   gain sd  seconds
+uniform_random                  0.943215  0.018598  0.898230  0.977876    0.006549  0.001676     0.00
+greedy_maxmin                   0.951254  0.018781  0.898230  0.982301    0.006951  0.001422     0.03
+learned_gapfinder               0.955457  0.015815  0.920354  0.982301    0.007161  0.001627     1.33
+coverage_greedy_reference       0.993584  0.006010  0.977876  1.000000    0.009067  0.001629     0.67
+
+left - right                                         mean         sd   W   T   L  separated
+learned_gapfinder - greedy_maxmin               +0.004204   0.015119  30  10  20  NO
+learned_gapfinder - uniform_random              +0.012242   0.019199  41   6  13  NO
+greedy_maxmin - uniform_random                  +0.008038   0.020650  39   8  13  NO
+coverage_greedy_reference - learned_gapfinder   +0.038127   0.014868  60   0   0  yes
+
+metric 2: grid occupancy over the continuous parameters
+-------------------------------------------------------
+strategy                      final mean        sd       min       max   gain/scen   gain sd  seconds
+uniform_random                  0.219329  0.014706  0.187500  0.250000    0.004583  0.000720     0.00
+greedy_maxmin                   0.217477  0.016646  0.180556  0.256944    0.004491  0.000711     0.04
+learned_gapfinder               0.218056  0.012926  0.194444  0.243056    0.004520  0.000517     1.38
+coverage_greedy_reference       0.238310  0.012429  0.208333  0.270833    0.005532  0.000575     0.75
+
+left - right                                         mean         sd   W   T   L  separated
+learned_gapfinder - greedy_maxmin               +0.000579   0.013669  23  10  27  NO
+learned_gapfinder - uniform_random              -0.001273   0.017177  25   5  30  NO
+coverage_greedy_reference - learned_gapfinder   +0.020255   0.016488  52   6   2  yes
+
+batch-rule ablation for the learned gap finder, 2-way metric
+------------------------------------------------------------
+Three batch rules for the same density model, measured on the same
+seeds, so that the shipped default is a measured choice rather than an
+unexamined one. greedy_maxmin is repeated as the reference line.
+strategy                      final mean        sd       min       max   gain/scen   gain sd  seconds
+learned_refit_plus_separation    0.955457  0.015815  0.920354  0.982301    0.007161  0.001627     1.73
+learned_separation_only         0.934956  0.019006  0.880531  0.969027    0.006136  0.001479     0.13
+learned_lowest_density_block    0.933628  0.020104  0.876106  0.969027    0.006069  0.001560     0.09
+greedy_maxmin                   0.951254  0.018781  0.898230  0.982301    0.006951  0.001422     0.04
+The shipped default is learned_refit_plus_separation. The other two
+rows are not shipped; they are here because a batch rule that simply
+takes the lowest-density candidates crowds one corner, and the size of
+that effect is the reason the default is what it is.
+
+what this experiment supports
+-----------------------------
+1. The coverage-greedy reference reaches 0.993584 against 0.955457 for the
+   learned gap finder, ahead on every one of the 60 seeds. If 2-way coverage
+   is what you want, greedily maximising 2-way coverage is what to do, and no
+   model is needed for it.
+2. The learned gap finder and greedy max-min differ by +0.004204 in mean final
+   coverage, with a paired standard deviation of 0.015119, and the learned model
+   loses on 20 of 60 seeds. This experiment does NOT separate them.
+3. On the occupancy metric the learned gap finder is -0.001273 against uniform
+   random, losing on 30 of 60 seeds. On the metric closest to what the
+   density model sees, it does not beat the null strategy.
+4. Both non-trivial strategies beat uniform random (0.943215) on the
+   2-way metric: max-min at 0.951254 and the learned model at 0.955457.
+5. Cost: the learned gap finder spent 1.33 s against 0.03 s for
+   greedy max-min on the same work, a factor of 40, for a difference this
+   experiment cannot establish the sign of.
+
+wall clock for this script: 7.4 s
+failures: 0 (this script measures; it does not assert)

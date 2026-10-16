@@ -1,0 +1,56 @@
+# A small, internally consistent specification. Every check passes and
+# `python -m watchdogspec check` exits 0 on it.
+#
+# Consistent means only that the declared numbers do not contradict each
+# other. It is not a measurement of any system and it is not evidence that
+# a real supervisor behaves this way.
+spec_version: 1
+system: "minimal two-task supervision example"
+notes: >-
+  Hand-written for the test suite and the README first-run block. The numbers
+  are illustrative and are not taken from any vehicle.
+
+supervisor:
+  name: "example-supervisor"
+  poll_period_ms: 5.0
+  poll_jitter_ms: 1.0
+  declaration_overhead_ms: 0.5
+
+ladders:
+  - id: LADDER-STD
+    description: "log, then restart the task, then enter safe mode, then reset"
+    rungs:
+      - action: log
+        latency_ms: 2.0
+        recovery_cost: 0.1
+        note: "write a fault record; changes nothing"
+      - action: restart_task
+        latency_ms: 40.0
+        recovery_cost: 5.0
+      - action: safe_mode
+        latency_ms: 120.0
+        recovery_cost: 40.0
+      - action: reset
+        latency_ms: 300.0
+        recovery_cost: 250.0
+
+tasks:
+  - id: TASK-CTRL
+    name: "attitude control loop"
+    heartbeat_period_ms: 20.0
+    heartbeat_jitter_ms: 3.0
+    jitter_sigma_ms: 0.6
+    missed_beats_tolerated: 2
+    liveness_deadline_ms: 800.0
+    escalation: LADDER-STD
+    false_trip_budget_per_hour: 0.01
+
+  - id: TASK-HK
+    name: "housekeeping"
+    heartbeat_period_ms: 200.0
+    heartbeat_jitter_ms: 20.0
+    jitter_sigma_ms: 5.0
+    missed_beats_tolerated: 1
+    liveness_deadline_ms: 2000.0
+    escalation: LADDER-STD
+    false_trip_budget_per_hour: 0.5

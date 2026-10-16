@@ -1,0 +1,39 @@
+shipped-file ignore check
+==============================================================================
+product root: P069
+files checked: 71
+
+git check-ignore -v, every shipped file
+---------------------------------------
+  71 of 71 paths are NOT ignored
+
+the patterns that are deliberately unanchored
+---------------------------------------------
+  not ignored  fixtures/junit.xml
+      .gitignore:60:!products/*/fixtures/**/junit.xml	fixtures/junit.xml
+  ignored      src/scenariocov/__pycache__/space.cpython-313.pyc
+      products/P069/.gitignore:30:__pycache__/	src/scenariocov/__pycache__/space.cpython-313.pyc
+  ignored      .hypothesis/unicode_data/x
+      products/P069/.gitignore:33:.hypothesis/	.hypothesis/unicode_data/x
+  ignored      junit.xml
+      products/P069/.gitignore:11:/junit.xml	junit.xml
+  not ignored  validation/validate_benchmark_output.txt
+  not ignored  fixtures/campaign_executed.json
+  fixtures/junit.xml is NOT ignored: this product anchors its own pattern
+  as /junit.xml, and the repository root additionally carries an explicit
+  negation for products/*/fixtures/**/junit.xml. That path is the exact
+  defect this check exists for, and the line above shows the negation
+  being read rather than the exit status being trusted. The cache
+  patterns are deliberately unanchored and match at any depth.
+
+committed fixture sizes
+-----------------------
+  campaign_executed.json                 54203 bytes  ok
+  candidate_pool.json                    90443 bytes  ok
+  classes.json                            3045 bytes  ok
+  generation_parameters.json               721 bytes  ok
+  regenerate_fixtures.py                 13265 bytes  ok
+  space.json                              1616 bytes  ok
+  total                                 163293 bytes
+
+failures: 0

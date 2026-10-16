@@ -1,0 +1,86 @@
+watchdogspec validation: command line exit-code contract
+
+  exit 0  internally consistent, or an informational subcommand
+  exit 1  at least one error finding (or any finding with --strict)
+  exit 2  the specification could not be read or parsed, or bad arguments
+
+  expected  actual  case
+         0       0  consistent specification
+         0       0  consistent specification, strict
+         0       0  consistent, json
+         0       0  consistent, markdown
+         1       1  planted fixture, 7 errors
+         1       1  planted fixture, strict
+         1       1  planted fixture, json
+         1       1  worked example, 1 error
+         1       1  worked example, strict
+         0       0  tolerance swallows the overrun
+         1       1  default tolerance does not
+         0       0  timing table only
+         0       0  timing table of the planted fixture
+         0       0  mermaid flowchart
+         0       0  check catalogue
+         0       0  simulation agrees
+         0       0  simulation of one task
+         2       2  missing file
+         2       2  a directory, not a file
+         2       2  unknown task
+         2       2  zero seeds
+         2       2  no subcommand
+         2       2  unknown subcommand
+         2       2  unknown format
+         0       0  help for check
+         0       0  help
+
+  subprocesses run       : 26
+  exit-code mismatches   : 0
+  [PASS] every exit code matched the documented contract
+
+  quoted output fragments, re-run here so the README cannot drift
+    | 
+    | verdict
+    |   0 error, 0 warning finding(s)
+    |   declaration verdict: CONSISTENT. Exit code 0.
+    | 
+    |   A consistent verdict means the declared numbers do not contradict each other. It is not a measurement of any running system, and it is not evidence that the declaration matches one.
+  [PASS] the consistent specification prints a CONSISTENT verdict
+
+    |   WS003  error   task TASK-FDIR cannot reach rung 4 ('reset') of ladder LADDER-FULL within its liveness deadline: worst case 1078.5 ms against 500 ms; deepest rung reachable is 1
+    |   WS005  warning task TASK-TLM false-trip rate 89.1155 per hour exceeds its declared budget of 1 per hour (jitter sigma 90 ms, trip threshold 250 ms, 1.964 sigma of the gap)
+    |   WS003    1  escalation ladder cannot reach its final rung in time
+    |   WS005    1  false-trip rate exceeds the declared budget
+  [PASS] the worked example prints WS003 and WS005
+
+  the simulate subcommand over the worked example
+    | TASK-FDIR
+    |   closed form WCDL        : 466.500000000 ms
+    |   adversarial simulation  : 466.500000000 ms
+    |   difference              : -4.547e-13 ms
+    |   stochastic max over 2000 trials: 466.230971262 ms
+    |   bound violations        : 0
+    | TASK-GNC
+    |   closed form WCDL        : 75.500000000 ms
+    |   adversarial simulation  : 75.500000000 ms
+    |   difference              : -1.137e-13 ms
+    |   stochastic max over 2000 trials: 75.230971262 ms
+    |   bound violations        : 0
+    | TASK-IMU
+    |   closed form WCDL        : 18.500000000 ms
+    |   adversarial simulation  : 18.500000000 ms
+    |   difference              : -4.263e-14 ms
+    |   stochastic max over 2000 trials: 18.230971262 ms
+    |   bound violations        : 0
+    | TASK-TLM
+    |   closed form WCDL        : 1256.500000000 ms
+    |   adversarial simulation  : 1256.500000000 ms
+    |   difference              : -3.638e-12 ms
+    |   stochastic max over 2000 trials: 1256.230971262 ms
+    |   bound violations        : 0
+  [PASS] the simulate subcommand exits 0
+  [PASS] no bound violation was reported
+
+  gitignore check on every file this product is supposed to ship
+    files that must be committed : 65
+  [PASS] no file this product ships is excluded by a gitignore pattern  0 ignored
+
+RESULT: every check in this script passed

@@ -1,0 +1,78 @@
+validate_physics.py -- power-law capacity-fade baseline
+python           : 3.13.16
+numpy            : 2.5.4
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+cpu cores        : 2
+seed             : 20261016
+declared exponent: z = 0.55  (Wang et al. 2011, J. Power Sources 196(8):3942-3948)
+profiling grid   : [0.35 0.4  0.45 0.5  0.55 0.6  0.65 0.7  0.75 0.8  0.85 0.9 ]
+
+==============================================================================
+1. recovery when the exponent is correct
+==============================================================================
+Mean curve y = 100 (1 - B t**z) with B solved to put the crossing of 80
+percent at a declared time. Noise is additive Gaussian at 1e-6 percent,
+so what is measured is the algebra, not the statistics.
+
+     z  crossing truth d    estimate d     rel err    C0 est         B est       B truth
+  0.45             600.0       600.000    4.42e-08  100.0000  1.124247e-02  1.124248e-02
+  0.45            1500.0      1500.000    1.08e-07  100.0000  7.443702e-03  7.443701e-03
+  0.50             600.0       600.000    5.05e-08  100.0000  8.164966e-03  8.164966e-03
+  0.50            1500.0      1500.000    1.45e-08  100.0000  5.163978e-03  5.163978e-03
+  0.55             600.0       600.000    5.52e-09  100.0000  5.929892e-03  5.929892e-03
+  0.55            1500.0      1500.000    7.60e-09  100.0000  3.582447e-03  3.582447e-03
+  0.65             600.0       600.000    8.57e-09  100.0000  3.127747e-03  3.127747e-03
+  0.65            1500.0      1500.000    9.52e-08  100.0000  1.724132e-03  1.724133e-03
+
+worst relative crossing error with the correct exponent: 1.076e-07
+PASS
+
+==============================================================================
+2. the cost of holding z fixed when the truth is different
+==============================================================================
+Mean curve generated at z_true, fitted at z = 0.55. Noise 0.3 percent,
+600 replicates per row. 'cov' is the fraction of replicates whose 90
+percent Fieller interval contains the true crossing; the interval knows
+nothing about z being wrong, so it cannot be expected to cover.
+
+  z true   truth d   mean est d     bias d   rel bias  mean width d     cov
+    0.45    1200.0      1019.07    -180.93    -0.1508         62.07  0.0000
+    0.50    1200.0      1106.51     -93.49    -0.0779         60.16  0.0000
+    0.55    1200.0      1199.82      -0.18    -0.0002         66.18  0.8933
+    0.60    1200.0      1302.47     102.47     0.0854         77.81  0.0000
+    0.65    1200.0      1417.65     217.65     0.1814         95.55  0.0000
+
+The interval width is of order tens of days while the bias from a
+0.05 error in z is of order hundreds. A declared exponent that is
+slightly wrong therefore produces a confident and wrong date, and the
+reported interval gives no warning. This is the single most important
+limitation of the physics-shaped baseline and it is why the shipped
+benchmark measures the model on a population whose z varies.
+
+==============================================================================
+3. profiling z over the grid
+==============================================================================
+Same generator, 400 replicates per row, z profiled by residual sum of
+squares over the declared grid against z held at 0.55.
+
+  z true  fixed bias d  profiled bias d  fixed |bias|  profiled |bias|  mode z
+    0.45       -181.26            -4.51        181.26            28.26    0.45
+    0.50        -95.96            -0.57         95.96            35.08    0.50
+    0.55         -0.91            -2.29         16.10            37.48    0.55
+    0.65        217.37             0.33        217.37            41.84    0.65
+
+Profiling reduces the bias where z is badly wrong and costs accuracy
+where it is right, because the selected exponent is itself noisy. The
+interval returned after profiling is conditional on the selected z and
+does not include the selection, so it is narrower than it should be.
+The shipped default is the fixed, cited exponent.
+
+==============================================================================
+summary
+==============================================================================
+recovery with the correct exponent, worst relative error : 1.076e-07
+bias at z_true = 0.45, z fitted 0.55                     : -180.9 d on a 1200 d crossing
+bias at z_true = 0.65, z fitted 0.55                     : +217.6 d on a 1200 d crossing
+Fieller coverage at z_true = 0.45                        : 0.0000 (nominal 0.90)
+Fieller coverage at z_true = 0.55 (correct)              : 0.8933

@@ -1,0 +1,83 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "budgetroll"
+version = "0.1.0"
+description = "Hierarchical margin and budget rollup that is explicit about how uncertainties combine"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Om Acharya" }]
+keywords = [
+  "margin",
+  "budget",
+  "mass budget",
+  "power budget",
+  "link budget",
+  "uncertainty propagation",
+  "systems engineering",
+  "aerospace",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+]
+
+# Every range below is bounded on BOTH sides, and the whole test suite plus
+# every validation script was run at BOTH ends of every range in this
+# repository. The two measured configurations and the diff of the committed
+# validation output between them are in validation/VALIDATION.md section 8.
+#
+# The ceilings are a real cost rather than free safety: this package cannot
+# take a future major of NumPy or PyYAML without a port and a
+# re-measurement. That tension is recorded in README.md under Limitations.
+# It is not resolved by removing the ceiling.
+dependencies = [
+  "numpy>=2.3.4,<2.6",
+  "pyyaml>=6.0.1,<6.1",
+]
+
+[project.optional-dependencies]
+plot = ["matplotlib>=3.10.0,<3.12"]
+test = [
+  "pytest>=8.3.5,<9.2",
+  "hypothesis>=6.100.0,<6.171",
+  "matplotlib>=3.10.0,<3.12",
+  "ruff>=0.16.8,<0.17",
+]
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/budgetroll"
+Source = "https://github.com/OmAcharya-avtr/budgetroll"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+junit_family = "xunit1"
+filterwarnings = [
+  "error::DeprecationWarning",
+  "error::PendingDeprecationWarning",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "C4", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]

@@ -1,0 +1,56 @@
+budgetroll validation: the ten checks
+========================================================================
+Educational-grade (validation level 1). Not flight-qualified, not certified,
+not approved for operational aerospace use. A clean run means a declaration
+is arithmetically consistent with its own stated assumptions; it is not a
+statement that any estimate is good or any margin adequate.
+
+1. Each check raised and then silenced
+   BR001  RSS node whose descendants carry a declared non-zero correlation
+  [PASS] BR001 fires on the triggering declaration
+  [PASS] BR001 is silent on the corrected declaration
+   BR002  hierarchical uncertainty diverges from the exact correlated form
+  [PASS] BR002 fires on the triggering declaration
+  [PASS] BR002 is silent on the corrected declaration
+   BR003  allocation exceeded, or met exactly to within rounding
+  [PASS] BR003 fires on the triggering declaration
+  [PASS] BR003 is silent on the corrected declaration
+   BR004  margin positive deterministically but negative at k sigma
+  [PASS] BR004 fires on the triggering declaration
+  [PASS] BR004 is silent on the corrected declaration
+   BR005  explicit contingency override diverges from the declared policy
+  [PASS] BR005 fires on the triggering declaration
+  [PASS] BR005 is silent on the corrected declaration
+   BR006  item with zero uncertainty at a maturity that is not the most mature
+  [PASS] BR006 fires on the triggering declaration
+  [PASS] BR006 is silent on the corrected declaration
+   BR007  combination rule declared on a node with a single child has no effect
+  [PASS] BR007 fires on the triggering declaration
+  [PASS] BR007 is silent on the corrected declaration
+   BR008  declared correlation matrix is not positive semi-definite
+  [PASS] BR008 fires on the triggering declaration
+  [PASS] BR008 is silent on the corrected declaration
+   BR009  node declares 'correlated' but no correlation applies to it
+  [PASS] BR009 fires on the triggering declaration
+  [PASS] BR009 is silent on the corrected declaration
+   BR010  items share a common driver and no correlation is declared between them
+  [PASS] BR010 fires on the triggering declaration
+  [PASS] BR010 is silent on the corrected declaration
+
+2. Findings on every shipped case
+   case                        error  warning  info  blocking
+   ----------------------------------------------------------
+   clean_mass.yaml                 0        0     0        no
+  [PASS] clean_mass.yaml counts are as recorded  {'error': 0, 'warning': 0, 'info': 0}
+   planted_findings.yaml           6        4     2       yes
+  [PASS] planted_findings.yaml counts are as recorded  {'error': 6, 'warning': 4, 'info': 2}
+   cubesat_power.yaml              4        2     3       yes
+  [PASS] cubesat_power.yaml counts are as recorded  {'error': 4, 'warning': 2, 'info': 3}
+   cubesat_link.yaml               0        0     2        no
+  [PASS] cubesat_link.yaml counts are as recorded  {'error': 0, 'warning': 0, 'info': 2}
+
+3. Every code has a description and the set is exactly BR001 to BR010
+  [PASS] ten codes, BR001 to BR010  ['BR001', 'BR002', 'BR003', 'BR004', 'BR005', 'BR006', 'BR007', 'BR008', 'BR009', 'BR010']
+  [PASS] every code carries a non-empty description
+
+RESULT: every check in this script passed

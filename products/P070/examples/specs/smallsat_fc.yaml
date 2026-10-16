@@ -1,0 +1,110 @@
+# Worked example: supervision of a small-satellite flight computer.
+#
+# This specification is HAND-WRITTEN for this repository. It is a plausible
+# shape for such a declaration and it is not taken from any flown vehicle,
+# any vendor document or any standard. Treat every number in it as
+# illustrative. What is real about it is the arithmetic the package does to
+# it, and the two findings it ships with.
+#
+# It is published with those findings in place rather than tuned until the
+# tool is silent:
+#   WS003 on TASK-FDIR  -- detection fits inside the deadline, but only the
+#                          first rung of the ladder does; a restart already
+#                          overruns it.
+#   WS005 on TASK-TLM   -- a telemetry heartbeat that tolerates no missed
+#                          beat, with a jitter standard deviation large
+#                          against its declared bound, trips spuriously far
+#                          more often than its declared budget.
+spec_version: 1
+system: "small-satellite flight computer supervision"
+notes: >-
+  Four supervised tasks against one supervisor task running at 200 Hz. Times
+  in milliseconds, costs in dimensionless declared units where 1 unit is
+  taken to be one lost science frame.
+
+supervisor:
+  name: "fc-supervisor"
+  poll_period_ms: 5.0
+  poll_jitter_ms: 1.0
+  declaration_overhead_ms: 0.5
+
+ladders:
+  - id: LADDER-FULL
+    description: "the full ladder: log, restart the task, safe mode, cold reset"
+    rungs:
+      - action: log
+        latency_ms: 2.0
+        recovery_cost: 0.1
+        note: "append a fault record to the event log"
+      - action: restart_task
+        latency_ms: 60.0
+        recovery_cost: 5.0
+        note: "kill and re-create the task, including its confirmation timeout"
+      - action: safe_mode
+        latency_ms: 150.0
+        recovery_cost: 40.0
+        note: "sun-pointing safe mode, payload off"
+      - action: reset
+        latency_ms: 400.0
+        recovery_cost: 250.0
+        note: "cold reset of the flight computer"
+
+  - id: LADDER-FAST
+    description: "short ladder for tasks whose deadline cannot absorb a reset"
+    rungs:
+      - action: log
+        latency_ms: 1.0
+        recovery_cost: 0.1
+      - action: restart_task
+        latency_ms: 25.0
+        recovery_cost: 4.0
+      - action: safe_mode
+        latency_ms: 90.0
+        recovery_cost: 40.0
+
+tasks:
+  - id: TASK-GNC
+    name: "guidance, navigation and control loop at 50 Hz"
+    heartbeat_period_ms: 20.0
+    heartbeat_jitter_ms: 3.0
+    jitter_sigma_ms: 0.9
+    missed_beats_tolerated: 2
+    liveness_deadline_ms: 800.0
+    escalation: LADDER-FULL
+    false_trip_budget_per_hour: 0.01
+
+  - id: TASK-IMU
+    name: "inertial measurement unit driver at 200 Hz"
+    heartbeat_period_ms: 5.0
+    heartbeat_jitter_ms: 1.0
+    jitter_sigma_ms: 0.35
+    missed_beats_tolerated: 1
+    liveness_deadline_ms: 300.0
+    escalation: LADDER-FAST
+    false_trip_budget_per_hour: 0.05
+
+  - id: TASK-TLM
+    name: "telemetry downlink framer at 1 Hz"
+    heartbeat_period_ms: 1000.0
+    heartbeat_jitter_ms: 250.0
+    jitter_sigma_ms: 90.0
+    missed_beats_tolerated: 0
+    liveness_deadline_ms: 4000.0
+    escalation: LADDER-FAST
+    false_trip_budget_per_hour: 1.0
+    note: >-
+      Tolerates no missed beat so that a stalled downlink is caught within one
+      frame. The declared jitter statistics say what that costs.
+
+  - id: TASK-FDIR
+    name: "fault detection, isolation and recovery monitor at 10 Hz"
+    heartbeat_period_ms: 100.0
+    heartbeat_jitter_ms: 15.0
+    jitter_sigma_ms: 4.0
+    missed_beats_tolerated: 3
+    liveness_deadline_ms: 500.0
+    escalation: LADDER-FULL
+    false_trip_budget_per_hour: 0.1
+    note: >-
+      The deadline is the one the FDIR monitor is itself declared to protect.
+      Detection fits inside it; the ladder does not.

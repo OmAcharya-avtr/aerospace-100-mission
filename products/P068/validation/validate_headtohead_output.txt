@@ -1,0 +1,180 @@
+validate_headtohead.py -- learned forecaster against the analytic baselines
+python           : 3.13.16
+numpy            : 2.5.4
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+cpu cores        : 2
+train            : 1200 trajectories, seed 20261016
+test             : 400 trajectories, seed 20261017 (disjoint seed, no unit is shared)
+nominal level    : 0.9
+limit            : 80.0 percent of BOL capacity
+
+==============================================================================
+0. the populations
+==============================================================================
+train  n=1200  complete=502  censored=698  censored fraction=0.5817
+       families {'linear': 377, 'exponential': 329, 'powerlaw': 494}
+       median observed duration 435.6 d, median complete 389.2 d, median censoring time 501.8 d
+test   n=400  complete=173  censored=227  censored fraction=0.5675
+       families {'linear': 124, 'exponential': 119, 'powerlaw': 157}
+       median observed duration 430.3 d, median complete 402.0 d, median censoring time 492.5 d
+test true remaining life, median complete 402.0 d, median censored 1126.2 d
+the censored units are the long-lived ones; that is what makes a pooled
+score a weighted average of two different problems.
+
+==============================================================================
+1. head to head, complete and censored reported separately
+==============================================================================
+model                    cov cmpl  cov cens  cov pool  CRPS cmpl  CRPS cens  pin cmpl  pin cens   fb
+----------------------------------------------------------------------------------------------------
+linear                     0.3237    0.3128    0.3175     104.17     368.79     50.82    178.96    3
+exponential                0.3179    0.3392    0.3300      90.74     346.37     44.09    166.72    1
+powerlaw-fade              0.0636    0.0793    0.0725     368.84    2373.34    177.96   1109.39    0
+learned-ipcw               0.7630    0.3348    0.5200      30.80     435.56     14.00    212.57    0
+learned-complete-case      0.7514    0.3172    0.5050      27.05     461.05     11.89    224.26    0
+
+nominal coverage is 0.90. 'fb' is the number of test units for which
+the model could not fit and the declared uninformative fallback was used.
+
+==============================================================================
+2. who wins what
+==============================================================================
+CRPS on complete trajectories            winner: learned-complete-case  (27.05 d)
+                                         order : learned-complete-case < learned-ipcw < exponential < linear < powerlaw-fade
+CRPS on right-censored trajectories      winner: exponential            (346.37 d)
+                                         order : exponential < linear < learned-ipcw < learned-complete-case < powerlaw-fade
+pinball on complete trajectories         winner: learned-complete-case  (11.89 d)
+                                         order : learned-complete-case < learned-ipcw < exponential < linear < powerlaw-fade
+pinball on right-censored trajectories   winner: exponential            (166.72 d)
+                                         order : exponential < linear < learned-ipcw < learned-complete-case < powerlaw-fade
+
+absolute complete-minus-censored coverage gap, per model:
+  linear                  0.0109
+  exponential             0.0213
+  powerlaw-fade           0.0157
+  learned-ipcw            0.4282
+  learned-complete-case   0.4343
+
+READ THIS BEFORE QUOTING A SINGLE NUMBER. The learned forecaster wins on
+complete trajectories and LOSES to an analytic baseline on the censored
+ones, which are the majority of the population. A pooled score would
+have reported one winner for a comparison that has two answers.
+
+==============================================================================
+3. the field-measurable part of censored non-coverage
+==============================================================================
+For a censored unit all that is known at analysis time is that the
+remaining life exceeds the follow-up. An interval whose upper endpoint
+is below that follow-up is refuted without waiting. The falsification
+rate is a strict lower bound on censored non-coverage and is the only
+part of it a deployment can measure.
+
+model                     falsified  true non-cov     ratio
+linear                       0.2203        0.6872    0.3205
+exponential                  0.1762        0.6608    0.2667
+powerlaw-fade                0.0088        0.9207    0.0096
+learned-ipcw                 0.0396        0.6652    0.0596
+learned-complete-case        0.0529        0.6828    0.0774
+
+A deployment that only checked falsification would see a small fraction
+of the censored failures. The rest is invisible until the units cross.
+
+==============================================================================
+4. per-shape-family breakdown of the analytic baselines
+==============================================================================
+Each baseline is near its nominal coverage on the family it is correctly
+specified for and collapses off it. This is the whole reason the learned
+model has anything to add, and the reason the pooled baseline numbers
+look as bad as they do.
+
+baseline        family            n  coverage      CRPS d  median |err| d
+linear          linear          124    0.8629       46.20           15.53
+linear          exponential     119    0.1513       86.20           69.54
+linear          powerlaw        157    0.0127      546.18          409.46
+exponential     linear          124    0.1855      106.81           69.22
+exponential     exponential     119    0.9076       26.43           12.40
+exponential     powerlaw        157    0.0064      496.40          368.53
+powerlaw-fade   linear          124    0.0000     2849.00         1382.48
+powerlaw-fade   exponential     119    0.0000     1911.48         1081.54
+powerlaw-fade   powerlaw        157    0.1847      138.95           82.68
+
+==============================================================================
+5. inverse probability of censoring weighting: does it do anything
+==============================================================================
+quantity                              complete-case        IPCW      change
+coverage, complete                           0.7514      0.7630     +0.0116
+coverage, censored                           0.3172      0.3348     +0.0176
+CRPS, complete [d]                          27.0542     30.7972     +3.7430
+CRPS, censored [d]                         461.0455    435.5584    -25.4872
+mean PIT, censored                           0.8043      0.7675     -0.0367
+median true censored life [d]             1126.1599   1126.1599     +0.0000
+
+IPCW re-weights the uncensored training units by the reciprocal of their
+probability of having been followed long enough to be observed, so the
+long-lived units carry more of the fit. It moves the censored numbers in
+the right direction and costs accuracy on the complete ones. It does not
+close the gap: the censored coverage remains far below nominal.
+
+==============================================================================
+6. sensitivity to the IPCW weight cap
+==============================================================================
+The cap is a declared constant, not an optimum. 300 trees, same seed.
+
+    cap   max weight  cov cmpl  cov cens  CRPS cmpl  CRPS cens
+      3       3.0000    0.7572    0.3040      29.46     452.40
+      5       5.0000    0.7746    0.3348      29.68     448.09
+     20      14.0027    0.7630    0.3348      30.80     435.56
+
+The censoring distribution here has a bounded support, so the estimated
+G stays away from zero and the cap binds only at the smallest values.
+On a fleet with heavier censoring the cap would matter more.
+
+==============================================================================
+7. sensitivity of CRPS to the quadrature grid
+==============================================================================
+CRPS is computed as twice the mean pinball loss over a probability grid.
+The shipped grid is the 199-point midpoint rule; 999 points is the check.
+
+model                      CRPS 199    CRPS 999    abs diff    rel diff
+linear                     254.3419    254.3308   1.102e-02   4.333e-05
+exponential                235.8097    235.7991   1.063e-02   4.507e-05
+powerlaw-fade             1506.3924   1506.2333   1.591e-01   1.056e-04
+learned-ipcw               260.4992    260.4984   7.530e-04   2.890e-06
+learned-complete-case      273.3443    273.3436   7.235e-04   2.647e-06
+
+The grid choice does not change any ranking in this report.
+
+==============================================================================
+8. stability over independent train/test seeds
+==============================================================================
+Three disjoint seed pairs, full pipeline each time. The spread is what a
+single-seed number is worth.
+
+model                    cov cmpl mean      sd  cov cens mean      sd  CRPS cens mean       sd
+linear                          0.3009  0.0307         0.2892  0.0167          381.65     9.66
+exponential                     0.2752  0.0377         0.3611  0.0253          354.71     8.34
+powerlaw-fade                   0.0769  0.0107         0.1024  0.0203         2385.22    14.18
+learned-ipcw                    0.8095  0.0344         0.3324  0.0034          436.85     0.93
+learned-complete-case           0.7698  0.0325         0.3122  0.0074          460.83     8.24
+
+lowest censored CRPS by seed pair: ['exponential', 'exponential', 'exponential']
+
+==============================================================================
+9. compute
+==============================================================================
+cores available                     : 2
+linear                  predict    0.05 s
+exponential             predict    0.04 s
+powerlaw-fade           predict    0.05 s
+learned-ipcw            predict    0.08 s, fit    6.44 s
+learned-complete-case   predict    0.07 s, fit    6.32 s
+whole script                        : 77.3 s (budget 180 s: PASS)
+
+==============================================================================
+summary
+==============================================================================
+learned-ipcw coverage, complete / censored : 0.7630 / 0.3348 (nominal 0.90)
+learned-ipcw pooled coverage               : 0.5200 -- matches neither half
+CRPS on complete, learned vs best baseline : 30.80 d vs 90.74 d
+CRPS on censored, learned vs best baseline : 435.56 d vs 346.37 d
+THE EXPONENTIAL BASELINE WINS ON THE CENSORED TRAJECTORIES.

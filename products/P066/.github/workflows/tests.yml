@@ -1,0 +1,45 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[test]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        env:
+          MPLBACKEND: Agg
+        run: python -m pytest tests/ -q --junitxml=junit.xml
+      - name: CLI smoke test
+        run: python -m budgetroll codes
+      - name: The clean case must exit 0
+        run: python -m budgetroll check examples/cases/clean_mass.yaml
+      - name: The link degradation budget must exit 0
+        run: python -m budgetroll check examples/cases/cubesat_link.yaml
+      - name: The planted case must exit 1, because its defects are real
+        run: |
+          if python -m budgetroll check examples/cases/planted_findings.yaml; then
+            echo "expected a non-zero exit from the planted case"
+            exit 1
+          fi
+      - name: The power budget must exit 1, because its RSS assumption is contradicted
+        run: |
+          if python -m budgetroll check examples/cases/cubesat_power.yaml; then
+            echo "expected a non-zero exit from the power budget"
+            exit 1
+          fi

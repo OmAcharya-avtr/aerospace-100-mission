@@ -1,0 +1,79 @@
+==============================================================================
+acqsearch policy head-to-head on held-out scenarios
+==============================================================================
+scenarios 300   train 195   held out 105
+scenario seed 20261016   evaluation seed 20261017   target draws per held-out scenario 8
+training rows 12000 x 14 features (rollout 6.4 s, fit 16.5 s)
+target: remaining time / nominal period, mean 0.6531, max 3.0000
+evaluation 26.7 s, 840 episodes per policy
+
+1. Held-out performance, every policy on identical episodes
+policy                    mean_s   s.e._s  median_s  acquired   dwells
+fixed_spiral              2.1673   0.1437    0.7936    0.9881     45.2
+bayesian_greedy           2.1769   0.1492    0.7467    0.9893     45.0
+learned                   2.5128   0.1600    1.0970    0.9810     47.5
+fixed_raster              3.9036   0.2311    1.5647    0.9821     66.8
+fixed_lissajous           4.5186   0.2908    1.9007    0.9702     71.6
+fixed_random_restart      5.1877   0.2712    2.9111    0.8798     53.8
+
+winner by mean censored time: fixed_spiral
+
+2. Paired differences on identical episodes (negative favours the first)
+comparison                                    mean diff_s    s.e._s       z
+learned - bayesian_greedy                         +0.3359    0.0446   +7.53
+learned - fixed_spiral                            +0.3455    0.0531   +6.51
+bayesian_greedy - fixed_spiral                    +0.0097    0.0244   +0.40
+bayesian_greedy - fixed_raster                    -1.7267    0.1737   -9.94
+fixed_spiral - fixed_raster                       -1.7363    0.1699  -10.22
+fixed_spiral - fixed_random_restart               -3.0204    0.2496  -12.10
+
+3. Shortlist ablation for the learned policy
+The learned policy re-ranks the top-k cells by Bayesian-greedy score. k = 89
+is the whole grid, which is the unconstrained learned policy. The model is
+the same fit in every row; only the candidate set at decision time changes,
+so k = 12 matches the behaviour policy that produced the training rows and
+the others do not. That mismatch is part of what the larger k values cost.
+Run on the first 40 held-out scenarios rather than all 105, to keep
+the whole script inside the three-minute compute budget. The two reference
+policies are re-run on the same subset so the column is internally
+comparable; the k = 12 row is therefore not identical to the table above,
+and both are reported rather than one being substituted for the other.
+k = 1 leaves the learned model exactly one candidate, which is the cell
+Bayesian-greedy would have chosen, so that row IS the baseline.
+                policy    mean_s   s.e._s  median_s  acquired
+           learned k=1    1.9532   0.2585    0.6164    0.9938
+           learned k=4    2.0719   0.2568    0.6622    0.9906
+           learned k=8    2.2143   0.2747    0.8727    0.9875
+          learned k=12    2.3858   0.2943    1.0028    0.9875
+          learned k=24    2.8390   0.2861    1.2624    0.8906
+          learned k=89    7.1102   0.8039    3.4508    0.6094
+       bayesian_greedy    1.9560   0.2591    0.5967    0.9938
+          fixed_spiral    1.9036   0.2432    0.6679    0.9906
+
+4. Calibration of the learned policy's prediction interval
+Each held-out decision taken by the learned policy carries a (0.1, 0.9)
+pinball-quantile interval on the remaining time. A calibrated interval
+covers the realised remaining time 80 percent of the time.
+decisions scored                 2006
+empirical interval coverage      0.7353  (nominal 0.8000)
+mean interval width              4.6773 s
+mean reported confidence         0.3156
+
+5. Feature columns used by the learned policy
+   0  posterior
+   1  log_posterior
+   2  detection_probability
+   3  slew_time_ratio
+   4  step_cost_s
+   5  greedy_score_normalised
+   6  greedy_rank_fraction
+   7  cell_radius_fraction
+   8  visit_count
+   9  remaining_posterior
+  10  dwells_elapsed
+  11  neighbour_posterior
+  12  current_radius_fraction
+  13  elapsed_over_period
+feature matrix shape at the first decision of the first held-out scenario: (45, 14)
+==============================================================================
+total wall clock 103.3 s on 2 cores

@@ -1,0 +1,48 @@
+planted-gap detection on the committed campaign
+==============================================================================
+scenarios: 240   parameters: 7   discretised space: 3888 combinations
+
+2-way tuples: G1, G2, G3
+------------------------
+2-way coverage 223/226 = 0.986726
+  PASS  planted and reported: closing_speed=[0.2,0.5] & lighting=eclipse
+  PASS  planted and reported: closing_speed=[0.2,0.5] & range_at_handover=[200,400]
+  PASS  planted and reported: sensor_mode=camera_only & thruster_health=one_failed
+  PASS  no unplanted tuple reported (extra: 0)
+
+equivalence classes: G4
+-----------------------
+class coverage 14/15 = 0.933333
+  PASS  uncovered classes = [('nav_position_error', 'excessive')]
+  note: G4 is invisible to the 2-way report, because nav_position_error
+  values below 1.5 m already occupy the [0.5, 2.0] bin the class sits in.
+
+boundaries: G5, and the near tie the margin exists for
+------------------------------------------------------
+boundary                                hit    n     nearest     tol     margin
+closing_speed/speed_limit_0p20         True    4      0.0003   0.005    +0.0047
+nav_position_error/nav_limit_0p50      True    4       0.005    0.01     +0.005
+target_tumble_rate/tumble_limit_2p0   False    0       0.021    0.02     -0.001
+range_at_handover/handover_200m       False    0       3.586       2     -1.586
+  PASS  G5 detected: nothing within the declared 2.0 m
+  NOTE  tumble_limit_2p0 is a near tie: nearest 0.021 deg/s
+        against a tolerance of 0.02 deg/s, a margin of
+        -0.001 deg/s. This boundary was NOT planted. The hit flag
+        is a strict floating-point comparison one part in twenty from
+        flipping, which is exactly why the margin is reported next to it
+        and why no test in this repository asserts that boolean.
+
+grid occupancy: the G3 region as empty cells
+--------------------------------------------
+grid ('closing_speed', 'range_at_handover', 'target_tumble_rate', 'nav_position_error') shape (4, 4, 3, 3)
+occupied 108/144 = 0.750000
+uniform-random reference, equiprobable cells, Feller eq. (3): 0.812219
+  PASS  the 9 cells of closing_speed bin 3 x range bin 3 are all empty
+  largest empty connected block: 11 cells
+  PASS  all 9 planted cells lie inside that block (9 of 9)
+  the block is 11 cells, not 9, so occupancy ALONE does not
+  isolate the planted region at this campaign size: it reports a larger
+  contiguous untested region of which the planted one is a part. The
+  2-way enumeration is what names the region exactly.
+
+failures: 0

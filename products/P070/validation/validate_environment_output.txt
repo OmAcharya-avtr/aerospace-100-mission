@@ -1,0 +1,42 @@
+watchdogspec validation: environment
+
+  python            : 3.13.16
+  implementation    : CPython
+  platform          : Linux-6.18.44-fc-v139-x86_64-with-glibc2.39
+  machine           : x86_64
+
+  watchdogspec      : 0.1.0
+  numpy             : 2.5.0
+  yaml              : 6.0.3
+  matplotlib        : 3.11.2
+  pytest            : 9.1.1
+  hypothesis        : 6.170.0
+
+  declared ranges (pyproject.toml):
+    numpy       >=2.1.0,<2.6
+    pyyaml      >=6.0.1,<6.1
+    matplotlib  >=3.10.7,<3.12  (plot extra, figures only)
+    pytest      >=8.3.5,<9.2    (test extra)
+    hypothesis  >=6.100.0,<6.171 (test extra)
+    ruff        >=0.16.0,<0.18  (test extra)
+
+  Two floors are set by measurement, not by preference:
+   - matplotlib 3.10.0 fails tests/test_diagram.py here: it calls
+     pyparsing's deprecated oneOf, pyparsing 3.3.3 warns, and
+     [tool.pytest.ini_options] filterwarnings turns a
+     DeprecationWarning into an error. 3.10.7 does not; 3.10.7 is
+     therefore the lowest matplotlib this suite was measured on.
+   - PyYAML 6.0 has no cp313 wheel and its sdist fails to build
+     against Cython 3 on Python 3.13 (build_ext has no attribute
+     cython_sources), so 6.0.1 is the lowest version measurable here.
+
+  simpy is NOT a dependency of this package. The discrete-event
+  simulation in watchdogspec.simulate is written here, in about 150
+  lines, because a cross-check of a closed form should not share a
+  scheduler with anything. simpy is named in the README alternatives
+  table as the thing to use for a simulation of any size.
+
+  [PASS] watchdogspec version is 0.1.0
+  [PASS] python is 3.11 or newer, as pyproject declares  found 3.13.16
+
+RESULT: every check in this script passed

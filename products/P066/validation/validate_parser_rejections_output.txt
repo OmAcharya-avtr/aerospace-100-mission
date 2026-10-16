@@ -1,0 +1,63 @@
+budgetroll validation: parser rejection paths
+========================================================================
+Educational-grade (validation level 1). Not flight-qualified, not certified,
+not approved for operational aerospace use.
+
+The table below is the same parametrisation the test suite uses, in
+tests/test_parse.py, executed here so the count appears in committed
+output rather than only in a test run.
+
+1. 36 schema rejection paths
+   [reject] empty document                   the document is empty
+   [reject] not a mapping                    <document>: expected a mapping, got list
+   [reject] unknown top-level key            <document>: unknown key(s) 'extras'; allowed keys are budget, correlatio
+   [reject] unknown budget key               budget: unknown key(s) 'colour'; allowed keys are id, k_sigma, name, pol
+   [reject] unknown node key                 budget.root: unknown key(s) 'weight'; allowed keys are allocation, child
+   [reject] unknown item key                 budget.root.children[0]: unknown key(s) 'sigma'; allowed keys are common
+   [reject] missing budget id                budget: required key 'id' is missing
+   [reject] missing item value               budget.root.children[0]: required key 'value' is missing
+   [reject] missing policies                 <document>: required key 'policies' is missing
+   [reject] empty policies                   policies: at least one margin policy must be declared
+   [reject] undeclared policy reference      budget.policy references 'q', which is not declared; declared policies a
+   [reject] unknown maturity                 maturity 'mid' is not declared by margin policy 'p'; declared levels are
+   [reject] root is an item                  budget.root: unknown key(s) 'unused'; allowed keys are common_driver, co
+   [reject] empty children list              budget.root.children: expected a non-empty list
+   [reject] children not a list              budget.root.children: expected a non-empty list
+   [reject] non-numeric value                budget.root.children[0].value: expected a number, got 'heavy'
+   [reject] boolean value                    budget.root.children[0].value: expected a number, got True
+   [reject] infinite value                   budget.root.children[0].value: expected a finite number, got inf
+   [reject] nan uncertainty                  budget.root.children[0].uncertainty: expected a finite number, got nan
+   [reject] empty name                       budget.name: expected a non-empty string, got ''
+   [reject] duplicate key in one mapping     duplicate key 'maturity' in one mapping at line 23; a duplicate silently
+   [reject] duplicate identifier             duplicate identifier 'a'; identifiers must be unique across the whole bu
+   [reject] unknown combination              node 'root': combination must be one of linear, rss, correlated; got 'av
+   [reject] negative uncertainty             item 'a': uncertainty is a 1 sigma magnitude and must be >= 0, got -0.1
+   [reject] correlation with one item        correlations[0].items: expected a list of exactly two leaf identifiers, 
+   [reject] correlation with three items     correlations[0].items: expected a list of exactly two leaf identifiers, 
+   [reject] correlation unknown key          correlations[0]: unknown key(s) 'why'; allowed keys are items, rationale
+   [reject] correlation out of range         correlation 'a'-'c': rho must lie in [-1, 1], got 1.5
+   [reject] correlation missing rationale    correlations[0]: required key 'rationale' is missing
+   [reject] dangling correlation             correlation 'a'-'zz' references 'zz', which is not a leaf item of this b
+   [reject] policy level not numeric         policies.p.levels.low: expected a number, got 'small'
+   [reject] policy missing source            policies.p: required key 'source' is missing
+   [reject] policy unknown key               policies.p: unknown key(s) 'author'; allowed keys are description, level
+   [reject] negative k_sigma                 k_sigma must be >= 0, got -2.0
+   [reject] invalid yaml                     the document is not valid YAML: while parsing a flow node
+   [reject] node is not a mapping            budget.root.children[0]: expected a mapping, got int
+
+  [PASS] all 36 malformed documents were rejected  0 accepted
+  [PASS] every rejection message quotes an identifier or names a schema field  0 messages named nothing
+
+2. Three input and output paths
+  [PASS] missing file is rejected with the right message  no such budget declaration: <tmp>/absent.yaml
+  [PASS] a directory is rejected with the right message  <tmp> is a directory, not a budget declaration
+  [PASS] not valid UTF-8 is rejected with the right message  <tmp>/invalid.yaml is not valid UTF-8: 'utf-8' codec can't decode byte 0
+
+3. The minimal valid document still parses, and so does every shipped case
+  [PASS] the minimal document parses
+  [PASS] clean_mass.yaml parses  id clean_mass
+  [PASS] planted_findings.yaml parses  id planted
+  [PASS] cubesat_power.yaml parses  id cubesat_power
+  [PASS] cubesat_link.yaml parses  id cubesat_sband_downlink
+
+RESULT: every check in this script passed

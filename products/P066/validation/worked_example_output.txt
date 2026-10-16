@@ -1,0 +1,28 @@
+budgetroll validation: the worked example quoted in README.md
+========================================================================
+
+3U CubeSat orbit-average power budget  [W]
+  nominal                7.1500
+  contingency            0.7525
+  predicted              7.9025
+  allocation             8.4000
+  margin                 0.4975   (5.92 %)
+  1 sigma, declared      0.3279   (rule: rss)
+  1 sigma, exact         0.3512   (declared correlations)
+  margin at 2 sigma     -0.1582
+
+worst three leaves by effect on the top-level margin:
+  Transmitter, duty cycled       -0.1760 W at +10 %   variance share 32.43 %
+  Detector and front end         -0.1440 W at +10 %   variance share 34.15 %
+  Reaction wheel assembly        -0.1155 W at +10 %   variance share  2.92 %
+
+blocking findings:
+  BR001 payload
+  BR001 total_load
+  BR002 payload
+  BR002 total_load
+
+  [PASS] the example produced output
+  [PASS] the root margin is 0.4975 W  0.4975000000
+
+RESULT: every check in this script passed

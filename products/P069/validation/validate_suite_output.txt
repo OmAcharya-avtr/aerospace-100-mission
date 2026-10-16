@@ -1,0 +1,28 @@
+test suite, counted from junit XML
+==============================================================================
+command: python -m pytest tests/ -q --junitxml=junit.xml
+
+pytest stdout, last line, NOT the source of the counts
+------------------------------------------------------
+255 passed in 7.49s
+exit status: 0
+
+junit XML, the source of the counts
+-----------------------------------
+  testsuite @tests     255
+  testsuite @failures  0
+  testsuite @errors    0
+  testsuite @skipped   0
+  testcase elements  255
+  wall clock         7.46 s
+
+verdict
+-------
+  PASS  testsuite @tests equals the testcase element count
+  PASS  the suite collected more than zero tests
+  PASS  no failures
+  PASS  no errors
+  PASS  no skips
+  PASS  pytest exited 0
+
+failures: 0

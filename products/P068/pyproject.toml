@@ -1,0 +1,67 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "degradepredict"
+version = "0.1.0"
+description = "Limit-crossing forecasting for a degrading subsystem, with right censoring handled and coverage reported separately for complete and censored trajectories."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "degradation-modelling",
+    "remaining-useful-life",
+    "limit-crossing",
+    "right-censoring",
+    "prediction-intervals",
+    "quantile-regression",
+    "spacecraft-telemetry",
+    "autonomous-aerospace-systems",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "numpy>=2.5.0,<2.6",
+    "scipy>=1.18.0,<1.19",
+    "scikit-learn>=1.9.0,<1.10",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=9.1.1,<9.2", "hypothesis>=6.169.0,<6.171"]
+examples = ["matplotlib>=3.11.0,<3.12"]
+dev = [
+    "pytest>=9.1.1,<9.2",
+    "hypothesis>=6.169.0,<6.171",
+    "ruff>=0.16.8,<0.18",
+    "matplotlib>=3.11.0,<3.12",
+]
+
+[project.scripts]
+degradepredict = "degradepredict.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["degradepredict"]
+known-local-folder = ["_bootstrap", "_common"]

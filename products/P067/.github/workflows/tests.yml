@@ -1,0 +1,39 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[test]"
+      - name: Lint
+        run: ruff check src/ tests/
+      - name: Test
+        run: python -m pytest tests/ -q --junitxml=junit.xml
+      - name: Count tests from the junit XML, not from stdout
+        run: |
+          python - <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse("junit.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          tests = int(suite.attrib["tests"])
+          elements = len(suite.findall(".//testcase"))
+          print(f"tests={tests} elements={elements} failures={suite.attrib['failures']} "
+                f"errors={suite.attrib['errors']} skipped={suite.attrib['skipped']}")
+          if tests != elements or tests == 0:
+              sys.exit("junit count disagrees with the element count, or nothing was collected")
+          PY

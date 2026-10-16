@@ -1,0 +1,79 @@
+t-way coverage against exhaustive enumeration
+==============================================================================
+
+1. closed form |T_t| versus enumerated tuple count
+--------------------------------------------------
+level counts            t   closed form  enumerated  verdict
+(2, 2)                  1             4           4  PASS
+(2, 2)                  2             4           4  PASS
+(2, 3)                  1             5           5  PASS
+(2, 3)                  2             6           6  PASS
+(3, 3, 2)               1             8           8  PASS
+(3, 3, 2)               2            21          21  PASS
+(3, 3, 2)               3            18          18  PASS
+(2, 2, 2, 2)            1             8           8  PASS
+(2, 2, 2, 2)            2            24          24  PASS
+(2, 2, 2, 2)            3            32          32  PASS
+(2, 2, 2, 2)            4            16          16  PASS
+(4, 3, 3, 2, 2)         1            14          14  PASS
+(4, 3, 3, 2, 2)         2            77          77  PASS
+(4, 3, 3, 2, 2)         3           208         208  PASS
+(4, 3, 3, 2, 2)         4           276         276  PASS
+(4, 3, 3, 2, 2)         5           144         144  PASS
+
+2. package count versus the slow reference, random campaigns
+------------------------------------------------------------
+level counts            t   n   package  reference  verdict
+(2, 2)                  1   8         4          4  PASS
+(2, 2)                  2   8         4          4  PASS
+(2, 3)                  1   8         5          5  PASS
+(2, 3)                  2   8         5          5  PASS
+(3, 3, 2)               1   8         8          8  PASS
+(3, 3, 2)               2   8        16         16  PASS
+(3, 3, 2)               3   8         7          7  PASS
+(2, 2, 2, 2)            1   8         8          8  PASS
+(2, 2, 2, 2)            2   8        23         23  PASS
+(2, 2, 2, 2)            3   8        22         22  PASS
+(2, 2, 2, 2)            4   8         6          6  PASS
+(4, 3, 3, 2, 2)         1   8        13         13  PASS
+(4, 3, 3, 2, 2)         2   8        51         51  PASS
+(4, 3, 3, 2, 2)         3   8        69         69  PASS
+(4, 3, 3, 2, 2)         4   8        38         38  PASS
+(4, 3, 3, 2, 2)         5   8         8          8  PASS
+(5 spaces x all t x 8 seeds compared; one row printed per space and t, plus any failure)
+
+3. exhaustive campaign gives complete coverage
+----------------------------------------------
+level counts            t   covered   total  verdict
+(2, 2)                  1         4       4  PASS
+(2, 2)                  2         4       4  PASS
+(2, 3)                  1         5       5  PASS
+(2, 3)                  2         6       6  PASS
+(3, 3, 2)               1         8       8  PASS
+(3, 3, 2)               2        21      21  PASS
+(3, 3, 2)               3        18      18  PASS
+(2, 2, 2, 2)            1         8       8  PASS
+(2, 2, 2, 2)            2        24      24  PASS
+(2, 2, 2, 2)            3        32      32  PASS
+(2, 2, 2, 2)            4        16      16  PASS
+(4, 3, 3, 2, 2)         1        14      14  PASS
+(4, 3, 3, 2, 2)         2        77      77  PASS
+(4, 3, 3, 2, 2)         3       208     208  PASS
+(4, 3, 3, 2, 2)         4       276     276  PASS
+(4, 3, 3, 2, 2)         5       144     144  PASS
+
+4. where the enumeration stops being usable
+-------------------------------------------
+ parameters  levels  t           |T_t|
+          7       3  2             189
+          7       3  3             945
+         20       4  2            3040
+         20       4  3           72960
+         20       4  6       158760960
+         40       5  4        57118750
+The default max_tuples is 2000000, so the (20, 4, 6) and (40, 5, 4) rows
+above are refused rather than attempted. Enumerating the uncovered set is
+what costs: a percentage alone would be cheaper and is not what this
+package is for.
+
+failures: 0

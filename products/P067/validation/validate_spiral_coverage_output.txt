@@ -1,0 +1,42 @@
+==============================================================================
+acqsearch spiral coverage: closed form against Monte Carlo
+==============================================================================
+sigma 1.500000e-04 rad   footprint radius 5.000000e-05 rad
+Monte Carlo samples 200000   seed 20261016
+
+pitch 70.7107 urad, along-track 35.3553 urad; inter-turn limit 2 sqrt(a^2 - (d/2)^2) = 93.5414 urad; closed form applies: True
+  turns  dwells   closed form   Monte Carlo   difference    MC s.e.  |diff|/s.e.
+      1       7      0.154774      0.154660    -0.000114   0.000809         0.14
+      2      26      0.417574      0.416805    -0.000769   0.001102         0.70
+      3      58      0.677335      0.679175    +0.001840   0.001044         1.76
+      4     102      0.856292      0.856520    +0.000228   0.000784         0.29
+      5     158      0.948548      0.947665    -0.000883   0.000498         1.77
+      6     227      0.985193      0.985200    +0.000007   0.000270         0.03
+      7     309      0.996575      0.996590    +0.000015   0.000130         0.11
+      8     403      0.999363      0.999300    -0.000063   0.000059         1.07
+
+pitch 60.0000 urad, along-track 30.0000 urad; inter-turn limit 2 sqrt(a^2 - (d/2)^2) = 95.3939 urad; closed form applies: True
+  turns  dwells   closed form   Monte Carlo   difference    MC s.e.  |diff|/s.e.
+      1       7      0.136694      0.138510    +0.001816   0.000772         2.35
+      2      26      0.353663      0.354735    +0.001072   0.001070         1.00
+      3      58      0.586781      0.590665    +0.003884   0.001099         3.53
+      4     102      0.774408      0.775330    +0.000922   0.000933         0.99
+      5     158      0.894833      0.893750    -0.001083   0.000689         1.57
+      6     227      0.958136      0.957540    -0.000596   0.000451         1.32
+      7     309      0.985771      0.986070    +0.000299   0.000262         1.14
+      8     403      0.995870      0.995910    +0.000040   0.000143         0.28
+
+Limiting cases of the closed form
+case                                             closed form         exact       error
+pitch -> 0, one turn: the single footprint disc   0.054041582   0.054040531    1.05e-06
+40 turns: the whole prior                        1.000000000   1.000000000    0.00e+00
+
+Coverage of the four standard paths over the reference grid
+pattern           dwells    final covered mass      s.e.
+spiral               227              0.985133  0.000494
+raster               169              0.996717  0.000234
+lissajous            712              0.912617  0.001153
+random_restart       890              0.978300  0.000595
+prior mass inside the 89-cell grid: 0.954498
+==============================================================================
+checks failed: 0
