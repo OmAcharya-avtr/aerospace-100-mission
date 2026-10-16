@@ -1,13 +1,14 @@
 {
   "batch": 7,
-  "phase": "specification_complete",
-  "phase_index": 2,
-  "updated": "2026-10-15T03:15:00Z",
-  "session_date": "2026-10-15",
-  "session_type": "BATCH 07 BUILD, wave 1 dispatch. Phase -1 verified for real before any work; Rule Zero stub pushed as ed308d8 before this checkpoint.",
-  "phase_minus_1": "ALL THREE PASS. (1) osascript returned alive; gh auth status reports OmAcharya-avtr (keyring), active true. (2) mission-repo on main, zero dirty lines, HEAD c4012e7, fetch quiet, rev-list --left-right --count origin/main...main == '0 0'. (3) Write capability probed for real on the live remote: '* [new branch] HEAD -> probe-1792033707', confirmed by git ls-remote returning c4012e79... refs/heads/probe-1792033707, then '- [deleted] probe-1792033707'. All push output through the github_pat_ redaction filter.",
-  "checkpoint_agreed_with_tree": "YES, for the first time in three sessions. The 2026-10-14T04:10:00Z checkpoint matched the committed tree on every count: quota_report.py measured Registered 70/100, Built 60/100, Published 60/100; P061-P070 all SPECIFYING; products_complete empty; nothing NEEDS HARDENING; P053 closed by ADR-019. No reconciliation was required and none is recorded.",
-  "transfer_route": "connectedFolders [] for the FIFTH consecutive session. device_request_folder_access again returned {granted:[/Users/acharya/100 Aero Prods]} with no owner action, as the last three checkpoints predicted. Route worked first time: bundle built as c4012e7..main, confirmed with git bundle list-heads BEFORE transfer, SendUserFile -> device_commit_files -> osascript fetch/merge --ff-only/push. sha256 83c6d6c44569ca8f1988bc1f1e1b56e9644c4ca2b8623b544d97811551a09587 in the container matched shasum -a 256 on the Mac exactly. Verified on origin with git ls-remote.",
+  "phase": "deterministic_core_complete",
+  "phase_index": 3,
+  "updated": "2026-10-16T03:15:00Z",
+  "session_date": "2026-10-16",
+  "session_type": "BATCH 07 WAVE 2 BUILD. Phase -1 verified for real before any work; Rule Zero stub pushed as 6a0989c before this checkpoint.",
+  "phase_minus_1": "ALL THREE PASS. (1) osascript returned alive; gh auth status reports OmAcharya-avtr (keyring), active true. (2) mission-repo on main, zero dirty lines, HEAD 5aec32d, fetch quiet. (3) Write capability probed for real on the live remote: '* [new branch] HEAD -> probe-1792120093', then '- [deleted] probe-1792120093'. All push output through the github_pat_ redaction filter.",
+  "checkpoint_agreed_with_tree": "NO. The previous checkpoint (2026-10-15T03:15:00Z) recorded phase specification_complete, products_complete [], products_pending P061-P070. The tree is AHEAD of it: commit 5aec32d carries built directories for P061-P065 and products.yaml has those five at TESTING; quota_report.py measures Built 65/100, not 60/100. RECONCILIATION: the 2026-10-15 session pushed its wave-1 build commit and was terminated before updating the checkpoint or rewriting its report, which is still a Rule Zero stub. This session starts at wave 2 and does not rebuild or modify P061-P065.",
+  "quota_measured_this_session": "Registered 70/100, Built 65/100, Published 60/100. Gap: flagship 6, medium 9, compact 20, AI 24, L1 1, L2 22, L3 7, L4 5.",
+  "transfer_route": "connectedFolders [] for the SIXTH consecutive session. device_request_folder_access again returned {granted:[/Users/acharya/100 Aero Prods]} with no owner action, as the last four checkpoints predicted. Route worked first time: bundle 5aec32d..main, git bundle list-heads confirmed 6a0989c BEFORE transfer, SendUserFile -> device_commit_files -> osascript fetch/merge --ff-only/push. sha256 7702f86955f8464bdfa9f14a065d5562b9c489ac8cc0301ce3ad4ba33bb1b58b in the container matched shasum -a 256 on the Mac exactly. Verified on origin with git ls-remote.",
   "products_registered": [
     "P061",
     "P062",
@@ -20,13 +21,14 @@
     "P069",
     "P070"
   ],
-  "products_complete": [],
-  "products_pending": [
+  "products_complete": [
     "P061",
     "P062",
     "P063",
     "P064",
-    "P065",
+    "P065"
+  ],
+  "products_pending": [
     "P066",
     "P067",
     "P068",
@@ -35,18 +37,19 @@
   ],
   "blocked": false,
   "blocked_on": null,
-  "wave_plan": "Two waves of five, never more than five concurrent (2026-08-29 lost five agents together, 2026-09-02 lost four of five). WAVE 1, dispatched after this push: P061 ActivityPlan (flagship L3 AI), P062 TwinCalib (flagship L3 AI), P063 SafeModeTree (medium L3 AI), P064 RegressSelect (medium L2 AI), P065 HazardTrace (medium L2 no AI) - the five heaviest, front-loaded while the session window is widest. WAVE 2: P066 BudgetRoll (compact L1, CLOSES the L1 quota at 10/10), P067 AcqSearch, P068 DegradePredict, P069 ScenarioCov, P070 WatchdogSpec.",
+  "wave_plan": "WAVE 1 (P061-P065) BUILT 2026-10-15, commit 5aec32d, status TESTING, not re-opened this session. WAVE 2, dispatched immediately after this push, five concurrent and never more (2026-08-29 lost five agents together, 2026-09-02 lost four of five): P066 BudgetRoll (compact L1, CLOSES the L1 quota at 10/10), P067 AcqSearch (compact L2 AI), P068 DegradePredict (compact L2 AI), P069 ScenarioCov (compact L2 AI), P070 WatchdogSpec (compact L2 no AI).",
   "gate_discipline": "NOT paired with the fan-out, per the 2026-10-12 measurement (ten-product gate ~50 min uncontended, ~4 h sharing the window). Batch 07 gets a gate window of its own in a later session. NOTHING FROM BATCH 07 IS PUBLISHED TONIGHT.",
-  "pushes_used": "1 of 5 so far: ed308d8 Rule Zero stub, verified on origin with git ls-remote. This checkpoint commit is the second.",
-  "l4_position": "STILL 0 OF 5, ELEVENTH CONSECUTIVE BATCH. Unchanged and not advanced. P031, P033, P041, P043 are each complete to Level 3 and labelled 'Level 3, hardware-pending' on the identical blocker: measured timing and resource use from the Jetson Orin Nano itself. Batch 07 deliberately adds no fifth candidate. Needs the Jetson powered on and reachable, its hostname or IP, and passwordless SSH from the Mac. Nothing relabelled on simulated numbers. Escalated to the owner by push notification this session.",
-  "STALE_PROMPT_NOTE_PROPAGATE": "FOURTH CONSECUTIVE SESSION RAISING THIS, stale by forty products. The scheduled prompt still asserts Batches 01-02 complete with P021/P022 the latest publications; the tree shows P001-P060 published and gate-passed. It still describes P053 as the open blocker; ADR-019 closed it on 2026-10-13. It still orders Level 4 to start in the next batch, which cannot be honoured without the Jetson and would require labelling an unmeasured product Level 4, which the same prompt forbids in the next clause. products.yaml governs, as the prompt itself instructs. OWNER SHOULD UPDATE THE PROMPT TEXT.",
+  "pushes_used": "1 of 5 so far: 6a0989c Rule Zero stub, verified on origin with git ls-remote. This checkpoint commit is the second.",
+  "l4_position": "STILL 0 OF 5, TWELFTH CONSECUTIVE BATCH. Unchanged and not advanced. P031, P033, P041, P043 are each complete to Level 3 and labelled 'Level 3, hardware-pending' on the identical blocker: measured timing and resource use from the Jetson Orin Nano itself. Batch 07 deliberately adds no fifth candidate. Needs the Jetson powered on and reachable, its hostname or IP, and passwordless SSH from the Mac. Nothing relabelled on simulated numbers.",
+  "STALE_PROMPT_NOTE_PROPAGATE": "FIFTH CONSECUTIVE SESSION RAISING THIS, stale by forty products. The scheduled prompt still asserts Batches 01-02 complete with P021/P022 the latest publications; the tree shows P001-P060 published and gate-passed. It still describes P053 as the open blocker; ADR-019 closed it on 2026-10-13. It still orders Level 4 to start in the next batch, which cannot be honoured without the Jetson and would require labelling an unmeasured product Level 4, which the same prompt forbids in the next clause. products.yaml governs, as the prompt itself instructs. OWNER SHOULD UPDATE THE PROMPT TEXT.",
   "carry_overs_open": {
     "scikit_learn_exposure_STILL_UNMEASURED": "Unchanged. 36 products declare scikit-learn with no upper bound. Two measured on 2026-10-13, BOTH affected - P001 visibly, P025 silently. The other 34 are unmeasured and MUST NOT be pinned on the strength of two measurements. The measurement is a session of its own: each product under 1.8.0 and 1.9.1 with committed validation OUTPUTS diffed, not just test verdicts, because P025's failure mode changes numbers while the suite still passes.",
     "unbounded_bare_names": "SEVEN entirely unbounded bare names remain in the declared set (joblib, matplotlib, numpy, onnxruntime, pyyaml, scikit-learn, scipy, sgp4 variants) alongside their pinned siblings.",
     "gate_misses_required_documentation": "The gate does not check for required documentation; it passed P028 with no README and no model card, both required by mission section 11. That is a gate edit and therefore an attended decision.",
     "gate_no_output_message": "The gate's 'no output' message still misreports a stdout-only script as a silent crash.",
     "p056_p058_validation_layout": "P056/P058 still use validation/outputs/; the flat validation/<script>_output.txt layout is binding for Batch 07 onward. Normalising those two needs a session that can re-run the scripts AND the gate, because the quoted paths are part of the checked output.",
-    "five_unrelated_local_product_repos": "alloclab, detumblesim, disturbtorque, keepout, wahbakit under ~/100 Aero Prods/product-repos have histories TRULY UNRELATED to their own origin. All five clean, nothing local at risk. A fix session MUST clone fresh; first check is 'git merge-base HEAD origin/main' and an unrelated history is a refusal, not a conflict."
+    "five_unrelated_local_product_repos": "alloclab, detumblesim, disturbtorque, keepout, wahbakit under ~/100 Aero Prods/product-repos have histories TRULY UNRELATED to their own origin. All five clean, nothing local at risk. A fix session MUST clone fresh; first check is 'git merge-base HEAD origin/main' and an unrelated history is a refusal, not a conflict.",
+    "p065_has_no_docs_dir": "Noted this session, not acted on: products/P065 ships no docs/ directory where P061-P064 each do. P065 is deliberately non-AI so it has no model card; whether docs/ is required of a non-AI medium product is a template question for an attended session, and the gate does not check documentation at all (see gate_misses_required_documentation)."
   },
-  "next_action": "(1) Dispatch wave 1 (P061-P065) in a single tool block. (2) Coordinator re-runs every suite from junit XML; never enter an agent's self-reported count. (3) Commit, checkpoint, push between waves. (4) Dispatch wave 2 (P066-P070). (5) Rewrite nightly_reports/2026-10-15.md in place with measured results and the required token accounting, and push it. (6) Gate Batch 07 in a window of its own in a later session, then publish on exit 0 under ADR-017."
+  "next_action": "(1) Dispatch wave 2 (P066-P070) in a single tool block, five concurrent. (2) Coordinator re-runs every suite from junit XML; never enter an agent's self-reported count. (3) Commit, checkpoint and push after the wave. (4) Rewrite nightly_reports/2026-10-16.md in place with measured results and the required token accounting, and push it. (5) Gate Batch 07 in a window of its own in a later session, then publish on exit 0 under ADR-017."
 }
