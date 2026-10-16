@@ -1,7 +1,7 @@
 activityplan -- validate_predictor.py
 learned duration and energy predictor against the analytic model, and coverage
 python           : 3.13.16
-numpy            : 2.5.3
+numpy            : 2.5.4
 scipy            : 1.18.1
 scikit-learn     : 1.9.1
 cpu cores        : 2
@@ -17,16 +17,16 @@ correction, and it wins because the analytic model omits the generator's
 cold-settling, gain and heater terms. This is misspecification, measured.
 
  seed target        analytic MAE  learned MAE  MAE ratio  analytic RMSE  learned RMSE   fit s
-   61 duration [s]      35.29197     30.49709     0.8641       49.91145      46.60061    2.16
-   61 energy [W*h]       1.13401      0.41350     0.3646        1.90834       0.61294    2.16
-   62 duration [s]      32.77960     30.10231     0.9183       47.86367      45.03722    2.07
-   62 energy [W*h]       1.05378      0.42527     0.4036        1.83918       0.60024    2.07
-   63 duration [s]      26.94517     26.85921     0.9968       40.08828      40.27150    2.08
-   63 energy [W*h]       0.84649      0.38865     0.4591        1.47494       0.53996    2.08
-   64 duration [s]      31.88158     29.91845     0.9384       48.12038      44.90037    2.06
-   64 energy [W*h]       1.05400      0.42154     0.3999        1.85443       0.59619    2.06
-   65 duration [s]      31.13592     28.23165     0.9067       45.13528      43.98977    2.10
-   65 energy [W*h]       0.92822      0.39976     0.4307        1.52461       0.56346    2.10
+   61 duration [s]      35.29197     30.49709     0.8641       49.91145      46.60061    1.51
+   61 energy [W*h]       1.13401      0.41350     0.3646        1.90834       0.61294    1.51
+   62 duration [s]      32.77960     30.10231     0.9183       47.86367      45.03722    1.54
+   62 energy [W*h]       1.05378      0.42527     0.4036        1.83918       0.60024    1.54
+   63 duration [s]      26.94517     26.85921     0.9968       40.08828      40.27150    1.56
+   63 energy [W*h]       0.84649      0.38865     0.4591        1.47494       0.53996    1.56
+   64 duration [s]      31.88158     29.91845     0.9384       48.12038      44.90037    1.48
+   64 energy [W*h]       1.05400      0.42154     0.3999        1.85443       0.59619    1.48
+   65 duration [s]      31.13592     28.23165     0.9067       45.13528      43.98977    1.55
+   65 energy [W*h]       0.92822      0.39976     0.4307        1.52461       0.56346    1.55
 
 duration MAE ratio learned/analytic : mean 0.9249, range 0.8641 to 0.9968
 energy   MAE ratio learned/analytic : mean 0.4116, range 0.3646 to 0.4591
@@ -109,7 +109,7 @@ marginal coverage at alpha 0.10       absolute 0.8820, normalised 0.9025
 mean interval width at alpha 0.10     absolute 129.5453 s, normalised 125.6657 s
 worst tercile shortfall absolute      -0.2218
 worst tercile shortfall normalised    -0.0323
-wall clock                            73.8 s
+wall clock                            55.7 s
 overall                               PASS
 raw output written to                 validate_predictor_output.txt
 reference temperature used by the generator: 10.0 C

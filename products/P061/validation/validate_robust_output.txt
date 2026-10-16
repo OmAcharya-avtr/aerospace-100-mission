@@ -1,7 +1,7 @@
 activityplan -- validate_robust.py
 four planning modes under realised durations, on identical instances
 python           : 3.13.16
-numpy            : 2.5.3
+numpy            : 2.5.4
 scipy            : 1.18.1
 scikit-learn     : 1.9.1
 cpu cores        : 2
@@ -9,7 +9,7 @@ predictor        : 1000 training activities, seed 61, normalised conformal, alph
 instances        : 12 from seed 9000, family defaults
 realisations     : 3 per instance, so 36 scored plans per mode
 planner          : greedy, so that all four modes pay the same planning cost
-predictor fit    : 1.85 s
+predictor fit    : 1.62 s
 
 ==============================================================================
 check 1: how far each estimator's duration sits from the realised one
@@ -140,7 +140,7 @@ oracle      feasible 1.0000  realised 28.083  placed 8.333
 analytic    feasible 0.2500  realised 5.500  placed 8.667
 ml-point    feasible 0.4722  realised 12.472  placed 8.500
 ml-robust   feasible 0.4167  realised 11.333  placed 8.000
-wall clock  38.6 s
+wall clock  24.0 s
 this script has no pass criterion: every number is a measurement of the
 robustness trade and all of them are reported, including the ones that favour
 the analytic baseline.

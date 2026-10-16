@@ -1,7 +1,7 @@
 activityplan -- validate_cli.py
 every documented command-line invocation, run and recorded
 python           : 3.13.16
-numpy            : 2.5.3
+numpy            : 2.5.4
 scipy            : 1.18.1
 scikit-learn     : 1.9.1
 cpu cores        : 2
@@ -172,13 +172,13 @@ image-01       63            precedence:cal-boresight->image-01  precedence:cal-
 image-02       63            precedence:cal-boresight->image-02  precedence:cal-boresight->image-02 x63
 
 exit status : 0
-wall clock  : 0.09 s
+wall clock  : 0.08 s
 
 ==============================================================================
 invocation 5: python -m activityplan plan --instance leo-imaging --planner exact --time-limit 150
 ==============================================================================
 planner             : exact MILP, 460 binaries, 892 columns, 498 rows
-solver              : status 0, gap 2.780e-15, 1 nodes, 0.807 s, proven optimal True
+solver              : status 0, gap 2.780e-15, 1 nodes, 0.516 s, proven optimal True
 
 activity       step  start/s  finish/s  dur/s  energy/Wh  peak/W  data/Mbit  priority
 -------------  ----  -------  --------  -----  ---------  ------  ---------  --------
@@ -248,7 +248,7 @@ of the battery recursion. Both are reported, not asserted.
 ------------------------------------------------------------------------------
 
 exit status : 0
-wall clock  : 0.83 s
+wall clock  : 0.53 s
 
 ==============================================================================
 invocation 6: python -m activityplan plan --instance energy-bound --planner greedy
@@ -324,13 +324,13 @@ obs-04   71            battery-depth-of-discharge   battery-depth-of-discharge x
 obs-08   71            battery-depth-of-discharge   battery-depth-of-discharge x71
 
 exit status : 0
-wall clock  : 0.24 s
+wall clock  : 0.09 s
 
 ==============================================================================
 invocation 7: python -m activityplan plan --instance recorder-bound --planner exact --time-limit 150
 ==============================================================================
 planner             : exact MILP, 568 binaries, 856 columns, 152 rows
-solver              : status 0, gap 0.000e+00, 1 nodes, 0.038 s, proven optimal True
+solver              : status 0, gap 0.000e+00, 1 nodes, 0.023 s, proven optimal True
 
 activity  step  start/s  finish/s  dur/s  energy/Wh  peak/W  data/Mbit  priority
 --------  ----  -------  --------  -----  ---------  ------  ---------  --------
@@ -389,13 +389,13 @@ of the battery recursion. Both are reported, not asserted.
 ------------------------------------------------------------------------------
 
 exit status : 0
-wall clock  : 0.05 s
+wall clock  : 0.03 s
 
 ==============================================================================
 invocation 8: python -m activityplan plan --instance window-bound --planner exact --time-limit 150
 ==============================================================================
 planner             : exact MILP, 18 binaries, 306 columns, 165 rows
-solver              : status 0, gap 0.000e+00, 1 nodes, 0.017 s, proven optimal True
+solver              : status 0, gap 0.000e+00, 1 nodes, 0.010 s, proven optimal True
 
 activity   step  start/s  finish/s  dur/s  energy/Wh  peak/W  data/Mbit  priority
 ---------  ----  -------  --------  -----  ---------  ------  ---------  --------
@@ -453,7 +453,7 @@ of the battery recursion. Both are reported, not asserted.
 ------------------------------------------------------------------------------
 
 exit status : 0
-wall clock  : 0.02 s
+wall clock  : 0.01 s
 
 ==============================================================================
 invocation 9: python -m activityplan compare --instance leo-imaging --time-limit 150
@@ -461,7 +461,7 @@ invocation 9: python -m activityplan compare --instance leo-imaging --time-limit
 planner  objective  placed  cost              binding constraint          normalised slack
 -------  ---------  ------  ----------------  --------------------------  ----------------
 greedy   15.0       6       247 simulations   battery-depth-of-discharge  +0.016848
-exact    23.0       8       1 nodes, 0.875 s  recorder-capacity           +0.000000
+exact    23.0       8       1 nodes, 0.523 s  recorder-capacity           +0.000000
 
 instance            : leo-imaging
 total priority      : 30.0
@@ -472,7 +472,7 @@ the exact optimum is the optimum of the DISCRETISED problem at this step,
 not of the continuous-time problem. A finer step can only help it.
 
 exit status : 0
-wall clock  : 0.98 s
+wall clock  : 0.58 s
 
 ==============================================================================
 invocation 10: python -m activityplan compare --instance tiny-enumerable --time-limit 150
@@ -480,7 +480,7 @@ invocation 10: python -m activityplan compare --instance tiny-enumerable --time-
 planner  objective  placed  cost              binding constraint         normalised slack
 -------  ---------  ------  ----------------  -------------------------  ----------------
 greedy   6.5        3       22 simulations    exclusion:image-a|radar-b  +0.000000
-exact    6.5        3       1 nodes, 0.021 s  horizon                    +0.000000
+exact    6.5        3       1 nodes, 0.015 s  horizon                    +0.000000
 
 instance            : tiny-enumerable
 total priority      : 7.5
@@ -491,7 +491,7 @@ the exact optimum is the optimum of the DISCRETISED problem at this step,
 not of the continuous-time problem. A finer step can only help it.
 
 exit status : 0
-wall clock  : 0.03 s
+wall clock  : 0.02 s
 
 ==============================================================================
 invocation 11: python -m activityplan predict --n-train 900 --n-test 300 --mode normalised
@@ -511,7 +511,7 @@ because the analytic model omits two terms the generator contains. See
 MODEL_CARD.md; this is not evidence about a real spacecraft.
 
 exit status : 0
-wall clock  : 2.62 s
+wall clock  : 1.83 s
 
 ==============================================================================
 invocation 12: python -m activityplan predict --n-train 900 --n-test 300 --mode absolute
@@ -531,7 +531,7 @@ because the analytic model omits two terms the generator contains. See
 MODEL_CARD.md; this is not evidence about a real spacecraft.
 
 exit status : 0
-wall clock  : 1.10 s
+wall clock  : 0.88 s
 
 ==============================================================================
 invocation 13: python -m activityplan robust --n-train 600 --n-instances 4 --instance-seed 9000
@@ -548,17 +548,17 @@ a realised plan that violates any declared constraint scores zero, not partial
 credit; see activityplan.robust for why.
 
 exit status : 0
-wall clock  : 6.11 s
+wall clock  : 3.68 s
 
 ==============================================================================
 invocation 14: python -m activityplan warmstart --n-train 600 --n-instances 4 --instance-seed 9000 --time-limit 150
 ==============================================================================
 instance     warm value  verified  optimum  cold nodes  cold s  warm nodes  warm s  optimum kept
 -----------  ----------  --------  -------  ----------  ------  ----------  ------  ------------
-family-9000  28.0        True      28.0     1           0.408   1           0.119   True
-family-9001  43.0        True      43.0     1           0.692   1           0.269   True
-family-9002  28.0        True      30.0     1           0.896   1           0.564   True
-family-9003  31.0        True      39.0     1           0.119   1           0.122   True
+family-9000  28.0        True      28.0     1           0.246   1           0.067   True
+family-9001  43.0        True      43.0     1           0.440   1           0.161   True
+family-9002  28.0        True      30.0     1           0.600   1           0.353   True
+family-9003  31.0        True      39.0     1           0.072   1           0.078   True
 
 presolve            : True
 scipy.optimize.milp exposes no MIP start, so the warm start is a primal-bound
@@ -566,7 +566,7 @@ cut. With presolve on these instances are solved before branching and the node
 counts measure presolve, not search. See activityplan.warmstart.
 
 exit status : 0
-wall clock  : 6.55 s
+wall clock  : 4.08 s
 
 ==============================================================================
 --help
@@ -611,6 +611,6 @@ summary
 invocations run          : 14 plus --help
 non-zero exit statuses   : 0
 forbidden-word failures  : 0
-wall clock               : 18.6 s
+wall clock               : 11.8 s
 overall                  : PASS
 raw output written to    : validate_cli_output.txt

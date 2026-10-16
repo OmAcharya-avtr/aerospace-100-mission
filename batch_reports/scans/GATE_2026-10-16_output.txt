@@ -1,0 +1,24 @@
+Release gate — 10 product(s)
+
+P061  PASS       217 tests
+P062  PASS       219 tests
+P063  PASS       262 tests
+P064  BLOCKED    140 tests
+         ! validation/validate_fixtures.py exit 1: no output
+P065  BLOCKED    215 tests
+         ! validation/worked_example.py exit 1: hazardtrace.errors.AnalysisFormatError: no such file: examples/cases/p024_bdot_detumble.yaml
+P066  BLOCKED    264 tests
+         ! validation/worked_example.py exit 1: budgetroll.errors.DeclarationError: no such budget declaration: examples/cases/cubesat_power.yaml
+P067  PASS       242 tests
+P068  PASS       186 tests
+P069  BLOCKED    255 tests
+         ! validation/worked_example.py exit 1: FileNotFoundError: no such file: fixtures/space.json
+P070  PASS       300 tests
+
+repository  BLOCKED
+         ! absolute private path tracked: HEAD:nightly_reports/2026-10-15.md:31:`/Users/acharya/100 Aero Prods` connected. The `osascript` rou
+
+Total tests passing: 2300
+VERDICT: PUSH BLOCKED
+Blocked products: P064, P065, P066, P069
+Set each to NEEDS HARDENING in products.yaml and do not publish it.
