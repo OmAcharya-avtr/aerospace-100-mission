@@ -33,7 +33,9 @@ def main() -> int:
             check=False,
         )
         out.write("command           python -m pytest tests/ -q --junitxml=<tmp>/junit.xml\n")
-        out.write(f"working directory {ROOT}\n")
+        # Relative to the repository root: committed output must not embed the
+        # build machine's filesystem layout (release-gate check 8).
+        out.write(f"working directory {ROOT.relative_to(ROOT.parent.parent)}\n")
         out.write(f"exit code         {completed.returncode}\n")
         stdout_tail = [line for line in completed.stdout.splitlines() if line.strip()]
         out.write(f"stdout last line  {stdout_tail[-1] if stdout_tail else '(empty)'}\n\n")

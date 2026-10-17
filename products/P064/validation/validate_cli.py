@@ -71,6 +71,20 @@ CASES: list[tuple[str, list[str], int]] = [
 ]
 
 
+def _rel(text: str) -> str:
+    """Strip the absolute repository-root prefix out of captured CLI output.
+
+    The CLI resolves a project root before reporting it, so its own error text
+    carries this machine's absolute path. Committed validation output must not:
+    it is not reproducible for a reader, and an absolute home-directory path in
+    a tracked file is exactly what release-gate check 8 exists to catch. The
+    product's behaviour is unchanged -- only what is written to the committed
+    transcript is normalised, and the normalisation is stated here.
+    """
+    repo = str(ROOT.parent.parent)
+    return text.replace(repo + "/", "").replace(repo, ".")
+
+
 def main() -> int:
     out = sys.stdout
     os.chdir(ROOT)
@@ -98,7 +112,7 @@ def main() -> int:
                 code = cli_main(argv, out=buffer)
             ok = code == expected_code
             failures += 0 if ok else 1
-            text = buffer.getvalue()
+            text = _rel(buffer.getvalue())
             out.write(f"--- {label}\n")
             out.write(f"    argv            {argv}\n")
             out.write(f"    exit status     {code} (expected {expected_code}) ")
@@ -108,7 +122,7 @@ def main() -> int:
                 out.write(f"    | {line}\n")
             if len(text.splitlines()) > 6:
                 out.write(f"    | ... {len(text.splitlines()) - 6} more lines\n")
-            for line in errors.getvalue().splitlines():
+            for line in _rel(errors.getvalue()).splitlines():
                 out.write(f"    ! {line}\n")
             out.write("\n")
 

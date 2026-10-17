@@ -151,3 +151,45 @@ Rules:
 5. A pin below a future security release is a real cost, not a free safety
    measure: the product cannot take that release without a port. Record the
    tension in Limitations; do not resolve it by removing the ceiling.
+
+### A validation script must run from ANY working directory (added 2026-10-17)
+
+Three products in one batch — P065, P066, P069 — failed the release gate on
+2026-10-16 after passing every check that preceded it, because
+`validation/worked_example.py` passed a bare relative path
+(`examples/cases/*.yaml`, `fixtures/space.json`) to a loader. Measured on P066:
+exit 0 from `products/P066/`, exit 1 from anywhere else.
+
+Nothing in the build caught it, and the reason is worth stating: the build
+agent, the agent's own self-report and the coordinator's re-measurement all ran
+the script the same way — from the product root. The gate runs it with
+`cwd=validation/`. Three independent verifications agreeing does not help when
+they share an assumption.
+
+The rule:
+
+- Anchor on `__file__`, never on the caller's working directory. In the
+  validation support module, after putting `src` on `sys.path`:
+  `ROOT = Path(__file__).resolve().parent.parent` then `os.chdir(ROOT)`.
+  One line fixes every script in the directory, and it is a no-op when the
+  script is already run from the product root.
+- Verify it. Run each script from at least `/`, `/tmp`, the product root and
+  `validation/` and require exit 0 from all four. Do not infer this from a
+  single run.
+
+### Committed validation output must not carry an absolute path (added 2026-10-17)
+
+Release-gate check 8 fails the whole batch on an absolute home-directory path in
+any tracked file. Five Batch 07 products tripped it from output files, not from
+code: a script printed `{ROOT}`, or passed an absolute path to a loader whose
+error message then quoted it back.
+
+- Print paths relative to the repository root (`ROOT.relative_to(ROOT.parent.parent)`).
+- Name probe paths relatively, so a product's own error text quotes a relative
+  path. This is why the `os.chdir(ROOT)` above matters twice.
+- When a captured transcript cannot avoid an absolute path, normalise it out
+  before writing, and say in the script's own comments that you did.
+
+An absolute path in committed output is not cosmetic: it is not reproducible for
+a reader cold-cloning the repository, and it publishes the build machine's
+filesystem layout.

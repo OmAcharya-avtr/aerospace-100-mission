@@ -1,38 +1,39 @@
 Cold-clone fixture check: git check-ignore -v on every shipped file
 ================================================================================================
-repository root   /home/claude/mission
-product root      products/P064
-command           git check-ignore -v --no-index <path>, run in the product root
-verdict           a pattern matched AND it is not a negation
-cross-check       membership of git ls-files --others --exclude-standard
+product root      products/P064  (relative to the repository root)
+command           git check-ignore -v [--no-index] <path>, run in the product root
+                  --no-index for hypothetical artifacts, plain form for tracked files
+verdict  required  on disk AND tracked AND no non-negation pattern matches
+verdict  ignored   a non-negation pattern matched AND the path is neither tracked
+                   nor listed by git ls-files --others --exclude-standard
 
-git would add 82 untracked, non-ignored paths under the product root
+git tracks 82 paths under the product root
+git would add 0 untracked, non-ignored paths under the product root
 
-REQUIRED fixtures: every one of these must NOT be ignored
+REQUIRED fixtures: committed, on disk, and not ignored
 ------------------------------------------------------------------------------------------------
-PASS  on disk   git would add   fixtures/sample_project/junit.xml
-      matched: .gitignore:60:!products/*/fixtures/**/junit.xml	fixtures/sample_project/junit.xml
-PASS  on disk   git would add   fixtures/sample_project/pytest.ini
-PASS  on disk   git would add   fixtures/sample_project/sampleproj/__init__.py
-PASS  on disk   git would add   fixtures/sample_project/sampleproj/filters.py
-PASS  on disk   git would add   fixtures/sample_project/sampleproj/integrate.py
-PASS  on disk   git would add   fixtures/sample_project/sampleproj/kinematics.py
-PASS  on disk   git would add   fixtures/sample_project/sampleproj/orbit.py
-PASS  on disk   git would add   fixtures/sample_project/sampleproj/quat.py
-PASS  on disk   git would add   fixtures/sample_project/sampleproj/stats.py
-PASS  on disk   git would add   fixtures/sample_project/sampleproj/vecops.py
-PASS  on disk   git would add   fixtures/sample_project/tests/test_filters.py
-PASS  on disk   git would add   fixtures/sample_project/tests/test_integrate.py
-PASS  on disk   git would add   fixtures/sample_project/tests/test_kinematics.py
-PASS  on disk   git would add   fixtures/sample_project/tests/test_orbit.py
-PASS  on disk   git would add   fixtures/sample_project/tests/test_quat.py
-PASS  on disk   git would add   fixtures/sample_project/tests/test_stats.py
-PASS  on disk   git would add   fixtures/sample_project/tests/test_vecops.py
-PASS  on disk   git would add   fixtures/faults/faults.json
-PASS  on disk   git would add   fixtures/faults/fault_matrix.json
-PASS  on disk   git would add   fixtures/history/history.json
-PASS  on disk   git would add   fixtures/history/generation_parameters.json
-PASS  on disk   git would add   fixtures/regenerate_fixtures.py
+PASS  on disk   tracked      fixtures/sample_project/junit.xml
+PASS  on disk   tracked      fixtures/sample_project/pytest.ini
+PASS  on disk   tracked      fixtures/sample_project/sampleproj/__init__.py
+PASS  on disk   tracked      fixtures/sample_project/sampleproj/filters.py
+PASS  on disk   tracked      fixtures/sample_project/sampleproj/integrate.py
+PASS  on disk   tracked      fixtures/sample_project/sampleproj/kinematics.py
+PASS  on disk   tracked      fixtures/sample_project/sampleproj/orbit.py
+PASS  on disk   tracked      fixtures/sample_project/sampleproj/quat.py
+PASS  on disk   tracked      fixtures/sample_project/sampleproj/stats.py
+PASS  on disk   tracked      fixtures/sample_project/sampleproj/vecops.py
+PASS  on disk   tracked      fixtures/sample_project/tests/test_filters.py
+PASS  on disk   tracked      fixtures/sample_project/tests/test_integrate.py
+PASS  on disk   tracked      fixtures/sample_project/tests/test_kinematics.py
+PASS  on disk   tracked      fixtures/sample_project/tests/test_orbit.py
+PASS  on disk   tracked      fixtures/sample_project/tests/test_quat.py
+PASS  on disk   tracked      fixtures/sample_project/tests/test_stats.py
+PASS  on disk   tracked      fixtures/sample_project/tests/test_vecops.py
+PASS  on disk   tracked      fixtures/faults/faults.json
+PASS  on disk   tracked      fixtures/faults/fault_matrix.json
+PASS  on disk   tracked      fixtures/history/history.json
+PASS  on disk   tracked      fixtures/history/generation_parameters.json
+PASS  on disk   tracked      fixtures/regenerate_fixtures.py
 
 MUST BE IGNORED: per-run artifacts
 ------------------------------------------------------------------------------------------------

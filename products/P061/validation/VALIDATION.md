@@ -353,7 +353,7 @@ no ceiling.
 | `ruff` | `>=0.16.8,<0.18` | **0.16.8 and 0.17.0** | both ends executed; see below |
 
 **What was and was not tested at both ends.** For `ruff` the container happens
-to carry two installations — `0.16.8` at `/root/.local/bin/ruff` and `0.17.0` as
+to carry two installations — `0.16.8` on `PATH` as a user-local binary and `0.17.0` as
 the pip package, reachable as `python -m ruff` — and `ruff check src/ tests/
 examples/ validation/` passes clean under **both**, so that range was measured at
 both ends. For every other dependency the declared floor **is** the executed

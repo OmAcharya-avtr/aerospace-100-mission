@@ -16,6 +16,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+# Committed validation output must not embed the build machine's filesystem
+# layout: it is not reproducible for a reader, and an absolute home-directory
+# path in a tracked file is what release-gate check 8 exists to catch.
+REPO_ROOT = ROOT.parent.parent
 COMMANDS: list[tuple[list[str], int]] = [
     (["--version"], 0),
     (["info"], 0),
@@ -60,7 +64,8 @@ def main() -> None:
     print("safemodetree CLI transcript")
     print("=" * 84)
     print(f"interpreter: {sys.executable}")
-    print(f"working directory: {ROOT}")
+    # Relative to the repository root: see the note at REPO_ROOT above.
+    print(f"working directory: {ROOT.relative_to(REPO_ROOT)}")
     print()
     for argv, expected in COMMANDS:
         printable = "python -m safemodetree " + " ".join(argv)

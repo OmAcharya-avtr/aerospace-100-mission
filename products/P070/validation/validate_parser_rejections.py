@@ -56,7 +56,10 @@ def main() -> int:
     emit("  input and output paths")
     io_cases = 0
     io_raised = 0
-    here = Path(__file__).resolve().parent
+    # Named relatively so the product's own error text -- which quotes the path
+    # it was given -- stays free of this machine's absolute paths in the
+    # committed output. _support anchors the working directory on __file__.
+    here = Path("validation")
     for label, target in (
         ("missing file", here / "does-not-exist.yaml"),
         ("directory", here),
@@ -84,7 +87,7 @@ def main() -> int:
     emit()
     emit("  the three shipped specifications all parse")
     for name in ("minimal_consistent.yaml", "planted_defects.yaml", "smallsat_fc.yaml"):
-        spec = load_spec(Path(__file__).resolve().parent.parent / "examples" / "specs" / name)
+        spec = load_spec(Path("examples") / "specs" / name)
         emit(f"    {name:<26} tasks {len(spec.tasks):>2}  ladders {len(spec.ladders):>2}")
     emit.check("all three shipped specifications parse", True)
     return emit.finish()

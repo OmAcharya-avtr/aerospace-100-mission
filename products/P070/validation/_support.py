@@ -8,6 +8,7 @@ those files.
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -18,6 +19,13 @@ VALIDATION = ROOT / "validation"
 
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
+
+# A validation script must produce the same result from ANY working directory,
+# and its committed output must not embed this machine's filesystem layout.
+# Anchoring the working directory on __file__ makes both true: the probe paths
+# below can then be named relatively, so the product's error text quotes a
+# relative path instead of an absolute one.
+os.chdir(ROOT)
 
 
 class Emitter:

@@ -82,15 +82,26 @@ NOT_SHIPPED = [
 ]
 
 
-def check_ignore(rel: str) -> tuple[bool, str]:
+def check_ignore(rel: str, no_index: bool = True) -> tuple[bool, str]:
     """Return (ignored, the `git check-ignore -v` line or an empty string).
 
     `ignored` is True only when a pattern matched AND that pattern is not a
     negation. git exits 0 for a matching negation too, so the exit status on
     its own is not the verdict.
+
+    `no_index` must be False for a TRACKED path. `--no-index` asks git to
+    evaluate the path as though it were untracked, which is the right question
+    for the hypothetical per-run artifacts below -- several of which do not
+    exist on disk at all -- and the wrong question for a committed fixture:
+    git never treats a tracked file as ignored, so the honest answer for a
+    tracked path comes from the plain form, which exits 1.
     """
+    cmd = ["git", "check-ignore", "-v"]
+    if no_index:
+        cmd.append("--no-index")
+    cmd.append(rel)
     proc = subprocess.run(
-        ["git", "check-ignore", "-v", "--no-index", rel],
+        cmd,
         cwd=ROOT,
         capture_output=True,
         text=True,
@@ -103,6 +114,27 @@ def check_ignore(rel: str) -> tuple[bool, str]:
     line = proc.stdout.strip()
     pattern = line.split("\t", 1)[0].split(":")[-1] if line else ""
     return not pattern.startswith("!"), line
+
+
+def git_tracked() -> set[str]:
+    """Paths under the product root that are committed, from `git ls-files`.
+
+    This, not `git ls-files --others`, is what guarantees a cold clone has a
+    file. The previous version of this script cross-checked the REQUIRED
+    fixtures against `--others --exclude-standard`, which lists untracked,
+    non-ignored paths and therefore CANNOT list a committed fixture by
+    construction: on 2026-10-16 it reported FAIL / "GIT WOULD SKIP" for all 22
+    committed fixtures and all 22 verdicts were wrong. `git ls-files fixtures`
+    returns 22 and plain `git check-ignore -v` on each exits 1.
+    """
+    proc = subprocess.run(
+        ["git", "ls-files"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return set(proc.stdout.split())
 
 
 def git_would_add() -> set[str]:
@@ -129,29 +161,41 @@ def main() -> int:
         text=True,
         check=True,
     ).stdout.strip()
-    out.write(f"repository root   {toplevel}\n")
-    out.write(f"product root      {ROOT.relative_to(toplevel)}\n")
-    out.write("command           git check-ignore -v --no-index <path>, run in the product root\n")
-    out.write("verdict           a pattern matched AND it is not a negation\n")
-    out.write("cross-check       membership of git ls-files --others --exclude-standard\n\n")
+    # The absolute repository root is deliberately NOT printed: committed output
+    # must not embed the build machine's filesystem layout (release-gate check 8).
+    out.write(f"product root      {ROOT.relative_to(toplevel)}"
+              "  (relative to the repository root)\n")
+    out.write("command           git check-ignore -v [--no-index] <path>,"
+              " run in the product root\n")
+    out.write("                  --no-index for hypothetical artifacts,"
+              " plain form for tracked files\n")
+    out.write("verdict  required  on disk AND tracked AND no non-negation pattern matches\n")
+    out.write("verdict  ignored   a non-negation pattern matched AND the path is"
+              " neither tracked\n")
+    out.write("                   nor listed by git ls-files --others"
+              " --exclude-standard\n\n")
     addable = git_would_add()
+    tracked = git_tracked()
+    out.write(
+        f"git tracks {len(tracked)} paths under the product root\n"
+    )
     out.write(
         f"git would add {len(addable)} untracked, non-ignored paths "
         "under the product root\n\n"
     )
 
-    out.write("REQUIRED fixtures: every one of these must NOT be ignored\n")
+    out.write("REQUIRED fixtures: committed, on disk, and not ignored\n")
     out.write("-" * 96 + "\n")
     for rel in REQUIRED:
         exists = (ROOT / rel).is_file()
-        ignored, detail = check_ignore(rel)
-        would_add = rel in addable
-        ok = exists and not ignored and would_add
+        ignored, detail = check_ignore(rel, no_index=False)
+        is_tracked = rel in tracked
+        ok = exists and is_tracked and not ignored
         failures += 0 if ok else 1
         status = "PASS" if ok else "FAIL"
         out.write(
             f"{status}  {'on disk' if exists else 'MISSING':<8}  "
-            f"{'git would add' if would_add else 'GIT WOULD SKIP':<14}  {rel}\n"
+            f"{'tracked' if is_tracked else 'NOT TRACKED':<11}  {rel}\n"
         )
         if detail:
             out.write(f"      matched: {detail}\n")
@@ -161,7 +205,7 @@ def main() -> int:
     for rel in MUST_BE_IGNORED:
         ignored, detail = check_ignore(rel)
         not_addable = rel not in addable
-        ok = ignored and not_addable
+        ok = ignored and not_addable and rel not in tracked
         failures += 0 if ok else 1
         out.write(f"{'PASS' if ok else 'FAIL'}  {rel}\n")
         out.write(f"      {detail if detail else 'NOT IGNORED'}\n")
