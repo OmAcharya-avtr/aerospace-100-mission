@@ -467,3 +467,39 @@ matches — and each bundle's heads were listed before it was used, per the
 **Cumulative after this batch: 60 of 100 registered, built and published.**
 Validation **L4 remains 0 of 5** and is now nine batches overdue; it cannot
 advance without Jetson Orin Nano measurements.
+
+## 2026-10-18 — Batch 07 gate PASS, publication denied by the environment
+
+**No repository was created and no product was published. This entry records a
+green gate and a blocked publication, not a release.**
+
+`scripts/release_gate.py` over P061–P070, uncontended, ~30 minutes:
+`repository PASS`, ten of ten products PASS, **2300 tests** from junit XML,
+`VERDICT: PUSH ALLOWED`, exit 0. Transcript verbatim at
+`batch_reports/scans/GATE_2026-10-18_output.txt`. Per-product counts — 217, 219,
+262, 140, 215, 264, 242, 186, 255, 300 — reproduce 2026-10-17 exactly from a
+separate run.
+
+What unblocked it: the repository-wide check-8 path leak was remediated in commit
+`bebc3d7` by converting three tracked instances of the owner's real absolute home
+path into the placeholder form the check's own author sanctioned in source. The
+gate was not edited, no check scoped, no threshold moved.
+
+Where it stopped: `gh repo create` was refused by the environment's
+automatic-approval classifier, reason `[Create Public Surface]`. Not retried
+through another host, tool or session, per the 2026-10-13 precedent. ADR-017's
+"What still requires the owner" clause prescribes exactly this state.
+
+Built and waiting on the Mac at `~/100 Aero Prods/product-repos/`, each one
+commit, single verified authorship, CI present, **no remote attached**:
+`activityplan` `0c74320` · `twincalib` `a44a12c` · `safemodetree` `9581add` ·
+`regressselect` `0ce1001` · `hazardtrace` `97804cc` · `budgetroll` `e556027` ·
+`acqsearch` `108cbc3` · `degradepredict` `247017f` · `scenariocov` `088966b` ·
+`watchdogspec` `8de937b`.
+
+`products.yaml` unchanged: the ten remain **TESTING**, not PUBLISHED. No URL is
+recorded here for a repository that does not exist.
+
+**Cumulative: 70 of 100 registered and built, 60 published.** Validation
+**L4 remains 0 of 5**, fourteenth batch, blocked on Jetson Orin Nano
+measurements.
