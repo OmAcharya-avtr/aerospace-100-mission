@@ -409,6 +409,44 @@ ones.
     seeded fault, so a project whose suite takes minutes costs that per fault,
     and this harness is the wrong shape for it.
 
+## Static analysis, and one accepted risk
+
+`bandit -r src/ -x '*/tests/*'` reports **0 HIGH**. One MEDIUM is accepted
+rather than fixed, and this is the rationale.
+
+`B314` — `src/regressselect/mutation.py:177` calls
+`xml.etree.ElementTree.parse` on a junit XML report. bandit's advice is to
+substitute `defusedxml`. That is declined for two measured reasons and one
+structural one.
+
+The input is **the junit XML that this package's own harness just produced** by
+running `pytest --junitxml` as a subprocess on the operator's machine. It is not
+network input and it is not attacker-supplied in any deployment this package
+documents.
+
+Measured on CPython 3.13.16, against the parser as called here:
+
+| attack | result |
+|---|---|
+| external entity, `file:///etc/passwd` in an attribute | **refused** — `ParseError: reference to external entity in attribute` |
+| entity expansion, 10^4 and 10^6 characters | expands; peak RSS 18-24 MiB across runs, allocation-dependent and not a stable figure |
+| entity expansion, 10^8 characters | **refused** — `ParseError: limit on input amplification factor (from DTD and entities) breached` |
+
+So file disclosure is not reachable through this call on this interpreter, and
+the expansion that is reachable is capped by the interpreter itself.
+
+**The residual risk, stated plainly:** an operator who points this harness at a
+junit file from an untrusted source can be made to spend bounded memory and time
+on entity expansion, up to the interpreter's amplification limit. On an older
+interpreter without that limit the bound does not exist. If you intend to parse
+junit XML you did not generate, install `defusedxml` and call
+`defusedxml.defuse_stdlib()` before importing this package; nothing here
+prevents that and it is the right choice for that use.
+
+`B608` at `validation/validate_self_selection.py:89` is a string containing the
+word `SELECT` in a comment about test selection. There is no database in this
+package and no SQL is executed anywhere in it.
+
 ## Reproducing every number
 
 ```bash

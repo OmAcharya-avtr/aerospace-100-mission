@@ -16,9 +16,17 @@ P069  BLOCKED    255 tests
 P070  PASS       300 tests
 
 repository  BLOCKED
-         ! absolute private path tracked: HEAD:nightly_reports/2026-10-15.md:31:`/Users/acharya/100 Aero Prods` connected. The `osascript` rou
+         ! absolute private path tracked: HEAD:nightly_reports/2026-10-15.md:31:`/Users/<name>/100 Aero Prods` connected. The `osascript` rou
 
 Total tests passing: 2300
 VERDICT: PUSH BLOCKED
 Blocked products: P064, P065, P066, P069
 Set each to NEEDS HARDENING in products.yaml and do not publish it.
+
+--- REDACTION NOTE, appended 2026-10-18; this transcript is otherwise verbatim ---
+Line 19 of this transcript reproduced the owner's real absolute home-directory
+path, because the gate quotes back the offending line it found. That one string
+now reads /Users/<name>/100 Aero Prods. The gate's verdict, its per-product test
+counts and every other character of the run are unchanged. The verdict this
+transcript records remains EXIT 1 / PUSH BLOCKED, as it was on 2026-10-16.
+See nightly_reports/2026-10-15.md, redaction note, for the reasoning.

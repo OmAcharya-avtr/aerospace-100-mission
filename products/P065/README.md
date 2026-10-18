@@ -503,6 +503,45 @@ Units: every quantity this package computes is a **count** or a dimensionless
   20 seconds on 2 cores and the test suite in about 14; there is no numerical
   pipeline here to be slow.
 
+## Static analysis, and two accepted risks
+
+`bandit -r src/ -x '*/tests/*'` reports **0 HIGH**. Two MEDIUM findings are
+accepted rather than fixed.
+
+### B314 — junit XML parsed with the standard library
+
+`src/hazardtrace/crosslinks.py:211` (`ET.fromstring`) and
+`fixtures/regenerate_fixtures.py:36` (`ET.parse`) parse junit XML reports.
+bandit's advice is to substitute `defusedxml`. Declined, with measurement.
+
+The input is a junit report the operator generated locally with
+`pytest --junitxml`. Measured on CPython 3.13.16, calling this package's own
+`parse_junit`:
+
+| attack | result |
+|---|---|
+| external entity, `file:///etc/passwd` in an attribute | **refused** — `AnalysisFormatError: junit XML is not well formed: reference to external entity in attribute` |
+| entity expansion, 10^4 and 10^6 characters | expands; peak RSS 18-24 MiB across runs, allocation-dependent and not a stable figure |
+| entity expansion, 10^8 characters | **refused** — `ParseError: limit on input amplification factor (from DTD and entities) breached` |
+
+The external-entity case surfaces through this package's own error type, so a
+caller sees a format error rather than a leak.
+
+**The residual risk, stated plainly:** bounded memory and time spent on entity
+expansion, up to the interpreter's amplification limit, if you parse a junit
+file from an untrusted source. On an older interpreter without that limit the
+bound does not exist. If that is your situation, install `defusedxml` and call
+`defusedxml.defuse_stdlib()` before importing this package.
+
+### B506 — `yaml.load` in the analysis parser
+
+`src/hazardtrace/parse.py:275`. Triaged by execution, not by reading:
+`_LineLoader` is a subclass of `yaml.SafeLoader` by `__mro__`; three
+`!!python/object/apply:os.system` payloads were refused with `ConstructorError`;
+the side-effect marker file was confirmed absent afterwards; and the public
+`parse_analysis` entry point refused the same payloads. The finding is bandit
+matching the call name, not the loader's behaviour.
+
 ## Reproducing every number
 
 ```bash

@@ -1,0 +1,21 @@
+Python 3.13.16 (main, Oct  1 2026, 15:40:24) [GCC 13.3.0]
+--- run 1 ---
+billion-laughs                         P065 parse_junit       -> RETURNED (len 120) leak=False
+billion-laughs                         stdlib ET.fromstring   -> RETURNED (len 39) leak=False
+external-entity(file:///etc/passwd)    P065 parse_junit       -> REFUSED AnalysisFormatError: junit XML is not well formed: reference to external entity in attribut
+external-entity(file:///etc/passwd)    stdlib ET.fromstring   -> REFUSED ParseError: reference to external entity in attribute: line 3, column 46
+peak RSS MiB: 20.9
+levels=3 theoretical=10000 expanded_name_chars=10000 secs=0.00
+levels=5 theoretical=1000000 expanded_name_chars=1000000 secs=0.01
+levels=7 -> REFUSED ParseError: limit on input amplification factor (from DTD and entities) breached: line 11, c
+peak RSS MiB: 23.9
+--- run 2, same script, to show which lines are stable ---
+billion-laughs                         P065 parse_junit       -> RETURNED (len 120) leak=False
+billion-laughs                         stdlib ET.fromstring   -> RETURNED (len 39) leak=False
+external-entity(file:///etc/passwd)    P065 parse_junit       -> REFUSED AnalysisFormatError: junit XML is not well formed: reference to external entity in attribut
+external-entity(file:///etc/passwd)    stdlib ET.fromstring   -> REFUSED ParseError: reference to external entity in attribute: line 3, column 46
+peak RSS MiB: 20.8
+levels=3 theoretical=10000 expanded_name_chars=10000 secs=0.00
+levels=5 theoretical=1000000 expanded_name_chars=1000000 secs=0.01
+levels=7 -> REFUSED ParseError: limit on input amplification factor (from DTD and entities) breached: line 11, c
+peak RSS MiB: 23.8
