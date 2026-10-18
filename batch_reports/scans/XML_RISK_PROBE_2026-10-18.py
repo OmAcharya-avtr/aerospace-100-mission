@@ -3,7 +3,10 @@
 # run with: python3 -I XML_RISK_PROBE_2026-10-18.py
 
 import sys, resource, xml.etree.ElementTree as ET
-sys.path.insert(0, "/home/claude/aerospace-100-mission/products/P065/src")
+from pathlib import Path as _P
+# Resolved from this file's own location: batch_reports/scans/ -> repository root.
+# Must not be an absolute literal; release_gate.py check 8 rejects one in tracked content.
+sys.path.insert(0, str(_P(__file__).resolve().parents[2] / "products" / "P065" / "src"))
 from hazardtrace.crosslinks import parse_junit
 
 BILLION = """<?xml version="1.0"?>

@@ -1,0 +1,33 @@
+Release gate — 10 product(s)
+
+P061  PASS       217 tests
+P062  PASS       219 tests
+P063  PASS       262 tests
+P064  PASS       140 tests
+P065  PASS       215 tests
+P066  PASS       264 tests
+P067  PASS       242 tests
+P068  PASS       186 tests
+P069  PASS       255 tests
+P070  PASS       300 tests
+
+repository  BLOCKED
+         ! absolute private path tracked: HEAD:batch_reports/scans/XML_RISK_PROBE_2026-10-18.py:6:sys.path.insert(0, "/home/<container>/aerospace-1
+
+Total tests passing: 2300
+VERDICT: PUSH BLOCKED
+
+--- REDACTION NOTE, appended 2026-10-18; this transcript is otherwise verbatim ---
+The failure line above quoted back the offending source line the gate found,
+which contained an absolute container path. That one prefix now reads
+/home/<container>/ instead. The verdict, the file and line it names, the
+per-product PASS lines and the test counts are unaltered.
+
+Why this is done rather than left verbatim: the gate quotes the offending line,
+so committing the transcript of a check-8 failure verbatim re-commits the very
+string that failed, and the next run fails on the transcript. That loop was
+recorded as an open conflict on 2026-10-16. The standing policy from tonight is:
+a gate transcript that names a private path is committed with that one string in
+the placeholder form the check's own author sanctioned in source
+("/Users/<name>", "/home/<container>"), plus this note. Nothing else is touched,
+and a blocked verdict is never softened into a pass.
