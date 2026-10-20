@@ -1198,3 +1198,164 @@ products:
     published: true
     package: watchdogspec
     pypi_name_check: "watchdogspec FREE, probed with pip index versions against the live index on 2026-10-14; probe validated against numpy/pulp (TAKEN) and beamtwin/traceaudit (FREE) controls"
+  - id: P071
+    name: ConjProb
+    batch: 8
+    class: flagship
+    category: aerospace-gnc
+    summary: "Collision probability for a close approach with the validity regime stated next to the number — Foster-Estes, Chan and Alfano analytic formulations implemented independently and cross-checked against 2-D numerical quadrature and 3-D Monte Carlo as ground truth, regime boundaries reported as measured curves rather than asserted, the dilution region exhibited explicitly as a non-monotonic Pc-versus-covariance curve and raised as a warning by the library itself; learned screening classifier for Pc-threshold triage benchmarked against miss-distance and Mahalanobis screens on recall at fixed false-positive rate. Conjunction assessment is absent from P001-P070; P030 KeepOut is attitude keep-out, not orbital close approach."
+    ai_enabled: true
+    validation_level: 3
+    status: SPECIFYING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P071
+    approved_for_publish: false
+    published: false
+    package: conjprob
+    pypi_name_check: "conjprob FREE, probed with pip index versions against the live index on 2026-10-20; probe validated against numpy (2.5.4) / pulp (4.1.0) TAKEN and beamtwin / traceaudit FREE controls"
+  - id: P072
+    name: DownlinkPick
+    batch: 8
+    class: flagship
+    category: satellite-communications
+    summary: "Downlink selection when the contact is shorter than the queue — recorded-data inventory with value, age, expiry, dependencies and compressibility against a contact plan, producing a selection plus the marginal value of the next unit of contact time and the identity of what was left behind; greedy value-density baseline scored against an exact multi-knapsack MILP over windows, learned value model and compressibility predictor benchmarked against declared-value passthrough and a size/age heuristic, selection stability under perturbed value estimates measured because a selector that flips on noise is unusable regardless of its optimality."
+    ai_enabled: true
+    validation_level: 3
+    status: SPECIFYING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P072
+    approved_for_publish: false
+    published: false
+    package: downlinkpick
+    pypi_name_check: "downlinkpick FREE, probed with pip index versions against the live index on 2026-10-20; probe validated against numpy (2.5.4) / pulp (4.1.0) TAKEN and beamtwin / traceaudit FREE controls"
+  - id: P073
+    name: ContactSched
+    batch: 8
+    class: medium
+    category: satellite-communications
+    summary: "Ground-station contact scheduling under multi-mission contention — station masks and sgp4 ephemerides into visibility windows, priority-ordered first-fit against an exact MILP assignment with declared fairness constraints, and the output that distinguishes it: contention and fairness metrics naming who was starved, by how much, and what the priority scheme actually delivered against what it promised, with max-min share and Jain index behaviour under priority inversion exhibited; learned conflict predictor for unsatisfiable requests scored against a demand-over-supply ratio baseline per station-window."
+    ai_enabled: true
+    validation_level: 2
+    status: SPECIFYING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P073
+    approved_for_publish: false
+    published: false
+    package: contactsched
+    pypi_name_check: "contactsched FREE, probed with pip index versions against the live index on 2026-10-20; probe validated against numpy (2.5.4) / pulp (4.1.0) TAKEN and beamtwin / traceaudit FREE controls"
+  - id: P074
+    name: OrbitDrift
+    batch: 8
+    class: medium
+    category: aerospace-gnc
+    summary: "Ephemeris staleness as a measured divergence curve against epoch age, scoped honestly as a lower bound because the product has no precision-ephemeris or TLE archive access — SGP4 self-consistency between user-supplied epochs as the practical proxy, numerical integration with declared J2-J4, drag and luni-solar perturbations as independent dynamics, learned error-growth predictor with calibrated intervals benchmarked against linear, quadratic and drag-dominated analytic growth forms on interval coverage and width; energy and angular-momentum conservation, integrator step-refinement convergence and SGP4 reproduced against its published test vectors. Must not present any output as a covariance for conjunction assessment."
+    ai_enabled: true
+    validation_level: 3
+    status: SPECIFYING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P074
+    approved_for_publish: false
+    published: false
+    package: orbitdrift
+    pypi_name_check: "orbitdrift FREE, probed with pip index versions against the live index on 2026-10-20; probe validated against numpy (2.5.4) / pulp (4.1.0) TAKEN and beamtwin / traceaudit FREE controls"
+  - id: P075
+    name: ReliaBlock
+    batch: 8
+    class: medium
+    category: aerospace-assurance
+    summary: "Redundancy arithmetic explicit about the assumption doing the work — declared reliability block diagrams (series, parallel, k-of-n, standby with switching reliability, shared-load, common-cause by declared beta factor) with Birnbaum and Fussell-Vesely importance and minimal cut sets, whose headline output is system reliability computed with and without common cause side by side, because independence is the assumption that fails in flight hardware and the one most often left implicit; closed-form checks on every structure, Monte Carlo agreement within its own interval, cut sets against exhaustive state enumeration, importance against finite-difference perturbation, and a published textbook bridge network reproduced with its answer cited. Deliberately no AI: this is arithmetic with a correct answer. The mature reliability package is named and recommended for distribution fitting, ALT and repairable systems."
+    ai_enabled: false
+    validation_level: 2
+    status: SPECIFYING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P075
+    approved_for_publish: false
+    published: false
+    package: reliablock
+    pypi_name_check: "reliablock FREE, probed with pip index versions against the live index on 2026-10-20; probe validated against numpy (2.5.4) / pulp (4.1.0) TAKEN and beamtwin / traceaudit FREE controls"
+  - id: P076
+    name: PointAhead
+    batch: 8
+    class: compact
+    category: pointing-acquisition-tracking
+    summary: "Point-ahead angle for an optical crosslink with every error term attributed to its own checkable line — relative velocity knowledge, ephemeris staleness, light-time iteration residual, stellar and velocity aberration, and the beam-divergence context that says whether the total matters, because a 5 microradian error means one thing on a 50 microradian beam and another on a 5 microradian beam and the dominant term determines what to fix; closed-form first-order aberration scored against an iterated light-time solution, aberration cross-checked against the independent astropy implementation, and the budget verified by propagating each input perturbation numerically against the linearised sensitivity."
+    ai_enabled: false
+    validation_level: 2
+    status: SPECIFYING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P076
+    approved_for_publish: false
+    published: false
+    package: pointahead
+    pypi_name_check: "pointahead FREE, probed with pip index versions against the live index on 2026-10-20; probe validated against numpy (2.5.4) / pulp (4.1.0) TAKEN and beamtwin / traceaudit FREE controls"
+  - id: P077
+    name: RelFileDelivery
+    batch: 8
+    class: compact
+    category: satellite-communications
+    summary: "What a file transfer actually costs over an intermittent link, measured rather than reimplemented — explicitly NOT a CFDP implementation, since cfdp-py and spacepackets exist and are named and recommended for the protocol itself; a measurement harness driving deferred-NAK, immediate-NAK and unacknowledged modes against a seeded link model of declared outage durations, loss and asymmetry, reporting delivery-time quantiles with the tail stated separately because a mean delivery time over an intermittent link is close to meaningless, retransmission overhead and per-contact completion probability; verified against the closed-form expected delivery time in the no-outage limit, with delivered-equals-source asserted by hash on every run."
+    ai_enabled: true
+    validation_level: 2
+    status: SPECIFYING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P077
+    approved_for_publish: false
+    published: false
+    package: relfiledelivery
+    pypi_name_check: "relfiledelivery FREE, probed with pip index versions against the live index on 2026-10-20; probe validated against numpy (2.5.4) / pulp (4.1.0) TAKEN and beamtwin / traceaudit FREE controls"
+  - id: P078
+    name: CmdGuard
+    batch: 8
+    class: compact
+    category: autonomous-aerospace-systems
+    summary: "Command-sequence checking against the spacecraft state the sequence will actually meet — declared command dictionary (preconditions, mode gating, resource draw, inter-command timing, mutual exclusions, irreversibility) and mode machine, with violations reported together with the state trace that reaches each one, because command 47 is illegal is not actionable and command 47 is illegal because command 12 left the payload in SAFE and nothing re-enabled it is; forward symbolic execution as exact ground truth, per-command static precondition lint as the thing people actually do with its miss rate on injected ordering defects measured as a deliverable, learned risk ranker scored against irreversibility-flag and resource-draw orderings on precision at k. No mature equivalent found on the index; the README says so rather than inventing a comparison. Must not claim a passing sequence is safe to uplink."
+    ai_enabled: true
+    validation_level: 2
+    status: SPECIFYING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P078
+    approved_for_publish: false
+    published: false
+    package: cmdguard
+    pypi_name_check: "cmdguard FREE, probed with pip index versions against the live index on 2026-10-20; probe validated against numpy (2.5.4) / pulp (4.1.0) TAKEN and beamtwin / traceaudit FREE controls"
+  - id: P079
+    name: TimeTransfer
+    batch: 8
+    class: compact
+    category: hardware-in-the-loop
+    summary: "Clock offset and skew across a link with the uncertainty measured rather than quoted — two-way time transfer under asymmetric and variable delay, Allan deviation over tau with a confidence interval at each tau, and a measured uncertainty on the offset estimate itself rather than a datasheet figure; symmetric-delay analytic estimator with its asymmetry bias derived in closed form and verified, least-squares and Kalman skew estimation, learned delay-asymmetry corrector benchmarked against the symmetric assumption and a median-filtered estimator; Allan deviation verified against synthetic noise processes of known slope with the fitted slopes reported against theory. THIS IS THE BATCH 08 L4-SCAFFOLDED PRODUCT: hardware abstraction layer with simulation/device parity asserted by test, simulation mode, dry-run mode, documented Jetson Orin Nano deployment and recovery procedure, and a benchmark harness whose hardware rows stay EMPTY and marked unmeasured. Labelled Level 3 hardware-pending and never Level 4 until measured timing and resource use come from the board itself."
+    ai_enabled: true
+    validation_level: 3
+    status: SPECIFYING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P079
+    approved_for_publish: false
+    published: false
+    package: timetransfer
+    pypi_name_check: "timetransfer FREE, probed with pip index versions against the live index on 2026-10-20; probe validated against numpy (2.5.4) / pulp (4.1.0) TAKEN and beamtwin / traceaudit FREE controls"
+    validation_label: "Level 3, hardware-pending"
+  - id: P080
+    name: BoundCompress
+    batch: 8
+    class: compact
+    category: satellite-communications
+    summary: "Certify that the declared error bound held and report what the guarantee cost — explicitly NOT a codec, since numcodecs and zfpy exist and are named and recommended for compression itself; takes a telemetry array and a declared per-sample absolute or relative bound and emits a certificate giving the measured maximum per-sample error and where it occurred, plus a rate-distortion curve against the named codecs at matched measured distortion so the cost of being able to prove the bound is visible rather than asserted; lossless entropy coding of residuals at the bound-implied quantiser step as the hard-to-beat default with the achievable rate bounded below by measured residual entropy, learned residual predictor benchmarked against linear and polynomial extrapolation at identical verified distortion. The bound is asserted on EVERY sample of every test array as a hard test, never as a summary statistic, with a deliberate bound-violation negative control the certificate must fail on, and rate measured as actual encoded bytes rather than estimated from entropy."
+    ai_enabled: true
+    validation_level: 2
+    status: SPECIFYING
+    license: Apache-2.0
+    repository: null
+    local_path: products/P080
+    approved_for_publish: false
+    published: false
+    package: boundcompress
+    pypi_name_check: "boundcompress FREE, probed with pip index versions against the live index on 2026-10-20; probe validated against numpy (2.5.4) / pulp (4.1.0) TAKEN and beamtwin / traceaudit FREE controls"
