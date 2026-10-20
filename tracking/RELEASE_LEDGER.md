@@ -503,3 +503,49 @@ recorded here for a repository that does not exist.
 **Cumulative: 70 of 100 registered and built, 60 published.** Validation
 **L4 remains 0 of 5**, fourteenth batch, blocked on Jetson Orin Nano
 measurements.
+
+---
+
+## 2026-10-20 — Batch 07 PUBLISHED (P061–P070)
+
+The 2026-10-18 gate verdict EXIT 0 / PUSH ALLOWED was the authorisation; ADR-017
+makes publication automatic on it. The only thing missing was the ability to
+create the repositories, refused that night by the environment classifier with
+reason `[Create Public Surface]`. Tonight the same command through the same
+prescribed route was allowed. Nothing retried through another host, tool or
+session.
+
+Ten public repositories under `OmAcharya-avtr`, one product each (ADR-018),
+named for the package in lowercase. Each pushed commit is the SHA that was
+built and gated on 2026-10-18 — nothing rebuilt or amended to publish it.
+Each verified with `gh api repos/.../contributors` returning exactly ONE login.
+
+| Product | Package | Class | L | Repository | Commit | Tests | Contributors |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| P061 | activityplan | flagship | 3 | https://github.com/OmAcharya-avtr/activityplan | `0c74320` | 217 | 1 |
+| P062 | twincalib | flagship | 3 | https://github.com/OmAcharya-avtr/twincalib | `a44a12c` | 219 | 1 |
+| P063 | safemodetree | medium | 3 | https://github.com/OmAcharya-avtr/safemodetree | `9581add` | 262 | 1 |
+| P064 | regressselect | medium | 2 | https://github.com/OmAcharya-avtr/regressselect | `0ce1001` | 140 | 1 |
+| P065 | hazardtrace | medium | 2 | https://github.com/OmAcharya-avtr/hazardtrace | `97804cc` | 215 | 1 |
+| P066 | budgetroll | compact | 1 | https://github.com/OmAcharya-avtr/budgetroll | `e556027` | 264 | 1 |
+| P067 | acqsearch | compact | 2 | https://github.com/OmAcharya-avtr/acqsearch | `108cbc3` | 242 | 1 |
+| P068 | degradepredict | compact | 2 | https://github.com/OmAcharya-avtr/degradepredict | `247017f` | 186 | 1 |
+| P069 | scenariocov | compact | 2 | https://github.com/OmAcharya-avtr/scenariocov | `088966b` | 255 | 1 |
+| P070 | watchdogspec | compact | 2 | https://github.com/OmAcharya-avtr/watchdogspec | `8de937b` | 300 | 1 |
+
+Test counts are CARRIED from the 2026-10-18 gate run (junit XML, total 2,300,
+reproducing 2026-10-17 exactly on a separate day). No gate was run tonight: no
+product source was modified, so the gated tree and the published tree are the
+same bytes.
+
+`products.yaml` updated for all ten: `status: PUBLISHED`, `published: true`,
+`repository:` set to the live URL. `approved_for_publish` left `false`, as
+P059/P060 do — ADR-016 clause 3 bars an unattended session from setting it.
+No `APPROVAL_LOG.md` row written. No owner statement quoted or implied.
+
+`quota_report.py` measured after the edits: **Registered 70/100, Built 70/100,
+Published 70/100.**
+
+**Cumulative: 70 of 100 registered, built and published.** Validation
+**L4 remains 0 of 5**, fifteenth batch, blocked on Jetson Orin Nano
+measurements and now needing the owner to make the board reachable.

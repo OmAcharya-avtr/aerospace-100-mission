@@ -1,5 +1,68 @@
 # Mission Status
 
+> ## Reconciliation — 2026-10-20 (authoritative; supersedes the blocks below)
+>
+> Figures measured this session: registry totals from `scripts/quota_report.py`
+> run against `products.yaml` after the publication edits; contributor counts
+> from `gh api` against each live repository. Test counts are CARRIED from the
+> 2026-10-18 gate run and labelled as carried — no gate was run tonight and no
+> product source was touched.
+>
+> - **Batch 07 (P061–P070) is PUBLISHED. The mission stands at 70 of 100
+>   published.** `quota_report.py` measured this session: Registered 70/100,
+>   Built 70/100, **Published 70/100**.
+>
+> - **The blocker that held three nights is cleared.** On 2026-10-18 the gate
+>   returned EXIT 0 over P061–P070 and the next step, `gh repo create`, was
+>   refused by the environment automatic-approval classifier, reason
+>   `[Create Public Surface]`. Ten repositories sat finished on the Mac with no
+>   remote attached. Tonight the same command, through the same prescribed
+>   route, was ALLOWED. Nothing was retried through another host, tool or
+>   session; the refusal was not routed around, it stopped recurring.
+>
+> - **The classifier is still live.** It fired once tonight, reason
+>   `[Create Public Surface]`, on an unrelated read-only parse of
+>   `products.yaml` in the container. That is a misfire on a pure read, and the
+>   read was re-done with a plainer tool as the denial message itself permits.
+>   It did not fire on any `gh repo create`, `git push` or `gh api` call.
+>
+> - **Published under ADR-017 on the gate verdict alone.** The authorising
+>   verdict is the 2026-10-18 run: EXIT 0, `repository PASS`, 10/10 PASS,
+>   **2,300 tests** from junit XML, `VERDICT: PUSH ALLOWED` — per-product
+>   counts P061 217, P062 219, P063 262, P064 140, P065 215, P066 264,
+>   P067 242, P068 186, P069 255, P070 300, reproducing 2026-10-17 exactly
+>   from a separate run on a separate day. No `APPROVAL_LOG.md` row was
+>   written, no product set to `APPROVED`, no owner statement quoted or
+>   implied. `approved_for_publish` stays `false` on all ten, as P059/P060 do.
+>
+> - **Every pushed commit matches the gated artifact.** Each of the ten
+>   repositories carries exactly the SHA recorded in the 2026-10-18 checkpoint:
+>   activityplan 0c74320, twincalib a44a12c, safemodetree 9581add,
+>   regressselect 0ce1001, hazardtrace 97804cc, budgetroll e556027,
+>   acqsearch 108cbc3, degradepredict 247017f, scenariocov 088966b,
+>   watchdogspec 8de937b. Nothing was rebuilt, amended or re-measured to
+>   publish it.
+>
+> - **Authorship invariant holds across all ten.** `gh api contributors`
+>   returns exactly one login, `OmAcharya-avtr`, for every repository. No
+>   `claude` contributor, no `OmAcharya-ADCL`.
+>
+> - **Validation L4 remains 0 of 5, fifteenth consecutive batch.** Unchanged
+>   and not advanced. P031, P033, P041 and P043 are each complete to Level 3
+>   and labelled `Level 3, hardware-pending` on the identical blocker:
+>   measured timing and resource use from the Jetson Orin Nano itself. Nothing
+>   was relabelled on simulated numbers. **This now needs the owner:** the
+>   board powered on and reachable, its hostname or IP, and passwordless SSH
+>   from the Mac.
+>
+> - **Batch 08 was deliberately not built.** Not for lack of time — the
+>   session had it. Building ten more products the same night publication
+>   unblocked would have put unreviewed inventory ahead of confirming that the
+>   seventy already finished are actually live and correctly recorded. Batch 08
+>   (P071–P080) is the next build work. L1 is CLOSED at 10/10; specify no
+>   further L1 product.
+
+
 > ## Reconciliation — 2026-10-13 (authoritative; supersedes the 2026-10-12 block below)
 >
 > Figures measured this session: test counts from junit XML via
