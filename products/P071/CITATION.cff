@@ -1,0 +1,272 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  conjprob: collision probability for a close approach with the validity regime
+  stated next to the number
+version: 0.1.0
+date-released: 2026-10-21
+license: Apache-2.0
+abstract: >-
+  Collision probability for a close approach, computed by several independent
+  routes, with the disagreement between them reported as the primary output
+  rather than as a footnote. Three analytic paths are implemented separately
+  over the same encounter-plane integral -- the Foster-Estes short-encounter
+  formulation evaluated by adaptive quadrature of the error-function reduction,
+  Chan's equivalent-area series, and Alfano's fixed-node Simpson evaluation --
+  and are scored against two references that share no algebra with them: an
+  independent two-dimensional polar quadrature, and a three-dimensional Monte
+  Carlo over the relative state with exact Clopper-Pearson intervals. On a
+  circular encounter-plane covariance the exact probability is the non-central
+  chi-square distribution function, and Foster-Estes, Chan at its recommended
+  series order and the quadrature reference agree with scipy.stats.ncx2 to
+  6.661e-16, 1.110e-15 and 5.551e-16 worst relative error respectively, while
+  Alfano's fixed-node rule sits at 1.479e-04 with a measured convergence order of
+  1.5004 set by the square-root boundary singularity of the chord. The validity
+  regimes are reported as measured curves against the quadrature reference: at a
+  one per cent tolerance Chan's equivalent-area substitution is exact at
+  covariance aspect ratio one and its boundary falls from R / sigma_eff = 0.5609
+  at aspect 2 to 0.02024 at aspect 30, and the leading-order small-hard-body
+  approximation has a boundary from 0.2818 to 0.01958 over the same grid, with
+  worst errors anywhere on the grid of 2.906285e+01 and 3.933262e+00. The dilution
+  region is exhibited explicitly as a Pc-against-covariance-scale curve with its
+  non-monotonic turn located, the closed-form maximum R^2 / (e d^2) reproduced to
+  4.441e-16, and a DilutionWarning raised by the library itself; the shipped
+  low-Earth case reports a probability 2.0064 times smaller than the maximum
+  attainable over covariance scale. Monte Carlo interval coverage is measured at
+  0.960 over 300 independent seeds against a nominal 0.95, with an interval-width
+  exponent of -0.5052. The rectilinear-relative-motion assumption is violated
+  deliberately: the two-dimensional formulation reaches one per cent error at a
+  measured curvature parameter of 3.288 and ten per cent at 670.3, which for a
+  declared low Earth encounter corresponds to relative speeds of 0.810 and 0.057
+  metres per second, so the formulation is excellent for a fast conjunction and
+  unusable for a slow one. A learned random-forest screen over cheap geometry and
+  covariance features is benchmarked against three analytic screens on recall at
+  a fixed false-positive rate. The result is reported as measured and is mixed:
+  at a one per cent false-positive rate the learned model reaches 0.99284 recall
+  on its training regime against 0.97733 for a one-line closed-form screen using
+  the same features, and loses on both regimes it was not trained on, 0.98840
+  against 1.00000 and 0.99784 against 1.00000. The specification's prediction
+  that a Mahalanobis threshold would match the learned model does not hold on the
+  broad population, where that screen is the worst of the three at 0.03436; it
+  recovers to 0.83720 on a population in which R / sigma_eff varies by less than
+  a factor of two, so the prediction holds under a condition that is identified
+  and measured here. Operational conjunction assessment is done with CARA- and
+  CSpOC-grade tooling against catalogues this product does not have; the
+  contribution here is method cross-validation and regime reporting on a
+  conjunction the user already has. Validation level 3, research grade. Not
+  flight-qualified, not certified, not approved for operational aerospace use. No
+  output of this package is suitable as an input to a manoeuvre decision.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - collision-probability
+  - conjunction-assessment
+  - space-situational-awareness
+  - probability-dilution
+  - foster-estes
+  - chan-series
+  - alfano-method
+  - monte-carlo
+  - aerospace-gnc
+references:
+  - type: report
+    authors:
+      - family-names: Foster
+        given-names: "J. L."
+      - family-names: Estes
+        given-names: "H. S."
+    title: >-
+      A parametric analysis of orbital debris collision probability and maneuver
+      rate for space vehicles
+    institution:
+      name: "NASA Johnson Space Center"
+    number: "NASA/JSC-25898"
+    year: 1992
+    notes: >-
+      The short-encounter formulation and the reduction of the encounter-plane
+      area integral to one dimension with an error function in the second
+      coordinate. Implemented in conjprob.analytic.pc_foster.
+  - type: book
+    authors:
+      - family-names: Chan
+        given-names: "F. K."
+    title: "Spacecraft Collision Probability"
+    publisher:
+      name: "The Aerospace Press"
+    year: 2008
+    notes: >-
+      The equivalent-area series implemented in conjprob.analytic.pc_chan, and
+      the earlier statement of it in Chan, F. K. (1997), Collision probability
+      analyses for Earth-orbiting satellites, Advances in the Astronautical
+      Sciences 96, 1033-1048.
+  - type: article
+    authors:
+      - family-names: Alfano
+        given-names: "S."
+    title: "A numerical implementation of spherical object collision probability"
+    journal: "Journal of the Astronautical Sciences"
+    volume: 53
+    issue: 1
+    year: 2005
+    notes: >-
+      The fixed-node Simpson evaluation implemented in
+      conjprob.analytic.pc_alfano, whose convergence order this product measures
+      at 1.5004 rather than Simpson's nominal 4.
+  - type: article
+    authors:
+      - family-names: Alfano
+        given-names: "S."
+    title: "Relating position uncertainty to maximum conjunction probability"
+    journal: "Journal of the Astronautical Sciences"
+    volume: 53
+    issue: 2
+    year: 2005
+    notes: >-
+      The maximum collision probability over covariance scale, R^2 / (e d^2),
+      reproduced by conjprob.dilution.max_probability to 4.441e-16.
+  - type: article
+    authors:
+      - family-names: Alfriend
+        given-names: "K. T."
+      - family-names: Akella
+        given-names: "M. R."
+      - family-names: Frisbee
+        given-names: "J."
+      - family-names: Foster
+        given-names: "J. L."
+      - family-names: Lee
+        given-names: "D.-J."
+      - family-names: Wilkins
+        given-names: "M."
+    title: "Probability of collision error analysis"
+    journal: "Space Debris"
+    volume: 1
+    issue: 1
+    year: 1999
+    notes: >-
+      The short-encounter assumption set whose breakdown conjprob.nonlinear
+      measures.
+  - type: article
+    authors:
+      - family-names: Akella
+        given-names: "M. R."
+      - family-names: Alfriend
+        given-names: "K. T."
+    title: "Probability of collision between space objects"
+    journal: "Journal of Guidance, Control, and Dynamics"
+    volume: 23
+    issue: 5
+    year: 2000
+    notes: The encounter-plane formulation and its validity conditions.
+  - type: article
+    authors:
+      - family-names: Patera
+        given-names: "R. P."
+    title: "General method for calculating satellite collision probability"
+    journal: "Journal of Guidance, Control, and Dynamics"
+    volume: 24
+    issue: 4
+    year: 2001
+    notes: >-
+      The line-integral generalisation that handles a non-circular hard body and
+      a curved relative trajectory. Not implemented here; cited as the
+      established answer to the curvature breakdown this product measures.
+  - type: article
+    authors:
+      - family-names: Balch
+        given-names: "M. S."
+      - family-names: Martin
+        given-names: "R."
+      - family-names: Ferson
+        given-names: "S."
+    title: "Satellite conjunction analysis and the false confidence theorem"
+    journal: "Proceedings of the Royal Society A"
+    volume: 475
+    issue: 2227
+    year: 2019
+    notes: >-
+      The inferential problem that probability dilution creates: a large
+      covariance yields high confidence of safety from an uninformative
+      measurement. The reason conjprob.dilution exists.
+  - type: article
+    authors:
+      - family-names: Clopper
+        given-names: "C. J."
+      - family-names: Pearson
+        given-names: "E. S."
+    title: >-
+      The use of confidence or fiducial limits illustrated in the case of the
+      binomial
+    journal: "Biometrika"
+    volume: 26
+    issue: 4
+    year: 1934
+    notes: >-
+      The exact binomial interval used for every Monte Carlo estimate, whose
+      coverage this product measures at 0.960 against a nominal 0.95.
+  - type: book
+    authors:
+      - family-names: Vallado
+        given-names: "D. A."
+    title: "Fundamentals of Astrodynamics and Applications"
+    edition: "4th"
+    publisher:
+      name: "Microcosm Press"
+    year: 2013
+    notes: >-
+      Chapter 11 for close-approach geometry and the encounter-plane
+      construction. Structure only; no numerical value in this repository is
+      taken from it.
+  - type: conference-paper
+    authors:
+      - family-names: Vallado
+        given-names: "D. A."
+      - family-names: Crawford
+        given-names: "P."
+      - family-names: Hujsak
+        given-names: "R."
+      - family-names: Kelso
+        given-names: "T. S."
+    title: "Revisiting Spacetrack Report #3"
+    collection-title: "AIAA/AAS Astrodynamics Specialist Conference, AIAA 2006-6753"
+    year: 2006
+    notes: >-
+      The SGP4 verification cases shipped with the sgp4 package, against which
+      conjprob.tle.state_from_tle is checked to 6.820e-06 metres.
+  - type: article
+    authors:
+      - family-names: Breiman
+        given-names: "L."
+    title: "Random forests"
+    journal: "Machine Learning"
+    volume: 45
+    issue: 1
+    year: 2001
+    notes: The learned screening classifier in conjprob.screening.
+  - type: article
+    authors:
+      - family-names: Wager
+        given-names: "S."
+      - family-names: Hastie
+        given-names: "T."
+      - family-names: Efron
+        given-names: "B."
+    title: >-
+      Confidence intervals for random forests: the jackknife and the
+      infinitesimal jackknife
+    journal: "Journal of Machine Learning Research"
+    volume: 15
+    year: 2014
+    notes: >-
+      Why the per-tree spread reported by this package is a dispersion measure
+      and not a confidence interval.
+  - type: article
+    authors:
+      - family-names: Brier
+        given-names: "G. W."
+    title: "Verification of forecasts expressed in terms of probability"
+    journal: "Monthly Weather Review"
+    volume: 78
+    issue: 1
+    year: 1950
+    notes: The calibration score reported in MODEL_CARD.md.

@@ -1,0 +1,119 @@
+
+==============================================================================
+conjprob validation: breakdown of the rectilinear 2-D formulation
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+sgp4             : 2.27
+pyyaml           : 6.0.3
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P071 (printed relatively; see validation/_bootstrap.py)
+
+case                   : large-body-tight-covariance
+miss distance          : 21.405612 m
+relative speed         : 5743.748728 m/s
+effective sigma        : 18.596617 m
+encounter crossing time: 3.237714e-03 s
+rectilinear 2-D Pc     : 4.78829787e-01
+this case is used because its Pc is of order 0.5, so a Monte Carlo interval of
+under one per cent costs 60000 samples and the curvature effect is resolvable
+
+==============================================================================
+1. finite screening window
+==============================================================================
+estimator: pc_monte_carlo_window, rectilinear, exact per-sample minimum
+unbounded-time Monte Carlo: 0.47907000 (95814 hits)
+ T/t_cross        T [s]   pc in window      ratio                   ratio CI
+    0.0500 1.618857e-04     0.37927000   0.791680 [  0.783654,   0.799786]
+    0.1000 3.237714e-04     0.38747000   0.808796 [  0.800674,   0.816999]
+    0.2000 6.475429e-04     0.40271000   0.840608 [  0.832310,   0.848986]
+    0.5000 1.618857e-03     0.43747500   0.913176 [  0.904495,   0.921938]
+    1.0000 3.237714e-03     0.46640000   0.973553 [  0.964571,   0.982618]
+    2.0000 6.475429e-03     0.47843500   0.998675 [  0.989572,   1.007861]
+    4.0000 1.295086e-02     0.47907000   1.000000 [  0.990891,   1.009193]
+    8.0000 2.590171e-02     0.47907000   1.000000 [  0.990891,   1.009193]
+
+ratios non-decreasing in window length : True
+ratios never exceed one                : True
+ratio at T = 8 t_cross                 : 1.000000
+the 2-D formulation integrates over all time, so it overstates the probability
+of a conjunction inside a short screening window by the reciprocal of this
+ratio: at half a crossing time that is a factor of 1.0951
+result: PASS
+
+==============================================================================
+2. curved relative motion
+==============================================================================
+window half-width T = 8 t_cross = 2.590171e-02 s
+acceleration applied along the miss direction, which is the worst case for Pc
+estimator: pc_monte_carlo_curved, 60000 samples, 129 time nodes, 4 refinements
+      kappa   |a| [m/s^2]       mc pc    rel. err                rel. err CI
+ 1.0000e-03   5.54379e+01    0.479150   -0.000668 [  -0.008955,   +0.007754]
+ 3.1623e-03   1.75310e+02    0.479133   -0.000634 [  -0.008921,   +0.007789]
+ 1.0000e-02   5.54379e+02    0.479150   -0.000668 [  -0.008955,   +0.007754]
+ 3.1623e-02   1.75310e+03    0.479100   -0.000564 [  -0.008853,   +0.007860]
+ 1.0000e-01   5.54379e+03    0.479083   -0.000529 [  -0.008818,   +0.007895]
+ 3.1623e-01   1.75310e+04    0.478683   +0.000306 [  -0.007997,   +0.008744]
+ 1.0000e+00   5.54379e+04    0.477483   +0.002820 [  -0.005524,   +0.011300]
+ 3.1623e+00   1.75310e+05    0.474183   +0.009799 [  +0.001342,   +0.018395]
+ 1.0000e+01   5.54379e+05    0.469117   +0.020705 [  +0.012069,   +0.029483]
+ 3.1623e+01   1.75310e+06    0.466133   +0.027238 [  +0.018495,   +0.036125]
+ 1.0000e+02   5.54379e+06    0.457683   +0.046203 [  +0.037146,   +0.055410]
+ 3.1623e+02   1.75310e+07    0.442217   +0.082795 [  +0.073124,   +0.092627]
+ 1.0000e+03   5.54379e+07    0.429050   +0.116023 [  +0.105786,   +0.126433]
+ 3.1623e+03   1.75310e+08    0.422050   +0.134533 [  +0.123977,   +0.145269]
+ 1.0000e+04   5.54379e+08    0.417983   +0.145571 [  +0.134823,   +0.156503]
+
+measured kappa at which the rectilinear 2-D error reaches   1.0 per cent: 3.288387e+00
+measured kappa at which the rectilinear 2-D error reaches  10.0 per cent: 6.702773e+02
+error grows with kappa over the sweep: True
+result: PASS
+
+==============================================================================
+3. discretisation bias of the curved estimator
+==============================================================================
+a time grid can only overestimate the minimum separation, so it can only
+underestimate Pc; the bias is measured by refining the grid at fixed seed
+geometry: the kappa = 10 point of check 2
+ time nodes  refinements    hits          pc  rel. to finest
+          9            0   25246    0.420767   -1.030660e-01
+         33            0   27955    0.465917   -6.821331e-03
+        129            0   28138    0.468967   -3.197499e-04
+        129            4   28147    0.469117   +0.000000e+00
+        513            6   28147    0.469117   +0.000000e+00
+
+hit count non-decreasing under refinement: True
+bias of the package default (129 nodes, 4 refinements) against the finest grid: +0.000000e+00
+tolerance: |bias| <= 1e-3 relative
+result: PASS
+
+==============================================================================
+4. the measured kappa expressed as a relative speed
+==============================================================================
+kappa = |a| T^2 / (2 sigma_eff) with T = w sigma_eff / |v| gives
+kappa = |a| w^2 sigma_eff / (2 |v|^2), so the relative speed at which a given
+kappa is reached is |v| = w sqrt(|a| sigma_eff / (2 kappa)) with w = 8
+the acceleration is the gravity-gradient scale mu |dr| / r^3 at r = 7078137 m
+ sigma_eff [m]  separation [m]   |a| [m/s^2]   v at 1 pc [m/s]   v at 10 pc [m/s]
+       18.5966         21.4056   2.40607e-05          0.065986           0.004622
+      200.0000        300.0000   3.37211e-04          0.810120           0.056743
+     1000.0000        500.0000   5.62019e-04          2.338616           0.163803
+
+a typical low Earth conjunction has a relative speed of several kilometres per
+second, which is four orders of magnitude above these figures, so the
+rectilinear assumption is excellent there. It is the slow encounter -- metres
+per second and below, which is the geostationary co-location case -- where the
+2-D formulation in this package should not be used, and this is the measurement
+that says so rather than an assertion.
+
+==============================================================================
+summary
+==============================================================================
+checks failed: 0

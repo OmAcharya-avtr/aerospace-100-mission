@@ -1,0 +1,141 @@
+
+==============================================================================
+conjprob validation: probability dilution
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+sgp4             : 2.27
+pyyaml           : 6.0.3
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P071 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. closed-form maximum against Alfano's R^2 / (e d^2), circular covariance
+==============================================================================
+reference: Alfano, S. (2005), Relating position uncertainty to maximum
+           conjunction probability, J. Astronautical Sciences 53(2), 193-205
+   R [m]     d [m]      R^2/(e d^2)  max_probability        rel
+       1        50 1.4715177647e-04 1.4715177647e-04  +2.22e-16
+       1       120 2.5547183415e-05 2.5547183415e-05  -4.44e-16
+       1      1000 3.6787944117e-07 3.6787944117e-07  -1.11e-16
+      12        50 2.1189855811e-02 2.1189855811e-02  +2.22e-16
+      12       120 3.6787944117e-03 3.6787944117e-03  -3.33e-16
+      12      1000 5.2974639529e-05 5.2974639529e-05  -2.22e-16
+      30        50 1.3243659882e-01 1.3243659882e-01  +2.22e-16
+      30       120 2.2992465073e-02 2.2992465073e-02  -3.33e-16
+      30      1000 3.3109149705e-04 3.3109149705e-04  -1.11e-16
+
+worst relative difference 4.440892e-16; tolerance 1e-13
+result: PASS
+the scale attaining the maximum is M / sqrt(2) in the same closed form
+
+==============================================================================
+2. closed form against the numerical maximum of the Foster-Estes Pc
+==============================================================================
+the closed form is the small-hard-body limit, so its error grows with R/sigma
+ R/sigma_eff  aspect     closed form       numerical    rel. err   scale cf  scale num
+       0.001       1  1.26854980e-06  1.26854980e-06  +4.954e-13    0.38079    0.38079
+       0.001       5  1.47151776e-06  1.47152200e-06  +2.880e-06    0.35355    0.35355
+        0.01       1  1.26854980e-04  1.26854980e-04  +4.956e-09    0.38079    0.38076
+        0.01       5  1.47151776e-04  1.47194195e-04  +2.883e-04    0.35355    0.35336
+         0.1       1  1.26854980e-02  1.26861413e-02  +5.071e-05    0.38079    0.37745
+         0.1       5  1.47151776e-02  1.51812642e-02  +3.167e-02    0.35355    0.33285
+         0.3       1  1.14169482e-01  1.14753546e-01  +5.116e-03    0.38079    0.34580
+         0.3       5  1.32436599e-01  1.85996893e-01  +4.044e-01    0.35355    0.19448
+           1       1  1.00000000e+00  1.00000000e+00  +0.000e+00    0.38079    0.00200
+           1       5  1.00000000e+00  1.00000000e+00  +0.000e+00    0.35355    0.00079
+
+worst relative error for R/sigma_eff <= 0.01: 2.882619e-04; tolerance 1e-3
+result: PASS
+
+the error of the closed form scales as (R/sigma_eff)^2, which is the order of the
+neglected term; |relative error| / (R/sigma_eff)^2 over the rows with
+R/sigma_eff <= 0.1:
+  R/sigma_eff    0.001   ratio     0.000000
+  R/sigma_eff    0.001   ratio     2.880026
+  R/sigma_eff     0.01   ratio     0.000050
+  R/sigma_eff     0.01   ratio     2.882619
+  R/sigma_eff      0.1   ratio     0.005071
+  R/sigma_eff      0.1   ratio     3.167386
+at R/sigma_eff = 1 the closed form is no longer a useful maximum and the
+numerical value is the one to use; both are reported by the library
+
+==============================================================================
+3. the Pc-against-covariance-scale curve, with its non-monotonic turn
+==============================================================================
+case leo-crossing; scale multiplies both principal standard deviations
+       scale        pc_foster    pc_small_body     branch
+   0.0316228   3.78040920e-61  4.39551930e-102     rising
+   0.0681292   3.11849934e-15   1.03280931e-22     rising
+     0.14678   3.58444358e-05   3.89895462e-06     rising
+    0.316228   4.90018142e-03   4.35814198e-03     rising
+    0.681292   5.90119318e-03   5.92940990e-03   diluting
+      1.4678   1.89527345e-03   1.90011880e-03   diluting
+     3.16228   4.45650296e-04   4.45927532e-04   diluting
+     6.81292   9.78457006e-05   9.78591384e-05   diluting
+      14.678   2.11663593e-05   2.11669888e-05   diluting
+     31.6228   4.56416283e-06   4.56419211e-06   diluting
+     68.1292   9.83505259e-07   9.83506618e-07   diluting
+      146.78   2.11898428e-07   2.11898491e-07   diluting
+     316.228   4.56525335e-08   4.56525365e-08   diluting
+
+maximum of the sampled curve 7.20571701e-03 at scale 0.482318
+strictly increasing left of the maximum : True
+strictly decreasing right of the maximum: True
+result: PASS
+
+==============================================================================
+4. the measured turning point against the M = sqrt(2) criterion
+==============================================================================
+criterion: the present covariance is on the dilution branch when M < 1.4142135624
+the measured scale at the maximum should equal M / sqrt(2)
+      M    M/sqrt(2)  measured scale        rel  branch flag   sensitivity
+ 0.2000     0.141421        0.141333  -6.26e-04         True   -9.6055e-05
+ 0.5000     0.353553        0.353518  -1.00e-04         True   -7.7215e-05
+ 1.0000     0.707107        0.707089  -2.50e-05         True   -3.0326e-05
+ 1.4142     1.000000        0.999987  -1.25e-05         True   -8.9515e-10
+ 2.0000     1.414214        1.414205  -6.24e-06        False   +1.3533e-05
+ 5.0000     3.535534        3.535530  -9.90e-07        False   +4.2869e-09
+10.0000     7.071068        7.071066  -2.48e-07        False   +9.4762e-25
+
+worst relative difference in the scale at the maximum: 6.257130e-04; tolerance 1e-3
+result: PASS
+the branch flag is the sign of a finite-difference derivative, so at
+M = sqrt(2) exactly the derivative is within rounding of zero and the boolean
+is not a promise; the assessment reports near_turning_point for that row
+
+==============================================================================
+5. the library raising the warning itself
+==============================================================================
+case                                       M  on branch   warning  dilution factor
+leo-crossing                         0.68542       True      True     2.006357e+00
+large-body-tight-covariance          1.13996       True      True     2.088425e+00
+far-miss-tight-covariance           12.60332      False     False     1.878202e+31
+
+the warning is raised by conjprob.dilution.assess_dilution, not by the caller
+inspecting a flag, so a user who ignores the return value still sees it
+
+==============================================================================
+6. subnormal miss vector, a regression case
+==============================================================================
+a subnormal miss component leaves the unsquared Mahalanobis hypotenuse
+strictly positive while its square underflows to zero, which turned a guarded
+condition in max_probability into a division by zero. Found by a property-based
+test and pinned in tests/test_regressions.py.
+    xbar = 2.2250738585072014e-308 m, sigma = 1 m
+    hypot(xbar/sigma, 0)      = 2.2250738585072014e-308
+    hypot(xbar/sigma, 0)**2   = 0.0
+    ValueError raised, message names the underflow: True
+result: PASS
+
+==============================================================================
+summary
+==============================================================================
+checks failed: 0

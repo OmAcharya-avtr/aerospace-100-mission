@@ -1,0 +1,189 @@
+
+==============================================================================
+conjprob validation: analytic collision probability
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+sgp4             : 2.27
+pyyaml           : 6.0.3
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P071 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. Rayleigh closed form at zero miss distance
+==============================================================================
+reference: Pc = 1 - exp(-R^2 / (2 sigma^2)), exact for every R / sigma
+  R/sigma      closed form           foster             chan           alfano
+     0.01 4.9998750021e-05 4.9998750021e-05 4.9998750021e-05 4.9998518886e-05
+      0.1 4.9875208073e-03 4.9875208073e-03 4.9875208073e-03 4.9874978080e-03
+      0.5 1.1750309742e-01 1.1750309742e-01 1.1750309742e-01 1.1750258746e-01
+        1 3.9346934029e-01 3.9346934029e-01 3.9346934029e-01 3.9346793847e-01
+        2 8.6466471676e-01 8.6466471676e-01 8.6466471676e-01 8.6466346605e-01
+        4 9.9966453737e-01 9.9966453737e-01 9.9966453737e-01 9.9966452499e-01
+        8 1.0000000000e+00 1.0000000000e+00 1.0000000000e+00 1.0000000000e+00
+
+foster   worst relative error 3.330669e-16  tolerance 1e-10  PASS
+chan     worst relative error 8.881784e-16  tolerance 1e-13  PASS
+alfano   worst relative error 4.622818e-06  tolerance 1e-05  PASS
+note: Chan's series has a single term at zero miss distance and is exact for
+      every order; Alfano's tolerance is loose because the Simpson rule meets a
+      square-root boundary singularity, which check 4 measures
+
+==============================================================================
+2. all four methods against scipy.stats.ncx2, circular covariance
+==============================================================================
+grid: Mahalanobis distance M in {0.25, 0.5, 1, 2, 4, 8}, R / sigma in
+      {0.01, 0.1, 0.5, 1, 2}; sigma = 1 m throughout, Pc is scale free
+chan uses conjprob.analytic.chan_recommended_order(M)
+     M  R/sigma            ncx2      foster        chan      alfano  small_body  quadrature
+  0.25     0.01  4.84604881e-05  +2.220e-16  +1.110e-15  -4.623e-06  +2.422e-05  +2.220e-16
+  0.25      0.1  4.83444828e-03  -3.331e-16  -2.220e-16  -4.612e-06  +2.424e-03  -2.220e-16
+  0.25      0.5  1.14105852e-01  +4.441e-16  +4.441e-16  -4.366e-06  +6.177e-02  +2.220e-16
+  0.25        1  3.84102527e-01  -1.110e-16  -1.110e-16  -3.648e-06  +2.617e-01  +0.000e+00
+  0.25        2  8.56206717e-01  +0.000e+00  -1.110e-16  -1.597e-06  +1.679e-01  -2.220e-16
+  0.50     0.01  4.41238799e-05  +2.220e-16  +1.110e-15  -4.623e-06  +2.188e-05  +2.220e-16
+  0.50      0.1  4.40284612e-03  +0.000e+00  +2.220e-16  -4.616e-06  +2.189e-03  +0.000e+00
+  0.50      0.5  1.04491419e-01  +2.220e-16  +2.220e-16  -4.442e-06  +5.570e-02  +2.220e-16
+  0.50        1  3.57285770e-01  +2.220e-16  +2.220e-16  -3.905e-06  +2.350e-01  +0.000e+00
+  0.50        2  8.30859361e-01  +2.220e-16  -5.551e-16  -2.050e-06  +2.036e-01  +0.000e+00
+  1.00     0.01  3.03261539e-05  +2.220e-16  +8.882e-16  -4.623e-06  +1.250e-05  +0.000e+00
+  1.00      0.1  3.02886406e-03  -1.110e-16  +0.000e+00  -4.629e-06  +1.251e-03  -1.110e-16
+  1.00      0.5  7.34726020e-02  +0.000e+00  +2.220e-16  -4.747e-06  +3.190e-02  +0.000e+00
+  1.00        1  2.67120196e-01  +2.220e-16  +2.220e-16  -4.912e-06  +1.353e-01  +2.220e-16
+  1.00        2  7.30987940e-01  +2.220e-16  -1.110e-16  -3.906e-06  +3.680e-01  +0.000e+00
+  2.00     0.01  6.76693333e-06  +2.220e-16  +8.882e-16  -4.624e-06  -2.500e-05  +2.220e-16
+  2.00      0.1  6.78365289e-04  -3.331e-16  +2.220e-16  -4.681e-06  -2.490e-03  +0.000e+00
+  2.00      0.5  1.79306327e-02  +0.000e+00  +4.441e-16  -5.940e-06  -5.654e-02  +0.000e+00
+  2.00        1  8.18923036e-02  -5.551e-16  -6.661e-16  -8.719e-06  -1.737e-01  -5.551e-16
+  2.00        2  3.96499039e-01  +4.441e-16  +0.000e+00  -1.167e-05  -3.173e-01  -1.110e-16
+  4.00     0.01  1.67760668e-08  +4.441e-16  +8.882e-16  -4.626e-06  -1.750e-04  +0.000e+00
+  4.00      0.1  1.70678504e-06  -1.110e-16  +2.220e-16  -4.887e-06  -1.727e-02  -1.110e-16
+  4.00      0.5  6.21760913e-05  -2.220e-16  +0.000e+00  -1.035e-05  -3.256e-01  +0.000e+00
+  4.00        1  5.89949144e-04  +0.000e+00  +0.000e+00  -2.178e-05  -7.157e-01  -2.220e-16
+  4.00        2  1.47234641e-02  +2.220e-16  -3.331e-16  -4.253e-05  -9.544e-01  -1.110e-16
+  8.00     0.01  6.33699132e-19  +2.220e-16  +8.882e-16  -4.634e-06  -7.746e-04  +2.220e-16
+  8.00      0.1  6.83479887e-17  -5.551e-16  +0.000e+00  -5.700e-06  -7.355e-02  -2.220e-16
+  8.00      0.5  7.10676317e-15  +0.000e+00  +4.441e-16  -2.483e-05  -7.773e-01  -2.220e-16
+  8.00        1  4.27101489e-13  +4.441e-16  +6.661e-16  -6.204e-05  -9.852e-01  -5.551e-16
+  8.00        2  4.77081622e-10  +6.661e-16  +2.220e-16  -1.479e-04  -9.999e-01  -4.441e-16
+
+columns after ncx2 are signed relative errors against it
+foster      worst |relative error| 6.661338e-16  tolerance 1e-09  PASS
+chan        worst |relative error| 1.110223e-15  tolerance 1e-09  PASS
+alfano      worst |relative error| 1.479235e-04  tolerance 5e-04  PASS
+quadrature  worst |relative error| 5.551115e-16  tolerance 1e-09  PASS
+small_body  worst |relative error| 9.999469e-01  no tolerance: this is a leading-order approximation and its error is the measurement
+
+Alfano's tolerance of 5e-4 is derived from its measured convergence order of
+1.5004 in check 4 and the 2001 nodes used here, not chosen to make this grid
+pass. Foster, Chan and the quadrature reference all agree with an independent
+library's non-central chi-square distribution function to machine precision.
+
+==============================================================================
+3. Chan series order required for convergence against Mahalanobis distance
+==============================================================================
+target: relative error below 1e-9 against scipy.stats.ncx2
+the required order depends on both M and R / sigma, so both are swept
+
+R / sigma = 0.5
+     M  needed order  recommended  rel. err at rec.  rel. err at 3
+  0.50             3            7         2.220e-16      1.970e-11
+  1.00             4           11         2.220e-16      4.937e-09
+  2.00             5           18         4.441e-16      1.163e-06
+  3.00             6           26         2.220e-16      2.608e-05
+  4.00             7           35         0.000e+00      2.182e-04
+  6.00             8           56         4.441e-16      3.546e-03
+  8.00            10           82         4.441e-16      2.046e-02
+ 10.00            11          111         1.332e-15      6.658e-02
+ 12.00            12          144         2.887e-15      1.515e-01
+
+R / sigma = 3
+     M  needed order  recommended  rel. err at rec.  rel. err at 3
+  0.50             5            7         5.385e-14      4.345e-06
+  1.00             8           11         4.441e-16      8.243e-04
+  2.00            12           18         0.000e+00      7.039e-02
+  3.00            15           26         6.661e-16      3.946e-01
+  4.00            18           35         1.332e-15      7.573e-01
+  6.00            23           56         6.661e-16      9.868e-01
+  8.00            28           82         1.332e-15      9.997e-01
+ 10.00            33          111         1.887e-15      1.000e+00
+ 12.00            38          144         6.661e-16      1.000e+00
+
+the required order grows with both M^2 / 2 and R^2 / (2 sigma^2); the
+recommendation is a function of M only and is therefore conservative when the
+hard body is small, over-ordering by up to a factor of ten at negligible cost.
+The default order of 3 that Chan recommends is adequate only while M is of
+order one, which is why conjprob.report uses the recommendation instead.
+recommendation adequate everywhere on this grid: PASS
+
+==============================================================================
+4. Alfano Simpson node convergence, measured order
+==============================================================================
+geometry: sigma = (300, 54) m, miss = (120, 30) m, R = 12 m
+reference: conjprob.analytic.pc_foster, adaptive quadrature of the same integral
+reference value 3.500496154498e-03
+   nodes                 pc    |rel. err|    order
+      51 3.496379652026e-03     1.176e-03         
+     101 3.499042050238e-03     4.154e-04    1.501
+     201 3.499982281629e-03     1.468e-04    1.501
+     401 3.500314513855e-03     5.189e-05    1.500
+     801 3.500431942062e-03     1.834e-05    1.500
+    1601 3.500473453252e-03     6.485e-06    1.500
+    3201 3.500488128622e-03     2.293e-06    1.500
+
+mean measured convergence order over the refinements: 1.5004
+Simpson's nominal order is 4. The measured order is lower because the half-chord
+sqrt(R^2 - x^2) has an infinite derivative at both endpoints, which caps the
+attainable order. This is a property of the published fixed-node scheme and is
+reported rather than worked around.
+relative error at the package default of 201 nodes: 1.468000e-04
+
+==============================================================================
+5. regression cases found by property-based testing
+==============================================================================
+each row is a defect that reached a running implementation in this build
+
+5a. absolute quadrature tolerance destroyed scale invariance
+    sigma = (2160, 2134) m, miss = (2, 18061) m, R = 200 m, scale factor 19
+    unscaled 1.305824127767e-18   scaled 1.305824127767e-18
+    relative difference 7.327472e-15   tolerance 1e-9
+    2-D quadrature 1.305824127767e-18 (abserr 9.040e-32)
+    before the fix: 1.2142e-18 and 1.2791e-18, a 5.3 per cent disagreement
+    result: PASS
+
+5b. error-function sum cancelled to exactly zero in the far tail
+    sigma_y = 3 m, ybar = 68 m, half-chord 1 m
+    stable chord mass 8.767418031863e-111; the error-function form returned 0.0
+    Pc foster 1.007060160815e-111   2-D quadrature 1.007060160815e-111 (abserr 8.628e-123)
+    relative difference 4.019007e-14   tolerance 1e-9
+    result: PASS
+
+5c. Chan's published finite sum lost twelve digits to cancellation
+    sigma = 1 m, ybar = 8 m, R = 1 m
+    ncx2 exact 4.271014885290e-13
+    chan via regularised incomplete gamma 4.271014885290e-13
+    relative error 6.661338e-16   tolerance 1e-12
+    before the fix: 4.273235284733e-13, a relative error of 5.2e-4
+    result: PASS
+
+5d. Chan's direct series overflowed to nan at a large Mahalanobis distance
+    sigma = 437 m, xbar = 16515 m, R = 1 m, so v / 2 = 714
+    recommended order 932
+    chan with Poisson weights in logarithms 1.92739845e-316
+    foster 1.92739850e-316
+    relative difference 2.563381e-08   tolerance 1e-6
+    before the fix: the accumulation overflowed to inf while exp(-714)
+    underflowed to 0, and the product was nan
+    result: PASS
+
+==============================================================================
+summary
+==============================================================================
+checks failed: 0

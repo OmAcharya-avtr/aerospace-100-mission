@@ -1,0 +1,104 @@
+
+==============================================================================
+conjprob validation: Monte Carlo reference
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+sgp4             : 2.27
+pyyaml           : 6.0.3
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P071 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. convergence against sample count
+==============================================================================
+case: leo-crossing; estimator: pc_monte_carlo, 3-D, rectilinear, unbounded time
+analytic reference (Foster-Estes): 3.5934922751e-03
+   samples     hits              pc          ci_low         ci_high        width  contains  wall [s]
+     10000       37  3.70000000e-03  2.60643901e-03  5.09639125e-03  2.48995e-03      True     0.002
+     30000      100  3.33333333e-03  2.71293107e-03  4.05276430e-03  1.33983e-03      True     0.003
+    100000      367  3.67000000e-03  3.30467291e-03  4.06456209e-03  7.59889e-04      True     0.011
+    300000     1139  3.79666667e-03  3.57973408e-03  4.02326946e-03  4.43535e-04      True     0.052
+   1000000     3621  3.62100000e-03  3.50421307e-03  3.74067643e-03  2.36463e-04      True     0.074
+   3000000    10816  3.60533333e-03  3.53782333e-03  3.67380427e-03  1.35981e-04      True     0.173
+
+intervals containing the analytic value: 6 of 6
+measured log-log slope of interval width against sample count: -0.505200
+expected -0.5 for a binomial estimator; tolerance +/- 0.05
+result: PASS
+timings above are wall clock on a shared two-core container and are unstable;
+they are recorded for scale only and no conclusion is drawn from them
+
+==============================================================================
+2. measured coverage of the nominal 95 per cent interval
+==============================================================================
+300 independent seeds, 100000 samples each, case leo-crossing
+counting how often the Clopper-Pearson interval contains the analytic value
+measured coverage 0.960000 (288 of 300)
+95 per cent interval on the coverage itself: [0.931171, 0.979163]
+nominal 0.95; the Clopper-Pearson interval is conservative by construction, so
+the measured coverage is expected to be at or above nominal
+tolerance: measured coverage >= 0.93
+result: PASS
+
+mean of the 300 estimates: 3.5978333333e-03
+analytic value                       : 3.5934922751e-03
+relative bias of the mean            : +1.208033e-03
+standard error of the mean           : 2.999838e-03 relative
+tolerance: |bias| <= 3 standard errors
+result: PASS
+
+==============================================================================
+3. each analytic method against the Monte Carlo interval, per case
+==============================================================================
+
+leo-crossing: mc 3.60533333e-03, hits 10816 of 3000000, 95 per cent CI [3.53782333e-03, 3.67380427e-03]
+method                     pc  inside CI    rel. to mc
+foster         3.59349228e-03       True  -3.28432e-03
+chan           3.60322338e-03       True  -5.85230e-04
+alfano         3.59296476e-03       True  -3.43063e-03
+small_body     3.60952020e-03       True  +1.16130e-03
+quadrature     3.59349228e-03       True  -3.28432e-03
+inside the interval : foster, chan, alfano, small_body, quadrature
+outside the interval: none
+
+large-body-tight-covariance: mc 4.79246000e-01, hits 1437738 of 3000000, 95 per cent CI [4.78680548e-01, 4.79811492e-01]
+method                     pc  inside CI    rel. to mc
+foster         4.78829787e-01       True  -8.68476e-04
+chan           5.23649770e-01      False  +9.26534e-02
+alfano         4.78753827e-01       True  -1.02697e-03
+small_body     6.79457195e-01      False  +4.17763e-01
+quadrature     4.78829787e-01       True  -8.68476e-04
+inside the interval : foster, alfano, quadrature
+outside the interval: chan, small_body
+
+==============================================================================
+4. practical floor of the Monte Carlo reference
+==============================================================================
+samples needed for a 95 per cent interval of width 0.1 * Pc, from the
+binomial relation n ~ 4 * 1.96^2 / (0.1^2 * Pc) = 1537 / Pc
+        Pc  samples for 10 per cent   minutes at 3.3e6 samples/s
+     1e-02                1.537e+05                    0.0007763
+     1e-03                1.537e+06                     0.007763
+     1e-04                1.537e+07                      0.07763
+     1e-05                1.537e+08                       0.7763
+     1e-06                1.537e+09                        7.763
+     1e-07                1.537e+10                        77.63
+     1e-08                1.537e+11                        776.3
+
+the sample rate above is the one measured in check 1 and is unstable; the point
+is the scaling, not the number. Monte Carlo is usable as a reference down to
+about Pc = 1e-5 inside this product's three-minute budget and not below, which
+is why the shipped far-miss case at Pc = 2.65e-35 has no Monte Carlo row.
+
+==============================================================================
+summary
+==============================================================================
+checks failed: 0

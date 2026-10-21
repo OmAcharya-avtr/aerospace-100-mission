@@ -1,0 +1,98 @@
+
+==============================================================================
+conjprob validation: TLE state entry point
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+sgp4             : 2.27
+pyyaml           : 6.0.3
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P071 (printed relatively; see validation/_bootstrap.py)
+
+reference files (shipped inside the installed sgp4 package, names only):
+  SGP4-VER.TLE
+  tcppver.out
+satellite: 00005
+  1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753
+  2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667
+published epochs for this satellite: 13
+
+==============================================================================
+1. propagation against the published verification output
+==============================================================================
+     minutes     |dr| [m]    |dv| [m/s]     |r| [km]
+      0.0000    6.820e-06     6.380e-07     7160.674
+    360.0000    5.925e-06     3.850e-07     8831.606
+    720.0000    6.524e-06     4.159e-07    10207.582
+   1080.0000    5.012e-06     7.705e-07     8131.227
+   1440.0000    4.316e-06     5.246e-07     7655.701
+   1800.0000    2.952e-06     3.381e-07    10078.817
+   2160.0000    5.140e-06     4.939e-07     9282.448
+   2520.0000    5.067e-06     5.243e-07     7028.741
+   2880.0000    2.742e-06     6.952e-07     9356.516
+   3240.0000    6.397e-06     5.549e-07    10044.730
+   3600.0000    3.907e-06     4.355e-07     7578.865
+   3960.0000    3.883e-06     7.014e-07     8219.819
+   4320.0000    6.605e-06     5.286e-07    10220.462
+
+worst position error: 6.819541e-06 m
+worst velocity error: 7.704807e-07 m/s
+tolerance: the published values carry 8 decimal places in kilometres and 9 in
+           kilometres per second, so the comparison floor is 1e-5 m and 1e-6
+           m/s; the tolerances are 1e-4 m and 1e-5 m/s
+result: PASS
+
+==============================================================================
+2. closest-approach search convergence under coarse-scan refinement
+==============================================================================
+primary: satellite 00005 propagated by sgp4
+secondary: a declared synthetic offset from the primary state, not a catalogue
+           object; rectilinear over the one-minute search interval
+ coarse steps  coarse min [m]  refined min [m]      tca [s]  evaluations
+            4      120.830460       120.721592     0.000832           60
+           20      120.830460       120.721592     0.000832           73
+          100      120.830460       120.721592     0.000832          149
+          400      120.830460       120.721592     0.000832          447
+         2000      120.830460       120.721592     0.000832         2043
+
+spread of the refined minimum over the coarse-step range: 5.596563e-08 m
+tolerance: <= 1e-6 m; the golden-section refinement removes the dependence on
+           the coarse scan for this geometry, which has a single minimum
+result: PASS
+
+==============================================================================
+3. the synthetic-secondary helper
+==============================================================================
+declared offset magnitude (RTN): 120.830459736 m
+measured offset magnitude      : 120.830459736 m
+primary speed                  : 8073.820993830 m/s
+secondary speed                : 8073.820993830 m/s
+relative speed                 : 6162.072818248 m/s
+2 |v| sin(rotation/2)          : 6179.435060440 m/s  (wrong by -2.809681e-03)
+2 |v_perp| sin(rotation/2)     : 6162.072818248 m/s  (wrong by +2.220446e-16)
+
+the rotation is about the radial direction and this orbit is eccentric, so the
+velocity has a radial component that the rotation does not move. The docstring
+of conjprob.tle.synthetic_secondary states the corrected form; the naive form
+is 0.28 per cent wrong here and is printed so the difference is on the record.
+result: PASS
+
+==============================================================================
+what this check does not establish
+==============================================================================
+a TLE gives a state and not a covariance. Nothing in this product derives a
+covariance from an element set, and a collision probability computed from an
+assumed covariance is a statement about that assumption. The covariance must
+come from orbit determination.
+
+==============================================================================
+summary
+==============================================================================
+checks failed: 0

@@ -1,0 +1,120 @@
+
+==============================================================================
+conjprob 0.1.0 worked example
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+sgp4             : 2.27
+pyyaml           : 6.0.3
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P071 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+input: a declared conjunction case
+==============================================================================
+case file   : examples/cases/leo_crossing.yaml
+case name   : leo-crossing
+hard body   : 12.0000 m combined radius
+primary:
+  position [m]   : 7078137.0000, 0.0000, 0.0000
+  velocity [m/s] : 0.000000, 7504.000000, 0.000000
+  covariance eigenvalues [m^2] : 400.0000, 400.0000, 10000.0000
+secondary:
+  position [m]   : 7078167.0000, 110.0000, 40.0000
+  velocity [m/s] : 0.000000, 5306.934316, 5306.934316
+  covariance eigenvalues [m^2] : 2500.0000, 2500.0000, 90000.0000
+
+every value above is a declared input of a synthetic scenario; none was
+identified from any vehicle, catalogue or operator product
+
+==============================================================================
+output: the report
+==============================================================================
+conjunction assessment
+  time of closest approach : +0.000891 s from epoch
+  miss distance            : 120.7220 m
+  relative speed           : 5743.7487 m/s
+  hard-body radius         : 12.0000 m
+  encounter-plane sigma    : 292.8651 m x 53.8516 m (aspect 5.4384)
+  mahalanobis distance     : 0.685422
+  R / sigma_eff            : 9.555380e-02
+  crossing time            : 2.186441e-02 s
+
+collision probability by method
+  foster       : 3.593492e-03   rel. to quadrature +1.110e-15
+  chan         : 3.603223e-03   rel. to quadrature +2.708e-03
+  alfano       : 3.592965e-03   rel. to quadrature -1.468e-04
+  small_body   : 3.609520e-03   rel. to quadrature +4.460e-03
+  quadrature   : 3.593492e-03   abserr 2.614e-15
+  monte_carlo  : 3.605333e-03   95% CI [3.537823e-03, 3.673804e-03]   hits 10816/3000000
+    inside the interval  : foster, chan, alfano, small_body, quadrature
+    outside the interval : none
+
+disagreement (the primary output)
+  max absolute spread      : 1.655544e-05
+  max relative spread      : 4.460264e-03
+  worst method             : small_body
+  spread in decades        : 0.001997
+
+dilution
+  on dilution branch       : True
+  dilution ratio           : 2.063275
+  dPc / d ln(scale)        : -5.480804e-03
+  attainable maximum Pc    : 7.209827e-03 at covariance scale 0.473905
+  dilution factor          : 2.006357
+
+regime
+  R / sigma_eff is within the measured 1 per cent boundary of the small-hard-body approximation.
+  covariance aspect ratio exceeds 2: Chan's equivalent-area substitution is exact only for a circular scaled cross-section and its measured error grows with aspect ratio.
+  Mahalanobis distance is below sqrt(2): this Pc is on the dilution branch and a larger covariance would make it smaller.
+
+This is a method cross-validation report under the covariance you supplied.
+It is not an input to a manoeuvre decision and no output of this package is.
+
+==============================================================================
+the warning the library raised by itself
+==============================================================================
+DilutionWarning: collision probability is on the dilution branch: the Mahalanobis distance is 0.6854 (below sqrt(2) = 1.4142), so inflating this covariance would reduce the reported Pc of 3.593492e-03 rather than raise it. The attainable maximum over covariance scale is 7.209827e-03 at scale 0.4739. A small Pc here is not evidence of a small risk.
+
+==============================================================================
+the two numbers this product exists to produce
+==============================================================================
+1. disagreement: the four analytic methods span 1.655544e-05 in absolute probability and 4.460264e-03 relative to the quadrature reference, with small_body furthest out.
+2. dilution: the reported Pc of 3.593492e-03 is 2.0064 times smaller than the 7.209827e-03 attainable at covariance scale 0.4739. The Mahalanobis distance is 0.685422, below sqrt(2), so a larger covariance would make this number smaller rather than larger.
+
+neither number is an input to a manoeuvre decision and no output of this
+package is.
+
+==============================================================================
+the same report for all three shipped cases, side by side
+==============================================================================
+this is the table quoted in README.md under Validation evidence
+case                            R/sigma_eff   aspect         M   quadrature Pc      foster        chan      alfano  small_body       worst
+leo-crossing                         0.0956   5.4384   0.68542    3.593492e-03 +1.1102e-15 +2.7080e-03 -1.4680e-04 +4.4603e-03  small_body
+large-body-tight-covariance          1.6132   3.4583   1.13996    4.788298e-01 +2.2204e-16 +9.3603e-02 -1.5864e-04 +4.1900e-01  small_body
+far-miss-tight-covariance            0.4640   3.7151  12.60332    2.652961e-35 +8.6597e-15 +1.1977e+00 -1.5811e-04 -8.6942e-01        chan
+
+the four columns after the quadrature Pc are signed relative errors against it
+Chan is wrong by a factor of 2.2 on the far-miss case and the leading-order
+approximation by a factor of 1.4 on the large-body case; both are regimes a
+real conjunction can be in, and both are flagged in the report's regime notes
+
+==============================================================================
+consistency checks on the quoted numbers
+==============================================================================
+PASS  Foster-Estes agrees with the independent 2-D quadrature  (+1.110e-15 against 1e-8)
+PASS  the Monte Carlo interval contains the Foster-Estes value  (CI [3.537823e-03, 3.673804e-03])
+PASS  the case is on the dilution branch  (dPc/dln(scale) = -5.480804e-03)
+PASS  the small-hard-body approximation is the furthest-out method  (worst method small_body)
+
+==============================================================================
+summary
+==============================================================================
+checks failed: 0

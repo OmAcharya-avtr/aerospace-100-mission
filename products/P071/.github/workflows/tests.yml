@@ -1,0 +1,57 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q --junitxml=junit.xml
+      - name: CLI
+        run: |
+          python -m conjprob --version
+          python -m conjprob assess examples/cases/leo_crossing.yaml
+      - name: Validation scripts
+        run: |
+          python validation/validate_geometry.py
+          python validation/validate_analytic.py
+          python validation/validate_regimes.py
+          python validation/validate_montecarlo.py
+          python validation/validate_dilution.py
+          python validation/validate_nonlinear.py
+          python validation/validate_screening.py
+          python validation/validate_tle.py
+          python validation/validate_cli.py
+          python validation/worked_example.py
+      - name: Validation scripts from another working directory
+        run: |
+          cd validation
+          for script in validate_*.py worked_example.py; do python "$script"; done
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/encounter_plane.py
+          python examples/method_disagreement.py
+          python examples/dilution_curve.py
+          python examples/regime_map.py
+          python examples/monte_carlo_convergence.py
+          python examples/nonlinear_breakdown.py
+          python examples/screening_performance.py

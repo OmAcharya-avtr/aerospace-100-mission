@@ -1,0 +1,94 @@
+
+==============================================================================
+conjprob validation: close-approach geometry
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+sgp4             : 2.27
+pyyaml           : 6.0.3
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P071 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. time of closest approach against a hand calculation
+==============================================================================
+geometry: r = (100, 0, 0) m, v = (-10, 0, 0) m/s; closing head on at 10 m/s
+expected: tca = +10 s exactly in exact arithmetic, miss distance 0 m
+measured: tca = 10.000000000000000 s, miss = 0.000000e+00 m
+tolerance: |tca - 10| <= 1e-12 s, miss <= 1e-9 m
+result: PASS
+
+==============================================================================
+2. miss vector perpendicular to the relative velocity
+==============================================================================
+residual: |m . v| / (|m| |v|), over 200 random geometries
+measured: worst normalised residual 3.087738e-15
+tolerance: <= 1e-12
+result: PASS
+
+==============================================================================
+3. projection of an isotropic covariance preserves the in-plane trace
+==============================================================================
+for C = sigma^2 I the projected 2x2 trace must be 2 sigma^2
+measured: worst relative trace error 4.440892e-16
+tolerance: <= 1e-12
+result: PASS
+
+==============================================================================
+4. Pc invariance under a rigid rotation of the whole problem
+==============================================================================
+both states, both covariances and the hard body rotated together
+case                               rotations  worst rel. change
+leo-crossing                              32       6.985523e-12
+large-body-tight-covariance               32       2.145839e-11
+far-miss-tight-covariance                 32       4.070440e-10
+tolerance: <= 1e-6 relative; the rotation changes the in-plane basis and the
+           eigendecomposition, so this is a rounding bound and not an exact one
+
+==============================================================================
+5. Pc invariance under a common rescaling of every length
+==============================================================================
+case                                   factor    rel. change
+leo-crossing                            1e-04   2.220446e-16
+leo-crossing                            1e-02   2.220446e-16
+leo-crossing                            1e+02   2.220446e-16
+leo-crossing                            1e+04   2.220446e-16
+large-body-tight-covariance             1e-04   0.000000e+00
+large-body-tight-covariance             1e-02   1.110223e-16
+large-body-tight-covariance             1e+02   0.000000e+00
+large-body-tight-covariance             1e+04   0.000000e+00
+far-miss-tight-covariance               1e-04   1.443290e-15
+far-miss-tight-covariance               1e-02   1.665335e-15
+far-miss-tight-covariance               1e+02   4.440892e-15
+far-miss-tight-covariance               1e+04   5.995204e-15
+tolerance: <= 1e-9 relative
+
+==============================================================================
+6. Mahalanobis distance against the explicit quadratic form
+==============================================================================
+principal-frame form sqrt((x/sx)^2 + (y/sy)^2) against sqrt(m^T C^-1 m)
+measured: worst relative difference 3.155254e-13
+tolerance: <= 1e-9
+result: PASS
+
+==============================================================================
+7. shipped case geometry, for the record
+==============================================================================
+case                                    tca [s]     miss [m]    |v| [m/s]  sigma_x [m]  sigma_y [m]         M
+leo-crossing                           0.000891     120.7220     5743.749     292.8651      53.8516   0.68542
+large-body-tight-covariance            0.000234      21.4056     5743.749      34.5834      10.0000   1.13996
+far-miss-tight-covariance              0.012663     491.9450     5743.749      41.5363      11.1803  12.60332
+
+principal frame convention: sigma_x is the larger principal standard deviation
+
+==============================================================================
+summary
+==============================================================================
+checks failed: 0

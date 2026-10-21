@@ -1,0 +1,179 @@
+
+==============================================================================
+conjprob validation: measured validity regimes
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+sgp4             : 2.27
+pyyaml           : 6.0.3
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P071 (printed relatively; see validation/_bootstrap.py)
+
+grid: R/sigma_eff over 60 logarithmic points from 0.001 to 6.31
+      aspect ratios [np.float64(1.0), np.float64(2.0), np.float64(5.0), np.float64(10.0), np.float64(20.0), np.float64(30.0)]
+      Mahalanobis distances [np.float64(0.25), np.float64(0.5), np.float64(1.0), np.float64(2.0), np.float64(4.0)]
+      miss-vector direction psi = pi/4 unless stated
+reference: conjprob.quadrature.pc_quadrature, adaptive 2-D polar quadrature
+chan order: conjprob.analytic.chan_recommended_order(M), so the measured Chan
+            error is its equivalent-area error and not a truncation artefact
+
+==============================================================================
+1. worst error anywhere on the grid, by method
+==============================================================================
+method        worst |rel. error|                            verdict
+foster              1.408800e-13             must be <= 1e-8 (PASS)
+chan                2.906285e+01      approximation error, measured
+alfano              2.453471e-03            Simpson floor, measured
+small_body          3.933262e+00      approximation error, measured
+
+quadrature error estimate over the grid:
+  largest reported abserr relative to the value: not stored; see check 4
+
+==============================================================================
+2. measured R/sigma_eff at which the relative error first exceeds 1e-02
+==============================================================================
+
+foster
+  aspect  M=0.25     M=0.5      M=1        M=2        M=4        
+  1       nan        nan        nan        nan        nan        
+  2       nan        nan        nan        nan        nan        
+  5       nan        nan        nan        nan        nan        
+  10      nan        nan        nan        nan        nan        
+  20      nan        nan        nan        nan        nan        
+  30      nan        nan        nan        nan        nan        
+  the tolerance was never exceeded in any of 30 cells over the swept range
+
+chan
+  aspect  M=0.25     M=0.5      M=1        M=2        M=4        
+  1       nan        nan        nan        nan        nan        
+  2       0.4142     0.4364     0.5609     0.457      0.1541     
+  5       0.1608     0.1691     0.2221     0.1623     0.06002    
+  10      0.101      0.1061     0.1397     0.1012     0.03766    
+  20      0.0675     0.07106    0.09358    0.0675     0.02524    
+  30      0.05426    0.057      0.07519    0.0542     0.02024    
+  boundary spans 0.02024 to 0.5609; 5 of 30 cells never exceeded the tolerance
+
+alfano
+  aspect  M=0.25     M=0.5      M=1        M=2        M=4        
+  1       nan        nan        nan        nan        nan        
+  2       nan        nan        nan        nan        nan        
+  5       nan        nan        nan        nan        nan        
+  10      nan        nan        nan        nan        nan        
+  20      nan        nan        nan        nan        nan        
+  30      nan        nan        nan        nan        nan        
+  the tolerance was never exceeded in any of 30 cells over the swept range
+
+small_body
+  aspect  M=0.25     M=0.5      M=1        M=2        M=4        
+  1       0.2025     0.2131     0.2818     0.2013     0.07576    
+  2       0.1814     0.1905     0.2516     0.1807     0.06771    
+  5       0.1257     0.1325     0.1746     0.1253     0.04707    
+  10      0.09019    0.09492    0.1251     0.09       0.03372    
+  20      0.06414    0.06734    0.08885    0.064      0.02392    
+  30      0.05232    0.05515    0.07269    0.05221    0.01958    
+  boundary spans 0.01958 to 0.2818; 0 of 30 cells never exceeded the tolerance
+
+==============================================================================
+2. measured R/sigma_eff at which the relative error first exceeds 1e-03
+==============================================================================
+
+foster
+  aspect  M=0.25     M=0.5      M=1        M=2        M=4        
+  1       nan        nan        nan        nan        nan        
+  2       nan        nan        nan        nan        nan        
+  5       nan        nan        nan        nan        nan        
+  10      nan        nan        nan        nan        nan        
+  20      nan        nan        nan        nan        nan        
+  30      nan        nan        nan        nan        nan        
+  the tolerance was never exceeded in any of 30 cells over the swept range
+
+chan
+  aspect  M=0.25     M=0.5      M=1        M=2        M=4        
+  1       nan        nan        nan        nan        nan        
+  2       0.1285     0.1354     0.1787     0.1275     0.04786    
+  5       0.05068    0.05339    0.07052    0.05001    0.01888    
+  10      0.03185    0.03352    0.04431    0.03142    0.01186    
+  20      0.02134    0.02251    0.02973    0.02103    0.00796    
+  30      0.01714    0.01801    0.02382    0.01691    0.00637    
+  boundary spans 0.00637 to 0.1787; 5 of 30 cells never exceeded the tolerance
+
+alfano
+  aspect  M=0.25     M=0.5      M=1        M=2        M=4        
+  1       nan        nan        nan        nan        nan        
+  2       nan        nan        nan        nan        nan        
+  5       nan        nan        nan        nan        nan        
+  10      nan        nan        nan        nan        nan        
+  20      2.511      2.631      3.147      4.91       5.149      
+  30      1.941      2.034      2.454      4.087      4.448      
+  boundary spans 1.941 to 5.149; 20 of 30 cells never exceeded the tolerance
+
+small_body
+  aspect  M=0.25     M=0.5      M=1        M=2        M=4        
+  1       0.0642     0.06742    0.08921    0.06328    0.02385    
+  2       0.05733    0.06032    0.07976    0.05652    0.02134    
+  5       0.03979    0.04186    0.05541    0.03919    0.01481    
+  10      0.02852    0.03007    0.03973    0.0281     0.01064    
+  20      0.02025    0.0213     0.02816    0.01997    0.007534   
+  30      0.01657    0.01741    0.02304    0.01632    0.006158   
+  boundary spans 0.006158 to 0.08921; 0 of 30 cells never exceeded the tolerance
+
+==============================================================================
+3. dependence on the miss-vector direction in the principal frame
+==============================================================================
+psi = 0 puts the miss on the major axis, psi = pi/2 on the minor axis
+boundary at a 1 per cent tolerance, aspect 10, Mahalanobis 1
+ psi [rad]         chan   small_body
+   0.00000      0.09411      0.08924
+   0.78540       0.1397       0.1251
+   1.57080       0.4567        0.313
+
+==============================================================================
+4. quadrature reference self-report
+==============================================================================
+the reference's own absolute error estimate, relative to its value
+ R/sigma_eff      M  aspect              pc    abserr/pc
+       0.001   0.50       1    4.412484e-07    2.216e-11
+       0.001   0.50      10    4.412480e-07    2.216e-11
+       0.001   2.00       1    6.766766e-08    2.216e-11
+       0.001   2.00      10    6.766773e-08    2.216e-11
+       0.001   6.00       1    7.615022e-15    2.216e-11
+       0.001   6.00      10    7.615153e-15    2.216e-11
+        0.01   0.50       1    4.412388e-05    2.216e-12
+        0.01   0.50      10    4.411997e-05    2.164e-10
+        0.01   2.00       1    6.766933e-06    3.752e-12
+        0.01   2.00      10    6.767618e-06    2.850e-10
+        0.01   6.00       1    7.618227e-13    1.103e-10
+        0.01   6.00      10    7.631342e-13    8.385e-10
+         0.1   0.50       1    4.402846e-03    9.186e-13
+         0.1   0.50      10    4.364260e-03    3.990e-12
+         0.1   2.00       1    6.783653e-04    7.987e-11
+         0.1   2.00      10    6.850456e-04    5.211e-12
+         0.1   6.00       1    7.942678e-11    2.772e-12
+         0.1   6.00      10    9.340073e-11    1.836e-10
+           1   0.50       1    3.572858e-01    2.413e-12
+           1   0.50      10    2.191099e-01    7.513e-12
+           1   2.00       1    8.189230e-02    8.148e-12
+           1   2.00      10    7.617694e-02    1.346e-11
+           1   6.00       1    1.078641e-07    1.874e-11
+           1   6.00      10    2.333050e-06    2.393e-11
+           5   0.50       1    9.999883e-01    1.966e-12
+           5   0.50      10    8.627885e-01    2.858e-12
+           5   2.00       1    9.977792e-01    3.409e-12
+           5   2.00      10    5.611083e-01    1.947e-12
+           5   6.00       1    1.374852e-01    6.429e-12
+           5   6.00      10    3.244870e-03    4.671e-12
+
+worst reported abserr / pc over this sample: 8.384586e-10
+tolerance: <= 1e-8; result: PASS
+
+==============================================================================
+summary
+==============================================================================
+checks failed: 0

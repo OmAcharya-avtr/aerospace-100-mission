@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "conjprob"
+version = "0.1.0"
+description = "Collision probability for a close approach, with the validity regime stated next to the number and the disagreement between methods as the primary output."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "collision-probability",
+    "conjunction-assessment",
+    "space-situational-awareness",
+    "probability-dilution",
+    "foster-estes",
+    "chan-series",
+    "alfano-method",
+    "monte-carlo",
+    "aerospace-gnc",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scipy>=1.18,<1.19",
+    "scikit-learn>=1.9,<1.10",
+    "pyyaml>=6.0,<6.1",
+    "sgp4>=2.27,<2.28",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=9.1,<9.2", "hypothesis>=6.170,<6.171"]
+examples = ["matplotlib>=3.11,<3.12"]
+dev = [
+    "pytest>=9.1,<9.2",
+    "hypothesis>=6.170,<6.171",
+    "ruff>=0.17,<0.18",
+    "matplotlib>=3.11,<3.12",
+]
+
+[project.scripts]
+conjprob = "conjprob.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["conjprob"]
+known-local-folder = ["_bootstrap", "_common"]

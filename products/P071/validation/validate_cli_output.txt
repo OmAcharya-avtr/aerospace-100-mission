@@ -1,0 +1,130 @@
+
+==============================================================================
+conjprob validation: command-line interface
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+sgp4             : 2.27
+pyyaml           : 6.0.3
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P071 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. invocations, exit statuses and required output fragments
+==============================================================================
+
+python -m conjprob assess examples/cases/leo_crossing.yaml
+  exit status 0 (expected 0)
+  output lines 40
+  required fragments present: 4 of 4
+  result: PASS
+
+python -m conjprob assess examples/cases/leo_crossing.yaml --monte-carlo 200000
+  exit status 0 (expected 0)
+  output lines 43
+  required fragments present: 2 of 2
+  result: PASS
+
+python -m conjprob assess examples/cases/large_body_tight_covariance.yaml
+  exit status 0 (expected 0)
+  output lines 40
+  required fragments present: 2 of 2
+  result: PASS
+
+python -m conjprob assess examples/cases/far_miss_tight_covariance.yaml
+  exit status 0 (expected 0)
+  output lines 38
+  required fragments present: 1 of 1
+  result: PASS
+
+python -m conjprob dilution examples/cases/leo_crossing.yaml --points 9
+  exit status 0 (expected 0)
+  output lines 12
+  required fragments present: 2 of 2
+  result: PASS
+
+python -m conjprob regimes --points 20 --aspects 1.0 10.0 --mahalanobis 1.0
+  exit status 0 (expected 0)
+  output lines 22
+  required fragments present: 3 of 3
+  result: PASS
+
+python -m conjprob screen --n-train 6000 --n-test 3000
+  exit status 0 (expected 0)
+  output lines 14
+  required fragments present: 3 of 3
+  result: PASS
+
+python -m conjprob assess examples/cases/does_not_exist.yaml
+  exit status 2 (expected 2)
+  output lines 0
+  result: PASS
+
+python -m conjprob screen --regime not-a-regime --n-train 600 --n-test 600
+  exit status 2 (expected 2)
+  output lines 0
+  result: PASS
+
+==============================================================================
+2. the assess report for the shipped leo-crossing case, verbatim
+==============================================================================
+exit status 0
+
+case: leo-crossing
+conjunction assessment
+  time of closest approach : +0.000891 s from epoch
+  miss distance            : 120.7220 m
+  relative speed           : 5743.7487 m/s
+  hard-body radius         : 12.0000 m
+  encounter-plane sigma    : 292.8651 m x 53.8516 m (aspect 5.4384)
+  mahalanobis distance     : 0.685422
+  R / sigma_eff            : 9.555380e-02
+  crossing time            : 2.186441e-02 s
+
+collision probability by method
+  foster       : 3.593492e-03   rel. to quadrature +1.110e-15
+  chan         : 3.603223e-03   rel. to quadrature +2.708e-03
+  alfano       : 3.592965e-03   rel. to quadrature -1.468e-04
+  small_body   : 3.609520e-03   rel. to quadrature +4.460e-03
+  quadrature   : 3.593492e-03   abserr 2.614e-15
+
+disagreement (the primary output)
+  max absolute spread      : 1.655544e-05
+  max relative spread      : 4.460264e-03
+  worst method             : small_body
+  spread in decades        : 0.001997
+
+dilution
+  on dilution branch       : True
+  dilution ratio           : 2.063275
+  dPc / d ln(scale)        : -5.480804e-03
+  attainable maximum Pc    : 7.209827e-03 at covariance scale 0.473905
+  dilution factor          : 2.006357
+
+regime
+  R / sigma_eff is within the measured 1 per cent boundary of the small-hard-body approximation.
+  covariance aspect ratio exceeds 2: Chan's equivalent-area substitution is exact only for a circular scaled cross-section and its measured error grows with aspect ratio.
+  Mahalanobis distance is below sqrt(2): this Pc is on the dilution branch and a larger covariance would make it smaller.
+
+This is a method cross-validation report under the covariance you supplied.
+It is not an input to a manoeuvre decision and no output of this package is.
+
+DilutionWarning: collision probability is on the dilution branch: the Mahalanobis distance is 0.6854 (below sqrt(2) = 1.4142), so inflating this covariance would reduce the reported Pc of 3.593492e-03 rather than raise it. The attainable maximum over covariance scale is 7.209827e-03 at scale 0.4739. A small Pc here is not evidence of a small risk.
+
+==============================================================================
+3. no absolute path appears in this output
+==============================================================================
+tokens beginning with a path separator: 0
+result: PASS
+
+==============================================================================
+summary
+==============================================================================
+checks failed: 0
