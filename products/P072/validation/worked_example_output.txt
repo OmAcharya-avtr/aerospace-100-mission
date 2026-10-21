@@ -1,0 +1,216 @@
+
+==============================================================================
+downlinkpick worked example
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pulp             : 4.1.0
+pulp solvers     : none available
+pyyaml           : 6.0.3
+pandas           : 3.0.5
+joblib           : 1.6.0
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P072 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+part one: declared values on the reference case
+==============================================================================
+the code, exactly as README.md quotes it
+
+    from downlinkpick import (
+        SelectionProblem, best_window_to_extend, exact_select, greedy_select,
+        left_behind_report, load_case, marginal_value_of_contact, value_left_behind,
+    )
+    
+    case = load_case("examples/cases/three_pass_declared.yaml")
+    problem = SelectionProblem.from_declared(case.inventory, case.plan)
+    
+    greedy = greedy_select(problem)
+    exact = exact_select(problem)
+    print(f"greedy {greedy.total_value:.4f}  exact {exact.total_value:.4f} ({exact.status})")
+    print(f"greedy gap {(exact.total_value - greedy.total_value) / exact.total_value:.6f}")
+    print(f"queue {problem.inventory.total_downlink_bits() / 1e9:.2f} Gbit, "
+          f"contact {problem.plan.total_capacity_bits() / 1e9:.2f} Gbit over "
+          f"{problem.plan.total_contact_s():.0f} s")
+    
+    marginals = marginal_value_of_contact(problem, base=exact, delta_s=60.0)
+    best = best_window_to_extend(marginals)
+    print(f"extend {best.window}: {best.value_per_second:.6f} value/s, "
+          f"{best.delta_bits / 1e9:.3f} Gbit, admits {', '.join(best.entering) or 'nothing'}")
+    
+    rows = left_behind_report(problem, exact)
+    print(f"left behind {len(rows)} products worth {sum(r.value for r in rows):.4f}")
+    for row in rows[:3]:
+        print(f"  {row.product:>8s} value {row.value:6.3f}  {row.reason:>9s}  "
+              f"{row.extra_seconds_needed:7.1f} s short on {row.best_window}")
+    print("by reason:", {k: round(v, 3) for k, v in value_left_behind(rows).items()})  # noqa
+
+its output
+
+greedy 61.4030  exact 62.2781 (optimal)
+greedy gap 0.014052
+queue 97.02 Gbit, contact 43.66 Gbit over 1254 s
+extend pass1: 0.013294 value/s, 0.647 Gbit, admits hsi-015
+left behind 5 products worth 22.0166
+   hsi-018 value  8.137   capacity   1223.8 s short on pass3
+   hsi-015 value  6.027   capacity    967.6 s short on pass1
+   sar-009 value  4.186   capacity   1223.8 s short on pass1
+by reason: {'expired': 0.000, 'oversized': 0.000, 'dependency': 0.000, 'capacity': 22.017}
+
+==============================================================================
+part one, continued: the full report the CLI prints
+==============================================================================
+contact plan
+    window  station    start [s]      end [s]   dur [s]         capacity  reliab
+     pass1      gs1        855.1       1396.8     541.7     18.8588 Gbit   0.790
+     pass2      gs2      20447.6      20700.4     252.8      7.5764 Gbit   0.770
+     pass3      gs3      29640.9      30100.2     459.2     17.2230 Gbit   0.832
+     total                                       1253.7     43.6583 Gbit
+
+selection
+method exact-scipy, status optimal, value source declared
+     product   window             size      value   value/Gbit
+     hkt-001    pass1      0.0007 Gbit     0.6392     868.2973
+     hsi-003    pass1      5.6781 Gbit     4.8650       0.8568
+     msi-006    pass1      0.5371 Gbit     1.5284       2.8454
+     hsi-008    pass1      6.2876 Gbit     9.0356       1.4370
+     msi-011    pass1      1.4532 Gbit     1.3520       0.9303
+     sar-017    pass1      3.0153 Gbit     3.9793       1.3197
+     msi-020    pass1      1.5388 Gbit     2.5440       1.6532
+     cal-021    pass1      0.0194 Gbit     1.0638      54.6946
+     hsi-007    pass2      4.6681 Gbit     2.0097       0.4305
+     msi-013    pass2      2.9045 Gbit     0.9029       0.3108
+     cal-000    pass3      0.0207 Gbit     1.8088      87.2424
+     msi-002    pass3      0.8600 Gbit     3.7278       4.3348
+     hsi-004    pass3      7.7003 Gbit    12.2921       1.5963
+     cal-005    pass3      0.0038 Gbit     2.5681     667.8369
+     cal-012    pass3      0.0253 Gbit     4.6594     184.0679
+     hkt-014    pass3      0.0014 Gbit     0.8579     613.4001
+     sar-016    pass3      4.3567 Gbit     3.7745       0.8664
+     hsi-019    pass3      3.7133 Gbit     1.1117       0.2994
+     cal-022    pass3      0.0055 Gbit     3.5580     651.5925
+    selected       19     42.7900 Gbit    62.2781
+
+    window        committed         capacity            spare
+     pass1     18.5304 Gbit     18.8588 Gbit      0.3285 Gbit
+     pass2      7.5727 Gbit      7.5764 Gbit      0.0037 Gbit
+     pass3     16.6870 Gbit     17.2230 Gbit      0.5360 Gbit
+
+left behind
+     product      value             size      reason   window  short [Gbit]   short [s]
+     hsi-018     8.1370     14.7542 Gbit    capacity    pass3      14.21815     1223.81
+     hsi-015     6.0270     10.7646 Gbit    capacity    pass1      10.43608      967.60
+     sar-009     4.1859     13.5281 Gbit    capacity    pass1      13.19963     1223.83
+     sar-010     2.4331     11.6267 Gbit    capacity    pass1      11.29823     1047.53
+     msi-023     1.2336      3.5547 Gbit    capacity    pass1       3.22624      299.13
+
+value left behind by reason [value units]
+      expired     0.0000
+    oversized     0.0000
+   dependency     0.0000
+     capacity    22.0166
+          all    22.0166
+
+marginal value of contact time
+finite-difference step 60.000 s, rate held at the window's final value
+a window's end is also its delivery epoch, so an extension can push a product
+past its expiry; the expiry-crossing column explains a zero or negative price
+    window  +bits [Gbit]     +value      value/s   value/Gbit crossings entering / leaving
+     pass1       0.64713     0.7976     0.013294       1.2325         0 hsi-015 / hsi-007, hsi-019, msi-013
+     pass2       0.55704     0.0177     0.000295       0.0318         0 -
+     pass3       0.69707     0.1455     0.002425       0.2087         0 msi-023 / hsi-019
+
+invariants: all hold
+  worst capacity overshoot : -3.698362e+06 bits
+  value residual (relative): 0.000e+00
+
+==============================================================================
+part two: the learned path on the case with missing declarations
+==============================================================================
+the code, exactly as README.md quotes it
+
+    from downlinkpick import (
+        CompressibilityModel, SelectionProblem, ValueModel, declared_values,
+        exact_select, generate_training_table, hybrid_values, load_case,
+        sizes_from_ratios,
+    )
+    from downlinkpick.dataset import value_feature_row
+    import numpy as np
+    
+    case = load_case("examples/cases/missing_declarations.yaml")
+    inventory = case.inventory
+    print(f"{len(inventory.missing_declarations())} of {len(inventory)} values undeclared, "
+          f"{len(inventory.missing_compressibility())} compressibilities unmeasured")
+    
+    table = generate_training_table(6000, 1001)
+    values_model = ValueModel().fit(table.value_features, table.value_target)
+    ratio_model = CompressibilityModel().fit(
+        table.compression_features, table.compression_target
+    )
+    
+    features = np.array([value_feature_row(p, inventory) for p in inventory])
+    value, dispersion = values_model.predict_with_dispersion(features)
+    learned = dict(zip(inventory.names, (float(v) for v in value)))
+    ratios = ratio_model.predict_inventory(inventory, case.autocorrelation)
+    
+    problem = SelectionProblem(
+        inventory, case.plan,
+        values=hybrid_values(inventory, learned),
+        sizes_bits=sizes_from_ratios(inventory, ratios.conservative_mapping()),
+        value_source="declared where present, learned where absent",
+    )
+    selection = exact_select(problem)
+    passthrough = SelectionProblem(
+        inventory, case.plan,
+        values=declared_values(inventory, fallback="zero"),
+        sizes_bits=problem.sizes_bits, value_source="declared passthrough",
+    )
+    print(f"hybrid values  : {selection.total_value:.4f} over "
+          f"{len(selection.assignments)} products")
+    print(f"passthrough    : {exact_select(passthrough).total_value:.4f} over "
+          f"{len(exact_select(passthrough).assignments)} products")
+    widest = max(zip(inventory.names, dispersion), key=lambda item: item[1])
+    print(f"widest ensemble spread: {widest[0]} at +-{widest[1]:.3f} value units")
+
+its output
+
+10 of 24 values undeclared, 7 compressibilities unmeasured
+hybrid values  : 40.0958 over 18 products
+passthrough    : 28.6410 over 11 products
+widest ensemble spread: msi-001 at +-1.858 value units
+
+the two objectives above are NOT comparable as numbers: they are measured
+against different value tables. What is comparable is the count of products
+selected and the fact that the passthrough cannot see 40 per cent of the queue
+at all. The scored comparison, on ground-truth values through the same solver,
+is in validation/validate_valuemodel_output.txt.
+
+==============================================================================
+part two, continued: the ten widest ensemble spreads
+==============================================================================
+the products an operator should look at by hand before spending a pass on them
+
+     product   declared    learned    spread    ratio  ratio +2s
+     msi-001     6.7438     4.9798    1.8578   0.5723     0.6333
+     sar-003     1.3895     4.9055    1.7818   0.5458     0.6099
+     hsi-006       none     4.6354    1.5726   0.3020     0.3298
+     msi-010       none     4.0218    1.5338   0.6785     0.7699
+     cal-016     4.3880     4.9437    1.4931   0.2179     0.2388
+     hsi-022       none     3.8578    1.4900   0.3581     0.3906
+     hsi-021     2.2455     2.1801    0.8705   0.4070     0.4555
+     msi-018       none     2.6718    0.7635   0.4879     0.5405
+     sar-002       none     2.4980    0.7509   0.4568     0.5078
+     cal-007     2.8392     2.6842    0.7167   0.3674     0.4060
+
+==============================================================================
+summary
+==============================================================================
+no assertions in this script: it is the worked example, and its purpose is to
+produce the output README.md quotes

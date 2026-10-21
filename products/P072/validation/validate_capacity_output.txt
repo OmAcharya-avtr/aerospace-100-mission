@@ -1,0 +1,118 @@
+
+==============================================================================
+downlinkpick validation: contact-time accounting
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pulp             : 4.1.0
+pulp solvers     : none available
+pyyaml           : 6.0.3
+pandas           : 3.0.5
+joblib           : 1.6.0
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P072 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1 and 2. closed form against two independent integrals of rate over window
+==============================================================================
+reference 1: scipy.integrate.quad, adaptive Gauss-Kronrod, shares no code
+reference 2: midpoint Riemann sum over 400000 sub-intervals
+tolerances : quad 1.0e-07 relative; Riemann max(1.0e-09, 4 * sum(step heights) * h / capacity), derived per profile
+
+                               profile   closed form [bit]    quad rel  Riemann rel  Riemann tol
+                 flat 50 Mbit/s, 300 s    1.5000000000e+10   0.000e+00    1.272e-16    1.000e-09
+      sine floor 0.22, 9 points, 480 s    4.0905538588e+10   1.865e-16    0.000e+00    1.000e-09
+      sine floor 0.0, 25 points, 612 s    3.1124385444e+10   7.354e-16    2.295e-12    1.000e-09
+     irregular breakpoints with a step    8.6546250000e+10   8.385e-09    5.200e-07    7.470e-06
+             zero-rate opening segment    9.5000000000e+09   2.008e-16    1.551e-12    1.000e-09
+
+worst quad relative difference         : 8.384938e-09
+worst Riemann difference / tolerance  : 6.960605e-02
+
+==============================================================================
+3. additivity of the capacity integral over a split window
+==============================================================================
+identity: delivered_bits(a, c) == delivered_bits(a, b) + delivered_bits(b, c)
+tolerance: 1.0e-12 relative
+
+                               profile split at [s]  relative residual
+                 flat 50 Mbit/s, 300 s      150.000          0.000e+00
+      sine floor 0.22, 9 points, 480 s      240.000          0.000e+00
+      sine floor 0.0, 25 points, 612 s      426.000          0.000e+00
+     irregular breakpoints with a step      215.500          0.000e+00
+             zero-rate opening segment      130.000          0.000e+00
+
+worst additivity residual over 15 splits: 1.225630e-16
+
+==============================================================================
+4. flat profile against the elementary closed form rate * duration
+==============================================================================
+tolerance: 1.0e-12 relative
+
+  rate [bit/s]  duration [s]      rate*duration         rel
+     1.000e+06        37.000   3.7000000000e+07   0.000e+00
+     1.000e+06       300.000   3.0000000000e+08   0.000e+00
+     1.000e+06       912.500   9.1250000000e+08   0.000e+00
+     5.000e+07        37.000   1.8500000000e+09   0.000e+00
+     5.000e+07       300.000   1.5000000000e+10   0.000e+00
+     5.000e+07       912.500   4.5625000000e+10   0.000e+00
+     1.200e+09        37.000   4.4400000000e+10   0.000e+00
+     1.200e+09       300.000   3.6000000000e+11   0.000e+00
+     1.200e+09       912.500   1.0950000000e+12   0.000e+00
+
+worst flat-profile residual: 0.000000e+00
+
+==============================================================================
+5. time_for_bits inverted against delivered_bits
+==============================================================================
+identity: delivered_bits(start, start + time_for_bits(b)) == b
+tolerance: 1.0e-9 relative on the bit count
+
+                               profile  fraction     seconds         rel
+                 flat 50 Mbit/s, 300 s      0.50   150.00000   4.547e-13
+      sine floor 0.22, 9 points, 480 s      0.50   240.00000   6.405e-13
+      sine floor 0.0, 25 points, 612 s      0.50   306.00000   7.152e-13
+     irregular breakpoints with a step      0.50   206.84864   4.974e-13
+             zero-rate opening segment      0.50   150.39701   4.660e-13
+
+worst inverse residual over 25 points: 9.574388e-13
+
+==============================================================================
+6. window extension adds exactly the held final rate times the step
+==============================================================================
+identity: extended(d).capacity - capacity == final_rate * d
+tolerance: 1.0e-12 relative
+
+                               profile  step [s]    expected [bit]         rel
+                 flat 50 Mbit/s, 300 s      10.0    5.00000000e+08   0.000e+00
+      sine floor 0.22, 9 points, 480 s      10.0    2.64000000e+08   0.000e+00
+     irregular breakpoints with a step      10.0    1.00000000e+08   0.000e+00
+             zero-rate opening segment      10.0    2.00000000e+08   0.000e+00
+
+worst extension residual: 0.000000e+00
+
+==============================================================================
+7. the shipped cases, capacity against quadrature
+==============================================================================
+                                case   window   closed form [bit]    quad rel
+            three_pass_declared.yaml    pass1    1.8858839753e+10   2.023e-16
+            three_pass_declared.yaml    pass2    7.5763720505e+09   3.273e-15
+            three_pass_declared.yaml    pass3    1.7223045735e+10   6.645e-16
+           missing_declarations.yaml    pass1    6.5566669575e+09   4.364e-16
+           missing_declarations.yaml    pass2    5.7609866251e+09   4.966e-16
+           missing_declarations.yaml    pass3    5.4403651682e+09   4.032e-15
+              single_short_pass.yaml    pass1    3.9696596281e+09   9.610e-16
+
+worst shipped-case relative difference: 4.031808e-15
+
+==============================================================================
+summary
+==============================================================================
+failures: 0

@@ -1,0 +1,201 @@
+
+==============================================================================
+downlinkpick validation: the learned value model against its baselines
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pulp             : 4.1.0
+pulp solvers     : none available
+pyyaml           : 6.0.3
+pandas           : 3.0.5
+joblib           : 1.6.0
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P072 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+training
+==============================================================================
+table rows        : 6000, seed 1001
+train fraction    : 0.7
+features          : log10_raw_bytes, age_s, time_to_expiry_s, novelty, coverage_fraction, entropy_bits_per_sample, bit_depth, channels, n_dependents, instrument_code
+model             : RandomForestRegressor, 300 trees, min_samples_leaf 2, random_state 20261021, n_jobs 1
+target            : realised value, equation (3) of downlinkpick.dataset
+latent            : the site weight omega of equation (3) is NOT a feature, so it
+                    is the irreducible error floor of every estimator here
+train / test rows : 4200 / 1800
+size/age fit      : value = -3.090994 + 1.017927 * log10(bytes) + -1.643576e-05 * age_s
+
+==============================================================================
+1. regression error on held-out products
+==============================================================================
+tolerances: none. These are measurements, not assertions.
+
+           estimator        MAE       RMSE   Spearman        bias
+      learned forest   0.962341   1.585054   0.912832   5.278e-03
+     size/age fitted   1.863225   2.561772   0.557234   4.825e-03
+          train mean   2.233730   3.034266        nan   5.277e-02
+
+impurity-based feature importances, which are biased towards high-cardinality
+features and are reported with that caveat
+             log10_raw_bytes 0.275147
+                     novelty 0.236182
+                       age_s 0.171185
+     entropy_bits_per_sample 0.117066
+           coverage_fraction 0.083647
+             instrument_code 0.054717
+            time_to_expiry_s 0.034967
+                   bit_depth 0.018362
+                    channels 0.008726
+                n_dependents 0.000000
+
+==============================================================================
+2. the uncertainty output
+==============================================================================
+the forest reports the standard deviation of its per-tree predictions. This is a
+dispersion measure over the ensemble and NOT a calibrated confidence interval:
+the trees share training data, so the spread understates predictive uncertainty
+(Wager, Hastie and Efron 2014). The measured coverage below is what that costs.
+
+        band  nominal normal  measured coverage
+   +-1 sigma          0.6827           0.688889
++-1.96 sigma          0.9500           0.941111
+   +-2 sigma          0.9545           0.947222
+
+mean dispersion                       : 1.175507 value units
+mean absolute error                   : 0.962341 value units
+Spearman(dispersion, |error|)          : 0.601302
+a positive rank correlation means the dispersion is informative about where the
+model is wrong even though its band is not calibrated, which is the useful
+property: a product the ensemble disagrees about is a product to check by hand
+
+==============================================================================
+3. end-to-end regret through the exact solver
+==============================================================================
+instances per scenario: 30, seeds 5001..5030, 24 products, 3 windows,
+                        capacity 45 per cent of the queue
+ground-truth compression ratios are used for every arm, so the only thing that
+varies between arms is the value estimate
+regret = oracle selection value - arm selection value, both scored on the truth
+
+scenario 1 complete and fresh
+               arm        MAE   Spearman   realised     oracle     regret  regret frac  worst frac
+   declared-median   0.209235   0.995882   60.24776   60.27454    0.02678     0.000404    0.007015
+     declared-zero   0.209235   0.995882   60.24776   60.27454    0.02678     0.000404    0.007015
+          size-age   1.940464   0.517327   57.86882   60.27454    2.40572     0.039722    0.139319
+           learned   1.002261   0.905926   59.68522   60.27454    0.58932     0.009582    0.075064
+            hybrid   0.209235   0.995882   60.24776   60.27454    0.02678     0.000404    0.007015
+            oracle   0.000000   1.000000   60.27454   60.27454    0.00000     0.000000    0.000000
+  best non-oracle arm: declared-median at regret fraction 0.000404
+  declared-median and declared-zero coincide here because every value
+  is declared, so neither fallback is ever used.
+
+scenario 2 complete but stale
+               arm        MAE   Spearman   realised     oracle     regret  regret frac  worst frac
+   declared-median   1.893377   0.803775   59.33080   60.27454    0.94373     0.015860    0.081643
+     declared-zero   1.893377   0.803775   59.33080   60.27454    0.94373     0.015860    0.081643
+          size-age   1.940464   0.517327   57.86882   60.27454    2.40572     0.039722    0.139319
+           learned   1.002261   0.905926   59.68522   60.27454    0.58932     0.009582    0.075064
+            hybrid   1.893377   0.803775   59.33080   60.27454    0.94373     0.015860    0.081643
+            oracle   0.000000   1.000000   60.27454   60.27454    0.00000     0.000000    0.000000
+  best non-oracle arm: learned at regret fraction 0.009582
+  declared-median and declared-zero coincide here because every value
+  is declared, so neither fallback is ever used.
+
+scenario 3 30 per cent missing
+               arm        MAE   Spearman   realised     oracle     regret  regret frac  worst frac
+   declared-median   0.740384   0.799000   59.56907   60.45423    0.88516     0.015418    0.106040
+     declared-zero   1.108950   0.551820   47.61472   60.45423   12.83951     0.213584    0.463821
+          size-age   1.940464   0.517327   58.28227   60.45423    2.17196     0.036017    0.126536
+           learned   1.002261   0.905926   60.11996   60.45423    0.33427     0.005488    0.038932
+            hybrid   0.429868   0.967634   60.32579   60.45423    0.12844     0.002253    0.030920
+            oracle   0.000000   1.000000   60.45423   60.45423    0.00000     0.000000    0.000000
+  best non-oracle arm: hybrid at regret fraction 0.002253
+
+scenario 4 all missing
+               arm        MAE   Spearman   realised     oracle     regret  regret frac  worst frac
+   declared-median   3.517011        nan    0.68730   60.87110   60.18380     0.986665    1.000000
+     declared-zero   3.517011        nan    0.68730   60.87110   60.18380     0.986665    1.000000
+          size-age   1.940464   0.517327   58.20370   60.87110    2.66740     0.042048    0.137861
+           learned   1.002261   0.905926   60.37149   60.87110    0.49961     0.008156    0.054295
+            hybrid   1.002261   0.905926   60.37149   60.87110    0.49961     0.008156    0.054295
+            oracle   0.000000   1.000000   60.87110   60.87110    0.00000     0.000000    0.000000
+  best non-oracle arm: learned at regret fraction 0.008156
+  Spearman is nan for an arm that emits one constant value for every
+  product: a constant vector has no ranks. That is the finding, not a
+  reporting artefact -- with no declaration anywhere, the passthrough has
+  no information and the solver is choosing by size and reliability alone.
+  declared-median and declared-zero coincide here because there is no
+  declaration to take a median of, so both fall back to zero.
+
+scenario 5 40 per cent missing, half of the rest stale
+               arm        MAE   Spearman   realised     oracle     regret  regret frac  worst frac
+   declared-median   1.595397   0.616986   59.19358   60.54156    1.34799     0.021350    0.108188
+     declared-zero   2.064179   0.343634   41.29702   60.54156   19.24454     0.319707    0.531402
+          size-age   1.940464   0.517327   58.33781   60.54156    2.20375     0.036160    0.114413
+           learned   1.002261   0.905926   60.18152   60.54156    0.36004     0.005799    0.038805
+            hybrid   1.048338   0.884616   59.97144   60.54156    0.57012     0.009625    0.071828
+            oracle   0.000000   1.000000   60.54156   60.54156    0.00000     0.000000    0.000000
+  best non-oracle arm: learned at regret fraction 0.005799
+
+
+==============================================================================
+4. the specification's prediction, against what was measured
+==============================================================================
+prediction: the exact solver on declared values beats everything, and the
+            learned value model helps only where declarations are absent
+
+                                      scenario           best arm  declared frac  learned frac
+                          1 complete and fresh    declared-median       0.000404      0.009582
+                          2 complete but stale            learned       0.015860      0.009582
+                         3 30 per cent missing             hybrid       0.015418      0.005488
+                                 4 all missing            learned       0.986665      0.008156
+ 5 40 per cent missing, half of the rest stale            learned       0.021350      0.005799
+
+scenarios in which a declared-value arm is the best non-oracle arm:
+  1 complete and fresh
+scenarios in which it is not:
+  2 complete but stale
+  3 30 per cent missing
+  4 all missing
+  5 40 per cent missing, half of the rest stale
+
+==============================================================================
+5. the same comparison through the greedy selector
+==============================================================================
+if the ranking of value sources changed with the selector, the result would be a
+statement about the solver and not about the estimators
+
+               arm  greedy regret frac  exact regret frac
+   declared-median            0.033167           0.021350
+     declared-zero            0.315365           0.319707
+          size-age            0.042057           0.036160
+           learned            0.011111           0.005799
+            hybrid            0.011621           0.009625
+            oracle            0.000000           0.000000
+
+greedy ranking: learned, hybrid, declared-median, size-age, declared-zero
+exact ranking : learned, hybrid, declared-median, size-age, declared-zero
+rankings agree: True
+
+==============================================================================
+compute budget
+==============================================================================
+timings are wall clock on two shared cores and are UNSTABLE between runs
+                      quantity        value
+                forest fit [s]        3.886
+           benchmark scenarios            5
+      benchmark wall clock [s]       54.716
+
+==============================================================================
+summary
+==============================================================================
+failures: 0
+this script has no pass/fail assertions on the model's accuracy by design: the
+measured ranking is the deliverable, and a baseline win is evidence, not a bug

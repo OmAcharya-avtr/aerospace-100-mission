@@ -1,0 +1,212 @@
+
+==============================================================================
+downlinkpick validation: the greedy optimality gap, as a distribution
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pulp             : 4.1.0
+pulp solvers     : none available
+pyyaml           : 6.0.3
+pandas           : 3.0.5
+joblib           : 1.6.0
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P072 (printed relatively; see validation/_bootstrap.py)
+
+instances per family: 300, seeds 1..300
+gap definition      : (optimum - greedy) / optimum, relative
+matched-optimum tol : 1.0e-09 relative
+
+==============================================================================
+family: tight (capacity 45% of queue)
+==============================================================================
+instances                    : 300
+greedy matched the optimum   : 51 (17.00 per cent)
+greedy above the optimum     : 0 (must be 0)
+mean gap                     : 4.843046e-02
+median gap                   : 3.776537e-02
+gap quantile q0.10           : 0.000000e+00
+gap quantile q0.25           : 5.975902e-03
+gap quantile q0.50           : 3.776537e-02
+gap quantile q0.75           : 7.077701e-02
+gap quantile q0.90           : 1.114098e-01
+gap quantile q0.95           : 1.447293e-01
+gap quantile q0.99           : 2.187915e-01
+maximum gap                  : 2.491356e-01 at seed 194
+
+histogram of the gap
+       lower        upper   count  fraction
+  0.0000e+00   1.0000e-12      51    0.1700
+  1.0000e-12   1.0000e-02      34    0.1133
+  1.0000e-02   2.0000e-02      26    0.0867
+  2.0000e-02   5.0000e-02      71    0.2367
+  5.0000e-02   1.0000e-01      77    0.2567
+  1.0000e-01   2.0000e-01      35    0.1167
+  2.0000e-01   1.0000e+00       6    0.0200
+
+==============================================================================
+family: very tight (capacity 20%)
+==============================================================================
+instances                    : 300
+greedy matched the optimum   : 79 (26.33 per cent)
+greedy above the optimum     : 0 (must be 0)
+mean gap                     : 4.428692e-02
+median gap                   : 2.405093e-02
+gap quantile q0.10           : 0.000000e+00
+gap quantile q0.25           : 0.000000e+00
+gap quantile q0.50           : 2.405093e-02
+gap quantile q0.75           : 6.531060e-02
+gap quantile q0.90           : 1.253304e-01
+gap quantile q0.95           : 1.551589e-01
+gap quantile q0.99           : 2.252210e-01
+maximum gap                  : 2.966173e-01 at seed 197
+
+histogram of the gap
+       lower        upper   count  fraction
+  0.0000e+00   1.0000e-12      79    0.2633
+  1.0000e-12   1.0000e-02      39    0.1300
+  1.0000e-02   2.0000e-02      26    0.0867
+  2.0000e-02   5.0000e-02      47    0.1567
+  5.0000e-02   1.0000e-01      65    0.2167
+  1.0000e-01   2.0000e-01      38    0.1267
+  2.0000e-01   1.0000e+00       6    0.0200
+
+==============================================================================
+family: loose (capacity 85%)
+==============================================================================
+instances                    : 300
+greedy matched the optimum   : 42 (14.00 per cent)
+greedy above the optimum     : 0 (must be 0)
+mean gap                     : 4.464986e-02
+median gap                   : 3.428802e-02
+gap quantile q0.10           : 0.000000e+00
+gap quantile q0.25           : 7.821786e-03
+gap quantile q0.50           : 3.428802e-02
+gap quantile q0.75           : 6.477022e-02
+gap quantile q0.90           : 1.025583e-01
+gap quantile q0.95           : 1.313224e-01
+gap quantile q0.99           : 2.098712e-01
+maximum gap                  : 2.676970e-01 at seed 194
+
+histogram of the gap
+       lower        upper   count  fraction
+  0.0000e+00   1.0000e-12      42    0.1400
+  1.0000e-12   1.0000e-02      43    0.1433
+  1.0000e-02   2.0000e-02      26    0.0867
+  2.0000e-02   5.0000e-02      82    0.2733
+  5.0000e-02   1.0000e-01      73    0.2433
+  1.0000e-01   2.0000e-01      30    0.1000
+  2.0000e-01   1.0000e+00       4    0.0133
+
+==============================================================================
+family: tight, no dependencies
+==============================================================================
+instances                    : 300
+greedy matched the optimum   : 58 (19.33 per cent)
+greedy above the optimum     : 0 (must be 0)
+mean gap                     : 3.784507e-02
+median gap                   : 3.032638e-02
+gap quantile q0.10           : 0.000000e+00
+gap quantile q0.25           : 1.513111e-03
+gap quantile q0.50           : 3.032638e-02
+gap quantile q0.75           : 5.926411e-02
+gap quantile q0.90           : 8.959515e-02
+gap quantile q0.95           : 1.080382e-01
+gap quantile q0.99           : 1.523894e-01
+maximum gap                  : 2.354221e-01 at seed 176
+
+histogram of the gap
+       lower        upper   count  fraction
+  0.0000e+00   1.0000e-12      58    0.1933
+  1.0000e-12   1.0000e-02      45    0.1500
+  1.0000e-02   2.0000e-02      20    0.0667
+  2.0000e-02   5.0000e-02      82    0.2733
+  5.0000e-02   1.0000e-01      72    0.2400
+  1.0000e-01   2.0000e-01      21    0.0700
+  2.0000e-01   1.0000e+00       2    0.0067
+
+==============================================================================
+family: tight, dense dependencies
+==============================================================================
+instances                    : 300
+greedy matched the optimum   : 46 (15.33 per cent)
+greedy above the optimum     : 0 (must be 0)
+mean gap                     : 9.338474e-02
+median gap                   : 6.693566e-02
+gap quantile q0.10           : 0.000000e+00
+gap quantile q0.25           : 1.696512e-02
+gap quantile q0.50           : 6.693566e-02
+gap quantile q0.75           : 1.348819e-01
+gap quantile q0.90           : 2.426533e-01
+gap quantile q0.95           : 2.942821e-01
+gap quantile q0.99           : 3.818152e-01
+maximum gap                  : 5.815696e-01 at seed 197
+
+histogram of the gap
+       lower        upper   count  fraction
+  0.0000e+00   1.0000e-12      46    0.1533
+  1.0000e-12   1.0000e-02      20    0.0667
+  1.0000e-02   2.0000e-02      16    0.0533
+  2.0000e-02   5.0000e-02      49    0.1633
+  5.0000e-02   1.0000e-01      61    0.2033
+  1.0000e-01   2.0000e-01      69    0.2300
+  2.0000e-01   1.0000e+00      39    0.1300
+
+==============================================================================
+families side by side
+==============================================================================
+                          family  matched        mean      median       q0.95         max
+   tight (capacity 45% of queue)       51  4.8430e-02  3.7765e-02  1.4473e-01  2.4914e-01
+       very tight (capacity 20%)       79  4.4287e-02  2.4051e-02  1.5516e-01  2.9662e-01
+            loose (capacity 85%)       42  4.4650e-02  3.4288e-02  1.3132e-01  2.6770e-01
+          tight, no dependencies       58  3.7845e-02  3.0326e-02  1.0804e-01  2.3542e-01
+       tight, dense dependencies       46  9.3385e-02  6.6936e-02  2.9428e-01  5.8157e-01
+
+==============================================================================
+solver status over every family
+==============================================================================
+solutions that needed overflow repair: 0 of 1500
+a rounded solution is one where HiGHS returned a vector integral only to within
+its own tolerance and rounding it up over-committed a window; the repair drops
+the least valuable products until it fits, and the status records it. On
+realistic instances, whose product sizes differ by millions of bits, this does
+not arise; it was found by a property test at a 5-bit margin.
+
+==============================================================================
+the Dantzig fractional bound against the proved optimum
+==============================================================================
+Dantzig's bound ignores the per-window capacity split and the precedence rows,
+so it is a valid upper bound and a loose one. Measured looseness below.
+
+  seed      optimum      Dantzig       excess
+     1    63.217496    67.250611 6.379746e-02
+     2    62.637493    72.635921 1.596237e-01
+     3    38.986190    44.420689 1.393955e-01
+     4    68.252775    72.950126 6.882286e-02
+     5    61.997358    67.185178 8.367810e-02
+     6    73.489089    83.954837 1.424123e-01
+
+instances            : 60
+bound violations     : 0
+excess mean / median : 1.254391e-01 / 9.641631e-02
+excess min / max     : 2.584912e-02 / 4.307902e-01
+
+==============================================================================
+compute budget
+==============================================================================
+timings are wall clock on two shared cores and are UNSTABLE between runs;
+they are recorded for the compute budget and no conclusion rests on them
+         route   calls   total [s]   mean [ms]
+        greedy    1500       1.939       1.293
+         exact    1500      46.991      31.327
+
+==============================================================================
+summary
+==============================================================================
+failures: 0

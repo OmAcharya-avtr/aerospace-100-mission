@@ -1,0 +1,130 @@
+
+==============================================================================
+downlinkpick validation: the learned compressibility predictor
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pulp             : 4.1.0
+pulp solvers     : none available
+pyyaml           : 6.0.3
+pandas           : 3.0.5
+joblib           : 1.6.0
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P072 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+training
+==============================================================================
+table rows     : 6000, seed 1002
+train fraction : 0.7
+features       : entropy_bits_per_sample, bit_depth, entropy_ratio, lag1_autocorr, log10_raw_bytes, channels, instrument_code
+model          : RandomForestRegressor, 200 trees, min_samples_leaf 2, random_state 20261021, n_jobs 1
+target         : realised ratio, equation (7) of downlinkpick.dataset
+train / test   : 4200 / 1800 rows
+
+==============================================================================
+1. regression error and bias on held-out products
+==============================================================================
+bias is the signed mean error: positive means the estimator over-reserves
+capacity, negative means it under-reserves and the pass can overflow
+
+                 estimator        MAE       RMSE        bias  max |err|
+     learned forest (mean)   0.018918   0.026270   8.335e-04   0.175484
+ learned forest (+2 sigma)   0.040664   0.051649   3.954e-02   0.206918
+   per-instrument constant   0.066879   0.086329   1.632e-03   0.421233
+               global mean   0.148160   0.178668   9.558e-03   0.638845
+         entropy floor H/B   0.228995   0.248018   2.287e-01   0.516601
+
+per-instrument constant table from the training split
+     cal 0.264960
+     hkt 0.115853
+     hsi 0.400526
+     msi 0.445707
+     sar 0.578767
+  global 0.361155
+
+impurity-based feature importances, biased towards high-cardinality features
+               entropy_ratio 0.754229
+               lag1_autocorr 0.139407
+     entropy_bits_per_sample 0.090506
+             log10_raw_bytes 0.005305
+                   bit_depth 0.004515
+             instrument_code 0.004063
+                    channels 0.001974
+
+==============================================================================
+2. the entropy floor is not a bound for a correlated source
+==============================================================================
+Shannon's source-coding theorem bounds the ratio below by H/B for a MEMORYLESS
+source. The generator's equation (7) includes a correlation gain, as a real
+codec does, so the realised ratio is allowed to fall below the floor. The
+fraction below is therefore the fraction for which the analytic bound does not
+apply, and is a statement about the generator and about real codecs alike.
+
+held-out products with realised ratio below the floor : 0.997778
+mean floor                                            : 0.580345
+mean realised ratio                                   : 0.351597
+mean floor / mean realised                            : 1.650595
+worst over-estimate by the floor                      : 0.516601
+
+==============================================================================
+3. the uncertainty output
+==============================================================================
+per-tree dispersion is a dispersion measure over the ensemble, not a calibrated
+interval (Wager, Hastie and Efron 2014)
+
+        band  nominal normal  measured coverage
+   +-1 sigma          0.6827           0.590000
++-1.96 sigma          0.9500           0.878333
+   +-2 sigma          0.9545           0.885000
+
+mean dispersion            : 0.019355
+mean absolute error        : 0.018918
+Spearman(dispersion, |err|): 0.495530
+
+==============================================================================
+4 and 5. end-to-end: true sizes charged at transmission time
+==============================================================================
+instances: 30, seeds 6001..6030, 24 products, 3 windows,
+           capacity 45 per cent of the queue, ground-truth values on every arm
+a window planned with an under-estimated size overflows: the pass runs out of
+time, and the product that did not fit and everything after it in that window
+is lost. delivered_fraction is the value that actually arrived, against the
+oracle's. unspent_fraction is the capacity that went unused, which is what a
+conservative estimator costs.
+
+                  arm       MAE        bias  overflow  mean ovf [Gbit]  delivered   unspent
+         learned-mean  0.018147   9.350e-04  0.144444         0.376175   0.947669  0.143863
+       learned+2sigma  0.040371   3.969e-02  0.000000         0.000000   0.962760  0.212954
+  instrument-constant  0.066061   1.395e-03  0.200000         1.136124   0.900303  0.244360
+          global-mean  0.154795   8.132e-03  0.788889         2.531673   0.710566  0.391047
+        entropy-floor  0.224043   2.240e-01  0.000000         0.000000   0.827558  0.468298
+               oracle  0.000000   0.000e+00  0.000000         0.000000   1.000000  0.089909
+
+best non-oracle arm by delivered value: learned+2sigma at 0.962760
+ranking by delivered value: learned+2sigma, learned-mean, instrument-constant, entropy-floor, global-mean
+
+the conservative arm against the mean arm
+  overflow rate   : 0.000000 against 0.144444
+  unspent capacity: 0.212954 against 0.143863
+  delivered value : 0.962760 against 0.947669
+
+==============================================================================
+compute budget
+==============================================================================
+timings are wall clock on two shared cores and are UNSTABLE between runs
+                      quantity        value
+                forest fit [s]        1.876
+      benchmark wall clock [s]        7.624
+
+==============================================================================
+summary
+==============================================================================
+failures: 0

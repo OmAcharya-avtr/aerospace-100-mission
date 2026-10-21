@@ -1,0 +1,116 @@
+
+==============================================================================
+downlinkpick validation: selection stability under perturbed values
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pulp             : 4.1.0
+pulp solvers     : none available
+pyyaml           : 6.0.3
+pandas           : 3.0.5
+joblib           : 1.6.0
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P072 (printed relatively; see validation/_bootstrap.py)
+
+instances   : 24 (seeds 1..24), 20 products, 3 windows,
+              capacity 45 per cent of the queue
+noise levels: 0, 0.01, 0.02, 0.05, 0.1, 0.2, 0.4
+trials      : 24 per instance per level, seed 20261021
+perturbation: v -> v * exp(N(0, sigma)), multiplicative and non-negative
+
+==============================================================================
+1 and 2. greedy selector, pooled over 24 instances
+==============================================================================
+  sigma    mean J     p05 J     min J  mean kept  p05 kept  min kept  mean flips
+  0.000   1.00000   1.00000   1.00000   1.000000  1.000000  1.000000      0.0000
+  0.010   0.99863   1.00000   0.96711   1.000183  1.000000  1.000000      0.0260
+  0.020   0.99615   0.99747   0.91052   1.000611  1.000000  1.000000      0.0712
+  0.050   0.99279   0.96062   0.87900   1.001491  1.000000  1.000000      0.1233
+  0.100   0.99013   0.95884   0.89521   1.001615  0.996492  0.994943      0.1615
+  0.200   0.98146   0.94120   0.86715   1.001526  0.992281  0.989959      0.3021
+  0.400   0.95829   0.88263   0.86042   0.998671  0.966512  0.958951      0.6684
+
+==============================================================================
+1 and 2. exact selector, pooled over 24 instances
+==============================================================================
+  sigma    mean J     p05 J     min J  mean kept  p05 kept  min kept  mean flips
+  0.000   1.00000   1.00000   1.00000   1.000000  1.000000  1.000000      0.0000
+  0.010   0.99904   1.00000   0.97685   0.999990  1.000000  0.999761      0.0174
+  0.020   0.99763   0.99494   0.94907   0.999971  0.999855  0.999475      0.0417
+  0.050   0.99313   0.95463   0.90677   0.999747  0.998992  0.996083      0.1111
+  0.100   0.98356   0.93264   0.84435   0.998976  0.994480  0.991574      0.2743
+  0.200   0.97131   0.89002   0.76778   0.997548  0.992620  0.985960      0.4774
+  0.400   0.95919   0.88988   0.79531   0.992742  0.982033  0.972522      0.6823
+
+==============================================================================
+3. the two selectors at the same noise level
+==============================================================================
+the exact solver sits at a vertex chosen by the value table; greedy only sorts
+by it, so greedy is expected to be the more stable of the two in membership
+
+  sigma   greedy J    exact J  greedy kept  exact kept
+  0.000    1.00000    1.00000     1.000000    1.000000
+  0.010    0.99863    0.99904     1.000183    0.999990
+  0.020    0.99615    0.99763     1.000611    0.999971
+  0.050    0.99279    0.99313     1.001491    0.999747
+  0.100    0.99013    0.98356     1.001615    0.998976
+  0.200    0.98146    0.97131     1.001526    0.997548
+  0.400    0.95829    0.95919     0.998671    0.992742
+
+greedy's retained fraction above 1.0 is not an error. Greedy's nominal selection
+is not optimal, so a perturbation that reshuffles its density ordering can land
+on a better selection than the unperturbed ordering did, and the fraction is
+measured against greedy's own unperturbed value. The exact solver has no such
+headroom: its unperturbed selection is the optimum, so its retained fraction
+cannot exceed 1.0 and the amount by which it falls below is the cost of noise.
+
+==============================================================================
+4. the greedy gap against the value lost to value noise
+==============================================================================
+if a given level of value noise costs the exact solver more than the gap greedy
+leaves, the optimality is not worth having at that level of noise
+
+mean greedy gap on this family : 4.758763e-02
+
+  sigma  exact value lost   greedy gap                      verdict
+  0.000      0.000000e+00 4.758763e-02        optimality still pays
+  0.010      9.943610e-06 4.758763e-02        optimality still pays
+  0.020      2.896352e-05 4.758763e-02        optimality still pays
+  0.050      2.529231e-04 4.758763e-02        optimality still pays
+  0.100      1.023942e-03 4.758763e-02        optimality still pays
+  0.200      2.452247e-03 4.758763e-02        optimality still pays
+  0.400      7.257854e-03 4.758763e-02        optimality still pays
+
+no crossover within the levels measured: the exact solver keeps its advantage
+over greedy at every noise level up to sigma = 0.4
+
+==============================================================================
+5. the Jaccard identity on trivial arguments
+==============================================================================
+jaccard(empty, empty) is defined as 1.0: nothing selected either time is
+agreement, not disagreement
+  jaccard([], []) = 1.000000, expected 1.000000, ok=True
+  jaccard(['a'], ['a']) = 1.000000, expected 1.000000, ok=True
+  jaccard(['a'], []) = 0.000000, expected 0.000000, ok=True
+  jaccard(['a', 'b'], ['b', 'c']) = 0.333333, expected 0.333333, ok=True
+
+==============================================================================
+compute budget
+==============================================================================
+timings are wall clock on two shared cores and are UNSTABLE between runs
+                  quantity        value
+     stability_curve calls           48
+      selector invocations         8112
+      total wall clock [s]       61.151
+
+==============================================================================
+summary
+==============================================================================
+failures: 0

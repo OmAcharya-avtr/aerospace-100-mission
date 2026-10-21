@@ -1,0 +1,191 @@
+
+==============================================================================
+downlinkpick validation: the command-line interface
+==============================================================================
+every command below was run in process and its output captured verbatim
+
+==============================================================================
+python -m downlinkpick --version   [version]
+==============================================================================
+
+exit status: 0 (expected 0)
+
+==============================================================================
+python -m downlinkpick info   [versions and solver availability]
+==============================================================================
+downlinkpick     : 0.1.0
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pulp             : 4.1.0
+pulp solvers     : none
+pulp usable      : False
+exact backend    : scipy.optimize.milp (HiGHS) unless pulp is usable
+exit status: 0 (expected 0)
+
+==============================================================================
+python -m downlinkpick compare examples/cases/three_pass_declared.yaml   [greedy against exact on the reference case]
+==============================================================================
+case                  : examples/cases/three_pass_declared.yaml
+products / windows    : 24 / 3
+greedy value          : 61.402996
+exact value           : 62.278150
+exact status          : optimal
+exact method          : exact-scipy
+relative gap          : 1.405234e-02
+LP relaxation bound   : 63.802520
+Dantzig bound         : 64.336251
+in exact not greedy   : hsi-019
+in greedy not exact   : -
+density order (head)  : hkt-001, cal-005, cal-022, hkt-014, cal-012, cal-000
+exit status: 0 (expected 0)
+
+==============================================================================
+python -m downlinkpick compare examples/cases/single_short_pass.yaml   [greedy against exact on the small case]
+==============================================================================
+case                  : examples/cases/single_short_pass.yaml
+products / windows    : 10 / 1
+greedy value          : 8.411225
+exact value           : 8.411225
+exact status          : optimal
+exact method          : exact-scipy
+relative gap          : 0.000000e+00
+LP relaxation bound   : 9.449605
+Dantzig bound         : 9.449605
+in exact not greedy   : -
+in greedy not exact   : -
+density order (head)  : hkt-001, hkt-006, hkt-005, cal-007, sar-004, msi-000
+exit status: 0 (expected 0)
+
+==============================================================================
+python -m downlinkpick select examples/cases/single_short_pass.yaml --method exact --delta-s 30   [full report]
+==============================================================================
+contact plan
+    window  station    start [s]      end [s]   dur [s]         capacity  reliab
+     pass1      gs1      13061.6      13429.3     367.6      3.9697 Gbit   0.940
+     total                                        367.6      3.9697 Gbit
+
+selection
+method exact-scipy, status optimal, value source declared
+     product   window             size      value   value/Gbit
+     msi-000    pass1      0.2069 Gbit     0.4365       2.1093
+     hkt-001    pass1      0.0001 Gbit     0.4885    4249.5319
+     msi-002    pass1      0.6172 Gbit     0.6202       1.0049
+     sar-004    pass1      0.8400 Gbit     3.7394       4.4516
+     hkt-006    pass1      0.0004 Gbit     0.4621    1039.7582
+     cal-007    pass1      0.0846 Gbit     2.4560      29.0260
+     msi-009    pass1      0.2794 Gbit     0.2086       0.7465
+    selected        7      2.0287 Gbit     8.4112
+
+    window        committed         capacity            spare
+     pass1      2.0287 Gbit      3.9697 Gbit      1.9410 Gbit
+
+left behind
+     product      value             size      reason   window  short [Gbit]   short [s]
+     hsi-008     4.7473      8.3398 Gbit   oversized        -       0.00000        0.00
+     hkt-005     0.4737      0.0010 Gbit     expired        -       0.00000        0.00
+     msi-003     0.4424      2.8626 Gbit    capacity    pass1       0.92166      275.53
+
+value left behind by reason [value units]
+      expired     0.4737
+    oversized     4.7473
+   dependency     0.0000
+     capacity     0.4424
+          all     5.6634
+
+marginal value of contact time
+finite-difference step 30.000 s, rate held at the window's final value
+a window's end is also its delivery epoch, so an extension can push a product
+past its expiry; the expiry-crossing column explains a zero or negative price
+    window  +bits [Gbit]     +value      value/s   value/Gbit crossings entering / leaving
+     pass1       0.10035     0.0000     0.000000       0.0000         0 -
+
+invariants: all hold
+  worst capacity overshoot : -1.940959e+09 bits
+  value residual (relative): 0.000e+00
+exit status: 0 (expected 0)
+
+==============================================================================
+python -m downlinkpick marginal examples/cases/single_short_pass.yaml --delta-s 60   [both selectors priced]
+==============================================================================
+selector: greedy
+finite-difference step 60.000 s, rate held at the window's final value
+a window's end is also its delivery epoch, so an extension can push a product
+past its expiry; the expiry-crossing column explains a zero or negative price
+    window  +bits [Gbit]     +value      value/s   value/Gbit crossings entering / leaving
+     pass1       0.20070     0.0000     0.000000       0.0000         0 -
+
+selector: exact
+finite-difference step 60.000 s, rate held at the window's final value
+a window's end is also its delivery epoch, so an extension can push a product
+past its expiry; the expiry-crossing column explains a zero or negative price
+    window  +bits [Gbit]     +value      value/s   value/Gbit crossings entering / leaving
+     pass1       0.20070     0.0000     0.000000       0.0000         0 -
+exit status: 0 (expected 0)
+
+==============================================================================
+python -m downlinkpick stability examples/cases/single_short_pass.yaml --trials 8 --sigmas 0.0 0.05 0.2   [stability curve]
+==============================================================================
+   sigma   mean J    p05 J    min J  mean kept  p05 kept   flips
+   0.000   1.0000   1.0000   1.0000    1.00000   1.00000    0.00
+   0.050   1.0000   1.0000   1.0000    1.00000   1.00000    0.00
+   0.200   1.0000   1.0000   1.0000    1.00000   1.00000    0.00
+exit status: 0 (expected 0)
+
+==============================================================================
+failure paths
+==============================================================================
+each of these must exit 2 with a message on stderr and no traceback
+
+python -m downlinkpick select examples/cases/does_not_exist.yaml
+  description : missing case file
+  exit status : 2 (expected 2)
+  stderr      : downlinkpick: no case file at examples/cases/does_not_exist.yaml
+python -m downlinkpick select examples/cases/missing_declarations.yaml
+  description : a case with undeclared values
+  exit status : 2 (expected 2)
+  stderr      : downlinkpick: declared_value is None for: sar-002, msi-004, hsi-006, hkt-008, hkt-009, msi-010, hkt-012, hkt-014, msi-018, hsi-022; estimate it with downlinkpick.valuemodel or supply values explicitly
+python -m downlinkpick compare README.md
+  description : a file that is not a case
+  exit status : 2 (expected 2)
+  stderr      : downlinkpick: README.md is not parseable as YAML: mapping values are not allowed here
+
+==============================================================================
+python -m downlinkpick lp   [the portable LP file]
+==============================================================================
+the LP file is the statement of the MILP for a reader who has a solver this
+environment does not. It is written to a temporary directory and not committed;
+the temporary path is normalised out of the transcript below.
+
+exit status: 0
+lp file lines : 34
+lp file bytes : 828
+first 14 lines:
+  \* downlinkpick *\
+  Maximize
+  OBJ: 0.436461622795 x_0 + 0.488467252718 x_1 + 0.620243173703 x_2
+   + 0.415804295163 x_3 + 3.73935711074 x_4 + 0.462144779268 x_5
+   + 2.45597259251 x_6 + 4.46167509233 x_7 + 0.208578766407 x_8
+  Subject To
+  capacity_pass1: 0.052127008678 x_0 + 2.895616842316e-5 x_1
+   + 0.155477033596 x_2 + 0.721125059293 x_3 + 0.211607367371 x_4
+   + 0.000111967613687 x_5 + 0.0213148936951 x_6 + 2.10089784038 x_7
+   + 0.0703843744584 x_8 <= 1
+  once_cal_007: x_6 <= 1
+  once_hkt_001: x_1 <= 1
+  once_hkt_006: x_5 <= 1
+  once_hsi_008: x_7 <= 1
+
+stdout of the lp subcommand, with the temporary path normalised: wrote <tmp>/small.lp
+
+==============================================================================
+absolute-path check on this transcript
+==============================================================================
+no committed file in this repository may contain an absolute path
+tokens beginning with a path separator: 0
+repository root rendered relatively as: '.'
+
+==============================================================================
+summary
+==============================================================================
+failures: 0

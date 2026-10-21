@@ -1,0 +1,200 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  downlinkpick: choosing what to downlink when the contact is shorter than the
+  queue, with the cost of the choice reported
+version: 0.1.0
+date-released: 2026-10-21
+license: Apache-2.0
+abstract: >-
+  Selects which recorded data products to downlink over a contact plan that
+  cannot carry all of them, and reports what the selection cost: the marginal
+  value of the next unit of contact time, and the identity of everything left
+  behind with the reason it was left. Two selectors share one problem
+  definition. The operational baseline is bundle value-density ordering with two
+  window-packing rules and whole-bundle rollback; the exact route is a
+  multiple-knapsack mixed-integer program over windows with no-double-downlink,
+  per-window capacity and dependency-precedence rows. The MILP is emitted both
+  as a PuLP problem, which also writes the portable LP file, and as SciPy
+  coefficient arrays from a single model object, and the two emissions are
+  checked against each other term by term; PuLP 4.1.0 ships no solver, so the
+  optimum is computed by scipy.optimize.milp (HiGHS) and that is recorded rather
+  than elided. Validation is level 3. Window capacity, the integral of an
+  achievable-rate profile over a pass, agrees with adaptive Gauss-Kronrod
+  quadrature to 8.384938e-09 worst relative error over five profiles and with
+  the shipped cases to 4.031808e-15; the first run of that check found a
+  6.065e-02 relative error in the closed-form integral at a rate step. The MILP
+  optimum matches exhaustive enumeration to 0.000000e+00 worst relative
+  difference over 240 small instances; the first run of that check found that
+  unscaled capacity rows made HiGHS report a wrong optimum with a success status
+  on 12 of 240 instances, worst 4.568e-01 relative, which is why every capacity
+  row is now normalised by its window capacity. The greedy optimality gap is
+  reported as a distribution over 300 seeded instances per family rather than as
+  a mean: on the tight family greedy matches the optimum on 51 of 300, with
+  median 3.776537e-02, 95th percentile 1.447293e-01 and maximum 2.491356e-01,
+  and dependency density costs roughly twice the mean gap that capacity
+  tightness does. Four thousand selections from both selectors violate none of
+  the no-double-downlink, expiry, capacity, dependency-closure, precedence or
+  value-conservation invariants, and the invariant checker is itself shown to
+  detect six deliberate corruptions. Selection stability under multiplicative
+  value noise is measured rather than asserted: at a relative noise of 0.05 the
+  exact selection keeps a Jaccard similarity of 0.99313 and 0.999747 of its
+  value, and at 0.40, 0.95919 and 0.992742, so the optimality is worth having at
+  every noise level measured against a mean greedy gap of 4.758763e-02. The
+  marginal value of contact time is a finite difference on the integral optimum
+  and not a dual variable, and it can be negative: a window's end is also its
+  delivery epoch, so extending a pass by twenty seconds was measured lowering
+  the achievable value by 12.89 per cent when the extension crossed a product's
+  expiry. Two learned components are benchmarked against the baselines they have
+  to beat and the results differ. The learned value model loses to a complete,
+  fresh declaration by a factor of twenty-four in regret fraction, 0.009582
+  against 0.000404, and wins once declarations are stale or absent, 0.005799
+  against 0.021350 on a case with forty per cent missing and half the remainder
+  stale, and 0.008156 against 0.986665 when nothing is declared at all; this is
+  the specification's own prediction and it is published as measured. The
+  learned compressibility predictor beats every baseline, delivering 0.962760 of
+  the oracle's value against 0.900303 for a per-instrument constant table and
+  0.827558 for the memoryless entropy floor, and its ensemble dispersion used as
+  a conservative size estimate removes every measured window overflow. Both
+  learned components are trained on a seeded synthetic generator whose equations
+  are printed in its module docstring; no flight data is used anywhere, and
+  every learned result is a statement about that generator. OR-Tools CP-SAT is
+  the better solver for this class of problem and this package does not compete
+  with it; the contribution is the contact-window and expiry accounting and the
+  left-behind report, not the search. Research grade. Not flight-qualified, not
+  certified, not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - downlink-scheduling
+  - satellite-communications
+  - data-triage
+  - multiple-knapsack
+  - mixed-integer-programming
+  - contact-window
+  - ground-station
+  - compressibility
+references:
+  - type: book
+    authors:
+      - family-names: Martello
+        given-names: "S."
+      - family-names: Toth
+        given-names: "P."
+    title: "Knapsack Problems: Algorithms and Computer Implementations"
+    publisher:
+      name: "Wiley"
+    year: 1990
+    notes: >-
+      Chapter 2 for greedy bounds on the 0/1 knapsack and chapter 6 for the
+      multiple-knapsack problem, whose assignment formulation is implemented in
+      downlinkpick.exact. Structure only; no numerical value in this repository
+      is taken from it.
+  - type: article
+    authors:
+      - family-names: Dantzig
+        given-names: "G. B."
+    title: "Discrete-variable extremum problems"
+    journal: "Operations Research"
+    volume: 5
+    issue: 2
+    year: 1957
+    notes: >-
+      The linear-relaxation bound obtained by taking items in descending value
+      density, implemented as downlinkpick.greedy.dantzig_bound and measured
+      loose by a mean of 1.254391e-01 against the proved optimum.
+  - type: article
+    authors:
+      - family-names: Shannon
+        given-names: "C. E."
+    title: "A mathematical theory of communication"
+    journal: "Bell System Technical Journal"
+    volume: 27
+    issue: 3
+    year: 1948
+    notes: >-
+      The source-coding theorem, which gives the memoryless compression bound
+      H/B implemented as downlinkpick.compress.entropy_floor_ratio. Measured
+      above the realised ratio on 0.997778 of held-out products, because a real
+      codec exploits correlation the first-order entropy ignores.
+  - type: article
+    authors:
+      - family-names: Huangfu
+        given-names: "Q."
+      - family-names: Hall
+        given-names: "J. A. J."
+    title: "Parallelizing the dual revised simplex method"
+    journal: "Mathematical Programming Computation"
+    volume: 10
+    issue: 1
+    year: 2018
+    notes: >-
+      The HiGHS solver that scipy.optimize.milp calls, and which computes every
+      optimum reported by this package.
+  - type: generic
+    authors:
+      - family-names: Mitchell
+        given-names: "S."
+      - family-names: O'Sullivan
+        given-names: "M."
+      - family-names: Dunning
+        given-names: "I."
+    title: "PuLP: a linear programming toolkit for Python"
+    year: 2011
+    notes: >-
+      The modelling layer used to emit the LP file. PuLP 4.x creates variables
+      through LpProblem.add_variable and ships no bundled solver, which is why
+      this package bounds pulp on both sides and solves through SciPy.
+  - type: article
+    authors:
+      - family-names: Breiman
+        given-names: "L."
+    title: "Random forests"
+    journal: "Machine Learning"
+    volume: 45
+    issue: 1
+    year: 2001
+    notes: The estimator behind both learned components.
+  - type: article
+    authors:
+      - family-names: Wager
+        given-names: "S."
+      - family-names: Hastie
+        given-names: "T."
+      - family-names: Efron
+        given-names: "B."
+    title: >-
+      Confidence intervals for random forests: the jackknife and the
+      infinitesimal jackknife
+    journal: "Journal of Machine Learning Research"
+    volume: 15
+    year: 2014
+    notes: >-
+      Why the per-tree spread reported by this package is a dispersion measure
+      and not a confidence interval. Measured coverage of the plus-or-minus-two-
+      sigma band is 0.947222 for the value model and 0.885000 for the
+      compressibility model against a nominal 0.9545.
+  - type: article
+    authors:
+      - family-names: Pedregosa
+        given-names: "F."
+      - family-names: Varoquaux
+        given-names: "G."
+      - family-names: Gramfort
+        given-names: "A."
+    title: "Scikit-learn: machine learning in Python"
+    journal: "Journal of Machine Learning Research"
+    volume: 12
+    year: 2011
+    notes: The random-forest implementation used by both learned components.
+  - type: standard
+    title: "TM Synchronization and Channel Coding"
+    institution:
+      name: "Consultative Committee for Space Data Systems"
+    number: "CCSDS 131.0-B-5"
+    year: 2023
+    notes: >-
+      The existence of a discrete modulation-and-coding table, which is why a
+      step profile is representable in downlinkpick.contacts and why the sine
+      profile shipped with the generator is a convenience rather than a link
+      budget. No numerical value in this repository is taken from it.

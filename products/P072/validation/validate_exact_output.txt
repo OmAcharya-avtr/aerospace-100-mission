@@ -1,0 +1,142 @@
+
+==============================================================================
+downlinkpick validation: the exact solver
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pulp             : 4.1.0
+pulp solvers     : none available
+pyyaml           : 6.0.3
+pandas           : 3.0.5
+joblib           : 1.6.0
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P072 (printed relatively; see validation/_bootstrap.py)
+
+PuLP is the modelling layer named in the specification. In this environment PuLP
+has no solver attached, so the optimum is computed by scipy.optimize.milp (HiGHS,
+shipped inside SciPy). Check 3 below compares the PuLP emission of the model
+against the SciPy coefficient arrays term by term.
+pulp usable as a solver: False
+
+==============================================================================
+1 and 2. MILP optimum against exhaustive enumeration, 240 instances
+==============================================================================
+instances: 7 products, 2 windows, seeds 1..240
+tolerance: 1.0e-09 relative on the objective, plus the
+           solver's absolute MIP gap of 1.0e-06 value units
+
+instances compared                  : 240
+worst relative objective difference : 0.000000e+00 at seed 1
+selections with an equal-value tie  : 0
+solutions needing overflow repair   : 0
+enumeration assignments, min / max  : 48 / 2187
+
+timings below are wall clock on two shared cores and are UNSTABLE between runs;
+they are recorded for the compute budget and no conclusion rests on them
+         route   calls   total [s]  per instance [ms]
+          MILP     240       0.816              3.401
+   enumeration     240       0.409              1.703
+
+==============================================================================
+3. the PuLP emission against the SciPy coefficient arrays, term by term
+==============================================================================
+compared: objective coefficients, constraint matrix and right-hand sides
+tolerance: 0 absolute; both are built from the same MilpModel, so a difference
+           here is a defect in one of the two emitters and not rounding
+
+  seed  columns   rows   max |obj diff|   max |row diff|   max |rhs diff|
+     3       13      9        0.000e+00        0.000e+00        0.000e+00
+    17       12      9        0.000e+00        0.000e+00        0.000e+00
+   101       13     12        0.000e+00        0.000e+00        0.000e+00
+   240       10     12        0.000e+00        0.000e+00        0.000e+00
+
+worst emission difference: 0.000000e+00
+
+==============================================================================
+4. the LP relaxation as an upper bound, and the integrality gap
+==============================================================================
+identity: LP relaxation >= integral optimum, always
+
+  seed      optimum     LP bound  integrality gap
+     1    30.524906    35.379577     1.590397e-01
+     2    26.257814    33.128743     2.616718e-01
+     3    13.085084    18.760256     4.337130e-01
+     4    27.763392    30.462295     9.721085e-02
+     5    25.927918    30.884169     1.911550e-01
+     6    28.080204    33.110022     1.791233e-01
+
+instances                      : 40
+bound violations               : 0
+integrality gap mean / median  : 1.901325e-01 / 1.550808e-01
+integrality gap max            : 8.088386e-01
+
+==============================================================================
+5. the solver objective against the value recomputed from the selection
+==============================================================================
+tolerance: 1.0e-9 relative
+
+instances                            : 60
+worst relative recompute difference  : 0.000000e+00
+
+==============================================================================
+6. degenerate instances
+==============================================================================
+capacity admits everything : value 10.000000, selected 2 of 2, status optimal
+capacity admits nothing    : value 0.000000, selected 0, status optimal
+everything expired        : value 0.000000, columns 0, status optimal
+
+==============================================================================
+7. the counterexamples Hypothesis found against this module, re-measured
+==============================================================================
+each is pinned as a named regression test in tests/test_regressions.py with its
+literal inputs; they are re-measured here so that the numbers quoted in README.md
+and validation/VALIDATION.md come from a committed output file
+
+a. rounding a near-integral vector over-committed a window by 5 bits
+  capacity [bit]        : 7999538.0
+  sizes [bit]           : [8.0, 7999535.0]
+  values                : [1.0, 1.0]
+  MILP objective        : 1.0  (status optimal-rounded)
+  enumeration optimum   : 1.0
+  greedy objective      : 1.0
+  Dantzig bound         : 1.9999993749636698
+  greedy minus MILP     : 0.0
+  MILP invariants hold  : True
+
+b. the same defect seen through a violated Dantzig bound
+  capacity [bit]        : 7999615.0
+  sizes [bit]           : [8.0, 7999609.0]
+  values                : [1.0, 5.0]
+  MILP objective        : 5.0  (status optimal-rounded)
+  enumeration optimum   : 5.0
+  greedy objective      : 1.0
+  Dantzig bound         : 5.999998749938903
+  greedy minus MILP     : -4.0
+  MILP invariants hold  : True
+
+c. greedy beat the MILP inside the solver's absolute MIP gap
+  capacity [bit]        : 9385942.0
+  sizes [bit]           : [9385924.0, 8.0, 8.0, 8.0, 8.0, 8.0]
+  values                : [1.0, 0.0, 0.0, 0.0, 0.0, 5.960464477539063e-08]
+  MILP objective        : 1.0  (status optimal)
+  enumeration optimum   : 1.0000000596046448
+  greedy objective      : 1.0000000596046448
+  Dantzig bound         : 1.0000000596046448
+  greedy minus MILP     : 5.960464477539063e-08
+  MILP invariants hold  : True
+
+the solver's absolute MIP gap is 1e-06 value units, which
+scipy.optimize.milp does not expose; case c sits inside it and is therefore a
+documented tolerance rather than a defect
+
+==============================================================================
+summary
+==============================================================================
+failures: 0

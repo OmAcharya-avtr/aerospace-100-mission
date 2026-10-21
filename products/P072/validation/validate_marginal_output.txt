@@ -1,0 +1,159 @@
+
+==============================================================================
+downlinkpick validation: the marginal value of contact time
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pulp             : 4.1.0
+pulp solvers     : none available
+pyyaml           : 6.0.3
+pandas           : 3.0.5
+joblib           : 1.6.0
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P072 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1 and 2. capacity sweep: monotone where no expiry is crossed, not concave
+==============================================================================
+steps added to window 1: 0 to 600 s in 31 points
+monotonicity tolerance : 1.0e-9 relative on the objective
+a step is classified by whether the extension newly crosses a product's expiry
+
+  seed  dec clean  dec crossing   worst drop  convexity viol         value 0 -> max
+     1          0             0   0.0000e+00               4    47.8213 ->  52.7600
+     2          0             0   0.0000e+00               2    38.8563 ->  42.6006
+     3          0             0   0.0000e+00               0    30.9881 ->  30.9881
+     4          0             0   0.0000e+00               3    45.0209 ->  47.2441
+     5          0             0   0.0000e+00               6    50.9757 ->  55.6293
+     6          0             0   0.0000e+00               9    44.9546 ->  50.9201
+     7          0             0   0.0000e+00               4    44.6129 ->  45.6055
+     8          0             0   0.0000e+00               2    51.6232 ->  55.9393
+
+instances swept                            : 40
+decreasing steps crossing no expiry        : 0 (must be 0)
+decreasing steps that cross an expiry      : 1
+worst relative drop                        : 1.289032e-01 at seed 36
+convexity violations across all sweeps     : 173
+a non-zero convexity count is the expected result and is reported, not fixed:
+the objective of an integer program is a step function of capacity, so the
+marginal value of contact time is not a derivative and not monotone in capacity.
+the decreasing steps that cross an expiry are the other expected result: a
+window's end is its delivery epoch, so a longer pass can be too late for a
+product that the shorter pass would have delivered in time.
+
+==============================================================================
+3 and 4. the finite difference against an actual extension, and its sign
+==============================================================================
+identity: reported value_per_second * delta_s == objective(extended) - objective
+tolerance: 1.0e-9 relative
+
+  seed   window     +value      value/s    residual
+     1    pass1     0.0000     0.000000   0.000e+00
+     1    pass2     0.0000     0.000000   0.000e+00
+     1    pass3     0.0000     0.000000   0.000e+00
+     2    pass1     0.0000     0.000000   0.000e+00
+     2    pass2     0.0000     0.000000   0.000e+00
+     2    pass3     0.0000     0.000000   0.000e+00
+     3    pass1     0.0000     0.000000   0.000e+00
+     3    pass2     0.0000     0.000000   0.000e+00
+     3    pass3     0.0106     0.000354   0.000e+00
+
+window-prices computed       : 90
+worst relative residual      : 0.000000e+00
+negative marginal values     : 0, every one of them explained by an
+                               expiry crossing or the check above would have failed
+
+==============================================================================
+5. the bias from holding the final rate across the extension
+==============================================================================
+the library's extension holds the final rate; this compares it against an
+extension that continues the final linear segment down, clamped at zero rate
+
+ step [s]      held [bit]  following [bit]  held/following
+      1.0    4.523731e+08     4.460674e+08        1.014136
+     10.0    4.523731e+09     3.893165e+09        1.161967
+     30.0    1.357119e+10     8.224625e+09        1.650068
+    120.0    5.428477e+10     2.714239e+10        2.000000
+    300.0    1.357119e+11     6.785596e+10        2.000000
+
+the ratio above 1 is the over-estimate: the reported marginal value of contact
+time is an upper estimate by this factor, and it grows with the step because the
+profile is falling at the end of a pass
+
+==============================================================================
+6. the left-behind report
+==============================================================================
+checks: one reason per unselected product; selected value plus left-behind
+        value equals the whole inventory value; and the reported capacity
+        shortfall in seconds, actually added, admits the product
+
+  seed  left     expired   oversized  dependency    capacity  accounting res
+     1     5      0.0000      6.7981      0.0000     18.7240       0.000e+00
+     2     8      0.0000      1.1832     11.8205      4.8839       0.000e+00
+     3     4      0.0000     22.4320      0.4407      0.0000       1.185e-16
+     4     7      0.0000      2.1979      1.8670     22.5074       0.000e+00
+     5     4      0.0000     12.6261      0.0000     15.7111       0.000e+00
+     6     8      0.0000      3.2701      3.0983     32.4627       0.000e+00
+     7     4      0.0000     10.9571      5.6524      0.0000       1.937e-16
+     8     6      0.0000      9.3552      1.2328     22.5653       0.000e+00
+
+instances                                  : 40
+capacity shortfalls probed                 : 101
+shortfalls that do not free enough room    : 0 (must be 0)
+shortfalls after which a re-solve selects  : 39 of 101
+the two counts measure different claims. The first is the claim the report
+makes: adding the stated seconds to the stated window frees enough room for
+this product alongside everything already committed to that window, and it must
+hold. The second is a question the report does not answer: re-solving with the
+extra room may spend it on a different product of higher value, so a product
+that fits is not a product that is chosen. The gap between the two counts is
+the honest limit of a per-product shortfall number.
+
+==============================================================================
+7. the best window to extend, and the case where none pays
+==============================================================================
+tight instance  : best window pass3, 0.001159 value/s
+ample capacity  : best window none pays
+selected with ample capacity: 20 of 20
+with every rate multiplied by 50 the binding constraint is expiry and not
+capacity, and the correct answer to 'should I ask for another minute' is no.
+
+==============================================================================
+8. the pinned seed-36 sweep, re-measured
+==============================================================================
+the two points either side of the drop, printed so that the numbers quoted in
+README.md and validation/VALIDATION.md come from a committed output file
+
+  + 440.0 s  value 40.146248887935315  selected 14  expiry crossings 0
+  + 460.0 s  value 34.97126699929167  selected 14  expiry crossings 1
+  change           : -5.174981888643643
+  relative drop    : 0.12890324829821947
+
+==============================================================================
+9. greedy and exact price the same extension differently
+==============================================================================
+the marginal value of contact time is a property of the selector as well as of
+the plan, and an operator running greedy should be quoted greedy's price
+
+  seed   window  greedy value/s  exact value/s
+     1    pass1        0.056298       0.000000
+     1    pass2        0.000000       0.000000
+     1    pass3        0.000000       0.002804
+     2    pass1        0.000000       0.050950
+     2    pass2        0.000000       0.000000
+     2    pass3        0.000000       0.000000
+     3    pass1        0.000000       0.000000
+     3    pass2        0.000000       0.000000
+     3    pass3        0.002334       0.001159
+
+==============================================================================
+summary
+==============================================================================
+failures: 0

@@ -1,0 +1,82 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "downlinkpick"
+version = "0.1.0"
+description = "Choose what to downlink when the contact is shorter than the queue, and report the marginal value of contact time and what was left behind."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "downlink-scheduling",
+    "satellite-communications",
+    "data-triage",
+    "multiple-knapsack",
+    "mixed-integer-programming",
+    "contact-window",
+    "ground-station",
+    "compressibility",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+# Every range below is bounded on BOTH sides at the versions this product was
+# measured against. A floor with no ceiling is not a dependency specification:
+# five of the first fifty products of this mission were found broken or silently
+# wrong for a new install because pip resolved a major release published after
+# the product was measured. PuLP is the sharpest case in this package's own
+# dependency set -- 4.x creates variables through LpProblem.add_variable and no
+# longer has LpVariable(cat=), PULP_CBC_CMD or a bundled CBC, so the code in
+# downlinkpick.exact works on 4.x and on nothing else. The cost of the ceiling
+# is real and is recorded in README.md under Limitations: this package cannot
+# take a pulp 4.2 or a scikit-learn 1.10 release without a port and a re-measure.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scipy>=1.18,<1.19",
+    "scikit-learn>=1.9,<1.10",
+    "pulp>=4.1,<4.2",
+    "pyyaml>=6.0,<6.1",
+    "joblib>=1.6,<1.7",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=9.1,<9.2", "hypothesis>=6.170,<6.171"]
+examples = ["matplotlib>=3.11,<3.12"]
+dev = [
+    "pytest>=9.1,<9.2",
+    "hypothesis>=6.170,<6.171",
+    "ruff>=0.17,<0.18",
+    "matplotlib>=3.11,<3.12",
+]
+
+[project.scripts]
+downlinkpick = "downlinkpick.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["downlinkpick"]
+known-local-folder = ["_bootstrap", "_common"]

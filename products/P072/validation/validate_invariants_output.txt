@@ -1,0 +1,83 @@
+
+==============================================================================
+downlinkpick validation: selection invariants
+==============================================================================
+python           : 3.13.16
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pulp             : 4.1.0
+pulp solvers     : none available
+pyyaml           : 6.0.3
+pandas           : 3.0.5
+joblib           : 1.6.0
+pytest           : 9.1.1
+hypothesis       : 6.170.5
+ruff             : 0.17.1
+astropy          : not installed
+cpu cores        : 2
+repository root  : P072 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1 and 2. both selectors over 400 instances of 5 shapes
+==============================================================================
+invariants: no double downlink, expiry, capacity, dependency closure,
+            precedence by window, value conservation
+tolerances: capacity 1.0 bit absolute; value 1.0e-9 relative
+
+                                       shape  selector  violations  worst headroom [bit]  worst value res
+n_products=24, n_windows=3, capacity_fraction=0.45    greedy           0         -1.128427e+06        0.000e+00
+n_products=24, n_windows=3, capacity_fraction=0.45     exact           0         -3.496901e+04        0.000e+00
+n_products=12, n_windows=2, capacity_fraction=0.3    greedy           0         -7.506745e+05        0.000e+00
+n_products=12, n_windows=2, capacity_fraction=0.3     exact           0         -7.452570e+04        0.000e+00
+n_products=30, n_windows=4, capacity_fraction=0.55, dependency_fraction=0.5    greedy           0         -4.405867e+06        0.000e+00
+n_products=30, n_windows=4, capacity_fraction=0.55, dependency_fraction=0.5     exact           0         -2.336279e+05        0.000e+00
+n_products=18, n_windows=1, capacity_fraction=0.35    greedy           0         -2.291589e+06        0.000e+00
+n_products=18, n_windows=1, capacity_fraction=0.35     exact           0         -1.784106e+06        0.000e+00
+n_products=20, n_windows=5, capacity_fraction=0.6, dependency_fraction=0.35    greedy           0         -1.132280e+06        0.000e+00
+n_products=20, n_windows=5, capacity_fraction=0.6, dependency_fraction=0.35     exact           0         -1.849707e+05        0.000e+00
+
+selections checked: 4000
+worst headroom is negative when every window has capacity left over, which is
+the expected sign: a positive value would be an overflowing window
+
+==============================================================================
+3. transitive precedence from direct-prerequisite rows only
+==============================================================================
+claim: imposing x_iw <= sum_{end(w') <= end(w)} x_jw' on DIRECT prerequisites
+       implies the same for the whole transitive closure, because window ends
+       are totally ordered
+checked on instances that actually contain chains of depth two or more
+
+instances with a closure of size >= 2 : 400
+deepest closure found                 : 8
+transitive pairs checked              : 7726
+
+==============================================================================
+4. the checker's own sensitivity to six corruptions
+==============================================================================
+a checker that never fails is not evidence, so each corruption below must be
+detected; a corruption that goes undetected is a FAIL
+
+              duplicate assignment : detected= True violations=2
+              total value inflated : detected= True violations=1
+         assignment value inflated : detected= True violations=1
+                  size understated : detected= True violations=1
+                   unknown product : detected= True violations=1
+             delivery after expiry : detected= True violations=2
+
+==============================================================================
+5. no-double-downlink row structure of the MILP
+==============================================================================
+one row per product, and every column of a product in exactly one such row
+
+  seed  products   rows  columns  row sum max
+     5        20     20       43            3
+    23        20     20       47            3
+    77        20     20       49            3
+
+==============================================================================
+summary
+==============================================================================
+failures: 0
