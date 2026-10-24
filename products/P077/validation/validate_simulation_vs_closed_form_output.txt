@@ -1,0 +1,165 @@
+
+==============================================================================
+environment
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+cfdp-py          : not installed
+spacepackets     : not installed
+cpu cores        : 2
+repository root  : P077 (printed relatively; see validation/_bootstrap.py)
+
+cfdp-py and spacepackets are NOT installed in this environment. They are
+named in README.md as the mature implementations of the protocol itself and
+no number anywhere in this repository was taken from either package.
+
+==============================================================================
+declared check parameters
+==============================================================================
+runs per cell                  : 1200
+tolerance                      : 4.0 sampling standard errors
+regime                         : no outages, continuous contact, fixed-size NAK
+mode                           : deferred_nak (the mode with a closed-form time)
+grid cells                     : 12
+
+==============================================================================
+deferred-NAK delivery time: exact expectation against the simulated mean
+==============================================================================
+    n     p   asym   L s     exact s  sim mean s    std err  diff/se    rel diff   ok
+-------------------------------------------------------------------------------------
+   40  0.00     10  0.00    0.428800    0.428800   0.000000     0.00  +5.178e-16 True
+   40  0.05     10  0.00    0.476874    0.476610   0.000786     0.34  -5.541e-04 True
+   40  0.20     10  0.00    0.592606    0.592895   0.001592     0.18  +4.880e-04 True
+   40  0.05     10  1.20    4.009709    3.998610   0.037143     0.30  -2.768e-03 True
+   40  0.05    100  1.20    4.233661    4.221522   0.040642     0.30  -2.867e-03 True
+   40  0.30    100  1.20    9.926094    9.773471   0.080328     1.90  -1.538e-02 True
+  120  0.02     10  0.25    1.247942    1.240286   0.005797     1.32  -6.134e-03 True
+  120  0.10     10  0.25    1.731965    1.719365   0.010055     1.25  -7.275e-03 True
+  120  0.10     50  2.50   12.240930   12.125064   0.098026     1.18  -9.465e-03 True
+  120  0.25     50  2.50   20.119916   19.950513   0.135017     1.25  -8.420e-03 True
+  301  0.05     20  0.05    5.474247    5.469309   0.003303     1.50  -9.020e-04 True
+  301  0.15     20  0.05    6.239508    6.231629   0.005065     1.56  -1.263e-03 True
+
+worst discrepancy              : 1.9000 standard errors
+worst relative discrepancy     : 1.537594e-02
+cells outside tolerance        : 0 of 12
+
+==============================================================================
+forward transmission count: exact expectation against the simulated mean
+==============================================================================
+Mode-independent in expectation, and independent of the timing model.
+
+    n     p            mode       exact    sim mean    std err  diff/se   ok
+----------------------------------------------------------------------------
+   40  0.05    deferred_nak     42.1053     42.0667     0.0420     0.92 True
+   40  0.05   immediate_nak     42.1053     42.0667     0.0420     0.92 True
+   40  0.20    deferred_nak     50.0000     49.9633     0.0976     0.38 True
+   40  0.20   immediate_nak     50.0000     49.9633     0.0976     0.38 True
+   40  0.05    deferred_nak     42.1053     42.0667     0.0420     0.92 True
+   40  0.05   immediate_nak     42.1053     42.0667     0.0420     0.92 True
+   40  0.05    deferred_nak     42.1053     42.0667     0.0420     0.92 True
+   40  0.05   immediate_nak     42.1053     42.0667     0.0420     0.92 True
+   40  0.30    deferred_nak     57.1429     57.2350     0.1384     0.67 True
+   40  0.30   immediate_nak     57.1429     57.2350     0.1384     0.67 True
+  120  0.02    deferred_nak    122.4490    122.4508     0.0454     0.04 True
+  120  0.02   immediate_nak    122.4490    122.4508     0.0454     0.04 True
+  120  0.10    deferred_nak    133.3333    133.3425     0.1101     0.08 True
+  120  0.10   immediate_nak    133.3333    133.3425     0.1101     0.08 True
+  120  0.10    deferred_nak    133.3333    133.3425     0.1101     0.08 True
+  120  0.10   immediate_nak    133.3333    133.3425     0.1101     0.08 True
+  120  0.25    deferred_nak    160.0000    160.0233     0.2128     0.11 True
+  120  0.25   immediate_nak    160.0000    160.0233     0.2128     0.11 True
+  301  0.05    deferred_nak    316.8421    316.6950     0.1207     1.22 True
+  301  0.05   immediate_nak    316.8421    316.6950     0.1207     1.22 True
+  301  0.15    deferred_nak    354.1176    353.9325     0.2291     0.81 True
+  301  0.15   immediate_nak    354.1176    353.9325     0.2291     0.81 True
+
+worst discrepancy              : 1.2187 standard errors
+cells outside tolerance        : 0 of 20
+
+==============================================================================
+immediate-NAK against its analytic lower bound
+==============================================================================
+The closed form gives no delivery-time expression for immediate-NAK, only
+the busy-time lower bound 8 * W / ((1 - p) * R_fwd) + L. That is a bound on
+the EXPECTATION, because the busy time it contains is itself an expectation.
+The first run of this check compared it against the minimum over runs and
+reported seven of eleven cells as failures; a lucky run has fewer
+transmissions than the expectation, so a realisation legitimately falls
+below a bound built from the mean. Two separate statements are checked here
+instead.
+
+  (a) the simulated MEAN delivery time is at least the bound;
+  (b) on EVERY run, the idle time is at least one one-way light time,
+      which is the per-realisation statement and holds because the
+      completing unit still has to propagate.
+
+    n     p   L s    bound s  imm mean s  (a) ok  min idle-L  (b) ok
+--------------------------------------------------------------------
+   40  0.05  0.00   0.451368    0.455795    True  +0.000e+00    True
+   40  0.20  0.00   0.536000    0.551354    True  +0.000e+00    True
+   40  0.05  1.20   1.651368    3.996970    True  +0.000e+00    True
+   40  0.05  1.20   1.651368    4.232554    True  +0.000e+00    True
+   40  0.30  1.20   1.812571   10.266882    True  +2.506e+00    True
+  120  0.02  0.25   0.763249    1.107976    True  +0.000e+00    True
+  120  0.10  0.25   0.808871    1.584312    True  +2.327e-01    True
+  120  0.10  2.50   3.058871   12.536236    True  +4.753e+00    True
+  120  0.25  2.50   3.170645   21.522012    True  +9.519e+00    True
+  301  0.05  0.05   5.284914    5.311081    True  -1.804e-16    True
+  301  0.15  0.05   5.900786    5.981918    True  -1.804e-16    True
+
+(a) mean at least the bound    : PASS
+(b) idle at least one light time: PASS
+
+==============================================================================
+immediate-NAK is not always faster than deferred-NAK
+==============================================================================
+Pipelining the retransmission requests shortens the transfer when the
+forward stream is long relative to the round trip, and lengthens it when it
+is not: a gap revealed late costs its own two light times, and with many
+gaps the sender ends up idling once per gap instead of once per round.
+The ratio below is the median immediate-NAK delivery time over the median
+deferred-NAK delivery time on the same scenario and the same seeds; above
+1.0 means immediate-NAK is slower.
+
+    n     p   L s  clean pass s  L/clean pass   imm q0.50   def q0.50  imm/def
+------------------------------------------------------------------------------
+   40  0.05  0.00      0.428800        0.0000    0.450240    0.476480   0.9449
+   40  0.20  0.00      0.428800        0.0000    0.546720    0.593280   0.9215
+   40  0.05  1.20      0.428800        2.7985    3.957920    4.076480   0.9709
+   40  0.05  1.20      0.428800        2.7985    4.188320    4.306880   0.9725
+   40  0.30  1.20      0.428800        2.7985    9.543200    9.770240   0.9768
+  120  0.02  0.25      0.502984        0.4970    1.140784    1.266616   0.9007
+  120  0.10  0.25      0.502984        0.4970    1.574640    1.817976   0.8662
+  120  0.10  2.50      0.502984        4.9703   12.865600   13.108936   0.9814
+  120  0.25  2.50      0.502984        4.9703   22.694624   18.264588   1.2425
+  301  0.05  0.05      4.973168        0.0101    5.304960    5.452912   0.9729
+  301  0.15  0.05      4.973168        0.0101    5.972448    6.226232   0.9592
+
+best for immediate-NAK         : ratio 0.8662 at n=120, p=0.1, L=0.25 s, L/clean pass 0.4970
+worst for immediate-NAK        : ratio 1.2425 at n=120, p=0.25, L=2.5 s, L/clean pass 4.9703
+cells where immediate-NAK is slower: 1 of 11
+
+This is a measured property of the declared model under M5, not a property
+of any protocol. It is reported because the opposite is the natural
+assumption and the measurement contradicts it in part of the grid.
+
+==============================================================================
+summary
+==============================================================================
+PASS  deferred-NAK delivery time vs closed form
+PASS  transmission count vs n / (1 - p)
+PASS  immediate-NAK mean respects the analytic lower bound
+PASS  immediate-NAK idle is at least one light time on every run
+
+
+immediate-NAK slower than deferred-NAK in 1 of 11 cells
+output written to validation/validate_simulation_vs_closed_form_output.txt

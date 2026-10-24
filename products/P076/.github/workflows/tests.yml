@@ -1,0 +1,72 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q --junitxml=junit.xml
+      - name: Test count from junit XML, never from stdout
+        run: |
+          python - <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse("junit.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          declared = int(suite.get("tests", "0"))
+          counted = len(suite.findall(".//testcase"))
+          print(f"declared {declared}, counted {counted}")
+          if declared == 0 or declared != counted:
+              sys.exit("junit.xml does not agree with itself, or no test ran")
+          PY
+      - name: CLI
+        run: |
+          python -m pointahead --version
+          python -m pointahead info
+          python -m pointahead scenario leo_crossing
+          python -m pointahead budget examples/cases/leo_crossing.yaml
+          python -m pointahead compare examples/cases/geo_relay_to_leo.yaml
+          python -m pointahead lighttime examples/cases/leo_trailing.yaml
+      - name: Validation scripts
+        run: |
+          python validation/validate_aberration.py
+          python validation/validate_kepler.py
+          python validation/validate_lighttime.py
+          python validation/validate_pointahead.py
+          python validation/validate_budget.py
+          python validation/validate_invariants.py
+          python validation/validate_frames.py
+          python validation/validate_cli.py
+          python validation/regenerate_cases.py
+          python validation/worked_example.py
+      - name: Every validation script and example from five working directories
+        run: python validation/probe_working_directories.py
+      - name: Committed cases are unchanged by regeneration
+        run: git diff --exit-code examples/cases/
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/budget_breakdown.py
+          python examples/attribution_vs_geometry.py
+          python examples/beam_context.py
+          python examples/baseline_vs_reference.py
+          python examples/frame_dependence.py
+          python examples/lighttime_convergence.py

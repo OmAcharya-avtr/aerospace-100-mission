@@ -1,0 +1,136 @@
+
+==============================================================================
+boundcompress -- round-trip reconstruction and determinism
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+scipy            : 1.18.1
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+numcodecs        : not installed  (spec baseline 2)
+zfpy             : not installed  (spec baseline 2)
+cpu cores        : 2
+repository root  : P080 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+round-trip: decoded array equals the encoder's reconstruction, bit-for-bit
+==============================================================================
+[PASS] every decoded array is bit-identical to its reconstruction
+[PASS] every symbol stream recovered from the container matches the encoder
+
+signal             predictor  bytes  array  symbols  max_abs_error
+-----------------  ---------  -----  -----  -------  -------------
+battery_voltage    previous   2641   exact  exact    4.118466e-04 
+battery_voltage    linear     3091   exact  exact    4.118466e-04 
+battery_voltage    quadratic  3638   exact  exact    4.118466e-04 
+battery_voltage    cubic      4303   exact  exact    4.118466e-04 
+panel_temperature  previous   1737   exact  exact    4.700420e-03 
+panel_temperature  linear     1517   exact  exact    4.700420e-03 
+panel_temperature  quadratic  1952   exact  exact    4.700420e-03 
+panel_temperature  cubic      2432   exact  exact    4.700420e-03 
+wheel_rate         previous   1260   exact  exact    4.112971e-02 
+wheel_rate         linear     991    exact  exact    4.112971e-02 
+wheel_rate         quadratic  1360   exact  exact    4.112971e-02 
+wheel_rate         cubic      1699   exact  exact    4.112971e-02 
+gyro_rate          previous   7701   exact  exact    3.212999e-06 
+gyro_rate          linear     8207   exact  exact    3.212999e-06 
+gyro_rate          quadratic  8445   exact  exact    3.212999e-06 
+gyro_rate          cubic      8450   exact  exact    3.212999e-06 
+magnetometer       previous   2652   exact  exact    5.121276e-03 
+magnetometer       linear     3091   exact  exact    5.121276e-03 
+magnetometer       quadratic  3645   exact  exact    5.121276e-03 
+magnetometer       cubic      4299   exact  exact    5.121276e-03 
+packet_counter     previous   319    exact  exact    1.022000e-01 
+packet_counter     linear     583    exact  exact    1.022000e-01 
+packet_counter     quadratic  717    exact  exact    1.022000e-01 
+packet_counter     cubic      1073   exact  exact    1.022000e-01 
+white_noise        previous   8423   exact  exact    7.038180e-04 
+white_noise        linear     8439   exact  exact    7.038180e-04 
+white_noise        quadratic  8437   exact  exact    7.038180e-04 
+white_noise        cubic      9036   exact  exact    7.038180e-04 
+step_transient     previous   1053   exact  exact    8.924124e-04 
+step_transient     linear     1499   exact  exact    8.924124e-04 
+step_transient     quadratic  1957   exact  exact    8.924124e-04 
+step_transient     cubic      2509   exact  exact    8.924124e-04 
+
+==============================================================================
+round-trip in every declared bound mode
+==============================================================================
+[PASS] every mode round-trips exactly
+
+signal             mode       bound         bytes  array
+-----------------  ---------  ------------  -----  -----
+battery_voltage    abs        4.119190e-04  3091   exact
+battery_voltage    range_rel  1.000000e-04  3091   exact
+panel_temperature  abs        4.701009e-03  1517   exact
+panel_temperature  range_rel  1.000000e-04  1517   exact
+wheel_rate         abs        4.113667e-02  991    exact
+wheel_rate         range_rel  1.000000e-04  991    exact
+gyro_rate          abs        3.213375e-06  8207   exact
+gyro_rate          range_rel  1.000000e-04  8207   exact
+magnetometer       abs        5.122522e-03  3091   exact
+magnetometer       range_rel  1.000000e-04  3091   exact
+packet_counter     abs        1.023000e-01  583    exact
+packet_counter     range_rel  1.000000e-04  583    exact
+white_noise        abs        7.039586e-04  8439   exact
+white_noise        range_rel  1.000000e-04  8439   exact
+step_transient     abs        8.925683e-04  1499   exact
+step_transient     range_rel  1.000000e-04  1499   exact
+battery_voltage    rel        1.000000e-05  3460   exact
+panel_temperature  rel        1.000000e-05  1785   exact
+
+==============================================================================
+determinism: three encodes, one digest
+==============================================================================
+[PASS] every digest is stable across three encodes
+
+signal             predictor       sha256[:16]       verdict
+-----------------  --------------  ----------------  -------
+battery_voltage    previous        6f2c19bd957f1306  stable 
+battery_voltage    linear          ac091e2dbf44be21  stable 
+panel_temperature  previous        d98e582d887f5e5c  stable 
+panel_temperature  linear          7750f6730d1259d1  stable 
+wheel_rate         previous        b7275005858a67da  stable 
+wheel_rate         linear          36f81d979e096730  stable 
+gyro_rate          previous        3c17dbffdbcea5da  stable 
+gyro_rate          linear          51cb6eacb54ba3a8  stable 
+magnetometer       previous        460e964667e0a9b9  stable 
+magnetometer       linear          2efc75fed9942848  stable 
+packet_counter     previous        02695f38d8b5b0ac  stable 
+packet_counter     linear          7f0469d9434a0540  stable 
+white_noise        previous        cf8f008a8352cc2a  stable 
+white_noise        linear          96205511c39fd470  stable 
+step_transient     previous        8b6f6f5230f1843f  stable 
+step_transient     linear          ec63ea968cc5f6aa  stable 
+gyro_rate          learned_linear  15a41cc2829bed65  stable 
+wheel_rate         learned_linear  0ef26266cc0daf89  stable 
+battery_voltage    learned_linear  2299e6002316a2d6  stable 
+gyro_rate          learned_mlp     8f1dc1b99c45a245  stable 
+wheel_rate         learned_mlp     1191038b0fcc1564  stable 
+battery_voltage    learned_mlp     dcc5b78134dca30a  stable 
+
+==============================================================================
+the encoder's batch forward pass equals the decoder's sequential one
+==============================================================================
+[PASS] the batch and sequential learned forward passes are bit-identical
+
+model           predictions  differences  verdict  
+--------------  -----------  -----------  ---------
+learned_linear  4091         0            identical
+learned_mlp     4091         0            identical
+
+==============================================================================
+container accounting: the blocks sum to the rate
+==============================================================================
+[PASS] every container's blocks sum to its length and repack identically
+
+signal           header  warmup  table  escapes  payload  sum   certificate  verdict
+---------------  ------  ------  -----  -------  -------  ----  -----------  -------
+battery_voltage  38      6       168    5        2874     3091  3091         ok     
+white_noise      38      4       315    7688     394      8439  8439         ok     
+packet_counter   38      2       12     13       518      583   583          ok     
+
+FAILED CHECKS (0): none

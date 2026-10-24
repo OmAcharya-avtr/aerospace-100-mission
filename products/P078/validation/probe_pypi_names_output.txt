@@ -1,0 +1,58 @@
+==============================================================================
+cmdguard -- PyPI name probe, read-only, with controls in both directions
+==============================================================================
+
+environment this output was measured on:
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scikit-learn     : 1.9.1
+  pyyaml           : 6.0.3
+  scipy            : 1.18.1
+  matplotlib       : 3.10.8
+  joblib           : 1.5.2
+  pandas           : 3.0.5
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  cpu cores        : 2
+  repository root  : P078 (printed relatively; see validation/_bootstrap.py)
+
+  Nothing is installed by this script. 'pip index versions' is a query.
+  timeout per probe: 90 s
+
+==============================================================================
+1. the probe is validated before it is trusted
+==============================================================================
+  known-taken control  numpy                                    -> taken (2.5.4)
+  known-free control   cmdguard-aero-nonexistent-probe          -> free (no matching distribution)
+  known-free control   optima-p078-free-control-name            -> free (no matching distribution)
+  [PASS] the probe distinguishes taken from free -- a probe that cannot do this is not evidence
+
+==============================================================================
+2. every name the README mentions
+==============================================================================
+  name                                status  detail
+  cmdguard                              free  no matching distribution
+  spacepackets                         taken  0.32.0
+  transitions                          taken  0.9.3
+  python-statemachine                  taken  3.2.2
+  yamcs-client                         taken  2.1.0
+  pytest                               taken  9.1.1
+  scikit-learn                         taken  1.9.1
+  pyyaml                               taken  6.0.3
+
+==============================================================================
+3. what this means for the README
+==============================================================================
+  taken on the index : 7 -- pytest, python-statemachine, pyyaml, scikit-learn, spacepackets, transitions, yamcs-client
+  free on the index  : 1 -- cmdguard
+  not determined     : 0 -- none
+
+  'cmdguard' is expected to be FREE: this package has not been published, and
+  a name this repository claims and does not hold is recorded as free rather
+  than implied to be taken.
+  [PASS] the package name this product claims is free on the index -- probed as free
+  [PASS] every alternative the README names as existing does exist -- a README must not send a reader after a package that is not there
+
+------------------------------------------------------------------------------
+FAILED CHECKS: none

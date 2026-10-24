@@ -1283,10 +1283,10 @@ products:
     batch: 8
     class: compact
     category: pointing-acquisition-tracking
-    summary: "Point-ahead angle for an optical crosslink with every error term attributed to its own checkable line — relative velocity knowledge, ephemeris staleness, light-time iteration residual, stellar and velocity aberration, and the beam-divergence context that says whether the total matters, because a 5 microradian error means one thing on a 50 microradian beam and another on a 5 microradian beam and the dominant term determines what to fix; closed-form first-order aberration scored against an iterated light-time solution, aberration cross-checked against the independent astropy implementation, and the budget verified by propagating each input perturbation numerically against the linearised sensitivity."
+    summary: "Point-ahead angle for an optical crosslink with every error term attributed to its own checkable line — relative velocity knowledge, ephemeris staleness, light-time iteration residual, stellar and velocity aberration, and the beam-divergence context that says whether the total matters, because a 5 microradian error means one thing on a 50 microradian beam and another on a 5 microradian beam and the dominant term determines what to fix; closed-form first-order aberration scored against an iterated light-time solution, aberration cross-checked against three independent exact implementations written for this product (trigonometric relation, four-momentum boost, event-coordinate Lorentz transformation) because astropy is not installed in the build environment and no number was taken from it, and the budget verified by propagating each input perturbation numerically against the linearised sensitivity."
     ai_enabled: false
     validation_level: 2
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P076
@@ -1302,7 +1302,7 @@ products:
     summary: "What a file transfer actually costs over an intermittent link, measured rather than reimplemented — explicitly NOT a CFDP implementation, since cfdp-py and spacepackets exist and are named and recommended for the protocol itself; a measurement harness driving deferred-NAK, immediate-NAK and unacknowledged modes against a seeded link model of declared outage durations, loss and asymmetry, reporting delivery-time quantiles with the tail stated separately because a mean delivery time over an intermittent link is close to meaningless, retransmission overhead and per-contact completion probability; verified against the closed-form expected delivery time in the no-outage limit, with delivered-equals-source asserted by hash on every run."
     ai_enabled: true
     validation_level: 2
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P077
@@ -1318,7 +1318,7 @@ products:
     summary: "Command-sequence checking against the spacecraft state the sequence will actually meet — declared command dictionary (preconditions, mode gating, resource draw, inter-command timing, mutual exclusions, irreversibility) and mode machine, with violations reported together with the state trace that reaches each one, because command 47 is illegal is not actionable and command 47 is illegal because command 12 left the payload in SAFE and nothing re-enabled it is; forward symbolic execution as exact ground truth, per-command static precondition lint as the thing people actually do with its miss rate on injected ordering defects measured as a deliverable, learned risk ranker scored against irreversibility-flag and resource-draw orderings on precision at k. No mature equivalent found on the index; the README says so rather than inventing a comparison. Must not claim a passing sequence is safe to uplink."
     ai_enabled: true
     validation_level: 2
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P078
@@ -1334,7 +1334,7 @@ products:
     summary: "Clock offset and skew across a link with the uncertainty measured rather than quoted — two-way time transfer under asymmetric and variable delay, Allan deviation over tau with a confidence interval at each tau, and a measured uncertainty on the offset estimate itself rather than a datasheet figure; symmetric-delay analytic estimator with its asymmetry bias derived in closed form and verified, least-squares and Kalman skew estimation, learned delay-asymmetry corrector benchmarked against the symmetric assumption and a median-filtered estimator; Allan deviation verified against synthetic noise processes of known slope with the fitted slopes reported against theory. THIS IS THE BATCH 08 L4-SCAFFOLDED PRODUCT: hardware abstraction layer with simulation/device parity asserted by test, simulation mode, dry-run mode, documented Jetson Orin Nano deployment and recovery procedure, and a benchmark harness whose hardware rows stay EMPTY and marked unmeasured. Labelled Level 3 hardware-pending and never Level 4 until measured timing and resource use come from the board itself."
     ai_enabled: true
     validation_level: 3
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P079
@@ -1351,7 +1351,7 @@ products:
     summary: "Certify that the declared error bound held and report what the guarantee cost — explicitly NOT a codec, since numcodecs and zfpy exist and are named and recommended for compression itself; takes a telemetry array and a declared per-sample absolute or relative bound and emits a certificate giving the measured maximum per-sample error and where it occurred, plus a rate-distortion curve against the named codecs at matched measured distortion so the cost of being able to prove the bound is visible rather than asserted; lossless entropy coding of residuals at the bound-implied quantiser step as the hard-to-beat default with the achievable rate bounded below by measured residual entropy, learned residual predictor benchmarked against linear and polynomial extrapolation at identical verified distortion. The bound is asserted on EVERY sample of every test array as a hard test, never as a summary statistic, with a deliberate bound-violation negative control the certificate must fail on, and rate measured as actual encoded bytes rather than estimated from entropy."
     ai_enabled: true
     validation_level: 2
-    status: SPECIFYING
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P080

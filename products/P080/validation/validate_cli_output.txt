@@ -1,0 +1,288 @@
+
+==============================================================================
+boundcompress -- every CLI command quoted in the README, executed
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+scipy            : 1.18.1
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+numcodecs        : not installed  (spec baseline 2)
+zfpy             : not installed  (spec baseline 2)
+cpu cores        : 2
+repository root  : P080 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+python -m boundcompress --version
+==============================================================================
+boundcompress 0.1.0
+
+exit status: 0 (expected 0)
+[PASS] exit status of: --version -- got 0
+
+==============================================================================
+python -m boundcompress info
+==============================================================================
+item                   value                                                                                                               
+---------------------  --------------------------------------------------------------------------------------------------------------------
+version                0.1.0                                                                                                               
+bound modes            abs, rel, range_rel                                                                                                 
+classical predictors   previous, linear, quadratic, cubic                                                                                  
+predictor noise gains  previous=1, linear=3, quadratic=7, cubic=15                                                                         
+learned kinds          linear, mlp                                                                                                         
+signals                battery_voltage, panel_temperature, wheel_rate, gyro_rate, magnetometer, packet_counter, white_noise, step_transient
+baseline coders        zlib_residual, lzma_residual, bz2_residual, zlib_symbols, lzma_symbols, bz2_symbols                                 
+lossless references    zlib_float64, lzma_float64, bz2_float64                                                                             
+numcodecs / zfpy       not installed; no number here comes from either                                                                     
+
+exit status: 0 (expected 0)
+[PASS] exit status of: info -- got 0
+
+==============================================================================
+python -m boundcompress certify --signal battery_voltage --bound 1e-3
+==============================================================================
+signal                 : battery_voltage
+samples                : 4096
+bound verdict          : HOLDS
+declared mode          : abs
+declared bound         : 1.000000e-03
+effective abs bound    : 1.000000e-03
+max absolute error     : 9.999491e-04
+max relative error     : 4.071450e-05
+worst sample index     : 1190
+worst sample value     : 28.5789999
+worst reconstruction   : 28.578
+margin to bound        : 5.088515e-08
+violating samples      : 0 of 4096
+predictor              : linear
+original bytes         : 32768
+encoded bytes          : 2361
+bits per sample        : 4.611328
+compression ratio      : 13.878865
+residual entropy bits  : 4.354137  (reference, not a floor)
+rate below entropy ref : False
+escaped residuals      : 2
+rounding corrections   : 0
+container sha256       : 93fab7e9d7ae578276aa396b3d8e260ccfe92de5a762a6b880b1df4f68d638fd
+
+exit status: 0 (expected 0)
+[PASS] exit status of: certify --signal battery_voltage --bound 1e-3 -- got 0
+
+==============================================================================
+python -m boundcompress certify --signal battery_voltage --bound 1e-3 --predictor previous
+==============================================================================
+signal                 : battery_voltage
+samples                : 4096
+bound verdict          : HOLDS
+declared mode          : abs
+declared bound         : 1.000000e-03
+effective abs bound    : 1.000000e-03
+max absolute error     : 9.999491e-04
+max relative error     : 4.071450e-05
+worst sample index     : 1190
+worst sample value     : 28.5789999
+worst reconstruction   : 28.578
+margin to bound        : 5.088515e-08
+violating samples      : 0 of 4096
+predictor              : previous
+original bytes         : 32768
+encoded bytes          : 1937
+bits per sample        : 3.783203
+compression ratio      : 16.916882
+residual entropy bits  : 3.593827  (reference, not a floor)
+rate below entropy ref : False
+escaped residuals      : 1
+rounding corrections   : 0
+container sha256       : 0e027632fe519aeef1843a065a22cfb81c2180d83ab27692f232c956a6224cc9
+
+exit status: 0 (expected 0)
+[PASS] exit status of: certify --signal battery_voltage --bound 1e-3 --predictor previous -- got 0
+
+==============================================================================
+python -m boundcompress certify --signal panel_temperature --mode rel --bound 1e-5
+==============================================================================
+signal                 : panel_temperature
+samples                : 4096
+bound verdict          : HOLDS
+declared mode          : rel
+declared bound         : 1.000000e-05
+max absolute error     : 3.178567e-03
+max relative error     : 9.998122e-06
+worst sample index     : 1122
+worst sample value     : 315.027909
+worst reconstruction   : 315.024759
+margin to bound        : 1.878325e-09
+violating samples      : 0 of 4096
+predictor              : linear
+original bytes         : 32768
+encoded bytes          : 1775
+bits per sample        : 3.466797
+compression ratio      : 18.460845
+residual entropy bits  : 3.287502  (reference, not a floor)
+rate below entropy ref : False
+escaped residuals      : 0
+rounding corrections   : 0
+container sha256       : 193430be6e304dc0703569575603ff7146fcfbf5466aeaa241b91fd17219f4e5
+
+exit status: 0 (expected 0)
+[PASS] exit status of: certify --signal panel_temperature --mode rel --bound 1e-5 -- got 0
+
+==============================================================================
+python -m boundcompress certify --signal wheel_rate --mode range_rel --bound 1e-4
+==============================================================================
+signal                 : wheel_rate
+samples                : 4096
+bound verdict          : HOLDS
+declared mode          : range_rel
+declared bound         : 1.000000e-04
+effective abs bound    : 4.031316e-02
+max absolute error     : 4.028862e-02
+max relative error     : 1.000000e+00
+worst sample index     : 626
+worst sample value     : 0.524095693
+worst reconstruction   : 0.56438431
+margin to bound        : 2.454780e-05
+violating samples      : 0 of 4096
+predictor              : linear
+original bytes         : 32768
+encoded bytes          : 929
+bits per sample        : 1.814453
+compression ratio      : 35.272336
+residual entropy bits  : 1.647882  (reference, not a floor)
+rate below entropy ref : False
+escaped residuals      : 0
+rounding corrections   : 0
+container sha256       : 3566086c4e6713904293d24774c1ff6296357e9725b4432a22c9b5f8b59b2047
+
+exit status: 0 (expected 0)
+[PASS] exit status of: certify --signal wheel_rate --mode range_rel --bound 1e-4 -- got 0
+
+==============================================================================
+python -m boundcompress certify --signal gyro_rate --samples 1024 --bound 1e-6 --predictor learned --learned-kind linear
+==============================================================================
+signal                 : gyro_rate
+samples                : 1024
+bound verdict          : HOLDS
+declared mode          : abs
+declared bound         : 1.000000e-06
+effective abs bound    : 1.000000e-06
+max absolute error     : 9.999896e-07
+max relative error     : 1.662910e-02
+worst sample index     : 116
+worst sample value     : 0.00587900001
+worst reconstruction   : 0.00588
+margin to bound        : 1.039960e-11
+violating samples      : 0 of 1024
+predictor              : learned
+original bytes         : 8192
+encoded bytes          : 2217
+bits per sample        : 17.320312
+compression ratio      : 3.695083
+residual entropy bits  : 1.507957  (reference, not a floor)
+rate below entropy ref : False
+escaped residuals      : 877
+rounding corrections   : 0
+container sha256       : cb72254dcfe70f3f594fad9935e75433e162ad8c5dfe28b5f544e87fc0b8f3c4
+
+exit status: 0 (expected 0)
+[PASS] exit status of: certify --signal gyro_rate --samples 1024 --bound 1e-6 --predictor learned --learned-kind linear -- got 0
+
+==============================================================================
+python -m boundcompress sweep --signal battery_voltage --points 3
+==============================================================================
+bound         coder          bytes  bits/sample  max_error     holds  roundtrip
+------------  -------------  -----  -----------  ------------  -----  ---------
+4.119190e-02  previous       239    0.4668       4.114628e-02  yes    yes      
+4.119190e-02  linear         362    0.7070       4.114628e-02  yes    yes      
+4.119190e-02  quadratic      449    0.8770       4.114628e-02  yes    yes      
+4.119190e-02  cubic          599    1.1699       4.114628e-02  yes    yes      
+4.119190e-02  zlib_residual  284    0.5547       4.114628e-02  yes    yes      
+4.119190e-02  lzma_residual  362    0.7070       4.114628e-02  yes    yes      
+4.119190e-02  bz2_residual   293    0.5723       4.114628e-02  yes    yes      
+4.119190e-02  zlib_symbols   441    0.8613       4.114628e-02  yes    yes      
+4.119190e-02  lzma_symbols   510    0.9961       4.114628e-02  yes    yes      
+4.119190e-02  bz2_symbols    366    0.7148       4.114628e-02  yes    yes      
+4.119190e-02  zlib_float64   26950  52.6367      0.000000e+00  yes    yes      
+4.119190e-02  lzma_float64   24046  46.9648      0.000000e+00  yes    yes      
+4.119190e-02  bz2_float64    29699  58.0059      0.000000e+00  yes    yes      
+4.119190e-04  previous       2641   5.1582       4.118466e-04  yes    yes      
+4.119190e-04  linear         3091   6.0371       4.118466e-04  yes    yes      
+4.119190e-04  quadratic      3638   7.1055       4.118466e-04  yes    yes      
+4.119190e-04  cubic          4303   8.4043       4.118466e-04  yes    yes      
+4.119190e-04  zlib_residual  3019   5.8965       4.118466e-04  yes    yes      
+4.119190e-04  lzma_residual  3046   5.9492       4.118466e-04  yes    yes      
+4.119190e-04  bz2_residual   3142   6.1367       4.118466e-04  yes    yes      
+4.119190e-04  zlib_symbols   6220   12.1484      4.118466e-04  yes    yes      
+4.119190e-04  lzma_symbols   3374   6.5898       4.118466e-04  yes    yes      
+4.119190e-04  bz2_symbols    5579   10.8965      4.118466e-04  yes    yes      
+4.119190e-04  zlib_float64   26950  52.6367      0.000000e+00  yes    yes      
+... 15 further line(s) not captured
+
+exit status: 0 (expected 0)
+[PASS] exit status of: sweep --signal battery_voltage --points 3 -- got 0
+
+==============================================================================
+python -m boundcompress negative-control --signal battery_voltage --bound 1e-3
+==============================================================================
+signal                 : battery_voltage
+injected at index      : 1234
+bound verdict          : FAILED
+declared mode          : abs
+declared bound         : 1.000000e-03
+effective abs bound    : 1.000000e-03
+max absolute error     : 8.672924e-02
+max relative error     : 3.034072e-03
+worst sample index     : 1234
+worst sample value     : 28.585095
+worst reconstruction   : 28.6718243
+margin to bound        : -8.572924e-02
+violating samples      : 1 of 4096
+first violating indices: [1234]
+predictor              : injected-violation
+original bytes         : 32768
+encoded bytes          : 0
+bits per sample        : 0.000000
+compression ratio      : 0.000000
+residual entropy bits  : 0.000000  (reference, not a floor)
+rate below entropy ref : False
+escaped residuals      : 0
+rounding corrections   : 0
+container sha256       : 
+note                   : sample 1234 moved deliberately outside the declared bound
+negative control caught: True
+
+exit status: 0 (expected 0)
+[PASS] exit status of: negative-control --signal battery_voltage --bound 1e-3 -- got 0
+
+==============================================================================
+python -m boundcompress compare --samples 1024 --points 3
+==============================================================================
+item                        value      
+--------------------------  -----------
+classical wins              13         
+learned wins                11         
+median learned gain %       -0.6723    
+max learned gain %          14.0496    
+worst learned loss %        -89.2857   
+best classical overall      linear     
+best learned overall        learned_mlp
+model bytes (linear)        120        
+break-even arrays (linear)  inf        
+model bytes (mlp)           2328       
+break-even arrays (mlp)     inf        
+
+exit status: 0 (expected 0)
+[PASS] exit status of: compare --samples 1024 --points 3 -- got 0
+
+==============================================================================
+exit statuses that signal a failure
+==============================================================================
+negative-control exits 0 when it CATCHES the injected violation, so a
+non-zero status from that subcommand means the certificate missed it.
+negative-control --index 0 exit status: 0
+[PASS] negative-control catches a violation at index 0
+
+FAILED CHECKS (0): none

@@ -1,0 +1,110 @@
+==============================================================================
+cmdguard -- timing constraint arithmetic, unit-checked
+==============================================================================
+
+environment this output was measured on:
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scikit-learn     : 1.9.1
+  pyyaml           : 6.0.3
+  scipy            : 1.18.1
+  matplotlib       : 3.10.8
+  joblib           : 1.5.2
+  pandas           : 3.0.5
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  cpu cores        : 2
+  repository root  : P078 (printed relatively; see validation/_bootstrap.py)
+
+  absolute tolerance on every timing comparison: TIME_TOL_S = 1.000e-09 s
+
+==============================================================================
+1. minimum inter-command gap (min_gap_after_s)
+==============================================================================
+  FIRST declares min_gap_after_s = 12.5 s. The gap owed to the NEXT command,
+  whatever it is, is 12.5 s measured from FIRST's execution time.
+
+  FIRST at t=0.000 s, SECOND at t=20.000 s
+    20.0 - 0.0 = 12.5 + 7.5, so 7.5 s of margin
+  [PASS] no gap violation reported -- 0 reported
+
+  FIRST at t=0.000 s, SECOND at t=12.500 s
+    12.5 - 0.0 = 12.5 exactly: met, not violated
+  [PASS] no gap violation reported -- 0 reported
+
+  FIRST at t=0.000 s, SECOND at t=12.000 s
+    12.0 - 0.0 = 12.0, short by 12.5 - 12.0 = 0.5 s
+  [PASS] gap violation with shortfall 0.500000 s -- measured 0.5
+
+  FIRST at t=0.000 s, SECOND at t=0.000 s
+    simultaneous: short by the whole 12.5 s
+  [PASS] gap violation with shortfall 12.500000 s -- measured 12.5
+
+  FIRST at t=100.000 s, SECOND at t=105.250 s
+    105.25 - 100.0 = 5.25, short by 12.5 - 5.25 = 7.25 s
+  [PASS] gap violation with shortfall 7.250000 s -- measured 7.25
+
+==============================================================================
+2. minimum same-command interval (min_interval_s)
+==============================================================================
+  REPEATER declares min_interval_s = 300.0 s, measured from its own previous
+  execution and not from the previous step.
+
+  REPEATER t=0, FILLER t=50, REPEATER t=200, REPEATER t=600
+    step 2: 200 - 0 = 200 s against 300 s -> short by 100 s
+    step 3: 600 - 200 = 400 s against 300 s -> met
+  interval violations reported: 1
+  [PASS] exactly one interval violation
+  [PASS] it is at step 2 -- step 2
+  [PASS] shortfall is 100.0 s -- 100.0
+  [PASS] the trace names step 0 as the previous execution
+
+  the interval does not apply across different commands:
+    A t=0, B t=1, A t=2 -> {'timing_interval': 1}
+  [PASS] only A's repeat is reported
+
+==============================================================================
+3. the hold interval is half-open: [t_start, t_start + hold_s)
+==============================================================================
+  HOLDER takes exclusion group 'g' at t=0 for 10 s, so it is held over
+  [0, 10). TAKER at t=10 is legal. TAKER at t=9.5 is not.
+
+  TAKER at t=10.000 s -- exactly at the end of the hold: expired
+  [PASS] mutual exclusion not reported -- 0 reported
+
+  TAKER at t=9.500 s -- 0.5 s inside the hold: still held
+  [PASS] mutual exclusion reported -- 1 reported
+
+  TAKER at t=10.500 s -- 0.5 s after the hold: expired
+  [PASS] mutual exclusion not reported -- 0 reported
+
+==============================================================================
+4. the tolerance band, probed from both sides
+==============================================================================
+  FIRST declares min_gap_after_s = 10.0 s. Two probes, both far from the
+  boundary relative to the tolerance, so no boolean is asserted on a value
+  that floating-point rounding could move across the threshold.
+
+  gap short by 1.000e-10 s (0.1 x the tolerance)
+  [PASS] timing_gap not reported -- 0 reported
+
+  gap short by 1.000e-06 s (1000 x the tolerance)
+  [PASS] timing_gap reported -- 1 reported
+
+==============================================================================
+5. the generator's own spacing arithmetic
+==============================================================================
+  cmdguard.dataset._required_dt returns the minimum advance that satisfies
+  both declared spacings. Hand derivation against the base dictionary:
+    PWR_BUS_CHECK declares min_gap_after_s = 2.0 s, min_interval_s = 30.0 s
+    after one PWR_BUS_CHECK at t=0, the gap owed to any next command is 2.0 s
+    and the interval owed to another PWR_BUS_CHECK is 30.0 - 0.0 = 30.0 s
+  [PASS] no advance owed on an empty sequence
+  [PASS] 2.0 s owed to an unrelated next command -- 2.0
+  [PASS] 30.0 s owed to a repeat -- 30.0
+    with the last step at t=25, the interval owed from there is 30.0 - 25.0 = 5.0 s
+  [PASS] 5.0 s owed to a repeat measured from the last step -- 5.0
+
+------------------------------------------------------------------------------
+FAILED CHECKS: none

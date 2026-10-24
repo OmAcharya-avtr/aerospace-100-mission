@@ -1,0 +1,133 @@
+
+==============================================================================
+boundcompress -- worked example
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+scipy            : 1.18.1
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+numcodecs        : not installed  (spec baseline 2)
+zfpy             : not installed  (spec baseline 2)
+cpu cores        : 2
+repository root  : P080 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+the array and the declared bound
+==============================================================================
+signal          : battery_voltage
+samples         : 4096
+unit            : V
+range           : 24.488905 to 28.608095
+declared bound  : abs 5.000000e-04 V
+
+==============================================================================
+encode, decode, certify
+==============================================================================
+bound verdict          : HOLDS
+declared mode          : abs
+declared bound         : 5.000000e-04
+effective abs bound    : 5.000000e-04
+max absolute error     : 4.998702e-04
+max relative error     : 2.040495e-05
+worst sample index     : 4086
+worst sample value     : 24.4974999
+worst reconstruction   : 24.497
+margin to bound        : 1.297887e-07
+violating samples      : 0 of 4096
+predictor              : linear
+original bytes         : 32768
+encoded bytes          : 2930
+bits per sample        : 5.722656
+compression ratio      : 11.183618
+residual entropy bits  : 5.338437  (reference, not a floor)
+rate below entropy ref : False
+escaped residuals      : 2
+rounding corrections   : 0
+container sha256       : 097a097fb19aced4ae267dcb853aacbd4d096904ef7807296ca5e27d2af5356a
+
+decoded equals the encoder's reconstruction : True
+maximum error of the DECODED array          : 4.998702e-04
+declared bound                              : 5.000000e-04
+samples outside the bound                   : 0
+
+==============================================================================
+the same bound with every predictor, at identical distortion
+==============================================================================
+predictor  bytes  bits/sample  ratio   max_abs_error  escapes
+---------  -----  -----------  ------  -------------  -------
+previous   2485   4.8535       13.186  4.998702e-04   1      
+linear     2930   5.7227       11.184  4.998702e-04   2      
+quadratic  3451   6.7402       9.495   4.998702e-04   3      
+cubic      4097   8.0020       7.998   4.998702e-04   4      
+
+The max_abs_error column is one number repeated, not four close numbers.
+Everything after the quantiser is lossless on the integer symbols, so the
+predictor moves the rate and cannot move the error.
+
+==============================================================================
+against the standard-library coders on the same symbol stream
+==============================================================================
+numcodecs and zfpy are the specification's baseline 2 and are not installed
+in this environment; no number here comes from either.
+coder                         bytes  bits/sample  max_abs_error  roundtrip
+----------------------------  -----  -----------  -------------  ---------
+boundcompress (rANS, linear)  2930   5.7227       4.998702e-04   yes      
+zlib_residual                 2884   5.6328       4.998702e-04   yes      
+lzma_residual                 2906   5.6758       4.998702e-04   yes      
+bz2_residual                  2971   5.8027       4.998702e-04   yes      
+zlib_symbols                  6090   11.8945      4.998702e-04   yes      
+lzma_symbols                  3266   6.3789       4.998702e-04   yes      
+bz2_symbols                   5227   10.2090      4.998702e-04   yes      
+zlib_float64 (lossless)       26950  52.6367      0.000000e+00   yes      
+lzma_float64 (lossless)       24046  46.9648      0.000000e+00   yes      
+bz2_float64 (lossless)        29699  58.0059      0.000000e+00   yes      
+
+==============================================================================
+the negative control: a deliberate violation the certificate must catch
+==============================================================================
+bound verdict          : FAILED
+declared mode          : abs
+declared bound         : 5.000000e-04
+effective abs bound    : 5.000000e-04
+max absolute error     : 1.500000e-03
+max relative error     : 5.337338e-05
+worst sample index     : 2048
+worst sample value     : 28.1038983
+worst reconstruction   : 28.1053983
+margin to bound        : -1.000000e-03
+violating samples      : 1 of 4096
+first violating indices: [2048]
+predictor              : injected-violation
+original bytes         : 32768
+encoded bytes          : 0
+bits per sample        : 0.000000
+compression ratio      : 0.000000
+residual entropy bits  : 0.000000  (reference, not a floor)
+rate below entropy ref : False
+escaped residuals      : 0
+rounding corrections   : 0
+container sha256       : 
+note                   : sample 2048 set to the true value plus 3 x the declared bound
+
+certificate caught the injected violation : True
+and named the right sample                : True
+
+==============================================================================
+what the guarantee cost
+==============================================================================
+raw float64 bytes                          : 32768
+best lossless, zero distortion             : 24046
+boundcompress at 5e-04 absolute            : 2930
+rounding corrections made by the encoder   : 0
+residual entropy reference, bits/symbol    : 5.338437
+realised rate, bits/sample                 : 5.722656
+
+The entropy figure is a memoryless reference and not a floor; see
+validation/validate_rate_distortion_output.txt, where a coder with memory
+goes below it on three of eight signals.
+
+FAILED CHECKS (0): none

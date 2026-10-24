@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "boundcompress"
+version = "0.1.0"
+description = "Certify that a declared per-sample error bound held on a telemetry array, and report what the guarantee cost in bytes."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "error-bounded-compression",
+    "telemetry",
+    "satellite-communications",
+    "rate-distortion",
+    "predictive-coding",
+    "entropy-coding",
+    "rans",
+    "certificate",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: System :: Archiving :: Compression",
+]
+
+# Every range below is bounded on BOTH sides, at the versions every number in
+# this repository was measured against. A floor with no ceiling is not a
+# dependency specification: five of the first fifty products of this mission
+# were found broken or silently wrong for a new install because pip resolved a
+# major release published after the product was measured, and one of the five
+# passed its whole suite while its validation numbers moved.
+#
+# The sharpest case in this package's own dependency set is scikit-learn. The
+# learned predictor extracts Ridge.coef_, MLPRegressor.coefs_ and
+# MLPRegressor.intercepts_ and evaluates the forward pass itself, so it depends
+# on the shape and meaning of three private-in-practice attributes that are not
+# covered by any stability promise. The ceiling is therefore at the minor
+# version, and the cost is recorded in README.md under Limitations: this
+# package cannot take a scikit-learn 1.10 release without a port and a
+# re-measure. numpy is bounded for the same reason one notch looser: the code
+# depends on int64 semantics and on np.rint, both long-stable, but numpy has
+# resolved to three different patch releases across sessions of this mission on
+# an unbounded specifier.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scikit-learn>=1.9,<1.10",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.4,<8.5", "hypothesis>=6.140,<6.141"]
+examples = ["matplotlib>=3.10,<3.11"]
+dev = [
+    "pytest>=8.4,<8.5",
+    "hypothesis>=6.140,<6.141",
+    "ruff>=0.14,<0.15",
+    "matplotlib>=3.10,<3.11",
+]
+
+[project.scripts]
+boundcompress = "boundcompress.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/boundcompress"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["boundcompress"]
+known-local-folder = ["_bootstrap", "_common"]

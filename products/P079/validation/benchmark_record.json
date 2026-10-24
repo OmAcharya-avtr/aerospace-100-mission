@@ -1,0 +1,156 @@
+{
+ "backend_driver": "",
+ "backend_kind": "simulated",
+ "caveat": "nothing in this record is a hardware measurement. The backend's is_hardware flag is False, the Level 4 table is empty, and this product is labelled Level 3, hardware-pending.",
+ "clock_call_overhead_ns": 63.0,
+ "clock_measured_resolution_ns": 97,
+ "clock_reported_resolution_ns": 1,
+ "environment_note": "shared two-core container, no attempt made to quiesce the machine; five build agents were active in the same container",
+ "hardware": [
+  {
+   "description": "wall-clock time for one two-way exchange driven by a real timestamping device",
+   "reason": "no Jetson Orin Nano was reachable from the environment this product was built in; filling this row from simulation would be a false hardware claim",
+   "stage": "exchange_round_trip_s",
+   "status": "unmeasured",
+   "units": "s",
+   "value": null
+  },
+  {
+   "description": "resolution the board's timestamping path actually resolves, measured on the board",
+   "reason": "no Jetson Orin Nano was reachable from the environment this product was built in; filling this row from simulation would be a false hardware claim",
+   "stage": "timestamp_resolution_ns",
+   "status": "unmeasured",
+   "units": "ns",
+   "value": null
+  },
+  {
+   "description": "time to run the full estimation path on the board's CPU for one window",
+   "reason": "no Jetson Orin Nano was reachable from the environment this product was built in; filling this row from simulation would be a false hardware claim",
+   "stage": "estimator_latency_s",
+   "status": "unmeasured",
+   "units": "s",
+   "value": null
+  },
+  {
+   "description": "process high-water memory on the board under the acquisition workload",
+   "reason": "no Jetson Orin Nano was reachable from the environment this product was built in; filling this row from simulation would be a false hardware claim",
+   "stage": "peak_rss_bytes",
+   "status": "unmeasured",
+   "units": "B",
+   "value": null
+  },
+  {
+   "description": "fraction of one Orin Nano core consumed by a continuous 1 Hz acquisition",
+   "reason": "no Jetson Orin Nano was reachable from the environment this product was built in; filling this row from simulation would be a false hardware claim",
+   "stage": "cpu_utilisation_fraction",
+   "status": "unmeasured",
+   "units": "1",
+   "value": null
+  }
+ ],
+ "host": {
+  "allantools": "not installed",
+  "cpu_count_available": "2",
+  "machine": "x86_64",
+  "ntplib": "not installed",
+  "numpy": "2.5.3",
+  "platform": "Linux-6.18.44-fc-v153-x86_64-with-glibc2.39",
+  "python": "3.13.17",
+  "scikit-learn": "1.9.1",
+  "scipy": "1.18.1"
+ },
+ "is_hardware": false,
+ "label": "P079 timetransfer, simulated backend",
+ "maxrss_bytes": 173395968.0,
+ "maxrss_note": "ru_maxrss interpreted as kibibytes (linux)",
+ "method": {
+  "clock": "smallest non-zero gap over read pairs; median zero-interval reading",
+  "hardware": "not measured; rows are empty by construction",
+  "memory": "tracemalloc peak over the whole run plus ru_maxrss high-water",
+  "timing": "two perf_counter_ns reads per repetition, integer ns differenced once"
+ },
+ "offset_quantisation_uncertainty_s": 2.800148805569685e-08,
+ "stages": [
+  {
+   "max_s": 0.009001049,
+   "mean_s": 0.008882181333333334,
+   "median_s": 0.008839889,
+   "min_s": 0.008805606,
+   "n": 3,
+   "p95_s": 0.008984933,
+   "stage": "acquire_600_exchanges",
+   "stdev_s": 0.00010435982299876401
+  },
+  {
+   "max_s": 0.004366966,
+   "mean_s": 0.0016020613333333333,
+   "median_s": 0.000266776,
+   "min_s": 0.000172442,
+   "n": 3,
+   "p95_s": 0.003956947,
+   "stage": "two_way_estimate",
+   "stdev_s": 0.002394942188802338
+  },
+  {
+   "max_s": 0.000481275,
+   "mean_s": 0.00036926399999999995,
+   "median_s": 0.000328071,
+   "min_s": 0.000298446,
+   "n": 3,
+   "p95_s": 0.00046595459999999997,
+   "stage": "fit_least_squares_order2",
+   "stdev_s": 9.812878398818564e-05
+  },
+  {
+   "max_s": 0.014287054,
+   "mean_s": 0.011681450333333334,
+   "median_s": 0.01090273,
+   "min_s": 0.009854567,
+   "n": 3,
+   "p95_s": 0.0139486216,
+   "stage": "kalman_skew_2state",
+   "stdev_s": 0.002316579217176122
+  },
+  {
+   "max_s": 0.006409433,
+   "mean_s": 0.004894249333333334,
+   "median_s": 0.006192161,
+   "min_s": 0.002081154,
+   "n": 3,
+   "p95_s": 0.0063877058,
+   "stage": "allan_table",
+   "stdev_s": 0.0024386329769590857
+  },
+  {
+   "max_s": 0.000296325,
+   "mean_s": 0.00022456133333333331,
+   "median_s": 0.000199155,
+   "min_s": 0.000178204,
+   "n": 3,
+   "p95_s": 0.000286608,
+   "stage": "offset_uncertainty",
+   "stdev_s": 6.302582002904312e-05
+  },
+  {
+   "max_s": 0.004933529,
+   "mean_s": 0.002130843,
+   "median_s": 0.000778342,
+   "min_s": 0.000680658,
+   "n": 3,
+   "p95_s": 0.0045180103,
+   "stage": "window_features",
+   "stdev_s": 0.0024276886439391276
+  },
+  {
+   "max_s": 0.015943287,
+   "mean_s": 0.015746341666666667,
+   "median_s": 0.015683393,
+   "min_s": 0.015612345,
+   "n": 3,
+   "p95_s": 0.0159172976,
+   "stage": "dry_run_replay",
+   "stdev_s": 0.00017421984048131097
+  }
+ ],
+ "tracemalloc_peak_bytes": 96208.0
+}

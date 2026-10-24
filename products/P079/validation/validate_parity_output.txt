@@ -1,0 +1,103 @@
+timetransfer validation 5 -- simulation/device parity through the HAL
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+allantools       : not installed  (NOT used; Allan deviation is implemented in timetransfer.allan)
+ntplib           : not installed  (NOT used; no number here comes from it)
+cpu cores        : 2
+product root     : P079 (printed relatively; see validation/_bootstrap.py)
+fast probe mode  : False (divisor 1)
+
+exchanges attempted per case : 500
+device backend driver        : loopback stub over the simulation engine
+                               (NOT hardware; is_hardware is False)
+
+==============================================================================
+case: symmetric, no jitter, no loss
+==============================================================================
+  simulated backend     : simulated/n/a  is_hardware=False
+  device backend        : device/loopback  is_hardware=False
+  completed / lost      : 500 / 0  vs  500 / 0
+  sequence numbers      : identical
+  timestamp bytes       : identical (20000 bytes)
+  offset max |diff|     : 0.000e+00 s
+  delay  max |diff|     : 0.000e+00 s
+  ls params max |diff|  : 0.000e+00
+  kf offset |diff|      : 0.000e+00 s
+  kf skew   |diff|      : 0.000e+00 s/s
+  verdict               : PASS
+
+==============================================================================
+case: asymmetric with jitter
+==============================================================================
+  simulated backend     : simulated/n/a  is_hardware=False
+  device backend        : device/loopback  is_hardware=False
+  completed / lost      : 500 / 0  vs  500 / 0
+  sequence numbers      : identical
+  timestamp bytes       : identical (20000 bytes)
+  offset max |diff|     : 0.000e+00 s
+  delay  max |diff|     : 0.000e+00 s
+  ls params max |diff|  : 0.000e+00
+  kf offset |diff|      : 0.000e+00 s
+  kf skew   |diff|      : 0.000e+00 s/s
+  verdict               : PASS
+
+==============================================================================
+case: lossy with an outage and drift
+==============================================================================
+  simulated backend     : simulated/n/a  is_hardware=False
+  device backend        : device/loopback  is_hardware=False
+  completed / lost      : 433 / 67  vs  433 / 67
+  sequence numbers      : identical
+  timestamp bytes       : identical (17320 bytes)
+  offset max |diff|     : 0.000e+00 s
+  delay  max |diff|     : 0.000e+00 s
+  ls params max |diff|  : 0.000e+00
+  kf offset |diff|      : 0.000e+00 s
+  kf skew   |diff|      : 0.000e+00 s/s
+  verdict               : PASS
+
+==============================================================================
+case: coarse 1 us timestamps
+==============================================================================
+  simulated backend     : simulated/n/a  is_hardware=False
+  device backend        : device/loopback  is_hardware=False
+  completed / lost      : 500 / 0  vs  500 / 0
+  sequence numbers      : identical
+  timestamp bytes       : identical (20000 bytes)
+  offset max |diff|     : 0.000e+00 s
+  delay  max |diff|     : 0.000e+00 s
+  ls params max |diff|  : 0.000e+00
+  kf offset |diff|      : 0.000e+00 s
+  kf skew   |diff|      : 0.000e+00 s/s
+  verdict               : PASS
+
+==============================================================================
+falsifying control -- two different seeds must differ
+==============================================================================
+seed 20261024 vs seed 20261025
+  timestamp bytes differ : True
+  offset max |diff|      : 1.523e-03 s
+  verdict                : PASS
+
+==============================================================================
+what this does and does not establish
+==============================================================================
+Establishes: the HAL path, acquisition, both baselines and the accounting
+behave identically whichever backend they are given, byte for byte on the
+timestamps and exactly on the estimates.
+Does NOT establish: anything about a board. The device driver is a loopback
+stub, both backends report is_hardware=False, and the Level 4 benchmark rows
+stay empty. This product is labelled Level 3, hardware-pending.
+
+==============================================================================
+summary
+==============================================================================
+hard failures : 0

@@ -1,0 +1,84 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "timetransfer"
+version = "0.1.0"
+description = "Clock offset and skew across a link, with the uncertainty measured rather than quoted."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "time-transfer",
+    "clock-offset",
+    "clock-skew",
+    "allan-deviation",
+    "delay-asymmetry",
+    "measurement-uncertainty",
+    "hardware-in-the-loop",
+    "two-way-time-transfer",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: System :: Networking :: Time Synchronization",
+]
+
+# Every range below is bounded on BOTH sides, at the versions every number in
+# this repository was measured against. A floor with no ceiling is not a
+# dependency specification: five of the first fifty products of this mission
+# were found broken or silently wrong for a new install because pip resolved a
+# major release published after the product was measured, and in one case the
+# suite passed while the validation numbers moved, which no test catches.
+#
+# The cost of the ceilings is real and is recorded in README.md under
+# Limitations: this package cannot take a numpy 2.6, a scipy 1.19 or a
+# scikit-learn 1.10 release without a port and a re-measurement. The
+# scikit-learn ceiling is the tightest for a reason beyond API churn -- the
+# gradient-boosted corrector's predictions are not promised to be identical
+# across minor releases, and several numbers in README.md are predictions.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scipy>=1.18,<1.19",
+    "scikit-learn>=1.9,<1.10",
+    "joblib>=1.5,<1.6",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.4,<8.5", "hypothesis>=6.140,<6.141"]
+examples = ["matplotlib>=3.10,<3.11"]
+dev = [
+    "pytest>=8.4,<8.5",
+    "hypothesis>=6.140,<6.141",
+    "ruff>=0.14,<0.15",
+    "matplotlib>=3.10,<3.11",
+]
+
+[project.scripts]
+timetransfer = "timetransfer.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["timetransfer"]
+known-local-folder = ["_bootstrap", "conftest"]

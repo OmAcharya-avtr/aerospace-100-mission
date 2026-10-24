@@ -1,0 +1,242 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  timetransfer: clock offset and skew across a link, with the uncertainty
+  measured rather than quoted
+version: 0.1.0
+date-released: 2026-10-24
+license: Apache-2.0
+abstract: >-
+  Two-way time transfer that estimates clock offset, skew and drift from
+  four-timestamp exchanges under asymmetric and variable delay, reports
+  stability as an overlapping Allan deviation over tau with a confidence
+  interval at each tau, and attaches a measured uncertainty to the offset
+  estimate itself rather than a nominal figure from a datasheet. The analytic
+  baseline is the symmetric-delay estimator, whose asymmetry-induced bias is
+  derived in closed form as half the one-way delay difference and verified to a
+  worst departure of 1.084e-19 seconds across a declared asymmetry sweep with a
+  fitted slope of 0.500000000000; the bias is shown to be independent of the
+  one-way delay, the turnaround and the true offset, and to survive averaging,
+  which is the identifiability result made numerical. Least-squares and
+  two-state Kalman estimation of offset and skew follow, with the skew error
+  converging at a fitted exponent of -1.5192 plus or minus 0.0218 against the
+  theoretical minus three halves. The Allan deviation is implemented in the
+  package rather than taken from allantools, which exists on the index at
+  version 2024.6 but is not installed in the environment this product was
+  measured in, and is verified against three closed-form noise processes with
+  fitted slopes of -0.9998, -0.4834 and +0.5194 against theory of -1, -1/2 and
+  +1/2; the measured coverage of its confidence interval ranges from 0.9233 to
+  0.9767 across twenty-seven averaging-time cells against a nominal 0.95, and
+  that shortfall is published. The uncertainty budget combines a statistical
+  term inflated for serial correlation measured from the fit residuals, a
+  quantisation term equal to the timestamp resolution over the square root of
+  twelve, and an asymmetry term that is either omitted, bounded from external
+  knowledge, or taken from a corrector's residual spread measured on a
+  calibration split. Its coverage at a coverage factor of 1.96 against a
+  nominal 0.9500 is 0.1200 with no asymmetry term, 0.9900 with a declared
+  bound, 0.9450 with a median-filtered corrector and 0.9525 with a learned one,
+  over four hundred held-out scenarios. The learned delay-asymmetry corrector
+  is benchmarked against the symmetric assumption, a median-filtered estimator,
+  a mean-difference estimator and a linear ridge on the same sixteen window
+  features: the gradient-boosted model loses to the ridge at every generator
+  coupling measured, by root-mean-square-error ratios of 1.0273, 1.0099 and
+  1.0088, and its own quantile-pair uncertainty band under-covers at 0.8917
+  against 0.9500, so the model card recommends against it on its own
+  measurements. The median filter matches the learned model to within four per
+  cent where the generator makes the static asymmetry unlearnable and loses by
+  forty-four and eighty-nine per cent where it does not. The product carries
+  the full Level 4 scaffolding: a hardware abstraction layer whose simulated
+  and device backends produce byte-identical timestamps and an offset maximum
+  difference of zero across four cases with a falsifying control that differs;
+  a seeded simulation mode reproducible at seven separate levels; a dry-run
+  mode replaying a committed recording with zero hardware operations and a
+  negative control firing two hundred and forty-one refusals; a documented
+  Jetson Orin Nano deployment and recovery procedure whose ten pre-flight
+  checks pass and whose five injected aborts all restore cleanly; and a
+  benchmark harness whose five Level 4 hardware rows are empty and marked
+  unmeasured, protected by three guards that raise rather than permit a row to
+  be filled from simulation. Nothing in the repository has run on a board,
+  every backend reports is_hardware false, and the validation label is Level 3,
+  hardware-pending and is never Level 4 on simulated numbers. This is a
+  measurement and characterisation tool, not a time-synchronisation daemon;
+  linuxptp and chrony are named as the mature answer for actually
+  synchronising clocks. Research grade. Not flight-qualified, not certified,
+  not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - time-transfer
+  - clock-offset
+  - clock-skew
+  - allan-deviation
+  - delay-asymmetry
+  - measurement-uncertainty
+  - hardware-in-the-loop
+  - two-way-time-transfer
+references:
+  - type: article
+    authors:
+      - family-names: Mills
+        given-names: "D. L."
+    title: "Internet time synchronization: the Network Time Protocol"
+    journal: "IEEE Transactions on Communications"
+    volume: 39
+    issue: 10
+    year: 1991
+    notes: >-
+      Section III gives the offset and delay formulas implemented in
+      timetransfer.twoway as equations (3) and (4), and the symmetric-delay
+      assumption whose cost this package quantifies.
+  - type: standard
+    title: >-
+      IEEE Standard for a Precision Clock Synchronization Protocol for
+      Networked Measurement and Control Systems
+    institution:
+      name: "IEEE"
+    number: "IEEE Std 1588-2019"
+    year: 2019
+    notes: >-
+      Section 7.4.2, mean path delay. The same symmetric assumption, and the
+      reason linuxptp is named in the README as the mature answer for
+      synchronisation rather than characterisation.
+  - type: article
+    authors:
+      - family-names: Allan
+        given-names: "D. W."
+    title: "Statistics of atomic frequency standards"
+    journal: "Proceedings of the IEEE"
+    volume: 54
+    issue: 2
+    year: 1966
+    notes: The two-sample variance implemented in timetransfer.allan.
+  - type: report
+    authors:
+      - family-names: Riley
+        given-names: "W. J."
+    title: "Handbook of Frequency Stability Analysis"
+    institution:
+      name: "National Institute of Standards and Technology"
+    number: "NIST Special Publication 1065"
+    year: 2008
+    notes: >-
+      Section 5.2.4 for the overlapping Allan variance, Table 3 for the
+      simplified equivalent-degrees-of-freedom formulas after Howe, Allan and
+      Barnes 1981, and section 5.5.3 for the lag-1 autocorrelation noise
+      identification method. The measured coverage of the resulting intervals,
+      0.9233 to 0.9767 against a nominal 0.95, is published in
+      validation/VALIDATION.md.
+  - type: article
+    authors:
+      - family-names: Zucca
+        given-names: "C."
+      - family-names: Tavella
+        given-names: "P."
+    title: >-
+      The clock model and its relationship with the Allan and related variances
+    journal: >-
+      IEEE Transactions on Ultrasonics, Ferroelectrics and Frequency Control
+    volume: 52
+    issue: 2
+    year: 2005
+    notes: >-
+      The two-state clock model, its discrete-time process covariance used by
+      timetransfer.skew, and the identity sigma_y^2(tau) = q1/tau + q2 tau/3
+      verified numerically in validation/validate_allan.py.
+  - type: article
+    authors:
+      - family-names: Bennett
+        given-names: "W. R."
+    title: "Spectra of quantized signals"
+    journal: "Bell System Technical Journal"
+    volume: 27
+    issue: 3
+    year: 1948
+    notes: >-
+      The uniform quantisation variance delta^2/12 behind the quantisation term
+      of the offset uncertainty budget.
+  - type: standard
+    title: >-
+      Evaluation of measurement data: Guide to the expression of uncertainty in
+      measurement
+    institution:
+      name: "Joint Committee for Guides in Metrology"
+    number: "JCGM 100:2008"
+    year: 2008
+    notes: >-
+      Section 4.3.7 for the type B evaluation from a bound, giving
+      (B/2)/sqrt(3), and section 5.1.2 for combination in quadrature.
+  - type: article
+    authors:
+      - family-names: Bayley
+        given-names: "G. V."
+      - family-names: Hammersley
+        given-names: "J. M."
+    title: >-
+      The effective number of independent observations in an autocorrelated
+      time series
+    journal: "Journal of the Royal Statistical Society, Supplement"
+    volume: 8
+    issue: 2
+    year: 1946
+    notes: >-
+      The AR(1) effective sample size n(1-r1)/(1+r1) used to inflate the
+      statistical term of the offset uncertainty.
+  - type: article
+    authors:
+      - family-names: Clopper
+        given-names: "C. J."
+      - family-names: Pearson
+        given-names: "E. S."
+    title: >-
+      The use of confidence or fiducial limits illustrated in the case of the
+      binomial
+    journal: "Biometrika"
+    volume: 26
+    issue: 4
+    year: 1934
+    notes: The exact interval placed on every measured coverage fraction.
+  - type: article
+    authors:
+      - family-names: Rousseeuw
+        given-names: "P. J."
+      - family-names: Croux
+        given-names: "C."
+    title: "Alternatives to the median absolute deviation"
+    journal: "Journal of the American Statistical Association"
+    volume: 88
+    issue: 424
+    year: 1993
+    notes: >-
+      The Gaussian consistency factor applied to the median absolute deviation
+      in measurement_variance_from_data. Because the queueing delay is a
+      right-skewed gamma rather than a Gaussian, the resulting Kalman filter is
+      measured over-confident with a mean normalised innovation of 2.53 to
+      2.65, and that is reported rather than tuned away.
+  - type: article
+    authors:
+      - family-names: Friedman
+        given-names: "J. H."
+    title: "Greedy function approximation: a gradient boosting machine"
+    journal: "Annals of Statistics"
+    volume: 29
+    issue: 5
+    year: 2001
+    notes: >-
+      The gradient-boosted asymmetry corrector and its quantile variant. It
+      loses to a standardised linear ridge on the same features at every
+      generator coupling measured.
+  - type: book
+    authors:
+      - family-names: Draper
+        given-names: "N. R."
+      - family-names: Smith
+        given-names: "H."
+    title: "Applied Regression Analysis"
+    edition: "3rd"
+    publisher:
+      name: "Wiley"
+    year: 1998
+    notes: >-
+      Chapter 5 for the least-squares parameter covariance sigma^2 (X'X)^-1 and
+      for the slope variance that gives the n^-3/2 convergence rate checked in
+      validation/validate_skew_estimators.py.

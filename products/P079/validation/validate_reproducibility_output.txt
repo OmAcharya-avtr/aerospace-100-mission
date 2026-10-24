@@ -1,0 +1,90 @@
+timetransfer validation 8 -- seeded reproducibility at every level
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+allantools       : not installed  (NOT used; Allan deviation is implemented in timetransfer.allan)
+ntplib           : not installed  (NOT used; no number here comes from it)
+cpu cores        : 2
+product root     : P079 (printed relatively; see validation/_bootstrap.py)
+fast probe mode  : False (divisor 1)
+
+base seed : 20261024
+exchanges : 300
+
+==============================================================================
+8a. the whole pipeline, twice, same seed
+==============================================================================
+            quantity                              first  identical
+              digest 7a977439c335b8bfa85bd14e7e8b18462f       True
+                   n                                285       True
+              n_lost                                 15       True
+        offset_bytes 35502572dd6e5b3f2f03337e98bf5d3f..       True
+           ls_params 0a5b527ee1cb603f75c46acbb1e9ba3e..       True
+           kf_offset                0.00226378809581709       True
+             kf_skew              1.604168829651347e-06       True
+          u_combined             0.00046229118269124346       True
+         n_effective                  273.1714026996228       True
+
+verdict : PASS
+
+==============================================================================
+8b. a different seed gives a different realisation
+==============================================================================
+digest at seed 20261024     : 7a977439c335b8bfa85bd14e7e8b18462fa7d0454c3ce545673b1ebf5541d30a
+digest at seed 20261025 : 382dfb8fc248c2c94283b39063d96ad1c062ad99dd830fb33ad8f1243cf0dd99
+differ : True
+verdict : PASS
+
+==============================================================================
+8c. the clock and link models separately
+==============================================================================
+clock model identical on the same seed : True
+clock model differs on another seed    : True
+link model identical on the same seed  : True
+link model differs on another seed     : True
+PASS
+
+==============================================================================
+8d. snapshot and restore reproduce an acquisition exactly
+==============================================================================
+first digest  : 7a977439c335b8bfa85bd14e7e8b18462fa7d0454c3ce545673b1ebf5541d30a
+second digest : 7a977439c335b8bfa85bd14e7e8b18462fa7d0454c3ce545673b1ebf5541d30a
+identical     : True
+verdict       : PASS
+
+==============================================================================
+8e. the synthetic noise processes
+==============================================================================
+           process    same seed   other seed differs
+          white_pm         True                 True
+          white_fm         True                 True
+    random_walk_fm         True                 True
+
+==============================================================================
+8f. the simulated and device backends built twice each
+==============================================================================
+four acquisitions: simulated A, device A, simulated B, device B
+all byte-identical : True
+verdict            : PASS
+
+==============================================================================
+8g. the dataset generator and the learned models
+==============================================================================
+features identical : True
+targets identical  : True
+scenario i depends only on base seed + i : True
+learned predictions identical on a refit : True
+learned sigmas identical on a refit      : True
+verdict : PASS
+
+==============================================================================
+summary
+==============================================================================
+hard failures : 0

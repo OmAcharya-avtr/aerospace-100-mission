@@ -1,0 +1,97 @@
+==============================================================================
+cmdguard -- the worked example from README.md, with its real output
+==============================================================================
+
+environment this output was measured on:
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scikit-learn     : 1.9.1
+  pyyaml           : 6.0.3
+  scipy            : 1.18.1
+  matplotlib       : 3.10.8
+  joblib           : 1.5.2
+  pandas           : 3.0.5
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  cpu cores        : 2
+  repository root  : P078 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+the example, verbatim
+==============================================================================
+  from cmdguard import forward_execute, gate_case, load_case, static_lint
+  from cmdguard.lint import LintStrength
+  
+  case = load_case("examples/cases/late_payload_enable.yaml")
+  report = forward_execute(case)
+  
+  print(f"steps              : {len(case.sequence)}")
+  print(f"violations         : {report.n_violations}")
+  print(f"by kind            : {report.kind_counts()}")
+  print(f"steps to review    : {report.involved_steps()}")
+  print("")
+  
+  for violation in report.violations:
+      print(violation.render(indent="  "))
+  print("")
+  
+  # The same case through the per-command lint, which is what people run.
+  lint = static_lint(case, LintStrength.WITH_TIMING)
+  forward_ids = {(v.step, v.kind.value) for v in report.violations}
+  print(f"lint findings      : {lint.n_findings}")
+  print(f"confirmed by trace : {len(forward_ids & lint.identities())}")
+  print(f"not confirmed      : {len(lint.identities() - forward_ids)}")
+  print("")
+  
+  # And the gate, which refuses rather than advises.
+  print(gate_case(case).render())
+
+==============================================================================
+its output
+==============================================================================
+  steps              : 7
+  violations         : 1
+  by kind            : {'precondition_false': 1}
+  steps to review    : (5, 6)
+  
+  step   6 t=    400.0 s  PAYLOAD_SCAN           precondition_false
+    requires payload_enabled=true but it is false at this step
+    because step 5 t=80.0 s PAYLOAD_SAFE: set payload_enabled=false
+    because step 6 t=400.0 s PAYLOAD_SCAN: no step between that point and this one set payload_enabled to true
+  
+  lint findings      : 6
+  confirmed by trace : 1
+  not confirmed      : 3
+  
+  irreversible-command gate: late_payload_enable
+    irreversible commands declared : 0
+    irreversible executions in seq : 0
+    verdict                        : NO_REFUSAL_FOUND
+    No gate-blocking violation was found against the declared model. This is not a statement that the sequence is safe to uplink.
+
+==============================================================================
+the same three calls on the gate-refusal case
+==============================================================================
+  irreversible-command gate: irreversible_before_verify
+    irreversible commands declared : 1
+    irreversible executions in seq : 1
+    verdict                        : REFUSE
+    REFUSED on 1 gate-blocking violation(s). An irreversible command executes while a declared precondition of it is unverified.
+  
+  step   1 t=     10.0 s  ANT_DEPLOY             irreversible_unverified
+      is declared irreversible and requires attitude_verified=true, which has not been verified at this step; an irreversible command whose precondition is unverified is the gate-blocking case
+      because declared initial state: attitude_verified=unknown
+      because step 1 t=10.0 s ANT_DEPLOY: no step between that point and this one set attitude_verified to true
+
+==============================================================================
+checks
+==============================================================================
+  [PASS] the example case has exactly one violation
+  [PASS] the trace names the step that caused it
+  [PASS] the gate does not refuse this case
+  [PASS] the gate does refuse the deployment case
+  [PASS] the lint emits more findings than there are violations -- 6 findings against 1 violation(s)
+
+------------------------------------------------------------------------------
+FAILED CHECKS: none

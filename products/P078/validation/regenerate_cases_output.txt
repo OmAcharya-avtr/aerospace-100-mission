@@ -1,0 +1,115 @@
+==============================================================================
+cmdguard -- committed cases round-trip through the loader unchanged
+==============================================================================
+
+environment this output was measured on:
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scikit-learn     : 1.9.1
+  pyyaml           : 6.0.3
+  scipy            : 1.18.1
+  matplotlib       : 3.10.8
+  joblib           : 1.5.2
+  pandas           : 3.0.5
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  cpu cores        : 2
+  repository root  : P078 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the loader is a fixed point on every committed case
+==============================================================================
+  case                            steps   bytes  stable  semantics
+  nominal_science_pass                8    2966    True       True
+  [PASS] nominal_science_pass renders to a fixed point
+  [PASS] nominal_science_pass keeps its finding set across the round trip
+  [PASS] nominal_science_pass is readable at examples/cases/nominal_science_pass.yaml
+  late_payload_enable                 7    3009    True       True
+  [PASS] late_payload_enable renders to a fixed point
+  [PASS] late_payload_enable keeps its finding set across the round trip
+  [PASS] late_payload_enable is readable at examples/cases/late_payload_enable.yaml
+  irreversible_before_verify          3    1687    True       True
+  [PASS] irreversible_before_verify renders to a fixed point
+  [PASS] irreversible_before_verify keeps its finding set across the round trip
+  [PASS] irreversible_before_verify is readable at examples/cases/irreversible_before_verify.yaml
+  irreversible_after_verify           3    1540    True       True
+  [PASS] irreversible_after_verify renders to a fixed point
+  [PASS] irreversible_after_verify keeps its finding set across the round trip
+  [PASS] irreversible_after_verify is readable at examples/cases/irreversible_after_verify.yaml
+  resource_and_exclusion              7    2379    True       True
+  [PASS] resource_and_exclusion renders to a fixed point
+  [PASS] resource_and_exclusion keeps its finding set across the round trip
+  [PASS] resource_and_exclusion is readable at examples/cases/resource_and_exclusion.yaml
+
+==============================================================================
+2. the deliberately broken case is still rejected
+==============================================================================
+  examples/cases/missing_declarations.yaml raised ValueError:
+    dictionary.commands[1]: unknown key(s) precondition; a misspelt key is silently ignored by a permissive loader and that is how a declaration goes unchecked
+  [PASS] missing_declarations.yaml is rejected by the loader
+
+==============================================================================
+3. the canonical rendering of each case, for the record
+==============================================================================
+  This is what the loader round-trips to. It is not the committed file: the
+  committed files carry hand-written descriptions and per-step notes that
+  explain the arithmetic, and those are worth keeping.
+
+  --- nominal_science_pass (126 lines) ---
+    name: nominal_science_pass
+    description: 'Hand-constructed negative control. A short science pass that violates
+      nothing against its own declarations: the bus is checked, the payload is warmed
+      and enabled, attitude is verified, the vehicle transitions to SCIENCE, one scan
+      runs, and the payload is safed before the vehicle returns to NOMINAL. The hand-calculated
+      peak held power is 88.0 W at t=80 s (heater 24 + payload enable 18 + scan 46) against
+      a declared ceiling of 120 W; the arithmetic is re-derived in validation/validate_forward_known.py.'
+    dictionary:
+    ...
+
+  --- late_payload_enable (126 lines) ---
+    name: late_payload_enable
+    description: Hand-constructed single-defect case, and the specification's own example.
+      The declarations are those of nominal_science_pass. Step 5 safes the payload and
+      nothing re-enables it, so the scan at step 6 is illegal -- and the finding is only
+      actionable because the trace names step 5. A per-command lint evaluating the scan
+      against the declared initial state reports it too, but for the wrong reason and
+      at the wrong place, and it also reports the legal PAYLOAD_ENABLE at step 3; validation/validate_forward_known.py
+      records both.
+    ...
+
+  --- irreversible_before_verify (66 lines) ---
+    name: irreversible_before_verify
+    description: Hand-constructed gate case. The antenna deployment is declared irreversible
+      and requires a verified attitude; the declared initial state leaves attitude_verified
+      unverified, and the verification runs 50 s after the deployment rather than before
+      it. Every per-command check the deployment passes was evaluated against an assumption.
+      The irreversible-command gate must REFUSE this sequence and the CLI must exit 2.
+    dictionary:
+      resource_limits:
+    ...
+
+  --- irreversible_after_verify (64 lines) ---
+    name: irreversible_after_verify
+    description: 'The corrected counterpart of irreversible_before_verify: the same declarations
+      with the verification moved ahead of the deployment. The gate returns NO_REFUSAL_FOUND,
+      which is named for what was measured and is not a statement that the sequence is
+      safe to uplink. This case is part of the negative control set.'
+    dictionary:
+      resource_limits:
+        power_w: 120.0
+    ...
+
+  --- resource_and_exclusion (89 lines) ---
+    name: resource_and_exclusion
+    description: 'Hand-constructed multi-defect case covering the four violation kinds
+      that no per-command check can reach: mutual exclusion over a live hold, a resource
+      ceiling crossed by accumulation rather than by any single command, a minimum inter-command
+      gap, and a minimum same-command interval. Six violations are expected and every
+      one of them is hand-derived in validation/validate_forward_known.py. No command
+      in this dictionary exceeds a ceiling on its own, which is the point: the per-command
+      lint''s own single-command resource check cannot fire here.'
+    ...
+
+------------------------------------------------------------------------------
+FAILED CHECKS: none

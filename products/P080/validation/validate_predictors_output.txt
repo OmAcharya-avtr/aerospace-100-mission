@@ -1,0 +1,150 @@
+
+==============================================================================
+boundcompress -- learned against classical, on rate, identical distortion
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+scipy            : 1.18.1
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+numcodecs        : not installed  (spec baseline 2)
+zfpy             : not installed  (spec baseline 2)
+cpu cores        : 2
+repository root  : P080 (printed relatively; see validation/_bootstrap.py)
+
+learned models fitted on the disjoint training realisations (seed offset 1000)
+  learned_linear : members=3 rows=20000 params=15 bytes=120 converged=(True, True, True)
+  learned_mlp    : members=3 rows=20000 params=291 bytes=2328 converged=(False, False, False)
+
+==============================================================================
+classical predictor noise gains
+==============================================================================
+Sum of the absolute finite-difference coefficients. A first-order account of
+why a higher-order extrapolator loses on a noisy source: independent errors
+of scale sigma in the history give a prediction error scaling with this.
+predictor  coefficients    noise_gain
+---------  --------------  ----------
+previous   [1]             1         
+linear     [2, -1]         3         
+quadratic  [3, -3, 1]      7         
+cubic      [4, -6, 4, -1]  15        
+
+==============================================================================
+full benchmark: every signal, five bounds, every predictor
+==============================================================================
+[PASS] every cell holds its bound
+[PASS] distortion is identical within every cell group
+
+signal             bound      previous  linear  quadratic  cubic  learned_linear  learned_mlp  winner        
+-----------------  ---------  --------  ------  ---------  -----  --------------  -----------  --------------
+battery_voltage    4.119e-02  239       362     449        599    260             250          previous      
+battery_voltage    4.119e-03  953       1359    1811       2311   960             938          learned_mlp   
+battery_voltage    4.119e-04  2641      3091    3638       4303   2585            2582         learned_mlp   
+battery_voltage    4.119e-05  5067      6221    7411       8089   4913            4929         learned_linear
+battery_voltage    4.119e-06  8394      8487    8424       8572   8381            8386         learned_linear
+panel_temperature  4.701e-01  126       193     269        343    134             202          previous      
+panel_temperature  4.701e-02  539       613     860        1099   547             545          previous      
+panel_temperature  4.701e-03  1737      1517    1952       2432   1759            1502         learned_mlp   
+panel_temperature  4.701e-04  3740      3290    3814       4469   3762            3308         linear        
+panel_temperature  4.701e-05  6905      6779    7697       8251   6901            6587         learned_mlp   
+wheel_rate         4.114e+00  173       269     395        489    177             273          previous      
+wheel_rate         4.114e-01  708       187     260        337    704             272          linear        
+wheel_rate         4.114e-02  1260      991     1360       1699   1366            979          learned_mlp   
+wheel_rate         4.114e-03  2713      2482    2989       3552   2816            2265         learned_mlp   
+wheel_rate         4.114e-04  6138      4645    5698       6950   6102            4262         learned_mlp   
+gyro_rate          3.213e-04  1862      2285    2766       3296   1802            1737         learned_mlp   
+gyro_rate          3.213e-05  3810      4391    5346       6759   3726            3656         learned_mlp   
+gyro_rate          3.213e-06  7701      8207    8445       8450   7591            7471         learned_mlp   
+gyro_rate          3.213e-07  8405      8630    9591       10736  8423            8444         previous      
+gyro_rate          3.213e-08  11357     11780   12030      12176  11309           11189        learned_mlp   
+magnetometer       5.123e-01  226       339     435        571    239             243          previous      
+magnetometer       5.123e-02  971       1375    1824       2317   947             943          learned_mlp   
+magnetometer       5.123e-03  2652      3091    3645       4299   2576            2601         learned_linear
+magnetometer       5.123e-04  5067      6231    7455       8121   4921            5019         learned_linear
+magnetometer       5.123e-05  8386      8445    8433       8555   8370            8392         learned_linear
+packet_counter     1.023e+01  199       351     446        659    229             205          previous      
+packet_counter     1.023e+00  571       650     704        804    603             283          learned_mlp   
+packet_counter     1.023e-01  319       583     717        1073   495             600          previous      
+packet_counter     1.023e-02  340       621     756        1133   530             760          previous      
+packet_counter     1.023e-03  8239      838     869        1216   8251            883          linear        
+white_noise        7.040e-02  2941      3422    4024       4785   2859            2781         learned_mlp   
+white_noise        7.040e-03  5829      7059    7929       8346   5650            5378         learned_mlp   
+white_noise        7.040e-04  8423      8439    8437       9036   8451            8413         learned_mlp   
+white_noise        7.040e-05  9978      10878   11514      11941  9839            9627         learned_mlp   
+white_noise        7.040e-06  12083     12163   12259      12632  12045           12017        learned_mlp   
+step_transient     8.926e-02  83        122     135        200    161             123          previous      
+step_transient     8.926e-03  303       460     579        751    466             323          previous      
+step_transient     8.926e-04  1053      1499    1957       2509   1166            981          learned_mlp   
+step_transient     8.926e-05  2764      3248    3844       4528   2804            2626         learned_mlp   
+step_transient     8.926e-06  5273      6537    7657       8269   5218            4927         learned_mlp   
+
+==============================================================================
+verdict
+==============================================================================
+item                                          value      
+--------------------------------------------  -----------
+cells compared                                40         
+cells won by a classical predictor            14         
+cells won by a learned predictor              26         
+median learned gain over best classical, %    1.3451     
+max learned gain over best classical, %       50.4378    
+worst learned loss against best classical, %  -55.8824   
+best classical predictor overall              previous   
+best learned predictor overall                learned_mlp
+
+total bytes over every cell, by predictor:
+predictor       total_bytes  ratio_to_best
+--------------  -----------  -------------
+learned_mlp     136902       1.0000       
+learned_linear  150038       1.0960       
+previous        150168       1.0969       
+linear          152130       1.1112       
+quadratic       168824       1.2332       
+cubic           186657       1.3634       
+
+==============================================================================
+the cost of the learned predictor's parameters
+==============================================================================
+Bytes the decoder must already hold, against the mean bytes saved per array.
+An infinite break-even means the model saves nothing on average, which is
+the honest answer and not an error.
+
+predictor       params  model_bytes  mean_saving_B  median_saving_B  worst_saving_B  best_saving_B  break_even_arrays
+--------------  ------  -----------  -------------  ---------------  --------------  -------------  -----------------
+learned_linear  15      120          -264.52        -10.50           -7413           179            inf              
+learned_mlp     291     2328         63.88          21.50            -420            451            36.4             
+
+==============================================================================
+portability: which predictors are bit-exact on any machine
+==============================================================================
+predictor       arithmetic           cross-machine bit-exact  
+--------------  -------------------  -------------------------
+previous        integer only         yes                      
+linear          integer only         yes                      
+quadratic       integer only         yes                      
+cubic           integer only         yes                      
+learned_linear  float64 dot product  no (libm-free, but float)
+learned_mlp     float64 with tanh    no (tanh is a libm call) 
+
+A coder whose decoder runs on different silicon from its encoder needs the
+prediction to be reproducible bit-for-bit, because the residual stream is
+decoded against it. The classical predictors give that for free. The learned
+ones do not, and no amount of rate improvement substitutes for it.
+
+==============================================================================
+timings -- UNSTABLE, for order of magnitude only
+==============================================================================
+Wall clock on a shared two-core container; no conclusion derives from these.
+operation               mean_ms  calls
+----------------------  -------  -----
+model fit (both kinds)  5406     1    
+encode previous         10.51    3    
+encode linear           10.08    3    
+encode quadratic        8.54     3    
+encode cubic            10.11    3    
+encode learned          11.02    3    
+
+FAILED CHECKS (0): none

@@ -1,0 +1,144 @@
+timetransfer validation 10 -- the benchmark harness and the empty L4 table
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+allantools       : not installed  (NOT used; Allan deviation is implemented in timetransfer.allan)
+ntplib           : not installed  (NOT used; no number here comes from it)
+cpu cores        : 2
+product root     : P079 (printed relatively; see validation/_bootstrap.py)
+fast probe mode  : False (divisor 1)
+
+==============================================================================
+10a. the measured host table
+==============================================================================
+benchmark record: P079 timetransfer, simulated backend
+backend              : simulated/n/a
+is_hardware          : False
+environment note     : shared two-core container, no attempt made to quiesce the machine; five build agents were active in the same container
+
+host timing table (UNSTABLE: wall-clock on a shared container; every value moves between runs)
+                     stage      n     mean ms   median ms      p95 ms      min ms      max ms
+     acquire_600_exchanges      9    104.6169     93.1089    161.4091     70.2227    176.7266
+          two_way_estimate      9      0.6596      0.1918      2.7186      0.1636      4.3596
+  fit_least_squares_order2      9      0.7974      0.3325      2.8755      0.2886      4.4379
+        kalman_skew_2state      9    152.1354    162.2259    181.3056     83.5800    181.8349
+               allan_table      9      6.2465      5.1822      9.1239      3.7779      9.4095
+        offset_uncertainty      9      0.7093      0.2177      2.8818      0.1827      4.5339
+           window_features      9      1.2505      0.7659      3.3521      0.7153      4.9386
+            dry_run_replay      9      9.1592      7.8093     14.8337      7.2765     16.5638
+
+host resources
+  tracemalloc peak   : 196,024 B
+  maxrss             : 173,494,272 B (ru_maxrss interpreted as kibibytes (linux))
+
+host timebase
+  reported resolution: 1 ns
+  measured resolution: 105 ns
+  call-pair overhead : 69.0 ns
+  u_q(offset)        : 3.031089e-08 s
+
+LEVEL 4 HARDWARE TABLE -- EMPTY AND UNMEASURED
+                    figure          value      units       status
+     exchange_round_trip_s             --          s   unmeasured
+   timestamp_resolution_ns             --         ns   unmeasured
+       estimator_latency_s             --          s   unmeasured
+            peak_rss_bytes             --          B   unmeasured
+  cpu_utilisation_fraction             --          1   unmeasured
+  reason: no Jetson Orin Nano was reachable from the environment this product was built in; filling this row from simulation would be a false hardware claim
+
+host
+  allantools          : not installed
+  cpu_count_available : 2
+  machine             : x86_64
+  ntplib              : not installed
+  numpy               : 2.5.3
+  platform            : Linux-6.18.44-fc-v153-x86_64-with-glibc2.39
+  python              : 3.13.17
+  scikit-learn        : 1.9.1
+  scipy               : 1.18.1
+
+method
+  clock               : smallest non-zero gap over read pairs; median zero-interval reading
+  hardware            : not measured; rows are empty by construction
+  memory              : tracemalloc peak over the whole run plus ru_maxrss high-water
+  timing              : two perf_counter_ns reads per repetition, integer ns differenced once
+
+caveat: nothing in this record is a hardware measurement. The backend's is_hardware flag is False, the Level 4 table is empty, and this product is labelled Level 3, hardware-pending.
+
+==============================================================================
+10b. the Level 4 hardware table is empty and marked unmeasured
+==============================================================================
+                    figure    value       status   units  description
+     exchange_round_trip_s     None   unmeasured       s  wall-clock time for one two-way exchange driven by a real timestamping device
+   timestamp_resolution_ns     None   unmeasured      ns  resolution the board's timestamping path actually resolves, measured on the board
+       estimator_latency_s     None   unmeasured       s  time to run the full estimation path on the board's CPU for one window
+            peak_rss_bytes     None   unmeasured       B  process high-water memory on the board under the acquisition workload
+  cpu_utilisation_fraction     None   unmeasured       1  fraction of one Orin Nano core consumed by a continuous 1 Hz acquisition
+
+rows                   : 5 (expected 5)
+every value is None    : True
+every status unmeasured: True
+reason recorded        : no Jetson Orin Nano was reachable from the environment this product was built in; filling this row from simulation would be a false hardware claim
+
+==============================================================================
+10c. the guards, exercised rather than described
+==============================================================================
+promote_to_hardware() on a simulated record:
+  HardwareClaimError: record 'P079 timetransfer, simulated backend' was produced on backend simulated/n/a with is_hardware=False; it cannot be presented as a hardware measurement. Level 4 requires the five figures in HARDWARE_STAGES measured on the Jetson Orin Nano itself.
+
+BenchmarkRecord(is_hardware=True):
+  HardwareClaimError: BenchmarkRecord was constructed with is_hardware=true, but no backend in this repository is hardware. If this is a real board, the record must be produced by a driver whose name is not a stub.
+
+BenchmarkRecord with a hardware row marked measured:
+  HardwareClaimError: a hardware row carries a value or a status other than 'unmeasured'; hardware rows are empty until measured on the board
+
+guards fired : 3/3
+PASS
+
+==============================================================================
+10d. what is still missing for Level 4
+==============================================================================
+The five figures below have to be measured ON the Jetson Orin Nano, with
+this same harness and this same record format, and captured as raw .txt and
+.json output. Nothing else is missing.
+
+  exchange_round_trip_s      wall-clock time for one two-way exchange driven by a real timestamping device
+  timestamp_resolution_ns    resolution the board's timestamping path actually resolves, measured on the board
+  estimator_latency_s        time to run the full estimation path on the board's CPU for one window
+  peak_rss_bytes             process high-water memory on the board under the acquisition workload
+  cpu_utilisation_fraction   fraction of one Orin Nano core consumed by a continuous 1 Hz acquisition
+
+Blocked on owner action: the board powered on and reachable, its hostname or
+IP, and passwordless SSH from the Mac. No cloud session can move it. Until
+then this product is labelled Level 3, hardware-pending, and it is never
+labelled Level 4 on simulated numbers.
+
+==============================================================================
+10e. the record on disk
+==============================================================================
+written to            : validation/benchmark_record.json
+is_hardware in json   : False
+hardware rows in json : 5
+all values null       : True
+all statuses          : ['unmeasured']
+stages measured       : 8
+repeats per stage     : 9
+
+==============================================================================
+summary
+==============================================================================
+host stages measured : 8
+hardware rows empty  : 5
+tracemalloc peak     : 196,024 B
+maxrss               : 173,494,272 B
+measured clock res.  : 105 ns
+u_q(offset)          : 3.031089e-08 s
+finite timings       : True
+hard failures        : 0

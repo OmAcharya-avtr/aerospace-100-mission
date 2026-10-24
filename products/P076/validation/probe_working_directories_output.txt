@@ -1,0 +1,78 @@
+
+==============================================================================
+every validation script and example, run from five working directories
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  sgp4             : 2.27
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  astropy          : not installed
+  cpu cores        : 2
+  repository root  : P076 (printed relatively; see validation/_bootstrap.py)
+
+  python -I is deliberately NOT used: it strips the script's own
+  directory from sys.path and makes 'import _bootstrap' fail, which is a
+  false failure indistinguishable from the defect being probed for.
+
+  scripts                            : 17
+  working directories                : 5
+  subprocess invocations             : 85
+
+  working directories, by label:
+    - filesystem root
+    - temporary directory
+    - product root
+    - validation directory
+    - source directory
+
+==============================================================================
+results
+==============================================================================
+  script                                   filesy   tempor   produc   valida   source
+  -----------------------------------------------------------------------------------
+  validation/regenerate_cases.py                0        0        0        0        0
+  validation/validate_aberration.py             0        0        0        0        0
+  validation/validate_budget.py                 0        0        0        0        0
+  validation/validate_cli.py                    0        0        0        0        0
+  validation/validate_frames.py                 0        0        0        0        0
+  validation/validate_invariants.py             0        0        0        0        0
+  validation/validate_kepler.py                 0        0        0        0        0
+  validation/validate_lighttime.py              0        0        0        0        0
+  validation/validate_pointahead.py             0        0        0        0        0
+  validation/validate_regressions.py            0        0        0        0        0
+  validation/worked_example.py                  0        0        0        0        0
+  examples/attribution_vs_geometry.py           0        0        0        0        0
+  examples/baseline_vs_reference.py             0        0        0        0        0
+  examples/beam_context.py                      0        0        0        0        0
+  examples/budget_breakdown.py                  0        0        0        0        0
+  examples/frame_dependence.py                  0        0        0        0        0
+  examples/lighttime_convergence.py             0        0        0        0        0
+
+  NON-ZERO EXITS: none
+  [PASS] every script exits zero from every working directory -- 0 of 85 invocations exited non-zero
+
+==============================================================================
+absolute paths in committed files
+==============================================================================
+  Release-gate check 8 fails a whole batch on an absolute
+  home-directory path in any tracked file. The scan below covers every
+  text file in this product, not just the code.
+
+  text files scanned                 : 74
+  patterns                           : 5 absolute-path prefixes
+  matches                            : 0
+  [PASS] no committed text file carries an absolute path
+
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

@@ -1,0 +1,286 @@
+
+==============================================================================
+attributed error budget: every analytic line against a propagation
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  sgp4             : 2.27
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  astropy          : not installed
+  cpu cores        : 2
+  repository root  : P076 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the relative acceleration of an equal-radius pair is exactly radial
+==============================================================================
+  a_rel = -(mu / r^3) d when |r_local| = |r_remote|, so it is parallel to
+  the separation vector. This is why the first-order-only staleness model
+  predicted zero for the commonest crosslink geometry there is.
+
+  scenario                |a_rel|   |a_rel_perp|        ratio    |jerk_perp|
+  ------------------ ------------ -------------- ------------ --------------
+  leo_crossing           2.446528   1.042960e-15    4.263e-16   7.931043e-03
+  [PASS] leo_crossing has a radial relative acceleration to 1e-14 relative -- transverse fraction 4.263e-16
+  leo_trailing           2.446528   9.992007e-16    4.084e-16   2.649780e-03
+  [PASS] leo_trailing has a radial relative acceleration to 1e-14 relative -- transverse fraction 4.084e-16
+  geo_relay_to_leo       7.979724   3.733164e+00    4.678e-01   7.870559e-03
+
+==============================================================================
+2. the full budget for the three named geometries
+==============================================================================
+
+-- error budget: leo_crossing ------------------------------------------------
+  frame                      : unspecified Earth-centred inertial
+  range                      :        2085.600 km
+  point-ahead angle          :       45.104546 urad
+  angle method               : closed_form
+  aberration route           : momentum_boost
+  light-time iterations      : 1
+  sigma v per axis           :        0.050000 m/s
+  ephemeris age              :          30.000 s
+
+  term                                   paid /urad    if paid /urad  origin
+  -------------------------------- ---------------- ----------------  --------
+  relative_velocity_knowledge          4.717309e-04     4.717309e-04  analytic
+  ephemeris_staleness_velocity         2.380960e-02     2.380960e-02  analytic
+  ephemeris_staleness_geometry         1.763756e-03     1.763756e-03  analytic
+  light_time_iteration_residual        5.219820e-09     5.219820e-09  measured
+  aberration_model_error               0.000000e+00     1.519224e-08  measured
+  angle_model_error                    1.855254e-08     1.855254e-08  measured
+  -------------------------------- ---------------- ----------------
+  total (root sum of squares)          2.387950e-02
+  total (linear sum)                   2.604511e-02
+  dominant term              : ephemeris_staleness_velocity (0.9971 of the root sum of squares)
+
+-- beam context --------------------------------------------------------------
+  beam                       : 1550 nm, 25 mm waist
+  divergence half-angle      :       19.735213 urad (1/e^2 intensity)
+  far field beyond           :        1266.771 m (link is in the far field)
+  total as fraction of beam  :    1.209995e-03
+  pointing loss at total     :    1.271690e-05 dB
+  affordable at 1.00 dB         :        6.696296 urad
+  headroom                   :    2.804203e+02 x
+
+-- analytic lines checked against numerical propagation ----------------------
+  term                                  analytic       numeric         rel  check
+  -------------------------------- ------------- ------------- -----------  -----
+  relative_velocity_knowledge       4.717309e-10  4.717309e-10  5.2928e-08  pass (equality)
+  ephemeris_staleness_velocity      2.380960e-08  2.380751e-08  8.7970e-05  pass (upper_bound)
+  ephemeris_staleness_geometry      1.763756e-09  1.762673e-09  6.1402e-04  pass (upper_bound)
+  light_time_iteration_residual     1.497622e-14  5.219820e-15  6.5146e-01  pass (upper_bound)
+
+-- error budget: leo_trailing ------------------------------------------------
+  frame                      : unspecified Earth-centred inertial
+  range                      :        2085.600 km
+  point-ahead angle          :       15.069535 urad
+  angle method               : closed_form
+  aberration route           : momentum_boost
+  light-time iterations      : 1
+  sigma v per axis           :        0.050000 m/s
+  ephemeris age              :          30.000 s
+
+  term                                   paid /urad    if paid /urad  origin
+  -------------------------------- ---------------- ----------------  --------
+  relative_velocity_knowledge          4.717309e-04     4.717309e-04  analytic
+  ephemeris_staleness_velocity         7.954844e-03     7.954844e-03  analytic
+  ephemeris_staleness_geometry         1.723143e-04     1.723143e-04  analytic
+  light_time_iteration_residual        5.248153e-09     5.248153e-09  measured
+  aberration_model_error               0.000000e+00     4.731247e-09  measured
+  angle_model_error                    1.477483e-08     1.477483e-08  measured
+  -------------------------------- ---------------- ----------------
+  total (root sum of squares)          7.970682e-03
+  total (linear sum)                   8.598909e-03
+  dominant term              : ephemeris_staleness_velocity (0.9980 of the root sum of squares)
+
+-- beam context --------------------------------------------------------------
+  beam                       : 1550 nm, 25 mm waist
+  divergence half-angle      :       19.735213 urad (1/e^2 intensity)
+  far field beyond           :        1266.771 m (link is in the far field)
+  total as fraction of beam  :    4.038812e-04
+  pointing loss at total     :    1.416843e-06 dB
+  affordable at 1.00 dB         :        6.696296 urad
+  headroom                   :    8.401159e+02 x
+
+-- analytic lines checked against numerical propagation ----------------------
+  term                                  analytic       numeric         rel  check
+  -------------------------------- ------------- ------------- -----------  -----
+  relative_velocity_knowledge       4.717309e-10  4.717309e-10  2.7993e-10  pass (equality)
+  ephemeris_staleness_velocity      7.954844e-09  7.954145e-09  8.7944e-05  pass (upper_bound)
+  ephemeris_staleness_geometry      1.723143e-10  1.722051e-10  6.3352e-04  pass (upper_bound)
+  light_time_iteration_residual     1.497622e-14  5.248153e-15  6.4957e-01  pass (upper_bound)
+
+-- error budget: geo_relay_to_leo --------------------------------------------
+  frame                      : unspecified Earth-centred inertial
+  range                      :       35840.014 km
+  point-ahead angle          :       35.912474 urad
+  angle method               : closed_form
+  aberration route           : momentum_boost
+  light-time iterations      : 1
+  sigma v per axis           :        0.050000 m/s
+  ephemeris age              :          30.000 s
+
+  term                                   paid /urad    if paid /urad  origin
+  -------------------------------- ---------------- ----------------  --------
+  relative_velocity_knowledge          4.717309e-04     4.717309e-04  analytic
+  ephemeris_staleness_velocity         7.707778e-01     7.707778e-01  analytic
+  ephemeris_staleness_geometry         2.060716e-03     2.060716e-03  analytic
+  light_time_iteration_residual        5.933546e-09     5.933546e-09  measured
+  aberration_model_error               0.000000e+00     2.528206e-09  measured
+  angle_model_error                    1.370754e-07     1.370754e-07  measured
+  -------------------------------- ---------------- ----------------
+  total (root sum of squares)          7.707807e-01
+  total (linear sum)                   7.733103e-01
+  dominant term              : ephemeris_staleness_velocity (1.0000 of the root sum of squares)
+
+-- beam context --------------------------------------------------------------
+  beam                       : 1550 nm, 25 mm waist
+  divergence half-angle      :       19.735213 urad (1/e^2 intensity)
+  far field beyond           :        1266.771 m (link is in the far field)
+  total as fraction of beam  :    3.905611e-02
+  pointing loss at total     :    1.324928e-02 dB
+  affordable at 1.00 dB         :        6.696296 urad
+  headroom                   :    8.687681e+00 x
+
+-- analytic lines checked against numerical propagation ----------------------
+  term                                  analytic       numeric         rel  check
+  -------------------------------- ------------- ------------- -----------  -----
+  relative_velocity_knowledge       4.717309e-10  4.717309e-10  4.2114e-08  pass (equality)
+  ephemeris_staleness_velocity      7.707778e-07  7.233918e-07  6.1478e-02  pass (upper_bound)
+  ephemeris_staleness_geometry      2.060716e-09  1.750704e-09  1.5044e-01  pass (upper_bound)
+  light_time_iteration_residual     9.598156e-15  5.933546e-15  3.8180e-01  pass (upper_bound)
+
+==============================================================================
+3. the dominant term changes with ephemeris age
+==============================================================================
+  This is the product's point in one table. At a fresh state the velocity
+  knowledge dominates; a minute later the staleness does and is four orders
+  larger; the model errors never matter at orbital speeds.
+
+   age / s   total / urad dominant term                     share    loss / dB
+  -------- -------------- ------------------------------ -------- ------------
+         0   4.717309e-04 relative_velocity_knowledge      1.0000 4.962714e-09
+         1   4.724721e-04 relative_velocity_knowledge      0.9984 4.978322e-09
+        10   2.688034e-03 ephemeris_staleness_velocity     0.9842 1.611388e-07
+        30   2.387950e-02 ephemeris_staleness_velocity     0.9971 1.271690e-05
+        60   9.627913e-02 ephemeris_staleness_velocity     0.9892 2.067259e-04
+       300   2.963074e+00 ephemeris_staleness_velocity     0.8035 1.958013e-01
+       900   5.222055e+01 ephemeris_staleness_geometry     0.9119 6.081540e+01
+      3600   3.066995e+03 ephemeris_staleness_geometry     0.9937 2.097765e+05
+
+==============================================================================
+4. every analytic line checked across geometries and configurations
+==============================================================================
+  Four analytic lines x 33 geometries x 4 iteration caps x 3 ephemeris ages.
+  Equality checks use a 1 per cent relative tolerance; bound checks require
+  the analytic value to sit above the measurement with 1 per cent slack.
+
+  line                               pass   fail   median tightness        worst
+  -------------------------------- ------ ------ ------------------ ------------
+  ephemeris_staleness_geometry        396      0       7.978914e-02 9.462824e-01
+  ephemeris_staleness_velocity        396      0       2.409995e-02 6.783312e-01
+  light_time_iteration_residual       360     36       9.923261e-01 1.000000e+00
+  relative_velocity_knowledge         396      0       1.315466e-07 2.700381e-06
+  -------------------------------- ------ ------
+  total                              1548     36
+
+  FAILING COMBINATIONS: 36 of 1584
+
+  geometry        caps    age line                                  analytic       numeric
+  -------------- ----- ------ -------------------------------- ------------- -------------
+  random_001         0      0 light_time_iteration_residual     1.433473e-14  1.876802e-14
+  random_001         0     30 light_time_iteration_residual     1.433473e-14  1.876802e-14
+  random_001         0    120 light_time_iteration_residual     1.433473e-14  1.876802e-14
+  random_004         0      0 light_time_iteration_residual     1.695817e-14  1.721125e-14
+  random_004         0     30 light_time_iteration_residual     1.695817e-14  1.721125e-14
+  random_004         0    120 light_time_iteration_residual     1.695817e-14  1.721125e-14
+  random_005         0      0 light_time_iteration_residual     1.758154e-14  3.087977e-14
+  random_005         0     30 light_time_iteration_residual     1.758154e-14  3.087977e-14
+  random_005         0    120 light_time_iteration_residual     1.758154e-14  3.087977e-14
+  random_006         0      0 light_time_iteration_residual     1.708009e-14  2.199419e-14
+  random_006         0     30 light_time_iteration_residual     1.708009e-14  2.199419e-14
+  random_006         0    120 light_time_iteration_residual     1.708009e-14  2.199419e-14
+  random_007         0      0 light_time_iteration_residual     1.492174e-14  1.971584e-14
+  random_007         0     30 light_time_iteration_residual     1.492174e-14  1.971584e-14
+  random_007         0    120 light_time_iteration_residual     1.492174e-14  1.971584e-14
+  random_008         0      0 light_time_iteration_residual     1.475837e-14  2.092446e-14
+  random_008         0     30 light_time_iteration_residual     1.475837e-14  2.092446e-14
+  random_008         0    120 light_time_iteration_residual     1.475837e-14  2.092446e-14
+  random_016         0      0 light_time_iteration_residual     1.333346e-14  1.431512e-14
+  random_016         0     30 light_time_iteration_residual     1.333346e-14  1.431512e-14
+  random_016         0    120 light_time_iteration_residual     1.333346e-14  1.431512e-14
+  random_017         0      0 light_time_iteration_residual     1.330160e-14  2.015560e-14
+  random_017         0     30 light_time_iteration_residual     1.330160e-14  2.015560e-14
+  random_017         0    120 light_time_iteration_residual     1.330160e-14  2.015560e-14
+  random_018         0      0 light_time_iteration_residual     1.381733e-14  2.226053e-14
+  random_018         0     30 light_time_iteration_residual     1.381733e-14  2.226053e-14
+  random_018         0    120 light_time_iteration_residual     1.381733e-14  2.226053e-14
+  random_020         0      0 light_time_iteration_residual     1.947337e-14  2.444170e-14
+  random_020         0     30 light_time_iteration_residual     1.947337e-14  2.444170e-14
+  random_020         0    120 light_time_iteration_residual     1.947337e-14  2.444170e-14
+  random_021         0      0 light_time_iteration_residual     1.458017e-14  1.504874e-14
+  random_021         0     30 light_time_iteration_residual     1.458017e-14  1.504874e-14
+  random_021         0    120 light_time_iteration_residual     1.458017e-14  1.504874e-14
+  random_029         0      0 light_time_iteration_residual     1.402300e-14  1.485815e-14
+  random_029         0     30 light_time_iteration_residual     1.402300e-14  1.485815e-14
+  random_029         0    120 light_time_iteration_residual     1.402300e-14  1.485815e-14
+
+  all failures are on line(s)        : ['light_time_iteration_residual']
+  all failures are at iteration caps : [0]
+  worst numeric / analytic ratio     : 1.7564
+  typical magnitude of both sides    : 1e-14 rad
+  float64 direction resolution       : 1.029436e-14 rad
+
+  Diagnosis, stated rather than tuned away. At iteration cap zero the
+  receive and transmit light-time truncation errors have opposite signs
+  and nearly cancel in the point-ahead offset, so the predicted error is
+  SMALLER than the arithmetic noise of the four unit directions it is
+  measured from. Both sides of the comparison are then quantisation
+  patterns of order 1e-14 rad and the bound holds or fails at random.
+  The honest statement is that the light-time iteration budget line
+  cannot be verified at iteration cap zero in float64 for these
+  geometries, and that at one or more iterations it verifies on every
+  combination measured. The engineering consequence is the opposite of
+  alarming: at cap zero the line is 1e-14 rad, which is nine orders
+  below the dominant term of every budget in section 3.
+
+  The floor constant was widened once, from 4 to 8 sqrt(3), when the
+  first derivation was found to ignore the per-component contribution
+  and the outer subtraction. It has not been widened again to make these
+  combinations pass.
+  [FAIL] every analytic line verifies on every geometry and configuration measured -- 36 of 1584 combinations failed; see the diagnosis above
+  [PASS] no analytic line fails at one or more light-time iterations -- failing iteration caps: [0]
+  [PASS] the light-time line is the only line that ever fails -- lines failing: ['light_time_iteration_residual']
+  [PASS] the three analytic lines that enter a realistic budget all verify -- velocity knowledge, staleness velocity and staleness geometry
+
+==============================================================================
+5. the beam context: the same total on two different beams
+==============================================================================
+  A point-ahead error is not a result until it is divided by a beam.
+
+  total point-ahead error            : 2.963074 urad
+
+  beam                         divergence / urad     fraction    loss / dB     headroom
+  -------------------------- ------------------- ------------ ------------ ------------
+  1550 nm, 10 mm waist                 49.338032 6.005659e-02 3.132821e-02   5.6498e+00
+  1550 nm, 25 mm waist                 19.735213 1.501415e-01 1.958013e-01   2.2599e+00
+  1064 nm, 75 mm waist                  4.515756 6.561634e-01 3.739713e+00   5.1711e-01
+  1064 nm, 150 mm waist                 2.257878 1.312327e+00 1.495885e+01   2.5855e-01
+
+  The total is identical in all four rows. The decibel cost spans three
+  orders of magnitude. That is the whole argument for carrying the beam
+  alongside the number.
+
+FAILED CHECKS (1):
+  - every analytic line verifies on every geometry and configuration measured
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

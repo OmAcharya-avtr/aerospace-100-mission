@@ -1,0 +1,164 @@
+
+==============================================================================
+frame dependence: the total is invariant, the attribution is not
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  sgp4             : 2.27
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  astropy          : not installed
+  cpu cores        : 2
+  repository root  : P076 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+leo_crossing: range 2085.600 km
+==============================================================================
+  point-ahead angle in the given frame : 45.104545702 urad
+  float64 direction resolution         : 1.029436e-14 rad
+
+  Each row below is the SAME physical configuration seen from a
+  different inertial frame, reached by adding a constant velocity to
+  both terminals.
+
+  boost                                total / urad   lead / urad  stellar / urad  velocity / urad
+  ---------------------------------- -------------- ------------- --------------- ----------------
+  none (the frame as supplied)         45.104545702      7.534768       21.913892        21.913892
+  minus the local velocity             45.104545699     45.104546        0.000000         0.000000
+  minus the remote velocity            45.104545702      0.000000       22.552273        22.552273
+  minus the mean of the two            45.104545694     22.552273       11.276136        11.276136
+  plus 1 km/s along +x                 45.104545702      0.938397       22.439300        22.439300
+  plus 10 km/s along +z                45.104545733     33.374510        8.063307         8.063307
+
+  spread of the total across frames    : 3.858295e-14 rad
+  spread of the light-time lead        : 4.510455e-05 rad
+  ratio of the two spreads             : 1.169e+09
+  spread of the total / the angle      : 8.554115e-10
+
+  [PASS] leo_crossing: the total is frame-invariant to 1e-7 of itself -- spread 3.858e-14 rad over 6 frames
+  [PASS] leo_crossing: the light-time lead is NOT frame-invariant -- the lead moves 1.169e+09 times further than the total
+
+  In the local terminal's rest frame -- the second row -- both
+  aberration lines are zero and the light-time lead carries the whole
+  angle. In the remote terminal's rest frame -- the third row -- the
+  lead is zero and the two aberration lines carry it. Same angle, same
+  physics, completely different attribution.
+
+==============================================================================
+leo_trailing: range 2085.600 km
+==============================================================================
+  point-ahead angle in the given frame : 15.069535369 urad
+  float64 direction resolution         : 1.029436e-14 rad
+
+  Each row below is the SAME physical configuration seen from a
+  different inertial frame, reached by adding a constant velocity to
+  both terminals.
+
+  boost                                total / urad   lead / urad  stellar / urad  velocity / urad
+  ---------------------------------- -------------- ------------- --------------- ----------------
+  none (the frame as supplied)         15.069535369      7.534768        3.767384         3.767384
+  minus the local velocity             15.069535365     15.069535        0.000000         0.000000
+  minus the remote velocity            15.069535365      0.000000        7.534768         7.534768
+  minus the mean of the two            15.069535365      7.534768        3.767384         3.767384
+  plus 1 km/s along +x                 15.069535369      0.938397        7.065569         7.065569
+  plus 10 km/s along +z                15.069535377     67.136972       33.568486        33.568486
+
+  spread of the total across frames    : 1.249001e-14 rad
+  spread of the light-time lead        : 6.713697e-05 rad
+  ratio of the two spreads             : 5.375e+09
+  spread of the total / the angle      : 8.288251e-10
+
+  [PASS] leo_trailing: the total is frame-invariant to 1e-7 of itself -- spread 1.249e-14 rad over 6 frames
+  [PASS] leo_trailing: the light-time lead is NOT frame-invariant -- the lead moves 5.375e+09 times further than the total
+
+  In the local terminal's rest frame -- the second row -- both
+  aberration lines are zero and the light-time lead carries the whole
+  angle. In the remote terminal's rest frame -- the third row -- the
+  lead is zero and the two aberration lines carry it. Same angle, same
+  physics, completely different attribution.
+
+==============================================================================
+geo_relay_to_leo: range 35840.014 km
+==============================================================================
+  point-ahead angle in the given frame : 35.912473747 urad
+  float64 direction resolution         : 3.619644e-15 rad
+
+  Each row below is the SAME physical configuration seen from a
+  different inertial frame, reached by adding a constant velocity to
+  both terminals.
+
+  boost                                total / urad   lead / urad  stellar / urad  velocity / urad
+  ---------------------------------- -------------- ------------- --------------- ----------------
+  none (the frame as supplied)         35.912473747     44.818095       10.244586        10.244586
+  minus the local velocity             35.912473744     35.912474        0.000000         0.000000
+  minus the remote velocity            35.912473746      0.000000       17.956237        17.956237
+  minus the mean of the two            35.912473741     17.956237        8.978118         8.978118
+  plus 1 km/s along +x                 35.912473748     45.323916       10.403295        10.403295
+  plus 10 km/s along +z                35.912473810    105.434591       34.810320        34.810320
+
+  spread of the total across frames    : 6.821943e-14 rad
+  spread of the light-time lead        : 1.054346e-04 rad
+  ratio of the two spreads             : 1.546e+09
+  spread of the total / the angle      : 1.899603e-09
+
+  [PASS] geo_relay_to_leo: the total is frame-invariant to 1e-7 of itself -- spread 6.822e-14 rad over 6 frames
+  [PASS] geo_relay_to_leo: the light-time lead is NOT frame-invariant -- the lead moves 1.546e+09 times further than the total
+
+  In the local terminal's rest frame -- the second row -- both
+  aberration lines are zero and the light-time lead carries the whole
+  angle. In the remote terminal's rest frame -- the third row -- the
+  lead is zero and the two aberration lines carry it. Same angle, same
+  physics, completely different attribution.
+
+==============================================================================
+the second-order residual of the frame invariance
+==============================================================================
+  The invariance is first order in beta, so the spread should scale as the
+  square of the boost. Measured by boosting the leo_crossing geometry by a
+  sequence of speeds along a fixed axis.
+
+   boost / (m/s)          beta     total / urad   change / rad   change / beta^2
+  -------------- ------------- ---------------- -------------- -----------------
+         1.0e+02  3.335641e-07     45.104545702   1.160300e-16      1.042825e-03
+         1.0e+03  3.335641e-06     45.104545702   2.371286e-16      2.131205e-05
+         1.0e+04  3.335641e-05     45.104545733   3.096093e-14      2.782630e-05
+         1.0e+05  3.335641e-04     45.104548729   3.027608e-12      2.721078e-05
+         1.0e+06  3.335641e-03     45.104847875   3.021736e-10      2.715801e-05
+         1.0e+07  3.335641e-02     45.134782097   3.023640e-08      2.717512e-05
+
+  The last column is roughly constant, which is the second-order scaling.
+  At a 1 km/s frame error -- larger than any realistic frame ambiguity --
+  the total moves by well under a picoradian.
+
+==============================================================================
+boosting a Keplerian link is refused by construction
+==============================================================================
+  original trajectory model          : kepler
+  boosted trajectory model           : linear
+  boosted frame label                : unspecified Earth-centred inertial boosted by a constant velocity
+  [PASS] boosting forces the linear model rather than returning a wrong Kepler link -- got 'linear'
+
+==============================================================================
+the local rest frame: the aberration lines vanish exactly
+==============================================================================
+  local speed in this frame          : 0.000000e+00 m/s
+  light_time_lead                  :    45.104546 urad
+  stellar_aberration               :     0.000000 urad
+  velocity_aberration              :     0.000000 urad
+  total                            :    45.104546 urad
+  reference in this frame          :    45.104546 urad
+  [PASS] both aberration lines are exactly zero in the local rest frame
+  [PASS] the total in the local rest frame matches the total in the given frame to 1e-7 of itself -- relative difference 1.483e-10
+
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

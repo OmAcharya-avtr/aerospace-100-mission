@@ -1,0 +1,138 @@
+timetransfer validation 9 -- deployment pre-flight and recovery
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+allantools       : not installed  (NOT used; Allan deviation is implemented in timetransfer.allan)
+ntplib           : not installed  (NOT used; no number here comes from it)
+cpu cores        : 2
+product root     : P079 (printed relatively; see validation/_bootstrap.py)
+fast probe mode  : False (divisor 1)
+
+==============================================================================
+9a. pre-flight against the simulated backend
+==============================================================================
+                 check  result                   measured                   expected
+         backend_opens    PASS                     opened                     opened
+  hardware_declaration    PASS          is_hardware=False          is_hardware=False
+     timebase_monotone    PASS       0 regressions in 200              0 regressions
+   timebase_resolution    PASS                       1 ns              <= 1000000 ns
+        probe_acquires    PASS               24 exchanges             >= 8 exchanges
+    timestamp_ordering    PASS             0 out-of-order             0 out-of-order
+   round_trip_positive    PASS            min 10254544 ns                     > 0 ns
+           loss_budget    PASS                     0.0000                  <= 0.2500
+       estimate_finite    PASS              u=6.328e-05 s    finite offset and u > 0
+       state_unchanged    PASS            0 fields differ            0 fields differ
+backend simulated/n/a  is_hardware=False  10/10 passed
+
+all checks passed : True
+
+==============================================================================
+9b. every check can fail -- the negative controls
+==============================================================================
+                           control                                failed checks
+operator declares hardware wrongly                         hardware_declaration
+                 no device answers backend_opens, probe_acquires, timestamp_ord
+         loss budget cannot be met                                  loss_budget
+  resolution ceiling cannot be met                          timebase_resolution
+
+raise_if_failed raises PreflightFailure and carries the report:
+  PreflightFailure: pre-flight failed: hardware_declaration
+  report attached : True
+
+==============================================================================
+9c. pre-flight leaves the backend exactly as it found it
+==============================================================================
+engine attempts before pre-flight : 0
+digest after pre-flight           : 188e8035737355deb73642cbfcc67c77cb3315ef0c0145548d57e796a66d2721
+digest on an untouched backend    : 188e8035737355deb73642cbfcc67c77cb3315ef0c0145548d57e796a66d2721
+identical                         : True
+This is a check and not an assumption because it was wrong once: the probe
+acquisition advances the clock and link generators, so a pre-flighted backend
+would otherwise no longer agree with an untouched one and the parity check
+would fail for a reason unrelated to parity.
+
+==============================================================================
+9d. recovery after an injected abort
+==============================================================================
+        injected fault   restored  fields compared   fields differing
+          RuntimeError       True               24                  0
+            ValueError       True               24                  0
+              KeyError       True               24                  0
+     ZeroDivisionError       True               24                  0
+          TimeoutError       True               24                  0
+
+restored cleanly : 5/5
+PASS
+
+==============================================================================
+9e. the exchange is lost mid-estimate
+==============================================================================
+planned window        : 600 exchanges at 1 Hz
+outage starts at      : 120.0 s of local reference time
+max consecutive losses: 10 (the acquisition stops rather than hammering a
+                        dead link for the rest of the window)
+
+attempted          : 130
+completed          : 120
+lost               : 10
+longest loss run   : 10
+stopped early      : True (at seq 129)
+backend            : simulated/n/a
+is_hardware        : False
+
+truncated           : True
+exchanges used      : 120 of 600 planned (0.2000)
+expected u scaling  : x2.236 vs a full window
+offset              : 1.829485213e-03 s at t = 59.505452 s
+u statistical       : 1.940401e-05 s (x1.000 for r1 = -0.0572)
+u quantisation      : 2.635231e-11 s (delta = 1 ns)
+u asymmetry         : 4.618802e-04 s (declared_bound)
+u combined          : 4.622876e-04 s (dominant: asymmetry)
+expanded (k=1.96)   : 9.060837e-04 s
+n / n_effective     : 120 / 120.0
+note                : window ended early; the statistical term is from the exchanges that arrived
+
+        window   n used    u statistical [s]     u combined [s]
+     truncated      120         1.940401e-05       4.622876e-04
+      complete      600         9.012291e-06       4.619681e-04
+
+measured statistical-term ratio : 2.1531
+independence expectation        : 2.2361 (sqrt of the planned-over-used count)
+The measured ratio is not required to equal the expectation: the expectation
+assumes independent samples and equal spans, and a truncated window is
+shorter in time as well as smaller in count, which affects the fitted offset
+differently. The expectation is printed so the reader can see the gap.
+
+==============================================================================
+9f. a window that loses too much is refused rather than estimated
+==============================================================================
+InsufficientDataError: acquisition completed 0 of 10 attempted exchanges, below the minimum of 8; longest loss run was 10 and the run stopped early at seq 9
+  n_usable   : 0
+  n_required : 8
+verdict : PASS
+
+==============================================================================
+9g. the operator's declaration is the only guard against a false claim
+==============================================================================
+preflight(expect_hardware=...) makes the operator state what they believe,
+and a mismatch against the backend's own is_hardware flag is a failed check.
+Every backend in this repository reports is_hardware=False, so a run written
+up as a board measurement would have had to pass expect_hardware=True and
+ignore a failing check to do it.
+
+                     backend   is_hardware    declaration check with True
+                   simulated         False                           FAIL
+   device over absent driver         False                           FAIL
+
+==============================================================================
+summary
+==============================================================================
+planned window 600, truncated at 120 exchanges (0.2000 of plan)
+hard failures : 0

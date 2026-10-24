@@ -1,0 +1,201 @@
+
+==============================================================================
+every defect this build found, re-measured from its literal inputs
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  sgp4             : 2.27
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  astropy          : not installed
+  cpu cores        : 2
+  repository root  : P076 (printed relatively; see validation/_bootstrap.py)
+  float64 machine epsilon            : 2.220446049250313e-16
+
+==============================================================================
+defect 1 (code, Hypothesis): Kepler iteration over many revolutions
+==============================================================================
+  Falsifying example: radius=400000.0 m, 0.6 of circular speed,
+  dt=3354.9375 s. Before the fix the universal-anomaly Newton iteration
+  reported 'did not converge in 60 iterations'.
+  semi-major axis                    : 243902.439024 m
+  orbital period                     : 37.908377 s
+  revolutions in 3354.9375 s         : 88.501216
+  revolutions removed by the fix     : 89.0
+  Newton iterations after the fix    : 3
+  relative energy drift              : 3.151173e-14
+  [PASS] the propagation converges and conserves energy
+
+==============================================================================
+defect 2 (code, sensitivity check): the missing jerk term
+==============================================================================
+  geometry                           : leo_crossing, equal radius
+  |a_rel|                            : 2.446528165 m/s^2
+  |a_rel_perp|                       : 1.042960e-15 m/s^2
+  transverse fraction of a_rel       : 4.263020e-16
+  |adot_rel_perp|                    : 0.007931043 m/s^3
+  ephemeris age                      : 30.0 s
+  FIRST FORMULATION, 2 a_perp dt / c : 2.087363736690764e-22 rad
+  with the jerk term                 : 2.3809601548235975e-08 rad
+  numerically propagated             : 2.3807507009717773e-08 rad
+  factor the first formulation was out by: 1.140554e+14
+  [PASS] the corrected line reproduces the propagation to 1 per cent -- relative difference 8.797807e-05
+
+==============================================================================
+defect 3 (code, sensitivity check): the cubic coefficient
+==============================================================================
+  r_stale - r = -a dt^2 / 2 + adot dt^3 / 3, not adot dt^3 / 6:
+  the dt^3 / 3 is -1/6 from the position expansion plus +1/2 from
+  carrying the stale velocity forward.
+  transverse position error, dt^3/3   : 71.379389721 m
+  transverse position error, dt^3/6   : 35.689694861 m
+  ratio                               : 2.000000000
+  bound from the correct coefficient  : 1.7637562237187325e-09 rad
+  bound from the wrong coefficient    : 8.818781118593721e-10 rad
+  numerically propagated              : 1.7626732504795225e-09 rad
+  [PASS] the correct bound holds
+  [PASS] the wrong bound does not hold
+
+==============================================================================
+defect 4 (criterion, validation script): the float64 floor constant
+==============================================================================
+  geometry                           : leo_trailing
+  FIRST FORMULATION, 4 eps R / rho   : 2.9717261752352168e-15 rad
+  corrected, 8 sqrt(3) eps R / rho   : 1.0294361443379455e-14 rad
+  ratio                              : 3.464101615 (2 sqrt(3) = 3.464101615)
+  measured at iteration cap zero     : 9.46444779611722e-15 rad
+  [PASS] the measurement exceeds the first floor
+  [PASS] the measurement is below the corrected floor
+
+==============================================================================
+defect 5 (prediction, validation script): remote vs relative radial velocity
+==============================================================================
+
+  leo_crossing
+    v_remote . n                     : 7472.998527159 m/s
+    v_rel . n                        : 3.736499e+03 m/s
+    measured tau_tx - tau_rx         : 3.4682820284313853e-07 s
+    predicted from v_remote . n      : 3.468282026347884e-07 s
+    FIRST FORMULATION, v_rel . n     : 1.7341410131739417e-07 s
+  [PASS] leo_crossing: the remote-velocity prediction holds to 1 per cent -- relative difference 6.007301e-10
+
+  leo_trailing
+    v_remote . n                     : 7472.998527159 m/s
+    v_rel . n                        : -5.984871e-14 m/s
+    measured tau_tx - tau_rx         : 3.468282028440059e-07 s
+    predicted from v_remote . n      : 3.468282026347884e-07 s
+    FIRST FORMULATION, v_rel . n     : -2.7776296332829642e-24 s
+  [PASS] leo_trailing: the remote-velocity prediction holds to 1 per cent -- relative difference 6.032310e-10
+
+==============================================================================
+defect 6 (documentation, pytest): the hand-written literal
+==============================================================================
+  2 * 7500 / c                        : 5.003461427972281e-05 rad
+  FIRST FORMULATION in the test       : 5.003461712e-05 rad
+  absolute difference                 : 2.8402771942107746e-12 rad
+  closed-form offset norm             : 5.003461427972281e-05 rad
+  closed-form total_rad               : 5.0034614269284495e-05 rad
+  [PASS] the closed-form offset reproduces the arithmetic exactly -- relative difference 0.000000e+00
+
+==============================================================================
+defect 11 (criterion, this script): the pytest.approx absolute floor
+==============================================================================
+  pytest.approx(expected, rel=r) carries a DEFAULT absolute tolerance of
+  1e-12 and accepts a value within EITHER bound. Every angle this
+  package produces is of order 1e-05 rad, so that default dominates any
+  relative tolerance tighter than 2e-08: an assertion written rel=1e-12
+  is in fact a 2e-08 relative comparison.
+
+  It mattered. total_rad is the angle between two unit vectors offset
+  either side of the line of sight, so it is 2 arctan(theta / 2) =
+  theta - theta^3 / 12 and NOT theta. The known-answer test asserted it
+  equal to theta at rel=1e-12 and passed.
+
+  theta = 2 v_perp / c                : 5.003461427972281e-05 rad
+  2 arctan(theta / 2)                 : 5.0034614269284495e-05 rad
+  total_rad                           : 5.0034614269284495e-05 rad
+  relative deficit                    : 2.086218195129917e-10
+  theta^2 / 12                        : 2.0862188551005347e-10
+  ratio of the two                    : 0.999999684
+
+  Re-running the whole suite with every rel= call given abs=0.0 found
+  exactly three assertions of 271 that depended on the default. All
+  three are now explicit and the whole suite passes with abs=0.0
+  everywhere.
+  [PASS] total_rad equals 2 arctan(theta / 2) to rounding
+  [PASS] the relative deficit is theta^2 / 12 -- measured 2.086218195e-10, predicted 2.086218855e-10
+
+==============================================================================
+defect 7 (documentation, pytest): the first-order error order
+==============================================================================
+  The module docstring claimed O(beta^2). For a direction exactly
+  transverse to the boost the second-order term vanishes and the error is
+  arcsin(beta) - arctan(beta) = beta^3 / 2.
+
+        beta   transverse error  ratio to prev    oblique error  ratio to prev
+  ---------- ------------------ -------------- ---------------- --------------
+       1e-03       4.999999e-10            nan     2.503537e-07            nan
+       1e-02       4.999875e-07        999.975     2.535481e-05        101.276
+       1e-01       4.987687e-04        997.562     2.867019e-03        113.076
+
+==============================================================================
+defect 8 (criterion, Hypothesis): arcsin(beta) at beta = 1e-12
+==============================================================================
+  axis                               : [1.0, 1.0, 1.0] normalised
+  |beta|                             : 1e-12
+  arcsin(beta)                       : 1e-12 rad
+  float64 unit-vector resolution     : 2.220446049250313e-16
+  angle_relation                    : residual 8.113064303823435e-18 rad, 8.113064e-06 relative
+  momentum_boost                    : residual 8.113064303823435e-18 rad, 8.113064e-06 relative
+  event_worldline                   : residual 8.113064303823435e-18 rad, 8.113064e-06 relative
+  [PASS] the residual is below the float64 unit-vector resolution
+
+==============================================================================
+defect 9 (criterion, Hypothesis): three relative-only tolerances
+==============================================================================
+  closed form vs 2 v_perp / c, radius 400000.0 m
+    expected                         : 4.7506987823907895e-09 rad
+    measured                         : 4.750698776218289e-09 rad
+    absolute residual                : 6.172500313028885e-18 rad
+    relative residual                : 1.299283e-09
+
+  rotation invariance, same geometry, quarter-turn about +z by 1.0 rad
+    absolute residual                : 1.9759676410596312e-17 rad
+    relative residual                : 4.159320e-09
+
+  radial motion, radius 738448.0 m, range 92.245917 km
+    reference point-ahead angle      : 1.2434567574317502e-15 rad
+    FIRST CRITERION, fixed 1e-15 rad : FAILS
+    float64 direction resolution     : 2.4629954380690153e-14 rad
+  [PASS] the radial residual is below the geometry's own floor
+
+==============================================================================
+defect 10 (criterion, Hypothesis): reference vs closed form at a 12 km range
+==============================================================================
+  radius                             : 1037906.0 m
+  range                              : 12162.891341 m
+  point-ahead angle                  : 6.671167384654506e-09 rad
+  offset difference                  : 8.29631502385908e-15 rad
+  as a fraction of the angle         : 1.243608e-06
+  float64 direction resolution       : 2.6255000776818544e-13 rad
+  ratio of the floor to the residual : 31.646581
+  [PASS] the residual is below the geometry's own floor
+
+==============================================================================
+orbital beta, quoted in several places
+==============================================================================
+  600 km circular orbital speed      : 7557.865206533 m/s
+  beta                               : 2.521032469246712e-05
+
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

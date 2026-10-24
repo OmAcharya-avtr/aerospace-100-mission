@@ -1,0 +1,120 @@
+
+==============================================================================
+environment
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+cfdp-py          : not installed
+spacepackets     : not installed
+cpu cores        : 2
+repository root  : P077 (printed relatively; see validation/_bootstrap.py)
+
+cfdp-py and spacepackets are NOT installed in this environment. They are
+named in README.md as the mature implementations of the protocol itself and
+no number anywhere in this repository was taken from either package.
+
+==============================================================================
+invocations
+==============================================================================
+PASS  info                                       exit 0  24 lines
+PASS  analytic, deferred-NAK                     exit 0  36 lines
+PASS  analytic, unacknowledged                   exit 0  36 lines
+PASS  simulate one run                           exit 0  36 lines
+PASS  simulate over contact windows              exit 0  36 lines
+PASS  distribution with the closed-form check    exit 0  54 lines
+PASS  compare every mode                         exit 0  27 lines
+
+invocations run                : 7
+failures                       : 0
+
+==============================================================================
+rejected input
+==============================================================================
+A measurement harness has to refuse a scenario it cannot measure rather
+than measure a different one.
+
+PASS  closed form with outages declared          the closed form assumes no outages (A2); this link declare
+PASS  closed form with contact windows declared  the closed form assumes continuous contact (A2); this link
+PASS  unknown transfer mode                      unknown transfer mode 'selective_repeat'; expected one of 
+PASS  half-declared outage process               --mean-up-s and --mean-down-s must be given together
+PASS  loss probability of one                    pdu_loss_probability must lie in [0, 1); got 1.0. A loss p
+PASS  negative light time                        one_way_light_time_s must be a non-negative finite number 
+PASS  zero-byte file                             file_bytes must be a positive integer; got 0
+
+rejections checked             : 7
+failures                       : 0
+
+==============================================================================
+full transcript: python -m relfiledelivery info
+==============================================================================
+relfiledelivery 0.1.0
+
+What a file transfer costs over an intermittent link, measured against a
+declared link model. A measurement harness, not a protocol.
+
+This is NOT a CFDP implementation. For the CCSDS File Delivery Protocol and
+its packet formats use cfdp-py and spacepackets.
+
+modes:
+  unacknowledged
+  deferred_nak
+  immediate_nak
+
+declared modelling choices (see relfiledelivery.simulate):
+  M1 a PDU is never split across a contact boundary
+  M2 a PDU whose transmission intersects an outage is lost in full
+  M3 the sender transmits during an outage
+  M4 control PDUs are never lost; no NAK timer is modelled
+  M5 immediate-NAK reveals a gap at the next successful arrival
+  M6 delivery time is when the receiver holds the file
+  M7 the return link is gated by the same contact windows
+
+Research grade. Not flight-qualified, not certified, not approved for
+operational aerospace use.
+
+==============================================================================
+full transcript: python -m relfiledelivery compare --file-bytes 262144 --loss 0.05 --runs 200
+==============================================================================
+
+==============================================================================
+declared scenario
+==============================================================================
+file size               : 262144 bytes
+PDU payload             : 1024 bytes
+PDU header              : 12 bytes
+PDU count               : 256
+last PDU payload        : 1024 bytes
+clean-pass wire bytes   : 265216 bytes (overhead ratio 1.011719)
+forward rate            : 1e+06 bit/s
+return rate             : 10000 bit/s
+asymmetry (fwd/ret)     : 100
+one-way light time      : 0.25 s
+independent PDU loss    : 0.05
+outage process          : none (no-outage limit)
+contact                 : continuous
+availability            : 1.000000
+
+==============================================================================
+modes compared, quantiles and tail; no mean
+==============================================================================
+mode              complete     q0.50 s     q0.95 s       max s   max/med  overhead      tx
+------------------------------------------------------------------------------------------
+unacknowledged      0.0000         n/a         n/a         n/a       n/a    1.0117     256
+deferred_nak        1.0000      3.0640      3.6567      4.7014    1.5344    1.0640     269
+immediate_nak       1.0000      2.9354      3.4911      4.1168    1.4025    1.0663     269
+
+==============================================================================
+summary
+==============================================================================
+PASS  every invocation exits zero and prints what it claims
+PASS  every invalid scenario is refused with an actionable message
+
+output written to validation/validate_cli_output.txt

@@ -1,0 +1,101 @@
+timetransfer validation 1 -- symmetric-delay estimator and its closed-form bias
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+allantools       : not installed  (NOT used; Allan deviation is implemented in timetransfer.allan)
+ntplib           : not installed  (NOT used; no number here comes from it)
+cpu cores        : 2
+product root     : P079 (printed relatively; see validation/_bootstrap.py)
+fast probe mode  : False (divisor 1)
+
+==============================================================================
+1a. exactness under symmetry, constructed in integer nanoseconds
+==============================================================================
+    theta [ns]       d [ns]    turn [ns]       estimate [s]      error [s]
+   -1000000000            1       100000 -1.000000000000e+00      0.000e+00
+   -1000000000    250000000       100000 -1.000000000000e+00      0.000e+00
+      -1000000            1       100000 -1.000000000000e-03      0.000e+00
+      -1000000    250000000       100000 -1.000000000000e-03      0.000e+00
+             0            1       100000 0.000000000000e+00      0.000e+00
+             0    250000000       100000 0.000000000000e+00      0.000e+00
+       1000000            1       100000 1.000000000000e-03      0.000e+00
+       1000000    250000000       100000 1.000000000000e-03      0.000e+00
+     999999999            1       100000 9.999999990000e-01      0.000e+00
+     999999999    250000000       100000 9.999999990000e-01      0.000e+00
+
+worst |error| over 60 constructed exchanges : 0.000e+00 s
+tolerance (one float division of an int64 ns): 1.000e-15 s
+PASS
+
+==============================================================================
+1b. bias against a declared static asymmetry
+==============================================================================
+   asymmetry [s]    A/2 closed form [s]     measured error [s]   difference [s]
+   -1.600000e-03    -8.000000000000e-04    -8.000000000000e-04       -1.084e-19
+   -8.000000e-04    -4.000000000000e-04    -4.000000000000e-04       -5.421e-20
+   -2.000000e-04    -1.000000000000e-04    -1.000000000000e-04       -5.421e-20
+    0.000000e+00     0.000000000000e+00     0.000000000000e+00        0.000e+00
+    2.000000e-04     1.000000000000e-04     1.000000000000e-04        5.421e-20
+    8.000000e-04     4.000000000000e-04     4.000000000000e-04        5.421e-20
+    1.600000e-03     8.000000000000e-04     8.000000000000e-04        1.084e-19
+
+worst |measured - A/2| : 1.084e-19 s
+tolerance              : 2.000e-09 s (one timestamp quantisation step is 1 ns,
+                         and the estimator differences four of them)
+PASS
+
+==============================================================================
+1c. fitted slope of error against asymmetry
+==============================================================================
+fitted slope     : 0.500000000000
+closed form      : 0.500000000000  (equation (5), exactly one half)
+slope error      : 1.110e-16
+fitted intercept : -3.771e-21 s
+PASS
+
+==============================================================================
+1d. the bias is independent of delay, turnaround and offset
+==============================================================================
+declared asymmetry 8.000000e-04 s -> closed-form bias 4.000000000e-04 s
+
+        swept quantity          value      measured bias [s]   difference [s]
+     one-way floor [s]      1.000e-03     4.000000000000e-04        5.421e-20
+     one-way floor [s]      5.000e-03     4.000000000000e-04        5.421e-20
+     one-way floor [s]      5.000e-02     4.000000000000e-04        5.421e-20
+        turnaround [s]      0.000e+00     4.000000000000e-04        5.421e-20
+        turnaround [s]      1.000e-04     4.000000000000e-04        5.421e-20
+        turnaround [s]      1.000e-01     4.000000000000e-04        5.421e-20
+       true offset [s]     -1.000e-01     4.000000000000e-04        1.144e-17
+       true offset [s]      0.000e+00     4.000000000000e-04        5.421e-20
+       true offset [s]      1.000e-03     4.000000000000e-04        5.421e-20
+       true offset [s]      1.000e-01     4.000000000000e-04       -2.439e-18
+
+worst departure : 1.144e-17 s
+PASS
+
+==============================================================================
+1e. averaging reduces the statistical term and not the bias
+==============================================================================
+jitter is switched on here, so there is a statistical term to reduce.
+
+   n exchanges       mean error [s]      minus A/2 [s]   sd of per-exchange error [s]
+            20   3.838524250000e-04         -1.615e-05                   3.125184e-04
+           200   4.265382300000e-04          2.654e-05                   1.969440e-04
+          2000   4.055177927500e-04          5.518e-06                   2.020265e-04
+
+spread of the mean error across n : 4.269e-05 s
+The mean error does not approach zero as n grows. That is the point: the
+static asymmetry enters the observable difference identically to the offset,
+so no amount of data separates them.
+
+==============================================================================
+summary
+==============================================================================
+hard failures : 0

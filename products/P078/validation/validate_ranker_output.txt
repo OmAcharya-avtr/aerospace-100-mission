@@ -1,0 +1,222 @@
+==============================================================================
+cmdguard -- learned risk ranker against flag and resource orderings
+==============================================================================
+
+environment this output was measured on:
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scikit-learn     : 1.9.1
+  pyyaml           : 6.0.3
+  scipy            : 1.18.1
+  matplotlib       : 3.10.8
+  joblib           : 1.5.2
+  pandas           : 3.0.5
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  cpu cores        : 2
+  repository root  : P078 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the split
+==============================================================================
+  training seeds : 70 (0 .. 69)
+  held-out seeds : 35 (100000 .. 100034)
+  [PASS] the seed ranges are disjoint -- checked by assert_disjoint
+  training cases : 630
+  held-out cases : 315
+  corpus build   : 1.240 s wall clock (unstable)
+  held-out command occurrences      : 11375
+  of those involved in a violation  : 1015
+  positive fraction                 : 0.089231
+
+  "involved" means the step either tripped a violation or is named in the
+  provenance trace of one: the set a reviewer has to read to understand the
+  findings, which is what a triage ordering is for.
+
+==============================================================================
+2. precision and recall at k -- full feature set
+==============================================================================
+  fit wall clock   : 2.560 s (unstable)
+  scoring wall clock: 8.623 s (unstable)
+  mean steps per held-out case    : 36.11
+  mean involved steps per case    : 3.22
+
+  ordering                 k   precision    recall  scored  excluded
+  learned                  5    0.270199  0.492905     302        13
+  irreversibility_flag     5    0.156954  0.256661     302        13
+  resource_draw            5    0.183444  0.264971     302        13
+  random_control           5    0.071523  0.099441     302        13
+
+  learned                 10    0.210265  0.698142     302        13
+  irreversibility_flag    10    0.150331  0.449133     302        13
+  resource_draw           10    0.157285  0.448804     302        13
+  random_control          10    0.084106  0.232377     302        13
+
+  learned                 20    0.144040  0.883113     302        13
+  irreversibility_flag    20    0.102483  0.598273     302        13
+  resource_draw           20    0.102152  0.595513     302        13
+  random_control          20    0.098344  0.576683     302        13
+
+  paired differences, learned minus baseline, by case, with a percentile
+  bootstrap 95 per cent interval over 4000 resamples of the held-out cases:
+
+    k=5   learned - irreversibility_flag   +0.113245 [+0.088079, +0.138411] learned ahead
+    k=5   learned - resource_draw          +0.086755 [+0.062252, +0.111921] learned ahead
+    k=5   learned - random_control         +0.198675 [+0.176821, +0.222517] learned ahead
+
+    k=10  learned - irreversibility_flag   +0.059934 [+0.048344, +0.071854] learned ahead
+    k=10  learned - resource_draw          +0.052980 [+0.041060, +0.064901] learned ahead
+    k=10  learned - random_control         +0.126159 [+0.112252, +0.140728] learned ahead
+
+    k=20  learned - irreversibility_flag   +0.041556 [+0.035762, +0.047355] learned ahead
+    k=20  learned - resource_draw          +0.041887 [+0.036093, +0.047848] learned ahead
+    k=20  learned - random_control         +0.045695 [+0.038245, +0.053477] learned ahead
+
+  best ordering at k=5: learned
+  best ordering at k=10: learned
+  best ordering at k=20: learned
+
+==============================================================================
+2. precision and recall at k -- timing features withheld
+==============================================================================
+  withheld: dt_prev_s, dt_next_s, neighbours_within_60s
+  fit wall clock   : 3.073 s (unstable)
+  scoring wall clock: 6.953 s (unstable)
+  mean steps per held-out case    : 36.11
+  mean involved steps per case    : 3.22
+
+  ordering                 k   precision    recall  scored  excluded
+  learned                  5    0.213907  0.363070     302        13
+  irreversibility_flag     5    0.156954  0.256661     302        13
+  resource_draw            5    0.183444  0.264971     302        13
+  random_control           5    0.071523  0.099441     302        13
+
+  learned                 10    0.174503  0.529963     302        13
+  irreversibility_flag    10    0.150331  0.449133     302        13
+  resource_draw           10    0.157285  0.448804     302        13
+  random_control          10    0.084106  0.232377     302        13
+
+  learned                 20    0.135265  0.814182     302        13
+  irreversibility_flag    20    0.102483  0.598273     302        13
+  resource_draw           20    0.102152  0.595513     302        13
+  random_control          20    0.098344  0.576683     302        13
+
+  paired differences, learned minus baseline, by case, with a percentile
+  bootstrap 95 per cent interval over 4000 resamples of the held-out cases:
+
+    k=5   learned - irreversibility_flag   +0.056954 [+0.032450, +0.081457] learned ahead
+    k=5   learned - resource_draw          +0.030464 [+0.005298, +0.056291] learned ahead
+    k=5   learned - random_control         +0.142384 [+0.119205, +0.166242] learned ahead
+
+    k=10  learned - irreversibility_flag   +0.024172 [+0.011589, +0.037086] learned ahead
+    k=10  learned - resource_draw          +0.017219 [+0.004967, +0.029470] learned ahead
+    k=10  learned - random_control         +0.090397 [+0.074834, +0.106623] learned ahead
+
+    k=20  learned - irreversibility_flag   +0.032781 [+0.026325, +0.039073] learned ahead
+    k=20  learned - resource_draw          +0.033113 [+0.026656, +0.039404] learned ahead
+    k=20  learned - random_control         +0.036921 [+0.029139, +0.044868] learned ahead
+
+  best ordering at k=5: learned
+  best ordering at k=10: learned
+  best ordering at k=20: learned
+
+==============================================================================
+3. the ablation, side by side
+==============================================================================
+    k  learned full  learned ablated      flag  resource    random
+    5      0.270199         0.213907  0.156954  0.183444  0.071523
+   10      0.210265         0.174503  0.150331  0.157285  0.084106
+   20      0.144040         0.135265  0.102483  0.102152  0.098344
+
+  Four of the nine defect families edit the time column -- compress_gap,
+  overlap_exclusion, resource_spike and the tail shift in irreversible_early
+  -- so inter-command spacing carries the signature of the injection process.
+  The drop between the two learned columns is the size of that effect on this
+  corpus. It is a property of the generator, not of command sequences, and
+  the ablated column is the more conservative number to quote.
+
+    k=5   precision attributable to the timing features: +0.056291
+    k=10  precision attributable to the timing features: +0.035762
+    k=20  precision attributable to the timing features: +0.008775
+
+==============================================================================
+4. the baselines are not noise
+==============================================================================
+  k=5   irreversibility_flag   - random_control +0.085430 [+0.061589, +0.110596]
+  k=5   resource_draw          - random_control +0.111921 [+0.086093, +0.137748]
+  k=10  irreversibility_flag   - random_control +0.066225 [+0.053642, +0.079801]
+  k=10  resource_draw          - random_control +0.073179 [+0.059925, +0.086755]
+  k=20  irreversibility_flag   - random_control +0.004139 [-0.002649, +0.010762]
+  k=20  resource_draw          - random_control +0.003808 [-0.003146, +0.010596]
+
+  Read the intervals, not the means. Both free orderings beat the random
+  control at k=5 and k=10 by a margin whose interval excludes zero, so a sort
+  over an irreversibility flag somebody already wrote into the command
+  dictionary is a real triage ordering at those cut-offs. At k=20 the interval
+  includes zero for both: with twenty of thirty-six steps already shown, the
+  free orderings are NOT distinguished from a shuffle on this corpus, and that
+  is reported rather than rounded up to a win.
+
+==============================================================================
+5. feature importance, full feature set
+==============================================================================
+  rows 22750, positives 2338, positive fraction 0.102769
+  trees 200, max depth 8, seed 20261024
+  fit wall clock 2.636 s (unstable)
+
+    dt_prev_s                    0.119267
+    dt_next_s                    0.112697
+    power_draw_w                 0.089800
+    draw_fraction_of_ceiling     0.081799
+    position_fraction            0.081796
+    n_preconditions              0.076939
+    min_gap_after_s              0.067916
+    neighbours_within_60s        0.061868
+    exclusion_group_size         0.048365
+    hold_s                       0.046859
+    n_effects                    0.046206
+    n_required_modes             0.032882
+    n_occurrences                0.032500
+    min_interval_s               0.028042
+    data_draw_mbps               0.026545
+    n_false_preconditions        0.016113
+    n_effects_false              0.010323
+    sets_mode                    0.008358
+    n_unverified_preconditions   0.008178
+    irreversible                 0.003546
+  [PASS] importances sum to one
+  [PASS] every declared feature is used
+
+==============================================================================
+6. the uncertainty output, measured rather than described
+==============================================================================
+  The ranker reports a spread beside each risk: the standard deviation of the
+  forest's per-tree probabilities. It is an ensemble dispersion and not a
+  calibrated interval. Two things are measured about it here.
+
+  mean spread on involved steps     : 0.167959
+  mean spread on uninvolved steps   : 0.134671
+  mean risk on involved steps       : 0.574477
+  mean risk on uninvolved steps     : 0.405401
+  [PASS] mean risk separates the two classes -- 0.574477 vs 0.405401
+
+  reliability of the risk, in deciles of predicted risk:
+  bin                  n   mean risk   observed        gap  mean spread
+  [0.0, 0.1)           0          --         --         --           --
+  [0.1, 0.2)         625    0.164592   0.004800  +0.159792     0.117066
+  [0.2, 0.3)        2452    0.257313   0.027732  +0.229581     0.110476
+  [0.3, 0.4)        2610    0.351050   0.037931  +0.313119     0.132399
+  [0.4, 0.5)        2206    0.448457   0.079782  +0.368674     0.163902
+  [0.5, 0.6)        1943    0.555974   0.134843  +0.421131     0.132090
+  [0.6, 0.7)         947    0.635078   0.175290  +0.459787     0.171566
+  [0.7, 0.8)         418    0.746513   0.289474  +0.457039     0.164520
+  [0.8, 0.9)         121    0.826158   0.553719  +0.272439     0.157788
+  [0.9, 1.0)          53    0.943860   1.000000  -0.056140     0.141463
+
+  weighted mean absolute calibration gap: 0.331780
+  This is a calibration measurement, not a calibration claim. The model card
+  records it and says the model is not calibrated.
+
+------------------------------------------------------------------------------
+FAILED CHECKS: none

@@ -1,0 +1,152 @@
+
+==============================================================================
+environment
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+cfdp-py          : not installed
+spacepackets     : not installed
+cpu cores        : 2
+repository root  : P077 (printed relatively; see validation/_bootstrap.py)
+
+cfdp-py and spacepackets are NOT installed in this environment. They are
+named in README.md as the mature implementations of the protocol itself and
+no number anywhere in this repository was taken from either package.
+
+==============================================================================
+check 1 and 2: aggregate counter against the per-unit attempt array
+==============================================================================
+Integer counts of the same events, so they must agree exactly. Checked on
+every run across every mode, every loss probability and every hard link,
+including runs that did not complete.
+
+               link            mode   runs  exact matches  worst |diff|
+-----------------------------------------------------------------------
+  continuous p=0.02  unacknowledged     80             80             0
+  continuous p=0.02    deferred_nak     80             80             0
+  continuous p=0.02   immediate_nak     80             80             0
+  continuous p=0.10  unacknowledged     80             80             0
+  continuous p=0.10    deferred_nak     80             80             0
+  continuous p=0.10   immediate_nak     80             80             0
+  continuous p=0.25  unacknowledged     80             80             0
+  continuous p=0.25    deferred_nak     80             80             0
+  continuous p=0.25   immediate_nak     80             80             0
+  continuous p=0.40  unacknowledged     80             80             0
+  continuous p=0.40    deferred_nak     80             80             0
+  continuous p=0.40   immediate_nak     80             80             0
+  bursty continuous  unacknowledged     80             80             0
+  bursty continuous    deferred_nak     80             80             0
+  bursty continuous   immediate_nak     80             80             0
+    windowed bursty  unacknowledged     80             80             0
+    windowed bursty    deferred_nak     80             80             0
+    windowed bursty   immediate_nak     80             80             0
+        growing NAK  unacknowledged     80             80             0
+        growing NAK    deferred_nak     80             80             0
+        growing NAK   immediate_nak     80             80             0
+
+runs checked                   : 1680
+discrepancies                  : 0
+
+==============================================================================
+check 3: sample mean transmission count against n / (1 - p)
+==============================================================================
+Exact under A1, mode-independent, and independent of the timing model.
+Only the outage-free continuous links are in scope: with outages the sender
+transmits into a dead link (M3) and the expectation no longer applies, which
+is measured separately below.
+
+     p            mode       exact  sample mean   std err  diff/se   ok
+-----------------------------------------------------------------------
+  0.02    deferred_nak    122.4490     122.4050    0.0636     0.69 True
+  0.02   immediate_nak    122.4490     122.4050    0.0636     0.69 True
+  0.10    deferred_nak    133.3333     133.5617    0.1525     1.50 True
+  0.10   immediate_nak    133.3333     133.5617    0.1525     1.50 True
+  0.25    deferred_nak    160.0000     160.1333    0.3003     0.44 True
+  0.25   immediate_nak    160.0000     160.1333    0.3003     0.44 True
+  0.40    deferred_nak    200.0000     199.4667    0.4666     1.14 True
+  0.40   immediate_nak    200.0000     199.4667    0.4666     1.14 True
+
+worst discrepancy              : 1.4971 standard errors
+tolerance                      : 4.0 standard errors
+
+==============================================================================
+how far the closed-form overhead is from the measured overhead with outages
+==============================================================================
+Under M3 the sender keeps transmitting during an outage, so the obvious
+guess is that the transmission count inflates by one over the outage duty
+cycle. Measured below against the closed-form expectation, as a median and
+as a mean, with the naive factor beside them. The fraction of runs that saw
+no outage at all is the column that explains the answer.
+
+               link    duty     exact    median      mean  med/exact  mean/exact   1/duty  no outage
+----------------------------------------------------------------------------------------------------
+  bursty continuous  0.7500    126.32    130.00    150.12     1.0292      1.1885   1.3333     0.3550
+    windowed bursty  0.7143    126.32    129.00    149.77     1.0212      1.1857   1.4000     0.5350
+        growing NAK  1.0000    141.18    141.00    141.29     0.9987      1.0008   1.0000     1.0000
+
+The naive one-over-duty-cycle factor over-predicts on every row here, and
+the reason is in the last column: the clean-pass time of this file on this
+link is about half a second while the mean outage-free interval is one to
+two seconds, so a large fraction of runs never meets an outage at all and
+the ones that do pay far more than their share. An inflation factor derived
+from a duty cycle assumes the outage process is fine-grained relative to the
+transfer; when it is not, the duty cycle describes the long run and the
+transfer does not live in the long run.
+
+  bursty continuous   measured 1.1885, naive 1.3333, naive over-predicts by 12.2 per cent
+  windowed bursty     measured 1.1857, naive 1.4000, naive over-predicts by 18.1 per cent
+
+This is the same failure the analytic delivery-time extension has, measured
+on the transmission count instead of on the time, and it is the single
+clearest reason the learned predictor earns anything at all in the
+correlated-outage regime.
+
+==============================================================================
+wire-byte accounting
+==============================================================================
+Forward data bytes recomputed from the attempt array, plus the charged
+control bytes, must equal the aggregate byte counter exactly.
+
+               link            mode   runs  byte matches  min overhead     floor   ok
+-------------------------------------------------------------------------------------
+  continuous p=0.02  unacknowledged     40            40      1.023440  1.023440 True
+  continuous p=0.02    deferred_nak     40            40      1.023440  1.023440 True
+  continuous p=0.02   immediate_nak     40            40      1.023440  1.023440 True
+  continuous p=0.10  unacknowledged     40            40           n/a  1.023440 True
+  continuous p=0.10    deferred_nak     40            40      1.075920  1.023440 True
+  continuous p=0.10   immediate_nak     40            40      1.079827  1.023440 True
+  continuous p=0.25  unacknowledged     40            40           n/a  1.023440 True
+  continuous p=0.25    deferred_nak     40            40      1.257647  1.023440 True
+  continuous p=0.25   immediate_nak     40            40      1.277961  1.023440 True
+  continuous p=0.40  unacknowledged     40            40           n/a  1.023440 True
+  continuous p=0.40    deferred_nak     40            40      1.514837  1.023440 True
+  continuous p=0.40   immediate_nak     40            40      1.554425  1.023440 True
+  bursty continuous  unacknowledged     40            40           n/a  1.023440 True
+  bursty continuous    deferred_nak     40            40      1.041802  1.023440 True
+  bursty continuous   immediate_nak     40            40      1.042583  1.023440 True
+    windowed bursty  unacknowledged     40            40           n/a  1.023440 True
+    windowed bursty    deferred_nak     40            40      1.041802  1.023440 True
+    windowed bursty   immediate_nak     40            40      1.042583  1.023440 True
+        growing NAK  unacknowledged     40            40           n/a  1.023440 True
+        growing NAK    deferred_nak     40            40      1.110690  1.023440 True
+        growing NAK   immediate_nak     40            40      1.118764  1.023440 True
+
+byte-accounting mismatches     : 0
+lossless overhead floor        : 1.023440171
+
+==============================================================================
+summary
+==============================================================================
+PASS  aggregate counter equals the per-unit attempt sum on every run
+PASS  sample mean transmission count matches n / (1 - p)
+PASS  wire-byte accounting closes exactly
+
+output written to validation/validate_retransmission_accounting_output.txt

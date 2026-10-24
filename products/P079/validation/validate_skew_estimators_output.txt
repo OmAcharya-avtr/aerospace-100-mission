@@ -1,0 +1,102 @@
+timetransfer validation 4 -- least-squares and Kalman skew estimation
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+allantools       : not installed  (NOT used; Allan deviation is implemented in timetransfer.allan)
+ntplib           : not installed  (NOT used; no number here comes from it)
+cpu cores        : 2
+product root     : P079 (printed relatively; see validation/_bootstrap.py)
+fast probe mode  : False (divisor 1)
+
+declared offset : 1.250000000e-03 s
+declared skew   : 1.800000000e-06 s/s
+declared drift  : 2.000000000e-12 1/s
+
+==============================================================================
+4a. exact recovery on a noiseless link
+==============================================================================
+least squares, order 2:
+n points        : 800 (order 2, dof 797)
+offset at t_ref : 1.969268688e-03 +- 1.151e-11 s
+skew            : 1.800799029e-06 +- 3.324e-14 s/s
+drift           : 2.000076100e-12 +- 3.218e-16 1/s
+residual sigma  : 2.170904e-10 s
+
+offset error at t_ref : -6.439e-12 s
+skew error            : +1.922e-14 s/s
+drift error           : +7.610e-17 1/s
+
+tolerance on the skew : 1.000e-11 s/s (quantisation of 1 ns over the fitted span)
+PASS
+
+kalman, two states:
+n points              : 800 (2 states)
+R used                : 1.000000e-24 s^2
+final offset          : 2.688847500e-03 +- 1.000e-12 s
+final skew            : 1.800839067e-06 +- 3.882e-12 s/s
+mean normalised innov : 30.2245 (1.0 is consistent)
+
+==============================================================================
+4b. convergence under refinement
+==============================================================================
+40 seeded realisations per n, jitter scale 2.0e-04 s, timestamping noise 2.0e-08 s
+
+      n   rms skew error [s/s]   mean reported u [s/s]  rms/reported   rms offset error [s]
+     50           2.046504e-06            1.947669e-06        1.0507           2.733535e-05
+    100           6.937299e-07            6.938561e-07        0.9998           2.010271e-05
+    200           2.193496e-07            2.424887e-07        0.9046           1.222409e-05
+    400           7.865577e-08            8.651939e-08        0.9091           9.957429e-06
+    800           3.084526e-08            3.053906e-08        1.0100           6.104090e-06
+   1600           1.023571e-08            1.083099e-08        0.9450           4.973457e-06
+
+fitted convergence exponent : -1.5192 +- 0.0218
+theory for a straight-line slope with independent noise on equally spaced
+points: var(a) = 12 sigma^2 / (n (n^2 - 1) dt^2), so the standard error falls
+as n^-3/2, i.e. an exponent of -1.5000.
+departure from theory       : 0.0192
+PASS
+
+==============================================================================
+4c. the Kalman consistency diagnostic, measured and reported
+==============================================================================
+The measurement variance R is taken from the data by a median-absolute-
+deviation estimator with the Gaussian consistency factor 1/0.67449. The
+queueing delay is a right-skewed gamma, so the MAD under-states its standard
+deviation and the filter is expected to be over-confident. The measured
+factor is below, and the implied inflation on the Kalman offset uncertainty
+is its square root.
+
+  jitter scale [s]  gamma shape   mean NIS   implied u factor     R used [s^2]
+         0.000e+00          2.0 87882.1064           296.4492     1.000000e-24
+         5.000e-05          2.0     2.6547             1.6293     9.532774e-10
+         2.000e-04          2.0     2.5347             1.5921     1.597424e-08
+         1.000e-03          2.0     2.5736             1.6042     3.933348e-07
+
+1.0000 is a consistent filter. REPORTED, NOT A FAILURE: the departure is a
+property of using a Gaussian-calibrated robust scale on a skewed
+distribution, it is stated in the module docstring, and a caller who needs a
+consistent filter should supply R explicitly.
+
+==============================================================================
+4d. least squares against Kalman on the same data
+==============================================================================
+      n      ls offset [s]     ls u [s]      kf offset [s]     kf u [s]   |ls - kf| [s]
+    100    1.468667807e-03    4.283e-05    1.468667773e-03    3.101e-05    3.436033e-11
+    400    1.952518631e-03    2.024e-05    1.952518630e-03    1.303e-05    1.048446e-12
+   1600    4.128069564e-03    1.017e-05    4.128069564e-03    6.536e-06    3.618755e-13
+
+Both are evaluated at the last exchange epoch. They are different estimators
+with different assumptions and are not expected to agree exactly; the table
+shows how far apart they are rather than asserting that they are not.
+
+==============================================================================
+summary
+==============================================================================
+hard failures : 0

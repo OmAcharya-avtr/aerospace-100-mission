@@ -1,0 +1,187 @@
+
+==============================================================================
+light-time solution: iterated against the exact quadratic root
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  sgp4             : 2.27
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  astropy          : not installed
+  cpu cores        : 2
+  repository root  : P076 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the exact relativistic case, hand-calculable
+==============================================================================
+  Remote one light-second away along +x, moving at 0.6 c along +y, local at
+  the origin. |[c, 0.6 c tau, 0]| = c tau gives tau = 1 / sqrt(1 - 0.36)
+  = 1.25 s exactly, in both directions because d . v = 0.
+
+  transmit  closed form   : 1.250000000000000 s
+  transmit  iterated      : 1.249999999999999 s
+  transmit  iterations    : 33
+  transmit  residual      : 2.220446e-16 s
+  [PASS] transmit light time is 1.25 s to 1e-14 relative -- closed form 1.250000000000000 s
+  receive   closed form   : 1.250000000000000 s
+  receive   iterated      : 1.249999999999999 s
+  receive   iterations    : 33
+  receive   residual      : 2.220446e-16 s
+  [PASS] receive light time is 1.25 s to 1e-14 relative -- closed form 1.250000000000000 s
+
+  At beta = 0.6 the fixed-point map contracts by only about 0.6 per step, so
+  the 30-iteration default cap does not reach the default 1e-15 s tolerance.
+  default cap converged              : False
+  default cap residual               : 7.105427e-15 s
+  [PASS] the solver reports non-convergence rather than claiming it
+
+==============================================================================
+2. iterated vs closed form over a seeded straight-line family
+==============================================================================
+  samples (each direction)           : 400
+  worst relative difference          : 6.492446e-16
+  worst iteration count              : 4
+  [PASS] iterated light time matches the closed form to 1e-14 relative -- worst 6.492446e-16
+
+==============================================================================
+3. convergence history on the three named geometries
+==============================================================================
+  The iterate sequence, the residual at each truncation, and the range
+  error the residual corresponds to.
+
+  leo_crossing: range 2085.599523 km, nominal light time 0.006956811 s
+    receive
+       cap                tau / s   residual / s  range error / m
+         0      0.006956811177851     -1.734e-07       -5.199e+01
+         1      0.006956637763700      4.323e-12        1.296e-03
+         2      0.006956637768023     -1.084e-16       -3.250e-08
+         3      0.006956637768023      0.000e+00        0.000e+00
+         4      0.006956637768023      0.000e+00        0.000e+00
+    transmit
+       cap                tau / s   residual / s  range error / m
+         0      0.006956811177851      1.734e-07        5.199e+01
+         1      0.006956984591903      4.323e-12        1.296e-03
+         2      0.006956984596226      1.084e-16        3.250e-08
+         3      0.006956984596226      0.000e+00        0.000e+00
+         4      0.006956984596226      0.000e+00        0.000e+00
+    converged tau_rx                 : 0.006956637768023 s (3 iterations)
+    converged tau_tx                 : 0.006956984596226 s (3 iterations)
+    tau_tx - tau_rx                  : 3.468282e-07 s
+    light-time range difference      : 103.976479 m
+  [PASS] leo_crossing receive solution converged
+  [PASS] leo_crossing transmit solution converged
+  [PASS] leo_crossing transmit residual is below 1e-17 s at the solution -- 0.000e+00 s
+
+  leo_trailing: range 2085.599523 km, nominal light time 0.006956811 s
+    receive
+       cap                tau / s   residual / s  range error / m
+         0      0.006956811177851     -1.734e-07       -5.199e+01
+         1      0.006956637763700      4.323e-12        1.296e-03
+         2      0.006956637768023     -1.093e-16       -3.276e-08
+         3      0.006956637768023      0.000e+00        0.000e+00
+         4      0.006956637768023      0.000e+00        0.000e+00
+    transmit
+       cap                tau / s   residual / s  range error / m
+         0      0.006956811177851      1.734e-07        5.199e+01
+         1      0.006956984591903      4.323e-12        1.296e-03
+         2      0.006956984596226      1.084e-16        3.250e-08
+         3      0.006956984596226      0.000e+00        0.000e+00
+         4      0.006956984596226      0.000e+00        0.000e+00
+    converged tau_rx                 : 0.006956637768023 s (3 iterations)
+    converged tau_tx                 : 0.006956984596226 s (3 iterations)
+    tau_tx - tau_rx                  : 3.468282e-07 s
+    light-time range difference      : 103.976479 m
+  [PASS] leo_trailing receive solution converged
+  [PASS] leo_trailing transmit solution converged
+  [PASS] leo_trailing transmit residual is below 1e-17 s at the solution -- 0.000e+00 s
+
+  geo_relay_to_leo: range 35840.013804 km, nominal light time 0.119549418 s
+    receive
+       cap                tau / s   residual / s  range error / m
+         0      0.119549417764933     -1.381e-06       -4.139e+02
+         1      0.119548037211071      1.594e-11        4.779e-03
+         2      0.119548037227011     -1.943e-16       -5.825e-08
+         3      0.119548037227011      0.000e+00        0.000e+00
+         4      0.119548037227011      0.000e+00        0.000e+00
+    transmit
+       cap                tau / s   residual / s  range error / m
+         0      0.119549417764933      1.381e-06        4.140e+02
+         1      0.119550798725707      1.595e-11        4.783e-03
+         2      0.119550798741662      1.943e-16        5.825e-08
+         3      0.119550798741662      0.000e+00        0.000e+00
+         4      0.119550798741662      0.000e+00        0.000e+00
+    converged tau_rx                 : 0.119548037227011 s (3 iterations)
+    converged tau_tx                 : 0.119550798741662 s (3 iterations)
+    tau_tx - tau_rx                  : 2.761515e-06 s
+    light-time range difference      : 827.881265 m
+  [PASS] geo_relay_to_leo receive solution converged
+  [PASS] geo_relay_to_leo transmit solution converged
+  [PASS] geo_relay_to_leo transmit residual is below 1e-17 s at the solution -- 0.000e+00 s
+
+==============================================================================
+4. contraction factor against the remote terminal's radial speed over c
+==============================================================================
+  The fixed-point map is tau -> |r_remote(t +/- tau) - r_local| / c with
+  r_local HELD FIXED, because the point-ahead angle is defined at one event
+  at the local terminal. Its derivative is therefore +/- (v_remote . n) / c
+  and NOT (v_rel . n) / c: the contraction is driven by the remote
+  terminal's radial velocity in the frame the states are given in, not by
+  the relative radial velocity. Both candidates are printed, because the
+  first version of this check used the relative one and the measurement
+  disagreed with it by a factor of two on one geometry and by twelve orders
+  of magnitude on another.
+
+  scenario               |v_rem,r| / c   |v_rel,r| / c  measured ratio
+  -------------------- --------------- --------------- ---------------
+  leo_crossing            2.492724e-05    1.246362e-05    2.492722e-05
+  [PASS] leo_crossing contraction factor matches |v_remote . n| / c to 1 per cent -- measured 2.492722e-05, predicted 2.492724e-05
+  leo_trailing            2.492724e-05    1.996338e-22    2.492722e-05
+  [PASS] leo_trailing contraction factor matches |v_remote . n| / c to 1 per cent -- measured 2.492722e-05, predicted 2.492724e-05
+  geo_relay_to_leo        1.154968e-05    1.106666e-05    1.155309e-05
+  [PASS] geo_relay_to_leo contraction factor matches |v_remote . n| / c to 1 per cent -- measured 1.155309e-05, predicted 1.154968e-05
+
+==============================================================================
+5. the receive and transmit light times bracket the geometric one
+==============================================================================
+  tau_rx < range / c < tau_tx for a receding pair and the reverse for an
+  approaching one; the geometric light time always lies between them.
+  seeded crosslinks checked          : 60
+  violations                         : 0
+  [PASS] the geometric light time is always bracketed
+
+==============================================================================
+6. the gap between the two light times
+==============================================================================
+  tau_tx - tau_rx = 2 (v_remote . n) tau / c to first order, for the same
+  reason as section 4. The leo_crossing and leo_trailing geometries share a
+  local terminal and a range and differ only in the remote plane, and their
+  remote radial velocities happen to be equal, so their light-time gaps are
+  equal too even though their RELATIVE radial velocities are 3736 m/s and
+  zero. That coincidence is what exposed the wrong predictor.
+
+  scenario                 measured gap / s    predicted gap / s        rel
+  -------------------- -------------------- -------------------- ----------
+  leo_crossing              3.468282028e-07      3.468282026e-07  6.007e-10
+  [PASS] leo_crossing light-time gap matches 2 (v_remote . n) tau / c to 1 per cent -- relative difference 6.007e-10
+  leo_trailing              3.468282028e-07      3.468282026e-07  6.032e-10
+  [PASS] leo_trailing light-time gap matches 2 (v_remote . n) tau / c to 1 per cent -- relative difference 6.032e-10
+  geo_relay_to_leo          2.761514651e-06      2.761514649e-06  7.557e-10
+  [PASS] geo_relay_to_leo light-time gap matches 2 (v_remote . n) tau / c to 1 per cent -- relative difference 7.557e-10
+
+  relative speeds, for context:
+    leo_crossing         |v_rel| =   7724.802 m/s
+    leo_trailing         |v_rel| =   2258.867 m/s
+    geo_relay_to_leo     |v_rel| =   6323.401 m/s
+
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

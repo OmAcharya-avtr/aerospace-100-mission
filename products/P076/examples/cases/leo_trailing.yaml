@@ -1,0 +1,36 @@
+# Two 600 km circular orbits in the same plane, 0.3 rad of arc apart.
+# The transverse relative velocity is small, so this is the geometry
+# with the smallest point-ahead angle of the three.
+# Regenerate with: python validation/regenerate_cases.py
+label: leo_trailing
+frame: unspecified Earth-centred inertial
+trajectory_model: kepler
+mu_m3_s2: 398600441800000.0
+local:
+  position_km:
+  - 6978.137
+  - 0.0
+  - 0.0
+  velocity_m_s:
+  - 0.0
+  - 7557.865206532812
+  - 0.0
+remote:
+  position_km:
+  - 6666.468902217489
+  - 2062.18048835114
+  - 0.0
+  velocity_m_s:
+  - -2233.5018877531243
+  - 7220.30441169363
+  - 0.0
+beam:
+  wavelength_nm: 1550.0
+  waist_mm: 25.0
+budget:
+  sigma_velocity_per_axis_m_s: 0.05
+  ephemeris_age_s: 30.0
+  light_time_iterations: 1
+  aberration_route: momentum_boost
+  angle_method: closed_form
+  loss_budget_db: 1.0

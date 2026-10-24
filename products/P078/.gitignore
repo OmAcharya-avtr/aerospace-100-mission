@@ -1,0 +1,26 @@
+# Scratch-file patterns for FILES are ANCHORED with a leading slash. A pattern
+# with no slash matches at ANY depth: a bare junit.xml in a product .gitignore
+# silently excluded a required committed fixture in P060 of this mission, and a
+# cold clone then failed with 17 failures and 9 errors while every local check
+# passed.
+#
+# Tool CACHE DIRECTORIES are the opposite case and are listed BOTH anchored and
+# unanchored, because pytest, hypothesis and ruff write their caches into
+# whatever directory they were invoked from. Running `python -m pytest .` from
+# tests/ creates tests/.hypothesis/, which an anchored pattern alone does not
+# cover; that directory then carries absolute build-machine paths in its
+# constants files. No fixture in this repository is named after any of them, so
+# matching them at any depth costs nothing.
+__pycache__/
+*.py[cod]
+*.egg-info/
+/build/
+/dist/
+/.venv/
+/venv/
+.pytest_cache/
+.hypothesis/
+.ruff_cache/
+/.coverage
+/htmlcov/
+/junit.xml

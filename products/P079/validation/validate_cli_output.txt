@@ -1,0 +1,237 @@
+timetransfer validation 11 -- the command-line interface
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+allantools       : not installed  (NOT used; Allan deviation is implemented in timetransfer.allan)
+ntplib           : not installed  (NOT used; no number here comes from it)
+cpu cores        : 2
+product root     : P079 (printed relatively; see validation/_bootstrap.py)
+fast probe mode  : False (divisor 1)
+
+==============================================================================
+$ python -m timetransfer version
+==============================================================================
+timetransfer 0.1.0
+validation: Level 3, hardware-pending
+
+exit status : 0 (expected 0)
+
+==============================================================================
+$ python -m timetransfer info
+==============================================================================
+timetransfer       : 0.1.0
+validation         : Level 3, hardware-pending
+python             : 3.13.17
+numpy              : 2.5.3
+scipy              : 1.18.1
+scikit-learn       : 1.9.1
+matplotlib         : 3.10.8
+
+not used by this package, and deliberately named here:
+allantools         : not installed
+ntplib             : not installed
+  the Allan deviation is implemented in timetransfer.allan and verified against
+  closed-form noise processes; no number here comes from either package.
+
+... (1 further lines)
+
+exit status : 0 (expected 0)
+
+==============================================================================
+$ python -m timetransfer simulate --n 600 --asymmetry 8e-4 --asymmetry-bound 1.6e-3
+==============================================================================
+attempted          : 600
+completed          : 600
+lost               : 0
+longest loss run   : 0
+stopped early      : False (at seq -1)
+backend            : simulated/n/a
+is_hardware        : False
+
+n exchanges          : 600
+offset mean          : 2.007357353e-03 s
+offset median        : 1.991588750e-03 s
+path delay min       : 5.057998500e-03 s
+skew correction bound: 1.239e-08 s (at a = 2.000e-06 s/s)
+
+least squares (baseline 2a)
+n points        : 600 (order 2, dof 597)
+offset at t_ref : 2.003860938e-03 +- 1.237e-05 s
+skew            : 1.981790599e-06 +- 4.760e-08 s/s
+drift           : 2.330949446e-10 +- 6.146e-10 1/s
+residual sigma  : 2.019610e-04 s
+
+kalman (baseline 2b)
+n points              : 600 (2 states)
+R used                : 1.612271e-08 s^2
+final offset          : 2.600903348e-03 +- 1.035e-05 s
+final skew            : 1.981790596e-06 +- 2.993e-08 s/s
+mean normalised innov : 2.5178 (1.0 is consistent)
+
+offset uncertainty budget
+offset              : 2.003860938e-03 s at t = 299.505451 s
+u statistical       : 1.269972e-05 s (x1.027 for r1 = +0.0265)
+u quantisation      : 1.210162e-11 s (delta = 1 ns)
+u asymmetry         : 4.618802e-04 s (declared_bound)
+u combined          : 4.620548e-04 s (dominant: asymmetry)
+expanded (k=1.96)   : 9.056274e-04 s
+n / n_effective     : 600 / 569.0
+
+simulation truth at epoch : 1.599008962e-03 s
+estimate minus truth      : +4.048520e-04 s
+declared static bias      : +4.000000e-04 s
+
+exit status : 0 (expected 0)
+
+==============================================================================
+$ python -m timetransfer allan --n 600 --noise-kind white_fm
+==============================================================================
+Allan deviation of the detrended offset residual
+noise kind white_fm (declared), N = 600, tau0 = 1 s
+      m      tau [s]          adev         lower         upper       edf   terms
+      1            1  3.441292e-04  3.218057e-04  3.698063e-04    398.45     598
+      2            2  1.731551e-04  1.610740e-04  1.872105e-04    340.77     596
+      4            4  8.734965e-05  7.967620e-05  9.667145e-05    206.50     592
+      8            8  4.056778e-05  3.580804e-05  4.679842e-05    108.21     584
+     16           16  2.189676e-05  1.843141e-05  2.697914e-05     53.90     568
+     32           32  1.052205e-05  8.288054e-06  1.441439e-05     26.05     536
+     64           64  5.058513e-06  3.629141e-06  8.341133e-06     12.04     472
+
+exit status : 0 (expected 0)
+
+==============================================================================
+$ python -m timetransfer parity --n 300 --asymmetry 8e-4 --loss 0.05
+==============================================================================
+simulated backend : simulated/n/a is_hardware=False
+device backend    : device/loopback is_hardware=False
+exchanges         : 286 / 286
+timestamp bytes   : equal
+digest            : False (identity fields differ by design)
+offset max |diff| : 0.000e+00 s
+
+exit status : 0 (expected 0)
+
+==============================================================================
+$ python -m timetransfer preflight --n 60
+==============================================================================
+                 check  result                   measured                   expected
+         backend_opens    PASS                     opened                     opened
+  hardware_declaration    PASS          is_hardware=False          is_hardware=False
+     timebase_monotone    PASS       0 regressions in 200              0 regressions
+   timebase_resolution    PASS                       1 ns              <= 1000000 ns
+        probe_acquires    PASS               24 exchanges             >= 8 exchanges
+    timestamp_ordering    PASS             0 out-of-order             0 out-of-order
+   round_trip_positive    PASS            min 10256232 ns                     > 0 ns
+           loss_budget    PASS                     0.0000                  <= 0.2500
+       estimate_finite    PASS              u=6.149e-05 s    finite offset and u > 0
+       state_unchanged    PASS            0 fields differ            0 fields differ
+backend simulated/n/a  is_hardware=False  10/10 passed
+
+exit status : 0 (expected 0)
+
+==============================================================================
+$ python -m timetransfer record --n 200 --loss 0.04 fixtures/_scratch_cli_recording.json
+==============================================================================
+wrote _scratch_cli_recording.json (193 exchanges, 7 lost)
+backend simulated/n/a is_hardware=False
+
+exit status : 0 (expected 0)
+
+==============================================================================
+$ python -m timetransfer dryrun fixtures/_scratch_cli_recording.json
+==============================================================================
+replayed exchanges   : 193 of 200 attempted
+driver operations    : 200
+hardware operations  : 0 (must be 0)
+refused operations   : 0
+backend driver       : guarded-recorded
+is_hardware          : False
+offset               : 1.223118769e-03 s
+u combined           : 1.425315e-05 s
+
+negative control (device operations forbidden)
+  completed  : 0 (must be 0)
+  refused    : 201 (must be > 0)
+  raised     : True (must be True)
+  passed     : True
+
+exit status : 0 (expected 0)
+
+==============================================================================
+$ python -m timetransfer bench --n 300 --repeats 3 --note validation run on a shared two-core container
+==============================================================================
+benchmark record: cli
+backend              : simulated/n/a
+is_hardware          : False
+environment note     : validation run on a shared two-core container
+
+host timing table (UNSTABLE: wall-clock on a shared container; every value moves between runs)
+                     stage      n     mean ms   median ms      p95 ms      min ms      max ms
+                   acquire      3     70.6769     70.3100     78.8359     61.9376     79.7832
+          two_way_estimate      3      0.1987      0.1788      0.2495      0.1601      0.2574
+         fit_least_squares      3      0.3867      0.3359      0.5011      0.3048      0.5195
+               kalman_skew      3     47.8452     45.9178     54.0396     42.6758     54.9420
+               allan_table      3      5.8157      7.0790      7.1258      3.2372      7.1310
+
+host resources
+  tracemalloc peak   : 101,194 B
+  maxrss             : 155,975,680 B (ru_maxrss interpreted as kibibytes (linux))
+
+host timebase
+  reported resolution: 1 ns
+  measured resolution: 96 ns
+  call-pair overhead : 64.0 ns
+  u_q(offset)        : 2.771281e-08 s
+
+LEVEL 4 HARDWARE TABLE -- EMPTY AND UNMEASURED
+                    figure          value      units       status
+     exchange_round_trip_s             --          s   unmeasured
+   timestamp_resolution_ns             --         ns   unmeasured
+       estimator_latency_s             --          s   unmeasured
+            peak_rss_bytes             --          B   unmeasured
+  cpu_utilisation_fraction             --          1   unmeasured
+  reason: no Jetson Orin Nano was reachable from the environment this product was built in; filling this row from simulation would be a false hardware claim
+
+host
+  allantools          : not installed
+  cpu_count_available : 2
+  machine             : x86_64
+  ntplib              : not installed
+  numpy               : 2.5.3
+  platform            : Linux-6.18.44-fc-v153-x86_64-with-glibc2.39
+  python              : 3.13.17
+... (10 further lines)
+
+exit status : 0 (expected 0)
+
+==============================================================================
+$ python -m timetransfer dryrun fixtures/does-not-exist.json
+==============================================================================
+stderr: FileNotFoundError: [Errno 2] No such file or directory: 'fixtures/does-not-exist.json'
+
+exit status : 2 (expected 2)
+
+==============================================================================
+$ python -m timetransfer simulate --n 10 --loss 0.999
+==============================================================================
+stderr: InsufficientDataError: acquisition completed 0 of 10 attempted exchanges, below the minimum of 8; longest loss run was 10
+
+exit status : 2 (expected 2)
+
+==============================================================================
+cleanup
+==============================================================================
+scratch recording removed : True (fixtures/_scratch_cli_recording.json)
+
+==============================================================================
+summary
+==============================================================================
+commands run  : 11
+hard failures : 0

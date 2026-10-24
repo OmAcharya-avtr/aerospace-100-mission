@@ -1,0 +1,99 @@
+==============================================================================
+cmdguard -- determinism under re-run
+==============================================================================
+
+environment this output was measured on:
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scikit-learn     : 1.9.1
+  pyyaml           : 6.0.3
+  scipy            : 1.18.1
+  matplotlib       : 3.10.8
+  joblib           : 1.5.2
+  pandas           : 3.0.5
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  cpu cores        : 2
+  repository root  : P078 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the forward walk, 20 repeats per case
+==============================================================================
+  case                            steps  violations                        fingerprint
+  nominal_science_pass                8           0   dd53efd77a7b437c9c52fc05851bb7bb
+  late_payload_enable                 7           1   e9817741436954fca68ff58d2dd6ac65
+  irreversible_before_verify          3           1   dea3a8d762a9a8861c233a46042e8ab9
+  irreversible_after_verify           3           0   a88611e0552c14a6a8ead8ed6eaa44b8
+  resource_and_exclusion              7           6   1ce08cd1574e25648ba7df09a0478517
+  [PASS] every hand case has one fingerprint over the repeats
+
+  generated cases, both effect policies:
+    cases x policies checked : 60
+    unstable                 : 0
+  [PASS] every generated case has one fingerprint under both policies
+
+==============================================================================
+2. the generator
+==============================================================================
+  seeds re-generated : 30
+  sequences differing: 0
+  [PASS] the generator is reproducible from its seed
+
+==============================================================================
+3. the injections
+==============================================================================
+  injections re-run : 108
+  differing         : 0
+  [PASS] every injection is reproducible from its seed
+
+==============================================================================
+4. the lint and the miss-rate measurement
+==============================================================================
+  lint per_command  digests over 3 runs: 1 (27f8f901dfd09f4e5854983b3008e13b)
+  [PASS] the per_command lint is deterministic
+  lint with_timing  digests over 3 runs: 1 (52ac3a1169181bbd0137d75da665035e)
+  [PASS] the with_timing lint is deterministic
+  miss rate over 3 runs: ['0.46701846965699206']
+  [PASS] the miss rate is bit-identical across runs
+
+==============================================================================
+5. the learned ranker
+==============================================================================
+  steps scored           : 36
+  risk arrays identical  : True
+  spread arrays identical: True
+  max absolute risk difference: 0.000e+00
+  [PASS] two fits with the same seed give identical risks
+  [PASS] two fits with the same seed give identical spreads
+  a different seed moves the risks: True
+  [PASS] a different seed is a different model
+
+==============================================================================
+6. cost, in a table explicitly declared unstable
+==============================================================================
+  Wall clock on a shared two-core container, mean over 5 repeats. These
+  numbers move between runs and between machines. Nothing in this repository
+  states a ratio derived from them in prose.
+
+  case                            steps   forward ms    lint ms
+  nominal_science_pass                8       0.8950     0.0347
+  late_payload_enable                 7       0.0690     0.0210
+  irreversible_before_verify          3       0.0387     0.0095
+  irreversible_after_verify           3       0.0813     0.0099
+  resource_and_exclusion              7       0.1298     0.0155
+  clean-0                            36       0.2658     0.1088
+  clean-1                            36       0.2495     0.0860
+  clean-240-steps                   240       2.3347     1.3127
+
+  component                             value
+  ranker fit, 200 trees                 1.453 s
+  training rows                          6500
+  corpus build, 20 seeds                  180 cases
+
+  The whole measurement set in this repository runs in under a minute on two
+  cores, so the compute budget is not a limitation of this product. The
+  limitation is the generator, not the arithmetic.
+
+------------------------------------------------------------------------------
+FAILED CHECKS: none

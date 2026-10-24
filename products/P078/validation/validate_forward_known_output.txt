@@ -1,0 +1,149 @@
+==============================================================================
+cmdguard -- forward execution against hand-constructed cases
+==============================================================================
+
+environment this output was measured on:
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scikit-learn     : 1.9.1
+  pyyaml           : 6.0.3
+  scipy            : 1.18.1
+  matplotlib       : 3.10.8
+  joblib           : 1.5.2
+  pandas           : 3.0.5
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  cpu cores        : 2
+  repository root  : P078 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. nominal_science_pass -- the negative control
+==============================================================================
+  case file : examples/cases/nominal_science_pass.yaml
+  steps     : 8, span 200.0 s
+  violations: 0
+  [PASS] negative control reports no violation -- kinds={}
+
+  hand derivation of the peak held power, at t=80 s:
+    THERM_HEATER_ON  t=10 s, hold 300 s, draw 24.0 W -> live
+    ADCS_ATT_VERIFY  t=20 s, hold  20 s, draw  8.0 W -> expired at t=40 s
+    PAYLOAD_ENABLE   t=40 s, hold  90 s, draw 18.0 W -> live
+    PAYLOAD_SCAN     t=80 s,             draw 46.0 W -> this step
+    total = 24.0 + 18.0 + 46.0 = 88.0 W against a declared 120.0 W
+  measured peak power_w        : 88.000000
+  measured peak data_rate_mbps : 22.000000
+  [PASS] peak power equals the hand derivation
+  [PASS] peak data rate equals the declared scan draw
+  [PASS] final mode is NOMINAL -- NOMINAL
+
+==============================================================================
+2. late_payload_enable -- one ordering defect, and its trace
+==============================================================================
+  violations: 1  kinds: {'precondition_false': 1}
+  [PASS] exactly one violation
+  [PASS] the violating step is step 6 -- step 6
+  [PASS] the kind is precondition_false -- precondition_false
+  [PASS] the command is PAYLOAD_SCAN
+  [PASS] the trace names step 5 as the cause -- step 5
+  [PASS] the trace names PAYLOAD_SAFE
+  [PASS] the trace names t=80.0 s
+
+  the rendered finding, which is the deliverable:
+    step   6 t=    400.0 s  PAYLOAD_SCAN           precondition_false
+          requires payload_enabled=true but it is false at this step
+          because step 5 t=80.0 s PAYLOAD_SAFE: set payload_enabled=false
+          because step 6 t=400.0 s PAYLOAD_SCAN: no step between that point and this one set payload_enabled to true
+
+  per-command lint findings on the same case: 4
+    step   3 t=     40.0 s  PAYLOAD_ENABLE         precondition_false: requires heater_on=true; the declared initial state has heater_on=false
+    step   4 t=     60.0 s  MODE_SCIENCE           precondition_false: requires attitude_verified=true; the declared initial state has attitude_verified=false
+    step   4 t=     60.0 s  MODE_SCIENCE           precondition_false: requires payload_enabled=true; the declared initial state has payload_enabled=false
+    step   6 t=    400.0 s  PAYLOAD_SCAN           mode_gate: is permitted only in [SCIENCE] and the declared initial mode is NOMINAL
+    step   6 t=    400.0 s  PAYLOAD_SCAN           precondition_false: requires attitude_verified=true; the declared initial state has attitude_verified=false
+    step   6 t=    400.0 s  PAYLOAD_SCAN           precondition_false: requires payload_enabled=true; the declared initial state has payload_enabled=false
+  findings the forward walk confirms   : 1
+  findings the forward walk contradicts: 3
+  [PASS] the lint reports the legal PAYLOAD_ENABLE as a violation -- a false positive: heater_on is false at t=0 and true by t=40 s
+
+==============================================================================
+3. resource_and_exclusion -- six hand-derived violations
+==============================================================================
+  violations: 6  kinds: {'mutual_exclusion': 1, 'resource_limit': 3, 'timing_gap': 1, 'timing_interval': 1}
+  [PASS] exactly six violations -- 6
+
+  expected mutual_exclusion at step 2, shortfall 150.000000
+    hand derivation: HEATER_A took thermal_pair at t=10 s for 200 s, so it is held until t=210 s; HEATER_B at t=60 s is 150 s early
+  [PASS] mutual_exclusion at step 2 is reported
+  [PASS] mutual_exclusion at step 2 shortfall -- measured 150.000000
+
+  expected resource_limit at step 3, shortfall 35.000000
+    hand derivation: HEATER_A 40 W + HEATER_B 40 W + XMIT 55 W = 135 W against a 100 W ceiling, over by 35 W
+  [PASS] resource_limit at step 3 is reported
+  [PASS] resource_limit at step 3 shortfall -- measured 35.000000
+
+  expected timing_gap at step 4, shortfall 10.000000
+    hand derivation: XMIT declares min_gap_after_s = 20 s and ran at t=70 s; SSR_WRITE at t=80 s is 10 s short
+  [PASS] timing_gap at step 4 is reported
+  [PASS] timing_gap at step 4 shortfall -- measured 10.000000
+
+  expected resource_limit at step 5, shortfall 15.000000
+    hand derivation: SSR_WRITE 30 Mbps (held 80-140 s) + SSR_READ 25 Mbps = 55 Mbps against 40 Mbps, over by 15 Mbps
+  [PASS] resource_limit at step 5 is reported
+  [PASS] resource_limit at step 5 shortfall -- measured 15.000000
+
+  expected timing_interval at step 6, shortfall 170.000000
+    hand derivation: XMIT declares min_interval_s = 300 s and last ran at t=70 s; the repeat at t=200 s is 170 s early
+  [PASS] timing_interval at step 6 is reported
+  [PASS] timing_interval at step 6 shortfall -- measured 170.000000
+
+  expected resource_limit at step 6, shortfall 35.000000
+    hand derivation: both heaters are still live at t=200 s (until 210 s and 260 s), so the repeat crosses the ceiling again
+  [PASS] resource_limit at step 6 is reported
+  [PASS] resource_limit at step 6 shortfall -- measured 35.000000
+
+  [PASS] no command in this dictionary exceeds a ceiling on its own -- so the lint's single-command resource check cannot fire here
+  [PASS] the lint finds no mutual exclusion here
+  [PASS] the lint finds no accumulated overdraw here
+  [PASS] the lint with timing does find both timing defects -- ['timing_gap', 'timing_interval']
+
+==============================================================================
+4. the two remaining kinds, on inline cases
+==============================================================================
+  violations: 2  kinds: {'illegal_transition': 1, 'undeclared_command': 1}
+  [PASS] illegal_transition is reported
+  [PASS] undeclared_command is reported
+  [PASS] the forbidden transition is not applied -- NOMINAL
+
+  every violation kind this package reports has now been exercised:
+    declared : 10
+    exercised: 10 (here or in the gate script)
+  [PASS] every declared kind is exercised somewhere in validation/ -- []
+
+==============================================================================
+5. a rendered report, verbatim
+==============================================================================
+  ==============================================================================
+  cmdguard forward execution: late_payload_enable
+  ==============================================================================
+  steps                 : 7
+  sequence span         : 400.0 s
+  effect policy         : apply
+  violations            : 1
+  ordering-only defects : 0
+  gate-blocking         : 0
+  final mode            : SCIENCE
+  peak held draw        : data_rate_mbps=22, power_w=46
+  
+  by kind:
+    precondition_false         1
+  
+  violations, with the state trace that reaches each one:
+  
+  step   6 t=    400.0 s  PAYLOAD_SCAN           precondition_false
+      requires payload_enabled=true but it is false at this step
+      because step 5 t=80.0 s PAYLOAD_SAFE: set payload_enabled=false
+      because step 6 t=400.0 s PAYLOAD_SCAN: no step between that point and this one set payload_enabled to true
+
+------------------------------------------------------------------------------
+FAILED CHECKS: none

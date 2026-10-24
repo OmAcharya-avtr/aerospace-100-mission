@@ -1,0 +1,110 @@
+==============================================================================
+cmdguard -- the irreversible-command gate must REFUSE
+==============================================================================
+
+environment this output was measured on:
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scikit-learn     : 1.9.1
+  pyyaml           : 6.0.3
+  scipy            : 1.18.1
+  matplotlib       : 3.10.8
+  joblib           : 1.5.2
+  pandas           : 3.0.5
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  cpu cores        : 2
+  repository root  : P078 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the hand-constructed pair
+==============================================================================
+
+  examples/cases/irreversible_before_verify.yaml
+    irreversible-command gate: irreversible_before_verify
+      irreversible commands declared : 1
+      irreversible executions in seq : 1
+      verdict                        : REFUSE
+      REFUSED on 1 gate-blocking violation(s). An irreversible command executes while a declared precondition of it is unverified.
+    
+    step   1 t=     10.0 s  ANT_DEPLOY             irreversible_unverified
+        is declared irreversible and requires attitude_verified=true, which has not been verified at this step; an irreversible command whose precondition is unverified is the gate-blocking case
+        because declared initial state: attitude_verified=unknown
+        because step 1 t=10.0 s ANT_DEPLOY: no step between that point and this one set attitude_verified to true
+  [PASS] irreversible_before_verify verdict is refuse -- refuse
+  [PASS] irreversible_before_verify exit code is 2
+
+  examples/cases/irreversible_after_verify.yaml
+    irreversible-command gate: irreversible_after_verify
+      irreversible commands declared : 1
+      irreversible executions in seq : 1
+      verdict                        : NO_REFUSAL_FOUND
+      No gate-blocking violation was found against the declared model. This is not a statement that the sequence is safe to uplink.
+  [PASS] irreversible_after_verify verdict is no_refusal_found -- no_refusal_found
+  [PASS] irreversible_after_verify exit code is 0
+
+  [PASS] the refusal names the irreversible command
+  [PASS] the refusal's trace names the unverified declaration
+  [PASS] refusal holds under effect policy apply
+  [PASS] refusal holds under effect policy block
+
+==============================================================================
+2. every ordering of one irreversible command against its verification
+==============================================================================
+  FIRE is irreversible and requires p=true. VERIFY_P sets p=true. p is
+  unverified in the declared initial state. FILLER does nothing. All six
+  orderings of the three commands are enumerated; the gate must refuse
+  exactly those in which FIRE precedes VERIFY_P.
+
+  ordering                            fire before verify            verdict
+  FIRE -> VERIFY_P -> FILLER                        True             refuse
+  FIRE -> FILLER -> VERIFY_P                        True             refuse
+  VERIFY_P -> FIRE -> FILLER                       False   no_refusal_found
+  VERIFY_P -> FILLER -> FIRE                       False   no_refusal_found
+  FILLER -> FIRE -> VERIFY_P                        True             refuse
+  FILLER -> VERIFY_P -> FIRE                       False   no_refusal_found
+  [PASS] the gate refuses exactly the orderings that put FIRE first -- 0 mismatch(es) of 6
+
+==============================================================================
+3. a false precondition is not escalated to the gate
+==============================================================================
+  The gate exists for the UNVERIFIED case. A precondition that is verified
+  FALSE is caught by any per-command check, so it stays an ordinary finding.
+  kinds: {'precondition_false': 1}
+  [PASS] a false precondition is precondition_false
+  [PASS] and the gate does not refuse on it
+
+==============================================================================
+4. generated sequences with the irreversible_early defect injected
+==============================================================================
+  seeds attempted                      : 80
+  injections applied                   : 72
+  injections that were no-ops          : 8
+  applied cases with a gate-blocking kind: 18
+  applied cases the gate refused       : 18
+  [PASS] the gate refuses every case that carries a gate-blocking kind -- 18 vs 18
+
+  Not every applied injection produces a gate-blocking violation, and the
+  count above says how many did. Moving an irreversible command ahead of a
+  step that re-asserts an already-true predicate changes nothing, which is
+  why the no-op and the applied-but-not-blocking counts are both printed
+  rather than the injection being retried until it bites.
+
+==============================================================================
+5. the clean population: the gate must refuse nothing
+==============================================================================
+  clean cases checked : 80
+  refusals            : 0
+  [PASS] the gate refuses no clean generated sequence -- 0
+
+==============================================================================
+6. what the clean verdict is called, and why
+==============================================================================
+  The gate's two values are REFUSE and NO_REFUSAL_FOUND. The second is named
+  for what was measured: no gate-blocking violation was found against the
+  declared model. Nothing in this repository measures whether a sequence is
+  safe to uplink, so nothing in this repository says so.
+
+------------------------------------------------------------------------------
+FAILED CHECKS: none

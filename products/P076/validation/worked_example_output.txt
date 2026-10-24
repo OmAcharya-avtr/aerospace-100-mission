@@ -1,0 +1,134 @@
+
+==============================================================================
+worked example: the code and the output quoted in README.md
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  sgp4             : 2.27
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  astropy          : not installed
+  cpu cores        : 2
+  repository root  : P076 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+the code
+==============================================================================
+
+    from pointahead import (
+        BudgetInputs,
+        build_budget,
+        closed_form_point_ahead,
+        decompose_point_ahead,
+        leo_crossing_pair,
+        reference_point_ahead,
+        score_closed_form,
+        verify_sensitivities,
+    )
+    from pointahead.terminal import BeamContext
+
+    link = leo_crossing_pair()
+    beam = BeamContext(wavelength_m=1550e-9, waist_m=0.025, label="1550 nm, 25 mm")
+    inputs = BudgetInputs(
+        sigma_velocity_per_axis_mps=0.05,
+        ephemeris_age_s=300.0,
+        light_time_iterations=1,
+        beam=beam,
+        angle_method="closed_form",
+        loss_budget_db=1.0,
+    )
+
+    print(closed_form_point_ahead(link).total_urad)
+    print(reference_point_ahead(link).total_urad)
+    print(build_budget(link, inputs).dominant_term)
+    
+
+==============================================================================
+the three printed lines
+==============================================================================
+  45.104545687469766
+  45.1045457035546
+  'ephemeris_staleness_velocity'
+
+==============================================================================
+the full reports
+==============================================================================
+-- magnitude attribution (frame-dependent split, invariant total) ------------
+  frame                      : unspecified Earth-centred inertial
+  light_time_lead            :        7.534768 urad
+  stellar_aberration         :       21.913892 urad
+  velocity_aberration        :       21.913892 urad
+  vector sum total           :       45.104546 urad
+  closure vs reference       :    1.691966e-08 urad
+
+-- baseline vs reference -----------------------------------------------------
+  closed form                :       45.104546 urad
+  iterated reference         :       45.104546 urad
+  magnitude difference       :    1.608483e-08 urad
+  offset difference (closed) :    1.855254e-08 urad
+  transmit direction (open)  :    2.044581e-04 urad
+
+-- error budget: leo_crossing ------------------------------------------------
+  frame                      : unspecified Earth-centred inertial
+  range                      :        2085.600 km
+  point-ahead angle          :       45.104546 urad
+  angle method               : closed_form
+  aberration route           : momentum_boost
+  light-time iterations      : 1
+  sigma v per axis           :        0.050000 m/s
+  ephemeris age              :         300.000 s
+
+  term                                   paid /urad    if paid /urad  origin
+  -------------------------------- ---------------- ----------------  --------
+  relative_velocity_knowledge          4.717309e-04     4.717309e-04  analytic
+  ephemeris_staleness_velocity         2.380960e+00     2.380960e+00  analytic
+  ephemeris_staleness_geometry         1.763756e+00     1.763756e+00  analytic
+  light_time_iteration_residual        5.219820e-09     5.219820e-09  measured
+  aberration_model_error               0.000000e+00     1.519224e-08  measured
+  angle_model_error                    1.855254e-08     1.855254e-08  measured
+  -------------------------------- ---------------- ----------------
+  total (root sum of squares)          2.963074e+00
+  total (linear sum)                   4.145188e+00
+  dominant term              : ephemeris_staleness_velocity (0.8035 of the root sum of squares)
+
+-- beam context --------------------------------------------------------------
+  beam                       : 1550 nm, 25 mm
+  divergence half-angle      :       19.735213 urad (1/e^2 intensity)
+  far field beyond           :        1266.771 m (link is in the far field)
+  total as fraction of beam  :    1.501415e-01
+  pointing loss at total     :    1.958013e-01 dB
+  affordable at 1.00 dB         :        6.696296 urad
+  headroom                   :    2.259915e+00 x
+
+-- analytic lines checked against numerical propagation ----------------------
+  term                                  analytic       numeric         rel  check
+  -------------------------------- ------------- ------------- -----------  -----
+  relative_velocity_knowledge       4.717309e-10  4.717309e-10  5.2928e-08  pass (equality)
+  ephemeris_staleness_velocity      2.380960e-06  2.360086e-06  8.7670e-03  pass (upper_bound)
+  ephemeris_staleness_geometry      1.763756e-06  1.689058e-06  4.2352e-02  pass (upper_bound)
+  light_time_iteration_residual     1.497622e-14  5.219820e-15  6.5146e-01  pass (upper_bound)
+
+==============================================================================
+the three facts the README leads with
+==============================================================================
+  point-ahead angle                  : 45.104546 urad
+  dominant budget line               : ephemeris_staleness_velocity
+  share of the total                 : 0.8035
+  pointing loss on this beam         : 0.195801 dB
+  error affordable at 1 dB           : 6.696296 urad
+  headroom                           : 2.2599 x
+  [PASS] the closed form and the reference agree to 1e-8 of the angle -- relative difference 3.566e-10
+  [PASS] the budget total is dominated by a single line -- ephemeris_staleness_velocity at 0.8035
+
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

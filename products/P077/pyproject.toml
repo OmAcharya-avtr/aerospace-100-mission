@@ -1,0 +1,86 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "relfiledelivery"
+version = "0.1.0"
+description = "What a file transfer costs over an intermittent link: delivery-time quantiles, retransmission overhead and per-contact completion probability against a declared link model."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "satellite-communications",
+    "file-delivery",
+    "intermittent-link",
+    "retransmission",
+    "delivery-time-distribution",
+    "contact-window",
+    "monte-carlo",
+    "quantile-regression",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: System :: Networking",
+]
+
+# Every range below is bounded on BOTH sides, at the versions this product was
+# measured against. A floor with no ceiling is not a dependency specification:
+# five of the first fifty products of this mission were found broken or silently
+# wrong for a new install because pip resolved a release published after the
+# product was measured, and one of the five -- P025 -- kept passing its suite
+# while its published validation numbers moved.
+#
+# The sharp dependency in this set is scikit-learn. The learned component is
+# GradientBoostingRegressor with loss="quantile", and the measured coverage and
+# relative-error numbers in README.md, MODEL_CARD.md and validation/ are
+# properties of that estimator's fitted trees. A minor release that changes the
+# quantile-loss line search or the subsampling order changes those numbers
+# without failing a single test, so the ceiling is to the minor version. The
+# cost is real and is recorded in README.md under Limitations: this package
+# cannot take a scikit-learn 1.10 or a numpy 2.6 release without a port and a
+# full re-measure.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scipy>=1.18,<1.19",
+    "scikit-learn>=1.9,<1.10",
+    "pandas>=3.0,<3.1",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.4,<8.5", "hypothesis>=6.140,<6.141"]
+examples = ["matplotlib>=3.10,<3.11"]
+dev = [
+    "pytest>=8.4,<8.5",
+    "hypothesis>=6.140,<6.141",
+    "ruff>=0.14,<0.15",
+    "matplotlib>=3.10,<3.11",
+]
+
+[project.scripts]
+relfiledelivery = "relfiledelivery.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["relfiledelivery"]
+known-local-folder = ["_bootstrap", "_common"]

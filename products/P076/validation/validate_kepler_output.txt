@@ -1,0 +1,75 @@
+
+==============================================================================
+two-body propagation: universal variables vs an independent integration
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  sgp4             : 2.27
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  astropy          : not installed
+  cpu cores        : 2
+  repository root  : P076 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. universal variables vs scipy.integrate.solve_ivp (DOP853, rtol 1e-13)
+==============================================================================
+  cases                              : 40
+  altitudes                          : 400 to 20000 km
+  speed factors                      : 0.85 to 1.25 of circular
+  intervals                          : 60 to 3600 s
+  worst relative position difference : 1.013304e-13
+  worst relative velocity difference : 1.253871e-13
+  [PASS] universal variables agree with DOP853 to 1e-10 relative -- position 1.013e-13, velocity 1.254e-13
+
+==============================================================================
+2. exact two-body invariants
+==============================================================================
+  worst relative energy drift        : 1.796569e-15
+  worst relative momentum drift      : 5.192154e-16
+  worst |f gdot - fdot g - 1|        : 4.440892e-16
+  [PASS] specific energy conserved to 1e-12 relative
+  [PASS] angular momentum conserved to 1e-12 relative
+  [PASS] f and g series identity holds to 1e-12
+
+==============================================================================
+3. forward-and-back round trip
+==============================================================================
+  worst relative round-trip error    : 1.808407e-15
+  [PASS] round trip returns to 1e-12 relative
+
+==============================================================================
+4. circular-orbit period, computed from the elements
+==============================================================================
+  altitude    400.0 km  period    5553.6243 s  return error 1.394903e-08 m
+  [PASS] one period at 400 km returns within 1 micrometre -- 1.395e-08 m
+  altitude    600.0 km  period    5801.2318 s  return error 1.374768e-08 m
+  [PASS] one period at 600 km returns within 1 micrometre -- 1.375e-08 m
+  altitude   1200.0 km  period    6565.3013 s  return error 1.978833e-08 m
+  [PASS] one period at 1200 km returns within 1 micrometre -- 1.979e-08 m
+  altitude  35786.0 km  period   86163.9905 s  return error 0.000000e+00 m
+  [PASS] one period at 35786 km returns within 1 micrometre -- 0.000e+00 m
+
+==============================================================================
+5. timings -- UNSTABLE, for order of magnitude only
+==============================================================================
+  These numbers move between runs on shared hardware and are never
+  used in a prose conclusion anywhere in this repository.
+
+  operation                                    calls    mean / ms
+  ------------------------------------------ ------- ------------
+  propagate_two_body                              40       0.0461
+  solve_ivp DOP853 rtol 1e-13                     40       1.6587
+
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

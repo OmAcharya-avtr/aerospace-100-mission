@@ -1,0 +1,122 @@
+timetransfer validation 3 -- measured coverage of the offset uncertainty
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+allantools       : not installed  (NOT used; Allan deviation is implemented in timetransfer.allan)
+ntplib           : not installed  (NOT used; no number here comes from it)
+cpu cores        : 2
+product root     : P079 (printed relatively; see validation/_bootstrap.py)
+fast probe mode  : False (divisor 1)
+
+base seed                 : 70079
+generator window          : 150 attempted exchanges per scenario
+generator coupling        : 1.000
+independent asymmetry sd  : 2.000e-04 s
+train / calibrate / cover : 600 / 200 / 400 scenarios (disjoint)
+
+==============================================================================
+3a. train the correctors on the training split
+==============================================================================
+scenarios              : 600
+features               : 16
+base seed              : 70079
+window (attempted)     : 150
+coupling               : 1.000
+independent sigma      : 2.000e-04 s
+target  mean / std     : -1.557233e-05 / 2.523919e-04 s
+static  mean / std     : -9.814385e-06 / 1.241550e-04 s
+queue   mean / std     : -5.757950e-06 / 1.682783e-04 s
+
+median filter in-sample residual sd : 1.549237e-04 s
+learned gbr  in-sample residual sd  : 7.383535e-05 s
+Neither of those numbers is used as an uncertainty: both are in-sample.
+
+==============================================================================
+3b. measure the residual spread on the calibration split
+==============================================================================
+calibration scenarios        : 200
+true bias sd on calibration  : 2.433693e-04 s
+median filter residual sd    : 1.518117e-04 s  -> u_asymmetry
+learned gbr residual sd      : 1.124663e-04 s  -> u_asymmetry
+declared bound B on |A|      : 1.200000e-03 s
+  -> u_asymmetry = (B/2)/sqrt(3) = 3.464102e-04 s
+
+==============================================================================
+3c. the coverage trials
+==============================================================================
+coverage scenarios : 400
+true bias sd       : 2.533692e-04 s
+
+mean absolute offset error by treatment (the thing the interval has to cover):
+       treatment   mean |error| [s]    rms error [s]     mean u [s]
+     unaccounted       1.966371e-04     2.533028e-04   1.861826e-05
+  declared_bound       1.966371e-04     2.533028e-04   3.469892e-04
+   median_filter       1.208026e-04     1.530245e-04   1.531252e-04
+     learned_gbr       9.530915e-05     1.173142e-04   1.142290e-04
+
+Note that 'unaccounted' and 'declared_bound' have the SAME errors by
+construction -- a declared bound changes the uncertainty, not the estimate.
+
+==============================================================================
+3d. measured coverage against nominal
+==============================================================================
+       treatment      k   nominal   measured   covered/trials          CP 95% interval   med|e|/u        verdict
+     unaccounted  1.000    0.6827     0.0575           23/400         [0.0368, 0.0850]     9.5450     optimistic
+     unaccounted  1.645    0.9000     0.1075           43/400         [0.0789, 0.1421]     9.5450     optimistic
+     unaccounted  1.960    0.9500     0.1200           48/400         [0.0898, 0.1559]     9.5450     optimistic
+     unaccounted  2.576    0.9900     0.1625           65/400         [0.1277, 0.2024]     9.5450     optimistic
+
+  declared_bound  1.000    0.6827     0.8325          333/400         [0.7922, 0.8678]     0.4556   conservative
+  declared_bound  1.645    0.9000     0.9775          391/400         [0.9577, 0.9897]     0.4556   conservative
+  declared_bound  1.960    0.9500     0.9900          396/400         [0.9746, 0.9973]     0.4556   conservative
+  declared_bound  2.576    0.9900     0.9975          399/400         [0.9862, 0.9999]     0.4556     calibrated
+
+   median_filter  1.000    0.6827     0.7000          280/400         [0.6525, 0.7445]     0.6497     calibrated
+   median_filter  1.645    0.9000     0.8950          358/400         [0.8607, 0.9233]     0.6497     calibrated
+   median_filter  1.960    0.9500     0.9450          378/400         [0.9179, 0.9652]     0.6497     calibrated
+   median_filter  2.576    0.9900     0.9875          395/400         [0.9711, 0.9959]     0.6497     calibrated
+
+     learned_gbr  1.000    0.6827     0.6400          256/400         [0.5908, 0.6871]     0.7517     calibrated
+     learned_gbr  1.645    0.9000     0.9050          362/400         [0.8719, 0.9319]     0.7517     calibrated
+     learned_gbr  1.960    0.9500     0.9525          381/400         [0.9268, 0.9712]     0.7517     calibrated
+     learned_gbr  2.576    0.9900     0.9975          399/400         [0.9862, 0.9999]     0.7517     calibrated
+
+
+==============================================================================
+3e. what the numbers mean, stated rather than left to the reader
+==============================================================================
+unaccounted    : measured 0.1200 against nominal 0.9500 -> optimistic
+  An interval with no asymmetry term is a repeatability statement. It
+  under-covers by the margin above, and that margin IS the asymmetry.
+declared_bound : measured 0.9900 against nominal 0.9500 -> conservative
+  A type-B bound at six times the generator's own asymmetry sd is honest and
+  conservative. It is the right answer when external knowledge exists.
+median_filter  : measured 0.9450 against nominal 0.9500 -> calibrated
+learned_gbr    : measured 0.9525 against nominal 0.9500 -> calibrated
+  Both corrected treatments use a residual spread measured on a split the
+  corrector never saw. Where the verdict is not 'calibrated', the interval
+  is wrong by the stated margin and README.md says so.
+
+HEADLINE for README.md and VALIDATION.md:
+  k = 1.96, nominal 0.9500
+    unaccounted     measured 0.1200  (optimistic)
+    declared_bound  measured 0.9900  (conservative)
+    median_filter   measured 0.9450  (calibrated)
+    learned_gbr     measured 0.9525  (calibrated)
+
+==============================================================================
+summary
+==============================================================================
+No coverage result is treated as a hard failure: this script measures the
+calibration of the interval and the measurement is the deliverable. A
+verdict other than 'calibrated' is reported in README.md, VALIDATION.md and
+MODEL_CARD.md and is not retuned away.
+
+hard failures : 0

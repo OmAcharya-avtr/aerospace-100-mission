@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pointahead"
+version = "0.1.0"
+description = "Point-ahead angle for an optical crosslink, with every error term attributed to its own checkable line."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "point-ahead-angle",
+    "optical-crosslink",
+    "laser-communication",
+    "aberration",
+    "light-time",
+    "pointing-acquisition-tracking",
+    "error-budget",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+# Every range below is bounded on BOTH sides, at the versions this product was
+# actually measured against. A floor with no ceiling is not a dependency
+# specification: five of the first fifty products of this mission were found
+# broken or silently wrong for a new install because pip resolved a major
+# release published after the product was measured, and one of the five passed
+# its whole test suite while its validation numbers moved.
+#
+# The honest limit of these bounds is recorded in README.md under Limitations:
+# this build ran inside a pre-pinned interpreter and was forbidden to install
+# anything, so only ONE point in each range was executed -- the one in
+# shared/pinned_env_2026-10-24.txt. The ranges state the minor version the
+# numbers come from; they are not evidence that both ends were exercised.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scipy>=1.18,<1.19",
+    "pyyaml>=6.0,<6.1",
+    "sgp4>=2.27,<2.28",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.4,<8.5", "hypothesis>=6.140,<6.141"]
+examples = ["matplotlib>=3.10,<3.11"]
+dev = [
+    "pytest>=8.4,<8.5",
+    "hypothesis>=6.140,<6.141",
+    "ruff>=0.14,<0.15",
+    "matplotlib>=3.10,<3.11",
+]
+
+[project.scripts]
+pointahead = "pointahead.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["pointahead"]
+known-local-folder = ["_bootstrap", "_common"]

@@ -1,0 +1,152 @@
+timetransfer validation 2 -- Allan deviation against closed-form noise processes
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+allantools       : not installed  (NOT used; Allan deviation is implemented in timetransfer.allan)
+ntplib           : not installed  (NOT used; no number here comes from it)
+cpu cores        : 2
+product root     : P079 (printed relatively; see validation/_bootstrap.py)
+fast probe mode  : False (divisor 1)
+
+allantools is NOT installed in this environment and is NOT used. Every
+reference value below is the closed form printed in timetransfer/noise.py.
+
+==============================================================================
+2a. fitted log-log slopes against theory
+==============================================================================
+N = 20000 phase samples, tau0 = 1 s, octave-spaced tau up to N//5
+
+         process        level          units   theory     fitted     stderr     |diff|      r^2
+        white_pm    1.000e-09    s (sigma_x)    -1.00    -0.9998     0.0005     0.0002  1.00000
+        white_fm    1.000e-20     s^2/s (q1)    -0.50    -0.4834     0.0032     0.0166  0.99957
+  random_walk_fm    1.000e-24       1/s (q2)     0.50     0.5194     0.0017     0.0194  0.99990
+
+tolerance on |fitted - theory| : 0.0500
+worst |fitted - theory|        : 0.0194
+PASS
+
+==============================================================================
+2b. amplitude against theory at every tau
+==============================================================================
+
+white_pm (level 1.000e-09 s (sigma_x))
+      m    tau [s]    measured adev      theory adev   rel. error  in interval
+      1          1     1.727293e-09     1.732051e-09     -0.00275         True
+      2          2     8.644531e-10     8.660254e-10     -0.00182         True
+      4          4     4.306851e-10     4.330127e-10     -0.00538         True
+      8          8     2.150633e-10     2.165064e-10     -0.00667         True
+     16         16     1.080223e-10     1.082532e-10     -0.00213         True
+     32         32     5.377457e-11     5.412659e-11     -0.00650         True
+     64         64     2.678152e-11     2.706329e-11     -0.01041         True
+    128        128     1.356055e-11     1.353165e-11      0.00214         True
+    256        256     6.736038e-12     6.765823e-12     -0.00440         True
+    512        512     3.384101e-12     3.382912e-12      0.00035         True
+   1024       1024     1.678129e-12     1.691456e-12     -0.00788         True
+   2048       2048     8.457510e-13     8.457279e-13      0.00003         True
+worst relative error: 0.01041   intervals containing theory: 12/12
+
+white_fm (level 1.000e-20 s^2/s (q1))
+      m    tau [s]    measured adev      theory adev   rel. error  in interval
+      1          1     9.972423e-11     1.000000e-10     -0.00276         True
+      2          2     7.056776e-11     7.071068e-11     -0.00202         True
+      4          4     4.981082e-11     5.000000e-11     -0.00378         True
+      8          8     3.465940e-11     3.535534e-11     -0.01968         True
+     16         16     2.470157e-11     2.500000e-11     -0.01194         True
+     32         32     1.784871e-11     1.767767e-11      0.00968         True
+     64         64     1.250355e-11     1.250000e-11      0.00028         True
+    128        128     9.337067e-12     8.838835e-12      0.05637         True
+    256        256     6.616481e-12     6.250000e-12      0.05864         True
+    512        512     4.652872e-12     4.419417e-12      0.05282         True
+   1024       1024     3.569258e-12     3.125000e-12      0.14216         True
+   2048       2048     2.438469e-12     2.209709e-12      0.10353         True
+worst relative error: 0.14216   intervals containing theory: 12/12
+
+random_walk_fm (level 1.000e-24 1/s (q2))
+      m    tau [s]    measured adev      theory adev   rel. error  in interval
+      1          1     5.748506e-13     5.773503e-13     -0.00433         True
+      2          2     8.146887e-13     8.164966e-13     -0.00221         True
+      4          4     1.157939e-12     1.154701e-12      0.00280         True
+      8          8     1.658593e-12     1.632993e-12      0.01568         True
+     16         16     2.376184e-12     2.309401e-12      0.02892         True
+     32         32     3.403112e-12     3.265986e-12      0.04199         True
+     64         64     4.878893e-12     4.618802e-12      0.05631         True
+    128        128     6.902863e-12     6.531973e-12      0.05678         True
+    256        256     9.995288e-12     9.237604e-12      0.08202         True
+    512        512     1.423424e-11     1.306395e-11      0.08958         True
+   1024       1024     2.129228e-11     1.847521e-11      0.15248         True
+   2048       2048     2.998526e-11     2.612789e-11      0.14763         True
+worst relative error: 0.15248   intervals containing theory: 12/12
+
+==============================================================================
+2c. measured coverage of the 95 per cent confidence interval
+==============================================================================
+300 seeded realisations of N = 2048 samples per process.
+An interval counts as covering when it contains the closed-form value at that tau.
+These are the simplified edf formulas of Riley, NIST SP 1065 Table 3; the
+coverage below is MEASURED and is reported whether or not it reaches 0.95.
+
+         process     m   tau [s]   covered  trials   measured   nominal        verdict
+        white_pm     1         1       284     300     0.9467      0.95     calibrated
+        white_pm     2         2       283     300     0.9433      0.95     calibrated
+        white_pm     4         4       283     300     0.9433      0.95     calibrated
+        white_pm     8         8       287     300     0.9567      0.95     calibrated
+        white_pm    16        16       282     300     0.9400      0.95     calibrated
+        white_pm    32        32       277     300     0.9233      0.95     calibrated
+        white_pm    64        64       285     300     0.9500      0.95     calibrated
+        white_pm   128       128       282     300     0.9400      0.95     calibrated
+        white_pm   256       256       284     300     0.9467      0.95     calibrated
+        white_fm     1         1       281     300     0.9367      0.95     calibrated
+        white_fm     2         2       282     300     0.9400      0.95     calibrated
+        white_fm     4         4       287     300     0.9567      0.95     calibrated
+        white_fm     8         8       289     300     0.9633      0.95     calibrated
+        white_fm    16        16       287     300     0.9567      0.95     calibrated
+        white_fm    32        32       285     300     0.9500      0.95     calibrated
+        white_fm    64        64       285     300     0.9500      0.95     calibrated
+        white_fm   128       128       289     300     0.9633      0.95     calibrated
+        white_fm   256       256       293     300     0.9767      0.95     calibrated
+  random_walk_fm     1         1       285     300     0.9500      0.95     calibrated
+  random_walk_fm     2         2       288     300     0.9600      0.95     calibrated
+  random_walk_fm     4         4       286     300     0.9533      0.95     calibrated
+  random_walk_fm     8         8       285     300     0.9500      0.95     calibrated
+  random_walk_fm    16        16       286     300     0.9533      0.95     calibrated
+  random_walk_fm    32        32       288     300     0.9600      0.95     calibrated
+  random_walk_fm    64        64       285     300     0.9500      0.95     calibrated
+  random_walk_fm   128       128       287     300     0.9567      0.95     calibrated
+  random_walk_fm   256       256       293     300     0.9767      0.95     calibrated
+
+lowest coverage  : 0.9233 at white_pm m=32
+highest coverage : 0.9767 at white_fm m=256
+REPORTED, NOT A FAILURE: the edf formulas are approximations and this is the
+measurement of how good they are. A coverage below 0.95 means the interval at
+that tau is narrower than it should be, and a user should widen it or use more
+data rather than trust the printed bound.
+
+==============================================================================
+2d. noise identification hit rate (lag-1 autocorrelation method)
+==============================================================================
+200 seeded realisations of N = 2048 samples per process.
+
+         process    hits  trials     rate   mean alpha  theory alpha
+        white_pm     200     200   1.0000       2.0037           2.0
+        white_fm     200     200   1.0000       0.0038           0.0
+  random_walk_fm     200     200   1.0000      -2.7166          -2.0
+
+threshold for a pass: every rate >= 0.90
+PASS
+
+==============================================================================
+summary
+==============================================================================
+fitted slopes against theory:
+  white_pm         theory -1.00  fitted -0.9998 +- 0.0005  |diff| 0.0002
+  white_fm         theory -0.50  fitted -0.4834 +- 0.0032  |diff| 0.0166
+  random_walk_fm   theory +0.50  fitted +0.5194 +- 0.0017  |diff| 0.0194
+
+hard failures : 0

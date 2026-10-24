@@ -1,0 +1,194 @@
+
+==============================================================================
+environment
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+cfdp-py          : not installed
+spacepackets     : not installed
+cpu cores        : 2
+repository root  : P077 (printed relatively; see validation/_bootstrap.py)
+
+cfdp-py and spacepackets are NOT installed in this environment. They are
+named in README.md as the mature implementations of the protocol itself and
+no number anywhere in this repository was taken from either package.
+
+==============================================================================
+the question
+==============================================================================
+file size               : 2097152 bytes
+PDU payload             : 1024 bytes
+PDU header              : 12 bytes
+PDU count               : 2048
+last PDU payload        : 1024 bytes
+clean-pass wire bytes   : 2121728 bytes (overhead ratio 1.011719)
+forward rate            : 2e+06 bit/s
+return rate             : 20000 bit/s
+asymmetry (fwd/ret)     : 100
+one-way light time      : 2.5 s
+independent PDU loss    : 0.08
+outage process          : mean up 80 s, mean down 20 s, duty 0.800000
+contact                 : 6 windows, duty 0.193548
+availability            : 0.154839
+
+==============================================================================
+step 1: the closed form, on the link with its outages removed
+==============================================================================
+Exact under A1-A4. This is the floor: what the transfer would cost if the
+link never dropped and contact never broke.
+
+mode                    : deferred_nak
+PDU count               : 2048
+E[transmissions]        : 2226.086957
+E[rounds]               : 3.737393 (series tail bound 6.266e-15)
+forward busy time       : 9.224904 s
+turnaround per round    : 5.025664 s
+E[delivery time]        : 25.482123 s
+delivery lower bound    : 11.724904 s
+completion probability  : 1.000000000
+E[forward wire bytes]   : 2306269.885
+E[return wire bytes]    : 175.193
+E[overhead ratio]       : 1.099799
+
+==============================================================================
+step 2: the analytic extension, past the closed form's own assumptions
+==============================================================================
+Two steps: divide by the outage duty cycle to get the contact time the
+transfer needs, then lay that contact time over the declared windows in
+order to get the wall-clock time at which it runs out.
+
+outage duty cycle                         : 0.800000
+contact duty cycle                        : 0.193548
+closed-form E[T] with no outages          : 25.4821 s
+contact time needed: E[T] / outage duty   : 31.8527 s
+declared window duration                  : 30.0000 s
+extension, laid over the contact plan     : 181.8527 s
+
+The extension is not a theorem. It ignores that an outage destroys units
+already in flight, that a round boundary straddling an outage pays its
+turnaround twice, and that a unit cannot straddle a contact boundary.
+
+An earlier version of this function divided by the product of the two duty
+cycles instead. On this scenario with 300-second contacts that gave 164.57 s
+against a measured median of 26.80 s -- a factor of 6.14 -- because the
+transfer fitted inside the first contact and the contact duty cycle never
+bit at all. The learned model is benchmarked against this extension, and a
+baseline that wrong would have made the comparison meaningless.
+
+==============================================================================
+step 3: the measurement
+==============================================================================
+mode                    : deferred_nak
+runs                    : 600
+completed               : 600 (1.000000 of runs)
+delivery-time quantiles over completed runs, seconds:
+  q0.050             : 21.713505
+  q0.100             : 21.734432
+  q0.250             : 21.803844
+  q0.500             : 26.799464
+  q0.750             : 31.773328
+  q0.900             : 193.169613
+  q0.950             : 205.182178
+  q0.990             : 381.605706
+tail, stated separately:
+  q0.990                : 381.605706 s
+  maximum               : 557.659872 s
+  maximum / median      : 20.808620
+  runs never completed  : 0
+mean                    : 62.793679 s (mean/median 2.343095)
+overhead ratio median   : 1.101248
+transmissions median    : 2229.0
+cumulative completion by end of contact, fraction of all runs:
+  contact 0             : 0.825000
+  contact 1             : 0.960000
+  contact 2             : 0.995000
+  contact 3             : 1.000000
+  contact 4             : 1.000000
+  contact 5             : 1.000000
+
+==============================================================================
+step 4: what the extension got wrong
+==============================================================================
+analytic extension                        : 181.8527 s
+measured median                           : 26.7995 s
+measured q0.95                            : 205.1822 s
+extension / measured median               : 6.7857
+measured q0.95 / measured median          : 7.6562
+measured maximum / measured median        : 20.8086
+
+contact time the extension needs          : 31.8527 s
+declared contact window                   : 30.0000 s
+needed / window                           : 1.0618
+runs that finished in the first contact   : 0.8250
+
+The extension is a step function of the contact plan, and this scenario sits
+just on the wrong side of a step. The contact time it needs exceeds the
+declared window by six per cent, so it deposits the whole transfer into the
+second contact and reports a figure one window period larger. The simulation
+says 82.5 per cent of runs finish inside the first contact. The extension is
+not wrong about the arithmetic; it is wrong because it has one number where
+the answer is a distribution, and a distribution straddling a window edge is
+exactly where that fails hardest.
+
+The operational reading is the spread, not the centre. The median is 26.80 s
+and the ninety-fifth percentile is 205.18 s, a factor of 7.66, because a run
+that misses the first contact waits for the next one. A plan written against
+any single number -- the median, the mean, or the closed-form extension --
+cannot carry that, and the per-contact completion vector in step 3 is the
+shape the answer actually has.
+
+==============================================================================
+step 5: one run in full, including the hash check
+==============================================================================
+mode                    : deferred_nak
+seed                    : 20261024
+delivered               : True
+delivery time           : 193.177072 s
+forward transmissions   : 4964 for 2048 PDUs
+retransmissions         : 2916
+rounds                  : 5
+NAKs sent               : 4
+overhead ratio          : 2.452385
+forward busy            : 20.570816 s
+idle                    : 172.606000 s
+outage time in span     : 57.220920 s
+completing contact      : 1
+source digest           : 626c6b36761400e1...
+
+source digest  : 626c6b36761400e1bb60acd3694bc3d6fb354c757bd5755d93f832bfc77aefd9
+delivered digest: 626c6b36761400e1bb60acd3694bc3d6fb354c757bd5755d93f832bfc77aefd9
+digests equal  : True
+
+The digests are compared inside the simulator on every completed run. A
+mismatch raises CompletionInvariantError and no delivery time is reported.
+
+==============================================================================
+step 6: all three modes, so the choice has a number against it
+==============================================================================
+
+mode              complete     q0.50 s     q0.95 s       max s   max/med  overhead      tx
+------------------------------------------------------------------------------------------
+unacknowledged      0.0000         n/a         n/a         n/a       n/a    1.0117    2048
+deferred_nak        1.0000     26.8057    198.0884    383.2201   14.2962    1.1012    2229
+immediate_nak       1.0000     23.8218    192.9159    367.6085   15.4316    1.1061    2229
+
+Unacknowledged mode never completes this transfer: 2048 units at 8 per cent
+loss gives a completion probability of (1 - 0.08) ** 2048, which is
+6.878e-75. That is the row worth reading.
+
+==============================================================================
+summary
+==============================================================================
+PASS  the ensemble completed at least one run
+PASS  the single run delivered and matched its source digest
+PASS  the measured median exceeds the no-outage closed form
+
+output written to validation/worked_example_output.txt

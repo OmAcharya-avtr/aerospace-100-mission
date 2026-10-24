@@ -1,0 +1,273 @@
+
+==============================================================================
+environment
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+cfdp-py          : not installed
+spacepackets     : not installed
+cpu cores        : 2
+repository root  : P077 (printed relatively; see validation/_bootstrap.py)
+
+cfdp-py and spacepackets are NOT installed in this environment. They are
+named in README.md as the mature implementations of the protocol itself and
+no number anywhere in this repository was taken from either package.
+
+==============================================================================
+dataset
+==============================================================================
+train scenarios generated      : 3000 (seeds from 100000)
+test scenarios generated       : 1200 (seeds from 900000)
+train rows usable (completed)  : 2810
+test rows usable (completed)   : 1127
+train rows dropped             : 190
+test rows dropped              : 73
+features                       : 14
+target                         : delivery_time_s, seconds
+
+Every learned prediction here is conditional on completion: a scenario whose
+run did not finish inside its declared horizon has no delivery time and is
+dropped. The drop counts are above and the censoring is recorded in
+MODEL_CARD.md as a limitation, not as a footnote.
+
+completion rate by regime:
+  no_outage              : 1.0000 of 600 scenarios
+  correlated_outage      : 0.8783 of 600 scenarios
+
+delivery-time quantiles of the test target by regime, seconds:
+  no_outage              : q0.05    0.8301  q0.50    6.0359  q0.95   31.9983  max   81.6823
+  correlated_outage      : q0.05    0.9344  q0.50    8.2814  q0.95   55.9166  max  960.7278
+
+==============================================================================
+benchmark
+==============================================================================
+nominal interval mass          : 0.90
+coverage standard error        : 0.0089 on 1127 rows (all), 0.0126 per regime
+
+predictor         regime                rows  med|rel err|  p90|rel err|  coverage  nominal  width/obs  trained
+---------------------------------------------------------------------------------------------------------------
+analytic          all                   1127      0.174124      0.859613    0.5093     0.90     0.4327    False
+analytic          correlated_outage      527      0.368928      1.274729    0.2562     0.90     0.4928    False
+analytic          no_outage              600      0.051928      0.387599    0.7317     0.90     0.3970    False
+analytic_mean     all                   1127      0.184486      0.874741    0.5093     0.90     0.4327    False
+analytic_mean     correlated_outage      527      0.381280      1.269200    0.2562     0.90     0.4928    False
+analytic_mean     no_outage              600      0.104073      0.364563    0.7317     0.90     0.3970    False
+mean_lookup       all                   1127      0.535480      0.977916    0.8784     0.90     7.4233     True
+mean_lookup       correlated_outage      527      0.574066      1.406869    0.8672     0.90     5.2510     True
+mean_lookup       no_outage              600      0.489155      0.906005    0.8883     0.90    10.1253     True
+learned_quantile  all                   1127      0.169898      0.575872    0.8146     0.90     0.8662     True
+learned_quantile  correlated_outage      527      0.292259      0.714166    0.8197     0.90     1.4190     True
+learned_quantile  no_outage              600      0.104687      0.347475    0.8100     0.90     0.5633     True
+
+==============================================================================
+the specification's prediction, tested
+==============================================================================
+
+[no_outage]
+  analytic         median |rel err| : 0.051928
+  learned_quantile median |rel err| : 0.104687
+  mean_lookup      median |rel err| : 0.489155
+  learned / analytic                : 2.0160
+  lowest median |rel err|           : analytic
+  analytic beats learned by a factor of 2.0160
+
+[correlated_outage]
+  analytic         median |rel err| : 0.368928
+  learned_quantile median |rel err| : 0.292259
+  mean_lookup      median |rel err| : 0.574066
+  learned / analytic                : 0.7922
+  lowest median |rel err|           : learned_quantile
+  learned beats analytic by a factor of 1.2623
+
+The specification predicted: the analytic model wins where its assumptions
+hold, the learned model earns its place only in the correlated-outage
+regime, if at all. Measured above:
+  no_outage: analytic
+  correlated_outage: learned_quantile
+
+==============================================================================
+the expectation is a worse point predictor than the median
+==============================================================================
+Both rows below come from the same formula; they differ only in which
+summary of the closed-form distribution is used as the point prediction.
+
+              regime   analytic (median)   analytic_mean    ratio
+-----------------------------------------------------------------
+                 all            0.174124        0.184486   1.0595
+           no_outage            0.051928        0.104073   2.0042
+   correlated_outage            0.368928        0.381280   1.0335
+
+This is the predictor-level version of the claim that a mean delivery time
+over an intermittent link is close to meaningless: the same model scored as
+a mean is worse than the same model scored as a median, on the same rows.
+
+==============================================================================
+is the uncertainty output calibrated
+==============================================================================
+Coverage is the fraction of held-out rows whose observed delivery time fell
+inside the predicted interval. An interval that is not calibrated is
+reported as not calibrated. Width is the median of (upper - lower) divided
+by the observed time: coverage without a width is not a result, because an
+interval from zero to infinity covers everything.
+
+         predictor              regime  nominal  coverage    error  std err  width/obs  calibrated
+--------------------------------------------------------------------------------------------------
+          analytic                 all     0.90    0.5093  -0.3907   0.0089     0.4327       False
+          analytic   correlated_outage     0.90    0.2562  -0.6438   0.0131     0.4928       False
+          analytic           no_outage     0.90    0.7317  -0.1683   0.0122     0.3970       False
+     analytic_mean                 all     0.90    0.5093  -0.3907   0.0089     0.4327       False
+     analytic_mean   correlated_outage     0.90    0.2562  -0.6438   0.0131     0.4928       False
+     analytic_mean           no_outage     0.90    0.7317  -0.1683   0.0122     0.3970       False
+       mean_lookup                 all     0.90    0.8784  -0.0216   0.0089     7.4233        True
+       mean_lookup   correlated_outage     0.90    0.8672  -0.0328   0.0131     5.2510       False
+       mean_lookup           no_outage     0.90    0.8883  -0.0117   0.0122    10.1253        True
+  learned_quantile                 all     0.90    0.8146  -0.0854   0.0089     0.8662       False
+  learned_quantile   correlated_outage     0.90    0.8197  -0.0803   0.0131     1.4190       False
+  learned_quantile           no_outage     0.90    0.8100  -0.0900   0.0122     0.5633       False
+
+rows outside the declared 0.03 calibration band : 10 of 12
+  NOT CALIBRATED analytic/all: coverage 0.5093 against nominal 0.90
+  NOT CALIBRATED analytic/correlated_outage: coverage 0.2562 against nominal 0.90
+  NOT CALIBRATED analytic/no_outage: coverage 0.7317 against nominal 0.90
+  NOT CALIBRATED analytic_mean/all: coverage 0.5093 against nominal 0.90
+  NOT CALIBRATED analytic_mean/correlated_outage: coverage 0.2562 against nominal 0.90
+  NOT CALIBRATED analytic_mean/no_outage: coverage 0.7317 against nominal 0.90
+  NOT CALIBRATED mean_lookup/correlated_outage: coverage 0.8672 against nominal 0.90
+  NOT CALIBRATED learned_quantile/all: coverage 0.8146 against nominal 0.90
+  NOT CALIBRATED learned_quantile/correlated_outage: coverage 0.8197 against nominal 0.90
+  NOT CALIBRATED learned_quantile/no_outage: coverage 0.8100 against nominal 0.90
+
+The calibration band is 0.03, declared in benchmark.py before the
+measurement: roughly three standard errors of a coverage estimate at a
+nominal 0.9 on a thousand rows.
+
+==============================================================================
+calibration curve: measured coverage at three nominal levels
+==============================================================================
+
+         predictor  nominal  coverage  width/obs
+------------------------------------------------
+          analytic     0.50    0.2680     0.1466
+          analytic     0.80    0.4321     0.3326
+          analytic     0.90    0.5093     0.4327
+     analytic_mean     0.50    0.2680     0.1466
+     analytic_mean     0.80    0.4321     0.3326
+     analytic_mean     0.90    0.5093     0.4327
+       mean_lookup     0.50    0.4996     1.5582
+       mean_lookup     0.80    0.7941     4.1216
+       mean_lookup     0.90    0.8784     7.4233
+  learned_quantile     0.50    0.4374     0.3008
+  learned_quantile     0.80    0.6868     0.6153
+  learned_quantile     0.90    0.8146     0.8662
+
+==============================================================================
+the learned model, described
+==============================================================================
+training rows                  : 2810
+quantile levels fitted         : [0.05, 0.1, 0.25, 0.5, 0.75, 0.9, 0.95]
+trees per level                : 300
+max depth                      : 3
+learning rate                  : 0.06
+subsample                      : 0.9
+random state                   : 20261024
+quantile crossings sorted away : 939 of 6762 adjacent level pairs (0.1389)
+
+A crossing is an adjacent pair of levels on one row where the higher-quantile
+model predicted a lower value than the lower-quantile model. Seven levels
+give six adjacent pairs per row. Independent per-level fits do not guarantee
+monotonicity, so the predictions are sorted across levels and the number
+sorted is counted rather than hidden. A crossing rate of this size says the
+per-level fits disagree about the shape of the conditional distribution in
+part of the feature space, which is consistent with the interval
+under-covering: it is not a cosmetic detail.
+
+lookup bins used               : 1127 of 1127 rows
+lookup fell back to the global table on : 0 rows
+
+impurity-based feature importances of the median model, descending:
+  log10_clean_pass_s             0.357990
+  log10_turnaround_s             0.232360
+  pdu_loss_probability           0.122464
+  log10_one_way_light_time_s     0.099367
+  availability                   0.047218
+  log10_pdu_count                0.022758
+  log10_mean_down_s              0.021355
+  log10_file_bytes               0.020168
+  mode_is_immediate_nak          0.019928
+  outage_duty                    0.017135
+  log10_forward_rate_bps         0.013725
+  contact_duty                   0.013418
+  log10_asymmetry                0.011263
+  log10_pdu_payload_bytes        0.000850
+
+Impurity importances are biased towards high-cardinality features (Strobl
+et al. 2007) and describe the fitted model, not the link.
+
+==============================================================================
+compute budget (UNSTABLE: wall clock on a shared two-core container)
+==============================================================================
+These numbers move between runs and are not used in any conclusion.
+
+                       stage   seconds
+--------------------------------------
+         scenario generation     10.04
+  fit and score 4 predictors     19.77
+                       total     29.81
+
+==============================================================================
+sanity checks on every prediction
+==============================================================================
+Measured, not assumed. A predictor that emitted a negative or non-finite
+delivery time, or an interval that did not contain its own point
+prediction, would score perfectly well on a median relative error and be
+nonsense.
+
+The assertion covers the three predictors whose point prediction is the
+0.50 quantile of the same expression that produces their interval, so
+containment is a property of the construction. analytic_mean is excluded
+and reported separately: its point prediction is the EXPECTATION and its
+interval ends are quantiles, and those are two different summaries of the
+same distribution with no containment relation between them. The first run
+of this check asserted containment for all four and found analytic_mean
+violating it. That is a finding, not a defect to clamp away, and clamping
+the expectation into its own interval would have hidden it.
+
+         predictor   rows  finite  positive  lo<=point  point<=hi  asserted   ok
+--------------------------------------------------------------------------------
+          analytic   1127    1127      1127       1127       1127      True True
+     analytic_mean   1127    1127      1127       1127       1125     FalseFalse
+       mean_lookup   1127    1127      1127       1127       1127      True True
+  learned_quantile   1127    1127      1127       1127       1127      True True
+
+analytic_mean point prediction above its own 0.95 end on : 2 of 1127 rows
+worst excess over the upper end                          : 0.018720 relative
+
+The closed-form expectation can exceed the closed-form 0.95 quantile
+because the delivery-time distribution over an intermittent link has a tail
+heavy enough to pull the mean past the ninety-fifth percentile of the
+semi-analytic approximation. It is the same phenomenon as the mean/median
+ratio reported in validate_distributions.py, seen from the predictor side.
+
+==============================================================================
+summary
+==============================================================================
+asserted checks:
+  PASS  the analytic predictor beats the lookup table where it is exact
+  PASS  every prediction is finite, positive and bracketed by its interval
+
+reported outcomes -- these are measurements, not pass/fail criteria, and
+are recorded in whichever direction they came out:
+  TRUE   learned_quantile beats analytic in the correlated-outage regime
+  FALSE  learned_quantile beats analytic in the no-outage regime
+  FALSE  the learned interval is calibrated at nominal 0.90 (all rows)
+  FALSE  the analytic interval is calibrated at nominal 0.90 (all rows)
+
+output written to validation/validate_predictors_output.txt

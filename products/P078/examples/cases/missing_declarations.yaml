@@ -1,0 +1,34 @@
+name: missing_declarations
+description: >-
+  Deliberately broken declaration, committed so that the loader's strictness is
+  itself testable. Three defects: the command key is spelt 'precondition'
+  rather than 'preconditions', the sequence uses a mnemonic the dictionary does
+  not declare, and one predicate requirement is written as 'unknown', which is
+  not a condition that can be met. The loader must raise ValueError naming the
+  first key it reaches rather than quietly checking a sequence against a
+  declaration it did not understand.
+dictionary:
+  resource_limits:
+    power_w: 100.0
+  commands:
+    - id: PWR_BUS_CHECK
+      subsystem: power
+      effects:
+        bus_voltage_ok: true
+    - id: PAYLOAD_SCAN
+      subsystem: payload
+      precondition:
+        payload_enabled: true
+      resource_draw:
+        power_w: 46.0
+mode_machine:
+  modes: [NOMINAL]
+  transitions:
+    NOMINAL: []
+initial_state:
+  mode: NOMINAL
+  predicates:
+    bus_voltage_ok: true
+sequence:
+  - {t_s: 0.0, command: PWR_BUS_CHECK}
+  - {t_s: 10.0, command: PAYLOAD_SCAM}

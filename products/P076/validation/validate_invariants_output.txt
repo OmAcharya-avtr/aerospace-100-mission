@@ -1,0 +1,125 @@
+
+==============================================================================
+geometric invariants of the point-ahead angle
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  sgp4             : 2.27
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  astropy          : not installed
+  cpu cores        : 2
+  repository root  : P076 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the angle vanishes for purely radial relative motion
+==============================================================================
+  Constructed by replacing the remote velocity with the local velocity
+  plus a multiple of the line of sight, so the transverse relative
+  velocity is exactly zero by construction.
+
+  crosslinks                         : 120
+  worst closed-form angle            : 0.000000e+00 rad
+  worst reference angle              : 6.729973e-16 rad
+  [PASS] closed form vanishes to 1e-18 rad -- 0.000e+00 rad
+  [PASS] reference vanishes to 1e-15 rad -- 6.730e-16 rad
+
+==============================================================================
+2. negating the relative velocity negates the offset
+==============================================================================
+  worst relative magnitude change    : 0.000000e+00
+  worst relative direction residual  : 1.681746e-15
+  [PASS] magnitude is unchanged to 1e-14 relative
+  [PASS] offset is negated to 1e-14 relative
+
+==============================================================================
+3. rotational equivariance of the whole configuration
+==============================================================================
+  Rotating both terminal states must leave every angle unchanged and must
+  rotate the offset 3-vector with the configuration.
+
+  The acceptance criterion is ABSOLUTE and is the float64 direction
+  resolution of each geometry, pointahead.budget.direction_noise_floor_rad.
+  It was first written as a pure relative tolerance of 1e-12 and that
+  failed, at a worst relative residual of 3.7e-09 on a crosslink whose
+  point-ahead angle is 2.0e-07 rad: a residual of 7.7e-16 rad is 3.7e-09 of
+  an angle that small, and 7.7e-16 rad is three hundred times BELOW the
+  2.3e-13 rad resolution of that geometry. A relative criterion on a
+  quantity whose scale varies by two orders across the family is the wrong
+  criterion, and both residuals are printed below so a reader can see that.
+
+  crosslinks                         : 120
+  smallest point-ahead angle         : 2.045329e-07 rad
+  worst absolute angle residual      : 7.532847e-15 rad
+  worst relative angle residual      : 3.682951e-08
+  worst absolute offset residual     : 7.740676e-15 rad
+  worst relative offset residual     : 3.784562e-08
+  residuals above their own floor    : 0 of 240
+  [PASS] every rotation residual is below the float64 resolution of its geometry -- 0 of 240 residuals exceeded their floor
+
+==============================================================================
+4. the reverse link computes the same magnitude
+==============================================================================
+  The far terminal sees the same transverse relative speed about the same
+  line of sight, so the magnitude agrees. The ATTRIBUTION does not, and
+  that is measured in validate_frames.py.
+
+  crosslinks                         : 120
+  worst relative magnitude difference: 2.535478e-08
+  [PASS] reverse-link magnitude agrees to 1e-4 relative -- worst 2.535478e-08; the residual is the second-order aberration difference between the two local velocities
+
+==============================================================================
+5. linearity in the transverse relative speed
+==============================================================================
+  The angle is 2 v_perp / c, so scaling the transverse relative velocity
+  scales the angle by the same factor. Measured over seven decades.
+
+  The criterion is absolute-or-relative, whichever is looser: a relative
+  tolerance of 1e-09 OR the float64 direction resolution of the geometry.
+  A pure 1e-09 relative criterion failed at v_perp = 1e-03 m/s, where the
+  angle is 6.7e-12 rad and the residual is 3.3e-17 rad -- three hundred
+  times below the 1.0e-14 rad resolution of the geometry, and therefore
+  not a measurement of the code at all.
+
+  float64 direction resolution       : 1.029436e-14 rad
+
+    v_perp / (m/s)      angle / rad     2 v_perp / c     absolute     relative
+  ---------------- ---------------- ---------------- ------------ ------------
+         1.000e-03  6.671249199e-12  6.671281904e-12    3.271e-17    4.902e-06
+         1.000e-01  6.671281646e-10  6.671281904e-10    2.584e-17    3.873e-08
+         1.000e+00  6.671281872e-09  6.671281904e-09    3.165e-17    4.744e-09
+         1.000e+01  6.671281898e-08  6.671281904e-08    6.095e-17    9.136e-10
+         1.000e+02  6.671281904e-07  6.671281904e-07    3.073e-17    4.606e-11
+         1.000e+03  6.671281904e-06  6.671281904e-06    2.345e-18    3.516e-13
+         1.000e+04  6.671281905e-05  6.671281904e-05    1.233e-14    1.848e-10
+  [PASS] the angle is linear in the transverse relative speed over seven decades -- 0 of 7 points outside max(1e-09 relative, the floor)
+
+==============================================================================
+6. the offset is unchanged by moving the remote terminal along the line of sight
+==============================================================================
+  2 v_perp / c has no range dependence at first order. The reference does
+  have one, through the light time, and the size of it is measured here.
+
+      range / km     angle / urad   offset diff / rad
+  -------------- ---------------- -------------------
+        2085.600     45.104545702        7.232019e-15
+        3128.399     45.104545702        7.143975e-15
+        4171.199     45.104545702        7.232019e-15
+        8342.398     45.104545702        7.126430e-15
+       16684.796     45.104545702        7.126430e-15
+
+  The angle is constant to nine significant figures over a factor of eight
+  in range, which is the first-order range independence, measured.
+
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

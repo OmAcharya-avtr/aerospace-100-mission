@@ -1,0 +1,171 @@
+
+==============================================================================
+boundcompress -- the declared bound, asserted on every sample
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+scipy            : 1.18.1
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+numcodecs        : not installed  (spec baseline 2)
+zfpy             : not installed  (spec baseline 2)
+cpu cores        : 2
+repository root  : P080 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+mode='abs' -- every signal, every classical predictor, eight bounds
+==============================================================================
+[PASS] every abs cell holds the bound on every sample
+
+per-signal worst case at each bound, predictor='linear':
+signal             bound         max_abs_error  argmax  margin        corrections  verdict
+-----------------  ------------  -------------  ------  ------------  -----------  -------
+battery_voltage    4.119190e-02  4.114628e-02   2531    4.562114e-05  0            HOLDS  
+battery_voltage    1.105053e-02  1.104843e-02   1771    2.103072e-06  0            HOLDS  
+battery_voltage    2.964522e-03  2.963696e-03   2044    8.264446e-07  0            HOLDS  
+battery_voltage    7.952912e-04  7.952203e-04   1485    7.085286e-08  0            HOLDS  
+battery_voltage    2.133524e-04  2.133439e-04   3250    8.566027e-09  0            HOLDS  
+battery_voltage    5.723596e-05  5.722293e-05   1034    1.303004e-08  0            HOLDS  
+battery_voltage    1.535467e-05  1.535441e-05   2368    2.599101e-10  0            HOLDS  
+battery_voltage    4.119190e-06  4.117880e-06   2483    1.310654e-09  0            HOLDS  
+panel_temperature  4.701009e-01  4.700229e-01   1505    7.806700e-05  0            HOLDS  
+panel_temperature  1.261138e-01  1.260966e-01   375     1.717897e-05  0            HOLDS  
+panel_temperature  3.383249e-02  3.382462e-02   4051    7.865353e-06  0            HOLDS  
+panel_temperature  9.076228e-03  9.075714e-03   2758    5.136749e-07  0            HOLDS  
+panel_temperature  2.434876e-03  2.434712e-03   123     1.634961e-07  0            HOLDS  
+panel_temperature  6.532031e-04  6.531759e-04   4041    2.720330e-08  0            HOLDS  
+panel_temperature  1.752345e-04  1.751834e-04   640     5.114340e-08  0            HOLDS  
+panel_temperature  4.701009e-05  4.700986e-05   3791    2.316526e-10  0            HOLDS  
+wheel_rate         4.113667e+00  4.113629e+00   3173    3.748156e-05  0            HOLDS  
+wheel_rate         1.103572e+00  1.103540e+00   3767    3.204083e-05  0            HOLDS  
+wheel_rate         2.960547e-01  2.960514e-01   1723    3.336029e-06  0            HOLDS  
+wheel_rate         7.942247e-02  7.940648e-02   1802    1.599576e-05  0            HOLDS  
+wheel_rate         2.130663e-02  2.129330e-02   1660    1.333883e-05  0            HOLDS  
+wheel_rate         5.715922e-03  5.711706e-03   796     4.215383e-06  0            HOLDS  
+wheel_rate         1.533408e-03  1.533310e-03   346     9.753724e-08  0            HOLDS  
+wheel_rate         4.113667e-04  4.111810e-04   3170    1.857404e-07  0            HOLDS  
+gyro_rate          3.213375e-04  3.212982e-04   669     3.925730e-08  0            HOLDS  
+gyro_rate          8.620507e-05  8.620258e-05   3766    2.492237e-09  0            HOLDS  
+gyro_rate          2.312620e-05  2.312456e-05   1497    1.637900e-09  0            HOLDS  
+gyro_rate          6.204055e-06  6.198881e-06   3538    5.174152e-09  0            HOLDS  
+gyro_rate          1.664359e-06  1.663991e-06   1966    3.684624e-10  0            HOLDS  
+gyro_rate          4.464970e-07  4.458269e-07   3854    6.701046e-10  0            HOLDS  
+gyro_rate          1.197816e-07  1.197800e-07   605     1.543376e-12  0            HOLDS  
+gyro_rate          3.213375e-08  3.211816e-08   330     1.559054e-11  0            HOLDS  
+magnetometer       5.122522e-01  5.122308e-01   2314    2.138355e-05  0            HOLDS  
+magnetometer       1.374217e-01  1.374073e-01   2776    1.436433e-05  0            HOLDS  
+magnetometer       3.686605e-02  3.685883e-02   3585    7.219132e-06  0            HOLDS  
+magnetometer       9.890041e-03  9.883071e-03   313     6.970113e-06  0            HOLDS  
+magnetometer       2.653197e-03  2.652255e-03   1461    9.425336e-07  0            HOLDS  
+magnetometer       7.117721e-04  7.112751e-04   2632    4.969189e-07  0            HOLDS  
+magnetometer       1.909468e-04  1.908930e-04   1866    5.379704e-08  0            HOLDS  
+magnetometer       5.122522e-05  5.122375e-05   1049    1.470314e-09  0            HOLDS  
+packet_counter     1.023000e+01  1.022000e+01   133     1.000000e-02  0            HOLDS  
+packet_counter     2.744398e+00  2.743689e+00   612     7.090814e-04  0            HOLDS  
+packet_counter     7.362384e-01  7.340527e-01   896     2.185715e-03  0            HOLDS  
+packet_counter     1.975104e-01  1.975053e-01   238     5.086031e-06  0            HOLDS  
+packet_counter     5.298603e-02  5.291460e-02   952     7.142333e-05  0            HOLDS  
+packet_counter     1.421454e-02  1.420583e-02   990     8.713721e-06  0            HOLDS  
+packet_counter     3.813328e-03  3.812694e-03   21      6.340168e-07  0            HOLDS  
+packet_counter     1.023000e-03  1.022000e-03   760     1.000000e-06  0            HOLDS  
+white_noise        7.039586e-02  7.034495e-02   1220    5.091033e-05  0            HOLDS  
+white_noise        1.888507e-02  1.888504e-02   781     3.179353e-08  0            HOLDS  
+white_noise        5.066289e-03  5.062524e-03   3172    3.764892e-06  0            HOLDS  
+white_noise        1.359131e-03  1.358381e-03   3021    7.506954e-07  0            HOLDS  
+white_noise        3.646136e-04  3.646046e-04   1794    8.958673e-09  0            HOLDS  
+white_noise        9.781473e-05  9.781450e-05   354     2.290207e-10  0            HOLDS  
+white_noise        2.624072e-05  2.623500e-05   3825    5.715633e-09  0            HOLDS  
+white_noise        7.039586e-06  7.035935e-06   80      3.651231e-09  0            HOLDS  
+step_transient     8.925683e-02  8.172368e-02   816     7.533151e-03  0            HOLDS  
+step_transient     2.394489e-02  2.306011e-02   710     8.847799e-04  0            HOLDS  
+step_transient     6.423686e-03  6.418647e-03   4047    5.039371e-06  0            HOLDS  
+step_transient     1.723280e-03  1.723117e-03   3512    1.624896e-07  0            HOLDS  
+step_transient     4.623035e-04  4.623013e-04   2154    2.180933e-09  0            HOLDS  
+step_transient     1.240220e-04  1.239519e-04   168     7.007775e-08  0            HOLDS  
+step_transient     3.327132e-05  3.327113e-05   3170    1.927323e-10  0            HOLDS  
+step_transient     8.925683e-06  8.920396e-06   135     5.287067e-09  0            HOLDS  
+
+==============================================================================
+mode='rel' -- pointwise relative bound on the strictly positive signals
+==============================================================================
+[PASS] every rel cell holds the pointwise bound on every sample
+
+signal             rel_bound     max_rel_error  argmax  margin        corrections  verdict
+-----------------  ------------  -------------  ------  ------------  -----------  -------
+battery_voltage    1.000000e-02  9.999952e-03   1250    4.841094e-08  0            HOLDS  
+battery_voltage    1.000000e-04  9.994748e-05   2767    5.252292e-08  0            HOLDS  
+battery_voltage    1.000000e-06  9.997078e-07   2688    2.922016e-10  0            HOLDS  
+panel_temperature  1.000000e-02  9.995192e-03   2290    4.807602e-06  0            HOLDS  
+panel_temperature  1.000000e-04  9.998460e-05   591     1.539732e-08  0            HOLDS  
+panel_temperature  1.000000e-06  9.994737e-07   594     5.263277e-10  0            HOLDS  
+
+==============================================================================
+mode='range_rel' -- derived absolute bound, every signal
+==============================================================================
+[PASS] every range_rel cell holds the derived bound
+
+signal             fraction  derived_abs_bound  max_abs_error  verdict
+-----------------  --------  -----------------  -------------  -------
+battery_voltage    1.0e-02   4.119190e-02       4.114628e-02   HOLDS  
+battery_voltage    1.0e-04   4.119190e-04       4.118466e-04   HOLDS  
+battery_voltage    1.0e-06   4.119190e-06       4.117880e-06   HOLDS  
+panel_temperature  1.0e-02   4.701009e-01       4.700229e-01   HOLDS  
+panel_temperature  1.0e-04   4.701009e-03       4.700420e-03   HOLDS  
+panel_temperature  1.0e-06   4.701009e-05       4.700986e-05   HOLDS  
+wheel_rate         1.0e-02   4.113667e+00       4.113629e+00   HOLDS  
+wheel_rate         1.0e-04   4.113667e-02       4.112971e-02   HOLDS  
+wheel_rate         1.0e-06   4.113667e-04       4.111810e-04   HOLDS  
+gyro_rate          1.0e-02   3.213375e-04       3.212982e-04   HOLDS  
+gyro_rate          1.0e-04   3.213375e-06       3.212999e-06   HOLDS  
+gyro_rate          1.0e-06   3.213375e-08       3.211816e-08   HOLDS  
+magnetometer       1.0e-02   5.122522e-01       5.122308e-01   HOLDS  
+magnetometer       1.0e-04   5.122522e-03       5.121276e-03   HOLDS  
+magnetometer       1.0e-06   5.122522e-05       5.122375e-05   HOLDS  
+packet_counter     1.0e-02   1.023000e+01       1.022000e+01   HOLDS  
+packet_counter     1.0e-04   1.023000e-01       1.022000e-01   HOLDS  
+packet_counter     1.0e-06   1.023000e-03       1.022000e-03   HOLDS  
+white_noise        1.0e-02   7.039586e-02       7.034495e-02   HOLDS  
+white_noise        1.0e-04   7.039586e-04       7.038180e-04   HOLDS  
+white_noise        1.0e-06   7.039586e-06       7.035935e-06   HOLDS  
+step_transient     1.0e-02   8.925683e-02       8.172368e-02   HOLDS  
+step_transient     1.0e-04   8.925683e-04       8.924124e-04   HOLDS  
+step_transient     1.0e-06   8.925683e-06       8.920396e-06   HOLDS  
+
+==============================================================================
+the learned predictor cannot widen the bound
+==============================================================================
+[PASS] every learned cell holds the bound on every sample
+
+predictor       signal             bound         max_abs_error  bytes  verdict
+--------------  -----------------  ------------  -------------  -----  -------
+learned_linear  battery_voltage    4.119190e-04  4.118466e-04   2585   HOLDS  
+learned_linear  panel_temperature  4.701009e-03  4.700420e-03   1759   HOLDS  
+learned_linear  wheel_rate         4.113667e-02  4.112971e-02   1366   HOLDS  
+learned_linear  gyro_rate          3.213375e-06  3.212999e-06   7591   HOLDS  
+learned_linear  magnetometer       5.122522e-03  5.121276e-03   2576   HOLDS  
+learned_linear  packet_counter     1.023000e-01  1.022000e-01   495    HOLDS  
+learned_linear  white_noise        7.039586e-04  7.038180e-04   8451   HOLDS  
+learned_linear  step_transient     8.925683e-04  8.924124e-04   1166   HOLDS  
+learned_mlp     battery_voltage    4.119190e-04  4.118466e-04   2582   HOLDS  
+learned_mlp     panel_temperature  4.701009e-03  4.700420e-03   1502   HOLDS  
+learned_mlp     wheel_rate         4.113667e-02  4.112971e-02   979    HOLDS  
+learned_mlp     gyro_rate          3.213375e-06  3.212999e-06   7471   HOLDS  
+learned_mlp     magnetometer       5.122522e-03  5.121276e-03   2601   HOLDS  
+learned_mlp     packet_counter     1.023000e-01  1.022000e-01   600    HOLDS  
+learned_mlp     white_noise        7.039586e-04  7.038180e-04   8413   HOLDS  
+learned_mlp     step_transient     8.925683e-04  8.924124e-04   981    HOLDS  
+
+==============================================================================
+totals
+==============================================================================
+individual sample-versus-bound comparisons : 1310720
+samples moved one step by rounding         : 0
+tightest margin to the bound observed      : 1.543376e-12
+tightest-margin cell                       : ['gyro_rate', 'previous', '1.197816e-07', '1.197800e-07', '605', '1.543376e-12']
+[PASS] the tightest observed margin is non-negative
+[PASS] at least one million comparisons were made -- 1310720
+
+FAILED CHECKS (0): none

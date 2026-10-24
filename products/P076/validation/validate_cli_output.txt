@@ -1,0 +1,361 @@
+
+==============================================================================
+command-line interface: every invocation quoted in README.md
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  sgp4             : 2.27
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  astropy          : not installed
+  cpu cores        : 2
+  repository root  : P076 (printed relatively; see validation/_bootstrap.py)
+
+  PYTHONPATH is set to the repository-relative src directory and the
+  working directory is the repository root, so these are the commands a
+  reader runs from a cold clone with nothing installed.
+
+==============================================================================
+python -m pointahead --version
+==============================================================================
+  exit status                        : 0
+
+  | pointahead 0.1.0
+
+  [PASS] '--version' exits 0 -- got 0
+
+==============================================================================
+python -m pointahead info
+==============================================================================
+  exit status                        : 0
+
+  | pointahead 0.1.0
+  | python   3.13.17
+  | numpy    2.5.3
+  | scipy    1.18.1
+  | pyyaml   6.0.3
+  | sgp4     2.27
+  | scenarios ['geo_relay_to_leo', 'leo_crossing', 'leo_trailing']
+  | research grade; not flight-qualified, not certified, not approved for
+  | operational aerospace use
+
+  [PASS] 'info' exits 0 -- got 0
+
+==============================================================================
+python -m pointahead scenario leo_crossing
+==============================================================================
+  exit status                        : 0
+
+  | case: leo_crossing  (source: built-in scenario leo_crossing)
+  | 
+  | -- magnitude attribution (frame-dependent split, invariant total) ------------
+  |   frame                      : unspecified Earth-centred inertial
+  |   light_time_lead            :        7.534768 urad
+  |   stellar_aberration         :       21.913892 urad
+  |   velocity_aberration        :       21.913892 urad
+  |   vector sum total           :       45.104546 urad
+  |   closure vs reference       :    1.691966e-08 urad
+  | 
+  | -- error budget: leo_crossing ------------------------------------------------
+  |   frame                      : unspecified Earth-centred inertial
+  |   range                      :        2085.600 km
+  |   point-ahead angle          :       45.104546 urad
+  |   angle method               : closed_form
+  |   aberration route           : momentum_boost
+  |   light-time iterations      : 1
+  |   sigma v per axis           :        0.050000 m/s
+  |   ephemeris age              :          30.000 s
+  | 
+  |   term                                   paid /urad    if paid /urad  origin
+  |   -------------------------------- ---------------- ----------------  --------
+  |   relative_velocity_knowledge          4.717309e-04     4.717309e-04  analytic
+  |   ephemeris_staleness_velocity         2.380960e-02     2.380960e-02  analytic
+  |   ephemeris_staleness_geometry         1.763756e-03     1.763756e-03  analytic
+  |   light_time_iteration_residual        5.219820e-09     5.219820e-09  measured
+  |   aberration_model_error               0.000000e+00     1.519224e-08  measured
+  |   angle_model_error                    1.855254e-08     1.855254e-08  measured
+  |   -------------------------------- ---------------- ----------------
+  |   total (root sum of squares)          2.387950e-02
+  |   total (linear sum)                   2.604511e-02
+  |   dominant term              : ephemeris_staleness_velocity (0.9971 of the root sum of squares)
+  | 
+  | -- beam context --------------------------------------------------------------
+  |   beam                       : 1550 nm, 25 mm waist
+  |   divergence half-angle      :       19.735213 urad (1/e^2 intensity)
+  |   far field beyond           :        1266.771 m (link is in the far field)
+  |   total as fraction of beam  :    1.209995e-03
+  |   pointing loss at total     :    1.271690e-05 dB
+  |   affordable at 1.00 dB         :        6.696296 urad
+  |   headroom                   :    2.804203e+02 x
+  | 
+  | -- analytic lines checked against numerical propagation ----------------------
+  |   term                                  analytic       numeric         rel  check
+  |   -------------------------------- ------------- ------------- -----------  -----
+  |   relative_velocity_knowledge       4.717309e-10  4.717309e-10  5.2928e-08  pass (equality)
+  |   ephemeris_staleness_velocity      2.380960e-08  2.380751e-08  8.7970e-05  pass (upper_bound)
+  |   ephemeris_staleness_geometry      1.763756e-09  1.762673e-09  6.1402e-04  pass (upper_bound)
+  |   light_time_iteration_residual     1.497622e-14  5.219820e-15  6.5146e-01  pass (upper_bound)
+
+  [PASS] 'scenario leo_crossing' exits 0 -- got 0
+
+==============================================================================
+python -m pointahead scenario leo_trailing
+==============================================================================
+  exit status                        : 0
+
+  | case: leo_trailing  (source: built-in scenario leo_trailing)
+  | 
+  | -- magnitude attribution (frame-dependent split, invariant total) ------------
+  |   frame                      : unspecified Earth-centred inertial
+  |   light_time_lead            :        7.534768 urad
+  |   stellar_aberration         :        3.767384 urad
+  |   velocity_aberration        :        3.767384 urad
+  |   vector sum total           :       15.069535 urad
+  |   closure vs reference       :    1.427191e-08 urad
+  | 
+  | -- error budget: leo_trailing ------------------------------------------------
+  |   frame                      : unspecified Earth-centred inertial
+  |   range                      :        2085.600 km
+  |   point-ahead angle          :       15.069535 urad
+  |   angle method               : closed_form
+  |   aberration route           : momentum_boost
+  |   light-time iterations      : 1
+  |   sigma v per axis           :        0.050000 m/s
+  |   ephemeris age              :          30.000 s
+  | 
+  |   term                                   paid /urad    if paid /urad  origin
+  |   -------------------------------- ---------------- ----------------  --------
+  |   relative_velocity_knowledge          4.717309e-04     4.717309e-04  analytic
+  |   ephemeris_staleness_velocity         7.954844e-03     7.954844e-03  analytic
+  |   ephemeris_staleness_geometry         1.723143e-04     1.723143e-04  analytic
+  |   light_time_iteration_residual        5.248153e-09     5.248153e-09  measured
+  |   aberration_model_error               0.000000e+00     4.731247e-09  measured
+  |   angle_model_error                    1.477483e-08     1.477483e-08  measured
+  |   -------------------------------- ---------------- ----------------
+  |   total (root sum of squares)          7.970682e-03
+  |   total (linear sum)                   8.598909e-03
+  |   dominant term              : ephemeris_staleness_velocity (0.9980 of the root sum of squares)
+  | 
+  | -- beam context --------------------------------------------------------------
+  |   beam                       : 1550 nm, 25 mm waist
+  |   divergence half-angle      :       19.735213 urad (1/e^2 intensity)
+  |   far field beyond           :        1266.771 m (link is in the far field)
+  |   total as fraction of beam  :    4.038812e-04
+  |   pointing loss at total     :    1.416843e-06 dB
+  |   affordable at 1.00 dB         :        6.696296 urad
+  |   headroom                   :    8.401159e+02 x
+  | 
+  | -- analytic lines checked against numerical propagation ----------------------
+  |   term                                  analytic       numeric         rel  check
+  |   -------------------------------- ------------- ------------- -----------  -----
+  |   relative_velocity_knowledge       4.717309e-10  4.717309e-10  2.7993e-10  pass (equality)
+  |   ephemeris_staleness_velocity      7.954844e-09  7.954145e-09  8.7944e-05  pass (upper_bound)
+  |   ephemeris_staleness_geometry      1.723143e-10  1.722051e-10  6.3352e-04  pass (upper_bound)
+  |   light_time_iteration_residual     1.497622e-14  5.248153e-15  6.4957e-01  pass (upper_bound)
+
+  [PASS] 'scenario leo_trailing' exits 0 -- got 0
+
+==============================================================================
+python -m pointahead scenario geo_relay_to_leo
+==============================================================================
+  exit status                        : 0
+
+  | case: geo_relay_to_leo  (source: built-in scenario geo_relay_to_leo)
+  | 
+  | -- magnitude attribution (frame-dependent split, invariant total) ------------
+  |   frame                      : unspecified Earth-centred inertial
+  |   light_time_lead            :       44.818095 urad
+  |   stellar_aberration         :       10.244586 urad
+  |   velocity_aberration        :       10.244586 urad
+  |   vector sum total           :       35.912474 urad
+  |   closure vs reference       :    1.350086e-07 urad
+  | 
+  | -- error budget: geo_relay_to_leo --------------------------------------------
+  |   frame                      : unspecified Earth-centred inertial
+  |   range                      :       35840.014 km
+  |   point-ahead angle          :       35.912474 urad
+  |   angle method               : closed_form
+  |   aberration route           : momentum_boost
+  |   light-time iterations      : 1
+  |   sigma v per axis           :        0.050000 m/s
+  |   ephemeris age              :          30.000 s
+  | 
+  |   term                                   paid /urad    if paid /urad  origin
+  |   -------------------------------- ---------------- ----------------  --------
+  |   relative_velocity_knowledge          4.717309e-04     4.717309e-04  analytic
+  |   ephemeris_staleness_velocity         7.707778e-01     7.707778e-01  analytic
+  |   ephemeris_staleness_geometry         2.060716e-03     2.060716e-03  analytic
+  |   light_time_iteration_residual        5.933546e-09     5.933546e-09  measured
+  |   aberration_model_error               0.000000e+00     2.528206e-09  measured
+  |   angle_model_error                    1.370754e-07     1.370754e-07  measured
+  |   -------------------------------- ---------------- ----------------
+  |   total (root sum of squares)          7.707807e-01
+  |   total (linear sum)                   7.733103e-01
+  |   dominant term              : ephemeris_staleness_velocity (1.0000 of the root sum of squares)
+  | 
+  | -- beam context --------------------------------------------------------------
+  |   beam                       : 1550 nm, 25 mm waist
+  |   divergence half-angle      :       19.735213 urad (1/e^2 intensity)
+  |   far field beyond           :        1266.771 m (link is in the far field)
+  |   total as fraction of beam  :    3.905611e-02
+  |   pointing loss at total     :    1.324928e-02 dB
+  |   affordable at 1.00 dB         :        6.696296 urad
+  |   headroom                   :    8.687681e+00 x
+  | 
+  | -- analytic lines checked against numerical propagation ----------------------
+  |   term                                  analytic       numeric         rel  check
+  |   -------------------------------- ------------- ------------- -----------  -----
+  |   relative_velocity_knowledge       4.717309e-10  4.717309e-10  4.2114e-08  pass (equality)
+  |   ephemeris_staleness_velocity      7.707778e-07  7.233918e-07  6.1478e-02  pass (upper_bound)
+  |   ephemeris_staleness_geometry      2.060716e-09  1.750704e-09  1.5044e-01  pass (upper_bound)
+  |   light_time_iteration_residual     9.598156e-15  5.933546e-15  3.8180e-01  pass (upper_bound)
+
+  [PASS] 'scenario geo_relay_to_leo' exits 0 -- got 0
+
+==============================================================================
+python -m pointahead budget examples/cases/leo_crossing.yaml
+==============================================================================
+  exit status                        : 0
+
+  | case: leo_crossing  (source: leo_crossing.yaml)
+  | 
+  | -- magnitude attribution (frame-dependent split, invariant total) ------------
+  |   frame                      : unspecified Earth-centred inertial
+  |   light_time_lead            :        7.534768 urad
+  |   stellar_aberration         :       21.913892 urad
+  |   velocity_aberration        :       21.913892 urad
+  |   vector sum total           :       45.104546 urad
+  |   closure vs reference       :    1.691966e-08 urad
+  | 
+  | -- error budget: leo_crossing ------------------------------------------------
+  |   frame                      : unspecified Earth-centred inertial
+  |   range                      :        2085.600 km
+  |   point-ahead angle          :       45.104546 urad
+  |   angle method               : closed_form
+  |   aberration route           : momentum_boost
+  |   light-time iterations      : 1
+  |   sigma v per axis           :        0.050000 m/s
+  |   ephemeris age              :          30.000 s
+  | 
+  |   term                                   paid /urad    if paid /urad  origin
+  |   -------------------------------- ---------------- ----------------  --------
+  |   relative_velocity_knowledge          4.717309e-04     4.717309e-04  analytic
+  |   ephemeris_staleness_velocity         2.380960e-02     2.380960e-02  analytic
+  |   ephemeris_staleness_geometry         1.763756e-03     1.763756e-03  analytic
+  |   light_time_iteration_residual        5.219820e-09     5.219820e-09  measured
+  |   aberration_model_error               0.000000e+00     1.519224e-08  measured
+  |   angle_model_error                    1.855254e-08     1.855254e-08  measured
+  |   -------------------------------- ---------------- ----------------
+  |   total (root sum of squares)          2.387950e-02
+  |   total (linear sum)                   2.604511e-02
+  |   dominant term              : ephemeris_staleness_velocity (0.9971 of the root sum of squares)
+  | 
+  | -- beam context --------------------------------------------------------------
+  |   beam                       : 1550.0 nm, 25.0 mm waist
+  |   divergence half-angle      :       19.735213 urad (1/e^2 intensity)
+  |   far field beyond           :        1266.771 m (link is in the far field)
+  |   total as fraction of beam  :    1.209995e-03
+  |   pointing loss at total     :    1.271690e-05 dB
+  |   affordable at 1.00 dB         :        6.696296 urad
+  |   headroom                   :    2.804203e+02 x
+  | 
+  | -- analytic lines checked against numerical propagation ----------------------
+  |   term                                  analytic       numeric         rel  check
+  |   -------------------------------- ------------- ------------- -----------  -----
+  |   relative_velocity_knowledge       4.717309e-10  4.717309e-10  5.2928e-08  pass (equality)
+  |   ephemeris_staleness_velocity      2.380960e-08  2.380751e-08  8.7970e-05  pass (upper_bound)
+  |   ephemeris_staleness_geometry      1.763756e-09  1.762673e-09  6.1402e-04  pass (upper_bound)
+  |   light_time_iteration_residual     1.497622e-14  5.219820e-15  6.5146e-01  pass (upper_bound)
+
+  [PASS] 'budget examples/cases/leo_crossing.yaml' exits 0 -- got 0
+
+==============================================================================
+python -m pointahead compare examples/cases/geo_relay_to_leo.yaml
+==============================================================================
+  exit status                        : 0
+
+  | case: geo_relay_to_leo  (source: geo_relay_to_leo.yaml)
+  | 
+  | -- baseline vs reference -----------------------------------------------------
+  |   closed form                :       35.912474 urad
+  |   iterated reference         :       35.912474 urad
+  |   magnitude difference       :    1.190121e-07 urad
+  |   offset difference (closed) :    1.370754e-07 urad
+  |   transmit direction (open)  :    7.385140e-04 urad
+  | 
+  | -- magnitude attribution (frame-dependent split, invariant total) ------------
+  |   frame                      : unspecified Earth-centred inertial
+  |   light_time_lead            :       44.818095 urad
+  |   stellar_aberration         :       10.244586 urad
+  |   velocity_aberration        :       10.244586 urad
+  |   vector sum total           :       35.912474 urad
+  |   closure vs reference       :    1.350086e-07 urad
+
+  [PASS] 'compare examples/cases/geo_relay_to_leo.yaml' exits 0 -- got 0
+
+==============================================================================
+python -m pointahead lighttime examples/cases/leo_trailing.yaml
+==============================================================================
+  exit status                        : 0
+
+  | -- light-time solutions: leo_trailing ----------------------------------------
+  |   receive
+  |     tau                      : 6.956637768023016e-03 s
+  |     light-time range         : 2085.547536 km
+  |     iterations               : 3
+  |     residual                 : 0.000000e+00 s
+  |     converged                : True
+  |     iterate[0]               : 6.956811177851073e-03 s
+  |     iterate[1]               : 6.956637763700387e-03 s
+  |     iterate[2]               : 6.956637768023125e-03 s
+  |     iterate[3]               : 6.956637768023016e-03 s
+  |   transmit
+  |     tau                      : 6.956984596225860e-03 s
+  |     light-time range         : 2085.651512 km
+  |     iterations               : 3
+  |     residual                 : 0.000000e+00 s
+  |     converged                : True
+  |     iterate[0]               : 6.956811177851073e-03 s
+  |     iterate[1]               : 6.956984591903021e-03 s
+  |     iterate[2]               : 6.956984596225751e-03 s
+  |     iterate[3]               : 6.956984596225860e-03 s
+
+  [PASS] 'lighttime examples/cases/leo_trailing.yaml' exits 0 -- got 0
+
+==============================================================================
+error paths
+==============================================================================
+
+  python -m pointahead budget examples/cases/absent.yaml
+    exit status                      : 1
+    stderr                           : case file not found: examples/cases/absent.yaml
+  [PASS] 'budget examples/cases/absent.yaml' exits non-zero -- got 1
+  [PASS] 'budget examples/cases/absent.yaml' names the problem -- looking for 'case file not found'
+  [PASS] 'budget examples/cases/absent.yaml' prints no traceback
+
+  python -m pointahead scenario mars_relay
+    exit status                      : 2
+    stderr                           : pointahead scenario: error: argument name: invalid choice: 'mars_relay' (choose from 'geo_relay_to_leo', 'leo_crossing', 'leo_trailing')
+  [PASS] 'scenario mars_relay' exits non-zero -- got 2
+  [PASS] 'scenario mars_relay' names the problem -- looking for 'invalid choice'
+  [PASS] 'scenario mars_relay' prints no traceback
+
+  python -m pointahead (no arguments)
+    exit status                      : 2
+    stderr                           : pointahead: error: the following arguments are required: command
+  [PASS] '(no arguments)' exits non-zero -- got 2
+  [PASS] '(no arguments)' names the problem -- looking for 'the following arguments are required'
+  [PASS] '(no arguments)' prints no traceback
+
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

@@ -1,0 +1,126 @@
+
+==============================================================================
+environment
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+cfdp-py          : not installed
+spacepackets     : not installed
+cpu cores        : 2
+repository root  : P077 (printed relatively; see validation/_bootstrap.py)
+
+cfdp-py and spacepackets are NOT installed in this environment. They are
+named in README.md as the mature implementations of the protocol itself and
+no number anywhere in this repository was taken from either package.
+
+==============================================================================
+check 1: every field of a single run
+==============================================================================
+fields compared per run        : 23
+
+               link            mode  seeds  identical  differing fields
+-----------------------------------------------------------------------
+   clean continuous  unacknowledged     25         25              none
+   clean continuous    deferred_nak     25         25              none
+   clean continuous   immediate_nak     25         25              none
+   lossy continuous  unacknowledged     25         25              none
+   lossy continuous    deferred_nak     25         25              none
+   lossy continuous   immediate_nak     25         25              none
+    windowed bursty  unacknowledged     25         25              none
+    windowed bursty    deferred_nak     25         25              none
+    windowed bursty   immediate_nak     25         25              none
+
+runs compared                  : 225
+field mismatches               : 0
+
+==============================================================================
+check 2: a whole Monte Carlo ensemble
+==============================================================================
+
+               link            mode   runs  array equal  quantiles equal
+------------------------------------------------------------------------
+   clean continuous  unacknowledged    150         True             True
+   clean continuous    deferred_nak    150         True             True
+   clean continuous   immediate_nak    150         True             True
+   lossy continuous  unacknowledged    150         True             True
+   lossy continuous    deferred_nak    150         True             True
+   lossy continuous   immediate_nak    150         True             True
+    windowed bursty  unacknowledged    150         True             True
+    windowed bursty    deferred_nak    150         True             True
+    windowed bursty   immediate_nak    150         True             True
+
+ensemble mismatches            : 0
+
+==============================================================================
+check 3: the generated scenario table, target column included
+==============================================================================
+rows                           : 120
+columns                        : 30
+identical                      : True
+note                           : every column identical, including the simulated delivery time
+
+Scenario construction is checked separately from the simulated target, so a
+generator that is reproducible and a simulation that is not can be told
+apart.
+scenario construction stable   : True over 80 scenarios
+
+==============================================================================
+check 4: independence from the surrounding call order
+==============================================================================
+Each run derives its own generators from its own seed through a numpy
+SeedSequence, so a run must give the same answer whether it is made first,
+last, or interleaved with unrelated work. A simulator sharing one global
+generator passes checks 1 to 3 and fails this one.
+
+pairs compared                 : 9
+order-dependent results        : 0
+
+==============================================================================
+different seeds do produce different runs
+==============================================================================
+Reproducibility is only interesting if the seed does something. If two
+different seeds gave the same run, every check above would pass trivially.
+
+Unacknowledged mode sends every unit exactly once whatever the seed, so its
+transmission count is deterministic by construction and the quantity that
+has to vary there is how many units ARRIVED. The first run of this check used
+the transmission count for all three modes and reported a false failure on
+all three unacknowledged rows. The criterion column below names which
+quantity each row is judged on.
+
+               link            mode  distinct tx  distinct recv  distinct times   criterion  varies
+---------------------------------------------------------------------------------------------------
+   clean continuous  unacknowledged            1              1               1    received   False
+   clean continuous    deferred_nak            1              1               1          tx   False
+   clean continuous   immediate_nak            1              1               1          tx   False
+   lossy continuous  unacknowledged            1             15               0    received    True
+   lossy continuous    deferred_nak           18              1              41          tx    True
+   lossy continuous   immediate_nak           18              1              51          tx    True
+    windowed bursty  unacknowledged            1             25               1    received    True
+    windowed bursty    deferred_nak           26              1              35          tx    True
+    windowed bursty   immediate_nak           25              1              42          tx    True
+
+The clean continuous link is deterministic by construction -- no loss and no
+outages -- so one distinct value there is the correct answer, not a defect,
+and those three rows are excluded from the verdict.
+seed sensitivity on the stochastic links: True
+
+==============================================================================
+summary
+==============================================================================
+PASS  every field of a repeated run is identical
+PASS  a repeated ensemble is identical
+PASS  a repeated scenario table is identical
+PASS  scenario construction is stable
+PASS  results do not depend on the surrounding call order
+PASS  different seeds give different runs on stochastic links
+
+output written to validation/validate_reproducibility_output.txt

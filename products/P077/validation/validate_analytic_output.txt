@@ -1,0 +1,296 @@
+
+==============================================================================
+environment
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+cfdp-py          : not installed
+spacepackets     : not installed
+cpu cores        : 2
+repository root  : P077 (printed relatively; see validation/_bootstrap.py)
+
+cfdp-py and spacepackets are NOT installed in this environment. They are
+named in README.md as the mature implementations of the protocol itself and
+no number anywhere in this repository was taken from either package.
+
+==============================================================================
+check 1: E[R] series against inclusion-exclusion over minima
+==============================================================================
+   n       p          series       incl-excl      rel diff
+----------------------------------------------------------
+   1    0.01     1.010101010     1.010101010     2.198e-16
+   1    0.05     1.052631579     1.052631579     4.852e-15
+   1    0.20     1.250000000     1.250000000     1.954e-15
+   1    0.50     2.000000000     2.000000000     3.553e-15
+   1    0.75     4.000000000     4.000000000     2.554e-15
+   1    0.90    10.000000000    10.000000000     1.066e-15
+   2    0.01     1.020102010     1.020102010     4.353e-16
+   2    0.05     1.102756892     1.102756892     8.054e-16
+   2    0.20     1.458333333     1.458333333     3.654e-15
+   2    0.50     2.666666667     2.666666667     2.831e-15
+   2    0.75     5.714285714     5.714285714     1.399e-15
+   2    0.90    14.736842105    14.736842105     2.411e-16
+   3    0.01     1.030004000     1.030004000     4.312e-16
+   3    0.05     1.150500955     1.150500955     9.650e-16
+   3    0.20     1.633064516     1.633064516     4.895e-15
+   3    0.50     3.142857143     3.142857143     1.554e-15
+   3    0.75     6.872586873     6.872586873     1.422e-15
+   3    0.90    17.900563216    17.900563216     5.954e-16
+   4    0.01     1.039807970     1.039807970     6.406e-16
+   4    0.05     1.195982534     1.195982534     1.671e-15
+   4    0.20     1.780655500     1.780655500     1.247e-15
+   4    0.50     3.504761905     3.504761905     2.027e-15
+   4    0.75     7.741776062     7.741776062     1.721e-15
+   4    0.90    20.273378192    20.273378192     1.752e-16
+   6    0.01     1.059125761     1.059125761     1.258e-15
+   6    0.05     1.280603910     1.280603910     2.601e-15
+   6    0.20     2.014108472     2.014108472     1.323e-15
+   6    0.50     4.034818228     4.034818228     1.541e-15
+   6    0.75     9.016347337     9.016347337     7.881e-16
+   6    0.90    23.753492875    23.753492875     1.496e-16
+   8    0.01     1.078063106     1.078063106     5.355e-15
+   8    0.05     1.357457634     1.357457634     9.651e-15
+   8    0.20     2.189000212     2.189000212     3.652e-15
+   8    0.50     4.421077726     4.421077726     0.000e+00
+   8    0.75     9.947432930     9.947432930     7.143e-16
+   8    0.90    26.295784368    26.295784368     2.162e-15
+  10    0.01     1.096627576     1.096627576     7.289e-15
+  10    0.05     1.427298762     1.427298762     1.571e-14
+  10    0.20     2.324854264     2.324854264     4.011e-15
+  10    0.50     4.725559324     4.725559324     3.007e-15
+  10    0.75    10.681267936    10.681267936     3.326e-16
+  10    0.90    28.299486702    28.299486702     5.273e-15
+  12    0.01     1.114826590     1.114826590     1.259e-13
+  12    0.05     1.490808745     1.490808745     7.924e-14
+  12    0.20     2.434282309     2.434282309     4.050e-14
+  12    0.50     4.976966144     4.976966144     1.499e-14
+  12    0.75    11.286944950    11.286944950     5.036e-15
+  12    0.90    29.953260160    29.953260160     2.016e-14
+
+worst relative difference over 48 pairs : 1.258780e-13
+tolerance                               : 1.000000e-09
+verdict                                 : PASS
+
+==============================================================================
+check 2: reported truncation bound against the measured truncation
+==============================================================================
+The bound is n * p**K / (1 - p) from Bernoulli's inequality, so it is an
+upper bound on everything the truncated series leaves out and must never be
+smaller than the measured change. The slack is the bound minus the measured
+truncation and must be non-negative up to the rounding of the subtraction
+itself, which is of order eps times the sum; the comparison tolerance is
+16 * eps * E[R] and is stated per row.
+
+This check found two defects on its first two runs and both are recorded
+here rather than in a commit message.
+
+  1. The first run compared the slack against a flat 1e-18 and reported
+     four of nine rows as failures at a slack of -1e-16. That is the
+     subtraction's own rounding, not a violated bound, and the comparison
+     was wrong rather than the bound.
+  2. With the tolerance corrected, one row still failed: n = 1000, p = 0.3,
+     slack -1.83e-13 against a tolerance of 2.39e-14, eight times too large
+     to be the subtraction. It traced to the series term itself. Written as
+     1 - (1 - p**k)**n, a small p**k rounds with an absolute error of half
+     an epsilon, the n-th power multiplies the relative error by n, and the
+     final subtraction from 1 leaves an absolute error of order n * eps,
+     which at n = 1000 is 2e-13 -- a thousand times the stated truncation
+     tolerance of the series. The term is now evaluated as
+     -expm1(n * log1p(-p**k)), which is the same function and not the same
+     computation, and the worst slack over the nine pairs moved from
+     -1.83e-13 to +7.30e-16. relfiledelivery.analytic.rounds_cdf was
+     changed the same way.
+
+    n      p  terms        bound     measured        slack    float tol    ok
+-------------------------------------------------------------------------
+   10   0.05      7    8.224e-09    8.224e-09    2.475e-15    5.071e-15  True
+   10   0.30     18    5.535e-09    5.535e-09    9.611e-15    1.042e-14  True
+   10   0.60     43    7.218e-09    7.218e-09    5.207e-15    2.215e-14  True
+  100   0.05      8    4.112e-09    4.112e-09    1.015e-15    7.918e-15  True
+  100   0.30     20    4.981e-09    4.981e-09    8.161e-15    1.709e-14  True
+  100   0.60     47    9.355e-09    9.355e-09    4.019e-15    3.785e-14  True
+ 1000   0.05      9    2.056e-09    2.056e-09    7.298e-16    1.081e-14  True
+ 1000   0.30     22    4.483e-09    4.483e-09    6.990e-15    2.387e-14  True
+ 1000   0.60     52    7.275e-09    7.275e-09    7.403e-15    5.384e-14  True
+
+worst slack over 9 pairs                : +7.297573e-16
+verdict                                 : PASS
+
+==============================================================================
+check 3: round-count CDF against exhaustive enumeration
+==============================================================================
+For small n the probability that every unit succeeded within k attempts
+can be summed over the joint distribution of attempt counts directly.
+
+   n       p   k     closed form      enumerated    abs diff
+------------------------------------------------------------
+   1    0.10   1  0.900000000000  0.900000000000    0.00e+00
+   1    0.10   2  0.990000000000  0.990000000000    0.00e+00
+   1    0.10   3  0.999000000000  0.999000000000    0.00e+00
+   1    0.10   5  0.999990000000  0.999990000000    0.00e+00
+   1    0.40   1  0.600000000000  0.600000000000    0.00e+00
+   1    0.40   2  0.840000000000  0.840000000000    0.00e+00
+   1    0.40   3  0.936000000000  0.936000000000    0.00e+00
+   1    0.40   5  0.989760000000  0.989760000000    0.00e+00
+   1    0.70   1  0.300000000000  0.300000000000    0.00e+00
+   1    0.70   2  0.510000000000  0.510000000000    0.00e+00
+   1    0.70   3  0.657000000000  0.657000000000    1.11e-16
+   1    0.70   5  0.831930000000  0.831930000000    0.00e+00
+   2    0.10   1  0.810000000000  0.810000000000    1.11e-16
+   2    0.10   2  0.980100000000  0.980100000000    0.00e+00
+   2    0.10   3  0.998001000000  0.998001000000    0.00e+00
+   2    0.10   5  0.999980000100  0.999980000100    1.11e-16
+   2    0.40   1  0.360000000000  0.360000000000    0.00e+00
+   2    0.40   2  0.705600000000  0.705600000000    0.00e+00
+   2    0.40   3  0.876096000000  0.876096000000    1.11e-16
+   2    0.40   5  0.979624857600  0.979624857600    0.00e+00
+   2    0.70   1  0.090000000000  0.090000000000    1.39e-17
+   2    0.70   2  0.260100000000  0.260100000000    5.55e-17
+   2    0.70   3  0.431649000000  0.431649000000    5.55e-17
+   2    0.70   5  0.692107524900  0.692107524900    0.00e+00
+   3    0.10   1  0.729000000000  0.729000000000    1.11e-16
+   3    0.10   2  0.970299000000  0.970299000000    1.11e-16
+   3    0.10   3  0.997002999000  0.997002999000    0.00e+00
+   3    0.10   5  0.999970000300  0.999970000300    1.11e-16
+   3    0.40   1  0.216000000000  0.216000000000    2.78e-17
+   3    0.40   2  0.592704000000  0.592704000000    0.00e+00
+   3    0.40   3  0.820025856000  0.820025856000    1.11e-16
+   3    0.40   5  0.969593499058  0.969593499058    1.11e-16
+   3    0.70   1  0.027000000000  0.027000000000    3.47e-18
+   3    0.70   2  0.132651000000  0.132651000000    5.55e-17
+   3    0.70   3  0.283593393000  0.283593393000    5.55e-17
+   3    0.70   5  0.575785013190  0.575785013190    1.11e-16
+   4    0.10   1  0.656100000000  0.656100000000    1.11e-16
+   4    0.10   2  0.960596010000  0.960596010000    0.00e+00
+   4    0.10   3  0.996005996001  0.996005996001    0.00e+00
+   4    0.10   5  0.999960000600  0.999960000600    2.22e-16
+   4    0.40   1  0.129600000000  0.129600000000    0.00e+00
+   4    0.40   2  0.497871360000  0.497871360000    5.55e-17
+   4    0.40   3  0.767544201216  0.767544201216    1.11e-16
+   4    0.40   5  0.959664861628  0.959664861628    1.11e-16
+   4    0.70   1  0.008100000000  0.008100000000    1.73e-18
+   4    0.70   2  0.067652010000  0.067652010000    2.78e-17
+   4    0.70   3  0.186320859201  0.186320859201    5.55e-17
+   4    0.70   5  0.479012826023  0.479012826023    5.55e-17
+
+worst absolute difference over 48 triples: 2.220446e-16
+tolerance                                : 1.000000e-12
+verdict                                  : PASS
+
+==============================================================================
+check 4: negative-binomial transmission quantile against a 200000-draw sample
+==============================================================================
+    n      p      q   closed form     sampled   abs diff
+--------------------------------------------------------
+   20   0.05   0.05          20.0        20.0        0.0
+   20   0.05   0.50          21.0        21.0        0.0
+   20   0.05   0.95          23.0        23.0        0.0
+   20   0.20   0.05          21.0        21.0        0.0
+   20   0.20   0.50          25.0        25.0        0.0
+   20   0.20   0.95          29.0        29.0        0.0
+   20   0.35   0.05          25.0        25.0        0.0
+   20   0.35   0.50          30.0        30.0        0.0
+   20   0.35   0.95          38.0        38.0        0.0
+  100   0.05   0.05         102.0       102.0        0.0
+  100   0.05   0.50         105.0       105.0        0.0
+  100   0.05   0.95         109.0       109.0        0.0
+  100   0.20   0.05         116.0       116.0        0.0
+  100   0.20   0.50         125.0       125.0        0.0
+  100   0.20   0.95         135.0       135.0        0.0
+  100   0.35   0.05         139.0       139.0        0.0
+  100   0.35   0.50         153.0       153.0        0.0
+  100   0.35   0.95         169.0       169.0        0.0
+  400   0.05   0.05         414.0       414.0        0.0
+  400   0.05   0.50         421.0       421.0        0.0
+  400   0.05   0.95         429.0       429.0        0.0
+  400   0.20   0.05         482.0       482.0        0.0
+  400   0.20   0.50         500.0       500.0        0.0
+  400   0.20   0.95         519.0       519.0        0.0
+  400   0.35   0.05         586.0       586.0        0.0
+  400   0.35   0.50         615.0       615.0        0.0
+  400   0.35   0.95         646.0       646.0        0.0
+
+The quantile of a discrete distribution is an integer, so the tolerance is
+stated in whole transmissions: a 200000-draw sample pins the 5th, 50th and
+95th percentiles to within one count.
+worst absolute difference over 27 triples : 0.0 transmissions
+tolerance                                 : 1 transmission
+verdict                                   : PASS
+
+==============================================================================
+the closed form on one declared scenario, for the record
+==============================================================================
+file size               : 262144 bytes
+PDU payload             : 1024 bytes
+PDU header              : 12 bytes
+PDU count               : 256
+last PDU payload        : 1024 bytes
+clean-pass wire bytes   : 265216 bytes (overhead ratio 1.011719)
+forward rate            : 1e+06 bit/s
+return rate             : 10000 bit/s
+asymmetry (fwd/ret)     : 100
+one-way light time      : 0.25 s
+independent PDU loss    : 0.05
+outage process          : none (no-outage limit)
+contact                 : continuous
+availability            : 1.000000
+
+clean-pass forward time : 2.121728000 s
+turnaround per round    : 0.551328000 s
+
+mode                    : unacknowledged
+PDU count               : 256
+E[transmissions]        : 256.000000
+E[rounds]               : 1.000000 (series tail bound 0.000e+00)
+forward busy time       : 2.121728 s
+turnaround per round    : 0.000000 s
+E[delivery time]        : 2.371728 s
+delivery lower bound    : 2.371728 s
+completion probability  : 0.000001983
+E[forward wire bytes]   : 265216.000
+E[return wire bytes]    : 0.000
+E[overhead ratio]       : 1.011719
+
+mode                    : deferred_nak
+PDU count               : 256
+E[transmissions]        : 269.473684
+E[rounds]               : 2.506306 (series tail bound 3.289e-15)
+forward busy time       : 2.233398 s
+turnaround per round    : 0.551328 s
+E[delivery time]        : 3.313867 s
+delivery lower bound    : 2.483398 s
+completion probability  : 1.000000000
+E[forward wire bytes]   : 279198.838
+E[return wire bytes]    : 96.404
+E[overhead ratio]       : 1.065427
+
+mode                    : immediate_nak
+PDU count               : 256
+E[transmissions]        : 269.473684
+E[rounds]               : 2.506306 (series tail bound 3.289e-15)
+forward busy time       : 2.233398 s
+turnaround per round    : 0.551328 s
+E[delivery time]        : not certain (see completion probability)
+delivery lower bound    : 2.483398 s
+completion probability  : 1.000000000
+E[forward wire bytes]   : 279198.838
+E[return wire bytes]    : 96.404
+E[overhead ratio]       : 1.065427
+
+==============================================================================
+summary
+==============================================================================
+PASS  E[R] series vs inclusion-exclusion
+PASS  truncation bound vs measured truncation
+PASS  round CDF vs enumeration
+PASS  nbinom quantile vs 200000 draws
+
+output written to validation/validate_analytic_output.txt

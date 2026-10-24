@@ -1,0 +1,213 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  boundcompress: certifying that a declared per-sample error bound held, and
+  reporting what the guarantee cost
+version: 0.1.0
+date-released: 2026-10-24
+license: Apache-2.0
+abstract: >-
+  Compresses a one-dimensional telemetry array under a declared absolute,
+  pointwise relative or range-relative per-sample error bound and issues a
+  certificate: the measured maximum per-sample error, the index where it
+  occurred, the margin to the bound, the number of violations, and the rate in
+  actual encoded bytes. The error guarantee lives entirely in the quantiser;
+  everything downstream of it -- a closed-loop integer predictor, a zigzag and
+  escape symbol mapping, and a static range Asymmetric Numeral Systems coder
+  -- is lossless on the integer symbol stream, so swapping the predictor moves
+  the rate and cannot move a single reconstructed sample, and two predictors
+  are compared at identical rather than matched distortion. The encoder
+  verifies every sample against the declared bound at encode time, corrects
+  the samples floating-point rounding puts outside it, and refuses to encode
+  rather than issue a certificate it cannot support. Validation is level 2.
+  The bound held on 1,310,720 individual sample-versus-bound comparisons
+  across eight signals, three bound modes, six predictors and eight bounds
+  spanning five decades, with a tightest observed margin of 1.543376e-12 and
+  zero rounding corrections needed; eleven deliberate violations were caught
+  and located, including one of one part in 1e9 of the bound and a
+  reconstruction one unit in the last place past it. Rate is always the length
+  of a container that round-trips, never an entropy estimate: the first-order
+  entropy is reported beside it as a memoryless reference and a coder with
+  memory was measured below it on three of eight signals, by a factor of 6.7
+  on one. Two results are unfavourable to this package and are published as
+  measured. Its own static order-0 entropy coder is beaten by lzma or bz2 on
+  six of eight signals at the median swept bound and by a factor of 4.788 on a
+  counter channel, so the contribution is the certificate and the cost
+  accounting rather than the coder. And a classical integer predictor wins 14
+  of 40 benchmark cells: the strongest classical predictor on these signals is
+  first-order previous rather than second-order linear, linear wins outright
+  on the two piecewise-linear channels, and the learned perceptron wins the
+  median cell by 1.3451 per cent while losing one by 55.8824 per cent, costs
+  2328 bytes of parameters that take 36.4 arrays to pay back, did not converge
+  within its iteration cap, and is not bit-exact across machines because tanh
+  is a libm call. The learned ridge predictor has a negative mean saving and
+  never pays back its 120 bytes. Its ensemble dispersion, offered as an
+  uncertainty output, has a median Spearman rank correlation of 0.0280 with
+  the realised residual. The named third-party baselines numcodecs and zfpy
+  are not installed in the measured environment and no rate-distortion number
+  in this repository is taken from either; the substitution to the Python
+  standard library is recorded as a deviation. All numbers are measured
+  against a seeded synthetic telemetry generator whose equations are printed
+  in its module docstring; no flight data is used anywhere. A flight
+  implementation should use a standardised codec such as CCSDS 121.0-B-3 or
+  122.0-B-2. Research grade. Not flight-qualified, not certified, not approved
+  for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - error-bounded-compression
+  - telemetry
+  - satellite-communications
+  - rate-distortion
+  - predictive-coding
+  - entropy-coding
+  - rans
+  - certificate
+references:
+  - type: article
+    authors:
+      - family-names: Shannon
+        given-names: "C. E."
+    title: "A mathematical theory of communication"
+    journal: "Bell System Technical Journal"
+    volume: 27
+    issue: 3
+    year: 1948
+    notes: >-
+      The source-coding theorem behind the entropy figures in
+      boundcompress.entropy. Reported as a memoryless reference and never as a
+      lower bound: a coder with memory was measured below it on three of eight
+      signals.
+  - type: article
+    authors:
+      - family-names: Duda
+        given-names: "J."
+    title: >-
+      Asymmetric numeral systems: entropy coding combining speed of Huffman
+      coding with compression rate of arithmetic coding
+    year: 2013
+    notes: >-
+      arXiv:1311.2540. The static rANS coder in boundcompress.rans, in the
+      16-bit renormalisation configuration with a 4096-slot frequency table.
+  - type: book
+    authors:
+      - family-names: Gersho
+        given-names: "A."
+      - family-names: Gray
+        given-names: "R. M."
+    title: "Vector Quantization and Signal Compression"
+    publisher:
+      name: "Kluwer Academic Publishers"
+    year: 1992
+    notes: >-
+      Chapter 4 for the round-to-nearest uniform quantiser error bound that
+      mode='abs' rests on, and for the high-rate result that makes a geometric
+      bound sweep the right spacing.
+  - type: conference-paper
+    authors:
+      - family-names: Liang
+        given-names: "X."
+      - family-names: Di
+        given-names: "S."
+      - family-names: Tao
+        given-names: "D."
+      - family-names: Li
+        given-names: "S."
+      - family-names: Li
+        given-names: "S."
+      - family-names: Guo
+        given-names: "H."
+      - family-names: Chen
+        given-names: "Z."
+      - family-names: Cappello
+        given-names: "F."
+    title: >-
+      Error-controlled lossy compression optimized for high compression ratios
+      of scientific datasets
+    collection-title: "IEEE International Conference on Big Data"
+    year: 2018
+    notes: >-
+      Log-domain quantisation for a pointwise relative error bound, the
+      construction reimplemented in boundcompress.quantise for mode='rel'.
+      Reimplemented, not imported; no number here is taken from SZ.
+  - type: article
+    authors:
+      - family-names: Makhoul
+        given-names: "J."
+    title: "Linear prediction: a tutorial review"
+    journal: "Proceedings of the IEEE"
+    volume: 63
+    issue: 4
+    year: 1975
+    notes: >-
+      The linear-prediction feature set the learned predictor fits, with a
+      local-gain normalisation the decoder can reproduce in exact integer
+      arithmetic.
+  - type: book
+    authors:
+      - family-names: Hildebrand
+        given-names: "F. B."
+    title: "Introduction to Numerical Analysis"
+    edition: "2nd"
+    publisher:
+      name: "Dover"
+    year: 1987
+    notes: >-
+      Chapter 2 for the finite-difference extrapolation operators implemented
+      as the classical predictors, and for their exactness on polynomial
+      sequences of the matching degree.
+  - type: article
+    authors:
+      - family-names: Wager
+        given-names: "S."
+      - family-names: Hastie
+        given-names: "T."
+      - family-names: Efron
+        given-names: "B."
+    title: >-
+      Confidence intervals for random forests: the jackknife and the
+      infinitesimal jackknife
+    journal: "Journal of Machine Learning Research"
+    volume: 15
+    year: 2014
+    notes: >-
+      Why the per-member spread reported by the learned predictor is a
+      dispersion measure and not a confidence interval. Its measured median
+      Spearman correlation with the realised residual is 0.0280.
+  - type: article
+    authors:
+      - family-names: Pedregosa
+        given-names: "F."
+      - family-names: Varoquaux
+        given-names: "G."
+      - family-names: Gramfort
+        given-names: "A."
+    title: "Scikit-learn: machine learning in Python"
+    journal: "Journal of Machine Learning Research"
+    volume: 12
+    year: 2011
+    notes: >-
+      Ridge and MLPRegressor, used to fit the learned predictor. Their
+      parameters are then extracted and the forward pass is evaluated by this
+      package in elementwise numpy, so that the encoder's batch evaluation and
+      the decoder's sequential one agree bit-for-bit.
+  - type: standard
+    title: "Lossless Data Compression"
+    institution:
+      name: "Consultative Committee for Space Data Systems"
+    number: "CCSDS 121.0-B-3"
+    year: 2020
+    notes: >-
+      The standard a flight implementation should use, and the source of the
+      unit-delay preprocessing idea behind the 'previous' predictor. No
+      numerical value in this repository is taken from it.
+  - type: standard
+    title: "Image Data Compression"
+    institution:
+      name: "Consultative Committee for Space Data Systems"
+    number: "CCSDS 122.0-B-2"
+    year: 2017
+    notes: >-
+      Named in the README's alternatives table as the standard for
+      two-dimensional spacecraft imagery, which this one-dimensional package
+      does not address. No numerical value in this repository is taken from it.

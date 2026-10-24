@@ -1,0 +1,168 @@
+
+==============================================================================
+environment
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+cfdp-py          : not installed
+spacepackets     : not installed
+cpu cores        : 2
+repository root  : P077 (printed relatively; see validation/_bootstrap.py)
+
+cfdp-py and spacepackets are NOT installed in this environment. They are
+named in README.md as the mature implementations of the protocol itself and
+no number anywhere in this repository was taken from either package.
+
+==============================================================================
+run array
+==============================================================================
+files                          : 4
+links                          : 5
+modes                          : 3
+seeds per cell                 : 40
+total runs                     : 2400
+
+==============================================================================
+digest comparison on every delivered run
+==============================================================================
+         file               link            mode  delivered  digest match  mismatch
+-----------------------------------------------------------------------------------
+    950B/100B   clean continuous  unacknowledged         40            40         0
+    950B/100B   clean continuous    deferred_nak         40            40         0
+    950B/100B   clean continuous   immediate_nak         40            40         0
+    950B/100B   lossy continuous  unacknowledged          5             5         0
+    950B/100B   lossy continuous    deferred_nak         40            40         0
+    950B/100B   lossy continuous   immediate_nak         40            40         0
+    950B/100B  bursty continuous  unacknowledged         24            24         0
+    950B/100B  bursty continuous    deferred_nak         40            40         0
+    950B/100B  bursty continuous   immediate_nak         40            40         0
+    950B/100B    windowed bursty  unacknowledged         25            25         0
+    950B/100B    windowed bursty    deferred_nak         40            40         0
+    950B/100B    windowed bursty   immediate_nak         40            40         0
+    950B/100B        growing NAK  unacknowledged          9             9         0
+    950B/100B        growing NAK    deferred_nak         40            40         0
+    950B/100B        growing NAK   immediate_nak         40            40         0
+    10kB/256B   clean continuous  unacknowledged         40            40         0
+    10kB/256B   clean continuous    deferred_nak         40            40         0
+    10kB/256B   clean continuous   immediate_nak         40            40         0
+    10kB/256B   lossy continuous  unacknowledged          0             0         0
+    10kB/256B   lossy continuous    deferred_nak         40            40         0
+    10kB/256B   lossy continuous   immediate_nak         40            40         0
+    10kB/256B  bursty continuous  unacknowledged          3             3         0
+    10kB/256B  bursty continuous    deferred_nak         40            40         0
+    10kB/256B  bursty continuous   immediate_nak         40            40         0
+    10kB/256B    windowed bursty  unacknowledged          3             3         0
+    10kB/256B    windowed bursty    deferred_nak         40            40         0
+    10kB/256B    windowed bursty   immediate_nak         40            40         0
+    10kB/256B        growing NAK  unacknowledged          0             0         0
+    10kB/256B        growing NAK    deferred_nak         40            40         0
+    10kB/256B        growing NAK   immediate_nak         40            40         0
+    39kB/512B   clean continuous  unacknowledged         40            40         0
+    39kB/512B   clean continuous    deferred_nak         40            40         0
+    39kB/512B   clean continuous   immediate_nak         40            40         0
+    39kB/512B   lossy continuous  unacknowledged          0             0         0
+    39kB/512B   lossy continuous    deferred_nak         40            40         0
+    39kB/512B   lossy continuous   immediate_nak         40            40         0
+    39kB/512B  bursty continuous  unacknowledged          0             0         0
+    39kB/512B  bursty continuous    deferred_nak         40            40         0
+    39kB/512B  bursty continuous   immediate_nak         40            40         0
+    39kB/512B    windowed bursty  unacknowledged          0             0         0
+    39kB/512B    windowed bursty    deferred_nak         40            40         0
+    39kB/512B    windowed bursty   immediate_nak         40            40         0
+    39kB/512B        growing NAK  unacknowledged          0             0         0
+    39kB/512B        growing NAK    deferred_nak         40            40         0
+    39kB/512B        growing NAK   immediate_nak         40            40         0
+  205kB/1024B   clean continuous  unacknowledged         40            40         0
+  205kB/1024B   clean continuous    deferred_nak         40            40         0
+  205kB/1024B   clean continuous   immediate_nak         40            40         0
+  205kB/1024B   lossy continuous  unacknowledged          0             0         0
+  205kB/1024B   lossy continuous    deferred_nak         40            40         0
+  205kB/1024B   lossy continuous   immediate_nak         40            40         0
+  205kB/1024B  bursty continuous  unacknowledged          0             0         0
+  205kB/1024B  bursty continuous    deferred_nak         40            40         0
+  205kB/1024B  bursty continuous   immediate_nak         40            40         0
+  205kB/1024B    windowed bursty  unacknowledged          0             0         0
+  205kB/1024B    windowed bursty    deferred_nak         40            40         0
+  205kB/1024B    windowed bursty   immediate_nak         40            40         0
+  205kB/1024B        growing NAK  unacknowledged          0             0         0
+  205kB/1024B        growing NAK    deferred_nak         40            40         0
+  205kB/1024B        growing NAK   immediate_nak         40            40         0
+
+runs delivered                 : 1829 of 2400
+runs not delivered             : 571
+digest mismatches              : 0
+undelivered runs with a digest : 0
+
+An undelivered run has no reassembly and must report no digest at all;
+reporting one would mean the harness had hashed a partial file.
+
+==============================================================================
+the array exercises both branches
+==============================================================================
+A test that only ever sees delivered runs cannot show that the undelivered
+branch is handled, and the reverse. Both counts above must be positive.
+verdict                        : PASS
+
+==============================================================================
+negative control: one flipped bit must be caught
+==============================================================================
+inject_corruption_at flips one bit of the reassembly after a successful
+transfer and before hashing. Every cell below must raise.
+
+            mode   byte offset   raised                   exception
+-------------------------------------------------------------------
+  unacknowledged             0      yes    CompletionInvariantError
+  unacknowledged             1      yes    CompletionInvariantError
+  unacknowledged           474      yes    CompletionInvariantError
+  unacknowledged           949      yes    CompletionInvariantError
+  unacknowledged        100000      yes    CompletionInvariantError
+    deferred_nak             0      yes    CompletionInvariantError
+    deferred_nak             1      yes    CompletionInvariantError
+    deferred_nak           474      yes    CompletionInvariantError
+    deferred_nak           949      yes    CompletionInvariantError
+    deferred_nak        100000      yes    CompletionInvariantError
+   immediate_nak             0      yes    CompletionInvariantError
+   immediate_nak             1      yes    CompletionInvariantError
+   immediate_nak           474      yes    CompletionInvariantError
+   immediate_nak           949      yes    CompletionInvariantError
+   immediate_nak        100000      yes    CompletionInvariantError
+
+corruptions caught             : 15 of 15
+The 100000 offset is past the end of a 950-byte file and wraps, so the hook
+cannot silently no-op on an out-of-range offset.
+
+==============================================================================
+the source payload itself is reproducible
+==============================================================================
+The invariant compares the reassembly against the source digest, so the
+source has to be a function of the seed alone or the comparison is circular.
+
+         file  seed     digest (first 24 hex)  stable
+-----------------------------------------------------
+    950B/100B     1  57cc192857192501a983e711    True
+    950B/100B     2  014975c9707f40e2022fa67b    True
+    10kB/256B     1  740bb02944c65a9031f9f9a7    True
+    10kB/256B     2  c46b21884bc6b7db25604e3e    True
+    39kB/512B     1  6c2c1215ddc24d71564f643a    True
+    39kB/512B     2  a19fcea1718632201c98be8a    True
+  205kB/1024B     1  7030327fe2a574c019cd6723    True
+  205kB/1024B     2  b80ac43610c8927dc864a4e2    True
+
+==============================================================================
+summary
+==============================================================================
+PASS  no digest mismatch on any delivered run
+PASS  no digest reported on an undelivered run
+PASS  the array exercises delivered and undelivered runs
+PASS  every injected corruption was caught
+PASS  source payload is reproducible from the seed
+
+output written to validation/validate_completion_invariant_output.txt

@@ -1,0 +1,49 @@
+
+==============================================================================
+regenerate the shipped YAML cases from pointahead.scenario
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  sgp4             : 2.27
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  astropy          : not installed
+  cpu cores        : 2
+  repository root  : P076 (printed relatively; see validation/_bootstrap.py)
+
+  examples/cases/leo_crossing.yaml: unchanged
+    label              : leo_crossing
+    range              : 2085.599523 km
+    trajectory model   : kepler
+    frame              : unspecified Earth-centred inertial
+  [PASS] leo_crossing round-trips through the loader -- range difference 0.000e+00 m
+  [PASS] leo_crossing regenerated identically -- unchanged
+
+  examples/cases/leo_trailing.yaml: unchanged
+    label              : leo_trailing
+    range              : 2085.599523 km
+    trajectory model   : kepler
+    frame              : unspecified Earth-centred inertial
+  [PASS] leo_trailing round-trips through the loader -- range difference 0.000e+00 m
+  [PASS] leo_trailing regenerated identically -- unchanged
+
+  examples/cases/geo_relay_to_leo.yaml: unchanged
+    label              : geo_relay_to_leo
+    range              : 35840.013804 km
+    trajectory model   : kepler
+    frame              : unspecified Earth-centred inertial
+  [PASS] geo_relay_to_leo round-trips through the loader -- range difference 0.000e+00 m
+  [PASS] geo_relay_to_leo regenerated identically -- unchanged
+
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

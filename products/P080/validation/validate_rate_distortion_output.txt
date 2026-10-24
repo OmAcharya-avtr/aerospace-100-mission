@@ -1,0 +1,219 @@
+
+==============================================================================
+boundcompress -- rate-distortion at matched distortion, in actual bytes
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+scipy            : 1.18.1
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+numcodecs        : not installed  (spec baseline 2)
+zfpy             : not installed  (spec baseline 2)
+cpu cores        : 2
+repository root  : P080 (printed relatively; see validation/_bootstrap.py)
+
+numcodecs and zfpy are the specification's baseline 2 and are NOT installed.
+No rate-distortion number below is taken from either. The comparison runs
+against zlib, lzma and bz2 from the standard library on the same quantised
+symbol and residual streams, so the distortion is matched exactly.
+
+==============================================================================
+full sweep: every coder, every signal, six bounds
+==============================================================================
+[PASS] every coder in every cell round-trips
+[PASS] every cell holds its bound
+cells measured                             : 624
+cells with a first-order entropy figure     : 192
+cells whose realised rate is below entropy  : 0
+
+The entropy figure is a memoryless reference and not a floor. It also
+excludes the header, table and escape bytes every realised rate includes,
+which is why on these arrays the realised rate sits above it far more
+often than below.
+
+==============================================================================
+one signal in full: battery_voltage, every coder at every bound
+==============================================================================
+bound       coder          bytes  bits/sample  max_error   entropy_ref  holds  roundtrip
+----------  -------------  -----  -----------  ----------  -----------  -----  ---------
+4.1192e-02  previous       239    0.4668       4.1146e-02  0.3662       yes    yes      
+4.1192e-02  linear         362    0.7070       4.1146e-02  0.5867       yes    yes      
+4.1192e-02  quadratic      449    0.8770       4.1146e-02  0.7407       yes    yes      
+4.1192e-02  cubic          599    1.1699       4.1146e-02  0.9990       yes    yes      
+4.1192e-02  zlib_residual  284    0.5547       4.1146e-02  -            yes    yes      
+4.1192e-02  lzma_residual  362    0.7070       4.1146e-02  -            yes    yes      
+4.1192e-02  bz2_residual   293    0.5723       4.1146e-02  -            yes    yes      
+4.1192e-02  zlib_symbols   441    0.8613       4.1146e-02  -            yes    yes      
+4.1192e-02  lzma_symbols   510    0.9961       4.1146e-02  -            yes    yes      
+4.1192e-02  bz2_symbols    366    0.7148       4.1146e-02  -            yes    yes      
+4.1192e-02  zlib_float64   26950  52.6367      0.0000e+00  -            yes    yes      
+4.1192e-02  lzma_float64   24046  46.9648      0.0000e+00  -            yes    yes      
+4.1192e-02  bz2_float64    29699  58.0059      0.0000e+00  -            yes    yes      
+6.5285e-03  previous       735    1.4355       6.5279e-03  1.3226       yes    yes      
+6.5285e-03  linear         1119   2.1855       6.5279e-03  2.0529       yes    yes      
+6.5285e-03  quadratic      1478   2.8867       6.5279e-03  2.7207       yes    yes      
+6.5285e-03  cubic          1966   3.8398       6.5279e-03  3.6134       yes    yes      
+6.5285e-03  zlib_residual  930    1.8164       6.5279e-03  -            yes    yes      
+6.5285e-03  lzma_residual  950    1.8555       6.5279e-03  -            yes    yes      
+6.5285e-03  bz2_residual   874    1.7070       6.5279e-03  -            yes    yes      
+6.5285e-03  zlib_symbols   1937   3.7832       6.5279e-03  -            yes    yes      
+6.5285e-03  lzma_symbols   1430   2.7930       6.5279e-03  -            yes    yes      
+6.5285e-03  bz2_symbols    1486   2.9023       6.5279e-03  -            yes    yes      
+6.5285e-03  zlib_float64   26950  52.6367      0.0000e+00  -            yes    yes      
+6.5285e-03  lzma_float64   24046  46.9648      0.0000e+00  -            yes    yes      
+6.5285e-03  bz2_float64    29699  58.0059      0.0000e+00  -            yes    yes      
+1.0347e-03  previous       1913   3.7363       1.0346e-03  3.5441       yes    yes      
+1.0347e-03  linear         2333   4.5566       1.0346e-03  4.3020       yes    yes      
+1.0347e-03  quadratic      2834   5.5352       1.0346e-03  5.1679       yes    yes      
+1.0347e-03  cubic          3378   6.5977       1.0346e-03  6.0545       yes    yes      
+1.0347e-03  zlib_residual  2454   4.7930       1.0346e-03  -            yes    yes      
+1.0347e-03  lzma_residual  2426   4.7383       1.0346e-03  -            yes    yes      
+1.0347e-03  bz2_residual   2324   4.5391       1.0346e-03  -            yes    yes      
+1.0347e-03  zlib_symbols   5253   10.2598      1.0346e-03  -            yes    yes      
+1.0347e-03  lzma_symbols   2910   5.6836       1.0346e-03  -            yes    yes      
+1.0347e-03  bz2_symbols    4076   7.9609       1.0346e-03  -            yes    yes      
+1.0347e-03  zlib_float64   26950  52.6367      0.0000e+00  -            yes    yes      
+1.0347e-03  lzma_float64   24046  46.9648      0.0000e+00  -            yes    yes      
+1.0347e-03  bz2_float64    29699  58.0059      0.0000e+00  -            yes    yes      
+1.6399e-04  previous       3425   6.6895       1.6394e-04  6.1740       yes    yes      
+1.6399e-04  linear         3953   7.7207       1.6394e-04  6.9185       yes    yes      
+1.6399e-04  quadratic      4653   9.0879       1.6394e-04  7.6186       yes    yes      
+1.6399e-04  cubic          5866   11.4570      1.6394e-04  6.9553       yes    yes      
+1.6399e-04  zlib_residual  3778   7.3789       1.6394e-04  -            yes    yes      
+1.6399e-04  lzma_residual  3770   7.3633       1.6394e-04  -            yes    yes      
+1.6399e-04  bz2_residual   4070   7.9492       1.6394e-04  -            yes    yes      
+1.6399e-04  zlib_symbols   6767   13.2168      1.6394e-04  -            yes    yes      
+1.6399e-04  lzma_symbols   4074   7.9570       1.6394e-04  -            yes    yes      
+1.6399e-04  bz2_symbols    7031   13.7324      1.6394e-04  -            yes    yes      
+1.6399e-04  zlib_float64   26950  52.6367      0.0000e+00  -            yes    yes      
+1.6399e-04  lzma_float64   24046  46.9648      0.0000e+00  -            yes    yes      
+1.6399e-04  bz2_float64    29699  58.0059      0.0000e+00  -            yes    yes      
+2.5990e-05  previous       6065   11.8457      2.5985e-05  6.7477       yes    yes      
+2.5990e-05  linear         7159   13.9824      2.5985e-05  5.0160       yes    yes      
+2.5990e-05  quadratic      7967   15.5605      2.5985e-05  3.2004       yes    yes      
+2.5990e-05  cubic          8341   16.2910      2.5985e-05  1.8691       yes    yes      
+2.5990e-05  zlib_residual  5962   11.6445      2.5985e-05  -            yes    yes      
+2.5990e-05  lzma_residual  5226   10.2070      2.5985e-05  -            yes    yes      
+2.5990e-05  bz2_residual   5940   11.6016      2.5985e-05  -            yes    yes      
+2.5990e-05  zlib_symbols   7729   15.0957      2.5985e-05  -            yes    yes      
+2.5990e-05  lzma_symbols   5726   11.1836      2.5985e-05  -            yes    yes      
+2.5990e-05  bz2_symbols    9441   18.4395      2.5985e-05  -            yes    yes      
+2.5990e-05  zlib_float64   26950  52.6367      0.0000e+00  -            yes    yes      
+2.5990e-05  lzma_float64   24046  46.9648      0.0000e+00  -            yes    yes      
+2.5990e-05  bz2_float64    29699  58.0059      0.0000e+00  -            yes    yes      
+4.1192e-06  previous       8394   16.3945      4.1179e-06  1.6358       yes    yes      
+4.1192e-06  linear         8487   16.5762      4.1179e-06  1.0201       yes    yes      
+4.1192e-06  quadratic      8424   16.4531      4.1179e-06  0.6026       yes    yes      
+4.1192e-06  cubic          8572   16.7422      4.1179e-06  0.3394       yes    yes      
+4.1192e-06  zlib_residual  7351   14.3574      4.1179e-06  -            yes    yes      
+4.1192e-06  lzma_residual  6562   12.8164      4.1179e-06  -            yes    yes      
+4.1192e-06  bz2_residual   6996   13.6641      4.1179e-06  -            yes    yes      
+4.1192e-06  zlib_symbols   10566  20.6367      4.1179e-06  -            yes    yes      
+4.1192e-06  lzma_symbols   7882   15.3945      4.1179e-06  -            yes    yes      
+4.1192e-06  bz2_symbols    11049  21.5801      4.1179e-06  -            yes    yes      
+4.1192e-06  zlib_float64   26950  52.6367      0.0000e+00  -            yes    yes      
+4.1192e-06  lzma_float64   24046  46.9648      0.0000e+00  -            yes    yes      
+4.1192e-06  bz2_float64    29699  58.0059      0.0000e+00  -            yes    yes      
+
+==============================================================================
+the package coder against the standard-library coders, at matched distortion
+==============================================================================
+Ratio column is package bytes divided by the named coder's bytes; below 1
+means the package coder used fewer bytes. Each row is one (signal, bound)
+cell at the median swept bound, with the package's best classical predictor.
+signal             bound      predictor  pkg_bytes  zlib_residual  ratio  lzma_residual  ratio  bz2_residual  ratio  zlib_symbols  ratio  lzma_symbols  ratio  bz2_symbols  ratio
+-----------------  ---------  ---------  ---------  -------------  -----  -------------  -----  ------------  -----  ------------  -----  ------------  -----  -----------  -----
+battery_voltage    1.640e-04  previous   3425       3294           1.040  3362           1.019  3555          0.963  6767          0.506  4074          0.841  7031         0.487
+panel_temperature  1.872e-03  linear     2166       2370           0.914  2286           0.948  2261          0.958  5800          0.373  3206          0.676  5746         0.377
+wheel_rate         1.638e-02  linear     1479       1489           0.993  1506           0.982  1363          1.085  4082          0.362  2842          0.520  4065         0.364
+gyro_rate          1.279e-06  previous   8381       6916           1.212  6146           1.364  6627          1.265  9640          0.869  7170          1.169  7808         1.073
+magnetometer       2.039e-03  previous   3440       3306           1.041  3366           1.022  3579          0.961  6752          0.509  4138          0.831  7246         0.475
+packet_counter     4.073e-02  previous   498        104            4.788  166            3.000  104           4.788  2172          0.229  1130          0.441  2457         0.203
+white_noise        2.803e-04  previous   8412       7920           1.062  7110           1.183  7577          1.110  10360         0.812  8434          0.997  7838         1.073
+step_transient     3.553e-04  previous   1686       1933           0.872  1898           0.888  1819          0.927  3160          0.534  2410          0.700  1965         0.858
+
+cells where the package coder used the fewest bytes : 2
+cells where a standard-library coder did            : 6
+[PASS] the package coder is measured against every available baseline
+
+==============================================================================
+the first-order entropy reference is not a floor for a coder with memory
+==============================================================================
+For the package's own coder the first-order entropy IS effectively a floor,
+and that is a property of the coder and not of information theory: static
+order-0 rANS codes each symbol independently against one shipped table, so
+it cannot beat the memoryless entropy of its own symbol stream except by
+the slack in the table quantisation. A coder with memory is under no such
+constraint. The column below compares the lzma and bz2 payloads over the
+SAME residual stream against the entropy of that stream: where the ratio
+is below 1, a real coder has gone below the 'floor'.
+
+Two entropy columns, because the difference matters. symbol_H is the figure
+the certificate carries: first-order entropy over the 256-symbol alphabet,
+in which every large residual has been collapsed onto one escape symbol. On
+an escape-heavy stream it understates by orders of magnitude -- white_noise
+below is the extreme case. value_H has no escape and is the figure to
+compare against a byte count.
+
+signal             symbol_H_bits  symbol_H_bytes  value_H_bits  value_H_bytes  lzma_payload  bz2_payload  best/value_H  verdict
+-----------------  -------------  --------------  ------------  -------------  ------------  -----------  ------------  -------
+battery_voltage    6.1740         3160.3          6.1740        3160.3         3324          3517         1.0518        above  
+panel_temperature  4.4737         2290.0          4.4737        2290.0         2148          2232         0.9380        below  
+wheel_rate         3.1442         1609.5          3.1442        1609.5         1356          1223         0.7599        below  
+gyro_rate          1.7026         871.5           10.7738       5514.8         6108          6589         1.1076        above  
+magnetometer       6.1880         3167.5          6.1880        3167.5         3328          3541         1.0507        above  
+packet_counter     0.8589         439.6           0.8589        439.6          128           66           0.1501        below  
+white_noise        0.4546         232.7           11.5958       5935.6         7072          7539         1.1915        above  
+step_transient     3.0753         1574.2          3.0846        1578.9         1860          1781         1.1280        above  
+
+signals where a memory coder beat the entropy figure : 3 of 8
+
+Sibling product P072 of this portfolio measured 0.9978 of its held-out
+cases compressing below their measured first-order entropy. The number
+here is lower because these residual streams are already decorrelated by
+the predictor, which is what the entropy figure is computed on, and because
+this product charges the header to the rate and P072 compared ratios.
+Neither number licenses treating the entropy as a lower bound on the
+achievable rate of a coder with memory.
+
+==============================================================================
+what the error bound bought: lossy against lossless on the same array
+==============================================================================
+signal             bound      raw_bytes  pkg_bytes  pkg_ratio  zlib_float64  ratio   lzma_float64  ratio   bz2_float64  ratio 
+-----------------  ---------  ---------  ---------  ---------  ------------  ------  ------------  ------  -----------  ------
+battery_voltage    1.640e-04  32768      3425       9.567      26950         1.216   24046         1.363   29699        1.103 
+panel_temperature  1.872e-03  32768      2166       15.128     25844         1.268   22394         1.463   28878        1.135 
+wheel_rate         1.638e-02  32768      1479       22.156     28574         1.147   25538         1.283   30029        1.091 
+gyro_rate          1.279e-06  32768      8381       3.910      31176         1.051   30386         1.078   32232        1.017 
+magnetometer       2.039e-03  32768      3440       9.526      30606         1.071   25950         1.263   31838        1.029 
+packet_counter     4.073e-02  32768      498        65.799     1809          18.114  538           60.907  1989         16.475
+white_noise        2.803e-04  32768      8412       3.895      31511         1.040   31174         1.051   32432        1.010 
+step_transient     3.553e-04  32768      1686       19.435     27100         1.209   24642         1.330   28682        1.142 
+
+==============================================================================
+header cost at two array lengths
+==============================================================================
+The fixed header is 38 bytes and nothing is omitted from the rate. On a
+long array that is noise; on a short one it is most of the container, and
+both regimes are shown rather than only the flattering one.
+samples  bytes  overhead_bytes  overhead_pct  bits/sample  ratio 
+-------  -----  --------------  ------------  -----------  ------
+64       123    93              75.61         15.3750      4.163 
+4096     2361   126             5.34          4.6113       13.879
+
+==============================================================================
+timings -- UNSTABLE, for order of magnitude only
+==============================================================================
+Wall clock on a shared two-core container. These numbers move between
+runs and no conclusion in this repository is derived from them.
+predictor  mean_encode_ms  calls
+---------  --------------  -----
+previous   4.22            5    
+linear     12.72           5    
+quadratic  11.99           5    
+cubic      13.95           5    
+
+FAILED CHECKS (0): none

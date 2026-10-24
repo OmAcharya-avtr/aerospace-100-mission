@@ -1,0 +1,105 @@
+timetransfer validation 6 -- dry-run mode over a recorded exchange
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+allantools       : not installed  (NOT used; Allan deviation is implemented in timetransfer.allan)
+ntplib           : not installed  (NOT used; no number here comes from it)
+cpu cores        : 2
+product root     : P079 (printed relatively; see validation/_bootstrap.py)
+fast probe mode  : False (divisor 1)
+
+==============================================================================
+6a. the committed recording
+==============================================================================
+path              : fixtures/recorded_exchange.json
+exchanges         : 227 completed, 13 lost
+sequence span     : 0 to 239
+backend           : simulated/n/a
+is_hardware       : False
+digest            : 6cad0b025a9b469d522a2e3458af647c6b62f79b1e5c765e5862687e379251a8
+span              : 239.010498 s
+loss fraction     : 0.054167
+longest seq gap   : 9 (an outage window is recorded in it)
+
+==============================================================================
+6b. the dry run
+==============================================================================
+replayed exchanges   : 227 of 240 attempted
+driver operations    : 240
+hardware operations  : 0 (must be 0)
+refused operations   : 0
+backend driver       : guarded-recorded
+is_hardware          : False
+offset               : 2.013286822e-03 s
+u combined           : 2.161661e-05 s
+
+full estimation path exercised:
+  two-way estimate : 227 per-exchange offsets
+  ls fit order     : 2, dof 224
+  fitted skew      : 1.697377477e-06 s/s
+  u statistical    : 2.161661e-05 s
+  u quantisation   : 1.927250e-11 s
+  u asymmetry      : 0.000000e+00 s (unaccounted)
+
+  PASS  hardware_operations == 0
+  PASS  is_hardware is False
+  PASS  driver is a stub
+  PASS  every recorded exchange replayed
+  PASS  uncertainty is finite and positive
+
+==============================================================================
+6c. the replay reproduces the original estimate exactly
+==============================================================================
+timestamp bytes identical : True
+offset max |diff|         : 0.000e+00 s
+PASS
+
+==============================================================================
+6d. negative control -- device operations forbidden
+==============================================================================
+completed exchanges : 0 (must be 0)
+refused operations  : 241 (must be > 0)
+acquisition refused : True (must be True)
+control passed      : True
+
+The refusal count is the number of recorded sequence numbers plus one for the
+acquisition path's own first attempt, so the counter is shown to fire on every
+route into the driver and not just on one.
+PASS
+
+==============================================================================
+6e. a recording marked as hardware is refused
+==============================================================================
+refused with : ConfigurationError: a recording marked is_hardware=true cannot be replayed as a dry run; replaying hardware data and labelling the result a dry run would mislabel both
+verdict      : PASS
+
+==============================================================================
+6f. a freshly recorded exchange round-trips through the file
+==============================================================================
+recorded            : fixtures/_scratch_recording.json (110 exchanges)
+replayed            : 110 exchanges
+bytes identical     : True
+declared asymmetry  : +1.000000e-03 s -> closed-form bias +5.000000e-04 s
+offset              : -1.531411964e-03 s
+u combined          : 1.154847e-03 s (dominant: asymmetry)
+hardware operations : 0
+scratch file removed: True
+
+==============================================================================
+6g. a live acquisition for comparison, to show the paths agree
+==============================================================================
+live timestamp bytes equal the recording : True
+A dry run is a replay, so this is a statement about the recording being
+faithful rather than about the estimator.
+
+==============================================================================
+summary
+==============================================================================
+hard failures : 0

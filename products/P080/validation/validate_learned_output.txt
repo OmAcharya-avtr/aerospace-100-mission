@@ -1,0 +1,159 @@
+
+==============================================================================
+boundcompress -- the learned residual predictor, measured
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+scipy            : 1.18.1
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+numcodecs        : not installed  (spec baseline 2)
+zfpy             : not installed  (spec baseline 2)
+cpu cores        : 2
+repository root  : P080 (printed relatively; see validation/_bootstrap.py)
+
+training symbol arrays                     : 16
+feature window (symbols)                   : 5
+features per row                           : 4
+rows available before subsampling          : 32688
+
+==============================================================================
+the normalised target has a heavy tail, which is why training clips
+==============================================================================
+quantity       p0.1     p1.0     p50.0   p99.0   p99.9   abs_max
+-------------  -------  -------  ------  ------  ------  -------
+target d_i/s   -8.8422  -3.5000  0.0000  4.0000  8.0951  4535.0 
+feature d_j/s  -5.4071  -2.1790  0.0000  2.5000  6.0000  4535.0 
+
+==============================================================================
+the fit, with and without the clip
+==============================================================================
+
+kind    clip  train_rows  params  model_bytes  converged  predict_one([0,10,25,45,70])  fit_s
+------  ----  ----------  ------  -----------  ---------  ----------------------------  -----
+linear  8.0   20000       15      120          3/3        71                            0.16 
+linear  none  20000       15      120          3/3        80                            0.02 
+mlp     8.0   20000       291     2328         0/3        83                            11.36
+mlp     none  20000       291     2328         0/3        71                            11.21
+
+The clipped and unclipped models give different predictions on the same
+history, which is the point: an unclipped least-squares fit is dominated by
+the tail above, and the resulting coefficients are indistinguishable from
+predicting nothing.
+
+==============================================================================
+the training loss the clip is responsible for
+==============================================================================
+Fitted directly with scikit-learn on the same rows the ensemble members
+see, so the effect of the clip and of the iteration cap are measured here
+rather than asserted elsewhere. loss_ is the optimiser's own final value.
+
+clip  max_iter  n_iter  loss_        converged
+----  --------  ------  -----------  ---------
+8.0   400       400     0.631258     no       
+8.0   800       800     0.629583     no       
+none  400       400     1282.000772  no       
+none  800       800     1270.516538  no       
+
+loss at clip=8, 400 iterations   : 0.631258
+loss at clip=8, 800 iterations   : 0.629583
+relative change from doubling cap: 0.27 per cent
+loss with no clip, 400 iterations: 1282.000772
+
+ridge coefficients on the most recent four first differences:
+clip  w(d1)    w(d2)    w(d3)    w(d4)    intercept
+----  -------  -------  -------  -------  ---------
+8.0   -0.3224  +0.0659  +0.1920  +0.1867  +0.1430  
+none  +0.0001  -0.0002  -0.0000  -0.0002  +0.3069  
+
+The unclipped coefficients are indistinguishable from predicting nothing,
+which is what makes the clip load-bearing rather than cosmetic.
+[PASS] the unclipped perceptron loss is far above the clipped one -- 1282.0008 against 0.6313
+
+==============================================================================
+fitted coefficients of the learned linear predictor
+==============================================================================
+One row per ensemble member. These are the weights on the normalised first
+differences, most recent first, so a weight vector of [1, 0, 0, 0] would
+reproduce the classical 'linear' predictor exactly and [0, 0, 0, 0] would
+reproduce 'previous'.
+
+member  w(d1)    w(d2)    w(d3)    w(d4)    intercept
+------  -------  -------  -------  -------  ---------
+0       -0.3204  +0.0607  +0.1868  +0.2016  +0.1441  
+1       -0.3093  +0.0545  +0.1838  +0.1769  +0.1434  
+2       -0.3198  +0.0821  +0.2128  +0.1798  +0.1380  
+
+mean weight on the most recent difference  : -0.3165
+A negative weight here says the quantised first differences of this signal
+set are anti-correlated on average, so the least-squares optimum sits
+between 'previous' (weight 0) and the reflection of 'linear' (weight 1).
+That is a statement about this generator's noise, not about telemetry.
+
+==============================================================================
+held-out behaviour: residual scale against the classical predictors
+==============================================================================
+
+signal             previous_MAE  linear_MAE  learned_linear_MAE  learned_mlp_MAE
+-----------------  ------------  ----------  ------------------  ---------------
+battery_voltage    5.900         10.020      5.724               5.663          
+panel_temperature  2.168         1.305       2.152               1.236          
+wheel_rate         3.563         0.544       3.195               0.570          
+gyro_rate          209.613       359.915     195.484             178.786        
+magnetometer       5.734         9.655       5.322               5.684          
+packet_counter     8.547         7.560       10.233              3.913          
+white_noise        805.860       1398.219    737.016             659.714        
+step_transient     5.856         11.624      9.832               5.783          
+
+Mean absolute residual in integer-symbol units at a bound of 1e-4 of each
+signal's dynamic range. Lower is better, and it is a proxy: the rate is
+what matters and is measured in validate_rate_distortion.py and
+validate_predictors.py. A predictor can lower the mean residual and raise
+the rate, by spreading the residual distribution.
+
+==============================================================================
+the uncertainty output: dispersion against the realised residual
+==============================================================================
+Spearman rank correlation between the ensemble dispersion and |residual|.
+A dispersion measure, not a confidence interval (Wager, Hastie & Efron
+2014, JMLR 15). Reported because an uncertainty output that does not rank
+errors is decoration.
+
+model           signal           mean_dispersion  max_dispersion  mean_abs_residual  spearman  note
+--------------  ---------------  ---------------  --------------  -----------------  --------  ----
+learned_linear  battery_voltage  0.1342           14.2139         5.7235             0.0648        
+learned_linear  gyro_rate        4.5877           17.5617         195.4835           0.0179        
+learned_linear  wheel_rate       0.0751           0.2642          3.1946             0.8329        
+learned_linear  white_noise      17.4513          70.7076         737.0161           0.0286        
+learned_mlp     battery_voltage  1.0177           14.1503         5.6632             0.0215        
+learned_mlp     gyro_rate        35.0296          193.4386        178.7864           0.0275        
+learned_mlp     wheel_rate       0.3037           2.9593          0.5698             0.5609        
+learned_mlp     white_noise      131.8062         765.2068        659.7145           0.0233        
+
+correlations measured  : 8
+median spearman        : 0.0280
+range                  : 0.0179 to 0.8329
+[PASS] every reported dispersion is non-negative
+
+==============================================================================
+determinism of the fit
+==============================================================================
+two independent fits, same seed : 48 and 48
+[PASS] refitting the same configuration gives the same prediction
+
+==============================================================================
+the model is not in the bitstream
+==============================================================================
+container bytes                 : 8386
+model bytes the decoder must hold: 2328
+model bytes as a share of one container, %: 27.76
+
+The parameters are a shared decoder asset and are charged separately in
+MODEL_CARD.md rather than folded into the per-array rate, because folding
+them in would make the rate depend on how many arrays the mission sends.
+The break-even array count is in validate_predictors_output.txt.
+
+FAILED CHECKS (0): none

@@ -1,0 +1,38 @@
+# Two 600 km circular orbits on crossing planes, 60 degrees apart in
+# inclination, the remote terminal 0.3 rad of arc along its own orbit.
+# This is the geometry in which the relative acceleration is exactly
+# radial, so the first-order ephemeris staleness term vanishes and the
+# jerk term carries the whole line.
+# Regenerate with: python validation/regenerate_cases.py
+label: leo_crossing
+frame: unspecified Earth-centred inertial
+trajectory_model: kepler
+mu_m3_s2: 398600441800000.0
+local:
+  position_km:
+  - 6978.137
+  - 0.0
+  - 0.0
+  velocity_m_s:
+  - 0.0
+  - 7557.865206532812
+  - 0.0
+remote:
+  position_km:
+  - 6666.468902217489
+  - 1031.0902441755702
+  - 1785.900690100687
+  velocity_m_s:
+  - -2233.5018877531243
+  - 3610.152205846816
+  - 6252.967043583539
+beam:
+  wavelength_nm: 1550.0
+  waist_mm: 25.0
+budget:
+  sigma_velocity_per_axis_m_s: 0.05
+  ephemeris_age_s: 30.0
+  light_time_iterations: 1
+  aberration_route: momentum_boost
+  angle_method: closed_form
+  loss_budget_db: 1.0

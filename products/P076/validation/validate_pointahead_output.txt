@@ -1,0 +1,164 @@
+
+==============================================================================
+closed-form first-order baseline scored against the iterated reference
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  sgp4             : 2.27
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  astropy          : not installed
+  cpu cores        : 2
+  repository root  : P076 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the three named geometries
+==============================================================================
+  scenario             range / km   closed / urad  reference / urad
+  ------------------ ------------ --------------- -----------------
+  leo_crossing           2085.600       45.104546         45.104546
+  leo_trailing           2085.600       15.069535         15.069535
+  geo_relay_to_leo      35840.014       35.912474         35.912474
+
+  scenario            magnitude / rad     offset / rad   transmit / rad   noise floor
+  ------------------ ---------------- ---------------- ---------------- -------------
+  leo_crossing           1.608483e-14     1.855254e-14     2.044581e-10  1.029436e-14
+  leo_trailing           1.429412e-14     1.477483e-14     2.347832e-10  1.029436e-14
+  geo_relay_to_leo       1.190121e-13     1.370754e-13     7.385140e-10  3.619644e-15
+
+==============================================================================
+2. relative error of the baseline against the reference
+==============================================================================
+  Expressed as a fraction of the point-ahead angle itself, which is the
+  form that can be compared across geometries of different range.
+
+  leo_crossing       offset error / angle = 4.113231e-10   beta_local = 2.521032e-05   ratio to beta^2 = 0.6472
+  leo_trailing       offset error / angle = 9.804438e-10   beta_local = 2.521032e-05   ratio to beta^2 = 1.5426
+  geo_relay_to_leo   offset error / angle = 3.816931e-09   beta_local = 1.025597e-05   ratio to beta^2 = 36.2878
+
+  The closed-form error tracks beta_local squared, which is the order the
+  first-order aberration formula drops. It is not a coincidence and it is
+  the reason the baseline is good enough at orbital speeds.
+  [PASS] closed-form offset error is below 1e-8 of the angle on all named geometries -- worst 3.816931e-09
+
+==============================================================================
+3. a seeded family of 300 crosslinks
+==============================================================================
+  crosslinks                         : 300
+  altitudes sampled                  : 400 to 1400 km
+  ranges                             : 494.5 to 8268.0 km
+  point-ahead angles                 : 0.705636 to 97.774864 urad
+
+  quantity                                   median            p95            max
+  ---------------------------------- -------------- -------------- --------------
+  offset difference / rad              2.463345e-14   5.901257e-14   7.339728e-14
+  transmit direction difference / rad   3.791155e-10   6.488676e-10   6.979398e-10
+  offset difference / angle            8.032747e-10   1.014754e-09   4.826409e-09
+  float64 direction resolution / rad   4.394229e-15   1.574783e-14   4.564142e-14
+  [PASS] closed-form offset error stays below 1e-7 of the angle over 300 crosslinks -- max 4.826409e-09
+  closed-loop errors at or below their own floor: 37 of 300
+  [PASS] the open-loop transmit-direction error always exceeds the closed-loop one -- violations 0 of 300
+
+==============================================================================
+4. does the closed form degrade with range, as light time suggests?
+==============================================================================
+  The curvature of the remote trajectory over the light time grows with
+  range, so a reader would expect the closed form to get worse. It barely
+  does, and the reason is a cancellation: the transverse velocity at the
+  advanced epoch is larger than at the nominal epoch by a_perp tau, and at
+  the retarded epoch it is smaller by the same amount, so the two
+  first-order curvature errors cancel in the SUM that forms the offset.
+  That is a first-order-exact cancellation and it is measured below.
+
+  range band / km           n   median offset err   median err / angle
+  ---------------------- ---- ------------------- --------------------
+  494 to 2909              50        1.157432e-14         6.690292e-10
+  2976 to 4342             50        2.066387e-14         8.173136e-10
+  4357 to 5206             50        3.036247e-14         8.747972e-10
+  5234 to 5887             50        3.258447e-14         8.237655e-10
+  5958 to 6657             50        3.470982e-14         8.700487e-10
+  6657 to 8268             50        3.687112e-14         7.577350e-10
+
+==============================================================================
+5. attribution on the three named geometries
+==============================================================================
+  The split between the light-time lead and the two aberration terms is
+  frame-dependent; the total is not. See validate_frames.py.
+
+  leo_crossing (frame: unspecified Earth-centred inertial)
+    local speed                      :     7557.865 m/s
+    remote speed                     :     7557.865 m/s
+    transverse relative speed        :     6761.001 m/s
+    light_time_lead                  :     7.534768 urad
+    stellar_aberration               :    21.913892 urad
+    velocity_aberration              :    21.913892 urad
+    vector sum                       :    45.104546 urad
+    reference                        :    45.104546 urad
+    closure                          : 1.691966e-14 rad
+  [PASS] leo_crossing attribution closes to within 1e-8 of the angle -- closure/angle 3.751e-10
+
+  leo_trailing (frame: unspecified Earth-centred inertial)
+    local speed                      :     7557.865 m/s
+    remote speed                     :     7557.865 m/s
+    transverse relative speed        :     2258.867 m/s
+    light_time_lead                  :     7.534768 urad
+    stellar_aberration               :     3.767384 urad
+    velocity_aberration              :     3.767384 urad
+    vector sum                       :    15.069535 urad
+    reference                        :    15.069535 urad
+    closure                          : 1.427191e-14 rad
+  [PASS] leo_trailing attribution closes to within 1e-8 of the angle -- closure/angle 9.471e-10
+
+  geo_relay_to_leo (frame: unspecified Earth-centred inertial)
+    local speed                      :     3074.661 m/s
+    remote speed                     :     7557.865 m/s
+    transverse relative speed        :     5383.144 m/s
+    light_time_lead                  :    44.818095 urad
+    stellar_aberration               :    10.244586 urad
+    velocity_aberration              :    10.244586 urad
+    vector sum                       :    35.912474 urad
+    reference                        :    35.912474 urad
+    closure                          : 1.350086e-13 rad
+  [PASS] geo_relay_to_leo attribution closes to within 1e-8 of the angle -- closure/angle 3.759e-09
+
+==============================================================================
+6. verdict
+==============================================================================
+  The closed-form first-order baseline WINS on every metric that matters
+  for the point-ahead offset. Over 300 seeded crosslinks its worst
+  disagreement with the iterated reference is 7.340e-14 rad, which is
+  4.826e-09 of the angle itself and is of the same
+  order as the float64 direction resolution of the geometry. It needs no
+  trajectory model and no iteration.
+
+  What the reference is for, and it is not nothing: it is the only way to
+  obtain the two light-time budget lines at all, it is what makes the
+  numerical sensitivity checks in validate_budget.py possible, and it is
+  required for the absolute transmit direction when a terminal cannot
+  close the loop on a received beam -- the open-loop error of the closed
+  form is 6.979e-10 rad at worst, one to two orders
+  above its closed-loop error.
+
+==============================================================================
+7. timings -- UNSTABLE, for order of magnitude only
+==============================================================================
+  These numbers move between runs on shared hardware and are never used in
+  a prose conclusion anywhere in this repository.
+
+  operation                                    calls    mean / ms
+  ------------------------------------------ ------- ------------
+  closed_form_point_ahead                        300      0.10532
+  reference_point_ahead (kepler)                 300      0.61501
+
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

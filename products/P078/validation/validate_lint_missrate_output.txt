@@ -1,0 +1,144 @@
+==============================================================================
+cmdguard -- static-lint miss rate on a seeded family of injected defects
+==============================================================================
+
+environment this output was measured on:
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scikit-learn     : 1.9.1
+  pyyaml           : 6.0.3
+  scipy            : 1.18.1
+  matplotlib       : 3.10.8
+  joblib           : 1.5.2
+  pandas           : 3.0.5
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  cpu cores        : 2
+  repository root  : P078 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the population
+==============================================================================
+  generator seeds                 : 60 (0 .. 59)
+  defect families                 : 9
+  clean cases                     : 60
+  defective cases                 : 540
+  of which the injection applied  : 526
+  of which a no-op                : 14
+  cases with at least one violation: 518
+  total command occurrences       : 21660
+
+  violation kinds only a sequence-aware check can reach:
+    mode_gate
+    illegal_transition
+    timing_interval
+    timing_gap
+    mutual_exclusion
+    resource_limit
+
+==============================================================================
+2. miss rate, lint strength = per_command
+==============================================================================
+  forward-execution violations (ground truth) : 1894
+  of those missed by the lint                 : 993
+  MISS RATE                                   : 0.524287
+  ordering-only violations                    : 833
+  of those missed by the lint                 : 556
+  ORDERING-ONLY MISS RATE                     : 0.667467
+  lint findings emitted                       : 17122
+  findings the forward walk does not confirm  : 16221
+  FALSE-POSITIVE RATE                         : 0.947378
+  measurement wall clock (unstable)           : 0.084 s
+
+  family                 truth  missed      miss  ord.truth  ord.miss        fp  no-ops
+  clean                      0       0        --          0        --  1.000000       0
+  compress_gap              64      64  1.000000         64  1.000000  1.000000       0
+  delete_enabler           367     156  0.425068          0        --  0.875222       0
+  insert_invalidator       250     132  0.528000         42  0.428571  0.931155       0
+  irreversible_early        96      22  0.229167         51  0.431373  0.956700       7
+  mode_drop                209     105  0.502392        164  0.536585  0.940230       0
+  overlap_exclusion        211     163  0.772512        191  0.821990  0.971913       1
+  resource_spike           178     133  0.747191        159  0.811321  0.973669       6
+  swap_enabler             339     154  0.454277         99  0.515152  0.891750       0
+  undeclared_typo          180      64  0.355556         63  0.428571  0.932676       0
+
+  missed violations by kind:
+    illegal_transition             58  0.058409 of all misses
+    irreversible_unverified        27  0.027190 of all misses
+    mode_gate                      95  0.095670 of all misses
+    mutual_exclusion               99  0.099698 of all misses
+    precondition_false            302  0.304129 of all misses
+    precondition_unknown          108  0.108761 of all misses
+    resource_limit                116  0.116818 of all misses
+    timing_gap                     84  0.084592 of all misses
+    timing_interval               104  0.104733 of all misses
+  [PASS] per_command: the ratios are the counts divided
+  [PASS] per_command: missed-by-kind sums to the miss count
+  [PASS] per_command: the control family is found every time -- a mistyped mnemonic is exactly what a per-command lint is for
+
+==============================================================================
+2. miss rate, lint strength = with_timing
+==============================================================================
+  forward-execution violations (ground truth) : 1894
+  of those missed by the lint                 : 805
+  MISS RATE                                   : 0.425026
+  ordering-only violations                    : 833
+  of those missed by the lint                 : 368
+  ORDERING-ONLY MISS RATE                     : 0.441777
+  lint findings emitted                       : 17310
+  findings the forward walk does not confirm  : 16221
+  FALSE-POSITIVE RATE                         : 0.937088
+  measurement wall clock (unstable)           : 0.120 s
+
+  family                 truth  missed      miss  ord.truth  ord.miss        fp  no-ops
+  clean                      0       0        --          0        --  1.000000       0
+  compress_gap              64       1  0.015625         64  0.015625  0.964447       0
+  delete_enabler           367     156  0.425068          0        --  0.875222       0
+  insert_invalidator       250     129  0.516000         42  0.357143  0.929528       0
+  irreversible_early        96      10  0.104167         51  0.196078  0.950029       7
+  mode_drop                209     105  0.502392        164  0.536585  0.940230       0
+  overlap_exclusion        211     108  0.511848        191  0.534031  0.941610       1
+  resource_spike           178      95  0.533708        159  0.572327  0.952490       6
+  swap_enabler             339     137  0.404130         99  0.343434  0.882966       0
+  undeclared_typo          180      64  0.355556         63  0.428571  0.932676       0
+
+  missed violations by kind:
+    illegal_transition             58  0.072050 of all misses
+    irreversible_unverified        27  0.033540 of all misses
+    mode_gate                      95  0.118012 of all misses
+    mutual_exclusion               99  0.122981 of all misses
+    precondition_false            302  0.375155 of all misses
+    precondition_unknown          108  0.134161 of all misses
+    resource_limit                116  0.144099 of all misses
+  [PASS] with_timing: the ratios are the counts divided
+  [PASS] with_timing: missed-by-kind sums to the miss count
+  [PASS] with_timing: the control family is found every time -- a mistyped mnemonic is exactly what a per-command lint is for
+
+==============================================================================
+3. the two strengths against each other
+==============================================================================
+  ground truth is the same population       : 1894 == 1894
+  per_command  missed   993  rate 0.524287  ordering 0.667467  fp 0.947378
+  with_timing  missed   805  rate 0.425026  ordering 0.441777  fp 0.937088
+  violations the timing pass recovers       : 188
+  [PASS] both strengths face the same ground truth
+  [PASS] adding a check cannot increase the miss count -- 805 <= 993
+
+==============================================================================
+4. what the numbers mean, stated plainly
+==============================================================================
+  Against the stronger baseline, a per-command lint with a timing pass misses
+  0.4250 of the violations a forward walk finds on this population,
+  and 0.4418 of the violations that only a sequence-aware check can
+  reach. It also emits more findings than there are violations: its
+  false-positive rate against the forward walk is 0.9371, because it
+  evaluates every occurrence of every command against the declared initial
+  state and so re-reports a condition that an earlier command already fixed.
+
+  Both numbers are statements about this generator and this defect
+  population. They are not estimates of how often a real mission's own
+  checking script misses a real defect, and nothing here measures that.
+
+------------------------------------------------------------------------------
+FAILED CHECKS: none

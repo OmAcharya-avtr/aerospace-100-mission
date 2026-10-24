@@ -1,0 +1,87 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cmdguard"
+version = "0.1.0"
+description = "Check a command sequence against the spacecraft state it will meet, and report each violation with the state trace that reaches it."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "command-sequence",
+    "spacecraft-operations",
+    "autonomous-aerospace-systems",
+    "symbolic-execution",
+    "mode-machine",
+    "constraint-checking",
+    "flight-operations",
+    "sequence-validation",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+# Every range is bounded on BOTH sides, at the minor versions this product was
+# measured against. A floor with no ceiling is not a dependency specification:
+# five of the first fifty products of this mission were found broken or silently
+# wrong for a new install because pip resolved a release published after the
+# product was measured, and the silent case -- a suite that passes while its
+# validation numbers move -- is the dangerous one.
+#
+# The exact versions every committed number came from are recorded at the head
+# of each file in validation/. Only those versions were executed: this build
+# container is shared between concurrent agents and installing anything into it
+# is prohibited after a shared interpreter was mutated mid-build on 2026-10-16
+# (numpy 2.5.3 -> 2.5.4 -> 2.5.0, with bus errors). The ceilings below are
+# therefore the ends of the ranges this product CLAIMS, not two measured
+# endpoints, and that limitation is recorded in README.md under Limitations.
+#
+# The cost of the ceilings is real: this package cannot take a numpy 2.6 or a
+# scikit-learn 1.10 release without a port and a re-measure.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scikit-learn>=1.9,<1.10",
+    "pyyaml>=6.0,<6.1",
+    "joblib>=1.5,<1.6",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.4,<8.5", "hypothesis>=6.140,<6.141"]
+examples = ["matplotlib>=3.10,<3.11"]
+dev = [
+    "pytest>=8.4,<8.5",
+    "hypothesis>=6.140,<6.141",
+    "ruff>=0.14,<0.15",
+    "matplotlib>=3.10,<3.11",
+]
+
+[project.scripts]
+cmdguard = "cmdguard.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["cmdguard"]
+known-local-folder = ["_bootstrap", "_common"]

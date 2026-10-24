@@ -1,0 +1,87 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q --junitxml=junit.xml
+      - name: Test count from junit XML, never from stdout
+        run: |
+          python - <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse("junit.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          declared = int(suite.get("tests", "0"))
+          counted = len(suite.findall(".//testcase"))
+          print(f"declared {declared}, counted {counted}")
+          if declared == 0 or declared != counted:
+              sys.exit("junit.xml does not agree with itself, or no test ran")
+          PY
+      - name: CLI
+        run: |
+          python -m cmdguard --version
+          python -m cmdguard info
+          python -m cmdguard check examples/cases/nominal_science_pass.yaml
+          python -m cmdguard compare examples/cases/resource_and_exclusion.yaml || test $? -eq 1
+          python -m cmdguard gate examples/cases/irreversible_before_verify.yaml || test $? -eq 2
+      - name: Validation scripts
+        run: |
+          python validation/validate_forward_known.py
+          python validation/validate_negative_control.py
+          python validation/validate_timing.py
+          python validation/validate_irreversible_gate.py
+          python validation/validate_lint_missrate.py
+          python validation/validate_ranker.py
+          python validation/validate_determinism.py
+          python validation/validate_cli.py
+          python validation/regenerate_cases.py
+          python validation/worked_example.py
+          python validation/probe_pypi_names.py
+      - name: Validation scripts from the script's own directory
+        run: |
+          cd validation
+          for script in validate_*.py regenerate_cases.py worked_example.py; do
+            python "$script" > /dev/null
+          done
+      - name: Validation scripts from an unrelated directory
+        run: |
+          cd /
+          for script in validate_forward_known validate_timing regenerate_cases worked_example; do
+            python "$GITHUB_WORKSPACE/validation/$script.py" > /dev/null
+          done
+      - name: Committed case files are unchanged by the loader round trip
+        run: git diff --exit-code examples/cases/
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/violation_timeline.py
+          python examples/state_trace.py
+          python examples/resource_profile.py
+          python examples/lint_miss_rate.py
+          python examples/risk_ranking.py
+          python examples/ranker_precision_at_k.py
+      - name: No absolute home-directory path in any tracked file
+        run: |
+          # The prefixes are written as an alternation so that this workflow
+          # file does not itself contain an absolute build-machine path.
+          ! grep -rIn --exclude-dir=.git -E "/(home|root|Users)/[a-z]" . || exit 1

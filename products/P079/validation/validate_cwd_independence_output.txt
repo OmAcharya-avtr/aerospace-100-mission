@@ -1,0 +1,55 @@
+timetransfer validation 12 -- every validation script runs from any directory
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+allantools       : not installed  (NOT used; Allan deviation is implemented in timetransfer.allan)
+ntplib           : not installed  (NOT used; no number here comes from it)
+cpu cores        : 2
+product root     : P079 (printed relatively; see validation/_bootstrap.py)
+fast probe mode  : False (divisor 1)
+
+scripts probed      : 13
+directories probed  : 4
+interpreter         : (basename only, so no absolute path is committed) python
+TIMETRANSFER_FAST=1 set on every probe run
+
+directories:
+  filesystem root        the filesystem root
+  temporary directory    the system temporary directory
+  product root           .
+  validation directory   validation
+
+==============================================================================
+results
+==============================================================================
+                              script  filesystem  temporary   product ro  validation
+               regenerate_fixture.py           0           0           0           0
+                   validate_allan.py           0           0           0           0
+     validate_asymmetry_benchmark.py           0           0           0           0
+         validate_benchmark_table.py           0           0           0           0
+                     validate_cli.py           0           0           0           0
+              validate_deployment.py           0           0           0           0
+                  validate_dryrun.py           0           0           0           0
+                  validate_parity.py           0           0           0           0
+         validate_reproducibility.py           0           0           0           0
+         validate_skew_estimators.py           0           0           0           0
+          validate_symmetric_bias.py           0           0           0           0
+    validate_uncertainty_coverage.py           0           0           0           0
+                   worked_example.py           0           0           0           0
+
+==============================================================================
+summary
+==============================================================================
+runs              : 52
+non-zero statuses : 0
+Every number in the table is an exit status; zero is a pass. The probe runs
+write no output files, so the committed outputs in this directory are the
+ones produced by the ordinary runs.
+hard failures     : 0

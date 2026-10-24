@@ -1,0 +1,106 @@
+name: late_payload_enable
+description: >-
+  Hand-constructed single-defect case, and the specification's own example. The
+  declarations are those of nominal_science_pass. Step 5 safes the payload and
+  nothing re-enables it, so the scan at step 6 is illegal -- and the finding is
+  only actionable because the trace names step 5. A per-command lint evaluating
+  the scan against the declared initial state reports it too, but for the wrong
+  reason and at the wrong place, and it also reports the legal PAYLOAD_ENABLE
+  at step 3; validation/validate_forward_known.py records both.
+dictionary:
+  resource_limits:
+    power_w: 120.0
+    data_rate_mbps: 40.0
+  commands:
+    - id: PWR_BUS_CHECK
+      subsystem: power
+      effects:
+        bus_voltage_ok: true
+      resource_draw:
+        power_w: 2.0
+      min_gap_after_s: 2.0
+    - id: THERM_HEATER_ON
+      subsystem: thermal
+      preconditions:
+        bus_voltage_ok: true
+      effects:
+        heater_on: true
+      resource_draw:
+        power_w: 24.0
+      hold_s: 300.0
+      min_gap_after_s: 2.0
+    - id: ADCS_ATT_VERIFY
+      subsystem: adcs
+      preconditions:
+        bus_voltage_ok: true
+      effects:
+        attitude_verified: true
+      resource_draw:
+        power_w: 8.0
+      hold_s: 20.0
+      min_gap_after_s: 5.0
+    - id: PAYLOAD_ENABLE
+      subsystem: payload
+      required_modes: [NOMINAL, SCIENCE]
+      preconditions:
+        bus_voltage_ok: true
+        heater_on: true
+      effects:
+        payload_enabled: true
+      resource_draw:
+        power_w: 18.0
+      hold_s: 90.0
+      min_gap_after_s: 5.0
+    - id: PAYLOAD_SAFE
+      subsystem: payload
+      effects:
+        payload_enabled: false
+      min_gap_after_s: 2.0
+    - id: MODE_SCIENCE
+      subsystem: obdh
+      required_modes: [NOMINAL]
+      preconditions:
+        attitude_verified: true
+        payload_enabled: true
+      mode_effect: SCIENCE
+      min_gap_after_s: 5.0
+    - id: MODE_NOMINAL
+      subsystem: obdh
+      preconditions:
+        bus_voltage_ok: true
+      mode_effect: NOMINAL
+      min_gap_after_s: 5.0
+    - id: PAYLOAD_SCAN
+      subsystem: payload
+      required_modes: [SCIENCE]
+      preconditions:
+        attitude_verified: true
+        payload_enabled: true
+      resource_draw:
+        power_w: 46.0
+        data_rate_mbps: 22.0
+      hold_s: 90.0
+      min_interval_s: 300.0
+      min_gap_after_s: 5.0
+      exclusion_group: high_power
+mode_machine:
+  modes: [SAFE, NOMINAL, SCIENCE]
+  transitions:
+    SAFE: [NOMINAL]
+    NOMINAL: [SAFE, SCIENCE]
+    SCIENCE: [NOMINAL, SAFE]
+initial_state:
+  mode: NOMINAL
+  predicates:
+    attitude_verified: false
+    bus_voltage_ok: true
+    heater_on: false
+    payload_enabled: false
+sequence:
+  - {t_s: 0.0, command: PWR_BUS_CHECK}
+  - {t_s: 10.0, command: THERM_HEATER_ON}
+  - {t_s: 20.0, command: ADCS_ATT_VERIFY}
+  - {t_s: 40.0, command: PAYLOAD_ENABLE}
+  - {t_s: 60.0, command: MODE_SCIENCE}
+  - {t_s: 80.0, command: PAYLOAD_SAFE, note: "this is the step the trace must name"}
+  - {t_s: 400.0, command: PAYLOAD_SCAN, note: "illegal: nothing re-enabled the payload"}

@@ -1,0 +1,76 @@
+
+==============================================================================
+boundcompress -- deliberate bound violations, which must be caught
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+scipy            : 1.18.1
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+numcodecs        : not installed  (spec baseline 2)
+zfpy             : not installed  (spec baseline 2)
+cpu cores        : 2
+repository root  : P080 (printed relatively; see validation/_bootstrap.py)
+
+signal                 : battery_voltage (4096 samples, V)
+declared bound         : abs 1.000000e-03
+clean certificate      : HOLDS
+clean max abs error    : 9.999491e-04
+clean margin           : 5.088515e-08
+[PASS] the clean encode holds its bound
+[PASS] negative control caught: single sample, error = 2.5 x bound at index 1234
+[PASS] negative control caught: single sample, error = -4.0 x bound at index 77
+[PASS] negative control caught: first sample, error = 1.5 x bound at index 0
+[PASS] negative control caught: last sample, error = 1.5 x bound
+[PASS] negative control caught: run of 50 samples, error = 1.01 x bound from index 2000
+[PASS] negative control caught: nan reconstruction at index 500
+[PASS] negative control caught: inf reconstruction at index 501
+[PASS] negative control caught: violation of 1 part in 1e9 of the bound
+
+injected violation                                       violations  first indices             max_abs_error  margin         verdict  located
+-------------------------------------------------------  ----------  ------------------------  -------------  -------------  -------  -------
+single sample, error = 2.5 x bound at index 1234         1           [1234]                    2.500000e-03   -1.500000e-03  CAUGHT   yes    
+single sample, error = -4.0 x bound at index 77          1           [77]                      4.000000e-03   -3.000000e-03  CAUGHT   yes    
+first sample, error = 1.5 x bound at index 0             1           [0]                       1.500000e-03   -5.000000e-04  CAUGHT   yes    
+last sample, error = 1.5 x bound                         1           [4095]                    1.500000e-03   -5.000000e-04  CAUGHT   yes    
+run of 50 samples, error = 1.01 x bound from index 2000  50          [2000, 2001, 2002, 2003]  1.010000e-03   -1.000000e-05  CAUGHT   yes    
+nan reconstruction at index 500                          1           [500]                     9.999491e-04   nan            CAUGHT   yes    
+inf reconstruction at index 501                          1           [501]                     inf            -inf           CAUGHT   yes    
+violation of 1 part in 1e9 of the bound                  1           [1190]                    1.000000e-03   -9.995347e-13  CAUGHT   yes    
+
+==============================================================================
+the comparison carries no tolerance: at the bound passes, one ulp past fails
+==============================================================================
+error exactly at the bound   : holds=True margin=0.000000e+00
+error one ulp past the bound : holds=False margin=-4.440892e-16 indices=[2]
+the ulp step itself          : 2.220446e-16
+[PASS] a reconstruction exactly at the bound is admissible
+[PASS] a reconstruction one ulp past the bound is not
+
+==============================================================================
+pointwise relative mode
+==============================================================================
+clean rel certificate  : HOLDS
+clean max rel error    : 9.995612e-06
+injected rel error     : 1.500000e-05
+violating indices      : [900]
+[PASS] the clean rel encode holds
+[PASS] a 1.5x pointwise relative violation is caught at the right index
+
+==============================================================================
+totals
+==============================================================================
+negative controls injected : 11
+negative controls caught   : 11
+
+Every control above is anchored on the true sample value. An earlier
+version offset the reconstruction by 1.5 x the bound instead, and two
+controls were then not caught and a third caught 26 of its 50 samples,
+because an offset below 2 x the bound need not leave the bound. The
+certificate was correct in every one of those cases; the control was
+not. See the module docstring of validation/validate_negative_control.py.
+
+FAILED CHECKS (0): none

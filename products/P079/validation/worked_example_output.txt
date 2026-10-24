@@ -1,0 +1,113 @@
+timetransfer -- the worked example from README.md
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+allantools       : not installed  (NOT used; Allan deviation is implemented in timetransfer.allan)
+ntplib           : not installed  (NOT used; no number here comes from it)
+cpu cores        : 2
+product root     : P079 (printed relatively; see validation/_bootstrap.py)
+fast probe mode  : False (divisor 1)
+
+==============================================================================
+the example
+==============================================================================
+A link whose forward path is 800 us longer than its reverse path, a remote
+clock 1.25 ms fast and running 1.8 ppm slow, 600 exchanges at 1 Hz.
+
+acquisition
+attempted          : 600
+completed          : 577
+lost               : 23
+longest loss run   : 2
+stopped early      : False (at seq -1)
+backend            : simulated/n/a
+is_hardware        : False
+
+baseline 1 -- symmetric-delay two-way estimator
+n exchanges          : 577
+offset mean          : 2.254992257e-03 s
+offset median        : 2.238844500e-03 s
+path delay min       : 5.063114500e-03 s
+skew correction bound: 1.139e-08 s (at a = 1.800e-06 s/s)
+
+baseline 2a -- least squares, order 2
+n points        : 577 (order 2, dof 574)
+offset at t_ref : 2.256888879e-03 +- 1.346e-05 s
+skew            : 1.782522218e-06 +- 5.177e-08 s/s
+drift           : -1.265022725e-10 +- 6.694e-10 1/s
+residual sigma  : 2.153227e-04 s
+
+baseline 2b -- two-state Kalman
+n points              : 577 (2 states)
+R used                : 1.751860e-08 s^2
+final offset          : 2.791664413e-03 +- 1.105e-05 s
+final skew            : 1.782513268e-06 +- 3.182e-08 s/s
+mean normalised innov : 2.6330 (1.0 is consistent)
+
+the measured offset uncertainty
+offset              : 2.256888879e-03 s at t = 297.929214 s
+u statistical       : 1.349819e-05 s (x1.003 for r1 = +0.0031)
+u quantisation      : 1.205512e-11 s (delta = 1 ns)
+u asymmetry         : 4.618802e-04 s (declared_bound)
+u combined          : 4.620774e-04 s (dominant: asymmetry)
+expanded (k=1.96)   : 9.056717e-04 s
+n / n_effective     : 577 / 573.4
+interval            : [1.351217152e-03, 3.162560606e-03] s
+
+stability of the detrended residual
+noise kind white_fm (declared), N = 577, tau0 = 1 s
+      m      tau [s]          adev         lower         upper       edf   terms
+      1            1  3.751165e-04  3.503331e-04  4.037023e-04    383.11     575
+      2            2  1.793034e-04  1.665628e-04  1.941707e-04    327.62     573
+      4            4  9.322242e-05  8.488461e-05  1.033908e-04    198.50     569
+      8            8  4.383227e-05  3.859866e-05  5.072076e-05    103.98     561
+     16           16  2.265982e-05  1.901238e-05  2.805209e-05     51.75     545
+     32           32  1.147930e-05  9.001823e-06  1.584893e-05     24.98     513
+     64           64  5.911607e-06  4.214281e-06  9.890607e-06     11.50     449
+
+==============================================================================
+against simulation truth
+==============================================================================
+declared static asymmetry  : +8.000000e-04 s
+closed-form bias A/2       : +4.000000e-04 s
+true offset at the epoch   : +1.786359423e-03 s
+estimate                   : +2.256888879e-03 s
+estimate minus truth       : +4.705295e-04 s
+expanded uncertainty       : 9.056717e-04 s
+error inside the interval  : True
+error / closed-form bias   : 1.1763
+
+The error is dominated by the declared static asymmetry, which is exactly
+what equation (5) of timetransfer.twoway says it must be: the estimate is
+off by A/2 and no amount of data removes it. The reported uncertainty covers
+it because the asymmetry was declared as a bound; with no asymmetry term the
+same estimate carries a narrower interval, by the ratio printed in the next
+section, and does not cover the error. That comparison is the product.
+
+==============================================================================
+the same estimate with no asymmetry term, for contrast
+==============================================================================
+offset              : 2.256888879e-03 s at t = 297.929214 s
+u statistical       : 1.349819e-05 s (x1.003 for r1 = +0.0031)
+u quantisation      : 1.205512e-11 s (delta = 1 ns)
+u asymmetry         : 0.000000e+00 s (unaccounted)
+u combined          : 1.349819e-05 s (dominant: statistical)
+expanded (k=1.96)   : 2.645645e-05 s
+n / n_effective     : 577 / 573.4
+WARNING             : no asymmetry term. This interval describes repeatability, not accuracy.
+
+u combined with a declared bound : 4.620774e-04 s
+u combined with no asymmetry term: 1.349819e-05 s
+ratio                            : 34.2325
+error inside the narrow interval : False
+
+==============================================================================
+summary
+==============================================================================

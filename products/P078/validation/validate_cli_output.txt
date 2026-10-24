@@ -1,0 +1,178 @@
+==============================================================================
+cmdguard -- the command line interface and its exit codes
+==============================================================================
+
+environment this output was measured on:
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scikit-learn     : 1.9.1
+  pyyaml           : 6.0.3
+  scipy            : 1.18.1
+  matplotlib       : 3.10.8
+  joblib           : 1.5.2
+  pandas           : 3.0.5
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  cpu cores        : 2
+  repository root  : P078 (printed relatively; see validation/_bootstrap.py)
+
+  exit codes: 0 nothing found, 1 violations, 2 gate refused, 3 input error
+  every command below is run as a subprocess from the repository root with
+  PYTHONPATH=src; the interpreter is the one running this script and its
+  path is deliberately not printed.
+
+==============================================================================
+1. every subcommand, with its expected exit code
+==============================================================================
+  exit want  command
+     0    0  python -m cmdguard --version
+  [PASS] exit code of `python -m cmdguard --version` -- got 0, wanted 0
+  [PASS] output of `python -m cmdguard --version` contains 'cmdguard 0.1.0' -- not found in stdout
+     0    0  python -m cmdguard info
+  [PASS] exit code of `python -m cmdguard info` -- got 0, wanted 0
+  [PASS] output of `python -m cmdguard info` contains 'irreversible_unverified' -- not found in stdout
+     0    0  python -m cmdguard info examples/cases/irreversible_before_verify.yaml
+  [PASS] exit code of `python -m cmdguard info examples/cases/irreversible_before_verify.yaml` -- got 0, wanted 0
+  [PASS] output of `python -m cmdguard info examples/cases/irreversible_before_verify.yaml` contains 'irreversible commands    : 1' -- not found in stdout
+     0    0  python -m cmdguard check examples/cases/nominal_science_pass.yaml
+  [PASS] exit code of `python -m cmdguard check examples/cases/nominal_science_pass.yaml` -- got 0, wanted 0
+  [PASS] output of `python -m cmdguard check examples/cases/nominal_science_pass.yaml` contains 'violations            : 0' -- not found in stdout
+     1    1  python -m cmdguard check examples/cases/late_payload_enable.yaml
+  [PASS] exit code of `python -m cmdguard check examples/cases/late_payload_enable.yaml` -- got 1, wanted 1
+  [PASS] output of `python -m cmdguard check examples/cases/late_payload_enable.yaml` contains 'because step 5' -- not found in stdout
+     2    2  python -m cmdguard check examples/cases/irreversible_before_verify.yaml
+  [PASS] exit code of `python -m cmdguard check examples/cases/irreversible_before_verify.yaml` -- got 2, wanted 2
+  [PASS] output of `python -m cmdguard check examples/cases/irreversible_before_verify.yaml` contains 'REFUSED' -- not found in stdout
+     1    1  python -m cmdguard check examples/cases/resource_and_exclusion.yaml
+  [PASS] exit code of `python -m cmdguard check examples/cases/resource_and_exclusion.yaml` -- got 1, wanted 1
+  [PASS] output of `python -m cmdguard check examples/cases/resource_and_exclusion.yaml` contains 'mutual_exclusion' -- not found in stdout
+     1    1  python -m cmdguard check examples/cases/late_payload_enable.yaml --policy block
+  [PASS] exit code of `python -m cmdguard check examples/cases/late_payload_enable.yaml --policy block` -- got 1, wanted 1
+  [PASS] output of `python -m cmdguard check examples/cases/late_payload_enable.yaml --policy block` contains 'effect policy         : block' -- not found in stdout
+     1    1  python -m cmdguard check examples/cases/late_payload_enable.yaml --state-at 5
+  [PASS] exit code of `python -m cmdguard check examples/cases/late_payload_enable.yaml --state-at 5` -- got 1, wanted 1
+  [PASS] output of `python -m cmdguard check examples/cases/late_payload_enable.yaml --state-at 5` contains 'state after step 5' -- not found in stdout
+     1    1  python -m cmdguard lint examples/cases/late_payload_enable.yaml
+  [PASS] exit code of `python -m cmdguard lint examples/cases/late_payload_enable.yaml` -- got 1, wanted 1
+  [PASS] output of `python -m cmdguard lint examples/cases/late_payload_enable.yaml` contains 'static lint (per_command)' -- not found in stdout
+     1    1  python -m cmdguard lint examples/cases/resource_and_exclusion.yaml --strength with_timing
+  [PASS] exit code of `python -m cmdguard lint examples/cases/resource_and_exclusion.yaml --strength with_timing` -- got 1, wanted 1
+  [PASS] output of `python -m cmdguard lint examples/cases/resource_and_exclusion.yaml --strength with_timing` contains 'timing_gap' -- not found in stdout
+     1    1  python -m cmdguard compare examples/cases/resource_and_exclusion.yaml
+  [PASS] exit code of `python -m cmdguard compare examples/cases/resource_and_exclusion.yaml` -- got 1, wanted 1
+  [PASS] output of `python -m cmdguard compare examples/cases/resource_and_exclusion.yaml` contains 'missed by the lint:' -- not found in stdout
+     0    0  python -m cmdguard compare examples/cases/nominal_science_pass.yaml
+  [PASS] exit code of `python -m cmdguard compare examples/cases/nominal_science_pass.yaml` -- got 0, wanted 0
+  [PASS] output of `python -m cmdguard compare examples/cases/nominal_science_pass.yaml` contains 'undefined (no violation to miss)' -- not found in stdout
+     2    2  python -m cmdguard gate examples/cases/irreversible_before_verify.yaml
+  [PASS] exit code of `python -m cmdguard gate examples/cases/irreversible_before_verify.yaml` -- got 2, wanted 2
+  [PASS] output of `python -m cmdguard gate examples/cases/irreversible_before_verify.yaml` contains 'REFUSE' -- not found in stdout
+     0    0  python -m cmdguard gate examples/cases/irreversible_after_verify.yaml
+  [PASS] exit code of `python -m cmdguard gate examples/cases/irreversible_after_verify.yaml` -- got 0, wanted 0
+  [PASS] output of `python -m cmdguard gate examples/cases/irreversible_after_verify.yaml` contains 'NO_REFUSAL_FOUND' -- not found in stdout
+     3    3  python -m cmdguard check examples/cases/missing_declarations.yaml
+  [PASS] exit code of `python -m cmdguard check examples/cases/missing_declarations.yaml` -- got 3, wanted 3
+  [PASS] `python -m cmdguard check examples/cases/missing_declarations.yaml` explains itself on stderr -- cmdguard: cannot load case: dictionary.commands[1]: unknown key(s) precondition; a misspelt key is silently ignored by a permissive loader and that is how a declaration goes unchecked
+     3    3  python -m cmdguard check examples/cases/not_a_file.yaml
+  [PASS] exit code of `python -m cmdguard check examples/cases/not_a_file.yaml` -- got 3, wanted 3
+  [PASS] `python -m cmdguard check examples/cases/not_a_file.yaml` explains itself on stderr -- cmdguard: cannot load case: case file not found: examples/cases/not_a_file.yaml
+     3    3  python -m cmdguard check examples/cases/late_payload_enable.yaml --state-at 99
+  [PASS] exit code of `python -m cmdguard check examples/cases/late_payload_enable.yaml --state-at 99` -- got 3, wanted 3
+  [PASS] `python -m cmdguard check examples/cases/late_payload_enable.yaml --state-at 99` explains itself on stderr -- cmdguard: step 99 is outside the sequence, which has 7 step(s)
+     3    3  python -m cmdguard rank examples/cases/nominal_science_pass.yaml --k 0
+  [PASS] exit code of `python -m cmdguard rank examples/cases/nominal_science_pass.yaml --k 0` -- got 3, wanted 3
+  [PASS] `python -m cmdguard rank examples/cases/nominal_science_pass.yaml --k 0` explains itself on stderr -- cmdguard: --k must be >= 1, got 0
+     1    1  python -m cmdguard rank examples/cases/resource_and_exclusion.yaml --k 5 --train-seeds 6
+  [PASS] exit code of `python -m cmdguard rank examples/cases/resource_and_exclusion.yaml --k 5 --train-seeds 6` -- got 1, wanted 1
+  [PASS] output of `python -m cmdguard rank examples/cases/resource_and_exclusion.yaml --k 5 --train-seeds 6` contains 'rank step' -- not found in stdout
+     0    0  python -m cmdguard benchmark --train-seeds 6 --test-seeds 4
+  [PASS] exit code of `python -m cmdguard benchmark --train-seeds 6 --test-seeds 4` -- got 0, wanted 0
+  [PASS] output of `python -m cmdguard benchmark --train-seeds 6 --test-seeds 4` contains '95% CI' -- not found in stdout
+
+==============================================================================
+2. no committed CLI output carries an absolute path
+==============================================================================
+  commands checked : 21
+  offending lines  : 0
+  [PASS] no CLI output prints an absolute path -- 0
+
+==============================================================================
+3. the three verbatim transcripts the README quotes
+==============================================================================
+
+  $ python -m cmdguard check examples/cases/late_payload_enable.yaml
+  ==============================================================================
+  cmdguard forward execution: late_payload_enable
+  ==============================================================================
+  steps                 : 7
+  sequence span         : 400.0 s
+  effect policy         : apply
+  violations            : 1
+  ordering-only defects : 0
+  gate-blocking         : 0
+  final mode            : SCIENCE
+  peak held draw        : data_rate_mbps=22, power_w=46
+  
+  by kind:
+    precondition_false         1
+  
+  violations, with the state trace that reaches each one:
+  
+  step   6 t=    400.0 s  PAYLOAD_SCAN           precondition_false
+      requires payload_enabled=true but it is false at this step
+      because step 5 t=80.0 s PAYLOAD_SAFE: set payload_enabled=false
+      because step 6 t=400.0 s PAYLOAD_SCAN: no step between that point and this one set payload_enabled to true
+  (exit code 1)
+
+  $ python -m cmdguard gate examples/cases/irreversible_before_verify.yaml
+  irreversible-command gate: irreversible_before_verify
+    irreversible commands declared : 1
+    irreversible executions in seq : 1
+    verdict                        : REFUSE
+    REFUSED on 1 gate-blocking violation(s). An irreversible command executes while a declared precondition of it is unverified.
+  
+  step   1 t=     10.0 s  ANT_DEPLOY             irreversible_unverified
+      is declared irreversible and requires attitude_verified=true, which has not been verified at this step; an irreversible command whose precondition is unverified is the gate-blocking case
+      because declared initial state: attitude_verified=unknown
+      because step 1 t=10.0 s ANT_DEPLOY: no step between that point and this one set attitude_verified to true
+  (exit code 2)
+
+  $ python -m cmdguard compare examples/cases/resource_and_exclusion.yaml
+  ==============================================================================
+  cmdguard baseline comparison: resource_and_exclusion
+  ==============================================================================
+  lint strength                     : with_timing
+  forward execution (ground truth)  : 6 violation(s)
+  static lint                       : 2 finding(s)
+  found by forward, missed by lint  : 4
+  reported by lint, not by forward  : 0
+  lint miss rate on this case       : 0.666667
+  
+  missed by the lint:
+  
+  step   2 t=     60.0 s  HEATER_B               mutual_exclusion
+      is in exclusion group 'thermal_pair' (members: HEATER_A, HEATER_B) and HEATER_A still holds that group until t=210.0 s
+      shortfall: 150
+      because step 1 t=10.0 s HEATER_A: took exclusion group 'thermal_pair' for 200.0 s
+  
+  step   3 t=     70.0 s  XMIT                   resource_limit
+      brings held power_w to 135 against a declared ceiling of 100 (its own draw is 55)
+      shortfall: 35
+      because step 1 t=10.0 s HEATER_A: holds 40 of power_w until t=210.0 s
+      because step 2 t=60.0 s HEATER_B: holds 40 of power_w until t=260.0 s
+  
+  step   5 t=    100.0 s  SSR_READ               resource_limit
+      brings held data_rate_mbps to 55 against a declared ceiling of 40 (its own draw is 25)
+      shortfall: 15
+      because step 4 t=80.0 s SSR_WRITE: holds 30 of data_rate_mbps until t=140.0 s
+  
+  step   6 t=    200.0 s  XMIT                   resource_limit
+      brings held power_w to 135 against a declared ceiling of 100 (its own draw is 55)
+      shortfall: 35
+      because step 1 t=10.0 s HEATER_A: holds 40 of power_w until t=210.0 s
+      because step 2 t=60.0 s HEATER_B: holds 40 of power_w until t=260.0 s
+  (exit code 1)
+
+------------------------------------------------------------------------------
+FAILED CHECKS: none

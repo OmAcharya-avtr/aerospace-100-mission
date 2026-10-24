@@ -1,0 +1,147 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  cmdguard: checking a command sequence against the spacecraft state it will
+  meet, with the state trace that reaches each violation
+version: 0.1.0
+date-released: 2026-10-24
+license: Apache-2.0
+abstract: >-
+  Takes a declared command dictionary, a declared mode machine, a declared
+  initial state and a candidate command sequence, and reports every violation
+  together with the chain of earlier steps that produced the state it tripped
+  over. Ten violation kinds are reported: undeclared command, mode gate,
+  illegal mode transition, false precondition, unverified precondition,
+  unverified precondition on an irreversible command, minimum same-command
+  interval, minimum inter-command gap, mutual exclusion over a live hold, and a
+  resource ceiling crossed by accumulation. Predicates are three-valued and an
+  unverified predicate never satisfies a precondition, which is what makes the
+  irreversible-command gate implementable: a sequence in which an irreversible
+  command executes while one of its declared preconditions is unverified is
+  refused, and the gate's clean verdict is named NO_REFUSAL_FOUND rather than
+  anything that would read as a safety claim. Validation is level 2. Forward
+  symbolic execution is exact for a single linear sequence against the declared
+  model and is the ground truth; it is checked against hand-constructed cases
+  whose expected violations and shortfalls are derived by hand, including a
+  negative control of 420 generated clean sequences over seven generator shapes
+  with zero false alarms. The per-command static precondition lint is measured
+  against it on a seeded family of injected ordering defects: over 60 seeds and
+  nine defect families, 1894 violations, the lint misses 0.524287 of them and
+  0.667467 of the violations only a sequence-aware check can reach; with a
+  timing pass added it misses 0.425026 and 0.441777. The lint also emits 17310
+  findings against those 1894 violations, of which 0.937088 are not confirmed
+  by the forward walk, because it re-evaluates every command occurrence against
+  the declared initial state. A learned random-forest risk ranker over twenty
+  static features triages long sequences for human review, scored on held-out
+  seeds against the two free orderings the specification predicted would be
+  hard to beat. It beats them: mean precision at 5 of 0.270199 against 0.156954
+  for the irreversibility-flag ordering and 0.183444 for the resource-draw
+  ordering, with paired bootstrap intervals excluding zero at every cut-off.
+  Roughly a third of that advantage at k=5 is an artefact of the generator:
+  withholding three timing-shape features drops the learned figure to 0.213907,
+  because four of the nine defect families edit the time column. The free
+  orderings themselves are not distinguished from a random shuffle at k=20. The
+  ranker's reported dispersion is an ensemble spread and not a calibrated
+  interval; the measured weighted mean absolute calibration gap is 0.331780.
+  All learned results are statements about a seeded synthetic generator whose
+  equations are its code; no flight data is used anywhere. No mature equivalent
+  package was found on the index, and the honest substitute is mission-specific
+  scripted checks plus review. Research grade. Not flight-qualified, not
+  certified, not approved for operational aerospace use, and a sequence this
+  package reports clean has not been shown safe to uplink.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - command-sequence
+  - spacecraft-operations
+  - autonomous-aerospace-systems
+  - symbolic-execution
+  - mode-machine
+  - constraint-checking
+  - flight-operations
+  - sequence-validation
+references:
+  - type: article
+    authors:
+      - family-names: King
+        given-names: "J. C."
+    title: "Symbolic execution and program testing"
+    journal: "Communications of the ACM"
+    volume: 19
+    issue: 7
+    year: 1976
+    notes: >-
+      The forward walk in cmdguard.trace is symbolic execution restricted to a
+      single straight-line path, which is why it is exact rather than
+      approximate for a linear command sequence. Structure only; no numerical
+      value in this repository is taken from it.
+  - type: book
+    authors:
+      - family-names: Hopcroft
+        given-names: "J. E."
+      - family-names: Motwani
+        given-names: "R."
+      - family-names: Ullman
+        given-names: "J. D."
+    title: >-
+      Introduction to Automata Theory, Languages, and Computation
+    edition: "3rd"
+    publisher:
+      name: "Pearson"
+    year: 2006
+    notes: >-
+      Chapter 2, for the deterministic finite automaton the declared mode
+      machine is. Structure only; no numerical value here is taken from it.
+  - type: article
+    authors:
+      - family-names: Breiman
+        given-names: "L."
+    title: "Random forests"
+    journal: "Machine Learning"
+    volume: 45
+    issue: 1
+    year: 2001
+    notes: The estimator behind cmdguard.ranker.RiskRanker.
+  - type: article
+    authors:
+      - family-names: Wager
+        given-names: "S."
+      - family-names: Hastie
+        given-names: "T."
+      - family-names: Efron
+        given-names: "B."
+    title: >-
+      Confidence intervals for random forests: the jackknife and the
+      infinitesimal jackknife
+    journal: "Journal of Machine Learning Research"
+    volume: 15
+    year: 2014
+    notes: >-
+      Why the per-tree spread this package reports is a dispersion measure and
+      not a confidence interval. The measured calibration gap of the risk
+      itself is 0.331780.
+  - type: article
+    authors:
+      - family-names: Pedregosa
+        given-names: "F."
+      - family-names: Varoquaux
+        given-names: "G."
+      - family-names: Gramfort
+        given-names: "A."
+    title: "Scikit-learn: machine learning in Python"
+    journal: "Journal of Machine Learning Research"
+    volume: 12
+    year: 2011
+    notes: The random-forest implementation used by the risk ranker.
+  - type: standard
+    title: "Mission Operations -- Common Services"
+    institution:
+      name: "Consultative Committee for Space Data Systems"
+    number: "CCSDS 522.0-B-1"
+    year: 2017
+    notes: >-
+      Cited only for the existence of a standardised notion of a commanding
+      service with declared parameters and preconditions, which is why a
+      declared command dictionary is a reasonable input format to assume. No
+      numerical value and no schema in this repository is taken from it, and
+      this package implements no CCSDS service.

@@ -1,0 +1,185 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  pointahead: the point-ahead angle for an optical crosslink, with every error
+  term attributed to its own checkable line
+version: 0.1.0
+date-released: 2026-10-24
+license: Apache-2.0
+abstract: >-
+  Computes the point-ahead angle for an optical inter-satellite link and returns
+  an error budget in which each contribution is a separate, individually
+  checkable line. The angle is computed two ways: a closed-form first-order
+  solution, theta = 2 |v_rel_perp| / c about the instantaneous line of sight,
+  and an iterated light-time reference that solves both light times against a
+  declared trajectory model and applies the exact relativistic aberration with
+  the local terminal's velocity. Over 300 seeded crosslinks spanning 494.5 to
+  8268.0 km of range the closed form's worst disagreement with the reference on
+  the point-ahead offset is 7.339728e-14 rad, which is 4.826409e-09 of the
+  angle and is of the same order as the float64 direction resolution of the
+  geometry, so the closed form wins and that is published as measured. The
+  closed form does not degrade appreciably with range, because the trajectory
+  curvature errors on the receive and transmit sides cancel to first order in
+  the sum that forms the offset: the median error as a fraction of the angle is
+  flat at 6.690292e-10 to 8.747972e-10 across six range bands. The magnitude is attributed
+  to three sources, the light-time lead and the stellar and velocity aberration
+  of the received and transmitted beams, and the attribution is shown to be
+  frame-dependent while the total is not: across six inertial frames the total
+  moves 3.858295e-14 rad while the light-time lead moves 4.510455e-05 rad, a
+  ratio of 1.169e+09, and in the local terminal's rest frame both aberration
+  lines are exactly zero. The uncertainty budget has six lines and every
+  analytic line is verified against a numerical propagation of its own input
+  over 1584 geometry-and-configuration combinations; 1548 pass and the 36 that
+  fail are all the light-time iteration line at iteration cap zero, where the
+  predicted error falls below the float64 direction resolution, and they are
+  reported as failed rather than tuned away. Two of the analytic lines were
+  wrong when first written and this check found both: a first-order-only
+  ephemeris staleness model predicted 2.087363736690764e-22 rad against a
+  measured
+  2.3807507009717773e-08 rad, because for two terminals at equal radius under
+  two-body
+  gravity the relative acceleration is exactly along the line of sight and the
+  jerk term carries the whole line; and the stale-position expansion needs a
+  dt^3 / 3 coefficient rather than the dt^3 / 6 a plain Taylor series suggests.
+  Hypothesis found six further defects, including a non-convergence of the
+  universal-variable Kepler iteration over 88 revolutions of a 37.9 second
+  orbit, and all ten are pinned as named regression tests with literal inputs.
+  Aberration is implemented four times, once approximately and three times
+  exactly by independent derivations, and the three exact routes agree to
+  1.054369e-15 rad over 2000 random directions and boosts up to 0.95 c. astropy
+  is the correct tool for aberration itself and is named and recommended in the
+  README; it is not installed in the environment these numbers were measured in
+  and no number here came from it, which is recorded as a deviation from the
+  product specification. The total is always reported against the transmit beam,
+  because the same 2.963074 microradian error costs 3.132821e-02 dB on a
+  1550 nm, 10 mm-waist beam and 1.495885e+01 dB on a 1064 nm, 150 mm-waist one.
+  Validation is level 2; 105 checks pass and 1 fails. Research grade. Not flight-qualified,
+  not certified, not approved for operational aerospace use. No output of this
+  package is suitable for an operational pointing decision.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - point-ahead-angle
+  - optical-crosslink
+  - laser-communication
+  - aberration
+  - light-time
+  - pointing-acquisition-tracking
+  - error-budget
+references:
+  - type: book
+    authors:
+      - family-names: Rindler
+        given-names: "W."
+    title: "Relativity: Special, General and Cosmological"
+    edition: "2nd"
+    publisher:
+      name: "Oxford University Press"
+    year: 2006
+    notes: >-
+      Section 3.6, the relativistic aberration relation
+      cos(theta') = (cos theta - beta) / (1 - beta cos theta), implemented as
+      pointahead.aberration.aberrate_angle_relation and cross-checked against
+      two independent derivations to 1.054369e-15 rad. Structure only; no
+      numerical value in this repository is taken from it.
+  - type: book
+    authors:
+      - family-names: Moyer
+        given-names: "T. D."
+    title: >-
+      Formulation for Observed and Computed Values of Deep Space Network Data
+      Types for Navigation
+    publisher:
+      name: "Wiley"
+    year: 2003
+    notes: >-
+      JPL Deep-Space Communications and Navigation Series, Monograph 2,
+      chapter 8, the light-time iteration used for observable computation and
+      implemented as pointahead.lighttime.solve_light_time. Checked against the
+      exact quadratic root for a straight-line trajectory to 0.000000e+00 worst
+      relative difference over 400 cases.
+  - type: book
+    authors:
+      - family-names: Vallado
+        given-names: "D. A."
+    title: "Fundamentals of Astrodynamics and Applications"
+    edition: "4th"
+    publisher:
+      name: "Microcosm Press"
+    year: 2013
+    notes: >-
+      Algorithm 8 (KEPLER) and section 2.2, universal-variable two-body
+      propagation and the Stumpff functions, implemented as
+      pointahead.kepler.propagate_two_body and checked against
+      scipy.integrate.solve_ivp with DOP853 at rtol 1e-13 to 1.013e-13 worst
+      relative position difference.
+  - type: book
+    authors:
+      - family-names: Siegman
+        given-names: "A. E."
+    title: "Lasers"
+    publisher:
+      name: "University Science Books"
+    year: 1986
+    notes: >-
+      Section 17.1, the Gaussian far-field divergence half-angle
+      lambda / (pi w0) to the 1/e^2 intensity radius, implemented as
+      pointahead.divergence.gaussian_divergence_half_angle.
+  - type: book
+    authors:
+      - family-names: Andrews
+        given-names: "L. C."
+      - family-names: Phillips
+        given-names: "R. L."
+    title: "Laser Beam Propagation through Random Media"
+    edition: "2nd"
+    publisher:
+      name: "SPIE Press"
+    year: 2005
+    notes: >-
+      Chapter 4, Gaussian beam propagation. The turbulence treatment that is the
+      rest of the book does not apply to a space-to-space crosslink and is named
+      in the README as a limitation for a space-to-ground one.
+  - type: article
+    authors:
+      - family-names: Klein
+        given-names: "B. J."
+      - family-names: Degnan
+        given-names: "J. J."
+    title: "Optical antenna gain. 1: Transmitting antennas"
+    journal: "Applied Optics"
+    volume: 13
+    issue: 9
+    year: 1974
+    notes: >-
+      Aperture truncation and central obscuration change the far-field pattern
+      and the optimum truncation ratio. Neither is modelled here, and that is
+      recorded in the README under Limitations.
+  - type: book
+    editors:
+      - family-names: Hemmati
+        given-names: "H."
+    title: "Deep Space Optical Communications"
+    publisher:
+      name: "Wiley"
+    year: 2006
+    notes: >-
+      JPL Deep-Space Communications and Navigation Series, chapter 1, the
+      point-ahead requirement as it appears in an optical link design. Structure
+      only; no numerical value in this repository is taken from it.
+  - type: software
+    title: "sgp4"
+    version: "2.27"
+    notes: >-
+      The reference SGP4/SDP4 implementation, wrapped by pointahead.tle rather
+      than reimplemented, with the TEME frame label carried through to every
+      result.
+  - type: software
+    title: "astropy"
+    notes: >-
+      The correct tool for aberration, light-time and frame transformations, and
+      named as such in this package's README. NOT installed in the environment
+      this package was measured in, and no number in this repository came from
+      it; the aberration cross-check the product specification asks for was
+      replaced by three internal exact implementations derived three different
+      ways, which is recorded as a deviation in validation/VALIDATION.md.
