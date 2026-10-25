@@ -71,7 +71,7 @@ nominal.** An interval whose coverage is not measured is a decoration.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 import numpy as np
 from scipy import stats
@@ -90,7 +90,7 @@ __all__ = [
 ]
 
 
-class AsymmetrySource(str, Enum):
+class AsymmetrySource(StrEnum):
     """How the asymmetry contribution to the uncertainty was obtained."""
 
     UNACCOUNTED = "unaccounted"

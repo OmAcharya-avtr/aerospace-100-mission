@@ -3,7 +3,34 @@
 You are building one product of a 100-product aerospace software portfolio. Follow every rule below. Deviations must be documented in the product README under Limitations.
 
 ## Environment
-- Python 3.11, already installed: numpy, scipy, matplotlib, scikit-learn, pytest, hypothesis, ruff, pyyaml, sgp4, pulp, pandas. Do NOT install anything else. PyTorch is NOT available — ML uses scikit-learn or numpy implementations.
+- Python **3.13.17** as measured on 2026-10-25 (this line read 3.11 for the
+  mission's first nine batches and was wrong from Batch 05 onward; the stale
+  figure is recorded rather than quietly replaced). Products should still
+  declare `requires-python = ">=3.11"`, but know you are MEASURING on 3.13.17.
+  Already installed: numpy, scipy, matplotlib, scikit-learn, pytest, hypothesis,
+  ruff, pyyaml, sgp4, pulp, pandas, joblib. Do NOT install anything else.
+  PyTorch is NOT available and neither is astropy — ML uses scikit-learn or
+  numpy implementations, and any "independent cross-check" must be an
+  implementation you wrote, named as such. Never claim a cross-check against a
+  package that is not installed.
+- **`pulp` ships NO SOLVER.** Measured 2026-10-25 against pulp 4.1.0:
+  `listSolvers(onlyAvailable=True)` returns `[]`, and `PULP_CBC_CMD` is not even
+  in `listSolvers()` any more because CBC is unbundled in pulp 4.x. A pulp-based
+  program will not solve, here or on the gate. Use **`scipy.optimize.milp`**
+  (HiGHS), which is in scipy and verified working. Keep `pulp` in alternatives
+  tables; do not make it a dependency. Three published products (P004, P023,
+  P032) declare pulp and predate this measurement.
+- The container's interpreter has mutated under concurrent agents before
+  (2026-10-16: numpy 2.5.3 → 2.5.4 → 2.5.0 mid-build, with bus errors). The
+  cause was concurrent `pip install`, not a shared interpreter. The working
+  arrangement, used 2026-10-24 and 2026-10-25: the coordinator pins ONE venv
+  before dispatch and **every agent is forbidden to run `pip` at all**.
+- Two interpreters may coexist with identical numpy/scipy/sklearn but different
+  tooling. Measured 2026-10-25: the pinned venv and the system `python3` agreed
+  on Python 3.13.17, numpy 2.5.3, scipy 1.18.1, scikit-learn 1.9.1, sgp4 2.27
+  and pandas 3.0.5, but differed on pytest (8.4.2 vs 9.1.1), hypothesis (6.140.3
+  vs 6.170.9), matplotlib (3.10.8 vs 3.11.2) and ruff (0.14.2 vs 0.17.2).
+  **The gate uses the system one.** Verify under both.
 - 2 CPU cores. Any training or Monte Carlo run must finish in under 3 minutes. Size datasets/models accordingly and document the compute budget.
 - Matplotlib: use the Agg backend (`matplotlib.use("Agg")`), never show().
 
@@ -193,3 +220,108 @@ error message then quoted it back.
 An absolute path in committed output is not cosmetic: it is not reproducible for
 a reader cold-cloning the repository, and it publishes the build machine's
 filesystem layout.
+
+### `pytest.approx(expected, rel=r)` has a hidden absolute tolerance of 1e-12 (added 2026-10-25)
+
+`pytest.approx` passes if EITHER the relative or the absolute bound is met, and
+the absolute default is `1e-12`. So for any quantity of order 1e-5, every
+relative tolerance tighter than 2e-8 is silently replaced by the default, and
+the assertion no longer tests what it says it tests.
+
+P076 found this by re-running its whole suite with `abs=0.0` substituted into
+all 95 `rel=` calls: exactly 3 of 271 assertions depended on the default, and
+one of those was hiding a real 2.086218e-10 relative discrepancy.
+
+- Pass an explicit `abs=` on every `rel=` call. `abs=0.0` is the right value
+  when the relative bound is the one you mean.
+- **Audit it, do not assume it.** Re-run the suite with the default forced off —
+  by substitution, or by patching `pytest.approx` so a bare `rel=` raises — and
+  report the count. Three products did this on 2026-10-25 and all three reached
+  0 assertions depending on the default; one of them found 5 real cases first.
+- This bites hardest where the quantities are small by construction:
+  conservation residuals, reliability complements, unreliabilities, and any
+  difference of two nearly equal numbers.
+
+### Comparing against an independently derived BOUND is a distinct check class (added 2026-10-25)
+
+"Two implementations agree" and "the answer lies inside a bound derived from
+different mathematics" are not the same check, and the second catches what the
+first cannot. P077's 777 tests, property tests included, could not catch
+catastrophic cancellation in its closed form, because every test compared the
+series against expressions sharing the same cancellation. A check against an
+independently derived bound caught it immediately.
+
+P075 reproduced the result on 2026-10-25 from the other direction: `1 - prod(1 -
+q_i)` returned exactly `0.0` in 10 of 18 parallel cases where the answer is
+positive, and fell OUTSIDE an independently derived Bonferroni bracket in 13 of
+20 cases while the hazard-space form was inside in 20 of 20. A property test
+sharing the expression passes on all of them.
+
+- Every product ships at least one bound check whose bound is derived from
+  mathematics the implementation does not use.
+- **A bound-check slack must follow the CONDITIONING of the bound expression,**
+  not the operation count and not an absolute constant. P075 had both wrong
+  forms falsified by Hypothesis on the same structure: a slack floored at an
+  absolute 1.8e-15 made a bracket of width 4.5e-23 vacuous, admitting the very
+  expression the check exists to catch.
+- Where a quantity has a complement, consider computing in the small space.
+  P075 computes in unreliability space wherever the structure allows it.
+
+### A negative control must be anchored on the true value, and must be verified to fire (added 2026-10-25)
+
+Injecting a violation by OFFSETTING a reconstruction does not guarantee a
+violation: the reconstruction already sits inside the band, so only an offset
+strictly greater than TWICE the bound is guaranteed to leave it. P080 shipped
+two of eleven negative controls silently too weak. The certificate was right and
+the control was wrong, which is the worse of the two failures because it reads
+as evidence.
+
+- Anchor every negative control on the true value, not on an output.
+- Assert that each control FIRED, as its own reported check. P075 reported 8 of
+  8 firing; P073 reported 8 controls of which 2 must NOT fire and asserted both
+  directions.
+- Do not let a control's criterion be the seed. P075 found a control whose
+  criterion was a 95% interval, where a 2.0114-sigma miss is an expected
+  1-in-20 outcome; the criterion was corrected to the declared 4 sigma rather
+  than the seed being changed until it passed.
+
+### Validate the BASELINE against the simulation before benchmarking the model (added 2026-10-25)
+
+An under-strength analytic baseline inflated P077's apparent learned-model win
+by about 50 per cent. The agent strengthened the baseline and published the
+smaller figure, which is the correct behaviour and is recorded here so it is the
+expected behaviour.
+
+P073 reproduced the same trap on 2026-10-25 and handled it the same way: the
+demand-over-supply ratio its specification NAMED as the baseline turned out to
+be the weakest of three candidates (AUC 0.6010 and 0.6228 against 0.9230 for a
+per-request ratio, and below 0.5 on a smaller split). Taking the specified
+baseline would have inflated the learned margin by about 0.36 AUC. It made the
+strongest candidate the baseline and reported all three.
+
+- Implement and validate the baseline first, then benchmark.
+- If the specification names a baseline that measures weakly, say so, use the
+  strongest honest baseline, and report the specified one beside it.
+- A baseline win is research evidence. It is never removed, softened or retuned
+  away. Across 2026-10-24 and 2026-10-25, eight of thirteen products measured a
+  baseline matching or beating the learned component, and every one was
+  published.
+
+### A build can pollute its own tree through a subprocess environment it sets (added 2026-10-25)
+
+P074's own `validate_cli.py` started subprocesses with `HOME` set to the product
+root, so matplotlib wrote `.config/matplotlib` INTO the repository. Release-gate
+check 9 fails a tracked build artifact, and check 8 fails an absolute path,
+which cache files carry.
+
+- When a script spawns a subprocess, give it a temporary `HOME` and
+  `MPLCONFIGDIR` outside the product, and set `PYTHONDONTWRITEBYTECODE=1`.
+- Before handing back, assert the tree contains no `__pycache__`,
+  `.pytest_cache`, `.ruff_cache`, `.hypothesis` or `.config`.
+- `runpy.run_path` does NOT add a script's directory to `sys.path` the way
+  `python script.py` does. A working-directory probe built on `runpy` will fail
+  for a reason that has nothing to do with the defect it is probing for.
+- A repository-wide absolute-path scanner must assemble its patterns from
+  `os.sep` and delete its own previous output before scanning, or it reports
+  itself. Three consecutive sessions introduced this defect in the act of
+  writing about it.

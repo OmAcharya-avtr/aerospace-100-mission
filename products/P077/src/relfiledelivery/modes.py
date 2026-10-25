@@ -33,10 +33,10 @@ Semantics implemented in :mod:`relfiledelivery.simulate`:
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 
-class TransferMode(str, Enum):
+class TransferMode(StrEnum):
     """Retransmission discipline driven against the link model."""
 
     UNACKNOWLEDGED = "unacknowledged"

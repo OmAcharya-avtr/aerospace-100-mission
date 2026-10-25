@@ -510,16 +510,51 @@ guarantee is visible rather than asserted.
 
 ---
 
+## Deviation recorded 2026-10-25 — `pulp` cannot be the exact backend
+
+P073's specification below names a MILP via `pulp` as its exact baseline. That
+is not buildable. Measured 2026-10-25 against `pulp` 4.1.0 in the build
+container: `listSolvers(onlyAvailable=True)` returns `[]`, and `PULP_CBC_CMD` is
+no longer present in `listSolvers()` at all, because CBC is unbundled in pulp
+4.x. Twenty-seven solvers are listed and none is available.
+
+P073 was built on **`scipy.optimize.milp`** (HiGHS, in scipy 1.18.1), verified
+by the coordinator on a two-variable integer program before dispatch and
+cross-checked by the product against its own brute-force enumeration —
+140 of 140 instances agreeing, worst objective difference 0.000e+00, over
+6,964,736 enumerated subsets. `pulp` is NOT a dependency of P073; it stays in
+the alternatives table with this measurement attached, and the product probes
+`pulp` and OR-Tools at runtime and reports them absent rather than raising.
+
+Three already-published products (P004 PassPlanner, P023 AllocLab, P032
+ConstelLink) declare `pulp` and predate this measurement.
+
 ## Binding rules for every build agent in this batch
 
 Read `templates/PRODUCT_BUILD_GUIDE.md` first. In addition:
 
-1. **Pin a virtual environment per agent at the start, before measuring
-   anything.** On 2026-10-16 three of five concurrent agents independently
-   observed the container's shared system Python mutating mid-build — `numpy`
-   2.5.3 → 2.5.4 → 2.5.0 with a transient broken install and bus errors,
-   `scikit-learn` metadata disagreeing with the imported module. Concurrent
-   agents in one container are not working against a stable interpreter.
+1. **SUPERSEDED 2026-10-25 — one shared pre-pinned interpreter, and no agent
+   runs `pip` at all.** This rule originally said "pin a virtual environment
+   per agent". That diagnosed the 2026-10-16 incident wrongly: three of five
+   concurrent agents did observe the shared system Python mutating mid-build
+   (`numpy` 2.5.3 → 2.5.4 → 2.5.0, a transient broken install, bus errors,
+   `scikit-learn` metadata disagreeing with the imported module), but the cause
+   was concurrent `pip install`, **not** a shared interpreter. Five per-agent
+   environments also cost several GB of a fixed disk allowance.
+
+   The arrangement that has now worked twice — 2026-10-24 with five concurrent
+   agents and 2026-10-25 with three — is: the coordinator creates and freezes
+   ONE venv from the committed freeze file BEFORE any agent is dispatched, every
+   agent is told to use it read-only, and **every agent is forbidden to run
+   `pip` in any form.** With nobody installing, nothing mutates: all agents
+   measure against identical versions, and the freeze is committed
+   (`shared/pinned_env_<date>.txt`).
+
+   Verify under the SYSTEM `python3` as well, because the gate uses that one.
+   Measured 2026-10-25: the two interpreters agreed on Python 3.13.17, numpy
+   2.5.3, scipy 1.18.1, scikit-learn 1.9.1, sgp4 2.27 and pandas 3.0.5, but
+   differed on pytest (8.4.2 vs 9.1.1), hypothesis (6.140.3 vs 6.170.9),
+   matplotlib (3.10.8 vs 3.11.2) and ruff (0.14.2 vs 0.17.2).
 2. **Declare every dependency bounded on both sides.** No bare floors. `numpy`
    has now resolved to three different patch releases across sessions on an
    unbounded specifier.
