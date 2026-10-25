@@ -549,3 +549,68 @@ Published 70/100.**
 **Cumulative: 70 of 100 registered, built and published.** Validation
 **L4 remains 0 of 5**, fifteenth batch, blocked on Jetson Orin Nano
 measurements and now needing the owner to make the board reachable.
+
+## Batch 08 — P071–P080, published 2026-10-25
+
+Authorised under ADR-017 by the release gate verdict alone. `release_gate.py`
+over all ten products returned, from `tracking/RELEASE_GATE_RESULT.json`
+written by the gate itself: `push_allowed: true`, `blocked: []`,
+`repository_failures: []`, `total_tests_passing: 3873`, and all ten
+`verdict: PASS`. **No `APPROVAL_LOG.md` row was written, no product set to
+`APPROVED`, `approved_for_publish` left `false` on all ten, and no owner
+statement was quoted, paraphrased or implied — no human spoke in this session.**
+
+This was the SECOND gate run of the session. The first returned
+`VERDICT: PUSH BLOCKED` on three defects (UP042 under the gate's newer ruff in
+P077 and P079, and an absolute private path tracked since 2026-10-21). Each was
+fixed at its source in commit `3e0c671`; no check was skipped, no threshold
+loosened, the gate was not edited, and nothing was published from the blocked
+run.
+
+Test counts are from the gate's own junit XML on 2026-10-25. The three products
+built this session were additionally re-measured independently by the
+coordinating session before the gate ran, and the coordinator's figures agree
+with the gate's exactly: P073 611, P074 273, P075 454.
+
+| ID | Package | Class | L | Repository | Commit | Tests | Contributors |
+|---|---|---|---|---|---|---|---|
+| P071 | conjprob | flagship | 3 | https://github.com/OmAcharya-avtr/conjprob | `f5cb86e` | 269 | 1 |
+| P072 | downlinkpick | flagship | 2 | https://github.com/OmAcharya-avtr/downlinkpick | `d885125` | 300 | 1 |
+| P073 | contactsched | medium | 2 | https://github.com/OmAcharya-avtr/contactsched | `bf0ca87` | 611 | 1 |
+| P074 | orbitdrift | medium | 3 | https://github.com/OmAcharya-avtr/orbitdrift | `7cdce12` | 273 | 1 |
+| P075 | reliablock | medium | 2 | https://github.com/OmAcharya-avtr/reliablock | `68044ba` | 454 | 1 |
+| P076 | pointahead | compact | 2 | https://github.com/OmAcharya-avtr/pointahead | `fd0d06b` | 272 | 1 |
+| P077 | relfiledelivery | compact | 2 | https://github.com/OmAcharya-avtr/relfiledelivery | `fda3a9a` | 777 | 1 |
+| P078 | cmdguard | compact | 2 | https://github.com/OmAcharya-avtr/cmdguard | `eb941bc` | 295 | 1 |
+| P079 | timetransfer | compact | 3, hardware-pending | https://github.com/OmAcharya-avtr/timetransfer | `af1a0df` | 335 | 1 |
+| P080 | boundcompress | compact | 2 | **NOT PUBLISHED — see below** | — | 287 | — |
+
+**P080 BoundCompress passed the gate but is NOT published.** `gh repo create`
+was refused three times by GitHub itself with
+`GraphQL: You have created too many repositories, too quickly.
+Please try again later. (createRepository)` — a GitHub-side rate limit hit
+after nine repositories were created in roughly ninety seconds. This is not a
+gate failure, not an authorship failure and not a defect in P080: the product
+is gate-PASS at 287 tests, its standalone repository is built and committed on
+the Mac at `product-repos/boundcompress` with the correct single-contributor
+authorship, and it needs only `gh repo create` plus one push. `products.yaml`
+therefore records P080 as `status: TESTING`, `published: false`,
+`repository: null` — publication is not claimed where it did not happen.
+
+**Authorship invariant verified against the live API, not assumed.**
+`gh api repos/OmAcharya-avtr/<name>/contributors --jq '.[].login'` returns
+exactly one login, `OmAcharya-avtr`, for all nine published repositories. No
+`claude` contributor and no `OmAcharya-ADCL`.
+
+**Content verified against the live API.** Each repository's recursive git tree
+was counted and the blob count matches the standalone builder's own file count
+exactly — conjprob 86, downlinkpick 86, contactsched 93, orbitdrift 107,
+reliablock 89, pointahead 79, relfiledelivery 70, cmdguard 80, timetransfer 107
+— and `README.md`, `pyproject.toml` and `LICENSE` are present in all nine.
+
+`quota_report.py` measured after the edits: **Registered 80/100, Built 80/100,
+Published 79/100.**
+
+**Cumulative: 80 of 100 registered and built, 79 published.** Validation
+**L4 remains 0 of 5**, sixteenth consecutive batch, blocked on Jetson Orin Nano
+measurements and needing the owner to make the board reachable.
