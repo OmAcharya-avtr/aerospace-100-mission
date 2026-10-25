@@ -1,0 +1,119 @@
+
+==============================================================================
+contactsched validate_exact
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+astropy          : not installed
+pulp             : 4.1.0
+ortools          : not installed
+cpu cores        : 2
+repository root  : P073 (printed relatively; see validation/_bootstrap.py)
+
+astropy is NOT installed in this environment. It is named in README.md as a
+mature alternative for frames and time scales and no number anywhere in this
+repository is a cross-check against it; the independent geometric check in
+validate_geometry.py is a second derivation written in this package.
+ortools is NOT installed. pulp is installed but ships no solver, which is the
+measurement that moved the exact baseline onto HiGHS; see validate_exact.py.
+
+==============================================================================
+1. Solver backends actually available in this interpreter
+==============================================================================
+This is the measurement that moved the exact baseline off PuLP. Reproduce it
+with `python -m contactsched backends`.
+
+  highs          available via scipy 1.18.1 (milp)
+  ortools-cpsat  absent: not installed, and not a dependency of this package
+  pulp           present (4.1.0) but unusable: listSolvers(onlyAvailable=True) returned an empty list, so it ships no solver
+
+pulp.__version__                        : 4.1.0
+pulp.listSolvers(onlyAvailable=True)    : []
+'PULP_CBC_CMD' in pulp.listSolvers()    : False
+len(pulp.listSolvers())                 : 27
+
+An empty availability list means no solver is installed, and PULP_CBC_CMD is
+absent from the full solver list as well, CBC having been unbundled in the
+4.x series. A pulp-backed exact baseline would raise at solve time here.
+
+An unknown backend name raises rather than falling back silently:
+  solve_exact(..., backend='pulp') -> ValueError: backend 'pulp' is not exercised by this package. Backends detected in th...
+
+==============================================================================
+2. Scanning for instances small enough to enumerate
+==============================================================================
+Reduced instances over seeds 200..479, kept when
+the candidate count is between 8 and 18.
+
+seeds scanned : 280
+seeds kept    : 140
+candidate count: min 8, median 13, max 18
+subsets enumerated in total: 6964736
+
+==============================================================================
+3. Exact optimum against exhaustive enumeration
+==============================================================================
+Four configurations per instance: two objective modes, fairness floors off and
+on. A disagreement in any of them falsifies the clique formulation.
+
+configuration                                 instances  agreements  worst |diff|
+----------------------------------------------------------------------------------
+weighted_contacts, floors off                       140         140     0.000e+00
+weighted_seconds, floors off                        140         140     0.000e+00
+weighted_contacts, floors on                        140         140     0.000e+00
+weighted_seconds, floors on                         140         140     0.000e+00
+
+Wall clock, unstable, table only, for the whole comparison above:
+  enumeration : 8.094 s over 560 solves
+  HiGHS       : 1.338 s over 560 solves
+No ratio of these numbers belongs in a prose conclusion anywhere.
+
+==============================================================================
+4. Both methods return feasible schedules
+==============================================================================
+instances checked        : 140
+feasibility violations   : 0
+
+==============================================================================
+5. What the candidate grid costs
+==============================================================================
+The exact optimum is exact over the discretised candidate grid and not over
+continuous placement. Refining the grid can only add candidates, so the
+optimum is non-decreasing; the table shows by how much, on full-size
+instances at a twelve-hour horizon.
+
+  seed  grid 600 s     300 s     120 s      60 s  cands @60  gain 600->60
+----------------------------------------------------------------------------
+     3      3.5000    3.5000    3.5000    3.5000        463       +0.0000
+     7     18.5000   18.5000   18.5000   18.5000        517       +0.0000
+    11     11.2500   11.2500   11.2500   11.2500        244       +0.0000
+    19      6.7500    6.7500    6.7500    6.7500        265       +0.0000
+    23     14.2500   14.2500   14.2500   14.2500        316       +0.0000
+
+grid refinements where the optimum fell : 0
+
+A finer grid cannot lower the optimum here, because 60 divides 120, 300 and
+600, so every coarse candidate is also a fine candidate. The measured gain is
+zero on all five instances: at a twelve-hour horizon with these pass lengths
+the 600 s grid already reaches the same objective as the 60 s grid, at a
+fraction of the candidate count. That is a result about these instances and
+not a general statement; a request whose duration is close to its window
+length is exactly the case where a coarse grid loses a placement, and
+contactsched.problem.build_candidates adds a window-end-aligned candidate
+specifically so that the loss is not an artefact of where the grid happened
+to land.
+
+==============================================================================
+Result
+==============================================================================
+All checks in this script passed.
+

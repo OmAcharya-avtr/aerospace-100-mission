@@ -1,0 +1,261 @@
+
+==============================================================================
+worked example, reliablock 0.1.0
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  reliability      : not installed
+  lifelines        : not installed
+  cpu cores        : 2
+  repository root  : P075 (printed relatively; see validation/_bootstrap.py)
+
+  reliability and lifelines are named in the README alternatives table and
+  are NOT installed here. No number in this repository was cross-checked
+  against either of them, and none claims to have been.
+
+  Relative paths are used throughout. Every script in this directory
+  changes to the repository root first, derived from __file__, so a
+  relative path means the same thing whatever directory the script was
+  invoked from. See validation/_bootstrap.py.
+
+  diagram            : examples/diagrams/smallsat_bus.yaml
+  mission            : examples/diagrams/three_year.yaml
+  [PASS] the declared diagram loads and round-trips through YAML
+
+==============================================================================
+the declaration
+==============================================================================
+
+  diagram            : smallsat bus
+  description        : A small-satellite bus with four redundant groups and three declared common-cause beta factors. Every rate is a declared input chosen to be representative in order of magnitude; none is a measurement.
+  blocks             : 13
+  basic events       : 14
+  node kinds         : k_of_n=1, parallel=2, series=1, standby=1
+  declared betas     : power=0.12, reaction_wheels=0.08, receivers=0.05
+  boolean throughout : False
+                       a standby or shared_load node is present: its Boolean structure
+                       function and cut sets are exact, its quantification is not the
+                       independent-event arithmetic over them, and importance measures
+                       are refused for this diagram.
+  note               : The beta factors are declared inputs, not data. A real assessment needs the programme's own common-cause parameters.
+  note               : The transmitter's changeover switch reliability is declared, not assumed to be 1.0.
+
+==============================================================================
+the mission profile
+==============================================================================
+
+  mission            : 26298 h
+  elapsed            : 26298 h over 1 phase(s)
+  
+    phase                      hours  block                       duty  stress         eff h
+    ----------------------------------------------------------------------------
+    mission                    26298  solar_array_deployment     1.000   1.000         26298
+    mission                    26298  power_string_a             1.000   1.000         26298
+    mission                    26298  power_string_b             1.000   1.000         26298
+    mission                    26298  obc                        1.000   1.000         26298
+    mission                    26298  wheel_a                    1.000   1.000         26298
+    mission                    26298  wheel_b                    1.000   1.000         26298
+    mission                    26298  wheel_c                    1.000   1.000         26298
+    mission                    26298  wheel_d                    1.000   1.000         26298
+    mission                    26298  receiver_a                 1.000   1.000         26298
+    mission                    26298  receiver_b                 1.000   1.000         26298
+    mission                    26298  transmitter_main           1.000   1.000         26298
+    mission                    26298  transmitter_spare          1.000   1.000         26298
+    mission                    26298  thermal_control            1.000   1.000         26298
+  
+    block                          effective age (h)
+    ------------------------------------------------
+    obc                                        26298
+    power_string_a                             26298
+    power_string_b                             26298
+    receiver_a                                 26298
+    receiver_b                                 26298
+    solar_array_deployment                     26298
+    thermal_control                            26298
+    transmitter_main                           26298
+    transmitter_spare                          26298
+    wheel_a                                    26298
+    wheel_b                                    26298
+    wheel_c                                    26298
+    wheel_d                                    26298
+
+==============================================================================
+closed-form quantification
+==============================================================================
+
+  system reliability   : 0.969504265371
+  system unreliability : 3.049573463e-02
+  cumulative hazard    : 3.097040475e-02
+  R + Q - 1            : 0.000e+00
+
+  per-node breakdown:
+
+  bus                                  R=0.969504265371  Q=3.049573e-02  H=3.097040e-02
+    solar_array_deployment             R=0.999000000000  Q=1.000000e-03  H=1.000500e-03
+    power                              R=0.999034974733  Q=9.650253e-04  H=9.654912e-04
+      . Q = prod Q_i is exact; R = 1 - Q is the derived figure and is the one that loses precision when Q is below eps.
+      power_string_a                   R=0.968935144182  Q=3.106486e-02  H=3.155760e-02
+      power_string_b                   R=0.968935144182  Q=3.106486e-02  H=3.155760e-02
+    obc                                R=0.988510454243  Q=1.148955e-02  H=1.155606e-02
+    reaction_wheels                    R=0.996096480859  Q=3.903519e-03  H=3.911158e-03
+      . R = P(at least 3 of 4 survive) and Q = P(at least 2 of 4 fail) are computed by two separate non-negative convolutions; neither is 1 minus the other.
+      wheel_a                          R=0.974044781010  Q=2.595522e-02  H=2.629800e-02
+      wheel_b                          R=0.974044781010  Q=2.595522e-02  H=2.629800e-02
+      wheel_c                          R=0.974044781010  Q=2.595522e-02  H=2.629800e-02
+      wheel_d                          R=0.974044781010  Q=2.595522e-02  H=2.629800e-02
+    receivers                          R=0.997374793955  Q=2.625206e-03  H=2.628658e-03
+      . Q = prod Q_i is exact; R = 1 - Q is the derived figure and is the one that loses precision when Q is below eps.
+      receiver_a                       R=0.948763235413  Q=5.123676e-02  H=5.259600e-02
+      receiver_b                       R=0.948763235413  Q=5.123676e-02  H=5.259600e-02
+    transmitter                        R=0.994366988289  Q=5.633012e-03  H=5.648937e-03
+      . Erlang closed form for 1 identical cold standby unit(s) at a constant rate; no quadrature.
+      . Q is 1 - R for a standby group: the standby reliability is computed in R-space, so Q below about 1e-16 is not resolved. Reported rather than silently returned as a small number that is mostly rounding.
+      transmitter_main                 R=0.900151676872  Q=9.984832e-02  H=1.051920e-01
+      transmitter_spare                R=0.900151676872  Q=9.984832e-02  H=1.051920e-01
+    thermal_control                    R=0.994754207478  Q=5.245793e-03  H=5.259600e-03
+
+==============================================================================
+the headline: with and without the declared common cause
+==============================================================================
+
+  reliability with and without the declared common cause
+  
+    mission                        : 26298 h, 26298 h elapsed
+    declared beta factors          : power=0.12, reaction_wheels=0.08, receivers=0.05
+  
+                                        independence assumed   declared common cause
+    ------------------------------------------------------------------------------
+    system reliability                        0.969504265371          0.962289516309
+    system unreliability                        3.049573e-02            3.771048e-02
+    cumulative hazard                           3.097040e-02            3.843992e-02
+    minimal cut sets                                      13                      16
+    single points of failure                               3                       6
+    ------------------------------------------------------------------------------
+    unreliability ratio            : 1.236582 (declared common cause / independence assumed)
+    unreliability attributable to  : 7.214749e-03 absolute
+    the independence assumption      
+  
+    the declared common cause introduces 3 single point(s) of
+    failure that the independent diagram does not have:
+      power::common_cause
+      reaction_wheels::common_cause
+      receivers::common_cause
+    This is the qualitative half of the result and it is not a percentage: a group
+    whose members share a cause is not redundant against that cause, however many
+    members it has.
+  
+    per-group effect of each declared beta factor:
+      power                  parallel  beta=0.12   1-of-2  Q 9.650253e-04 -> 4.527052e-03  ratio 4.6911  increases Q
+      reaction_wheels        k_of_n    beta=0.08   3-of-4  Q 3.903519e-03 -> 5.414720e-03  ratio 1.3871  increases Q
+      receivers              parallel  beta=0.05   1-of-2  Q 2.625206e-03 -> 4.995540e-03  ratio 1.9029  increases Q
+
+==============================================================================
+minimal cut sets
+==============================================================================
+
+  minimal cut sets   : 16
+  single points of failure (6): obc, power::common_cause, reaction_wheels::common_cause, receivers::common_cause, solar_array_deployment, thermal_control
+  
+    order 1 (6):
+      {obc}
+      {power::common_cause}
+      {reaction_wheels::common_cause}
+      {receivers::common_cause}
+      {solar_array_deployment}
+      {thermal_control}
+    order 2 (10):
+      {power_string_a, power_string_b}
+      {receiver_a, receiver_b}
+      {transmitter::switch, transmitter_main}
+      {transmitter_main, transmitter_spare}
+      {wheel_a, wheel_b}
+      {wheel_a, wheel_c}
+      {wheel_a, wheel_d}
+      {wheel_b, wheel_c}
+      {wheel_b, wheel_d}
+      {wheel_c, wheel_d}
+
+==============================================================================
+importance measures, on a diagram that admits them
+==============================================================================
+
+  The smallsat bus contains a standby node, whose quantification is not
+  the independent-event arithmetic over its structure function, so
+  importance measures are refused for it. The voting triple is Boolean
+  throughout and admits them.
+
+  smallsat bus: importance measures are not defined for this diagram: it contains ['standby'] node(s). Those have an exact Boolean structure function but a dependent quantification, so dQ_sys/dq_i is not the derivative of the number quantify() returns. Returning a figure whose meaning differs from its name would be worse than refusing.
+  [PASS] the bus is refused for importance measures, with a reason
+
+  importance measures (Birnbaum, criticality, Fussell-Vesely; exact, not rare-event)
+  
+    basic event                              q      Birnbaum    critical     Fus-Ves  cuts
+    ------------------------------------------------------------------------------
+    voter                         1.306293e-02  9.807499e-01    0.399589    0.407432     1
+    channel_a                     7.147722e-02  1.303839e-01    0.290674    0.307309     2
+    channel_b                     7.147722e-02  1.303839e-01    0.290674    0.307309     2
+    channel_c                     7.147722e-02  1.303839e-01    0.290674    0.307309     2
+    channels::common_cause        4.722454e-03  9.725311e-01    0.143247    0.147293     1
+
+==============================================================================
+Monte Carlo, scored against the closed form
+==============================================================================
+
+  half                         closed form R       simulated R    trials   half-width   sigma
+  -------------------------------------------------------------------------------------------
+  independence assumed        0.969504265371    0.969230882607   1221257 3.062810e-04  1.7495
+  declared common cause       0.962289516309    0.962261937431    980257 3.772409e-04  0.1433
+
+  [PASS] the simulation of the independence assumed half is within 4 standard errors -- 1.7495
+  [PASS] the simulation of the declared common cause half is within 4 standard errors -- 0.1433
+
+==============================================================================
+the short snippet the README quotes under 'A worked example'
+==============================================================================
+
+  The README's 15-line snippet, run verbatim, so that the figures it
+  shows are produced by a committed script and cannot drift from it.
+
+  independence assumed   R = 0.985673261  Q = 1.432674e-02  single points of failure = 1
+    singles: obc
+  declared common cause  R = 0.984177873  Q = 1.582213e-02  single points of failure = 2
+    singles: obc, reaction_wheels::common_cause
+
+==============================================================================
+the numbers the README quotes
+==============================================================================
+
+  R assuming independence            : 0.969504265371
+  R with the declared common cause   : 0.962289516309
+  Q assuming independence            : 3.049573463e-02
+  Q with the declared common cause   : 3.771048369e-02
+  Q ratio                            : 1.236582
+  single points of failure, before   : 3
+  single points of failure, after    : 6
+  minimal cut sets, before           : 13
+  minimal cut sets, after            : 16
+
+==============================================================================
+timing, declared unstable
+==============================================================================
+
+  | quantity | value | stability |
+  |---|---|---|
+  | quantification and simulation | 2.51 s | UNSTABLE, shared hardware |
+
+CHECKS PASSED: 4
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+
+  diagram read from  : examples/diagrams/smallsat_bus.yaml

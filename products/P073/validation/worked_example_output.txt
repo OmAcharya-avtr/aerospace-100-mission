@@ -1,0 +1,202 @@
+
+==============================================================================
+contactsched worked_example
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+astropy          : not installed
+pulp             : 4.1.0
+ortools          : not installed
+cpu cores        : 2
+repository root  : P073 (printed relatively; see validation/_bootstrap.py)
+
+astropy is NOT installed in this environment. It is named in README.md as a
+mature alternative for frames and time scales and no number anywhere in this
+repository is a cross-check against it; the independent geometric check in
+validate_geometry.py is a second derivation written in this package.
+ortools is NOT installed. pulp is installed but ships no solver, which is the
+measurement that moved the exact baseline onto HiGHS; see validate_exact.py.
+
+==============================================================================
+The declared scenario
+==============================================================================
+epoch               : 2026-04-30T00:00:00
+horizon             : 43200 s
+antennas            : SVALBARD-1, SVALBARD-2, PUNTA-ARENAS
+spacecraft          : POLARIS-A, POLARIS-B, POLARIS-C, TERRASCAN-1
+visibility windows  : 71
+total visible time  : 31130.6 s
+requests            : 5
+declared demand     : 5280.0 s
+candidate placements: 162
+
+==============================================================================
+Baseline 1: priority-ordered first-fit
+==============================================================================
+method greedy-first-fit[priority], status heuristic, objective 8.000000 (weighted_contacts)
+    start       end antenna        spacecraft   request  prio
+----------------------------------------------------------------------
+ 00:02:09  00:09:09 SVALBARD-2     POLARIS-B    POL-B    2
+ 00:10:42  00:17:42 SVALBARD-1     POLARIS-A    POL-A    1
+ 00:31:28  00:36:28 PUNTA-ARENAS   POLARIS-C    POL-C    3
+ 01:25:51  01:30:51 SVALBARD-1     POLARIS-C    POL-C    3
+ 01:35:57  01:42:57 SVALBARD-2     POLARIS-B    POL-B    2
+ 01:44:28  01:51:28 SVALBARD-1     POLARIS-A    POL-A    1
+ 02:03:37  02:08:37 PUNTA-ARENAS   POLARIS-C    POL-C    3
+ 02:22:19  02:29:19 PUNTA-ARENAS   POLARIS-A    POL-A    1
+ 03:09:32  03:16:32 SVALBARD-2     POLARIS-B    POL-B    2
+ 03:18:01  03:25:01 SVALBARD-1     POLARIS-A    POL-A    1
+ 03:57:21  04:00:21 PUNTA-ARENAS   TERRASCAN-1  TER-2    4
+ 04:42:25  04:49:25 SVALBARD-1     POLARIS-B    POL-B    2
+ 05:34:10  05:37:10 PUNTA-ARENAS   TERRASCAN-1  TER-2    4
+ 11:09:14  11:19:14 SVALBARD-1     TERRASCAN-1  TER-1    1
+14 contacts scheduled
+note: First-fit by earliest start within each request, requests taken in priority order. No backtracking, no lookahead, no optimality claim.
+
+==============================================================================
+Baseline 2: the exact optimum on HiGHS
+==============================================================================
+method exact-milp[highs], status optimal, objective 8.000000 (weighted_contacts)
+    start       end antenna        spacecraft   request  prio
+----------------------------------------------------------------------
+ 00:03:50  00:10:50 SVALBARD-1     POLARIS-B    POL-B    2
+ 00:12:22  00:19:22 SVALBARD-2     POLARIS-A    POL-A    1
+ 00:31:28  00:36:28 PUNTA-ARENAS   POLARIS-C    POL-C    3
+ 01:37:28  01:44:28 SVALBARD-1     POLARIS-B    POL-B    2
+ 03:19:24  03:26:24 SVALBARD-2     POLARIS-A    POL-A    1
+ 03:39:17  03:44:17 PUNTA-ARENAS   POLARIS-C    POL-C    3
+ 03:57:21  04:00:21 PUNTA-ARENAS   TERRASCAN-1  TER-2    4
+ 04:44:29  04:51:29 SVALBARD-1     POLARIS-B    POL-B    2
+ 05:34:10  05:37:10 PUNTA-ARENAS   TERRASCAN-1  TER-2    4
+ 06:26:48  06:33:48 SVALBARD-2     POLARIS-A    POL-A    1
+ 08:01:21  08:08:21 SVALBARD-1     POLARIS-A    POL-A    1
+ 09:26:19  09:33:19 SVALBARD-1     POLARIS-B    POL-B    2
+ 10:51:52  10:56:52 SVALBARD-1     POLARIS-C    POL-C    3
+ 11:09:53  11:19:53 SVALBARD-1     TERRASCAN-1  TER-1    1
+14 contacts scheduled
+note: Exact over the candidate grid only; a finer slot_step_s can admit a better schedule. See validation/validate_exact_output.txt.
+note: HiGHS status 0: Optimization terminated successfully. (HiGHS Status 7: Optimal)
+
+==============================================================================
+What the greedy baseline cost, in objective
+==============================================================================
+greedy objective    : 8.000000
+exact objective     : 8.000000
+optimality gap      : 0.000000
+contacts, greedy    : 14
+contacts, exact     : 14
+
+==============================================================================
+What it cost in contention and fairness: the greedy schedule
+==============================================================================
+fairness report for greedy-first-fit[priority]
+request  mission       prio  need  got   need_s    got_s  satisf  state
+------------------------------------------------------------------------------
+POL-A    POLARIS          1     3    4     1260     1680  1.0000  ok
+POL-B    POLARIS          2     3    4     1260     1680  1.0000  ok
+POL-C    POLARIS          3     2    3      600      900  1.0000  ok
+TER-1    TERRASCAN        1     3    1     1800      600  0.3333  starved
+TER-2    TERRASCAN        4     2    2      360      360  1.0000  ok
+
+per-request Jain index        : 0.913514
+per-mission Jain index        : 0.871134
+max-min share                 : 0.333333
+requests starved              : 1
+total seconds short           : 1200.0
+priority inversions           : 3 of 9 comparable pairs (rate 0.333333)
+worst inversion gap           : 0.666667
+delivered satisfaction by priority: p1=0.6667, p2=1.0000, p3=1.0000, p4=1.0000
+priority promise held in aggregate: False
+
+inversions:
+  TER-1 (p1, satisfaction 0.3333) below POL-B (p2, satisfaction 1.0000), gap 0.6667
+  TER-1 (p1, satisfaction 0.3333) below POL-C (p3, satisfaction 1.0000), gap 0.6667
+  TER-1 (p1, satisfaction 0.3333) below TER-2 (p4, satisfaction 1.0000), gap 0.6667
+
+==============================================================================
+What it cost in contention and fairness: the exact schedule
+==============================================================================
+fairness report for exact-milp[highs]
+request  mission       prio  need  got   need_s    got_s  satisf  state
+------------------------------------------------------------------------------
+POL-A    POLARIS          1     3    4     1260     1680  1.0000  ok
+POL-B    POLARIS          2     3    4     1260     1680  1.0000  ok
+POL-C    POLARIS          3     2    3      600      900  1.0000  ok
+TER-1    TERRASCAN        1     3    1     1800      600  0.3333  starved
+TER-2    TERRASCAN        4     2    2      360      360  1.0000  ok
+
+per-request Jain index        : 0.913514
+per-mission Jain index        : 0.871134
+max-min share                 : 0.333333
+requests starved              : 1
+total seconds short           : 1200.0
+priority inversions           : 3 of 9 comparable pairs (rate 0.333333)
+worst inversion gap           : 0.666667
+delivered satisfaction by priority: p1=0.6667, p2=1.0000, p3=1.0000, p4=1.0000
+priority promise held in aggregate: False
+
+inversions:
+  TER-1 (p1, satisfaction 0.3333) below POL-B (p2, satisfaction 1.0000), gap 0.6667
+  TER-1 (p1, satisfaction 0.3333) below POL-C (p3, satisfaction 1.0000), gap 0.6667
+  TER-1 (p1, satisfaction 0.3333) below TER-2 (p4, satisfaction 1.0000), gap 0.6667
+
+==============================================================================
+Asking for the declared minimum contact counts to be guaranteed
+==============================================================================
+status: infeasible
+  HiGHS reported the program infeasible.
+  TER-1 (TERRASCAN, priority 1) requires 3 contacts but has at most 1 mutually compatible candidates even with the whole network to itself
+
+==============================================================================
+Renegotiating the binding floor
+==============================================================================
+The infeasibility diagnostic names a request and the number of mutually
+compatible candidates it actually has. Lowering that one floor to the named
+capacity and re-solving is the renegotiation loop this product is for.
+
+  POL-A: declared 3, standalone capacity 8, renegotiated floor 3
+  POL-B: declared 3, standalone capacity 8, renegotiated floor 3
+  POL-C: declared 2, standalone capacity 10, renegotiated floor 2
+  TER-1: declared 3, standalone capacity 1, renegotiated floor 1
+  TER-2: declared 2, standalone capacity 11, renegotiated floor 2
+
+status after renegotiation : optimal
+objective                  : 8.000000
+objective given up against the free optimum : 0.000000
+
+fairness report for exact-milp[highs]
+request  mission       prio  need  got   need_s    got_s  satisf  state
+------------------------------------------------------------------------------
+POL-A    POLARIS          1     3    4     1260     1680  1.0000  ok
+POL-B    POLARIS          2     3    4     1260     1680  1.0000  ok
+POL-C    POLARIS          3     2    3      600      900  1.0000  ok
+TER-1    TERRASCAN        1     3    1     1800      600  0.3333  starved
+TER-2    TERRASCAN        4     2    2      360      360  1.0000  ok
+
+per-request Jain index        : 0.913514
+per-mission Jain index        : 0.871134
+max-min share                 : 0.333333
+requests starved              : 1
+total seconds short           : 1200.0
+priority inversions           : 3 of 9 comparable pairs (rate 0.333333)
+worst inversion gap           : 0.666667
+delivered satisfaction by priority: p1=0.6667, p2=1.0000, p3=1.0000, p4=1.0000
+priority promise held in aggregate: False
+
+inversions:
+  TER-1 (p1, satisfaction 0.3333) below POL-B (p2, satisfaction 1.0000), gap 0.6667
+  TER-1 (p1, satisfaction 0.3333) below POL-C (p3, satisfaction 1.0000), gap 0.6667
+  TER-1 (p1, satisfaction 0.3333) below TER-2 (p4, satisfaction 1.0000), gap 0.6667
+
+==============================================================================
+Result
+==============================================================================

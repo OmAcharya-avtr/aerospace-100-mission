@@ -1,0 +1,230 @@
+
+==============================================================================
+the headline: reliability with and without a declared common cause
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  reliability      : not installed
+  lifelines        : not installed
+  cpu cores        : 2
+  repository root  : P075 (printed relatively; see validation/_bootstrap.py)
+
+  reliability and lifelines are named in the README alternatives table and
+  are NOT installed here. No number in this repository was cross-checked
+  against either of them, and none claims to have been.
+
+  Every beta factor used in this script is a declared input chosen to
+  span a range. None is data, and none is taken from any source. A beta
+  factor for real hardware comes from the programme's own common-cause
+  data, which this package does not have and does not pretend to.
+
+==============================================================================
+the headline, on the smallsat bus over three years
+==============================================================================
+
+  reliability with and without the declared common cause
+  
+    mission                        : 26298 h, 26298 h elapsed
+    declared beta factors          : power=0.12, reaction_wheels=0.08, receivers=0.05
+  
+                                        independence assumed   declared common cause
+    ------------------------------------------------------------------------------
+    system reliability                        0.969504265371          0.962289516309
+    system unreliability                        3.049573e-02            3.771048e-02
+    cumulative hazard                           3.097040e-02            3.843992e-02
+    minimal cut sets                                      13                      16
+    single points of failure                               3                       6
+    ------------------------------------------------------------------------------
+    unreliability ratio            : 1.236582 (declared common cause / independence assumed)
+    unreliability attributable to  : 7.214749e-03 absolute
+    the independence assumption      
+  
+    the declared common cause introduces 3 single point(s) of
+    failure that the independent diagram does not have:
+      power::common_cause
+      reaction_wheels::common_cause
+      receivers::common_cause
+    This is the qualitative half of the result and it is not a percentage: a group
+    whose members share a cause is not redundant against that cause, however many
+    members it has.
+  
+    per-group effect of each declared beta factor:
+      power                  parallel  beta=0.12   1-of-2  Q 9.650253e-04 -> 4.527052e-03  ratio 4.6911  increases Q
+      reaction_wheels        k_of_n    beta=0.08   3-of-4  Q 3.903519e-03 -> 5.414720e-03  ratio 1.3871  increases Q
+      receivers              parallel  beta=0.05   1-of-2  Q 2.625206e-03 -> 4.995540e-03  ratio 1.9029  increases Q
+
+  the headline numbers, isolated:
+    R assuming independence          : 0.969504265371
+    R with the declared common cause : 0.962289516309
+    Q assuming independence          : 3.049573463e-02
+    Q with the declared common cause : 3.771048369e-02
+    Q ratio                          : 1.236582
+    Q attributable to the assumption : 7.214749063e-03
+    single points of failure, before : 3
+    single points of failure, after  : 6
+  [PASS] the declared common cause increases the system unreliability on this diagram -- ratio 1.236582
+  [PASS] the declared common cause adds one single point of failure per beta group -- 3 added for 3 betas
+
+==============================================================================
+the effect of beta on a parallel group, swept
+==============================================================================
+
+  Two identical members, member cumulative hazard 0.03 over the mission
+  (so q = 0.029554 each). Every beta is a declared input.
+
+      beta     Q independent         Q with cc       ratio      cc event q  order-1 cuts
+  --------------------------------------------------------------------------------------
+      0.00   8.734664872e-04   8.734664872e-04      1.0000 0.000000000e+00             0
+      0.01   8.734664872e-04   1.156038231e-03      1.3235 2.999550045e-04             1
+      0.02   8.734664872e-04   1.438694759e-03      1.6471 5.998200360e-04             1
+      0.05   8.734664872e-04   2.287173303e-03      2.6185 1.498875562e-03             1
+      0.10   8.734664872e-04   3.703002270e-03      4.2394 2.995504497e-03             1
+      0.20   8.734664872e-04   6.541039405e-03      7.4886 5.982035946e-03             1
+      0.50   8.734664872e-04   1.510641474e-02     17.2948 1.488806040e-02             1
+      1.00   8.734664872e-04   2.955446645e-02     33.8358 2.955446645e-02             1
+
+  [PASS] a parallel group's unreliability is non-decreasing in beta -- swept over 8 declared beta values
+
+  at beta = 1 the group must reduce to a single member, exactly:
+    n = 2: R = 0.970445533548508, single member R = 0.970445533548508
+    n = 3: R = 0.970445533548508, single member R = 0.970445533548508
+    n = 4: R = 0.970445533548508, single member R = 0.970445533548508
+    n = 5: R = 0.970445533548508, single member R = 0.970445533548508
+    worst relative difference        : 0.000000e+00
+  [PASS] beta = 1 reduces a group to one member -- worst 0.000000e+00 against tolerance 1.0e-14
+
+  at beta = 0 the rewrite must reproduce the independent figure bit for bit,
+  because it creates no common-cause block at all:
+  [PASS] beta = 0 reproduces the independent figure exactly
+
+==============================================================================
+where the beta-factor model stops being conservative
+==============================================================================
+
+  For k = 1 the beta factor always increases Q. For k >= 2 it can
+  decrease Q, because the model's single common-cause mode fails all n
+  members while the group only needs n - k + 1 failures. The table
+  below locates the member cumulative hazard at which the ratio crosses
+  1, by bisection, at beta = 0.1.
+
+    k  n  needed   ratio at H=0.01  ratio at H=3    crossing H                   verdict
+  ----------------------------------------------------------------------------------------
+    1  2       2         10.905368      1.000960          none     conservative everywhere
+    1  3       3       1015.322358      1.002914          none     conservative everywhere
+    2  3       2          4.198132      0.997584      0.302944  crosses: conservative below
+    1  4       4     101968.098219      1.005896          none     conservative everywhere
+    2  4       3        256.285271      0.995519      0.653729  crosses: conservative below
+    3  4       2          2.516174      0.999621      0.124016  crosses: conservative below
+    1  5       5   10247813.431300      1.009942          none     conservative everywhere
+    2  5       4      20557.783027      0.993070      0.924649  crosses: conservative below
+    3  5       3        103.720793      0.999115      0.340012  crosses: conservative below
+    4  5       2          1.841492      0.999958      0.067949  crosses: conservative below
+    1  6       6 1029913730.774888      1.015093          none     conservative everywhere
+    2  6       5    1722249.954759      0.990350      1.141930  crosses: conservative below
+    3  6       4       6907.998017      0.998346      0.533470  crosses: conservative below
+    4  6       3         52.612956      0.999882      0.217911  crosses: conservative below
+    5  6       2          1.503309      0.999996      0.042978  crosses: conservative below
+
+  (k, n) pairs with a crossing       : 10
+  beta used                          : 0.1 (a declared input, not data)
+
+  Reading the table: 'needed' is n - k + 1, the number of failures the
+  group needs. Where it equals n -- that is, k = 1 -- the beta factor is
+  conservative at every hazard and there is no crossing. Where it is
+  less than n, there is a hazard above which the beta factor REDUCES the
+  computed unreliability.
+
+  k = n is absent from the table because Diagram.validate now REFUSES a
+  beta factor there. That refusal was added because an earlier run of
+  this sweep measured k = n as non-conservative at every hazard -- a
+  ratio of 0.918939 at k = n = 6 -- which is correct arithmetic for a
+  series group and meaningless as a redundancy model. The refusal
+  message quotes that measured ratio.
+  [PASS] a parallel group (k = 1) has no crossing: the beta factor is always conservative -- 0 crossings found at k = 1
+  [PASS] a k-of-n group with k >= 2 does have a crossing, which is the limitation -- 10 crossings located
+
+  reliablock.commoncause.group_beta_effects reports this per group, and
+  reliablock.report.common_cause_comparison prints a WARNING naming the
+  alpha-factor and multiple-Greek-letter models when any group crosses.
+  Neither is implemented here. The limitation is surfaced on the
+  declaration rather than left in a document.
+
+==============================================================================
+per-group effects on the built-in cases
+==============================================================================
+
+  case                group             kind         beta  k-of-n       Q indep     Q with cc     ratio  conserv
+  ----------------------------------------------------------------------------------------------------------------
+  redundant_pair      pair              parallel      0.1  1-of-2  2.625206e-03  7.372116e-03    2.8082     True
+  smallsat_bus        power             parallel     0.12  1-of-2  9.650253e-04  4.527052e-03    4.6911     True
+  smallsat_bus        reaction_wheels   k_of_n       0.08  3-of-4  3.903519e-03  5.414720e-03    1.3871     True
+  smallsat_bus        receivers         parallel     0.05  1-of-2  2.625206e-03  4.995540e-03    1.9029     True
+  voting_triple       channels          k_of_n       0.06  2-of-3  1.639200e-02  1.925015e-02    1.1744     True
+
+  groups with a declared beta        : 5
+  groups where beta DECREASES Q      : 0
+  [PASS] every declared beta group in the built-in cases is conservative at three years -- 0 of 5 are not
+
+==============================================================================
+both halves of the headline, simulated independently
+==============================================================================
+
+  The with-and-without comparison is confirmed by simulation as well as
+  by arithmetic, so the difference between the two columns does not rest
+  on a single code path.
+
+  half                         closed form R       simulated R    trials   half-width  inside   sigma
+  ---------------------------------------------------------------------------------------------------
+  independence assumed        0.969504265371    0.969230882607   1221257 3.062810e-04    True  1.7495
+  declared common cause       0.962289516309    0.962261937431    980257 3.772409e-04    True  0.1433
+
+  closed-form gap in R               : 7.214749063e-03
+  simulated gap in R                 : 6.968945176e-03
+  gap difference                     : 2.458038863e-04
+  combined interval half-width       : 6.835218608e-04
+  [PASS] the simulated gap between the two halves agrees with the closed-form gap -- gap difference 2.458039e-04 against combined half-width 6.835219e-04
+  [PASS] both halves are individually within 4 standard errors of their closed form -- worst 1.7495
+
+==============================================================================
+refusals
+==============================================================================
+
+  The beta-factor model is symmetric: one shared event fails the whole
+  group, and lambda_common = beta lambda needs one lambda. A group whose
+  members do not share one distribution has no single lambda, and taking
+  the mean, minimum or maximum gives three different answers with no
+  principled basis. It is refused.
+
+  message: node 'pair' declares beta_factor=0.1 over members that do not share one distribution: ['b'] differ from 'a'. The beta-factor model is symmetric -- one shared event fails the whole group, and lambda_common = beta lambda needs one lambda. Taking the mean, minimum or maximum of the members' rates gives three different answers with no principled basis. A non-identical group needs an alpha-factor or multiple-Greek-letter model, which this package does not implement (see NUREG/CR-4780); it is refused here rather than approximated silently.
+  [PASS] a non-identical group is refused and the message names the alternative model
+
+  A standby or shared-load node has no beta_factor field at all: it is
+  already a dependent-failure model, and compounding it with a beta
+  factor needs a combined Markov model this package does not have.
+  standby fields     : ['kind', 'label', 'primary', 'standby_hazard_fraction', 'standbys', 'switch_reliability']
+  shared_load fields : ['kind', 'label', 'shared_rate_factor', 'units']
+  [PASS] neither standby nor shared_load accepts a beta factor
+
+==============================================================================
+timing, declared unstable
+==============================================================================
+
+  | quantity | value | stability |
+  |---|---|---|
+  | whole script wall clock | 3.24 s | UNSTABLE, shared hardware |
+
+CHECKS PASSED: 12
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

@@ -1,0 +1,28 @@
+name: LEO phased, 3 years
+phases:
+- duration_hours: 72.0
+  duty_cycles:
+    transmitter_main: 0.3
+    transmitter_spare: 0.3
+    wheel_a: 0.1
+    wheel_b: 0.1
+    wheel_c: 0.1
+    wheel_d: 0.1
+  name: launch_and_leop
+  stress_factors:
+    obc: 2.0
+    power_string_a: 3.0
+    power_string_b: 3.0
+    thermal_control: 2.5
+- duration_hours: 720.0
+  duty_cycles:
+    transmitter_main: 0.5
+    transmitter_spare: 0.5
+  name: commissioning
+- duration_hours: 25506.0
+  duty_cycles:
+    receiver_a: 1.0
+    receiver_b: 1.0
+    transmitter_main: 0.12
+    transmitter_spare: 0.12
+  name: routine_operations

@@ -1,0 +1,109 @@
+
+==============================================================================
+every CLI invocation the README quotes
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  reliability      : not installed
+  lifelines        : not installed
+  cpu cores        : 2
+  repository root  : P075 (printed relatively; see validation/_bootstrap.py)
+
+  reliability and lifelines are named in the README alternatives table and
+  are NOT installed here. No number in this repository was cross-checked
+  against either of them, and none claims to have been.
+
+  Run as a subprocess with PYTHONPATH=src and nothing else, which is
+  how the release gate runs them. Commands are quoted relatively; no
+  absolute path appears in this file.
+
+==============================================================================
+invocations that must succeed
+==============================================================================
+
+  command                                                             exit  stdout lines  stderr
+  ----------------------------------------------------------------------------------------------
+  python -m reliablock --version                                         0             1       0
+  python -m reliablock --help                                            0            21       0
+  python -m reliablock info                                              0            29       0
+  python -m reliablock show smallsat_bus                                 0            32       0
+  python -m reliablock show voting_triple --enumerate                    0            23       0
+  python -m reliablock quantify smallsat_bus                             0            43       0
+  python -m reliablock quantify smallsat_bus --mission leo_phased        0            43       0
+  python -m reliablock quantify redundant_pair --hours 8766              0            18       0
+  python -m reliablock compare smallsat_bus                              0            30       0
+  python -m reliablock compare voting_triple                             0            30       0
+  python -m reliablock compare warm_standby                              0            22       0
+  python -m reliablock importance voting_triple                          0             8       0
+  python -m reliablock importance load_sharing_pair                      0             3       0
+  python -m reliablock mission smallsat_bus --mission leo_phased         0            60       0
+  python -m reliablock simulate redundant_pair --trials 200000 --seed 1     0            17       0
+  python -m reliablock bridge                                            0            16       0
+  python -m reliablock compare --diagram examples/diagrams/smallsat_bus.yaml     0            30       0
+  python -m reliablock quantify --diagram examples/diagrams/voting_triple.yaml --mission-file examples/diagrams/one_year.yaml     0            21       0
+  python -m reliablock show --diagram examples/diagrams/load_sharing_pair.yaml     0            18       0
+
+  invocations                        : 19
+  non-zero exits                     : 0
+  [PASS] every documented CLI invocation exits zero -- 0 of 19 failed
+
+==============================================================================
+invocations that must fail
+==============================================================================
+
+  A CLI that exits zero on a bad argument is worse than one that
+  crashes, so the refusals are checked too.
+
+  command                                                             exit   refused
+  ------------------------------------------------------------------------------------
+  python -m reliablock                                                   2      True
+  python -m reliablock show not_a_case                                   2      True
+  python -m reliablock quantify --diagram examples/diagrams/does_not_exist.yaml     1      True
+
+  [PASS] every malformed invocation exits non-zero -- 0 wrongly succeeded
+
+==============================================================================
+the import check the gate runs
+==============================================================================
+
+  python -c 'import reliablock'      : exit 0
+  version printed                    : 0.1.0
+  [PASS] the package imports in a clean interpreter with only PYTHONPATH=src
+
+==============================================================================
+AI_ENABLED is false and stays false
+==============================================================================
+
+  This product has no learned component, deliberately. The flag is
+  asserted here so that adding one would fail a validation script and
+  not only a review.
+  reliablock.AI_ENABLED              : False
+  [PASS] AI_ENABLED is False -- False
+
+  and no machine-learning library is imported anywhere in src/:
+  machine-learning imports found     : 0
+  [PASS] no machine-learning library is imported in src/
+
+==============================================================================
+timing, declared unstable
+==============================================================================
+
+  | quantity | value | stability |
+  |---|---|---|
+  | all subprocess invocations | 38.27 s | UNSTABLE, shared hardware |
+
+CHECKS PASSED: 5
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

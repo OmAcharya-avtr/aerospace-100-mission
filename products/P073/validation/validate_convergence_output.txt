@@ -1,0 +1,174 @@
+
+==============================================================================
+contactsched validate_convergence
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+astropy          : not installed
+pulp             : 4.1.0
+ortools          : not installed
+cpu cores        : 2
+repository root  : P073 (printed relatively; see validation/_bootstrap.py)
+
+astropy is NOT installed in this environment. It is named in README.md as a
+mature alternative for frames and time scales and no number anywhere in this
+repository is a cross-check against it; the independent geometric check in
+validate_geometry.py is a second derivation written in this package.
+ortools is NOT installed. pulp is installed but ships no solver, which is the
+measurement that moved the exact baseline onto HiGHS; see validate_exact.py.
+
+==============================================================================
+Scenario
+==============================================================================
+horizon    : 86400 s
+antennas   : SVALBARD-1 (flat 5.0 deg mask), PUNTA-ARENAS (terrain mask)
+spacecraft : POLARIS-A (15.21 rev/day), EQUINOX-1 (15.49 rev/day)
+
+==============================================================================
+1. Scan-step refinement: flat mask, near-polar orbit
+==============================================================================
+Bisection tolerance held at 0.001 s throughout, so the only varying error
+is whether the coarse scan brackets every crossing.
+
+ step (s)  windows  boundaries  d count  worst shift (s)  visible (s)   wall ms
+----------------------------------------------------------------------------------
+    240.0       13          25       -2              n/a     6152.601       7.5
+    120.0       14          27       +0         0.000885     6283.310       7.6
+     60.0       14          27       +0         0.000885     6283.310       8.2
+     45.0       14          27       +0         0.000771     6283.314       7.8
+     30.0       14          27       +0         0.000885     6283.310       8.8
+     15.0       14          27       +0         0.000885     6283.310      10.9
+     10.0       14          27       +0         0.000671     6283.315      13.2
+      5.0       14          27       +0         0.000671     6283.315      17.8
+      2.0       14          27       +0         0.000000     6283.314      34.9
+
+The wall-clock column is unstable on a shared two-core machine and is
+here to show the cost of a finer step, not as a performance claim.
+
+==============================================================================
+1. Scan-step refinement: terrain mask, near-polar orbit
+==============================================================================
+Bisection tolerance held at 0.001 s throughout, so the only varying error
+is whether the coarse scan brackets every crossing.
+
+ step (s)  windows  boundaries  d count  worst shift (s)  visible (s)   wall ms
+----------------------------------------------------------------------------------
+    240.0        6          12       +0         0.000519     2042.254       6.5
+    120.0        6          12       +0         0.000519     2042.254       6.6
+     60.0        6          12       +0         0.000519     2042.254       6.5
+     45.0        6          12       +0         0.000618     2042.253       6.9
+     30.0        6          12       +0         0.000519     2042.254       7.2
+     15.0        6          12       +0         0.000519     2042.254       9.5
+     10.0        6          12       +0         0.000671     2042.255      11.0
+      5.0        6          12       +0         0.000671     2042.255      16.2
+      2.0        6          12       +0         0.000000     2042.253      33.5
+
+The wall-clock column is unstable on a shared two-core machine and is
+here to show the cost of a finer step, not as a performance claim.
+
+==============================================================================
+1. Scan-step refinement: terrain mask, mid-inclination orbit
+==============================================================================
+Bisection tolerance held at 0.001 s throughout, so the only varying error
+is whether the coarse scan brackets every crossing.
+
+ step (s)  windows  boundaries  d count  worst shift (s)  visible (s)   wall ms
+----------------------------------------------------------------------------------
+    240.0        4           8       +0         0.000763     1578.136       5.7
+    120.0        4           8       +0         0.000763     1578.136       6.0
+     60.0        4           8       +0         0.000763     1578.136       6.7
+     45.0        4           8       +0         0.000603     1578.136       6.5
+     30.0        4           8       +0         0.000763     1578.136       6.9
+     15.0        4           8       +0         0.000763     1578.136       8.5
+     10.0        4           8       +0         0.000671     1578.136      11.0
+      5.0        4           8       +0         0.000671     1578.136      16.7
+      2.0        4           8       +0         0.000000     1578.135      33.2
+
+The wall-clock column is unstable on a shared two-core machine and is
+here to show the cost of a finer step, not as a performance claim.
+
+==============================================================================
+2. Which scan step is safe for these orbits
+==============================================================================
+A step is safe when it finds every boundary the 2 s scan finds. The table
+below is the measurement; the sentences after it are written from the table
+and not from expectation.
+
+case                step (s)  boundaries lost or gained
+--------------------------------------------------------
+flat/polar             240.0                         -2
+flat/polar             120.0                         +0
+flat/polar              60.0                         +0
+flat/polar              45.0                         +0
+flat/polar              30.0                         +0
+terrain/polar          240.0                         +0
+terrain/polar          120.0                         +0
+terrain/polar           60.0                         +0
+terrain/polar           45.0                         +0
+terrain/polar           30.0                         +0
+terrain/mid-inc        240.0                         +0
+terrain/mid-inc        120.0                         +0
+terrain/mid-inc         60.0                         +0
+terrain/mid-inc         45.0                         +0
+terrain/mid-inc         30.0                         +0
+
+Steps that lose or gain a boundary:
+  240 s on flat/polar: -2
+
+Steps safe on every case measured: 30 s, 45 s, 60 s, 120 s
+The default in contactsched.visibility.compute_windows is 30 s and the default
+in contactsched.dataset.generate_instance is 45 s. Both are in that list. A
+step is safe for THESE orbits and masks and nothing more general is claimed:
+any sampled root search can miss a pass shorter than its step, and the loss
+measured above at 240 s is exactly that happening.
+
+==============================================================================
+3. Bisection-tolerance refinement at a fixed 30 s scan
+==============================================================================
+Scan step held at 30 s, so every setting finds the same boundaries and the
+only varying error is how precisely each is located. The reference is the
+0.001 s setting.
+
+ tolerance (s)  worst shift (s)  shift / tolerance
+----------------------------------------------------
+         8.000         3.508759             0.4386
+         4.000         1.724396             0.4311
+         2.000         0.895844             0.4479
+         1.000         0.448151             0.4482
+         0.500         0.233917             0.4678
+         0.250         0.116730             0.4669
+         0.100         0.028839             0.2884
+         0.010         0.003204             0.3204
+
+Every shift is below its own declared tolerance, which is what the bisection
+promises: the returned boundary is within the tolerance of a sign change of
+the mask margin. It is NOT a claim about agreement with a real pass.
+
+==============================================================================
+4. Total visible seconds under joint refinement
+==============================================================================
+ step (s)  tolerance (s)    visible (s)   vs finest (s)
+----------------------------------------------------------
+    240.0          8.000       6138.750        -144.564
+    120.0          4.000       6271.875         -11.439
+     60.0          1.000       6280.781          -2.533
+     30.0          0.500       6282.422          -0.892
+     10.0          0.100       6283.398          +0.084
+      2.0          0.001       6283.314          +0.000
+
+finest setting total: 6283.314 s
+
+==============================================================================
+Result
+==============================================================================
+All checks in this script passed.
+

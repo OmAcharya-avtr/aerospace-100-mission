@@ -1,0 +1,232 @@
+
+==============================================================================
+negative controls, each verified to actually fire
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  reliability      : not installed
+  lifelines        : not installed
+  cpu cores        : 2
+  repository root  : P075 (printed relatively; see validation/_bootstrap.py)
+
+  reliability and lifelines are named in the README alternatives table and
+  are NOT installed here. No number in this repository was cross-checked
+  against either of them, and none claims to have been.
+
+  Offsetting a value by its tolerance does NOT guarantee a violation:
+  the reference may already sit up to one tolerance away on the other
+  side, so only an offset strictly greater than TWICE the tolerance
+  guarantees failure. Every control here uses a factor of
+  10, anchors on the true value or on the bracket's own width, and
+  reports whether it fired as its own check.
+
+  A control that does not fire is a failure of the VALIDATION, not of
+  the product, and it is the one kind of failure that would otherwise
+  be invisible.
+
+==============================================================================
+control 1: a closed-form agreement check, broken on purpose
+==============================================================================
+
+  The real check: the k-of-n reliability agrees with the binomial
+  survival to 1e-13 relative. The control perturbs the computed value by
+  10 times that tolerance, which is strictly more than twice it, so
+  the check MUST fail.
+
+  true computed reliability          : 0.722696003225790
+  independent reference              : 0.722696003225790
+  real relative error                : 1.536224e-16
+  declared tolerance                 : 1.0e-13
+  injected offset                    : 10 x tolerance, relative
+  perturbed value                    : 0.722696003226513
+  perturbed relative error           : 1.000236e-12
+
+  [PASS] the real check passes -- 1.536224e-16
+  [PASS] the injected offset DOES break the check, so the control fires -- perturbed error 1.000236e-12 exceeds tolerance 1.0e-13
+
+  for contrast, an offset of exactly 1 x the tolerance:
+    perturbed relative error         : 1.000082e-13
+    would the check fail             : True
+
+  That is the point of the 2x rule: a 1x offset is on the boundary and
+  its verdict depends on which side the real error already sat.
+
+==============================================================================
+control 2: the Bonferroni bracket, broken on purpose
+==============================================================================
+
+  The real check: the series unreliability lies inside the first- and
+  second-order Bonferroni bracket. The bracket's width here is 4.5e-23
+  and its slack 1.2e-25, so the offset is anchored on the BRACKET WIDTH
+  plus the slack, times the factor, and not on a fixed relative amount.
+
+  true unreliability                 : 9.999999999955000e-12
+  bracket                            : [9.999999999954999e-12, 9.999999999999999e-12]
+  bracket width                      : 4.500056e-23
+  bracket slack                      : 1.221245e-25
+  injected offset                    : 4.512269e-22
+  perturbed value                    : 1.000000000045123e-11
+
+  [PASS] the real check passes -- Bonferroni order 1 and 2 over 10 blocks: [9.999999999955e-12, 1.000000000000e-11] value 9.999999999955e-12 (inside, width 4.500056e-23, slack 1.221e-25)
+  [PASS] the injected offset DOES break the bracket, so the control fires -- Bonferroni order 1 and 2 over 10 blocks: [9.999999999955e-12, 1.000000000000e-11] value 1.000000000045e-11 (OUTSIDE, width 4.500056e-23, slack 1.221e-25)
+
+  and the already-measured naive expression, which is a real defect and
+  not an injected one:
+    naive 1 - prod(1 - q_i)          : 9.999778782798785e-12
+    inside the bracket               : False
+  [PASS] the bracket also rejects the naive expression, with no injection at all -- Bonferroni order 1 and 2 over 10 blocks: [9.999999999955e-12, 1.000000000000e-11] value 9.999778782799e-12 (OUTSIDE, width 4.500056e-23, slack 1.221e-25)
+
+==============================================================================
+control 3: a wrong cut set, broken on purpose
+==============================================================================
+
+  The real check: every reported minimal cut set fails the system when
+  all its events fail, and restoring any one of them restores the
+  system. The control feeds a deliberately wrong cut set -- a proper
+  SUBSET of a real one -- to the same test and requires it to be
+  rejected. A subset is the right injection here because a superset
+  would still fail the system and would pass the first half of the
+  check.
+
+  real minimal cut set               : {a, b}
+  system fails when it is down       : True
+  injected subset                    : {a}
+  system fails when only it is down  : False
+  real cut set is minimal            : True
+  injected superset                  : {a, b, single}
+  superset passes the minimality test: False
+
+  [PASS] the real cut set fails the system
+  [PASS] the real cut set is minimal
+  [PASS] the injected subset DOES NOT fail the system, so the control fires -- a proper subset of a minimal cut set cannot be a cut set
+  [PASS] the injected superset DOES fail the minimality test, so the control fires -- a superset of a minimal cut set is not minimal
+
+==============================================================================
+control 4: a wrong Birnbaum value, broken on purpose
+==============================================================================
+
+  The real check: Birnbaum agrees with a central finite difference to
+  1e-6 relative. The control perturbs the implementation's value by
+  10 times that tolerance.
+
+  worst real relative error          : 6.248409e-14
+  declared tolerance                 : 1.0e-06
+  worst perturbed relative error     : 1.000000e-05
+
+  [PASS] the real check passes -- 6.248409e-14
+  [PASS] the injected offset DOES break the check, so the control fires -- perturbed error 1.000000e-05 exceeds tolerance 1.0e-06
+
+==============================================================================
+control 5: a Monte Carlo interval, broken on purpose
+==============================================================================
+
+  The real check is the 4-standard-error criterion this repository
+  declares everywhere else, not membership of the 95 percent interval:
+  a 95 percent interval is expected to miss about 1 run in 20 BY
+  CONSTRUCTION, so making it the pass criterion of a single seeded run
+  would be a check that fails 5 percent of the time for no reason.
+  Interval membership is reported alongside, as information.
+
+  The control offsets the closed form by the FULL interval width times
+  10, which is more than twice the half-width, so it must fall
+  outside.
+
+  closed form R                      : 0.844054788280
+  simulated R                        : 0.842897500000
+  interval                           : [0.841766498624, 0.844021915306]
+  interval half-width                : 1.127708e-03
+  injected offset                    : 2.255417e-02
+  perturbed closed form              : 0.866608955092
+
+  distance in standard errors        : 2.0114
+  inside the 95 percent interval     : False
+
+  [PASS] the real check passes the declared 4-standard-error criterion -- 2.0114 standard errors
+  [PASS] the injected offset DOES fall outside the interval, so the control fires -- 41.2106 standard errors from the estimate
+
+==============================================================================
+control 6: a wrong structural quantification, broken on purpose
+==============================================================================
+
+  The real check: the structural quantification agrees with exhaustive
+  state enumeration to 1e-12 relative. The control uses the WRONG
+  expression for a parallel group -- Q = 1 - prod(1 - Q_i), which is a
+  real mistake rather than an arbitrary offset -- and requires the
+  enumeration to reject it.
+
+  structural Q                       : 6.717519473059069e-02
+  exhaustive Q                       : 6.717519473059069e-02
+  wrong expression Q                 : 4.511883639059735e-01
+  real relative error                : 0.000000e+00
+  wrong expression relative error    : 5.716592e+00
+
+  [PASS] the real check passes -- 0.000000e+00
+  [PASS] the wrong parallel expression IS rejected by the enumeration, so the control fires -- 5.716592e+00 exceeds 1.0e-12
+
+==============================================================================
+control 7: a wrong bridge polynomial, broken on purpose
+==============================================================================
+
+  The real check: four routes agree on R = 2p^5 - 5p^4 + 2p^3 + 2p^2.
+  The control uses the two series-parallel decompositions a reader
+  might reach for instead, which are real mistakes and not offsets, and
+  requires both to be rejected at p = 0.9.
+
+  derived closed form at p = 0.9     : 0.978480000000000
+  package pivotal decomposition      : 0.978480000000000
+  two-disjoint-paths mistake         : 0.963900000000000
+  merged-vertices mistake            : 0.980100000000000
+  two-paths relative error           : 1.490066e-02
+  merged relative error              : 1.655629e-03
+
+  [PASS] the real check passes -- 1.134640e-16
+  [PASS] the two-disjoint-paths mistake IS rejected, so the control fires
+  [PASS] the merged-vertices mistake IS rejected, so the control fires
+
+==============================================================================
+control 8: the Esary-Proschan bracket, broken on purpose
+==============================================================================
+
+  The real check: the exact bridge reliability lies inside the
+  Esary-Proschan bracket. The bracket has non-trivial width here, so
+  the offset is the bracket width times the factor.
+
+  Esary-Proschan (4 cut sets, 4 path sets): [9.781407801000e-01, 9.973487799000e-01] value 9.784800000000e-01 (inside, width 1.920800e-02, slack 3.909e-15)
+  injected offset                    : 1.920800e-01
+  Esary-Proschan (4 cut sets, 4 path sets): [9.781407801000e-01, 9.973487799000e-01] value 1.189428777900e+00 (OUTSIDE, width 1.920800e-02, slack 3.909e-15)
+
+  [PASS] the real check passes
+  [PASS] the injected offset DOES break the bracket, so the control fires
+
+==============================================================================
+summary
+==============================================================================
+
+  Controls are counted in two groups: the real checks, which must pass,
+  and the injected violations, which must fire. Both are ordinary checks
+  above, so a control that silently stopped firing would appear as a
+  failed check and not as a quietly weakened test.
+
+==============================================================================
+timing, declared unstable
+==============================================================================
+
+  | quantity | value | stability |
+  |---|---|---|
+  | whole script wall clock | 0.03 s | UNSTABLE, shared hardware |
+
+CHECKS PASSED: 20
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

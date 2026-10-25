@@ -1,0 +1,216 @@
+
+==============================================================================
+closed-form agreement for every structure
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  reliability      : not installed
+  lifelines        : not installed
+  cpu cores        : 2
+  repository root  : P075 (printed relatively; see validation/_bootstrap.py)
+
+  reliability and lifelines are named in the README alternatives table and
+  are NOT installed here. No number in this repository was cross-checked
+  against either of them, and none claims to have been.
+
+  Every reference below is an independent implementation, an exhaustive
+  enumeration, or an independently derived bound. None of them is a
+  second evaluation of the expression under test.
+
+  declared tolerances:
+    series                1.0e-14 relative
+    parallel              1.0e-14 relative
+    k_of_n                1.0e-13 relative
+    standby_erlang        1.0e-13 relative
+    standby_quadrature    1.0e-10 relative
+    shared_load_ode       1.0e-09 relative
+    network               1.0e-13 relative
+
+==============================================================================
+series: the exact hazard sum, and the Bonferroni bracket
+==============================================================================
+
+  R = prod R_i, so H = sum H_i exactly. The reference for the
+  reliability is the product of the block reliabilities; the reference
+  for the UNRELIABILITY is the first- and second-order Bonferroni
+  bracket, which is an independently derived bound and not a second
+  evaluation of the same expression.
+
+  declared tolerance : 1.0e-14 relative
+
+    n     rate /h       hours            R computed    rel diff
+  -------------------------------------------------------------
+   10   1.000e-07       1e+04     0.990049833749168   2.243e-16
+   10   1.000e-06       1e+04     0.904837418035960   4.908e-16
+   10   1.000e-05       1e+04     0.367879441171442   7.545e-16
+   10   1.000e-04       1e+04     0.000045399929762   2.985e-16
+   10   1.000e-03       1e+04     0.000000000000000   5.353e-16
+
+  cases                              : 75
+  worst relative difference in R     : 7.544748e-16
+  Bonferroni bracket misses          : 0
+  [PASS] series reliability matches the product of block reliabilities -- worst 7.544748e-16 against tolerance 1.0e-14
+  [PASS] series unreliability lies inside the Bonferroni bracket in every case -- 0 of 75 outside
+
+==============================================================================
+parallel: the exact product in Q space, and state enumeration
+==============================================================================
+
+  declared tolerance : 1.0e-14 relative
+
+    n        q each        Q computed       Q reference    rel diff
+  -----------------------------------------------------------------
+    2     1.000e-09      1.000000e-18      1.000000e-18   0.000e+00
+    2     1.000e-06      1.000000e-12      1.000000e-12   0.000e+00
+    2     1.000e-03      1.000000e-06      1.000000e-06   0.000e+00
+    2     1.000e-01      1.000000e-02      1.000000e-02   0.000e+00
+    2     5.000e-01      2.500000e-01      2.500000e-01   0.000e+00
+
+  worst relative difference in Q     : 1.836710e-16
+  [PASS] parallel unreliability is the exact product of the block unreliabilities -- worst 1.836710e-16 against tolerance 1.0e-14
+
+  against exhaustive state enumeration over the structure function:
+  worst relative difference          : 0.000000e+00
+  [PASS] parallel quantification matches exhaustive state enumeration -- worst 0.000000e+00
+
+==============================================================================
+k-of-n: against the binomial survival sum from scipy.stats
+==============================================================================
+
+  For identical blocks, R = sum_{i=k}^{n} C(n,i) p^i (1-p)^(n-i), which
+  is scipy.stats.binom.sf(k-1, n, p) -- a separate implementation by
+  other people, not a second evaluation of the same expression.
+
+  declared tolerance : 1.0e-13 relative
+
+    k  n             p          R computed            binom.sf    rel diff
+  ------------------------------------------------------------------------
+    3  4   0.904837418   0.952312744619954   0.952312744619954   0.000e+00
+
+  cases                              : 300
+  worst relative difference          : 4.281257e-16
+  [PASS] k-of-n reliability matches the binomial survival sum -- worst 4.281257e-16 against tolerance 1.0e-13
+
+  k = n reduces to series and k = 1 to parallel, exactly:
+  worst k=n versus series            : 3.017899e-16
+  worst k=1 versus parallel          : 1.147943e-16
+  [PASS] k-of-n at k = n equals the series chain -- worst 3.017899e-16
+  [PASS] k-of-n at k = 1 equals the parallel group -- worst 1.147943e-16
+
+  non-identical blocks against exhaustive state enumeration:
+  worst relative difference          : 3.990254e-16
+  [PASS] non-identical k-of-n matches exhaustive state enumeration -- worst 3.990254e-16
+
+==============================================================================
+standby: against the convolution integral from scipy.integrate.quad
+==============================================================================
+
+  R(t) = R_p(t) + p_s int_0^t f_p(u) exp(-H_s(f u + t - u)) du
+
+  The Erlang closed form for identical cold standby units is scored
+  against this integral, evaluated by quad. The quadrature's own
+  reported absolute error bound is in the table, because an agreement
+  tighter than the reference's own error is not a measurement.
+
+  declared tolerance : 1.0e-10 relative
+
+     rate /h     hours    p_s     f         closed form                quad   rel diff   quad err
+  -----------------------------------------------------------------------------------------------
+     1.0e-04      1000   0.98  0.00   0.993511485003484   0.993511485003484  1.117e-16  9.845e-16
+     1.0e-04      1000   0.98  0.35   0.991977635810150   0.991977635810150  0.000e+00  9.675e-16
+     1.0e-04      1000   0.98  1.00   0.989221949694778   0.989221949694778  0.000e+00  9.369e-16
+
+  cases                              : 81
+  worst relative difference          : 2.211217e-16
+  [PASS] standby reliability matches the convolution integral -- worst 2.211217e-16 against tolerance 1.0e-10
+
+  the Erlang form for m cold standby units against the Erlang series:
+
+    m    x = rate t         closed form          Erlang sum    rel diff
+  ---------------------------------------------------------------------
+    1             1   0.735758882342885   0.735758882342885   0.000e+00
+    2             1   0.919698602928606   0.919698602928606   0.000e+00
+    3             1   0.981011843123846   0.981011843123846   0.000e+00
+    4             1   0.996340153172656   0.996340153172656   1.114e-16
+
+  worst relative difference          : 2.220446e-16
+  [PASS] the m-standby closed form is the Erlang survival function -- worst 2.220446e-16 against tolerance 1.0e-13
+
+  a Weibull primary and standby, closed form against quad:
+  worst relative difference          : 0.000000e+00
+  [PASS] a Weibull standby pair matches the convolution integral -- worst 0.000000e+00
+
+==============================================================================
+shared load: against the four-state Markov ODE from scipy solve_ivp
+==============================================================================
+
+  The reference integrates the Markov system numerically with DOP853 at
+  rtol 1e-12 and never forms the closed form at all, so the two share
+  nothing but the rate matrix.
+
+  declared tolerance : 1.0e-09 relative
+
+       l1 /h     l2 /h     s     hours         closed form                 ODE    rel diff
+  ----------------------------------------------------------------------------------------
+     1.0e-04   5.0e-04  0.50      1000   0.979414107616791   0.979414107616791   3.401e-16
+
+  cases                              : 108
+  worst relative difference          : 4.038264e-14
+  [PASS] shared-load reliability matches the Markov ODE solution -- worst 4.038264e-14 against tolerance 1.0e-09
+
+  the exactly-degenerate case, where both denominators vanish:
+  s = 0.5 with l1 = l2 makes s(l1 + l2) = l2 exactly. The expm1 form
+  needs no threshold there; the limit is 1 + x times exp(-x).
+  worst relative difference          : 2.220447e-16
+  [PASS] the degenerate shared-load case equals its analytic limit -- worst 2.220447e-16 against tolerance 1.0e-14
+
+  sharing factor 1 makes the node a parallel pair:
+  worst relative difference          : 1.120369e-16
+  [PASS] shared load at a sharing factor of 1 equals a parallel pair -- worst 1.120369e-16
+
+==============================================================================
+network: pivotal decomposition against enumeration and inclusion-exclusion
+==============================================================================
+
+  declared tolerance : 1.0e-13 relative
+
+         p       pivotal (package)     derived closed form               incl-excl    rel diff
+  --------------------------------------------------------------------------------------------
+     0.100       0.021520000000000       0.021520000000000       0.021520000000000   9.673e-16
+     0.250       0.138671875000000       0.138671875000000       0.138671875000000   0.000e+00
+     0.500       0.500000000000000       0.500000000000000       0.500000000000000   0.000e+00
+     0.750       0.861328125000000       0.861328125000000       0.861328125000000   0.000e+00
+     0.900       0.978480000000000       0.978480000000000       0.978480000000000   1.135e-16
+     0.990       0.999798049800000       0.999798049800000       0.999798049799999   6.663e-16
+     0.999       0.999997998004998       0.999997998004998       0.999997998004998   5.551e-16
+
+  worst relative difference          : 9.673179e-16
+  [PASS] network pivotal decomposition matches the derived closed form -- worst 9.673179e-16 against tolerance 1.0e-13
+
+  against exhaustive state enumeration over all 32 states:
+  worst relative difference          : 2.269281e-16
+  [PASS] network quantification matches exhaustive state enumeration -- worst 2.269281e-16
+
+==============================================================================
+timing, declared unstable
+==============================================================================
+
+  | quantity | value | stability |
+  |---|---|---|
+  | whole script wall clock | 0.24 s | UNSTABLE, shared hardware |
+
+CHECKS PASSED: 16
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

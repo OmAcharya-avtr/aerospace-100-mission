@@ -1,0 +1,222 @@
+
+==============================================================================
+contactsched validate_predictors
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+astropy          : not installed
+pulp             : 4.1.0
+ortools          : not installed
+cpu cores        : 2
+repository root  : P073 (printed relatively; see validation/_bootstrap.py)
+
+astropy is NOT installed in this environment. It is named in README.md as a
+mature alternative for frames and time scales and no number anywhere in this
+repository is a cross-check against it; the independent geometric check in
+validate_geometry.py is a second derivation written in this package.
+ortools is NOT installed. pulp is installed but ships no solver, which is the
+measurement that moved the exact baseline onto HiGHS; see validate_exact.py.
+
+==============================================================================
+Dataset
+==============================================================================
+train instances : 240 (seeds 0..239)
+test instances  : 80 (seeds 240..319)
+train rows      : 2178, positive rate 0.312672
+test rows       : 725, positive rate 0.295172
+features        : 23
+label           : the exact optimum delivers fewer than min_contacts
+
+Compute, wall clock, unstable, table only:
+  dataset build : 23.29 s
+
+hard subset (capacity_deficit <= 0) : 581 rows, positive rate 0.120482
+easy subset (capacity_deficit > 0)  : 144 rows, positive rate 1.000000
+
+==============================================================================
+1. The baselines, measured before the learned model is fitted
+==============================================================================
+Three contention ratios, each in a ranking form with no fitting and a
+one-feature logistic form fitted on the training rows. A monotone
+one-feature fit cannot change the ranking, so the two agree on the rank
+statistics by construction and differ only on calibration; the agreement is
+printed so the reader can see it rather than take it on trust.
+
+baseline                                AUC       AP    Brier      ECE  AUC (hard)
+----------------------------------------------------------------------------------
+ranking[demand_over_usable]          0.9230   0.8850   0.0989   0.0704      0.7743
+logistic[demand_over_usable]         0.9230   0.8850   0.1601   0.0122      0.7743
+ranking[ratio_weighted]              0.6228   0.5501   0.2199   0.2428      0.8380
+logistic[ratio_weighted]             0.6228   0.5501   0.1863   0.2139      0.8380
+ranking[ratio_max]                   0.6010   0.4883   0.2527   0.2909      0.8136
+logistic[ratio_max]                  0.6010   0.4883   0.1968   0.0786      0.8136
+
+The two per-bin ratios the specification names, ratio_max and ratio_weighted,
+are the weakest of the three over the whole test set. The per-request ratio
+demand_over_usable is the strongest and is therefore the baseline the learned
+model has to beat. On the hard subset the ordering is different, which is
+itself informative: the per-bin ratios carry more signal once the trivially
+over-asked requests are removed.
+
+strongest calibrated baseline by AUC : logistic[demand_over_usable]
+
+==============================================================================
+2. The learned model
+==============================================================================
+estimator      : sklearn HistGradientBoostingClassifier
+max_iter       : 200
+learning_rate  : 0.06
+max_leaf_nodes : 15
+min_samples_leaf: 25
+l2             : 1.0
+random_state   : 0
+fit wall clock : 45.559 s (unstable, table only)
+threshold chosen on TRAINING rows : 0.461
+
+==============================================================================
+3. Head to head on the held-out instances
+==============================================================================
+predictor                               AUC       AP    Brier      ECE    prec  recall      F1  AUC (hard)
+------------------------------------------------------------------------------------------------------------
+ranking[demand_over_usable]          0.9230   0.8850   0.0989   0.0704  1.0000  0.5794  0.7337      0.7743
+logistic[demand_over_usable]         0.9230   0.8850   0.1601   0.0122  0.2952  1.0000  0.4558      0.7743
+ranking[ratio_weighted]              0.6228   0.5501   0.2199   0.2428  0.6316  0.4486  0.5246      0.8380
+logistic[ratio_weighted]             0.6228   0.5501   0.1863   0.2139  0.6054  0.5234  0.5614      0.8380
+ranking[ratio_max]                   0.6010   0.4883   0.2527   0.2909  0.5045  0.5187  0.5115      0.8136
+logistic[ratio_max]                  0.6010   0.4883   0.1968   0.0786  0.4802  0.5654  0.5193      0.8136
+learned-hgb                          0.9846   0.9691   0.0467   0.0273  0.8990  0.8738  0.8863      0.9529
+constant forecast at the base rate   0.5000   0.2952   0.2084        -       -       -       -      0.5000
+
+The constant forecast is included because a Brier score has no meaning
+without it: a model that beats no constant is not forecasting.
+
+==============================================================================
+4. The verdict, as measured
+==============================================================================
+The learned model is compared against the BEST baseline on each metric
+separately, not against one nominated baseline. On this test set the ranking
+and logistic forms of demand_over_usable tie on area under the ROC curve but
+the ranking form has the lower Brier score, so nominating the logistic form
+as the single baseline would have handed the learned model an easier Brier
+comparison than the baselines actually offer.
+
+metric                                      best baseline   baseline    learned     margin
+--------------------------------------------------------------------------------------------
+roc_auc                       ranking[demand_over_usable]   0.922952   0.984596  +0.061644
+average_precision             ranking[demand_over_usable]   0.885048   0.969138  +0.084090
+brier                         ranking[demand_over_usable]   0.098911   0.046725  +0.052185
+ece                          logistic[demand_over_usable]   0.012237   0.027302  -0.015065
+f1                            ranking[demand_over_usable]   0.733728   0.886256  +0.152528
+auc_hard                          ranking[ratio_weighted]   0.838021   0.952907  +0.114887
+
+Margin is signed so that positive always means the learned model is better.
+
+The baseline WINS on: ece.
+That result stands. The learned model is not removed, retuned or re-split
+to change it, and the metrics it loses on are listed here first.
+
+What it costs. The learned model uses twenty-three pre-scheduling features,
+needs a labelled training set built by running the exact solver on every
+training instance (23 s for 320 instances here), and takes a fit
+(45.6 s). The strongest baseline uses one feature, needs no
+training data at all, and is a single division. A reader who cannot build a
+labelled set should use demand_over_usable and expect the numbers in the row
+above.
+
+What this is NOT evidence of: skill on any real ground-station network. The
+training and test instances come from one synthetic generator whose
+distributional choices are printed in validate_dataset_output.txt. A reader
+whose request mix differs from those choices should expect different numbers
+and should re-measure.
+
+==============================================================================
+5. Calibration of the confidence output
+==============================================================================
+The learned model's predict_proba is the confidence this package exposes. It
+is measured here, not asserted.
+
+learned-hgb:
+  bin             mean predicted  observed rate      n
+  -----------------------------------------------------
+  [0.0, 0.1)            0.0087         0.0239    460
+  [0.1, 0.2)            0.1455         0.2667     30
+  [0.2, 0.3)            0.2465         0.2667     15
+  [0.3, 0.4)            0.3385         0.3750      8
+  [0.4, 0.5)            0.4543         0.2857      7
+  [0.5, 0.6)            0.5398         0.3333      6
+  [0.6, 0.7)            0.6454         0.4444      9
+  [0.7, 0.8)            0.7388         0.5455     11
+  [0.8, 0.9)            0.8571         0.6923     13
+  [0.9, 1.0)            0.9936         0.9940    166
+
+logistic[demand_over_usable]:
+  bin             mean predicted  observed rate      n
+  -----------------------------------------------------
+  [0.2, 0.3)            0.2401         0.2269    661
+  [0.9, 1.0)            0.9971         1.0000     64
+
+A well-calibrated forecaster has the predicted and observed columns equal in
+every row. Where they are not, the expected calibration error in the table in
+section 3 is the count-weighted mean of the gaps, over ten equal-width bins.
+The bin count matters and is always reported with the number.
+
+==============================================================================
+6. Permutation importance of the learned model
+==============================================================================
+Measured on the held-out rows, five permutations per feature, scored by area
+under the ROC curve. These are a description of THIS fitted model on THIS
+generator and are not evidence about ground-station scheduling in general;
+correlated features share credit arbitrarily (Strobl et al., 2007).
+
+feature                                mean drop in AUC        std
+--------------------------------------------------------------------
+capacity_deficit                               0.277247   0.017019
+ratio_weighted                                 0.022479   0.002067
+higher_priority_overlap_s                      0.008144   0.001289
+usable_seconds                                 0.003942   0.000781
+priority                                       0.003052   0.000456
+ratio_max                                      0.002902   0.000905
+window_slack                                   0.002699   0.001307
+higher_priority_overlap_fraction               0.002510   0.001010
+standalone_capacity                            0.002156   0.000527
+competitor_overlap_s                           0.001821   0.001648
+instance_demand_over_supply                    0.001682   0.000930
+n_windows                                      0.001286   0.000333
+weight                                         0.001189   0.000375
+mean_max_elevation_deg                         0.000466   0.000297
+n_allowed_stations                             0.000374   0.000214
+max_contacts                                   0.000346   0.000215
+n_candidates                                   0.000302   0.000087
+competitor_count                               0.000284   0.000276
+demand_over_usable                             0.000097   0.000866
+duration_s                                     0.000079   0.000051
+min_contacts                                  -0.000004   0.000073
+higher_priority_competitor_count              -0.000121   0.000157
+instance_requests                             -0.000147   0.000062
+
+permutation importance wall clock: 123.17 s (unstable, table only)
+
+==============================================================================
+7. Reproducibility
+==============================================================================
+Refitting with the same seed on the same rows must give identical predictions.
+identical predictions on a refit : True
+
+Exact commands to reproduce every number in this file:
+  python validation/validate_dataset.py
+  python validation/validate_predictors.py
+
+==============================================================================
+Result
+==============================================================================
+All checks in this script passed.
+

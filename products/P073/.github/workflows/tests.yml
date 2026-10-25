@@ -1,0 +1,110 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q --junitxml=junit.xml
+      - name: Test count from junit XML, never from stdout
+        run: |
+          python - <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse("junit.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          declared = int(suite.get("tests", "0"))
+          counted = len(suite.findall(".//testcase"))
+          failures = int(suite.get("failures", "0"))
+          errors = int(suite.get("errors", "0"))
+          print(f"declared {declared}, counted {counted}, failures {failures}, errors {errors}")
+          if declared == 0 or declared != counted:
+              sys.exit("junit.xml does not agree with itself, or no test ran")
+          if failures or errors:
+              sys.exit("the suite reported failures or errors")
+          PY
+      - name: Import in a clean interpreter
+        run: PYTHONPATH=src python -c "import contactsched; print(contactsched.__version__)"
+      - name: Solver backends actually available
+        run: python -m contactsched backends
+      - name: CLI
+        run: |
+          python -m contactsched --version
+          python -m contactsched info
+          python -m contactsched windows --seed 7 --horizon-h 12 --limit 5
+          python -m contactsched schedule --seed 7 --horizon-h 12 --method greedy
+          python -m contactsched schedule --seed 7 --horizon-h 12 --method exact
+          python -m contactsched fairness --seed 7 --horizon-h 12
+          python -m contactsched contention --seed 7 --horizon-h 12 --limit 5
+          python -m contactsched compare --seed 7 --horizon-h 12
+      - name: Validation scripts
+        run: |
+          python validation/validate_geometry.py
+          python validation/validate_visibility.py
+          python validation/validate_convergence.py
+          python validation/validate_exact.py
+          python validation/validate_invariants.py
+          python validation/validate_fairness.py
+          python validation/validate_baselines.py
+          python validation/validate_dataset.py
+          python validation/validate_predictors.py
+          python validation/validate_approx_audit.py
+          python validation/validate_cli.py
+          python validation/worked_example.py
+      - name: Validation scripts from their own directory
+        working-directory: validation
+        run: |
+          for script in validate_*.py worked_example.py; do
+            python "$script" > /dev/null
+          done
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/contact_windows.py
+          python examples/schedule_comparison.py
+          python examples/fairness_metrics.py
+          python examples/contention_map.py
+          python examples/priority_inversion.py
+          python examples/greedy_optimality_gap.py
+          python examples/predictor_benchmark.py
+      - name: Examples from their own directory
+        working-directory: examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          for script in *.py; do
+            case "$script" in _*) continue;; esac
+            python "$script" > /dev/null
+          done
+      - name: Working-directory and absolute-path probe
+        run: python validation/probe_working_directories.py
+      # The search pattern is ASSEMBLED from a separator variable rather than
+      # written out. A literal absolute-path prefix in this file would be found
+      # by the repository-wide scan in validation/probe_working_directories.py,
+      # which is to say this step would fail on itself. It did, once.
+      - name: No absolute home-directory path in any tracked file
+        run: |
+          sep=/
+          pattern="${sep}home${sep}[a-z]+${sep}|${sep}Users${sep}[a-zA-Z]+${sep}"
+          if git grep -nI -E "$pattern" -- . ; then
+            echo "absolute path found in a tracked file"
+            exit 1
+          fi

@@ -1,0 +1,282 @@
+
+==============================================================================
+contactsched validate_cli
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+astropy          : not installed
+pulp             : 4.1.0
+ortools          : not installed
+cpu cores        : 2
+repository root  : P073 (printed relatively; see validation/_bootstrap.py)
+
+astropy is NOT installed in this environment. It is named in README.md as a
+mature alternative for frames and time scales and no number anywhere in this
+repository is a cross-check against it; the independent geometric check in
+validate_geometry.py is a second derivation written in this package.
+ortools is NOT installed. pulp is installed but ships no solver, which is the
+measurement that moved the exact baseline onto HiGHS; see validate_exact.py.
+
+Every command below is run from the repository root with PYTHONPATH=src and
+nothing else inherited from the environment.
+
+==============================================================================
+python -m contactsched --version
+==============================================================================
+exit status: 0 (expected 0)
+
+  contactsched 0.1.0
+
+==============================================================================
+python -m contactsched info
+==============================================================================
+exit status: 0 (expected 0)
+
+  contactsched     0.1.0
+  python           3.13.17
+  numpy            2.5.3
+  scipy            1.18.1
+  scikit-learn     1.9.1
+  sgp4             2.27
+  
+  default instance (seed 7, 12 h horizon):
+    antennas       4
+    spacecraft     5
+    requests       10
+    windows        61
+    candidates     233
+  
+  Research grade. Not flight-qualified, not certified, not approved for
+  operational aerospace use.
+
+==============================================================================
+python -m contactsched backends
+==============================================================================
+exit status: 0 (expected 0)
+
+  solver backends detected in this interpreter:
+    highs          available via scipy 1.18.1 (milp)
+    ortools-cpsat  absent: not installed, and not a dependency of this package
+    pulp           present (4.1.0) but unusable: listSolvers(onlyAvailable=True) returned an empty list, so it ships no solver
+  
+  HiGHS through scipy.optimize.milp is the default and the only backend any test or validation script in this repository exercises.
+
+==============================================================================
+python -m contactsched windows --seed 7 --horizon-h 12 --limit 8
+==============================================================================
+exit status: 0 (expected 0)
+
+  antenna        spacecraft        rise       set    dur_s  peak_el  flags
+  ------------------------------------------------------------------------------
+  ALICE-SPRINGS  SC-05         00:00:18  00:09:07    528.8    17.76  
+  ALICE-SPRINGS  SC-03         00:10:57  00:23:23    745.7    30.73  
+  KOUROU         SC-01         00:17:59  00:27:30    571.3    23.47  
+  KOUROU         SC-04         00:39:42  00:48:29    527.7    22.80  
+  FAIRBANKS      SC-03         00:41:35  00:55:54    858.9    78.99  
+  TROLL          SC-01         00:43:12  00:46:57    225.0     6.19  
+  KOUROU         SC-05         00:53:55  01:04:31    635.6    48.58  
+  ALICE-SPRINGS  SC-01         01:01:00  01:12:32    691.9    64.19  
+  ... 53 further windows not shown
+  61 windows, 32428.8 s total
+
+==============================================================================
+python -m contactsched schedule --seed 7 --horizon-h 12 --method greedy
+==============================================================================
+exit status: 0 (expected 0)
+
+  method greedy-first-fit[priority], status heuristic, objective 18.250000 (weighted_contacts)
+      start       end antenna        spacecraft   request  prio
+  ----------------------------------------------------------------------
+   00:00:18  00:07:18 ALICE-SPRINGS  SC-05        R09      1
+   00:14:57  00:17:57 ALICE-SPRINGS  SC-03        R08      4
+   00:17:59  00:20:59 KOUROU         SC-01        R04      2
+   00:41:35  00:44:35 FAIRBANKS      SC-03        R08      4
+   00:43:12  00:46:12 TROLL          SC-01        R04      2
+   00:49:35  00:52:35 FAIRBANKS      SC-03        R08      4
+   00:53:55  01:00:55 KOUROU         SC-05        R09      1
+   01:01:00  01:04:00 ALICE-SPRINGS  SC-01        R04      2
+   01:08:18  01:15:18 KOUROU         SC-03        R06      3
+   01:09:00  01:12:00 ALICE-SPRINGS  SC-01        R10      4
+   01:32:14  01:39:14 TROLL          SC-03        R06      3
+  ... 27 further lines not shown
+
+==============================================================================
+python -m contactsched schedule --seed 7 --horizon-h 12 --method exact
+==============================================================================
+exit status: 0 (expected 0)
+
+  method exact-milp[highs], status optimal, objective 18.500000 (weighted_contacts)
+      start       end antenna        spacecraft   request  prio
+  ----------------------------------------------------------------------
+   00:00:18  00:07:18 ALICE-SPRINGS  SC-05        R09      1
+   00:20:30  00:27:30 KOUROU         SC-01        R05      2
+   00:43:57  00:46:57 TROLL          SC-01        R10      4
+   00:52:54  00:55:54 FAIRBANKS      SC-03        R08      4
+   00:54:31  01:04:31 KOUROU         SC-05        R02      3
+   01:05:32  01:12:32 ALICE-SPRINGS  SC-01        R05      2
+   01:41:05  01:48:05 ALICE-SPRINGS  SC-05        R09      1
+   01:59:02  02:06:02 KOUROU         SC-01        R05      2
+   02:27:55  02:30:55 FAIRBANKS      SC-03        R08      4
+   02:39:07  02:42:07 FAIRBANKS      SC-03        R08      4
+   03:24:10  03:31:10 TROLL          SC-03        R06      3
+  ... 31 further lines not shown
+
+==============================================================================
+python -m contactsched fairness --seed 7 --horizon-h 12 --method greedy
+==============================================================================
+exit status: 0 (expected 0)
+
+  fairness report for greedy-first-fit[priority]
+  request  mission       prio  need  got   need_s    got_s  satisf  state
+  ------------------------------------------------------------------------------
+  R01      TERRASCAN        1     5    5     2100     2100  1.0000  ok
+  R02      POLARIS          3     5    3     3000     1800  0.6000  starved
+  R03      POLARIS          3     3    3     1260     1260  1.0000  ok
+  R04      POLARIS          2     3    3      540      540  1.0000  ok
+  R05      POLARIS          2     4    5     1680     2100  1.0000  ok
+  R06      EQUINOX          3     2    3      840     1260  1.0000  ok
+  R07      POLARIS          4     4    0     2400        0  0.0000  starved
+  R08      EQUINOX          4     6    7     1080     1260  1.0000  ok
+  R09      POLARIS          1     6    6     2520     2520  1.0000  ok
+  R10      POLARIS          4     4    1      720      180  0.2500  starved
+  
+  per-request Jain index        : 0.830212
+  per-mission Jain index        : 0.974679
+  max-min share                 : 0.000000
+  requests starved              : 3
+  total seconds short           : 4140.0
+  priority inversions           : 1 of 37 comparable pairs (rate 0.027027)
+  worst inversion gap           : 0.400000
+  delivered satisfaction by priority: p1=1.0000, p2=1.0000, p3=0.8667, p4=0.4167
+  priority promise held in aggregate: True
+  
+  inversions:
+    R02 (p3, satisfaction 0.6000) below R08 (p4, satisfaction 1.0000), gap 0.4000
+
+==============================================================================
+python -m contactsched fairness --seed 7 --horizon-h 12 --method exact
+==============================================================================
+exit status: 0 (expected 0)
+
+  fairness report for exact-milp[highs]
+  request  mission       prio  need  got   need_s    got_s  satisf  state
+  ------------------------------------------------------------------------------
+  R01      TERRASCAN        1     5    5     2100     2100  1.0000  ok
+  R02      POLARIS          3     5    3     3000     1800  0.6000  starved
+  R03      POLARIS          3     3    2     1260      840  0.6667  starved
+  R04      POLARIS          2     3    3      540      540  1.0000  ok
+  R05      POLARIS          2     4    5     1680     2100  1.0000  ok
+  R06      EQUINOX          3     2    3      840     1260  1.0000  ok
+  R07      POLARIS          4     4    0     2400        0  0.0000  starved
+  R08      EQUINOX          4     6    7     1080     1260  1.0000  ok
+  R09      POLARIS          1     6    6     2520     2520  1.0000  ok
+  R10      POLARIS          4     4    5      720      900  1.0000  ok
+  
+  per-request Jain index        : 0.875626
+  per-mission Jain index        : 0.978896
+  max-min share                 : 0.000000
+  requests starved              : 3
+  total seconds short           : 4020.0
+  priority inversions           : 4 of 37 comparable pairs (rate 0.108108)
+  worst inversion gap           : 0.400000
+  delivered satisfaction by priority: p1=1.0000, p2=1.0000, p3=0.7556, p4=0.6667
+  priority promise held in aggregate: True
+  
+  inversions:
+    R02 (p3, satisfaction 0.6000) below R08 (p4, satisfaction 1.0000), gap 0.4000
+    R02 (p3, satisfaction 0.6000) below R10 (p4, satisfaction 1.0000), gap 0.4000
+    R03 (p3, satisfaction 0.6667) below R08 (p4, satisfaction 1.0000), gap 0.3333
+    R03 (p3, satisfaction 0.6667) below R10 (p4, satisfaction 1.0000), gap 0.3333
+
+==============================================================================
+python -m contactsched contention --seed 7 --horizon-h 12 --limit 8
+==============================================================================
+exit status: 0 (expected 0)
+
+  antenna        bin start   bin end  supply_s  demand_s     ratio  requests
+  --------------------------------------------------------------------------------------
+  ALICE-SPRINGS   01:00:00  01:30:00     691.9    2894.4    4.1835  R03,R04,R05,R07,R10
+  FAIRBANKS       07:00:00  07:30:00     658.8     709.1    1.0763  R02,R09
+  TROLL           09:30:00  10:00:00     690.5     743.2    1.0763  R02,R09
+  FAIRBANKS       09:00:00  09:30:00     307.4     330.9    1.0763  R02,R09
+  TROLL           11:00:00  11:30:00     607.1     646.8    1.0653  R02,R03,R04,R05,R09,R10
+  FAIRBANKS       08:30:00  09:00:00     552.0     516.8    0.9362  R02,R03,R04,R05,R09
+  ALICE-SPRINGS   01:30:00  02:00:00     789.6     672.0    0.8511  R02,R09
+  TROLL           07:30:00  08:00:00     500.8     357.9    0.7146  R03,R04,R05,R10
+  96 cells, 5 with demand above supply
+
+==============================================================================
+python -m contactsched compare --seed 7 --horizon-h 12
+==============================================================================
+exit status: 0 (expected 0)
+
+  method                   status       objective  contacts  starved     jain   maxmin   inv
+  ------------------------------------------------------------------------------------------
+  greedy-first-fit[priority] heuristic    18.250000        36        3   0.8302   0.0000     1
+  greedy-first-fit[demand] heuristic    16.125000        36        4   0.8420   0.2500     9
+  exact-milp[highs]        optimal      18.500000        39        3   0.8756   0.0000     4
+  exact-milp[highs]        infeasible    0.000000         0       10   1.0000   0.0000     0
+  
+  greedy optimality gap against the exact optimum: 0.013514
+  
+  price of enforcing the declared minimum contact counts:
+    objective_unconstrained    18.5
+    objective_constrained      nan
+    objective_loss             nan
+    objective_loss_fraction    nan
+    jain_gain                  nan
+    max_min_gain               nan
+    starved_before             3.0
+    starved_after              nan
+    seconds_short_before       4020.0
+    seconds_short_after        nan
+  
+  the fairness-constrained program is infeasible on this instance:
+    HiGHS reported the program infeasible.
+    R07 (POLARIS, priority 4) requires 4 contacts but has at most 1 mutually compatible candidates even with the whole network to itself
+
+==============================================================================
+python -m contactsched schedule --seed 7 --horizon-h 0.0003
+==============================================================================
+exit status: 2 (expected 2)
+
+  instance seed 7 has no candidate placements over a 0.0003 h horizon; nothing to schedule
+
+==============================================================================
+Help text
+==============================================================================
+exit status: 0
+  usage: contactsched [-h] [--version]
+                      {info,backends,windows,schedule,fairness,contention,compare} ...
+  
+  Ground-station contact scheduling with the contention and fairness cost
+  measured. Research grade; not flight-qualified and not certified.
+  
+  positional arguments:
+    {info,backends,windows,schedule,fairness,contention,compare}
+      info                versions and instance sizes
+      backends            solver backends detected in this interpreter
+      windows             visibility windows of one instance
+      schedule            one method's schedule
+      fairness            contention and fairness accounting
+      contention          antenna-time contention map
+      compare             every method, with the fairness price
+  
+  options:
+    -h, --help            show this help message and exit
+    --version             show program's version number and exit
+
+==============================================================================
+Result
+==============================================================================
+Every command exited with its expected status and printed no absolute path.
+

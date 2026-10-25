@@ -1,0 +1,105 @@
+
+==============================================================================
+contactsched probe_working_directories
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+astropy          : not installed
+pulp             : 4.1.0
+ortools          : not installed
+cpu cores        : 2
+repository root  : P073 (printed relatively; see validation/_bootstrap.py)
+
+astropy is NOT installed in this environment. It is named in README.md as a
+mature alternative for frames and time scales and no number anywhere in this
+repository is a cross-check against it; the independent geometric check in
+validate_geometry.py is a second derivation written in this package.
+ortools is NOT installed. pulp is installed but ships no solver, which is the
+measurement that moved the exact baseline onto HiGHS; see validate_exact.py.
+
+==============================================================================
+Mode
+==============================================================================
+CONTACTSCHED_PROBE_FULL set : False
+Every script has its MODULE BODY run from all four directories, and the
+scripts listed as fast are additionally run END TO END from all four.
+Set CONTACTSCHED_PROBE_FULL=1 for the exhaustive form, which takes several
+minutes.
+
+Directories used:
+  filesystem root              <filesystem root>
+  temporary directory          <system temporary directory>
+  repository root              <repository>
+  the script's own directory   the script's own directory
+
+==============================================================================
+1. Module body, 19 scripts, four directories each
+==============================================================================
+script                                       /   tmp  root   own   wall s
+--------------------------------------------------------------------------
+validation/validate_approx_audit.py          0     0     0     0     0.21
+validation/validate_baselines.py             0     0     0     0     1.77
+validation/validate_cli.py                   0     0     0     0     0.15
+validation/validate_convergence.py           0     0     0     0     1.89
+validation/validate_dataset.py               0     0     0     0     1.91
+validation/validate_exact.py                 0     0     0     0     1.85
+validation/validate_fairness.py              0     0     0     0     1.90
+validation/validate_geometry.py              0     0     0     0     1.76
+validation/validate_invariants.py            0     0     0     0     1.76
+validation/validate_predictors.py            0     0     0     0     1.94
+validation/validate_visibility.py            0     0     0     0     2.13
+validation/worked_example.py                 0     0     0     0     2.57
+examples/contact_windows.py                  0     0     0     0     3.94
+examples/contention_map.py                   0     0     0     0     3.97
+examples/fairness_metrics.py                 0     0     0     0     3.84
+examples/greedy_optimality_gap.py            0     0     0     0     3.90
+examples/predictor_benchmark.py              0     0     0     0     4.07
+examples/priority_inversion.py               0     0     0     0     3.78
+examples/schedule_comparison.py              0     0     0     0     3.83
+
+==============================================================================
+2. Full run, 8 scripts, four directories each
+==============================================================================
+script                                       /   tmp  root   own   wall s
+--------------------------------------------------------------------------
+validation/validate_convergence.py           0     0     0     0     9.22
+validation/validate_geometry.py              0     0     0     0     6.77
+validation/validate_visibility.py            0     0     0     0     7.52
+validation/worked_example.py                 0     0     0     0     6.51
+examples/contact_windows.py                  0     0     0     0     5.82
+examples/contention_map.py                   0     0     0     0     5.66
+examples/fairness_metrics.py                 0     0     0     0     5.72
+examples/schedule_comparison.py              0     0     0     0     6.24
+
+==============================================================================
+3. No committed file contains an absolute path
+==============================================================================
+Release-gate check 8 fails a whole batch on an absolute home-directory path in
+any tracked file, and five products in one batch tripped it from committed
+validation OUTPUT rather than from code. Every text file in the repository is
+scanned here, including this script's own output.
+
+text files scanned : 84
+patterns searched  : the path separator, then one of home, Users, root, tmp, then the separator again
+offending lines    : 0
+
+This scan reads the working tree, which is what the gate reads. This
+script's own output file is deleted immediately before the scan and written
+again after it, so a previous run's report of an offender cannot be counted
+as a fresh offender. A non-zero count above is a real offender.
+
+==============================================================================
+Result
+==============================================================================
+Every script exited zero from every directory, and no tracked text file
+contains an absolute path.
+

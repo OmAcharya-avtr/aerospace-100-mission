@@ -1,0 +1,18 @@
+description: Two identical units in parallel with a declared beta factor. The smallest
+  diagram on which the headline comparison says something.
+name: redundant pair
+root:
+  beta_factor: 0.1
+  items:
+  - distribution:
+      kind: exponential
+      rate_per_hour: 2.0e-06
+    kind: block
+    name: unit_a
+  - distribution:
+      kind: exponential
+      rate_per_hour: 2.0e-06
+    kind: block
+    name: unit_b
+  kind: parallel
+  label: pair

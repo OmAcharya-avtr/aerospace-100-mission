@@ -1,0 +1,284 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  reliablock: redundancy arithmetic that is explicit about the assumption doing
+  the work
+version: 0.1.0
+date-released: 2026-10-25
+license: Apache-2.0
+abstract: >-
+  Takes a declared reliability block diagram -- series, parallel, k-of-n,
+  standby with a declared switching reliability, shared load, common cause as a
+  declared beta factor, and a general two-terminal network -- with per-block
+  failure distributions, and computes system reliability over a mission profile
+  in closed form, minimal cut sets, and Birnbaum, criticality and
+  Fussell-Vesely importance measures. The headline output is the reliability
+  computed with and without the declared common-cause beta, side by side,
+  because independence is the assumption that fails in flight hardware and the
+  one most often left implicit. On a thirteen-block small-satellite bus over
+  26298 hours the declared beta factors of 0.12, 0.08 and 0.05 move the system
+  unreliability from 3.049573463e-02 to 3.771048369e-02, a ratio of 1.236582,
+  and raise the number of minimal cut sets of order one from 3 to 6 -- the
+  second half being the part that is not a percentage, because a group whose
+  members share a cause is not redundant against that cause however many
+  members it has. There is no learned component, deliberately: for a declared
+  diagram with declared distributions the reliability has a correct answer, so
+  a fitted model could only approximate the arithmetic. Every structure is
+  checked against an independent reference -- the binomial survival function
+  from scipy.stats for k-of-n, a convolution integral from scipy.integrate.quad
+  for standby, a four-state Markov ODE solved with DOP853 at rtol 1e-12 for
+  shared load, exhaustive state enumeration for the Boolean structures -- with
+  a worst relative difference of 4.038264e-14 across 108 shared-load cases and
+  4.281257e-16 across 300 k-of-n cases. Minimal cut sets agree with exhaustive
+  enumeration on all 13 diagrams measured, over 147712 states. Birnbaum
+  importance agrees with a central finite difference to 3.490329e-09 over 135
+  comparisons spanning five decades of step size. The five-component bridge
+  network's closed form R = 2p^5 - 5p^4 + 2p^3 + 2p^2 is derived in full in
+  reliablock.bridge by pivotal decomposition and verified five independent
+  ways; no page number or published figure is quoted for it, because this build
+  had no access to the volumes cited for the method. Monte Carlo budgets are
+  sized from a declared target interval half-width of 1 percent of the system
+  unreliability rather than chosen as round numbers, and all 8 runs lie within
+  1.9129 standard errors of their closed form. Numerically, every small failure
+  probability is carried in unreliability space: the complementary route
+  1 - prod(1 - q_i) returns exactly zero for 10 of 18 measured parallel cases
+  where the answer is positive, and the naive series expression falls outside
+  an independently derived Bonferroni bracket in 13 of 20 cases, which a
+  property test sharing the expression could not detect. Hypothesis found three
+  library defects the hand-written suite did not, all pinned as named
+  regression tests. 454 tests pass; 134 validation checks pass and 1 fails, the
+  failure being a published measurement that the cumulative-exposure ageing
+  model diverges from calendar-time hazard integration by up to 1852.73 percent
+  for a non-exponential block, which is a modelling choice and not a defect.
+  The reliability package (0.9.0) is the better tool for distribution fitting,
+  accelerated life testing and repairable-system analysis and the README says
+  so; it is not installed in the environment these numbers were measured in and
+  no number here came from it. Validation is level 2. Research grade. Not
+  flight-qualified, not certified, not approved for operational aerospace use.
+  A reliability number is not a safety case.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - reliability-block-diagram
+  - redundancy
+  - common-cause-failure
+  - beta-factor
+  - minimal-cut-sets
+  - importance-measures
+  - birnbaum
+  - fussell-vesely
+  - aerospace-assurance
+references:
+  - type: book
+    authors:
+      - family-names: Barlow
+        given-names: "R. E."
+      - family-names: Proschan
+        given-names: "F."
+    title: "Statistical Theory of Reliability and Life Testing"
+    publisher:
+      name: "Holt, Rinehart and Winston"
+    year: 1975
+    notes: >-
+      Chapter 1, the coherent structure function and its pivotal decomposition,
+      which is the method reliablock.quantify uses for a general two-terminal
+      network and the method the bridge closed form is derived by in
+      reliablock.bridge. Cited for the METHOD only. No page number and no
+      numerical value in this repository is taken from it; the bridge
+      polynomial is derived in full in reliablock.bridge's module docstring and
+      verified five independent ways in validation/validate_bridge.py.
+  - type: book
+    authors:
+      - family-names: Billinton
+        given-names: "R."
+      - family-names: Allan
+        given-names: "R. N."
+    title: "Reliability Evaluation of Engineering Systems"
+    edition: "2nd"
+    publisher:
+      name: "Plenum Press"
+    year: 1992
+    notes: >-
+      The bridge network and the conditional-probability method applied to it.
+      Cited for the method only; this build had no access to the volume and no
+      page number or published figure is quoted from it.
+  - type: article
+    authors:
+      - family-names: Esary
+        given-names: "J. D."
+      - family-names: Proschan
+        given-names: "F."
+    title: "Coherent structures of non-identical components"
+    journal: "Technometrics"
+    volume: 5
+    issue: 2
+    year: 1963
+    notes: >-
+      The min-cut lower and min-path upper bounds on the reliability of a
+      coherent system, implemented as reliablock.bounds.esary_proschan_bounds
+      and used as an independently derived check that shares no expression with
+      the quantifier. The bounds are exact for a series-parallel structure and
+      strict for the bridge, where the measured bracket at p = 0.9 is
+      [9.781407801000e-01, 9.973487799000e-01], of width 1.920800e-02, around
+      an exact value of 0.97848.
+  - type: article
+    authors:
+      - family-names: Bonferroni
+        given-names: "C. E."
+    title: >-
+      Teoria statistica delle classi e calcolo delle probabilita
+    journal: >-
+      Pubblicazioni del R. Istituto Superiore di Scienze Economiche e
+      Commerciali di Firenze
+    volume: 8
+    year: 1936
+    notes: >-
+      The first- and second-order inequalities on the probability of a union,
+      implemented as reliablock.bounds.bonferroni_series_bounds. Both sides are
+      sums of non-negative terms, so neither inherits the cancellation in
+      1 - prod(1 - q_i), which is why this is the check that detects it: the
+      naive expression falls outside the bracket in 13 of 20 measured cases.
+  - type: article
+    authors:
+      - family-names: Birnbaum
+        given-names: "Z. W."
+    title: >-
+      On the importance of different components in a multicomponent system
+    year: 1969
+    notes: >-
+      In Multivariate Analysis II, Academic Press, pages 581 to 592. The
+      Birnbaum importance measure dQ_sys/dq_i, implemented in
+      reliablock.importance and verified against a central finite difference of
+      the system unreliability to 3.490329e-09 over 135 comparisons.
+  - type: article
+    authors:
+      - family-names: Fussell
+        given-names: "J. B."
+    title: >-
+      How to hand-calculate system reliability and safety characteristics
+    journal: "IEEE Transactions on Reliability"
+    volume: "R-24"
+    issue: 3
+    year: 1975
+    notes: >-
+      The Fussell-Vesely importance measure. Computed exactly here, by
+      enumerating the states of the events appearing in the relevant cut sets,
+      rather than by the rare-event approximation, which was measured to
+      overestimate by up to 1.268384e-01 on the diagrams in
+      validation/validate_importance_output.txt and is the usual source of a
+      published Fussell-Vesely figure above 1.
+  - type: report
+    authors:
+      - family-names: Fleming
+        given-names: "K. N."
+    title: >-
+      A reliability model for common mode failures in redundant safety systems
+    institution:
+      name: "General Atomic"
+    number: "GA-A13284"
+    year: 1975
+    notes: >-
+      The origin of the beta factor. Cited for the model's structure only. No
+      numerical beta in this repository comes from any source: every one is a
+      declared input chosen to span a range, and the README says so.
+  - type: report
+    authors:
+      - family-names: Mosleh
+        given-names: "A."
+      - family-names: Fleming
+        given-names: "K. N."
+      - family-names: Parry
+        given-names: "G. W."
+      - family-names: Paula
+        given-names: "H. M."
+      - family-names: Worledge
+        given-names: "D. H."
+      - family-names: Rasmuson
+        given-names: "D. M."
+    title: >-
+      Procedures for Treating Common Cause Failures in Safety and Reliability
+      Studies
+    number: "NUREG/CR-4780, EPRI NP-5613"
+    year: 1988
+    notes: >-
+      The standard treatment of parametric common-cause models, which sets the
+      beta factor in the context of the multiple-Greek-letter and alpha-factor
+      models that carry a separate parameter for each size of partial
+      common-cause failure. Those are NOT implemented here, and
+      validation/validate_commoncause_output.txt measures where their absence
+      matters: for a k-of-n group with k >= 2 the beta factor stops being
+      conservative above a member cumulative hazard located by bisection, at
+      0.302944 for 2-of-3 and 0.042978 for 5-of-6 at beta = 0.1. Structure
+      only; no numerical value in this repository is taken from it.
+  - type: standard
+    title: >-
+      IEC 61508-6:2010, Functional safety of electrical, electronic and
+      programmable electronic safety-related systems, Part 6
+    year: 2010
+    notes: >-
+      Annex D, the beta-factor quantification used in functional-safety
+      practice. Structure only; no numerical value in this repository is taken
+      from it, and nothing in this repository is a functional-safety argument.
+  - type: article
+    authors:
+      - family-names: Weibull
+        given-names: "W."
+    title: "A Statistical Distribution Function of Wide Applicability"
+    journal: "Journal of Applied Mechanics"
+    volume: 18
+    issue: 3
+    year: 1951
+    notes: >-
+      The Weibull life model, implemented as reliablock.distributions.Weibull
+      and cross-checked against scipy.stats.weibull_min to 1e-12 relative on
+      the survival function.
+  - type: book
+    authors:
+      - family-names: Nelson
+        given-names: "W."
+    title: >-
+      Accelerated Testing: Statistical Models, Test Plans, and Data Analyses
+    publisher:
+      name: "Wiley"
+    year: 1990
+    notes: >-
+      Chapter 10, the cumulative-exposure model, which is the ageing model
+      reliablock.mission implements for a stress factor. It is exact for an
+      exponential block and an approximation otherwise, and
+      validation/validate_mission.py declares and FAILS a check that it agrees
+      with calendar-time integration of a scaled hazard rate, with a measured
+      worst divergence of 1852.73 percent. Structure only; no numerical value
+      in this repository is taken from it.
+  - type: article
+    authors:
+      - family-names: Wilson
+        given-names: "E. B."
+    title: >-
+      Probable Inference, the Law of Succession, and Statistical Inference
+    journal: "Journal of the American Statistical Association"
+    volume: 22
+    year: 1927
+    notes: >-
+      The score interval for a binomial proportion, used for every Monte Carlo
+      interval in this repository because it stays inside [0, 1] and does not
+      collapse to zero width when no failure is observed -- both of which
+      matter for a redundant diagram whose unreliability is small by
+      construction.
+  - type: software
+    title: "reliability"
+    version: "0.9.0"
+    notes: >-
+      The mature alternative, and the better choice for distribution fitting,
+      accelerated life testing and repairable-system analysis. Named and
+      recommended for those in this package's README. NOT installed in the
+      environment these numbers were measured in, and no number in this
+      repository came from it or was cross-checked against it; that is recorded
+      as a deviation in validation/VALIDATION.md.
+  - type: software
+    title: "lifelines"
+    notes: >-
+      Survival analysis and regression on lifetime data with censoring, which
+      is the right tool when the input is field or test data rather than a
+      declared diagram. Named in this package's README. NOT installed in the
+      environment these numbers were measured in, and no number in this
+      repository came from it.

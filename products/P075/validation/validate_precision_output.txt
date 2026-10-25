@@ -1,0 +1,245 @@
+
+==============================================================================
+what reliability space costs, measured
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  reliability      : not installed
+  lifelines        : not installed
+  cpu cores        : 2
+  repository root  : P075 (printed relatively; see validation/_bootstrap.py)
+
+  reliability and lifelines are named in the README alternatives table and
+  are NOT installed here. No number in this repository was cross-checked
+  against either of them, and none claims to have been.
+
+  machine epsilon                    : 2.220446e-16
+
+  Every figure below is a measurement of the package's own arithmetic
+  against an alternative route, or against an independently derived
+  bound. The point of the bound checks is that two implementations of
+  one expression agree when the expression is wrong.
+
+==============================================================================
+parallel: where the complementary route loses the whole answer
+==============================================================================
+
+  Q space : Q = prod Q_i, exact.
+  R space : Q = 1 - prod(1 - Q_i), which is 1 minus a number that
+            rounds to 1 as soon as Q falls below eps.
+
+    n      q each      Q in Q space      Q in R space     rel error  digits lost
+  ------------------------------------------------------------------------------
+    2     1.0e-02      1.000000e-04      1.000000e-04     1.102e-13         13.0
+    2     1.0e-04      1.000000e-08      1.000000e-08     5.025e-09          8.3
+    2     1.0e-06      1.000000e-12      9.999779e-13     2.212e-05          4.7
+    2     1.0e-08      1.000000e-16      1.110223e-16     1.102e-01          1.0
+    2     1.0e-09      1.000000e-18      0.000000e+00     1.000e+00          ALL
+    2     1.0e-12      1.000000e-24      0.000000e+00     1.000e+00          ALL
+    3     1.0e-02      1.000000e-06      1.000000e-06     2.876e-11         10.5
+    3     1.0e-04      1.000000e-12      9.999779e-13     2.212e-05          4.7
+    3     1.0e-06      1.000000e-18      0.000000e+00     1.000e+00          ALL
+    3     1.0e-08      1.000000e-24      0.000000e+00     1.000e+00          ALL
+    3     1.0e-09      1.000000e-27      0.000000e+00     1.000e+00          ALL
+    3     1.0e-12      1.000000e-36      0.000000e+00     1.000e+00          ALL
+    4     1.0e-02      1.000000e-08      1.000000e-08     5.025e-09          8.3
+    4     1.0e-04      1.000000e-16      1.110223e-16     1.102e-01          1.0
+    4     1.0e-06      1.000000e-24      0.000000e+00     1.000e+00          ALL
+    4     1.0e-08      1.000000e-32      0.000000e+00     1.000e+00          ALL
+    4     1.0e-09      1.000000e-36      0.000000e+00     1.000e+00          ALL
+    4     1.0e-12      1.000000e-48      0.000000e+00     1.000e+00          ALL
+
+  cases where the R-space route returned exactly 0.0 : 10
+
+  The 'digits lost' column is log10 of the relative error, so a value
+  of 4.0 means four significant figures survive. 'ALL' means the route
+  returned zero where the answer is positive.
+  [PASS] the Q-space parallel product never returns zero for a positive answer -- Q at q = 1e-12 is 1.000000e-24
+  [PASS] the R-space route does lose the answer, which is why it is not used -- 10 of 18 cases returned exactly 0.0
+
+  the same thing through the package's own quantifier:
+
+        q each         package Q             package R             1 - R
+  ----------------------------------------------------------------------
+       1.0e-06      1.000000e-12   0.99999999999900002      9.999779e-13
+       1.0e-08      1.000000e-16   0.99999999999999989      1.110223e-16
+       1.0e-09      1.000000e-18   1.00000000000000000      0.000000e+00
+       1.0e-12      1.000000e-24   1.00000000000000000      0.000000e+00
+
+  The last column is what a package that carried only the reliability
+  would be able to report. At q = 1e-9 it is exactly zero and the
+  Q column is 1e-18.
+
+==============================================================================
+series: the naive expression falls outside an independently derived bound
+==============================================================================
+
+  Bonferroni orders 1 and 2 bracket the union probability:
+    sum q_i - sum_{i<j} q_i q_j  <=  Q  <=  sum q_i
+  Both sides are sums of non-negative terms, so neither inherits the
+  cancellation in 1 - prod(1 - q_i).
+
+    n    q each      hazard-space Q             naive Q    rel diff  in bound  naive in
+  -------------------------------------------------------------------------------------
+    2   1.0e-03  1.999000000000e-03  1.999000000000e-03   1.345e-14      True     False
+    2   1.0e-06  1.999999000000e-06  1.999999000080e-06   3.982e-11      True      True
+    2   1.0e-09  1.999999999000e-09  1.999999943436e-09   2.778e-08      True     False
+    2   1.0e-12  1.999999999999e-12  1.999955756560e-12   2.212e-05      True     False
+    2   1.0e-15  2.000000000000e-15  1.998401444325e-15   7.993e-04      True     False
+    5   1.0e-03  4.990009995001e-03  4.990009995001e-03   2.433e-15      True      True
+    5   1.0e-06  4.999990000010e-06  4.999990000143e-06   2.659e-11      True      True
+    5   1.0e-09  4.999999990000e-09  4.999999858590e-09   2.628e-08      True     False
+    5   1.0e-12  4.999999999990e-12  4.999889391399e-12   2.212e-05      True     False
+    5   1.0e-15  5.000000000000e-15  4.996003610813e-15   7.993e-04      True     False
+   10   1.0e-03  9.955119790252e-03  9.955119790252e-03   2.614e-15      True      True
+   10   1.0e-06  9.999955000120e-06  9.999955000395e-06   2.749e-11      True      True
+   10   1.0e-09  9.999999955000e-09  9.999999717181e-09   2.378e-08      True     False
+   10   1.0e-12  9.999999999955e-12  9.999778782799e-12   2.212e-05      True     False
+   10   1.0e-15  1.000000000000e-14  9.992007221626e-15   7.993e-04      True     False
+   50   1.0e-03  4.879437180297e-02  4.879437180297e-02   8.532e-16      True      True
+   50   1.0e-06  4.999877501960e-05  4.999877502099e-05   2.775e-11      True      True
+   50   1.0e-09  4.999999877500e-08  4.999999736466e-08   2.821e-08      True     False
+   50   1.0e-12  4.999999999878e-11  4.999889391399e-11   2.212e-05      True     False
+   50   1.0e-15  5.000000000000e-14  4.996003610813e-14   7.993e-04      True     False
+
+  cases                              : 20
+  hazard-space figures outside bound : 0
+  naive figures outside bound        : 13
+  [PASS] the hazard-space series unreliability lies inside the Bonferroni bracket in every case -- 0 of 20 outside
+  [PASS] the naive expression falls outside the bracket, which a same-expression property test could not detect -- 13 of 20 outside
+
+  the worked case the README quotes, in full:
+
+    blocks                           : 10
+    per-block unreliability          : 1.0e-12
+    Bonferroni lower bound           : 9.999999999954999e-12
+    Bonferroni upper bound           : 9.999999999999999e-12
+    bracket width                    : 4.500056e-23
+    bracket slack allowed            : 1.221245e-25
+    hazard-space Q (this package)    : 9.999999999955000e-12
+    naive 1 - prod(1 - q_i)          : 9.999778782798785e-12
+    naive relative error             : 2.212172e-05
+    significant figures lost         : 4.66
+    naive inside the bracket         : False
+
+==============================================================================
+k-of-n: R and Q from two separate non-negative convolutions
+==============================================================================
+
+  R = P(at least k survive) and Q = P(at least n-k+1 fail) are computed
+  by two separate recurrences over non-negative terms. Neither is 1
+  minus the other, so neither inherits the other's cancellation, and
+  their sum differs from 1 only by accumulated rounding -- which is
+  reported rather than hidden.
+
+    k  n    q each       Q (own space)               1 - R     R + Q - 1
+  ----------------------------------------------------------------------
+    2  3   1.0e-03        2.998000e-06        2.998000e-06     0.000e+00
+    2  3   1.0e-06        2.999998e-12        3.000045e-12     0.000e+00
+    2  3   1.0e-09        3.000000e-18        0.000000e+00     0.000e+00
+    3  3   1.0e-03        2.997001e-03        2.997001e-03     0.000e+00
+    3  3   1.0e-06        2.999997e-06        2.999997e-06    -1.110e-16
+    3  3   1.0e-09        3.000000e-09        3.000000e-09     0.000e+00
+    2  4   1.0e-03        3.997000e-09        3.997000e-09     0.000e+00
+    2  4   1.0e-06        3.999997e-18        0.000000e+00     0.000e+00
+    2  4   1.0e-09        4.000000e-27        0.000000e+00     0.000e+00
+    3  4   1.0e-03        5.992003e-06        5.992003e-06     0.000e+00
+    3  4   1.0e-06        5.999992e-12        5.999978e-12     0.000e+00
+    3  4   1.0e-09        6.000000e-18        0.000000e+00     0.000e+00
+    4  4   1.0e-03        3.994004e-03        3.994004e-03     0.000e+00
+    4  4   1.0e-06        3.999994e-06        3.999994e-06    -1.110e-16
+    4  4   1.0e-09        4.000000e-09        4.000000e-09     0.000e+00
+    2  5   1.0e-03        4.996000e-12        4.996004e-12     0.000e+00
+    2  5   1.0e-06        4.999996e-24        0.000000e+00     0.000e+00
+    2  5   1.0e-09        5.000000e-36        0.000000e+00     0.000e+00
+    4  5   1.0e-03        9.980015e-06        9.980015e-06     0.000e+00
+    4  5   1.0e-06        9.999980e-12        1.000000e-11     0.000e+00
+    4  5   1.0e-09        1.000000e-17        0.000000e+00     0.000e+00
+    5  5   1.0e-03        4.990010e-03        4.990010e-03     0.000e+00
+    5  5   1.0e-06        4.999990e-06        4.999990e-06    -1.110e-16
+    5  5   1.0e-09        5.000000e-09        5.000000e-09     2.220e-16
+
+  worst R + Q - 1                    : 2.220446e-16
+  [PASS] R and Q from their own spaces sum to 1 to within accumulated rounding -- worst 2.220446e-16 against tolerance 1.0e-14
+
+  the Q-space route against the leading-order expansion:
+  for a k-of-n group of identical blocks, Q = C(n, n-k+1) q^(n-k+1) + O(q^(n-k+2))
+
+    k  n    q each          Q computed        leading term       ratio
+  --------------------------------------------------------------------
+    2  3   1.0e-09        3.000000e-18        3.000000e-18 0.999999999
+    2  4   1.0e-09        4.000000e-27        4.000000e-27 0.999999999
+    3  4   1.0e-09        6.000000e-18        6.000000e-18 0.999999999
+    2  5   1.0e-09        5.000000e-36        5.000000e-36 0.999999999
+    4  5   1.0e-09        1.000000e-17        1.000000e-17 0.999999998
+
+  The ratio approaching 1 from below as q shrinks is the expansion being
+  correct; a Q computed as 1 - R would be zero in this whole table.
+
+==============================================================================
+bridge: pivotal decomposition in Q space keeps a tiny answer
+==============================================================================
+
+  Q = 2q^2 + O(q^3) for the five-edge bridge at equal edge
+  unreliability q. The pivotal decomposition is carried out entirely in
+  unreliability space, and its terms are non-negative, so there is no
+  cancellation at any depth of the recursion.
+
+      q each          Q computed               2 q^2         ratio                     R         1 - R
+  ----------------------------------------------------------------------------------------------------
+     1.0e-03        2.001995e-06        2.000000e-06   1.000997501   0.99999799800499800     2.002e-06
+     1.0e-05        2.000020e-10        2.000000e-10   1.000010000   0.99999999979999799     2.000e-10
+     1.0e-07        2.000000e-14        2.000000e-14   1.000000100   0.99999999999998002     1.998e-14
+     1.0e-09        2.000000e-18        2.000000e-18   1.000000001   1.00000000000000000     0.000e+00
+     1.0e-11        2.000000e-22        2.000000e-22   1.000000000   1.00000000000000000     0.000e+00
+
+  The last two columns are the point: from q = 1e-9 down, the
+  reliability is exactly 1.0 and the only route to the answer is the
+  unreliability column.
+  [PASS] the bridge keeps a Q of order 1e-22 while its R is exactly 1.0 -- Q = 2.000000e-22, R = 1.0
+
+==============================================================================
+the hazard round trip in both directions
+==============================================================================
+
+  H -> Q -> H keeps full relative precision for any H. H -> R -> H
+  loses everything below eps, because R is exactly 1.0 there.
+
+             H      Q = -expm1(-H)            H from Q         rel           R = exp(-H)    H from R
+  --------------------------------------------------------------------------------------------------
+       1.0e-18        1.000000e-18        1.000000e-18   0.000e+00   1.00000000000000000   0.000e+00
+       1.0e-15        1.000000e-15        1.000000e-15   0.000e+00   0.99999999999999900   9.992e-16
+       1.0e-12        1.000000e-12        1.000000e-12   0.000e+00   0.99999999999900002   1.000e-12
+       1.0e-09        1.000000e-09        1.000000e-09   0.000e+00   0.99999999900000003   1.000e-09
+       1.0e-06        9.999995e-07        1.000000e-06   0.000e+00   0.99999900000050002   1.000e-06
+       1.0e-03        9.995002e-04        1.000000e-03   0.000e+00   0.99900049983337502   1.000e-03
+       1.0e+00        6.321206e-01        1.000000e+00   0.000e+00   0.36787944117144233   1.000e+00
+
+  worst relative round-trip error via Q : 0.000000e+00
+  hazards lost entirely via R           : 1
+  [PASS] the H -> Q -> H round trip keeps full relative precision -- worst 0.000000e+00
+  [PASS] the H -> R -> H round trip does lose small hazards, which is why Q is the carrier -- 1 of 7 hazards returned exactly 0.0
+
+==============================================================================
+timing, declared unstable
+==============================================================================
+
+  | quantity | value | stability |
+  |---|---|---|
+  | whole script wall clock | 0.01 s | UNSTABLE, shared hardware |
+
+CHECKS PASSED: 8
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

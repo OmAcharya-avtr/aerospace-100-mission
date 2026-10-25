@@ -1,0 +1,111 @@
+
+==============================================================================
+pytest.approx default-absolute-tolerance audit
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  reliability      : not installed
+  lifelines        : not installed
+  cpu cores        : 2
+  repository root  : P075 (printed relatively; see validation/_bootstrap.py)
+
+  reliability and lifelines are named in the README alternatives table and
+  are NOT installed here. No number in this repository was cross-checked
+  against either of them, and none claims to have been.
+
+  pytest.approx(expected, rel=r) carries a DEFAULT ABSOLUTE TOLERANCE of
+  1e-12 and passes on EITHER bound. For this package that matters: the
+  unreliability figures here are routinely of order 1e-5 and go down to
+  1e-18, so a relative tolerance tighter than about 2e-8 on a 1e-5
+  quantity is silently replaced by the absolute default.
+
+==============================================================================
+static count of approx-style calls in the committed suite
+==============================================================================
+
+  direct pytest.approx calls with rel= and no abs=, if any:
+    none
+
+  calls through the rel()/abs_() helpers : 124
+  direct pytest.approx with explicit abs= : 0
+  direct pytest.approx with rel= and no abs= : 0
+
+  tests/conftest.py is excluded from this scan: it defines the two
+  helpers and is therefore the only file that legitimately calls
+  pytest.approx directly.
+
+  The helpers in tests/conftest.py pass abs=0.0 for a relative check and
+  rel=0.0 for an absolute one, so a call through them cannot inherit the
+  default. A direct call with rel= and no abs= can, and is the thing
+  this audit is looking for.
+
+==============================================================================
+run 1: the suite as committed
+==============================================================================
+
+  exit code                          : 0
+  tests                              : 454
+  failures                           : 0
+  errors                             : 0
+  skipped                            : 0
+  testcase_elements                  : 454
+  [PASS] the committed suite passes -- exit 0
+  [PASS] the junit testsuite attributes agree with the literal testcase count -- 454 declared against 454 testcase elements
+
+==============================================================================
+run 2: pytest.approx rejects a rel= without an explicit abs=
+==============================================================================
+
+  The injected plugin raises on any pytest.approx call that passes
+  rel= without abs=, so an assertion relying on the default fails
+  loudly rather than quietly keeping a tolerance it does not have.
+
+  exit code                          : 0
+  tests                              : 454
+  failures                           : 0
+  errors                             : 0
+  skipped                            : 0
+  testcase_elements                  : 454
+
+  assertions that depended on the default absolute tolerance : 0
+  [PASS] no assertion in the suite depends on pytest.approx's default absolute tolerance -- 0 of 454 affected
+  [PASS] both runs collected the same number of tests -- 454 against 454
+
+==============================================================================
+the answer, stated plainly
+==============================================================================
+
+  tests in the suite                 : 454
+  assertions relying on the 1e-12 default : 0
+
+  The suite uses two helpers for every comparison:
+    rel(expected, tolerance)  -> pytest.approx(expected, rel=t, abs=0.0)
+    abs_(expected, tolerance) -> pytest.approx(expected, rel=0.0, abs=t)
+
+  so the relative checks are relative and the absolute checks are
+  absolute, and neither can be replaced by the other without the test
+  text changing.
+
+==============================================================================
+timing, declared unstable
+==============================================================================
+
+  | quantity | value | stability |
+  |---|---|---|
+  | two full suite runs | 25.12 s | UNSTABLE, shared hardware |
+
+CHECKS PASSED: 4
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

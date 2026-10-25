@@ -1,0 +1,24 @@
+description: 'Two units sharing a load at 45 percent of their full-load hazard rate
+  each. Dependent by construction: no beta factor is declared or accepted, because
+  the dependence is already in the model.'
+name: load sharing pair
+notes:
+- 'Importance measures are refused for this diagram: the quantification is not the
+  independent-event arithmetic over its structure function.'
+root:
+  kind: shared_load
+  label: pumps
+  shared_rate_factor: 0.45
+  units:
+  - description: full-load rate
+    distribution:
+      kind: exponential
+      rate_per_hour: 5.0e-05
+    kind: block
+    name: pump_a
+  - description: full-load rate
+    distribution:
+      kind: exponential
+      rate_per_hour: 5.0e-05
+    kind: block
+    name: pump_b

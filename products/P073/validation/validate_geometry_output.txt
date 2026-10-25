@@ -1,0 +1,144 @@
+
+==============================================================================
+contactsched validate_geometry
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+astropy          : not installed
+pulp             : 4.1.0
+ortools          : not installed
+cpu cores        : 2
+repository root  : P073 (printed relatively; see validation/_bootstrap.py)
+
+astropy is NOT installed in this environment. It is named in README.md as a
+mature alternative for frames and time scales and no number anywhere in this
+repository is a cross-check against it; the independent geometric check in
+validate_geometry.py is a second derivation written in this package.
+ortools is NOT installed. pulp is installed but ships no solver, which is the
+measurement that moved the exact baseline onto HiGHS; see validate_exact.py.
+
+==============================================================================
+1. WGS-84 constants against their closed forms
+==============================================================================
+quantity                                                    value              reference
+------------------------------------------------------------------------------------------
+semi-major axis a (km)                          6378.137000000000      6378.137000000000
+semi-minor axis b = a(1-f) (km)                 6356.752314245179      6356.752314245179
+first eccentricity squared e2                      0.006694379990         0.006694379990
+max normal-to-radial deviation (deg)               0.192424301160         0.192424301160
+
+brute-force scan of the deviation over latitude at 1e-4 deg resolution: maximum 0.19242430115954 deg at 45.0962 deg
+closed form minus scan                                       : +2.004e-14 deg
+
+==============================================================================
+2. GMST against sgp4.propagation.gstime (an installed implementation)
+==============================================================================
+   JD - J2000 (days)     this package (rad)             sgp4 (rad)       |diff|
+--------------------------------------------------------------------------------
+           -21915.00      4.886899667842255      4.886899667840943    1.312e-12
+            -7305.00      4.892273489477020      4.892273489482186    5.166e-12
+             -365.25      3.324030486996120      3.324030486996051    6.883e-14
+               -1.00      4.877758421017758      4.877758421017758    0.000e+00
+                0.00      4.894961212823059      4.894961212823059    0.000e+00
+                0.50      1.761969955135920      1.761969955135921    1.332e-15
+                1.00      4.912164004628370      4.912164004628369    8.882e-16
+              365.25      0.182706632824193      0.182706632824328    1.350e-13
+             7305.00      4.897649477843002      4.897649477830846    1.216e-11
+            21915.00      4.903027632697468      4.903027632719578    2.211e-11
+
+worst absolute disagreement over 120 years of span: 2.211e-11 rad
+equivalent Earth rotation                        : 1.267e-09 deg
+tolerance                                        : 1.000e-08 rad
+
+==============================================================================
+3. Two geocentric elevation derivations (two implementations, one quantity)
+==============================================================================
+Law of cosines on three lengths against the vector dot product.
+
+|elevation| band (deg)           n   max |diff| (deg)         median
+----------------------------------------------------------------------
+[  0.00,   0.10)               57          2.869e-14      7.452e-15
+[  0.10,   1.00)              595          6.606e-14      7.827e-15
+[  1.00,   5.00)             2637          1.030e-13      7.550e-15
+[  5.00,  20.00)             7552          1.652e-13      7.105e-15
+[ 20.00,  60.00)            10456          2.771e-13      1.421e-14
+[ 60.00,  90.00)             2744          2.615e-12      4.263e-14
+
+What the table actually shows, which is NOT what was expected:
+
+The law-of-cosines numerator r_sat**2 - r_station**2 - range**2 is a
+difference of nearly equal large numbers near the horizon, so the expectation
+was that the disagreement would grow as the elevation fell. It does the
+opposite. The cancellation leaves an absolute error in sin(elevation) of order
+eps * r_station / (2 * range), which is 3.9e-16 at these ranges and is almost
+flat in elevation; the conversion through arcsin then multiplies it by
+1 / cos(elevation), which is 1 at the horizon and 57 at 89 degrees. The
+amplification near the zenith dominates the cancellation near the horizon, and
+the worst disagreement in this sample is in the highest band, not the lowest.
+
+This is recorded rather than corrected because the prose written before the
+measurement said the reverse, and the measurement is what is published.
+
+Scaling of the disagreement with slant range, at fixed elevation near 45 deg:
+
+  slant range (km)   eps*R/(2*range) (rad)   measured max (deg)
+----------------------------------------------------------------
+             100.0               7.068e-15            1.201e-12
+             400.0               1.767e-15            2.913e-13
+            1600.0               4.417e-16            8.527e-14
+            6400.0               1.104e-16            7.816e-14
+           25600.0               2.761e-17            1.208e-13
+
+The tolerance asserted is on the band where the scheduler reads the angle:
+  above 10 deg elevation: worst 2.615e-12 deg, tolerance 1.000e-06 deg
+  over the whole sample : worst 2.615e-12 deg, tolerance 1.000e-06 deg
+
+==============================================================================
+4. Geodetic against geocentric elevation, against an INDEPENDENT BOUND
+==============================================================================
+The bound is the closed-form maximum angle between the WGS-84 ellipsoid
+normal and the position vector. It is derived from the ellipsoid and shares no
+expression with either elevation computation, so it can falsify a mistake that
+both of them make. It did: a hard-coded 0.19242218 deg stood in geometry.py
+until this check failed by 1.0e-06 deg.
+
+station latitude (deg)       n   max |geodetic - geocentric|
+--------------------------------------------------------------
+                 -80.0    4000                   0.066021159
+                 -60.0    4000                   0.166923847
+                 -45.1    4000                   0.192424198
+                 -20.0    4000                   0.123370126
+                   0.0    4000                   0.000000000
+                  20.0    4000                   0.123370135
+                  45.1    4000                   0.192424299
+                  60.0    4000                   0.166923849
+                  80.0    4000                   0.066021150
+
+worst over all latitudes : 0.192424299 deg
+independently derived bound: 0.192424301 deg
+margin                   : +1.682e-09 deg
+
+==============================================================================
+5. Exact configurations
+==============================================================================
+configuration                                          computed      exact
+----------------------------------------------------------------------------
+radial point above an equatorial station (deg)     90.000000000       90.0
+due-east tangential point, elevation (deg)          0.000000000        0.0
+due-east tangential point, azimuth (deg)           90.000000000       90.0
+due-east tangential point, range (km)             500.000000000      500.0
+
+==============================================================================
+Result
+==============================================================================
+All checks in this script passed.
+

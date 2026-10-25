@@ -1,0 +1,213 @@
+
+==============================================================================
+Monte Carlo against the closed forms, budget derived from a target
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  reliability      : not installed
+  lifelines        : not installed
+  cpu cores        : 2
+  repository root  : P075 (printed relatively; see validation/_bootstrap.py)
+
+  reliability and lifelines are named in the README alternatives table and
+  are NOT installed here. No number in this repository was cross-checked
+  against either of them, and none claims to have been.
+
+  seed                               : 20261025
+  pilot trials                       : 50000
+  target half-width                  : 0.010 of the system Q
+  trial cap                          : 20000000
+
+  The closed form is the reference throughout. The simulation shares no
+  algebra with it: standby is simulated by drawing the primary's
+  lifetime, trying the switch and ageing the spare at its declared
+  fraction; shared load by drawing the first failure and redrawing the
+  survivor's residual life at the full rate; a network by testing its
+  minimal path sets.
+
+==============================================================================
+every built-in case over its default mission
+==============================================================================
+
+  load_sharing_pair over 26298 h
+    closed form R                  : 0.645816477949
+    closed form Q                  : 3.541835221e-01
+    pilot Q (50000 trials)       : 3.543000000e-01
+    target interval half-width     : 3.543000e-03
+    trials needed for that target  : 70010
+    trials run (cap 20000000)  : 70010
+    simulated R                    : 0.644507927439
+    Wilson 95 percent interval     : [0.640954426650, 0.648045570756]
+    achieved half-width            : 3.545572e-03
+    half-width as a fraction of Q  : 0.010007
+    closed form inside interval    : True
+    distance in standard errors    : 0.7233
+    signed difference R_mc - R_cf  : -1.308550510e-03
+
+  redundant_pair over 26298 h
+    closed form R                  : 0.997374793955
+    closed form Q                  : 2.625206045e-03
+    pilot Q (50000 trials)       : 2.660000000e-03
+    target interval half-width     : 2.660000e-05
+    trials needed for that target  : 14403160
+    trials run (cap 20000000)  : 14403160
+    simulated R                    : 0.997372035026
+    Wilson 95 percent interval     : [0.997345462278, 0.997398342465]
+    achieved half-width            : 2.644009e-05
+    half-width as a fraction of Q  : 0.009940
+    closed form inside interval    : True
+    distance in standard errors    : 0.2045
+    signed difference R_mc - R_cf  : -2.758929026e-06
+
+  smallsat_bus over 26298 h
+    closed form R                  : 0.969504265371
+    closed form Q                  : 3.049573463e-02
+    pilot Q (50000 trials)       : 3.026000000e-02
+    target interval half-width     : 3.049573e-04
+    trials needed for that target  : 1221257
+    trials run (cap 20000000)  : 1221257
+    simulated R                    : 0.969230882607
+    Wilson 95 percent interval     : [0.968923125646, 0.969535687650]
+    achieved half-width            : 3.062810e-04
+    half-width as a fraction of Q  : 0.010043
+    closed form inside interval    : True
+    distance in standard errors    : 1.7495
+    signed difference R_mc - R_cf  : -2.733827642e-04
+
+  voting_triple over 26298 h
+    closed form R                  : 0.970759195658
+    closed form Q                  : 2.924080434e-02
+    pilot Q (50000 trials)       : 2.912000000e-02
+    target interval half-width     : 2.924080e-04
+    trials needed for that target  : 1275318
+    trials run (cap 20000000)  : 1275318
+    simulated R                    : 0.970472462554
+    Wilson 95 percent interval     : [0.970177247670, 0.970764843173]
+    achieved half-width            : 2.937978e-04
+    half-width as a fraction of Q  : 0.010048
+    closed form inside interval    : True
+    distance in standard errors    : 1.9129
+    signed difference R_mc - R_cf  : -2.867331036e-04
+
+  warm_standby over 26298 h
+    closed form R                  : 0.758135825156
+    closed form Q                  : 2.418641748e-01
+    pilot Q (50000 trials)       : 2.418200000e-01
+    target interval half-width     : 2.418642e-03
+    trials needed for that target  : 120413
+    trials run (cap 20000000)  : 120413
+    simulated R                    : 0.755881840001
+    Wilson 95 percent interval     : [0.753447436051, 0.758299918002]
+    achieved half-width            : 2.426241e-03
+    half-width as a fraction of Q  : 0.010031
+    closed form inside interval    : True
+    distance in standard errors    : 1.8208
+    signed difference R_mc - R_cf  : -2.253985156e-03
+
+==============================================================================
+the headline diagram, with and without the declared common cause
+==============================================================================
+
+  Both halves of the headline comparison are simulated independently, so
+  the difference between them is confirmed by simulation and not only by
+  arithmetic.
+
+  independence assumed
+    closed form R                  : 0.969504265371
+    closed form Q                  : 3.049573463e-02
+    pilot Q (50000 trials)       : 3.026000000e-02
+    target interval half-width     : 3.049573e-04
+    trials needed for that target  : 1221257
+    trials run (cap 20000000)  : 1221257
+    simulated R                    : 0.969230882607
+    Wilson 95 percent interval     : [0.968923125646, 0.969535687650]
+    achieved half-width            : 3.062810e-04
+    half-width as a fraction of Q  : 0.010043
+    closed form inside interval    : True
+    distance in standard errors    : 1.7495
+    signed difference R_mc - R_cf  : -2.733827642e-04
+
+  declared common cause
+    closed form R                  : 0.962289516309
+    closed form Q                  : 3.771048369e-02
+    pilot Q (50000 trials)       : 3.750000000e-02
+    target interval half-width     : 3.771048e-04
+    trials needed for that target  : 980257
+    trials run (cap 20000000)  : 980257
+    simulated R                    : 0.962261937431
+    Wilson 95 percent interval     : [0.961882885054, 0.962637366772]
+    achieved half-width            : 3.772409e-04
+    half-width as a fraction of Q  : 0.010004
+    closed form inside interval    : True
+    distance in standard errors    : 0.1433
+    signed difference R_mc - R_cf  : -2.757887783e-05
+
+==============================================================================
+the phased mission profile
+==============================================================================
+
+  smallsat_bus over the LEO phased profile
+    closed form R                  : 0.974799431710
+    closed form Q                  : 2.520056829e-02
+    pilot Q (50000 trials)       : 2.484000000e-02
+    target interval half-width     : 2.520057e-04
+    trials needed for that target  : 1485940
+    trials run (cap 20000000)  : 1485940
+    simulated R                    : 0.974690768133
+    Wilson 95 percent interval     : [0.974437004015, 0.974942077913]
+    achieved half-width            : 2.525369e-04
+    half-width as a fraction of Q  : 0.010021
+    closed form inside interval    : True
+    distance in standard errors    : 0.8434
+    signed difference R_mc - R_cf  : -1.086635765e-04
+
+==============================================================================
+summary
+==============================================================================
+
+  case                                            trials    half-width     sigma  inside
+  --------------------------------------------------------------------------------------
+  load_sharing_pair                                70010  3.545572e-03    0.7233    True
+  redundant_pair                                14403160  2.644009e-05    0.2045    True
+  smallsat_bus                                   1221257  3.062810e-04    1.7495    True
+  voting_triple                                  1275318  2.937978e-04    1.9129    True
+  warm_standby                                    120413  2.426241e-03    1.8208    True
+  smallsat_bus: independence assumed             1221257  3.062810e-04    1.7495    True
+  smallsat_bus: declared common cause             980257  3.772409e-04    0.1433    True
+  smallsat_bus phased                            1485940  2.525369e-04    0.8434    True
+
+  runs                               : 8
+  closed form outside the interval   : 0
+  worst distance in standard errors  : 1.9129
+
+  A 95 percent interval is expected to miss about 1 run in 20 by
+  construction, so a small number of misses is not evidence of a defect;
+  the distance in standard errors is. Any run beyond 4 sigma is reported
+  as a failed check below.
+  [PASS] every simulation is within 4 standard errors of its closed form -- worst 1.9129 standard errors over 8 runs
+  [PASS] the closed form lies inside at least 80 percent of the intervals -- 0 of 8 outside
+
+==============================================================================
+timing, declared unstable
+==============================================================================
+
+  | quantity | value | stability |
+  |---|---|---|
+  | simulation wall clock | 4.68 s | UNSTABLE, shared hardware |
+  | total trials simulated | 20777612 | stable, seeded |
+
+CHECKS PASSED: 2
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

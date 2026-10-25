@@ -1,0 +1,240 @@
+
+==============================================================================
+the five-component bridge network: derived here, not quoted
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  reliability      : not installed
+  lifelines        : not installed
+  cpu cores        : 2
+  repository root  : P075 (printed relatively; see validation/_bootstrap.py)
+
+  reliability and lifelines are named in the README alternatives table and
+  are NOT installed here. No number in this repository was cross-checked
+  against either of them, and none claims to have been.
+
+==============================================================================
+sourcing, stated before any number
+==============================================================================
+
+  DERIVED IN THIS REPOSITORY:
+    R = 2p^5 - 5p^4 + 2p^3 + 2p^2, by pivotal decomposition on the
+    bridge edge e3:
+
+      with e3 working, vertices a and b merge, giving two parallel
+      pairs in series: (1 - (1-p)^2)^2 = 4p^2 - 4p^3 + p^4
+      with e3 failed, two disjoint paths in parallel:
+      1 - (1 - p^2)^2 = 2p^2 - p^4
+
+      R = p(4p^2 - 4p^3 + p^4) + (1-p)(2p^2 - p^4)
+        = 4p^3 - 4p^4 + p^5 + 2p^2 - p^4 - 2p^3 + p^5
+        = 2p^5 - 5p^4 + 2p^3 + 2p^2
+
+    At p = 0.9 this is 2(0.59049) - 5(0.6561) + 2(0.729) + 2(0.81)
+                     = 1.18098 - 3.2805 + 1.458 + 1.62 = 0.97848
+
+  CITED FOR THE METHOD ONLY:
+    Barlow, R. E. and Proschan, F. (1975), Statistical Theory of
+    Reliability and Life Testing, Holt, Rinehart and Winston, chapter 1,
+    for the pivotal decomposition of a coherent structure.
+    Billinton, R. and Allan, R. N., Reliability Evaluation of
+    Engineering Systems, 2nd edition, Plenum Press, 1992, for the bridge
+    network and the conditional-probability method applied to it.
+
+  NOT CITED:
+    No page number and no published figure. This build had no access to
+    either volume. A page number that cannot be checked is worse than
+    none, so none is given, and the derivation above stands in its place.
+
+==============================================================================
+route 1 to 4: four algebraic routes to the same polynomial
+==============================================================================
+
+         p          derived form          pivotal form             incl-excl               package   worst rel
+  --------------------------------------------------------------------------------------------------------------
+     0.000     0.000000000000000     0.000000000000000     0.000000000000000     0.000000000000000   0.000e+00
+     0.100     0.021520000000000     0.021520000000000     0.021520000000000     0.021520000000000   9.673e-16
+     0.250     0.138671875000000     0.138671875000000     0.138671875000000     0.138671875000000   0.000e+00
+     0.500     0.500000000000000     0.500000000000000     0.500000000000000     0.500000000000000   0.000e+00
+     0.750     0.861328125000000     0.861328125000000     0.861328125000000     0.861328125000000   0.000e+00
+     0.900     0.978480000000000     0.978480000000000     0.978480000000000     0.978480000000000   1.135e-16
+     0.950     0.994780625000000     0.994780625000000     0.994780625000000     0.994780625000000   4.464e-16
+     0.990     0.999798049800000     0.999798049800000     0.999798049799999     0.999798049800000   6.663e-16
+     0.999     0.999997998004998     0.999997998004998     0.999997998004998     0.999997998004998   5.551e-16
+     1.000     1.000000000000000     1.000000000000000     1.000000000000000     1.000000000000000   0.000e+00
+
+  declared tolerance                 : 1.0e-13 relative
+  worst relative difference          : 9.673179e-16
+  [PASS] all four algebraic routes agree -- worst 9.673179e-16 against tolerance 1.0e-13
+
+==============================================================================
+route 5: exhaustive enumeration of all 32 states
+==============================================================================
+
+  This route never forms the polynomial. It evaluates the Boolean
+  structure function on each of the 2**5 states and sums the probability
+  of the ones it calls a failure.
+
+         p          derived form          32-state sum    rel diff
+  ----------------------------------------------------------------
+     0.100     0.021520000000000     0.021520000000000   1.129e-14
+     0.250     0.138671875000000     0.138671875000000   0.000e+00
+     0.500     0.500000000000000     0.500000000000000   0.000e+00
+     0.750     0.861328125000000     0.861328125000000   0.000e+00
+     0.900     0.978480000000000     0.978480000000000   1.135e-16
+     0.990     0.999798049800000     0.999798049800000   1.110e-16
+
+  worst relative difference          : 1.128538e-14
+  [PASS] exhaustive state enumeration agrees with the derived closed form -- worst 1.128538e-14
+
+==============================================================================
+the structure: cut sets, path sets, state count
+==============================================================================
+
+  minimal path sets, declared in reliablock.bridge:
+    {e1, e4}
+    {e2, e5}
+    {e1, e3, e5}
+    {e2, e3, e4}
+  minimal path sets, enumerated by reliablock.structure:
+    {e1, e4}
+    {e2, e5}
+    {e1, e3, e5}
+    {e2, e3, e4}
+
+  minimal cut sets, declared in reliablock.bridge:
+    {e1, e2}
+    {e4, e5}
+    {e1, e3, e5}
+    {e2, e3, e4}
+  minimal cut sets, enumerated by reliablock.structure:
+    {e1, e2}
+    {e4, e5}
+    {e1, e3, e5}
+    {e2, e3, e4}
+
+  states                             : 32
+  failed states                      : 16
+  minimal cut sets                    : 4
+  [PASS] declared and enumerated path sets are identical
+  [PASS] declared and enumerated cut sets are identical
+
+==============================================================================
+the bridge is not series-parallel
+==============================================================================
+
+  This is why the bridge is the right check. No nesting of series and
+  parallel groups reproduces it, and the two decompositions a reader
+  might reach for BRACKET the true answer rather than giving it.
+
+         p    two disjoint paths          exact bridge        merged a and b
+  --------------------------------------------------------------------------
+     0.100     0.019900000000000     0.021520000000000     0.036100000000000
+     0.500     0.437500000000000     0.500000000000000     0.562500000000000
+     0.900     0.963900000000000     0.978480000000000     0.980100000000000
+     0.990     0.999603990000000     0.999798049800000     0.999800010000000
+
+  Treating e3 as always failed gives the lower figure; treating it as
+  always working gives the upper one. The exact answer is strictly
+  between them at every p in (0, 1), which is the definition of a
+  structure that is not series-parallel.
+  [PASS] the exact bridge reliability lies strictly between the two series-parallel figures
+
+==============================================================================
+self-duality
+==============================================================================
+
+  The bridge's minimal cut sets and minimal path sets have the same
+  shape -- two of size 2 and two of size 3 -- so the structure is
+  self-dual and R(p) + R(1-p) = 1 exactly. This is a property of the
+  polynomial that no part of the implementation was written to satisfy,
+  so it is a check on the polynomial itself.
+
+         p                  R(p)                R(1-p)       sum - 1
+  ------------------------------------------------------------------
+     0.000     0.000000000000000     1.000000000000000     0.000e+00
+     0.100     0.021520000000000     0.978480000000000    -1.110e-16
+     0.250     0.138671875000000     0.861328125000000     0.000e+00
+     0.400     0.340480000000000     0.659520000000000     0.000e+00
+     0.500     0.500000000000000     0.500000000000000     0.000e+00
+     0.730     0.838536268600000     0.161463731400000    -1.110e-16
+     0.900     0.978480000000000     0.021520000000000    -1.110e-16
+     1.000     1.000000000000000     0.000000000000000     0.000e+00
+
+  worst absolute residual            : 1.110223e-16
+  [PASS] the bridge polynomial is self-dual: R(p) + R(1-p) = 1 -- worst 1.110223e-16 against tolerance 1.0e-15
+
+==============================================================================
+the Esary-Proschan bounds are not tight for the bridge
+==============================================================================
+
+  The bridge's cut sets share components, so the Esary-Proschan bounds
+  are strict rather than exact. That makes the bracket a real check
+  here, unlike on a series-parallel structure where it collapses to
+  zero width and tests only rounding.
+
+  p = 0.50: Esary-Proschan (4 cut sets, 4 path sets): [4.306640625000e-01, 5.693359375000e-01] value 5.000000000000e-01 (inside, width 1.386719e-01, slack 1.721e-15)
+  p = 0.90: Esary-Proschan (4 cut sets, 4 path sets): [9.781407801000e-01, 9.973487799000e-01] value 9.784800000000e-01 (inside, width 1.920800e-02, slack 3.909e-15)
+  p = 0.99: Esary-Proschan (4 cut sets, 4 path sets): [9.997980104010e-01, 9.999996506600e-01] value 9.997980498000e-01 (inside, width 2.016403e-04, slack 3.996e-15)
+
+  narrowest bracket width            : 2.016403e-04
+  [PASS] the Esary-Proschan bounds bracket the exact bridge reliability
+  [PASS] the bracket has non-trivial width, so it is a real check -- narrowest 2.016403e-04
+
+==============================================================================
+Monte Carlo, budget derived from a target half-width
+==============================================================================
+
+  edge reliability                   : 0.9
+  derived closed form                : 0.978480000000000
+  system unreliability               : 2.152000000e-02
+  target interval half-width         : 4.304000e-04 (2 percent of Q)
+  trials from n = z^2 Q(1-Q)/h^2     : 436663
+  seed                               : 20261025
+  simulated reliability              : 0.978225771361
+  Wilson 95 percent interval         : [0.977788667442, 0.978654461157]
+  achieved half-width                : 4.328969e-04
+  closed form inside the interval    : True
+  distance in standard errors        : 1.1511
+  [PASS] the simulated bridge reliability brackets the derived closed form -- 1.1511 standard errors
+
+==============================================================================
+non-identical edges
+==============================================================================
+
+  The derived form assumes equal edge reliability. The non-identical
+  pivotal form and inclusion-exclusion are compared against each other
+  and against the package, over five distinct edge reliabilities.
+
+  edge reliabilities : e1=0.91, e2=0.87, e3=0.95, e4=0.8, e5=0.99
+  pivotal form                       : 0.985120910000000
+  inclusion-exclusion                : 0.985120910000000
+  package pivotal decomposition      : 0.985120910000000
+  32-state enumeration               : 0.985120910000000
+  worst relative difference          : 3.380975e-16
+  [PASS] all four routes agree for non-identical edges -- worst 3.380975e-16
+
+==============================================================================
+timing, declared unstable
+==============================================================================
+
+  | quantity | value | stability |
+  |---|---|---|
+  | whole script wall clock | 1.71 s | UNSTABLE, shared hardware |
+  | Monte Carlo trials | 436663 | stable, seeded |
+
+CHECKS PASSED: 10
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

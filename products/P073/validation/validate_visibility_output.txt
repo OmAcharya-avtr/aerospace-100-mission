@@ -1,0 +1,156 @@
+
+==============================================================================
+contactsched validate_visibility
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+astropy          : not installed
+pulp             : 4.1.0
+ortools          : not installed
+cpu cores        : 2
+repository root  : P073 (printed relatively; see validation/_bootstrap.py)
+
+astropy is NOT installed in this environment. It is named in README.md as a
+mature alternative for frames and time scales and no number anywhere in this
+repository is a cross-check against it; the independent geometric check in
+validate_geometry.py is a second derivation written in this package.
+ortools is NOT installed. pulp is installed but ships no solver, which is the
+measurement that moved the exact baseline onto HiGHS; see validate_exact.py.
+
+==============================================================================
+Scenario
+==============================================================================
+epoch                 : 2026-04-30T00:00:00 (UTC, see the UT1 caveat below)
+horizon               : 86400 s
+antennas              : 4
+spacecraft            : 6
+windows found         : 165
+total visible seconds : 78504.609
+mask-limited windows  : 33
+clipped at a horizon  : 4
+
+UT1 against UTC is not modelled. The difference is below 0.9 s, which rotates
+the Earth by up to 0.0037 deg and displaces a station by up to roughly 0.4 km.
+That is why boundaries here are reported to a quarter of a second of SEARCH
+resolution and not claimed as accurate to that level against a real sky.
+
+==============================================================================
+1. Elevation against an INDEPENDENT geometric derivation
+==============================================================================
+Spherical law of cosines on geocentric latitude and longitude, against the
+Cartesian dot product. The quantity compared is the GEOCENTRIC elevation,
+because the spherical derivation has no access to the ellipsoid normal.
+
+antenna        spacecraft         n   max |diff| (deg)       median
+----------------------------------------------------------------------
+SVALBARD-1     POLARIS-A       2401          8.086e-12    1.421e-14
+SVALBARD-1     POLARIS-B       2401          4.277e-12    1.421e-14
+SVALBARD-1     POLARIS-C       2401          1.343e-12    1.421e-14
+SVALBARD-1     TERRASCAN-1     2401          1.620e-12    1.421e-14
+SVALBARD-1     EQUINOX-1       2401          8.527e-14    1.421e-14
+SVALBARD-1     MERIDIAN-1      2401          1.030e-13    1.421e-14
+SVALBARD-2     POLARIS-A       2401          8.086e-12    1.421e-14
+SVALBARD-2     POLARIS-B       2401          4.277e-12    1.421e-14
+SVALBARD-2     POLARIS-C       2401          1.343e-12    1.421e-14
+SVALBARD-2     TERRASCAN-1     2401          1.620e-12    1.421e-14
+SVALBARD-2     EQUINOX-1       2401          8.527e-14    1.421e-14
+SVALBARD-2     MERIDIAN-1      2401          1.030e-13    1.421e-14
+PUNTA-ARENAS   POLARIS-A       2401          9.379e-13    7.105e-15
+PUNTA-ARENAS   POLARIS-B       2401          2.913e-12    7.105e-15
+PUNTA-ARENAS   POLARIS-C       2401          4.121e-13    7.105e-15
+PUNTA-ARENAS   TERRASCAN-1     2401          1.876e-12    7.105e-15
+PUNTA-ARENAS   EQUINOX-1       2401          8.384e-13    7.105e-15
+PUNTA-ARENAS   MERIDIAN-1      2401          3.695e-13    7.105e-15
+KOUROU         POLARIS-A       2401          4.619e-13    7.105e-15
+KOUROU         POLARIS-B       2401          1.286e-12    7.105e-15
+KOUROU         POLARIS-C       2401          4.334e-12    7.105e-15
+KOUROU         TERRASCAN-1     2401          3.482e-13    7.105e-15
+KOUROU         EQUINOX-1       2401          5.258e-13    7.105e-15
+KOUROU         MERIDIAN-1      2401          4.690e-13    7.105e-15
+
+samples compared : 57624
+worst difference : 8.086e-12 deg
+tolerance        : 1.000e-09 deg
+
+==============================================================================
+2. Window boundaries against a dense one-second scan
+==============================================================================
+The coarse scan plus bisection is checked against a brute-force scan of the
+same margin function at one-second resolution. This checks the root search,
+not the geometry: both use the same elevation and the same mask.
+
+antenna        spacecraft    windows   dense  max |dt| (s)
+--------------------------------------------------------------
+SVALBARD-1     POLARIS-A          27      27        0.5859
+SVALBARD-1     POLARIS-B          28      28        0.5391
+SVALBARD-1     POLARIS-C          25      25        0.4609
+SVALBARD-2     POLARIS-A          23      23        0.5234
+SVALBARD-2     POLARIS-B          24      24        0.5547
+SVALBARD-2     POLARIS-C          23      23        0.5078
+
+boundary count mismatches : 0
+worst boundary difference : 0.5859 s
+tolerance                 : 0.7500 s (half the dense grid plus the bisection)
+
+==============================================================================
+3. Window durations against the INDEPENDENTLY DERIVED upper bound
+==============================================================================
+The bound is closed-form spherical geometry on the TLE's own mean motion and
+shares no expression with the root search. It is deliberately loose; the point
+is that it cannot be exceeded, not that it is tight.
+
+antenna        spacecraft    longest (s)   bound (s)   ratio
+--------------------------------------------------------------
+SVALBARD-1     POLARIS-A          554.30      613.63   0.903
+SVALBARD-1     POLARIS-B          555.70      613.63   0.906
+SVALBARD-1     POLARIS-C          559.45      618.45   0.905
+SVALBARD-1     TERRASCAN-1        647.81      717.01   0.903
+SVALBARD-1     MERIDIAN-1         836.72     1053.21   0.794
+SVALBARD-2     POLARIS-A          485.62      538.76   0.901
+SVALBARD-2     POLARIS-B          486.56      538.76   0.903
+SVALBARD-2     POLARIS-C          490.31      543.34   0.902
+SVALBARD-2     TERRASCAN-1        574.22      636.98   0.901
+SVALBARD-2     MERIDIAN-1         726.09      957.98   0.758
+PUNTA-ARENAS   POLARIS-A          480.47      609.05   0.789
+PUNTA-ARENAS   POLARIS-B          486.56      609.05   0.799
+PUNTA-ARENAS   POLARIS-C          491.72      613.90   0.801
+PUNTA-ARENAS   TERRASCAN-1        564.14      712.79   0.791
+PUNTA-ARENAS   EQUINOX-1          463.59      540.63   0.858
+PUNTA-ARENAS   MERIDIAN-1         920.86     1049.67   0.877
+KOUROU         POLARIS-A          484.45      548.53   0.883
+KOUROU         POLARIS-B          502.73      548.53   0.917
+KOUROU         POLARIS-C          511.17      553.26   0.924
+KOUROU         TERRASCAN-1        566.25      649.61   0.872
+KOUROU         EQUINOX-1          445.31      481.90   0.924
+KOUROU         MERIDIAN-1         858.52      977.83   0.878
+
+windows exceeding the bound : 0
+
+==============================================================================
+4. Union supply against the naive sum per antenna
+==============================================================================
+antenna         sum of windows (s)    union (s)  overlap (s)
+--------------------------------------------------------------
+KOUROU                     8757.66      8757.66         0.00
+PUNTA-ARENAS              15812.81     14623.36      1189.45
+SVALBARD-1                30174.38     25479.84      4694.53
+SVALBARD-2                23759.77     21157.27      2602.50
+
+A positive overlap column is the point: two spacecraft visible at once supply
+the antenna only once, and the contention ratio in contactsched.contention
+divides by the union for that reason.
+
+==============================================================================
+Result
+==============================================================================
+All checks in this script passed.
+

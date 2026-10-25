@@ -1,0 +1,346 @@
+
+==============================================================================
+contactsched validate_fairness
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+astropy          : not installed
+pulp             : 4.1.0
+ortools          : not installed
+cpu cores        : 2
+repository root  : P073 (printed relatively; see validation/_bootstrap.py)
+
+astropy is NOT installed in this environment. It is named in README.md as a
+mature alternative for frames and time scales and no number anywhere in this
+repository is a cross-check against it; the independent geometric check in
+validate_geometry.py is a second derivation written in this package.
+ortools is NOT installed. pulp is installed but ships no solver, which is the
+measurement that moved the exact baseline onto HiGHS; see validate_exact.py.
+
+==============================================================================
+1. Jain's index and the max-min share on hand-calculable allocations
+==============================================================================
+allocation                      Jain (computed)  Jain (by hand)   max-min
+--------------------------------------------------------------------------
+[1.0, 1.0, 1.0, 1.0]             1.000000000000  1.000000000000  1.000000
+[0.5, 0.5]                       1.000000000000  1.000000000000  0.500000
+[1.0, 0.5]                       0.900000000000  0.900000000000  0.500000
+[1.0, 0.5, 0.5]                  0.888888888889  0.888888888889  0.500000
+[1.0, 0.0, 0.0, 0.0]             0.250000000000  0.250000000000  0.000000
+[1.0, 0.0]                       0.500000000000  0.500000000000  0.000000
+[0.0, 0.0, 0.0]                  1.000000000000  1.000000000000  0.000000
+[5e-324]                         1.000000000000  1.000000000000  0.000000
+
+The last two rows are the ones that matter for honesty. An all-zero
+allocation scores 1.0 on Jain's index -- every request got the same, namely
+nothing -- and 0.0 on the max-min share, which is the number that says what
+happened. Both are always reported together for that reason. The single
+denormal row is a pinned Hypothesis counterexample: the un-normalised index
+expression raised ZeroDivisionError there, because the sum of squares
+underflowed to zero while the sum did not.
+
+==============================================================================
+2. One instance in full: seed 7, twelve-hour horizon
+==============================================================================
+antennas 4, spacecraft 5, requests 10, windows 61, candidates 233
+
+------------------------------------------------------------------------------
+method greedy: status heuristic
+------------------------------------------------------------------------------
+fairness report for greedy-first-fit[priority]
+request  mission       prio  need  got   need_s    got_s  satisf  state
+------------------------------------------------------------------------------
+R01      TERRASCAN        1     5    5     2100     2100  1.0000  ok
+R02      POLARIS          3     5    3     3000     1800  0.6000  starved
+R03      POLARIS          3     3    3     1260     1260  1.0000  ok
+R04      POLARIS          2     3    3      540      540  1.0000  ok
+R05      POLARIS          2     4    5     1680     2100  1.0000  ok
+R06      EQUINOX          3     2    3      840     1260  1.0000  ok
+R07      POLARIS          4     4    0     2400        0  0.0000  starved
+R08      EQUINOX          4     6    7     1080     1260  1.0000  ok
+R09      POLARIS          1     6    6     2520     2520  1.0000  ok
+R10      POLARIS          4     4    1      720      180  0.2500  starved
+
+per-request Jain index        : 0.830212
+per-mission Jain index        : 0.974679
+max-min share                 : 0.000000
+requests starved              : 3
+total seconds short           : 4140.0
+priority inversions           : 1 of 37 comparable pairs (rate 0.027027)
+worst inversion gap           : 0.400000
+delivered satisfaction by priority: p1=1.0000, p2=1.0000, p3=0.8667, p4=0.4167
+priority promise held in aggregate: True
+
+inversions:
+  R02 (p3, satisfaction 0.6000) below R08 (p4, satisfaction 1.0000), gap 0.4000
+
+------------------------------------------------------------------------------
+method greedy-demand: status heuristic
+------------------------------------------------------------------------------
+fairness report for greedy-first-fit[demand]
+request  mission       prio  need  got   need_s    got_s  satisf  state
+------------------------------------------------------------------------------
+R01      TERRASCAN        1     5    5     2100     2100  1.0000  ok
+R02      POLARIS          3     5    5     3000     3000  1.0000  ok
+R03      POLARIS          3     3    4     1260     1680  1.0000  ok
+R04      POLARIS          2     3    1      540      180  0.3333  starved
+R05      POLARIS          2     4    5     1680     2100  1.0000  ok
+R06      EQUINOX          3     2    3      840     1260  1.0000  ok
+R07      POLARIS          4     4    1     2400      600  0.2500  starved
+R08      EQUINOX          4     6    7     1080     1260  1.0000  ok
+R09      POLARIS          1     6    4     2520     1680  0.6667  starved
+R10      POLARIS          4     4    1      720      180  0.2500  starved
+
+per-request Jain index        : 0.841996
+per-mission Jain index        : 0.987295
+max-min share                 : 0.250000
+requests starved              : 4
+total seconds short           : 3540.0
+priority inversions           : 9 of 37 comparable pairs (rate 0.243243)
+worst inversion gap           : 0.666667
+delivered satisfaction by priority: p1=0.8333, p2=0.6667, p3=1.0000, p4=0.5000
+priority promise held in aggregate: False
+
+inversions:
+  R04 (p2, satisfaction 0.3333) below R02 (p3, satisfaction 1.0000), gap 0.6667
+  R09 (p1, satisfaction 0.6667) below R02 (p3, satisfaction 1.0000), gap 0.3333
+  R04 (p2, satisfaction 0.3333) below R03 (p3, satisfaction 1.0000), gap 0.6667
+  R09 (p1, satisfaction 0.6667) below R03 (p3, satisfaction 1.0000), gap 0.3333
+  R04 (p2, satisfaction 0.3333) below R06 (p3, satisfaction 1.0000), gap 0.6667
+  R04 (p2, satisfaction 0.3333) below R08 (p4, satisfaction 1.0000), gap 0.6667
+  R09 (p1, satisfaction 0.6667) below R05 (p2, satisfaction 1.0000), gap 0.3333
+  R09 (p1, satisfaction 0.6667) below R06 (p3, satisfaction 1.0000), gap 0.3333
+  R09 (p1, satisfaction 0.6667) below R08 (p4, satisfaction 1.0000), gap 0.3333
+
+------------------------------------------------------------------------------
+method exact: status optimal
+------------------------------------------------------------------------------
+fairness report for exact-milp[highs]
+request  mission       prio  need  got   need_s    got_s  satisf  state
+------------------------------------------------------------------------------
+R01      TERRASCAN        1     5    5     2100     2100  1.0000  ok
+R02      POLARIS          3     5    3     3000     1800  0.6000  starved
+R03      POLARIS          3     3    2     1260      840  0.6667  starved
+R04      POLARIS          2     3    3      540      540  1.0000  ok
+R05      POLARIS          2     4    5     1680     2100  1.0000  ok
+R06      EQUINOX          3     2    3      840     1260  1.0000  ok
+R07      POLARIS          4     4    0     2400        0  0.0000  starved
+R08      EQUINOX          4     6    7     1080     1260  1.0000  ok
+R09      POLARIS          1     6    6     2520     2520  1.0000  ok
+R10      POLARIS          4     4    5      720      900  1.0000  ok
+
+per-request Jain index        : 0.875626
+per-mission Jain index        : 0.978896
+max-min share                 : 0.000000
+requests starved              : 3
+total seconds short           : 4020.0
+priority inversions           : 4 of 37 comparable pairs (rate 0.108108)
+worst inversion gap           : 0.400000
+delivered satisfaction by priority: p1=1.0000, p2=1.0000, p3=0.7556, p4=0.6667
+priority promise held in aggregate: True
+
+inversions:
+  R02 (p3, satisfaction 0.6000) below R08 (p4, satisfaction 1.0000), gap 0.4000
+  R02 (p3, satisfaction 0.6000) below R10 (p4, satisfaction 1.0000), gap 0.4000
+  R03 (p3, satisfaction 0.6667) below R08 (p4, satisfaction 1.0000), gap 0.3333
+  R03 (p3, satisfaction 0.6667) below R10 (p4, satisfaction 1.0000), gap 0.3333
+
+------------------------------------------------------------------------------
+method exact-fair: status infeasible
+------------------------------------------------------------------------------
+  HiGHS reported the program infeasible.
+  R07 (POLARIS, priority 4) requires 4 contacts but has at most 1 mutually compatible candidates even with the whole network to itself
+
+==============================================================================
+3. Behaviour under priority inversion
+==============================================================================
+The priority labels on each instance are reversed: the request that was most
+urgent becomes the least and vice versa, with the multiset of priority values
+and the whole contention structure left untouched. Only the declared promise
+changes.
+
+What a working metric must do: the set of requests that win should change,
+and the per-priority delivered satisfaction should follow the new labels. The
+per-pair inversion count need NOT fall -- it measures whether the delivered
+order matches the declared order, and reversing the declaration can leave an
+instance equally mismatched -- so the measurement below reports what happens
+rather than asserting a direction.
+
+ seed  selection changed  inv before  inv after  Jain before  Jain after  p1 before  p1 after
+--------------------------------------------------------------------------------------------
+    0               True           4          7     0.831972    0.857288     1.0000    1.0000
+    1               True           0         15     0.764804    0.764804     1.0000    1.0000
+    2               True           2          6     0.714286    0.714286     1.0000    0.5000
+    3               True           0          0     0.965714    0.985222        nan       nan
+    4               True           2          7     0.899465    0.903743        nan       nan
+    5               True           7          0     0.925714    0.857143     0.6667    1.0000
+    6               True           8          4     0.873313    0.944936     0.8750    1.0000
+    7               True           4          8     0.875626    0.926550     1.0000    1.0000
+    8               True           0          1     1.000000    0.969828        nan       nan
+    9               True          18          7     0.572254    0.590398     1.0000    1.0000
+   10               True           1          5     0.945312    0.945312     1.0000    1.0000
+   11               True           9          8     0.667805    0.747664     0.8889    1.0000
+   12               True          12          0     0.900966    0.882656     0.0000    1.0000
+   13               True           3          0     0.960040    0.960040     1.0000    1.0000
+   14               True          12          2     0.865288    0.789552     0.5833    1.0000
+   15               True           2          8     0.600000    0.600000     1.0000    1.0000
+   16               True           2          2     0.997639    0.997639        nan       nan
+   17               True           0          0     1.000000    1.000000     1.0000    1.0000
+   18               True           0          0     1.000000    0.969828     1.0000    1.0000
+   19               True          11          0     0.777685    0.800000     0.5000    1.0000
+   20               True           1          6     0.875000    0.875000     1.0000    0.5000
+   21               True           5          0     0.737245    0.842317     0.6667    1.0000
+   22               True           0          0     0.994118    0.989041     1.0000    1.0000
+   23               True           0          9     0.751111    0.816993     1.0000    0.7500
+
+instances measured                        : 24
+instances whose selection changed         : 24
+mean inversions before / after            : 4.2917 / 3.9583
+instances where the aggregate promise held: 9 before, 9 after
+
+A reversal that changed no schedule anywhere would mean the priority weights
+never reach the solver, so this script fails if that happens. It is a
+behavioural check on the whole chain and not a fairness claim.
+
+==============================================================================
+4. A constructed priority inversion, in full
+==============================================================================
+An inversion that the declared weights cannot prevent, because it is not
+about weights. R-HIGH is priority 1 and declares it needs three contacts;
+its spacecraft has exactly one usable pass, so it can be served once.
+R-LOW is priority 4 and declares it needs one; its pass is disjoint, so it
+is served in full. Satisfaction is allocated over DECLARED need, so the
+priority-1 request ends three times worse served than the priority-4 one,
+and the inversion is real even though no slot was ever contested.
+
+optimum 1.1250, contacts 2
+fairness report for exact-milp[highs]
+request  mission       prio  need  got   need_s    got_s  satisf  state
+------------------------------------------------------------------------------
+R-HIGH   M1               1     3    1      900      300  0.3333  starved
+R-LOW    M2               4     1    1      300      300  1.0000  ok
+
+per-request Jain index        : 0.800000
+per-mission Jain index        : 0.800000
+max-min share                 : 0.333333
+requests starved              : 1
+total seconds short           : 600.0
+priority inversions           : 1 of 1 comparable pairs (rate 1.000000)
+worst inversion gap           : 0.666667
+delivered satisfaction by priority: p1=0.3333, p4=1.0000
+priority promise held in aggregate: False
+
+inversions:
+  R-HIGH (p1, satisfaction 0.3333) below R-LOW (p4, satisfaction 1.0000), gap 0.6667
+
+The gap is 1.0 - 1/3 = 0.666667 exactly, and the aggregate promise fails:
+delivered satisfaction RISES with the priority number. No scheduler could
+have avoided it, which is the useful content of the measurement. An
+operations team reading only the schedule would see both requests served and
+would not see that the urgent one got a third of what it asked for.
+
+Contrast: a second instance where the two requests DO contest one antenna.
+
+objective mode weighted_contacts: optimum 1.0000, contacts 1, inversions 0
+objective mode weighted_seconds: optimum 900.0000, contacts 1, inversions 0
+
+Here the higher priority wins under both objective modes: three priority-4
+contacts at weight 0.125 sum to 0.375 against a single priority-1 contact's
+1.0, and in weighted seconds they are 0.125 * 900 = 112.5 against
+1.0 * 900 = 900. The declared geometric weights do what they say when the
+antenna is contested. The inversion in the first instance comes from the
+geometry and from differing declared need, not from the weights, and that
+distinction is the reason both the per-pair inversion count and the
+per-priority delivered satisfaction are reported.
+
+==============================================================================
+5. The price of the declared fairness constraints
+==============================================================================
+Measured only on instances where the constrained program is feasible, which
+is a minority, and the count is reported so the selection bias is visible.
+
+The measured answer on this family is surprising and is published as measured:
+the price is ZERO. Where the declared floors can be met at all, they are met
+by an alternative optimal schedule rather than by giving up objective. The
+reason is visible in the structure: the per-contact objective is indifferent
+between two placements of the same request, so the solver has freedom to
+satisfy a floor for free, and the instances that cost something are the ones
+where the floors are infeasible and no schedule exists. A non-zero price needs
+a specific structure, and one is constructed below rather than claimed.
+
+ seed   free obj   fair obj     loss  loss frac  Jain gain  max-min gain  starved
+----------------------------------------------------------------------------------
+    3     3.5000     3.5000   0.0000     0.0000   0.034286      0.500000 1->0   
+    8     4.8750     4.8750   0.0000     0.0000   0.000000      0.000000 0->0   
+   17    10.2500    10.2500   0.0000     0.0000   0.000000      0.000000 0->0   
+   18     8.2500     8.2500   0.0000     0.0000   0.000000      0.000000 0->0   
+   22    12.7500    12.7500   0.0000     0.0000   0.005882      0.250000 1->0   
+   37    12.1250    12.1250   0.0000     0.0000   0.000000      0.000000 0->0   
+   40    15.1250    15.1250   0.0000     0.0000   0.000000      0.000000 0->0   
+   60    12.5000    12.5000   0.0000     0.0000   0.000000      0.000000 0->0   
+   64    10.3750    10.3750   0.0000     0.0000   0.000000      0.000000 0->0   
+   75     5.5000     5.5000   0.0000     0.0000   0.000000      0.000000 0->0   
+   82     8.6250     8.6250   0.0000     0.0000   0.000000      0.000000 0->0   
+   87     9.5000     9.5000   0.0000     0.0000   0.000000      0.000000 0->0   
+  103    13.5000    13.5000   0.0000     0.0000   0.000000      0.000000 0->0   
+  112    11.0000    11.0000   0.0000     0.0000   0.000000      0.000000 0->0   
+  113    18.5000    18.5000   0.0000     0.0000   0.000000      0.000000 0->0   
+  156    10.6250    10.6250   0.0000     0.0000   0.000000      0.000000 0->0   
+
+instances feasible under the floors   : 16
+instances infeasible under the floors : 144
+mean objective loss                   : 0.000000
+worst objective loss                  : 0.000000
+mean Jain gain                        : 0.002511
+mean max-min gain                     : 0.046875
+
+==============================================================================
+5b. A constructed instance where the fairness floor DOES cost objective
+==============================================================================
+Three 100 s slots on one antenna. SC-1 sees all three, SC-2 only the first
+two. R1 is priority 1, needs one contact and is allowed three; R2 is
+priority 2 and declares it needs two. The free optimum gives R1 all three
+slots and starves R2 entirely; the constrained optimum gives R2 the two slots
+it needs and leaves R1 one.
+
+  objective_unconstrained    3.000000
+  objective_constrained      2.000000
+  objective_loss             1.000000
+  objective_loss_fraction    0.333333
+  jain_gain                  0.500000
+  max_min_gain               1.000000
+  starved_before             1.000000
+  starved_after              0.000000
+  seconds_short_before       200.000000
+  seconds_short_after        0.000000
+
+The constraint costs exactly one unit of objective, one third of the free
+optimum, and buys a max-min share that rises from 0 to 1. That trade is the
+number a planner needs and the one this product exists to print.
+
+==============================================================================
+6. The degenerate convention, on a real problem
+==============================================================================
+Jain index of the empty schedule    : 1.000000
+max-min share of the empty schedule : 0.000000
+all_starved flag                    : True
+total seconds short                 : 16140.0
+
+A reader who took the Jain index alone would call this schedule perfectly
+fair. That is why contactsched.report.format_fairness prints the sentence
+naming the convention whenever the flag is set.
+
+==============================================================================
+Result
+==============================================================================
+All checks in this script passed.
+

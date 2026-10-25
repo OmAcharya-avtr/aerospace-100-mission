@@ -1,0 +1,140 @@
+
+==============================================================================
+every validation script and example, run from five working directories
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  reliability      : not installed
+  lifelines        : not installed
+  cpu cores        : 2
+  repository root  : P075 (printed relatively; see validation/_bootstrap.py)
+
+  reliability and lifelines are named in the README alternatives table and
+  are NOT installed here. No number in this repository was cross-checked
+  against either of them, and none claims to have been.
+
+  python -I is deliberately NOT used: it strips the script's own
+  directory from sys.path and makes 'import _bootstrap' fail, which is a
+  false failure indistinguishable from the defect being probed for.
+
+  audit_approx_tolerances.py is excluded: it runs the whole test suite
+  twice, taking 31 s measured, so five invocations would cost two and a
+  half minutes of this probe's budget for no extra coverage. It is run
+  once, from validation/, by the CI workflow and by the release gate.
+
+  validate_cli.py is run from TWO directories rather than five, for the
+  same reason: it spawns 22 subprocesses and takes 22 s measured, and it
+  sets cwd to the repository root explicitly for every child, so its
+  only path-dependence is its own bootstrap. The product root against
+  validation/ distinguishes that, and validation/ is the directory the
+  release gate uses.
+
+  scripts                            : 18
+  working directories                : 5
+  scripts run from all five          : 17
+  scripts run from two               : 1
+  subprocess invocations             : 87
+
+  working directories, by label:
+    - filesystem root
+    - temporary directory
+    - product root
+    - validation directory
+    - source directory
+
+==============================================================================
+results
+==============================================================================
+  script                                       filesy   tempor   produc   valida   source
+  ---------------------------------------------------------------------------------------
+  validation/regenerate_declarations.py             0        0        0        0        0
+  validation/validate_bridge.py                     0        0        0        0        0
+  validation/validate_cli.py                        -        -        0        0        -
+  validation/validate_commoncause.py                0        0        0        0        0
+  validation/validate_cutsets.py                    0        0        0        0        0
+  validation/validate_importance.py                 0        0        0        0        0
+  validation/validate_mission.py                    0        0        0        0        0
+  validation/validate_montecarlo.py                 0        0        0        0        0
+  validation/validate_negative_controls.py          0        0        0        0        0
+  validation/validate_precision.py                  0        0        0        0        0
+  validation/validate_structures.py                 0        0        0        0        0
+  validation/worked_example.py                      0        0        0        0        0
+  examples/beta_sensitivity.py                      0        0        0        0        0
+  examples/common_cause_headline.py                 0        0        0        0        0
+  examples/importance_and_cutsets.py                0        0        0        0        0
+  examples/mission_phases.py                        0        0        0        0        0
+  examples/precision_space.py                       0        0        0        0        0
+  examples/structure_comparison.py                  0        0        0        0        0
+
+  NON-ZERO EXITS: none
+  [PASS] every script exits zero from every working directory it was run from -- 0 of 87 invocations exited non-zero
+  A dash in the table marks an invocation deliberately not made; see the
+  HEAVY note above.
+
+==============================================================================
+absolute paths in committed files
+==============================================================================
+  Release-gate check 8 fails a whole batch on an absolute
+  home-directory path in any tracked file. The scan below covers every
+  text file in this product, not just the code.
+
+  text files scanned                 : 83
+  patterns                           : 5 absolute-path prefixes
+  matches                            : 0
+  [PASS] no committed text file carries an absolute path
+
+==============================================================================
+every example wrote its screenshot
+==============================================================================
+
+  examples                           : 6
+  screenshots present                : 6
+    beta_sensitivity                      119679 bytes
+    common_cause_headline                  65872 bytes
+    importance_and_cutsets                 62069 bytes
+    mission_phases                        109314 bytes
+    precision_space                        98692 bytes
+    structure_comparison                  179693 bytes
+  [PASS] every example produced a screenshot -- missing []
+  [PASS] every screenshot is non-empty
+
+==============================================================================
+gitignore does not exclude a committed deliverable
+==============================================================================
+
+  A .gitignore pattern with no leading slash matches at ANY depth: a
+  bare junit.xml in a product .gitignore silently excluded a REQUIRED
+  committed fixture in P060 of this mission, and a cold clone then
+  failed with 17 failures and 9 errors while every local check passed.
+
+  git is not run here -- this build is forbidden to run it -- so the
+  patterns are matched directly against the deliverable paths, with the
+  anchoring rule applied explicitly. A pattern beginning with '!' is a
+  NEGATION and re-includes the file: 'git check-ignore' exits 0 when a
+  negation pattern matches, so reading only its exit status would
+  report a deliberately re-included file as ignored.
+
+  patterns in .gitignore             : 13
+  unanchored, non-glob patterns      : 1
+    __pycache__/  (matches at any depth)
+  negation patterns                  : 0
+
+  deliverables scanned               : 89
+  deliverables matched by an unanchored pattern : 0
+  [PASS] no committed deliverable is matched by an unanchored .gitignore pattern -- 0 shadowed
+
+CHECKS PASSED: 5
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

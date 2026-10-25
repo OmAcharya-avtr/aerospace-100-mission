@@ -1,0 +1,211 @@
+
+==============================================================================
+importance measures against finite-difference perturbation
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  reliability      : not installed
+  lifelines        : not installed
+  cpu cores        : 2
+  repository root  : P075 (printed relatively; see validation/_bootstrap.py)
+
+  reliability and lifelines are named in the README alternatives table and
+  are NOT installed here. No number in this repository was cross-checked
+  against either of them, and none claims to have been.
+
+==============================================================================
+Birnbaum against central finite-difference perturbation
+==============================================================================
+
+  I_B(i) = dQ_sys / dq_i, scored against
+  [Q_sys(q_i + h) - Q_sys(q_i - h)] / (2h).
+
+  Q_sys is multilinear in the q_i for a coherent structure of
+  independent components, so the derivative is constant in q_i and the
+  finite difference is exact for ANY step in exact arithmetic. The only
+  error is the cancellation in the numerator, which grows as the step
+  shrinks -- which is why the agreement is measured across five decades
+  of step size rather than at one.
+
+  declared tolerance : 1.0e-06 relative
+
+  diagram                                 step  events    worst rel diff
+  ----------------------------------------------------------------------
+  bridge                               1.0e-03       5      5.760995e-14
+  bridge                               1.0e-04       5      4.580955e-13
+  bridge                               1.0e-05       5      1.197537e-11
+  bridge                               1.0e-06       5      7.230220e-11
+  bridge                               1.0e-07       5      8.121069e-10
+  mixed_rates                          1.0e-03       5      2.170840e-13
+  mixed_rates                          1.0e-04       5      7.462244e-13
+  mixed_rates                          1.0e-05       5      2.126019e-11
+  mixed_rates                          1.0e-06       5      8.895062e-11
+  mixed_rates                          1.0e-07       5      3.490329e-09
+  series_parallel                      1.0e-03       3      4.876098e-14
+  series_parallel                      1.0e-04       3      6.248409e-14
+  series_parallel                      1.0e-05       3      2.502669e-12
+  series_parallel                      1.0e-06       3      4.768191e-12
+  series_parallel                      1.0e-07       3      1.818628e-10
+  three_of_four                        1.0e-03       5      6.593205e-14
+  three_of_four                        1.0e-04       5      2.242073e-13
+  three_of_four                        1.0e-05       5      4.847004e-12
+  three_of_four                        1.0e-06       5      5.479552e-11
+  three_of_four                        1.0e-07       5      1.558615e-09
+  voting_triple                        1.0e-03       4      8.423999e-15
+  voting_triple                        1.0e-04       4      1.309731e-13
+  voting_triple                        1.0e-05       4      1.299502e-12
+  voting_triple                        1.0e-06       4      2.372960e-11
+  voting_triple                        1.0e-07       4      1.714739e-10
+  voting_triple_with_common_cause      1.0e-03       5      2.937687e-14
+  voting_triple_with_common_cause      1.0e-04       5      2.912142e-13
+  voting_triple_with_common_cause      1.0e-05       5      3.255674e-13
+  voting_triple_with_common_cause      1.0e-06       5      1.217245e-11
+  voting_triple_with_common_cause      1.0e-07       5      1.995573e-10
+
+  comparisons                        : 135
+  worst relative difference          : 3.490329e-09
+  [PASS] Birnbaum importance matches a central finite difference across five decades of step -- worst 3.490329e-09 against tolerance 1.0e-06
+
+==============================================================================
+Birnbaum against the whole-interval pivot, which is exact
+==============================================================================
+
+  Because Q_sys is multilinear, Q_sys(q_i = 1) - Q_sys(q_i = 0) IS the
+  derivative. This is the same relation the implementation uses, so it is
+  reported as a consistency check and not as independent evidence; the
+  independent evidence is the finite difference above.
+
+  worst relative difference          : 0.000000e+00
+  [PASS] Birnbaum equals the whole-interval pivot -- worst 0.000000e+00
+
+==============================================================================
+the identities
+==============================================================================
+
+  I_C(i) = (Q_sys - Q_sys(q_i = 0)) / Q_sys, from the pivotal
+  decomposition, and I_FV(i) >= I_C(i) always.
+
+  declared tolerance : 1.0e-10 relative
+
+  rows checked                       : 27
+  worst criticality identity error   : 1.789122e-15
+  rows with FV below criticality     : 0
+  rows with FV outside [0, 1]        : 0
+  rows with negative Birnbaum        : 0
+  [PASS] the criticality identity holds -- worst 1.789122e-15 against tolerance 1.0e-10
+  [PASS] Fussell-Vesely is at least criticality for every basic event -- 0 violations
+  [PASS] Fussell-Vesely lies in [0, 1] for every basic event -- 0 violations
+  [PASS] Birnbaum is non-negative, as a coherent structure requires -- 0 violations
+
+==============================================================================
+exact Fussell-Vesely against the rare-event approximation
+==============================================================================
+
+  The rare-event approximation replaces P(union of cut sets containing i)
+  by the SUM of their probabilities, which overestimates. It is what most
+  tools report, and it is the usual reason a published Fussell-Vesely
+  figure exceeds 1. This package computes the union exactly, by
+  enumerating the states of the events involved. The gap is on record
+  here rather than left implicit.
+
+  diagram                           event                       exact FV   rare-event FV      excess
+  --------------------------------------------------------------------------------------------------
+  bridge                            e4                       0.506505576     0.511152416   4.647e-03
+  bridge                            e5                       0.506505576     0.511152416   4.647e-03
+  bridge                            e1                       0.506505576     0.511152416   4.647e-03
+  bridge                            e2                       0.506505576     0.511152416   4.647e-03
+  bridge                            e3                       0.092472119     0.092936803   4.647e-04
+  mixed_rates                       q3                       0.790536205     0.884929135   9.439e-02
+  mixed_rates                       q2                       0.613845663     0.708238592   9.439e-02
+  mixed_rates                       q1                       0.457308237     0.551701166   9.439e-02
+  three_of_four                     u2                       0.467479953     0.594318391   1.268e-01
+  three_of_four                     u0                       0.467479953     0.594318391   1.268e-01
+  three_of_four                     u1                       0.467479953     0.594318391   1.268e-01
+  three_of_four                     u3                       0.467479953     0.594318391   1.268e-01
+  voting_triple                     channel_c                0.378701346     0.393632234   1.493e-02
+  voting_triple                     channel_a                0.378701346     0.393632234   1.493e-02
+  voting_triple                     channel_b                0.378701346     0.393632234   1.493e-02
+  voting_triple_with_common_cause   channel_a                0.307308569     0.318698407   1.139e-02
+  voting_triple_with_common_cause   channel_b                0.307308569     0.318698407   1.139e-02
+  voting_triple_with_common_cause   channel_c                0.307308569     0.318698407   1.139e-02
+
+  worst rare-event excess over exact : 1.268384e-01
+  rare-event figures above 1         : 0
+  [PASS] the rare-event approximation never underestimates the exact Fussell-Vesely -- worst excess 1.268384e-01
+  Note: the rare-event excess being small on these diagrams is a property of
+  these diagrams, not a general result. It grows with the overlap between
+  cut sets and with the per-event unreliability.
+
+==============================================================================
+the structural quantification against exhaustive state enumeration
+==============================================================================
+
+  Importance measures are built on repeated evaluations of Q_sys, so an
+  error in Q_sys would show up in all of them. Q_sys is therefore also
+  checked here against a sum over all 2**n states.
+
+  diagram                             events        structural Q        enumerated Q         rel
+  ------------------------------------------------------------------------------------------------
+  bridge                                   5   0.021520000000000   0.021520000000000   1.612e-16
+  mixed_rates                              5   0.250561893346459   0.250561893346459   0.000e+00
+  series_parallel                          3   0.155945211720131   0.155945211720131   1.780e-16
+  three_of_four                            5   0.269921981044326   0.269921981044326   2.057e-16
+  voting_triple                            4   0.029240804341981   0.029240804341981   2.373e-16
+  voting_triple_with_common_cause          5   0.032061612471151   0.032061612471151   6.493e-16
+
+  worst relative difference          : 6.492712e-16
+  [PASS] system unreliability matches exhaustive state enumeration -- worst 6.492712e-16
+
+==============================================================================
+refusals
+==============================================================================
+
+  Importance measures are not defined over a diagram whose
+  quantification is not the independent-event arithmetic over its
+  structure function. Returning a figure whose meaning differs from its
+  name would be worse than refusing, so these refuse.
+
+  load_sharing_pair        refused: importance measures are not defined for this diagram: it contains ['shared_load'] node(s).
+  [PASS] load_sharing_pair is refused with an explanation
+  warm_standby             refused: importance measures are not defined for this diagram: it contains ['standby'] node(s).
+  [PASS] warm_standby is refused with an explanation
+  smallsat_bus             refused: importance measures are not defined for this diagram: it contains ['standby'] node(s).
+  [PASS] smallsat_bus is refused with an explanation
+
+==============================================================================
+a worked importance table
+==============================================================================
+
+  voting triple (with declared common cause) over 26298 hours
+
+  basic event                              q      Birnbaum   criticality  Fussell-Vesely  cuts
+  --------------------------------------------------------------------------------------------
+  voter                         1.306293e-02  9.807499e-01      0.399589        0.407432     1
+  channel_a                     7.147722e-02  1.303839e-01      0.290674        0.307309     2
+  channel_b                     7.147722e-02  1.303839e-01      0.290674        0.307309     2
+  channel_c                     7.147722e-02  1.303839e-01      0.290674        0.307309     2
+  channels::common_cause        4.722454e-03  9.725311e-01      0.143247        0.147293     1
+
+==============================================================================
+timing, declared unstable
+==============================================================================
+
+  | quantity | value | stability |
+  |---|---|---|
+  | whole script wall clock | 0.18 s | UNSTABLE, shared hardware |
+
+CHECKS PASSED: 11
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

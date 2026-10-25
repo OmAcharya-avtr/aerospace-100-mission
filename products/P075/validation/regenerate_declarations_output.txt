@@ -1,0 +1,134 @@
+
+==============================================================================
+declared diagrams and missions: written out, read back, compared
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  reliability      : not installed
+  lifelines        : not installed
+  cpu cores        : 2
+  repository root  : P075 (printed relatively; see validation/_bootstrap.py)
+
+  reliability and lifelines are named in the README alternatives table and
+  are NOT installed here. No number in this repository was cross-checked
+  against either of them, and none claims to have been.
+
+  target directory                   : examples/diagrams
+
+==============================================================================
+diagrams
+==============================================================================
+
+  case                    file                                        blocks   bytes  round-trip
+  ----------------------------------------------------------------------------------------------
+  load_sharing_pair       examples/diagrams/load_sharing_pair.yaml         2     734        True
+  [PASS] load_sharing_pair round-trips through YAML
+  [PASS] load_sharing_pair quantifies to the same reliability after a round trip -- 0.934181915614747 against 0.934181915614747
+  redundant_pair          examples/diagrams/redundant_pair.yaml            2     440        True
+  [PASS] redundant_pair round-trips through YAML
+  [PASS] redundant_pair quantifies to the same reliability after a round trip -- 0.9996979631048453 against 0.9996979631048453
+  smallsat_bus            examples/diagrams/smallsat_bus.yaml             13    2953        True
+  [PASS] smallsat_bus round-trips through YAML
+  [PASS] smallsat_bus quantifies to the same reliability after a round trip -- 0.9911103911294815 against 0.9911103911294815
+  voting_triple           examples/diagrams/voting_triple.yaml             4     882        True
+  [PASS] voting_triple round-trips through YAML
+  [PASS] voting_triple quantifies to the same reliability after a round trip -- 0.9936492276350007 against 0.9936492276350007
+  warm_standby            examples/diagrams/warm_standby.yaml              2     524        True
+  [PASS] warm_standby round-trips through YAML
+  [PASS] warm_standby quantifies to the same reliability after a round trip -- 0.9561057215059354 against 0.9561057215059354
+
+==============================================================================
+mission profiles
+==============================================================================
+
+  mission                 file                                        phases       hours  round-trip
+  --------------------------------------------------------------------------------------------------
+  leo_phased              examples/diagrams/leo_phased.yaml                3       26298        True
+  [PASS] leo_phased round-trips through YAML
+  one_year                examples/diagrams/one_year.yaml                  1        8766        True
+  [PASS] one_year round-trips through YAML
+  three_year              examples/diagrams/three_year.yaml                1       26298        True
+  [PASS] three_year round-trips through YAML
+
+==============================================================================
+what a declaration looks like
+==============================================================================
+
+  The smallest built-in case, in full, so that a reader can see the
+  format without opening a file:
+
+    description: Two identical units in parallel with a declared beta factor. The smallest
+      diagram on which the headline comparison says something.
+    name: redundant pair
+    root:
+      beta_factor: 0.1
+      items:
+      - distribution:
+          kind: exponential
+          rate_per_hour: 2.0e-06
+        kind: block
+        name: unit_a
+      - distribution:
+          kind: exponential
+          rate_per_hour: 2.0e-06
+        kind: block
+        name: unit_b
+      kind: parallel
+      label: pair
+
+==============================================================================
+the loader rejects what it does not understand
+==============================================================================
+
+  A declaration is an artifact a reviewer has to be able to check, so an
+  unknown key is an error and not a silently ignored field. These are
+  the rejections, exercised here so that the messages are on record.
+
+  unknown top-level key:
+    <temporary directory>/bad.yaml: diagram does not accept ['extra']; accepted keys are ['description', 'name', 'notes', 'root']
+  [PASS] unknown top-level key is rejected
+
+  misspelled distribution parameter:
+    distribution kind 'exponential' does not accept ['rate_per_hr']; accepted parameters are ['rate_per_hour']
+  [PASS] misspelled distribution parameter is rejected
+
+  unknown node kind:
+    unknown node kind 'majority_voter'; expected one of ['block', 'k_of_n', 'network', 'parallel', 'series', 'shared_load', 'standby']
+  [PASS] unknown node kind is rejected
+
+  parallel group of one:
+    parallel node 'parallel' has 1 item(s); redundancy over fewer than two items is not redundancy. Declare the item directly if that is what was meant.
+  [PASS] parallel group of one is rejected
+
+  standby without a switch reliability:
+    standby declaration requires 'switch_reliability'. An undeclared switching reliability defaulting to 1.0 is exactly the implicit assumption this package exists to surface.
+  [PASS] standby without a switch reliability is rejected
+
+  k outside 1..n:
+    k_of_n node 'k_of_n' declares k=4 with n=2. k must lie in 1..n: k=0 is certain success and k>n certain failure, and neither is a diagram.
+  [PASS] k outside 1..n is rejected
+
+  duplicate block names:
+    diagram 'x' declares duplicate block names ['a']. Two different items sharing one name would share one failure probability and one importance measure, and the cut sets would be wrong. Rename them, or declare one block and reference it once.
+  [PASS] duplicate block names is rejected
+
+  beta factor on a k = n group:
+    k_of_n node 'k_of_n' declares beta_factor=0.1 with k = n = 2, which is a series group and not a redundant one. A beta factor describes the correlation BETWEEN redundant items; on a group that fails when any single member fails it has no meaning, and the arithmetic makes the group look BETTER -- meas
+  [PASS] beta factor on a k = n group is rejected
+
+
+CHECKS PASSED: 21
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

@@ -1,0 +1,101 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "contactsched"
+version = "0.1.0"
+description = "Ground-station contact scheduling with the contention and fairness cost measured: who was starved, by how much, and what the priority scheme actually delivered."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "satellite-communications",
+    "ground-station",
+    "contact-scheduling",
+    "antenna-contention",
+    "fairness",
+    "jain-index",
+    "sgp4",
+    "mixed-integer-programming",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+
+# Every range below is bounded on BOTH sides, at the versions this product was
+# measured against. A floor with no ceiling is not a dependency specification:
+# five of the first fifty products of this mission were found broken or silently
+# wrong for a new install because pip resolved a release published after the
+# product was measured, and one of the five kept passing its suite while its
+# published validation numbers moved.
+#
+# Two of these ranges are sharper than they look.
+#
+# scipy. The exact baseline is scipy.optimize.milp, which dispatches to HiGHS.
+# The objective values are exact integers-over-powers-of-two and are not at
+# risk, but the solver's tie-breaking among equally optimal schedules is not
+# part of its public contract, and tests/test_regressions.py pins a selected
+# contact count. A scipy minor release can change which optimum is returned
+# without changing its value.
+#
+# scikit-learn. The learned conflict predictor is a
+# HistGradientBoostingClassifier and every measured score in README.md,
+# MODEL_CARD.md and validation/ is a property of its fitted trees. A minor
+# release that changes the histogram binning or the split ordering moves those
+# numbers without failing a test, so the ceiling is to the minor version. The
+# cost is real and recorded in README.md under Limitations: this package cannot
+# take a scikit-learn 1.10 or a numpy 2.6 release without a port and a full
+# re-measure.
+#
+# pulp is deliberately ABSENT from this list. It was evaluated as the exact
+# backend, as the product specification asked, and rejected: pulp 4.1.0 returns
+# an empty list from listSolvers(onlyAvailable=True), so it ships no solver and
+# a pulp-backed solve would raise rather than return a schedule. Run
+# `python -m contactsched backends` to reproduce the measurement.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scipy>=1.18,<1.19",
+    "scikit-learn>=1.9,<1.10",
+    "pandas>=3.0,<3.1",
+    "sgp4>=2.27,<2.28",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8.4,<10", "hypothesis>=6.140,<7"]
+examples = ["matplotlib>=3.10,<4"]
+dev = [
+    "pytest>=8.4,<10",
+    "hypothesis>=6.140,<7",
+    "ruff>=0.14,<0.18",
+    "matplotlib>=3.10,<4",
+]
+
+[project.scripts]
+contactsched = "contactsched.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["contactsched"]
+known-local-folder = ["_bootstrap", "_common"]

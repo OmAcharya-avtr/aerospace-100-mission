@@ -1,0 +1,20 @@
+description: A spare that is powered and therefore ageing at 35 percent of its operating
+  hazard rate while it waits, behind a changeover that succeeds with probability 0.97.
+name: warm standby
+root:
+  kind: standby
+  label: warm_pair
+  primary:
+    distribution:
+      kind: exponential
+      rate_per_hour: 3.0e-05
+    kind: block
+    name: prime
+  standby_hazard_fraction: 0.35
+  standbys:
+  - distribution:
+      kind: exponential
+      rate_per_hour: 3.0e-05
+    kind: block
+    name: spare
+  switch_reliability: 0.97

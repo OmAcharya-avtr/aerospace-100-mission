@@ -1,0 +1,133 @@
+
+==============================================================================
+minimal cut sets: structural recursion against exhaustive enumeration
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  reliability      : not installed
+  lifelines        : not installed
+  cpu cores        : 2
+  repository root  : P075 (printed relatively; see validation/_bootstrap.py)
+
+  reliability and lifelines are named in the README alternatives table and
+  are NOT installed here. No number in this repository was cross-checked
+  against either of them, and none claims to have been.
+
+  The two routes share no code path. The structural recursion combines
+  children's cut sets by node kind; the exhaustive route evaluates the
+  structure function on every one of 2**n states and keeps the minimal
+  failures. Agreement is required on the SETS, not on their count.
+
+  enumeration cap                    : 2**22 states
+
+==============================================================================
+per-diagram comparison
+==============================================================================
+
+  diagram                                 events         states          failed  structural exhaustive
+  ------------------------------------------------------------------------------------------------------
+  bridge                                 5 events       32 states       16 failed     4 cuts     4 cuts  SAME
+  case_load_sharing_pair                 2 events        4 states        1 failed     1 cuts     1 cuts  SAME
+  case_redundant_pair                    2 events        4 states        1 failed     1 cuts     1 cuts  SAME
+  case_smallsat_bus                     14 events    16384 states    16159 failed    13 cuts    13 cuts  SAME
+  case_voting_triple                     4 events       16 states       12 failed     4 cuts     4 cuts  SAME
+  case_warm_standby                      3 events        8 states        3 failed     2 cuts     2 cuts  SAME
+  k_of_n_inside_parallel                 4 events       16 states        4 failed     3 cuts     3 cuts  SAME
+  nested_parallel_of_series              4 events       16 states        9 failed     4 cuts     4 cuts  SAME
+  series_of_k_of_n                       6 events       64 states       60 failed     6 cuts     6 cuts  SAME
+  smallsat_bus_with_common_cause        17 events   131072 states   130847 failed    16 cuts    16 cuts  SAME
+  standby_in_series                      4 events       16 states       11 failed     3 cuts     3 cuts  SAME
+  two_bridges                            6 events       64 states       48 failed     5 cuts     5 cuts  SAME
+  two_cold_standbys                      4 events       16 states        5 failed     2 cuts     2 cuts  SAME
+
+  diagrams compared                  : 13
+  states enumerated in total         : 147712
+  disagreements                      : 0
+  [PASS] the structural and exhaustive cut sets are identical on every diagram -- 0 of 13 disagree
+
+==============================================================================
+the defining properties, checked against the structure function
+==============================================================================
+
+  cut sets that did NOT fail the system      : 0
+  minimal cut sets NOT restored by one event : 0
+  reported cut sets containing another       : 0
+  [PASS] every reported cut set fails the system when all its events fail -- 0 violations
+  [PASS] restoring any one event of a reported cut set restores the system -- 0 violations
+  [PASS] no reported cut set contains another -- 0 violations
+
+==============================================================================
+path sets, as the dual check
+==============================================================================
+
+  Every minimal path set must succeed, and removing any one of its
+  events must fail the system. The path sets are also what the
+  Esary-Proschan upper bound and the network cut-set dual are built
+  from, so an error in them would propagate.
+
+  path sets checked                  : 95
+  path sets that did not succeed     : 0
+  path sets not minimal              : 0
+  [PASS] every minimal path set succeeds -- 0 violations
+  [PASS] removing any one event of a minimal path set fails the system -- 0 violations
+
+==============================================================================
+the bridge network's declared cut and path sets
+==============================================================================
+
+  reliablock.bridge declares the four minimal cut sets and the four
+  minimal path sets of the five-edge bridge as literals, derived in that
+  module's docstring. They are checked here against the enumeration.
+
+  declared cut sets  : {e1, e2}, {e4, e5}, {e1, e3, e5}, {e2, e3, e4}
+  enumerated cut sets: {e1, e2}, {e1, e3, e5}, {e2, e3, e4}, {e4, e5}
+  declared path sets : {e1, e4}, {e2, e5}, {e1, e3, e5}, {e2, e3, e4}
+  enumerated paths   : {e1, e3, e5}, {e1, e4}, {e2, e3, e4}, {e2, e5}
+  exhaustive states  : 32, of which 16 fail
+  [PASS] the declared bridge cut sets match the enumeration
+  [PASS] the declared bridge path sets match the enumeration
+  [PASS] exactly half the bridge's 32 states fail, as a self-dual structure requires -- 16 of 32
+
+==============================================================================
+what a declared common cause does to the cut sets
+==============================================================================
+
+  This is the qualitative half of the headline, stated as a cut-set
+  count rather than a percentage.
+
+  diagram                           cuts   order 1    cuts   order 1
+                                 (indep)   (indep)    (cc)      (cc)
+  ------------------------------------------------------------------
+  redundant_pair                       1         0       2         1
+  smallsat_bus                        13         3      16         6
+  voting_triple                        4         1       5         2
+
+  Every declared beta factor adds exactly one cut set of order one, by
+  construction: the shared-cause event is a single basic event in series
+  with its group.
+  [PASS] each declared beta factor adds exactly one cut set of order one
+
+==============================================================================
+timing, declared unstable
+==============================================================================
+
+  | quantity | value | stability |
+  |---|---|---|
+  | enumeration wall clock | 3.30 s | UNSTABLE, shared hardware |
+  | states enumerated | 147712 | stable |
+
+CHECKS PASSED: 10
+FAILED CHECKS: none
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

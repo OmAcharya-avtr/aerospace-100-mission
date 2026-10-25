@@ -1,0 +1,135 @@
+
+==============================================================================
+contactsched validate_approx_audit
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+astropy          : not installed
+pulp             : 4.1.0
+ortools          : not installed
+cpu cores        : 2
+repository root  : P073 (printed relatively; see validation/_bootstrap.py)
+
+astropy is NOT installed in this environment. It is named in README.md as a
+mature alternative for frames and time scales and no number anywhere in this
+repository is a cross-check against it; the independent geometric check in
+validate_geometry.py is a second derivation written in this package.
+ortools is NOT installed. pulp is installed but ships no solver, which is the
+measurement that moved the exact baseline onto HiGHS; see validate_exact.py.
+
+==============================================================================
+1. How this repository's own assertions are written
+==============================================================================
+file                          approx calls  with rel=   rel+abs  rel only
+--------------------------------------------------------------------------
+test_benchmark.py                       20         20        20         0
+test_bruteforce.py                       7          7         7         0
+test_cli.py                              0          0         0         0
+test_contention.py                      19         19        19         0
+test_dataset.py                          1          1         1         0
+test_ephemeris.py                        3          3         3         0
+test_exact.py                            6          6         6         0
+test_fairness.py                        30         30        30         0
+test_features.py                        30         30        30         0
+test_geometry.py                        30         24        24         0
+test_greedy.py                          12         12        12         0
+test_invariants.py                       3          2         2         0
+test_predictors.py                      27         27        27         0
+test_problem.py                         16         16        16         0
+test_properties.py                      15         15        15         0
+test_regressions.py                     16         16        16         0
+test_report.py                           0          0         0         0
+test_station.py                         11         11        11         0
+test_tle.py                             21         21        21         0
+test_visibility.py                       9          9         9         0
+--------------------------------------------------------------------------
+total                                  276        269       269         0
+
+PASS 1 RESULT, the number the audit was written to produce:
+  assertions relying on the 1e-12 default absolute tolerance : 0
+
+Every rel= call in this suite states its own absolute tolerance, so no
+assertion's effective tolerance differs from the number written in the test.
+Inserting abs=0.0 where it is missing would change nothing, which is
+verified byte for byte below rather than asserted.
+  insertion pass is a no-op on every file : True
+
+==============================================================================
+2. Pass 2: absolute tolerance forced to zero, suite re-run
+==============================================================================
+Every rel= call has its absolute tolerance replaced by exactly zero. Files
+with no rel= call are excluded, because the rewrite cannot change them and
+copying them out of the repository would break the one test that resolves a
+path relative to its own location.
+
+files copied               : 18
+files excluded (no rel=)   : 2
+abs= inserted              : 0
+abs= replaced with 0.0     : 44
+
+Control run first: the same copied files with their tolerances UNCHANGED.
+Without this control a failure below could not be attributed to the
+rewrite rather than to the act of copying.
+  control exit status : 0
+  568 passed in 116.05s (0:01:56)
+
+rewritten exit status : 0
+
+Output, with every absolute path normalised out so that this committed
+file contains none:
+
+  ........................................................................ [ 12%]
+  ........................................................................ [ 25%]
+  ........................................................................ [ 38%]
+  ........................................................................ [ 50%]
+  ........................................................................ [ 63%]
+  ........................................................................ [ 76%]
+  ........................................................................ [ 88%]
+  ................................................................         [100%]
+  568 passed in 146.20s (0:02:26)
+
+PASS 2 RESULT:
+  assertions with a NON-ZERO declared relative tolerance, re-run with their
+  absolute tolerance forced to zero, that failed : 0
+  calls rewritten for this pass                  : 44
+  calls left alone as pure absolute tolerances    : 225
+
+Every assertion in this suite that declares a non-zero relative tolerance
+passes on that relative tolerance alone, with no absolute bound whatever.
+That is a stronger statement than pass 1 and it is the one the audit set
+out to test.
+
+The calls left alone are written rel=0.0 with an explicit absolute bound.
+They are deliberately absolute: the quantities they compare are angles and
+times whose expected value is zero or whose meaningful tolerance is a
+physical quantity rather than a fraction. Forcing their absolute bound to
+zero would make them assert bit-exact floating-point equality, which this
+mission's build guide forbids after two products shipped that defect.
+
+==============================================================================
+3. A worked demonstration of the trap
+==============================================================================
+Why this audit exists, in four lines that can be run by hand:
+
+  value                        : 1.000000e-05
+  perturbed value              : 1.000000e-05
+  relative difference          : 1.000000e-08
+  approx(rel=1e-15)            : PASSES
+  approx(rel=1e-15, abs=0.0)   : fails
+
+The relative difference is 1e-8, ten million times the stated relative
+tolerance, and the assertion passes anyway because 1e-13 is inside the default
+absolute bound of 1e-12.
+
+==============================================================================
+Result
+==============================================================================

@@ -1,0 +1,189 @@
+
+==============================================================================
+the mission-profile ageing model, including the check it fails
+==============================================================================
+  python           : 3.13.17
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  pyyaml           : 6.0.3
+  matplotlib       : 3.10.8
+  pytest           : 8.4.2
+  hypothesis       : 6.140.3
+  ruff             : 0.14.2
+  reliability      : not installed
+  lifelines        : not installed
+  cpu cores        : 2
+  repository root  : P075 (printed relatively; see validation/_bootstrap.py)
+
+  reliability and lifelines are named in the README alternatives table and
+  are NOT installed here. No number in this repository was cross-checked
+  against either of them, and none claims to have been.
+
+  This script contains the one declared check in this repository that
+  FAILS. It is published rather than removed, and the reason is in the
+  module docstring and in the README under Limitations.
+
+==============================================================================
+the model is exact for an exponential block
+==============================================================================
+
+  For a constant hazard rate, sum(duration * duty * stress) IS the
+  integral of the hazard rate over the mission, so the effective-age
+  model is exact rather than approximate. The reference is the integral,
+  evaluated by quad over the piecewise-constant stress profile.
+
+     rate /h  phases         effective H          integral H    rel diff
+  ----------------------------------------------------------------------
+     1.0e-06       3   0.002150000000000   0.002150000000000   0.000e+00
+     1.0e-05       3   0.021500000000000   0.021500000000000   1.614e-16
+     1.0e-04       3   0.215000000000000   0.215000000000000   2.582e-16
+     1.0e-03       3   2.150000000000000   2.150000000000000   2.066e-16
+
+  worst relative difference          : 2.581914e-16
+  [PASS] the effective-age model is exact for an exponential block -- worst 2.581914e-16 against tolerance 1.0e-12
+
+==============================================================================
+THE CHECK THIS SCRIPT FAILS: the two ageing models for a Weibull block
+==============================================================================
+
+  cumulative exposure (implemented): the stress advances the block
+    along its own ageing curve, so H = H_block(sum(duration * stress)).
+  calendar-time integration (not implemented): the stress multiplies
+    the instantaneous hazard rate at the block's calendar age, so
+    H = integral s(t) h(t) dt.
+
+  declared tolerance a reader would assume : 1.0%
+
+    shape     scale h  stress    cum exposure H        calendar H    rel diff  within 1%
+  --------------------------------------------------------------------------------------
+     0.60     5.0e+03     2.0   4.855933748e-01   6.319194309e-01   2.316e-01      False
+     0.60     5.0e+03     4.0   6.597539554e-01   1.134296717e+00   4.184e-01      False
+     0.60     5.0e+04     2.0   1.219755409e-01   1.587309844e-01   2.316e-01      False
+     0.60     5.0e+04     4.0   1.657227009e-01   2.849224533e-01   4.184e-01      False
+     1.00     5.0e+03     2.0   3.000000000e-01   3.000000000e-01   1.850e-16       True
+     1.00     5.0e+03     4.0   5.000000000e-01   5.000000000e-01   0.000e+00       True
+     1.00     5.0e+04     2.0   3.000000000e-02   3.000000000e-02   1.156e-16       True
+     1.00     5.0e+04     4.0   5.000000000e-02   5.000000000e-02   1.388e-16       True
+     1.80     5.0e+03     2.0   1.145033673e-01   7.103811838e-02   6.119e-01      False
+     1.80     5.0e+03     4.0   2.871745887e-01   1.027359822e-01   1.795e+00      False
+     1.80     5.0e+04     2.0   1.814756073e-03   1.125878324e-03   6.119e-01      False
+     1.80     5.0e+04     4.0   4.551410508e-03   1.628255601e-03   1.795e+00      False
+     2.50     5.0e+03     2.0   4.929503018e-02   2.105082147e-02   1.342e+00      False
+     2.50     5.0e+03     4.0   1.767766953e-01   2.737537680e-02   5.458e+00      False
+     2.50     5.0e+04     2.0   1.558845727e-04   6.656854235e-05   1.342e+00      False
+     2.50     5.0e+04     4.0   5.590169944e-04   8.656854221e-05   5.458e+00      False
+     3.50     5.0e+03     2.0   1.478850905e-02   3.893936530e-03   2.798e+00      False
+     3.50     5.0e+03     4.0   8.838834765e-02   4.526392062e-03   1.853e+01      False
+     3.50     5.0e+04     2.0   4.676537180e-06   1.231370850e-06   2.798e+00      False
+     3.50     5.0e+04     4.0   2.795084972e-05   1.431370850e-06   1.853e+01      False
+
+  cases                              : 20
+  cases agreeing to within 1 percent : 4
+  worst relative difference          : 1.852733e+01
+  worst, as a percentage             : 1852.73 percent
+
+  The shape = 1.00 rows agree exactly, which is the exponential case and
+  is the reason the model is exact there. Every other shape diverges,
+  and the divergence grows with the shape and with the stress factor.
+
+  [FAIL] the cumulative-exposure model agrees with calendar-time hazard rate integration to within 1 percent for a non-exponential block -- worst 1852.73 percent against an assumed 1.0%; 4 of 20 cases agree
+
+  THIS CHECK IS REPORTED AS FAILED AND IS NOT TUNED AWAY. The two
+  models answer different physical questions and this package
+  implements the cumulative-exposure one, which is named in
+  reliablock.mission's docstring and in the README under Limitations.
+  A user who wants calendar-time integration of a scaled hazard rate
+  needs a different package, and the figures above are how much the
+  choice is worth on a two-phase profile.
+
+==============================================================================
+the same divergence for a lognormal block, for completeness
+==============================================================================
+
+       mu   sigma  stress    cum exposure H        calendar H    rel diff
+  -------------------------------------------------------------------------
+      8.0    0.40     2.0   4.394587129e-02   3.169882321e-03   1.286e+01
+      8.0    0.40     4.0   4.004928056e-01   3.177946260e-03   1.250e+02
+      8.0    0.80     2.0   2.173046909e-01   1.029094709e-01   1.112e+00
+      8.0    0.80     4.0   5.326588663e-01   1.287072998e-01   3.139e+00
+     10.0    0.40     2.0   9.278441943e-12   5.351548627e-15   1.733e+03
+     10.0    0.40     4.0   2.665749188e-08   5.351551606e-15   4.981e+06
+     10.0    0.80     2.0   3.919465380e-04   5.658958409e-05   5.926e+00
+     10.0    0.80     4.0   3.270004227e-03   5.881562089e-05   5.460e+01
+
+  worst relative difference          : 4.981263e+06
+
+  Reported as a measurement. No tolerance is declared for it, because
+  the two models are not meant to agree and declaring a tolerance would
+  imply that they are.
+
+==============================================================================
+a one-shot block is not aged by a profile
+==============================================================================
+
+  A FixedProbability block's figure of merit is a probability per
+  actuation, not a rate. Multiplying it by a duty cycle is not a model
+  of anything, so a profile that tries is refused.
+
+  duty cycle 0.5: block 'd' has a FixedProbability distribution, whose figure of merit is a probability per actuation and not a rate, but phases ['p'] declare a duty cycle or stress factor for it. Multiplying a probabi
+  [PASS] duty cycle 0.5 on a one-shot block is refused
+  stress factor 2.0: block 'd' has a FixedProbability distribution, whose figure of merit is a probability per actuation and not a rate, but phases ['p'] declare a duty cycle or stress factor for it. Multiplying a probabi
+  [PASS] stress factor 2.0 on a one-shot block is refused
+
+  and the block's unreliability is unchanged by any mission duration:
+               0 h : Q = 1.500000000000000e-03
+               1 h : Q = 1.500000000000000e-03
+            1000 h : Q = 1.500000000000000e-03
+           1e+06 h : Q = 1.500000000000000e-03
+           1e+09 h : Q = 1.500000000000000e-03
+  [PASS] a one-shot block's unreliability is independent of mission duration
+
+==============================================================================
+the per-phase breakdown decomposes the effective ages it reports
+==============================================================================
+
+  blocks                             : 13
+  breakdown rows                     : 39
+  worst relative difference          : 0.000000e+00
+  [PASS] the per-phase breakdown sums to the reported effective age for every block -- worst 0.000000e+00
+
+  the phased profile against a flat one of the same elapsed time:
+
+  block                         flat eff h    phased eff h     ratio
+  ------------------------------------------------------------------
+  solar_array_deployment             26298           26298    1.0000
+  power_string_a                     26298           26442    1.0055
+  power_string_b                     26298           26442    1.0055
+  obc                                26298           26370    1.0027
+  wheel_a                            26298         26233.2    0.9975
+  wheel_b                            26298         26233.2    0.9975
+  wheel_c                            26298         26233.2    0.9975
+  wheel_d                            26298         26233.2    0.9975
+  receiver_a                         26298           26298    1.0000
+  receiver_b                         26298           26298    1.0000
+  transmitter_main                   26298         3442.32    0.1309
+  transmitter_spare                  26298         3442.32    0.1309
+  thermal_control                    26298           26406    1.0041
+
+  flat elapsed   : 26298 h
+  phased elapsed : 26298 h
+  [PASS] both profiles declare the same elapsed time, so the comparison is fair -- 26298 against 26298
+
+==============================================================================
+timing, declared unstable
+==============================================================================
+
+  | quantity | value | stability |
+  |---|---|---|
+  | whole script wall clock | 0.11 s | UNSTABLE, shared hardware |
+
+CHECKS PASSED: 6
+FAILED CHECKS (1):
+  - the cumulative-exposure model agrees with calendar-time hazard rate integration to within 1 percent for a non-exponential block
+BLOCKING FAILURES: none
+
+  Exit code convention: 0 means this script completed its measurement
+  and wrote its output. A failed check above is a reported measurement
+  result, not a crash, and does not change the exit code. Only a
+  blocking failure does. See validation/_bootstrap.py.
+

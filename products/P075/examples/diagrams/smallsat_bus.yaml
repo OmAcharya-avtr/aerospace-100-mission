@@ -1,0 +1,110 @@
+description: A small-satellite bus with four redundant groups and three declared common-cause
+  beta factors. Every rate is a declared input chosen to be representative in order
+  of magnitude; none is a measurement.
+name: smallsat bus
+notes:
+- The beta factors are declared inputs, not data. A real assessment needs the programme's
+  own common-cause parameters.
+- The transmitter's changeover switch reliability is declared, not assumed to be 1.0.
+root:
+  items:
+  - description: one-shot deployment; probability per actuation, not a rate
+    distribution:
+      kind: fixed_probability
+      probability: 0.001
+    kind: block
+    name: solar_array_deployment
+  - beta_factor: 0.12
+    items:
+    - description: PCDU string A
+      distribution:
+        kind: exponential
+        rate_per_hour: 1.2e-06
+      kind: block
+      name: power_string_a
+    - description: PCDU string B
+      distribution:
+        kind: exponential
+        rate_per_hour: 1.2e-06
+      kind: block
+      name: power_string_b
+    kind: parallel
+    label: power
+  - description: on-board computer, single string, infant-mortality shape
+    distribution:
+      kind: weibull
+      scale_hours: 5000000.0
+      shape: 0.85
+    kind: block
+    name: obc
+  - beta_factor: 0.08
+    items:
+    - description: reaction wheel A
+      distribution:
+        kind: exponential
+        rate_per_hour: 1.0e-06
+      kind: block
+      name: wheel_a
+    - description: reaction wheel B
+      distribution:
+        kind: exponential
+        rate_per_hour: 1.0e-06
+      kind: block
+      name: wheel_b
+    - description: reaction wheel C
+      distribution:
+        kind: exponential
+        rate_per_hour: 1.0e-06
+      kind: block
+      name: wheel_c
+    - description: reaction wheel D
+      distribution:
+        kind: exponential
+        rate_per_hour: 1.0e-06
+      kind: block
+      name: wheel_d
+    k: 3
+    kind: k_of_n
+    label: reaction_wheels
+  - beta_factor: 0.05
+    items:
+    - description: S-band receiver A
+      distribution:
+        kind: exponential
+        rate_per_hour: 2.0e-06
+      kind: block
+      name: receiver_a
+    - description: S-band receiver B
+      distribution:
+        kind: exponential
+        rate_per_hour: 2.0e-06
+      kind: block
+      name: receiver_b
+    kind: parallel
+    label: receivers
+  - kind: standby
+    label: transmitter
+    primary:
+      description: X-band TWTA, prime
+      distribution:
+        kind: exponential
+        rate_per_hour: 4.0e-06
+      kind: block
+      name: transmitter_main
+    standby_hazard_fraction: 0.0
+    standbys:
+    - description: X-band TWTA, cold spare
+      distribution:
+        kind: exponential
+        rate_per_hour: 4.0e-06
+      kind: block
+      name: transmitter_spare
+    switch_reliability: 0.995
+  - description: heater control, single string
+    distribution:
+      kind: exponential
+      rate_per_hour: 2.0e-07
+    kind: block
+    name: thermal_control
+  kind: series
+  label: bus

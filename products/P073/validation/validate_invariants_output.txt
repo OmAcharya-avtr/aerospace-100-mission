@@ -1,0 +1,123 @@
+
+==============================================================================
+contactsched validate_invariants
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+astropy          : not installed
+pulp             : 4.1.0
+ortools          : not installed
+cpu cores        : 2
+repository root  : P073 (printed relatively; see validation/_bootstrap.py)
+
+astropy is NOT installed in this environment. It is named in README.md as a
+mature alternative for frames and time scales and no number anywhere in this
+repository is a cross-check against it; the independent geometric check in
+validate_geometry.py is a second derivation written in this package.
+ortools is NOT installed. pulp is installed but ships no solver, which is the
+measurement that moved the exact baseline onto HiGHS; see validate_exact.py.
+
+==============================================================================
+Family
+==============================================================================
+seeds    : 0..119
+usable   : 120 of 120
+horizon  : 43200 s
+
+==============================================================================
+1. Feasibility invariants, every method, every instance
+==============================================================================
+method                      instances  violations   contacts
+--------------------------------------------------------------
+greedy                            120           0       2774
+greedy-demand                     120           0       2815
+exact                             120           0       2899
+
+==============================================================================
+2. Minimum-contact invariant under the fairness floors
+==============================================================================
+instances with a feasible constrained schedule : 15
+requests still short in those schedules        : 0
+
+Zero is the only acceptable value in the second row. A feasible solve that
+left a floor unmet would mean the floor constraints are not reaching HiGHS.
+
+==============================================================================
+3. Independently derived bounds
+==============================================================================
+bound                                                   instances  breaches
+----------------------------------------------------------------------------
+allocated antenna time <= union visibility                    120         0
+contacts per request <= standalone capacity                   120         0
+objective <= per-request weight ceiling                       120         0
+fairness metrics inside their declared ranges                 120         0
+
+==============================================================================
+4. Negative controls
+==============================================================================
+One antenna with a 200 s turnaround and a single 2000 s window, so the 200 s
+candidate grid gives ten placements of a 200 s contact and every corruption
+below stays inside the window. That matters: a corruption that also moved a
+contact out of its window would be caught by the containment check instead of
+by the one under test.
+
+control                                                  fired  expected
+--------------------------------------------------------------------------
+positive control: 800 s apart, 200 s turnaround          False     False
+separation EXACTLY one turnaround (200 s)                False     False
+separation one second inside the turnaround               True      True
+    -> antenna A1 double-booked: R1 [0.0, 200.0] against R1 [399.0, 599.0] with 200.0 s turnaround
+overlap: second starts 1 s after the first ends           True      True
+    -> antenna A1 double-booked: R1 [0.0, 200.0] against R1 [201.0, 401.0] with 200.0 s turnaround
+contact relocated outside every window                    True      True
+    -> candidate 5 for R1 at A1 is not contained in any visibility window
+the same candidate selected twice                         True      True
+    -> a candidate index is selected more than once
+three compatible contacts against a ceiling of two        True      True
+    -> request R1 has 3 contacts, above its maximum of 2
+one spacecraft on two antennas at once                    True      True
+    -> spacecraft SC-1 double-booked: R1 [0.0, 100.0] against R2 [0.0, 100.0]
+
+The two rows expecting False are the ones that make the rest meaningful. A
+checker that fires on everything is not a checker, and a control built on an
+offset that merely reaches the turnaround would be one of those rows, not a
+violation.
+
+==============================================================================
+5. Starvation is measured, never silently repaired
+==============================================================================
+feasibility violations : 0
+contacts granted       : 1
+contacts short         : 1
+seconds short          : 100.0
+
+A schedule that misses a declared minimum is FEASIBLE and SHORT. Treating the
+miss as infeasibility would throw away the number this product exists to
+report, which is why check_feasible and shortfalls are separate functions.
+
+==============================================================================
+6. Determinism
+==============================================================================
+Every method re-run three times on the same instance must return the identical
+selection, not merely the identical objective.
+
+method                      instances  selection mismatches
+--------------------------------------------------------------
+greedy                             40                     0
+greedy-demand                      40                     0
+exact                              40                     0
+
+==============================================================================
+Result
+==============================================================================
+All checks in this script passed.
+

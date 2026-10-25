@@ -1,0 +1,100 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q --junitxml=junit.xml
+      - name: Test count from junit XML, never from stdout
+        run: |
+          python - <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse("junit.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          declared = int(suite.get("tests", "0"))
+          counted = len(suite.findall(".//testcase"))
+          print(f"declared {declared}, counted {counted}")
+          if declared == 0 or declared != counted:
+              sys.exit("junit.xml does not agree with itself, or no test ran")
+          PY
+      - name: Import in a clean interpreter
+        run: PYTHONPATH=src python -c "import reliablock; print(reliablock.__version__)"
+      - name: CLI
+        run: |
+          python -m reliablock --version
+          python -m reliablock info
+          python -m reliablock show smallsat_bus
+          python -m reliablock show voting_triple --enumerate
+          python -m reliablock quantify smallsat_bus
+          python -m reliablock compare smallsat_bus
+          python -m reliablock importance voting_triple
+          python -m reliablock mission smallsat_bus --mission leo_phased
+          python -m reliablock simulate redundant_pair --trials 200000 --seed 1
+          python -m reliablock bridge
+      - name: Validation scripts
+        run: |
+          python validation/validate_structures.py
+          python validation/validate_precision.py
+          python validation/validate_cutsets.py
+          python validation/validate_importance.py
+          python validation/validate_bridge.py
+          python validation/validate_commoncause.py
+          python validation/validate_mission.py
+          python validation/validate_montecarlo.py
+          python validation/validate_negative_controls.py
+          python validation/validate_cli.py
+          python validation/regenerate_declarations.py
+          python validation/worked_example.py
+      - name: The pytest.approx default-absolute-tolerance audit
+        run: python validation/audit_approx_tolerances.py
+      - name: Every validation script and example from five working directories
+        env:
+          MPLBACKEND: Agg
+        run: python validation/probe_working_directories.py
+      - name: Committed declarations are unchanged by regeneration
+        run: git diff --exit-code examples/diagrams/
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/common_cause_headline.py
+          python examples/beta_sensitivity.py
+          python examples/structure_comparison.py
+          python examples/importance_and_cutsets.py
+          python examples/precision_space.py
+          python examples/mission_phases.py
+      - name: No machine-learning library is imported in src/
+        run: |
+          python - <<'PY'
+          import pathlib, sys
+          offenders = []
+          for path in sorted(pathlib.Path("src").rglob("*.py")):
+              text = path.read_text()
+              for library in ("sklearn", "torch", "tensorflow", "keras", "xgboost", "lightgbm"):
+                  if f"import {library}" in text or f"from {library}" in text:
+                      offenders.append(f"{path}: {library}")
+          if offenders:
+              sys.exit("this product has no learned component by design: " + ", ".join(offenders))
+          import os
+          os.environ["PYTHONPATH"] = "src"
+          print("no machine-learning import in src/")
+          PY

@@ -1,0 +1,220 @@
+
+==============================================================================
+contactsched validate_baselines
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+astropy          : not installed
+pulp             : 4.1.0
+ortools          : not installed
+cpu cores        : 2
+repository root  : P073 (printed relatively; see validation/_bootstrap.py)
+
+astropy is NOT installed in this environment. It is named in README.md as a
+mature alternative for frames and time scales and no number anywhere in this
+repository is a cross-check against it; the independent geometric check in
+validate_geometry.py is a second derivation written in this package.
+ortools is NOT installed. pulp is installed but ships no solver, which is the
+measurement that moved the exact baseline onto HiGHS; see validate_exact.py.
+
+==============================================================================
+Instance family
+==============================================================================
+seeds        : 0..159 (160 instances)
+horizon      : 43200 s
+generator    : contactsched.dataset.generate_instance, all sizes drawn
+candidate grid: 240 s (the generator default)
+
+candidates per instance : min 41, median 171, max 455
+requests per instance   : min 7, median 9, max 11
+instances with no placeable candidate : 0
+usable instances        : 160
+
+==============================================================================
+Gap of greedy[priority] against the exact optimum, weighted_contacts
+==============================================================================
+instances scored    : 160
+exact infeasible    : 0
+
+statistic                       value
+--------------------------------------
+mean gap                     0.029962
+median gap                   0.013007
+p75                          0.045665
+p90                          0.096503
+p99                          0.142725
+maximum gap                  0.176871
+exact ties (gap <= 1e-12)    75.000000
+tie fraction                 0.468750
+
+Distribution, as counts per gap band:
+band                     count   fraction
+------------------------------------------
+[0, 1e-12)                  75     0.4688
+[1e-12, 5e-03)               0     0.0000
+[5e-03, 1e-02)               1     0.0063
+[1e-02, 2e-02)              14     0.0875
+[2e-02, 5e-02)              32     0.2000
+[5e-02, 1e-01)              23     0.1437
+[1e-01, 2e-01)              15     0.0938
+[2e-01, 1e+00)               0     0.0000
+
+Wall clock, unstable, table only:
+  greedy : 0.064 s over 160 solves
+  exact  : 1.767 s over 160 solves
+
+==============================================================================
+Gap of greedy[demand] against the exact optimum, weighted_contacts
+==============================================================================
+instances scored    : 160
+exact infeasible    : 0
+
+statistic                       value
+--------------------------------------
+mean gap                     0.075064
+median gap                   0.036298
+p75                          0.117726
+p90                          0.226501
+p99                          0.398792
+maximum gap                  0.439024
+exact ties (gap <= 1e-12)    59.000000
+tie fraction                 0.368750
+
+Distribution, as counts per gap band:
+band                     count   fraction
+------------------------------------------
+[0, 1e-12)                  59     0.3688
+[1e-12, 5e-03)               0     0.0000
+[5e-03, 1e-02)               0     0.0000
+[1e-02, 2e-02)               8     0.0500
+[2e-02, 5e-02)              25     0.1562
+[5e-02, 1e-01)              22     0.1375
+[1e-01, 2e-01)              28     0.1750
+[2e-01, 1e+00)              18     0.1125
+
+Wall clock, unstable, table only:
+  greedy : 0.069 s over 160 solves
+  exact  : 1.763 s over 160 solves
+
+==============================================================================
+Gap of greedy[priority] against the exact optimum, weighted_seconds
+==============================================================================
+instances scored    : 160
+exact infeasible    : 0
+
+statistic                       value
+--------------------------------------
+mean gap                     0.039805
+median gap                   0.018059
+p75                          0.057044
+p90                          0.130563
+p99                          0.230227
+maximum gap                  0.235741
+exact ties (gap <= 1e-12)    66.000000
+tie fraction                 0.412500
+
+Distribution, as counts per gap band:
+band                     count   fraction
+------------------------------------------
+[0, 1e-12)                  66     0.4125
+[1e-12, 5e-03)               1     0.0063
+[5e-03, 1e-02)               4     0.0250
+[1e-02, 2e-02)              10     0.0625
+[2e-02, 5e-02)              34     0.2125
+[5e-02, 1e-01)              22     0.1375
+[1e-01, 2e-01)              20     0.1250
+[2e-01, 1e+00)               3     0.0187
+
+Wall clock, unstable, table only:
+  greedy : 0.062 s over 160 solves
+  exact  : 1.648 s over 160 solves
+
+==============================================================================
+Gap of greedy[demand] against the exact optimum, weighted_seconds
+==============================================================================
+instances scored    : 160
+exact infeasible    : 0
+
+statistic                       value
+--------------------------------------
+mean gap                     0.063582
+median gap                   0.025827
+p75                          0.090530
+p90                          0.195285
+p99                          0.391865
+maximum gap                  0.423077
+exact ties (gap <= 1e-12)    63.000000
+tie fraction                 0.393750
+
+Distribution, as counts per gap band:
+band                     count   fraction
+------------------------------------------
+[0, 1e-12)                  63     0.3937
+[1e-12, 5e-03)               0     0.0000
+[5e-03, 1e-02)               4     0.0250
+[1e-02, 2e-02)               9     0.0563
+[2e-02, 5e-02)              26     0.1625
+[5e-02, 1e-01)              21     0.1313
+[1e-01, 2e-01)              21     0.1313
+[2e-01, 1e+00)              16     0.1000
+
+Wall clock, unstable, table only:
+  greedy : 0.071 s over 160 solves
+  exact  : 1.825 s over 160 solves
+
+==============================================================================
+Which heuristic ordering wins, per instance
+==============================================================================
+A head-to-head count, because the aggregate statistics above do not say
+whether one ordering dominates or whether they trade instances.
+
+priority ordering strictly better : 78
+demand ordering strictly better   : 31
+tied                              : 51
+
+Both orderings are shipped. Neither dominates, and a product that reported
+only the better of the two on each instance would be reporting an oracle it
+does not have.
+
+==============================================================================
+What the exact method buys beyond objective: starvation and equality
+==============================================================================
+The objective gap is not the whole story. The same comparison, measured in
+the quantities this product exists to report.
+
+method                      mean objective  mean starved  mean Jain  mean max-min  mean inversions
+--------------------------------------------------------------------------------------------------
+greedy[priority]                 10.755469        3.0438   0.779122      0.133646           4.9688
+  instances with a schedule             160
+greedy[demand]                   10.257031        3.1875   0.774858      0.126771           6.9062
+  instances with a schedule             160
+exact                            11.115625        2.8062   0.803596      0.171458           4.7812
+  instances with a schedule             160
+exact + fairness floors          10.437500        0.0000   1.000000      1.000000           0.0000
+  instances with a schedule              16
+
+The fairness-constrained program is feasible on only 16 of 160 instances.
+That is the headline finding of this table and it is not a solver failure:
+on the other instances at least one request declares more contacts than its
+own passes can carry, so no schedule whatever can satisfy the floors. The
+averages on this row are therefore over a biased subset -- the easy
+instances -- and must not be compared with the rows above. What is
+actionable is the diagnostic: solve_exact names the binding floor and the
+standalone capacity that bounds it, which is what a planner renegotiates
+against. The price of the constraint where it IS feasible is measured in
+validate_fairness.py.
+
+==============================================================================
+Result
+==============================================================================
+All checks in this script passed.
+

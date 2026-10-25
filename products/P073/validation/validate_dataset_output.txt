@@ -1,0 +1,156 @@
+
+==============================================================================
+contactsched validate_dataset
+==============================================================================
+python           : 3.13.17
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+pandas           : 3.0.5
+matplotlib       : 3.10.8
+joblib           : 1.5.2
+pytest           : 8.4.2
+hypothesis       : 6.140.3
+ruff             : 0.14.2
+astropy          : not installed
+pulp             : 4.1.0
+ortools          : not installed
+cpu cores        : 2
+repository root  : P073 (printed relatively; see validation/_bootstrap.py)
+
+astropy is NOT installed in this environment. It is named in README.md as a
+mature alternative for frames and time scales and no number anywhere in this
+repository is a cross-check against it; the independent geometric check in
+validate_geometry.py is a second derivation written in this package.
+ortools is NOT installed. pulp is installed but ships no solver, which is the
+measurement that moved the exact baseline onto HiGHS; see validate_exact.py.
+
+==============================================================================
+1. The generator's declared distributions
+==============================================================================
+Every one of these is a choice written down in contactsched/dataset.py, and
+every reported model score is a score on this generator and not on any real
+network's request mix.
+
+station pool            : 6 sites
+  SVALBARD       lat   78.23  lon    15.39  alt  0.45 km  mask floor  5.0 deg  turnaround   300 s
+  PUNTA-ARENAS   lat  -53.16  lon   -70.91  alt  0.03 km  mask floor  5.0 deg  turnaround   420 s
+  KOUROU         lat    5.25  lon   -52.80  alt  0.01 km  mask floor  7.0 deg  turnaround   360 s
+  TROLL          lat  -72.01  lon     2.53  alt  1.30 km  mask floor  5.0 deg  turnaround   300 s
+  ALICE-SPRINGS  lat  -23.70  lon   133.88  alt  0.55 km  mask floor  6.0 deg  turnaround   300 s
+  FAIRBANKS      lat   64.86  lon  -147.85  alt  0.14 km  mask floor  5.0 deg  turnaround   300 s
+inclination pool        : (97.4, 97.8, 98.4, 51.6, 63.4, 74.0) deg
+mission pool            : ('POLARIS', 'TERRASCAN', 'EQUINOX', 'MERIDIAN', 'HELIOS')
+antennas per instance   : 3 to 4, drawn without replacement
+spacecraft per instance : 4 to 6
+requests per instance   : 7 to 11
+priority distribution   : 1,2,3,4 with probabilities 0.2, 0.3, 0.3, 0.2
+contact duration        : one of 180, 300, 420, 600 s
+minimum contacts        : round(U(1, 2 + 2*load)) clipped to [1, 6]
+maximum contacts        : minimum plus 0 or 1
+allowed antennas        : unrestricted with probability 0.55, else a subset
+load knob               : U(0.7, 2.3), scaling the declared minimum contacts
+mean motion             : U(13.9, 15.5) rev/day
+eccentricity            : U(0.0002, 0.004)
+scan step / slot grid   : 45 s / 240 s
+
+==============================================================================
+2. Determinism of instance generation
+==============================================================================
+seeds re-generated : 40
+mismatches         : 0
+
+==============================================================================
+3. Building the dataset
+==============================================================================
+train seeds        : 0..239
+test seeds         : 240..319
+instances          : 320
+rows               : 2903
+columns            : 29
+features           : 23
+positive rate      : 0.308302
+positives          : 895
+
+Compute budget, wall clock on a shared two-core machine. Unstable, table only:
+  dataset build    : 22.87 s
+  per instance     : 71.5 ms
+  cpu cores        : 2
+
+==============================================================================
+4. Determinism of the dataframe
+==============================================================================
+20-seed rebuild identical to the slice of the full build : True
+
+==============================================================================
+5. Split hygiene
+==============================================================================
+train rows                       : 2178
+test rows                        : 725
+train positive rate              : 0.312672
+test positive rate               : 0.295172
+shared (seed, request_id) keys   : 0
+shared seeds                     : 0
+
+The split is by INSTANCE. Requests inside one instance share its network,
+its horizon and its contention, so splitting by request would leak and the
+reported scores would be optimistic. An overlapping seed range raises in
+split_by_instance rather than being caught here.
+overlapping ranges raise: train and test seed ranges overlap on [5, 6, 7, 8, 9]
+
+==============================================================================
+6. Feature sanity
+==============================================================================
+feature                                       min       median          max  non-finite
+----------------------------------------------------------------------------------------
+priority                                   1.0000       3.0000       4.0000           0
+weight                                     0.0000       0.2500       1.0000           0
+duration_s                               180.0000     420.0000     600.0000           0
+min_contacts                               1.0000       3.0000       6.0000           0
+max_contacts                               1.0000       3.0000       7.0000           0
+n_candidates                               0.0000      17.0000      85.0000           0
+n_windows                                  0.0000       7.0000      24.0000           0
+n_allowed_stations                         1.0000       3.0000       4.0000           0
+usable_seconds                             0.0000    4036.6406   16165.3711           0
+demand_over_usable                         0.0132       0.2156       5.9743         273
+ratio_max                                  0.0000       0.7640      10.3610           0
+ratio_weighted                             0.0000       0.5383       9.2035           0
+standalone_capacity                        0.0000       7.0000      36.0000           0
+capacity_deficit                         -31.0000      -4.0000       6.0000           0
+window_slack                               0.0000       1.5934       4.6133           0
+mean_max_elevation_deg                     0.0000      36.3299      88.0996           0
+competitor_count                           0.0000       2.0000      10.0000           0
+competitor_overlap_s                       0.0000    4054.5703   49453.9453           0
+higher_priority_competitor_count           0.0000       0.0000       8.0000           0
+higher_priority_overlap_s                  0.0000       0.0000   37591.1719           0
+higher_priority_overlap_fraction           0.0000       0.0000       1.0000           0
+instance_requests                          7.0000       9.0000      11.0000           0
+instance_demand_over_supply                0.0727       0.3621       1.0527           0
+
+Non-finite values are legitimate and are not errors: demand_over_usable is
+infinite for a request with declared demand and no usable window, which is a
+real and highly predictive state. contactsched.features.design_matrix replaces
+them with a finite sentinel of 1.0e6 before any model sees them.
+
+==============================================================================
+7. Label composition
+==============================================================================
+subset                                                  rows  positives     rate
+--------------------------------------------------------------------------------
+all requests                                            2903        895   0.3083
+capacity_deficit > 0 (asked for more than its passes allow)     604        604   1.0000
+capacity_deficit <= 0 (lost the contention, or won)     2299        291   0.1266
+
+The first subset is trivially predictable: a request asking for more contacts
+than its own passes can carry is unsatisfiable whatever the competition does,
+and the feature capacity_deficit says so directly. Those rows are kept because
+they are a real part of the label, and every model score in
+validate_predictors_output.txt is reported BOTH over all requests and over the
+hard subset, because reporting only the first would flatter every model.
+
+==============================================================================
+Result
+==============================================================================
+All checks in this script passed.
+

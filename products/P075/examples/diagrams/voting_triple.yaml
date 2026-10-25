@@ -1,0 +1,34 @@
+description: Triple modular redundancy with a single voter. The voter is a cut set
+  of order one whatever the channels do, which is the standard objection to the architecture
+  and is visible in the cut-set listing.
+name: voting triple
+root:
+  items:
+  - beta_factor: 0.06
+    items:
+    - distribution:
+        kind: exponential
+        rate_per_hour: 3.0e-06
+      kind: block
+      name: channel_a
+    - distribution:
+        kind: exponential
+        rate_per_hour: 3.0e-06
+      kind: block
+      name: channel_b
+    - distribution:
+        kind: exponential
+        rate_per_hour: 3.0e-06
+      kind: block
+      name: channel_c
+    k: 2
+    kind: k_of_n
+    label: channels
+  - description: majority voter, single string
+    distribution:
+      kind: exponential
+      rate_per_hour: 5.0e-07
+    kind: block
+    name: voter
+  kind: series
+  label: triple_modular_redundancy
