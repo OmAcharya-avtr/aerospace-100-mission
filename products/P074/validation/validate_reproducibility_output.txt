@@ -1,0 +1,100 @@
+
+==============================================================================
+orbitdrift -- determinism of the population, the dataset and the fits
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+==============================================================================
+claim 1: the committed population is what the seed produces
+==============================================================================
+  committed sha256              : c1a862cbc73c58bc7b2c461f34aea5b58babba375888cf12cc18fbc95abfa90a
+  regenerated sha256            : c1a862cbc73c58bc7b2c461f34aea5b58babba375888cf12cc18fbc95abfa90a
+  bytes                         : 32247
+  [PASS] the committed population file is reproduced byte for byte from its seed -- c1a862cbc73c58bc against c1a862cbc73c58bc
+  [PASS] a different seed gives a different population -- so the seed is actually in use
+
+==============================================================================
+claim 2: the divergence computation is deterministic
+==============================================================================
+  objects                       : 6
+  span                          : 1.0 days
+  reference period pinned at    : 5465.029821 s
+  rows                          : 24
+  bit-identical between runs    : True
+  [PASS] two runs of the same computation in the same process agree bit for bit -- worst difference 0.000e+00
+
+==============================================================================
+claim 3: a subset reproduces the committed rows with the step pinned
+==============================================================================
+  rows compared                 : 24
+  worst absolute difference     : 7.019874e-09
+  worst relative difference     : 8.305428e-09
+
+  This is NOT bit-exact, and the reason is the tabulated luni-solar
+  ephemeris. A one-day run evaluates the trigonometric series on 1442
+  epochs where the seven-day committed run used 10082, and numpy's
+  vectorised transcendental loops are not required to give bit-identical
+  results for arrays of different length -- the tail of a SIMD loop is
+  handled differently from its body. A few thousand Runge-Kutta steps
+  amplify that last-bit difference to the value above.
+  [PASS] a pinned-step subset reproduces the committed rows to 1e-6 relative -- 8.305e-09
+
+==============================================================================
+claim 3b: without pinning the step, the rows differ measurably
+==============================================================================
+  subset's own reference period : 5752.002339 s
+  committed reference period    : 5465.029821 s
+  worst relative difference     : 1.141518e-02
+
+  This is the integrator's truncation floor made visible by a change of
+  step, and it is why the step is an input to build_divergence_table
+  rather than an emergent property of which objects happen to share an
+  epoch. The number is reported, not hidden.
+  [PASS] an unpinned step changes the rows by more than the pinned run does (so the pinning is doing something) -- 1.142e-02 against 8.305e-09
+
+==============================================================================
+claim 4: every fit in the benchmark is reproducible
+==============================================================================
+  predictor                             coverage match   score match
+  rule_of_thumb                         True             True
+  analytic_linear                       True             True
+  analytic_linear_conformal             True             True
+  analytic_quadratic                    True             True
+  analytic_quadratic_conformal          True             True
+  analytic_power                        True             True
+  analytic_power_conformal              True             True
+  analytic_power_altitude               True             True
+  analytic_power_altitude_conformal     True             True
+  analytic_drag_exponential             True             True
+  analytic_drag_exponential_conformal   True             True
+  learned_gbr_quantile                  True             True
+  learned_gbr_conformal                 True             True
+  [PASS] the cold-prediction benchmark is bit-reproducible across runs -- 0 mismatched rows
+  [PASS] the extrapolation benchmark is bit-reproducible across runs -- 0 mismatched rows
+
+==============================================================================
+claim 5: a different split seed changes the answer
+==============================================================================
+  Otherwise the split is not in use and the held-out measurement is not
+  held out.
+  rows whose coverage changed   : 13 of 13
+  [PASS] a different split seed changes most predictors' measured coverage -- 13 of 13
+
+==============================================================================
+timings (UNSTABLE: wall clock on a shared two-core container)
+==============================================================================
+  subset propagations           : 2, 43.5 s total
+

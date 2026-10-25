@@ -1,0 +1,95 @@
+
+==============================================================================
+orbitdrift -- the lower bound, against a case where truth is known
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+==============================================================================
+the statement being checked
+==============================================================================
+  D        = |r_model_a(t) - r_model_b(t)|, the separation this package measures
+  e1, e2   = the two models' unknown errors against truth
+  claim    = max(|e1|, |e2|) >= D/2, from |e1| + |e2| >= D
+  NOT      = a bound on |e1| alone, or on |e2| alone, or an estimate of either
+
+==============================================================================
+the inequality over a grid of deliberately wrong model pairs
+==============================================================================
+  Each pair is two closed-form two-body propagations from perturbed initial
+  conditions. Truth is the unperturbed one, so e1 and e2 are computable.
+
+  dr_a km   dv_b scale   worst D km   worst bound km   margin km   violations
+     0.00     1.000000       0.0000           0.0000      0.0000            0
+     0.00     1.000002       5.5010           2.7505      0.0000            0
+     0.00     1.000020      55.0136          27.5068      0.0000            0
+     0.00     1.000200     550.3538         275.1769      0.0000            0
+     0.05     1.000000       8.7807           4.3903      0.0088            0
+     0.05     1.000002       3.2846           1.6423      0.0084            0
+     0.05     1.000020      46.2484          23.1242      0.0041            0
+     0.05     1.000200     541.5917         270.7959      0.0250            0
+     0.50     1.000000      87.8147          43.9074      0.0883            0
+     0.50     1.000002      82.3186          41.1593      0.0943            0
+     0.50     1.000020      32.8491          16.4246      0.0839            0
+     0.50     1.000200     462.7195         231.3597      0.0413            0
+     5.00     1.000000     878.3868         439.1934      0.8848            0
+     5.00     1.000002     872.9001         436.4500      0.8918            0
+     5.00     1.000020     823.5098         411.7549      0.9451            0
+     5.00     1.000200     328.7300         164.3650      0.8408            0
+    50.00     1.000000    8264.3297        4132.1649      9.0259            0
+    50.00     1.000002    8259.8293        4129.9146      9.0331            0
+    50.00     1.000020    8219.2657        4109.6328      9.0970            0
+    50.00     1.000200    7807.8362        3903.9181      9.6377            0
+
+  pairs tested                  : 20
+  sample points per pair        : 401
+  total inequality violations   : 0
+  worst margin (larger - bound) : 0.000000e+00 km
+  [PASS] the inequality holds at every sample of every pair -- 0 violations, worst margin 0.000e+00 km
+  [PASS] the bound is not vacuous: somewhere it is a real constraint -- largest bound 4132.1649 km
+
+==============================================================================
+the bound says nothing about either model individually
+==============================================================================
+  A perfect model compared against a bad one gives a large D and an error
+  of exactly zero. The bound still holds -- it bounds the LARGER error --
+  but the smaller error is below it, which is why README.md does not claim
+  the bound applies to the element set the user holds.
+
+  worst D                       : 878.3868 km
+  worst bound D/2               : 439.1934 km
+  perfect model's error         : 0.0000 km
+  bad model's error             : 878.3868 km
+  [PASS] the perfect model's error is below the bound at every sample -- so the bound is not a bound on an individual model
+  [PASS] the larger of the two errors is above the bound at every sample -- worst margin 8.848e-01 km
+
+==============================================================================
+negative control: the inequality written the wrong way round
+==============================================================================
+  If the bound were D rather than D/2, it would claim max(|e1|, |e2|) >= D,
+  which is false whenever the two errors are comparable. The control shows
+  it failing, which is what makes the passing result above evidence.
+
+  samples                       : 401
+  violations with the bound D   : 401
+  violations with the bound D/2 : 0
+  [PASS] the wrong-way-round bound is violated (control fires) -- 401 of 401 samples
+  [PASS] the correct bound is not violated on the same data -- 0 of 401 samples
+
+  The two models here are offset in opposite directions by 1 km, so their
+  errors are each about half the separation and the D-bound fails at
+  almost every sample. This is the equality case of the triangle
+  inequality, which is exactly where a factor of two matters.
+

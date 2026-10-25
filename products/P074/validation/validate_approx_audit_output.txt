@@ -1,0 +1,109 @@
+
+==============================================================================
+orbitdrift -- the pytest.approx default-absolute-tolerance audit
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+==============================================================================
+why this audit exists
+==============================================================================
+  pytest.approx(expected, rel=r) carries a DEFAULT ABSOLUTE TOLERANCE of
+  1e-12 and passes when EITHER bound is satisfied. For a quantity of order
+  1e-5, every relative tolerance tighter than 1e-7 is therefore silently
+  replaced by the absolute one. Conservation residuals in this product are
+  of order 1e-9, so an assertion on one with rel=1e-6 and no explicit abs
+  would be testing |x - y| < 1e-12, which it would pass for any pair of
+  numbers that small.
+
+==============================================================================
+static scan
+==============================================================================
+  module                     line   keywords
+  test_calibration.py           6 call(s)
+  test_constants.py             1 call(s)
+  test_divergence.py            1 call(s)
+  test_features.py              7 call(s)
+  test_forces.py                5 call(s)
+  test_frames.py                9 call(s)
+  test_growth.py               11 call(s)
+  test_integrate.py             1 call(s)
+  test_kepler.py               15 call(s)
+  test_predictors.py            4 call(s)
+  test_regressions.py           4 call(s)
+  test_staleness.py             3 call(s)
+
+  total pytest.approx calls               : 67
+  with rel= and an explicit abs=          : 67
+  with abs= only                          : 0
+  with neither (uses both defaults)       : 0
+  with rel= and NO abs= (relies on 1e-12) : 0
+  [PASS] no assertion passes rel= without an explicit abs= -- 0 offender(s)
+  [PASS] the scan finds calls at all, so the invariant above is not vacuous -- 67 calls across 18 modules
+
+==============================================================================
+executed audit
+==============================================================================
+  Three experiments, each on a copy of the whole test tree in a temporary
+  directory. They answer different questions and conflating them is the
+  reason the first version of this script reported a misleading number.
+
+  (a) force_zero_where_absent : add abs=0.0 only where no abs= is
+      declared. Those are the ONLY calls the 1e-12 default applies to, so
+      this is the experiment that measures reliance on it. The static scan
+      above found no such call, so the set is empty and the run is
+      skipped: the measurement is zero by construction and saying so is
+      more honest than spending 80 s to print it.
+  (b) force_zero_everywhere   : set abs=0.0 on every rel= call, overriding
+      the explicit ones. This is the literal substitution the mission
+      brief asks for. What it measures is which assertions have a
+      LOAD-BEARING absolute tolerance -- that is, exactly the set where
+      the 1e-12 default would have been the wrong tolerance.
+  (c) strip_abs               : remove the explicit abs= so the 1e-12
+      default applies. This measures what the explicit declarations are
+      protecting, which is the counterfactual for a suite that had not
+      written them.
+
+  experiment                  calls rewritten   tests  failures  errors  elements
+  baseline                                 0     273         0       0       273
+  force_zero_everywhere                   67     273        17       0       273
+  strip_abs                               67     273        10       0       273
+
+  THE AUDIT RESULT
+    (a) assertions relying on the 1e-12 default            : 0 (no rel= call lacks an explicit abs=; 67 calls scanned)
+    (b) assertions whose explicit absolute tolerance is    : 17
+        load-bearing, i.e. where the default would have been
+        the wrong tolerance
+    (c) assertions that would change verdict if the        : 10
+        explicit abs= were removed and the default applied
+
+  (a) is the number the mission brief's question asks for and it is zero.
+  (b) and (c) are the reason that is worth something: there are assertions
+  in this suite whose absolute tolerance matters, so a suite that had
+  relied on the default would have had that many assertions testing
+  |x - y| < 1e-12 instead of what they say they test.
+  [PASS] the baseline suite passes -- 0 failures, 0 errors over 273 tests
+  [PASS] the junit XML agrees with itself in every run -- baseline 273/273, force_zero_everywhere 273/273, strip_abs 273/273
+  [PASS] MEASURED (a): no assertion in this suite relies on the 1e-12 default -- 0 call(s) pass rel= without abs=, so the default applies to none of them
+  [PASS] the rewrite in experiment (b) touched every rel= call the scan found -- 67 rewritten against 67 found
+  [PASS] the audit is not vacuous: at least one assertion's absolute tolerance is load-bearing, so experiments (b) and (c) can detect a difference -- (b) 17 changed, (c) 10 changed
+
+==============================================================================
+timings (UNSTABLE: wall clock on a shared two-core container)
+==============================================================================
+  three suite runs              : 235.3 s
+
+  test tree audited             : tests
+

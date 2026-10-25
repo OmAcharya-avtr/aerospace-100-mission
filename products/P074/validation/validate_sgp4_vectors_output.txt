@@ -1,0 +1,108 @@
+
+==============================================================================
+orbitdrift -- SGP4 reproduced against its own published test vectors
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+==============================================================================
+source of the vectors
+==============================================================================
+  distribution                  : sgp4 2.27 (installed)
+  element sets                  : SGP4-VER.TLE (package data inside that distribution)
+  expected states               : tcppver.out (package data, 700 lines)
+  published with                 : Vallado, Crawford, Hujsak and Kelso (2006),
+                                   'Revisiting Spacetrack Report #3',
+                                   AIAA 2006-6753, and its testcpp.cpp program
+  parser                         : orbitdrift.vectors, this package's own;
+                                   sgp4.tests is NOT imported
+  printing precision of the file : 1e-8 km in position, 1e-9 km/s in velocity,
+                                   so no comparison can be tighter than about
+                                   5e-9 km and 5e-10 km/s from rounding alone
+
+==============================================================================
+per-case disagreement
+==============================================================================
+  satnum   rows  skipped      max |dr| km    max |dv| km/s
+       5     13        0     4.731191e-09     4.983463e-10
+    4632      5        0     4.998583e-09     4.972587e-10
+    6251     25        0     4.927642e-09     4.903455e-10
+    8195     25        0     4.922185e-09     4.957910e-10
+    9880     25        0     4.898084e-09     4.979057e-10
+    9998     14        0     4.935828e-09     4.942232e-10
+   11801      5        0     4.776666e-09     4.789604e-10
+   14128     25        0     4.951289e-09     4.695471e-10
+   16925     13        0     4.860340e-09     4.907802e-10
+   20413     26        0     4.982212e-09     4.970230e-10
+   21897     25        0     4.994945e-09     4.996954e-10
+   22312     23        0     4.819867e-09     4.930492e-10
+   22674     25        0     4.991080e-09     4.868475e-10
+   23177     13        0     4.889444e-09     4.926365e-10
+   23333     15        0     4.889444e-09     4.933174e-10
+   23599     37        0     4.965841e-09     4.902070e-10
+   24208     13        0     4.796191e-09     4.876930e-10
+   25954     26        0     4.945045e-09     4.940079e-10
+   26900      4        0     4.656613e-09     4.097234e-10
+   26975     25        0     4.940375e-09     4.987859e-10
+   28057     25        0     5.027232e-09     4.887912e-10
+   28129     13        0     5.002221e-09     4.655876e-10
+   28350     13        0     4.922981e-09     4.854273e-10
+   28623     13        0     4.460162e-09     4.903949e-10
+   28626     13        0     4.954927e-09     4.887323e-10
+   28872     11        0     4.780873e-09     4.913248e-10
+   29141     22        0     4.937533e-09     4.886178e-10
+   29238     13        0     4.893081e-09     4.721356e-10
+   88888     13        0     4.597013e-09     4.818430e-10
+   33333      5        0     4.867616e-09     4.720619e-10
+   33334      0        1     0.000000e+00     0.000000e+00
+   33335     73        0     4.946778e-09     4.987785e-10
+   20413     70        0     1.154503e-07     4.955656e-10
+
+==============================================================================
+summary
+==============================================================================
+  cases                         : 33
+  rows compared                 : 666
+  rows skipped on an error code : 1
+  worst |dr|                    : 1.154503e-07 km
+  worst |dv|                    : 4.996954e-10 km/s
+  median per-case worst |dr|    : 4.922981e-09 km
+
+==============================================================================
+checks
+==============================================================================
+  [PASS] 33 cases parsed -- 33
+  [PASS] 667 published data rows accounted for -- 666 compared + 1 skipped
+  [PASS] worst position disagreement below 1e-6 km -- 1.154503e-07 km
+  [PASS] worst velocity disagreement below 1e-8 km/s -- 4.996954e-10 km/s
+
+==============================================================================
+skipped rows, named
+==============================================================================
+  catalogue 33334: 1 row(s), SGP4 error code(s) (3,)
+  tcppver.out handles a satellite whose propagation fails at zero minutes by
+  repeating the previous satellite's last data line, a quirk of the reference
+  program. Comparing that row would report a spurious disagreement of
+  thousands of kilometres, so it is skipped and counted here rather than
+  dropped silently.
+
+==============================================================================
+negative control
+==============================================================================
+  catalogue 5 with its inclination edited from 34.2682 to 44.2682 degrees:
+    rows compared               : 13
+    worst |dr|                  : 1275.386193 km
+  [PASS] the comparison can fail (negative control fires) -- 1275.386 km against a 1e-6 km pass threshold
+

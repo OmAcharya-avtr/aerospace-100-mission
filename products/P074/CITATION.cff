@@ -1,0 +1,310 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  orbitdrift: how wrong an ephemeris has become, as a measured curve against
+  epoch age
+version: 0.1.0
+date-released: 2026-10-25
+license: Apache-2.0
+abstract: >-
+  Takes a two-line element set and produces a position-divergence curve against
+  epoch age, with a prediction interval whose coverage is measured on held-out
+  objects rather than assumed, and turns that into a staleness horizon: the
+  epoch age at which a declared position tolerance is reached. The package has
+  no precision ephemerides and no element-set archive, so it cannot measure
+  error against truth; what it measures is model divergence between two
+  propagators, and the only rigorous claim that supports is a triangle
+  inequality, max(|e1|, |e2|) >= D/2, which bounds the larger of the two
+  models' unknown errors and neither one individually. That inequality is
+  verified against a case where truth is known in closed form, over twenty
+  model pairs and four hundred and one samples with zero violations, and the
+  same bound written as D rather than D/2 is shown to fail at every one of
+  those samples. Baseline 1 is SGP4 self-consistency between two element sets
+  for the same object; it is demonstrated on the one real same-object pair
+  available, catalogue 5 twenty years apart, whose magnitude is meaningless as
+  a staleness figure and is not quoted as one, and the machinery is verified on
+  synthetic pairs whose separation follows from geometry, with a measured
+  chord ratio of 0.99996, a growth-rate ratio of 0.99655 at r-squared 0.999980,
+  and an identical pair separating by 7.69e-10 km. Baseline 2 is an independent
+  numerical force model with J2 through J4, drag on the static
+  piecewise-exponential atmosphere of Vallado Table 8-4 and luni-solar point
+  masses, run on the same WGS72 constants SGP4 uses so that the divergence is
+  attributable to model structure rather than to a constants mismatch. The
+  Level 3 evidence is as follows. SGP4 is reproduced against the verification
+  vectors that ship inside the installed sgp4 2.27 distribution, published with
+  AIAA 2006-6753: thirty-three cases, six hundred and sixty-six rows, worst
+  position disagreement 1.154503e-07 km and worst velocity disagreement
+  4.996954e-10 km/s, with one row skipped on a propagator error code and named,
+  and a negative control that fires at 1275.386193 km. Specific energy and the
+  polar component of angular momentum are conserved under the conservative
+  terms to 1.7174e-09 and 8.5745e-10 relative at three hundred and sixty steps
+  per revolution over six revolutions, against a declared tolerance that scales
+  as the fifth power of the step; the angular momentum magnitude is NOT
+  conserved under J2 and its residual of 5.125159e-04 is shown to be
+  step-invariant across four step sizes while the energy residual falls by a
+  factor of thirty-two per halving, which separates the physics from the
+  integrator without any reference solution. The convergence order is 4.3701 to
+  4.7123 by Richardson extrapolation and the error against the closed-form
+  two-body solution falls by 18.666 to 26.093 per halving. The truncation floor
+  at the production step is 1.168030e-01 km over seven days, which is below one
+  per cent of the measured divergence for three quarters of the population and
+  reaches 18.5 per cent for the least divergent object; that shortfall is
+  published and the three objects concerned are named rather than removed. The
+  analytic baseline was implemented and validated against the simulation before
+  anything was learned, and the central physical result is that the fitted
+  growth exponent is 0.9685 plus or minus 0.0628 above 1100 km, which is the
+  linear-in-time growth a constant mean-motion error produces, rising to 1.2683
+  below 450 km where a drag-rate error dominates, with the exponent correlating
+  minus 0.2914 with log altitude and plus 0.5090 with the log drag parameter.
+  The learned component is gradient-boosted quantile regression over the same
+  features; PyTorch is not installed and nothing here uses it. On the
+  cold-prediction task it wins the point prediction, 0.5942 median absolute log
+  error against the best analytic 0.7410, and every predictor on that task
+  under-covers at a nominal ninety per cent, so that table has no
+  operationally usable row. On the realistic extrapolation task the best point
+  prediction is analytic, 0.1299 against 0.1391, the only interval whose
+  measured coverage is consistent with its nominal level is analytic, and no
+  learned predictor reaches its nominal coverage at all, so a staleness horizon
+  taken from one would be late. A learned model denied the object's own curve is
+  3.9095 times worse at the point prediction than one given it, which locates
+  the information in the curve rather than in the learning. The coverage table
+  is reported stratified by altitude and by epoch age, with sixty-five cells
+  across four tables inconsistent with the nominal level, and it records that a
+  conformally calibrated predictor covering 0.8768 marginally has altitude cells
+  spanning 0.7802 to 0.9375: split conformal prediction promises marginal
+  coverage for exchangeable data and the rows here are grouped by object, so
+  the conditional miscalibration is the method's stated scope rather than a
+  defect, and reporting only the marginal figure would hide it. An analytic
+  fit's own in-sample residual spread, which is what a practitioner would
+  naturally use, covers 0.3069 of held-out extrapolation rows against a claimed
+  0.90. No output of this package is a covariance and none may be used as the
+  input covariance of a conjunction assessment; that prohibition is enforced by
+  a purpose screen, a serialised-key audit and two methods that exist only to
+  refuse, with twenty-three refusals firing and fifteen legitimate calls
+  accepted, and every refusal cross-references P071 ConjProb of this mission and
+  states that a conjunction covariance has to come from orbit determination. For
+  real accuracy assessment the answer is precision ephemerides and an
+  orbit-determination package; this product is for deciding whether the element
+  set you have is stale, which those do not answer directly. Research grade.
+  Not flight-qualified, not certified, not approved for operational aerospace
+  use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - sgp4
+  - two-line-element
+  - ephemeris-staleness
+  - orbit-propagation
+  - model-divergence
+  - prediction-interval
+  - conformal-prediction
+  - coverage
+references:
+  - type: report
+    authors:
+      - family-names: Hoots
+        given-names: "F. R."
+      - family-names: Roehrich
+        given-names: "R. L."
+    title: "Models for Propagation of NORAD Element Sets"
+    institution:
+      name: "Aerospace Defense Command, United States Air Force"
+    number: "Spacetrack Report No. 3"
+    year: 1980
+    notes: >-
+      The SGP4 theory itself, its WGS72 constants, and the definition of B* as
+      (1/2) C_D (A/m) rho_0 that orbitdrift.forces.cd_area_over_mass_m2_kg
+      inverts.
+  - type: conference-paper
+    authors:
+      - family-names: Vallado
+        given-names: "D. A."
+      - family-names: Crawford
+        given-names: "P."
+      - family-names: Hujsak
+        given-names: "R."
+      - family-names: Kelso
+        given-names: "T. S."
+    title: "Revisiting Spacetrack Report #3"
+    collection-title: "AIAA/AAS Astrodynamics Specialist Conference"
+    number: "AIAA 2006-6753"
+    year: 2006
+    notes: >-
+      The published verification set SGP4-VER.TLE and tcppver.out, read at run
+      time out of the installed sgp4 distribution as package data and reproduced
+      to 1.154503e-07 km in validation/validate_sgp4_vectors.py.
+  - type: book
+    authors:
+      - family-names: Vallado
+        given-names: "D. A."
+    title: "Fundamentals of Astrodynamics and Applications"
+    edition: "4th"
+    publisher:
+      name: "Microcosm Press"
+    year: 2013
+    notes: >-
+      Algorithm 9 and Algorithm 10 for the element conversions, Algorithm 2 for
+      Kepler's equation, Algorithm 29 for the Sun and Algorithm 31 for the Moon,
+      eq. (3-47) for Greenwich mean sidereal time, eq. (8-58) for the J2
+      acceleration the generic Legendre code is checked against, section 3.2.2
+      for Bowring's geodetic height, Table 8-4 for the piecewise exponential
+      atmosphere, and section 9.4 for the B* relation.
+  - type: article
+    authors:
+      - family-names: Bowring
+        given-names: "B. R."
+    title: "The accuracy of geodetic latitude and height equations"
+    journal: "Survey Review"
+    volume: 28
+    issue: 218
+    year: 1985
+    notes: >-
+      The closed-form geodetic height in orbitdrift.frames. Its departure from a
+      converged fixed-point solution grows with altitude and is measured rather
+      than quoted: 1.219 mm at 400 km, 15.488 mm at 1700 km.
+  - type: book
+    authors:
+      - family-names: Montenbruck
+        given-names: "O."
+      - family-names: Gill
+        given-names: "E."
+    title: "Satellite Orbits: Models, Methods and Applications"
+    publisher:
+      name: "Springer"
+    year: 2000
+    notes: >-
+      Equation 3.37 for the point-mass third-body acceleration, kept in the
+      direct-plus-indirect form whose cancellation is measured against a
+      series expansion in validation/validate_third_body.py.
+  - type: book
+    authors:
+      - family-names: Battin
+        given-names: "R. H."
+    title: >-
+      An Introduction to the Mathematics and Methods of Astrodynamics
+    edition: "revised"
+    publisher:
+      name: "AIAA"
+    year: 1999
+    notes: >-
+      Chapter 4 for the conic relations behind the closed-form two-body
+      propagation that serves as the integrator's independent reference.
+  - type: report
+    institution:
+      name: "National Imagery and Mapping Agency"
+    title: >-
+      Department of Defense World Geodetic System 1984
+    number: "NIMA TR8350.2, 3rd ed."
+    year: 1997
+    notes: >-
+      The WGS84 ellipsoid used for geodetic altitude and the Earth rotation rate
+      7.292115e-05 rad/s.
+  - type: article
+    authors:
+      - family-names: Clopper
+        given-names: "C. J."
+      - family-names: Pearson
+        given-names: "E. S."
+    title: >-
+      The use of confidence or fiducial limits illustrated in the case of the
+      binomial
+    journal: "Biometrika"
+    volume: 26
+    issue: 4
+    year: 1934
+    notes: >-
+      The exact binomial interval placed on every measured coverage fraction,
+      including the stratified cells where it shows the coverage inconsistent
+      with the nominal level.
+  - type: article
+    authors:
+      - family-names: Papadopoulos
+        given-names: "H."
+      - family-names: Proedrou
+        given-names: "K."
+      - family-names: Vovk
+        given-names: "V."
+      - family-names: Gammerman
+        given-names: "A."
+    title: "Inductive confidence machines for regression"
+    collection-title: "Machine Learning: ECML 2002"
+    year: 2002
+    notes: >-
+      Split conformal prediction, used to calibrate every interval in this
+      package. Its guarantee is marginal coverage for exchangeable data; the
+      rows here are grouped by object, and the resulting conditional
+      miscalibration is measured and published rather than left implicit.
+  - type: article
+    authors:
+      - family-names: Lei
+        given-names: "J."
+      - family-names: "G'Sell"
+        given-names: "M."
+      - family-names: Rinaldo
+        given-names: "A."
+      - family-names: Tibshirani
+        given-names: "R. J."
+      - family-names: Wasserman
+        given-names: "L."
+    title: "Distribution-free predictive inference for regression"
+    journal: "Journal of the American Statistical Association"
+    volume: 113
+    issue: 523
+    year: 2018
+    notes: >-
+      The finite-sample quantile index ceil((n+1)(1-alpha))/n that makes the
+      split-conformal coverage guarantee hold at finite n.
+  - type: article
+    authors:
+      - family-names: Gneiting
+        given-names: "T."
+      - family-names: Raftery
+        given-names: "A. E."
+    title: >-
+      Strictly proper scoring rules, prediction, and estimation
+    journal: "Journal of the American Statistical Association"
+    volume: 102
+    issue: 477
+    year: 2007
+    notes: >-
+      Equation 43, the Winkler interval score, which is the single number that
+      trades width against coverage and the one used to rank predictors -- but
+      only among those whose measured coverage is consistent with the level they
+      claim, because narrowing an interval improves its score until it stops
+      covering.
+  - type: article
+    authors:
+      - family-names: Friedman
+        given-names: "J. H."
+    title: "Greedy function approximation: a gradient boosting machine"
+    journal: "Annals of Statistics"
+    volume: 29
+    issue: 5
+    year: 2001
+    notes: >-
+      The gradient-boosted quantile regressor that is the learned component. It
+      wins the cold-task point prediction and loses the extrapolation-task point
+      prediction to an analytic form, and no variant of it reaches its nominal
+      interval coverage on the extrapolation task.
+  - type: article
+    authors:
+      - family-names: Picone
+        given-names: "J. M."
+      - family-names: Hedin
+        given-names: "A. E."
+      - family-names: Drob
+        given-names: "D. P."
+      - family-names: Aikin
+        given-names: "A. C."
+    title: >-
+      NRLMSISE-00 empirical model of the atmosphere: statistical comparisons and
+      scientific issues
+    journal: "Journal of Geophysical Research: Space Physics"
+    volume: 107
+    issue: A12
+    year: 2002
+    notes: >-
+      Named as the model this package does NOT use. The atmosphere here is the
+      static piecewise-exponential table of Vallado 2013 Table 8-4, with no
+      solar index, no diurnal bulge and no geomagnetic term, and every
+      drag-driven divergence number inherits that limitation.

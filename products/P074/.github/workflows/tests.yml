@@ -1,0 +1,283 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q --junitxml=junit.xml
+      - name: Test count from junit XML, never from stdout
+        run: |
+          python - <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse("junit.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          declared = int(suite.get("tests", "0"))
+          counted = len(suite.findall(".//testcase"))
+          print(
+              f"declared {declared}, counted {counted}, "
+              f"failures {suite.get('failures')}, errors {suite.get('errors')}, "
+              f"skipped {suite.get('skipped')}"
+          )
+          if declared == 0 or declared != counted:
+              sys.exit("junit.xml does not agree with itself, or no test ran")
+          PY
+      - name: The committed fixtures are present and are what the seed produces
+        run: |
+          python - <<'PY'
+          import hashlib, sys
+          from pathlib import Path
+          sys.path.insert(0, "src")
+          from orbitdrift import DivergenceTable, synthetic_population_tle
+          population = Path("fixtures/population.tle")
+          dataset = Path("fixtures/divergence_dataset.npz")
+          for path in (population, dataset):
+              if not path.exists():
+                  sys.exit(f"{path} is missing from the clone")
+          text = population.read_text()
+          if text != synthetic_population_tle():
+              sys.exit("fixtures/population.tle is not what its seed produces")
+          table = DivergenceTable.load(dataset)
+          print(
+              f"{table.n_objects} objects, {table.n_rows} rows, "
+              f"sha256 {hashlib.sha256(text.encode()).hexdigest()[:16]}"
+          )
+          if table.n_objects != 192 or table.n_rows != 5376:
+              sys.exit(f"unexpected table shape: {table.n_objects} x {table.n_rows}")
+          PY
+      - name: Every pytest.approx call with rel= also passes abs=
+        run: |
+          python - <<'PY'
+          import ast, sys
+          from pathlib import Path
+          offenders = []
+          total = 0
+          for path in sorted(Path("tests").glob("test_*.py")):
+              tree = ast.parse(path.read_text(), filename=str(path))
+              for node in ast.walk(tree):
+                  if not isinstance(node, ast.Call):
+                      continue
+                  function = node.func
+                  if not (
+                      isinstance(function, ast.Attribute)
+                      and function.attr == "approx"
+                      and isinstance(function.value, ast.Name)
+                      and function.value.id == "pytest"
+                  ):
+                      continue
+                  total += 1
+                  keywords = {k.arg for k in node.keywords if k.arg is not None}
+                  if "rel" in keywords and "abs" not in keywords:
+                      offenders.append(f"{path.name}:{node.lineno}")
+          print(f"{total} pytest.approx calls, {len(offenders)} relying on the 1e-12 default")
+          if total < 40:
+              sys.exit("the scan found too few calls; it is not looking in the right place")
+          if offenders:
+              sys.exit("pytest.approx(rel=...) without an explicit abs=: " + ", ".join(offenders))
+          PY
+      - name: The covariance guard fires, and passes legitimate calls
+        run: |
+          python - <<'PY'
+          import sys
+          sys.path.insert(0, "src")
+          from orbitdrift import check_purpose
+          from orbitdrift.errors import CovarianceRefused
+          refused = 0
+          for purpose in (
+              "covariance",
+              "conjunction assessment",
+              "collision probability",
+              "compute Pc",
+              "CDM generation",
+          ):
+              try:
+                  check_purpose(purpose)
+              except CovarianceRefused as error:
+                  refused += 1
+                  if "P071" not in str(error):
+                      sys.exit(f"the refusal for {purpose!r} does not name P071")
+          accepted = 0
+          for purpose in (
+              "ephemeris staleness check",
+              "pass prediction for a ground station",
+              "spacecraft operations",
+          ):
+              if check_purpose(purpose) == purpose:
+                  accepted += 1
+          print(f"{refused} refusals fired, {accepted} legitimate purposes accepted")
+          if refused != 5 or accepted != 3:
+              sys.exit("the guard does not discriminate")
+          PY
+      - name: CLI
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python -m orbitdrift --help
+          python -m orbitdrift version
+          python -m orbitdrift vectors
+          python -m orbitdrift atmosphere
+          python -m orbitdrift drift --span-days 0.5 --steps-per-rev 90 --report-every-hours 3
+      - name: Validation scripts, in the order VALIDATION.md states
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python validation/validate_sgp4_vectors.py
+          python validation/validate_frames.py
+          python validation/validate_atmosphere.py
+          python validation/validate_third_body.py
+          python validation/validate_kepler_reference.py
+          python validation/validate_conservation.py
+          python validation/validate_step_refinement.py
+          python validation/validate_bstar_sensitivity.py
+          python validation/validate_lower_bound.py
+          python validation/validate_self_consistency.py
+          python validation/validate_growth_baseline.py
+          python validation/validate_predictors.py
+          python validation/validate_coverage_table.py
+          python validation/validate_reproducibility.py
+          python validation/validate_guard.py
+          python validation/worked_example.py
+          python validation/validate_cli.py
+      - name: Every validation script left its committed output file behind
+        run: |
+          python - <<'PY'
+          import sys
+          from pathlib import Path
+          # The committed outputs are NOT compared byte for byte against the
+          # re-run, because each one carries a wall-clock timing table that
+          # legitimately changes. What is checked is that every script wrote its
+          # output and that the output records no failed check.
+          missing = []
+          failed = []
+          for script in sorted(Path("validation").glob("*.py")):
+              if script.name in ("_bootstrap.py", "validate_cwd_independence.py"):
+                  continue
+              output = script.with_name(script.stem + "_output.txt")
+              if not output.exists():
+                  missing.append(output.name)
+                  continue
+              text = output.read_text()
+              if "CHECK(S) FAILED" in text:
+                  failed.append(output.name)
+          print(f"{len(list(Path('validation').glob('*_output.txt')))} output files present")
+          if missing:
+              sys.exit("missing validation output: " + ", ".join(missing))
+          if failed:
+              sys.exit("validation output records a failed check: " + ", ".join(failed))
+          PY
+      - name: The committed fixtures are unchanged by regeneration
+        run: |
+          python validation/regenerate_dataset.py
+          git diff --exit-code fixtures/population.tle
+      - name: Every script runs from its own directory, which is how the gate runs it
+        env:
+          MPLBACKEND: Agg
+          ORBITDRIFT_FAST: "1"
+        run: |
+          cd validation
+          for script in validate_*.py worked_example.py regenerate_dataset.py; do
+            python "$script" > /dev/null
+          done
+          cd ../examples
+          for script in *.py; do
+            case "$script" in _common.py) continue;; esac
+            python "$script" > /dev/null
+          done
+      - name: Examples, which regenerate the screenshots from the full dataset
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/divergence_curves.py
+          python examples/growth_exponent_vs_altitude.py
+          python examples/ric_decomposition.py
+          python examples/conservation_and_convergence.py
+          python examples/predictor_benchmark.py
+          python examples/coverage_table.py
+          python examples/staleness_decision.py
+      - name: No absolute home-directory path in any tracked file
+        run: |
+          python - <<'PY'
+          import subprocess, sys
+          # The needles are built from character codes rather than written out,
+          # because a workflow that searched for the literal strings would match
+          # itself and fail the repository it is checking.
+          needles = [
+              "".join(map(chr, (47, 104, 111, 109, 101, 47))),
+              "".join(map(chr, (47, 85, 115, 101, 114, 115, 47))),
+          ]
+          files = subprocess.run(
+              ["git", "ls-files"], capture_output=True, text=True, check=True
+          ).stdout.split()
+          offenders = []
+          for name in files:
+              if name.endswith((".png", ".jpg", ".pdf", ".npz")):
+                  continue
+              try:
+                  text = open(name, encoding="utf-8", errors="strict").read()
+              except (UnicodeDecodeError, OSError):
+                  continue
+              for needle in needles:
+                  if needle in text:
+                      offenders.append(f"{name}: contains {needle!r}")
+          for line in offenders:
+              print(line)
+          sys.exit(1 if offenders else 0)
+          PY
+      - name: No file claims flight qualification, certification or production readiness
+        run: |
+          python - <<'PY'
+          import re, subprocess, sys
+          # The phrases are built from character codes, not written out, because
+          # this workflow is itself a tracked .yml file and a literal list would
+          # match itself and fail the repository it is checking.
+          def phrase(*codes: int) -> str:
+              return "".join(map(chr, codes))
+          forbidden = (
+              phrase(102, 108, 105, 103, 104, 116, 45, 115, 97, 102, 101),
+              phrase(102, 108, 105, 103, 104, 116, 32, 115, 97, 102, 101),
+              phrase(109, 105, 115, 115, 105, 111, 110, 45, 114, 101, 97, 100, 121),
+              phrase(112, 114, 111, 100, 117, 99, 116, 105, 111, 110, 45, 114, 101, 97, 100, 121),
+          )
+          qualified = (
+              phrase(99, 101, 114, 116, 105, 102, 105, 101, 100),
+              phrase(102, 108, 105, 103, 104, 116, 45, 113, 117, 97, 108, 105, 102, 105, 101, 100),
+              phrase(102, 108, 105, 103, 104, 116, 32, 113, 117, 97, 108, 105, 102, 105, 101, 100),
+          )
+          files = subprocess.run(
+              ["git", "ls-files", "*.py", "*.md", "*.toml", "*.cff", "*.yml"],
+              capture_output=True, text=True, check=True,
+          ).stdout.split()
+          offenders = []
+          for name in files:
+              text = re.sub(r'"\s*\n\s*"', "", open(name, encoding="utf-8").read().lower())
+              text = re.sub(r"\s+", " ", text)
+              for phrase in forbidden:
+                  if phrase in text:
+                      offenders.append(f"{name}: {phrase}")
+              for phrase in qualified:
+                  for match in re.finditer(re.escape(phrase), text):
+                      before = text[max(0, match.start() - 12) : match.start()]
+                      if "not " not in before:
+                          offenders.append(f"{name}: {phrase} (context {before!r})")
+          for line in offenders:
+              print(line)
+          sys.exit(1 if offenders else 0)
+          PY

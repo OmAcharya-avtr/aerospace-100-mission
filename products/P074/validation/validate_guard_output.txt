@@ -1,0 +1,114 @@
+
+==============================================================================
+orbitdrift -- the covariance prohibition
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+==============================================================================
+the cross-reference every refusal carries
+==============================================================================
+  A conjunction assessment needs a covariance from orbit determination.
+  See P071 ConjProb of this mission for the collision-probability computation, and give it a covariance produced by a filter with measurement residuals or one published in a conjunction data message.
+  orbitdrift measures model divergence between two propagators and has no measurements, so nothing it returns is a covariance..
+  [PASS] the refusal names P071
+  [PASS] the refusal names ConjProb
+  [PASS] the refusal names orbit determination
+
+==============================================================================
+purposes that must be refused
+==============================================================================
+  refused: 'covariance'
+  refused: 'need a covariance for screening'
+  refused: 'conjunction assessment'
+  refused: 'collision probability'
+  refused: 'compute Pc'
+  refused: 'CDM generation'
+  refused: 'close approach report'
+  refused: 'miss distance estimate'
+  refused: 'manoeuvre screening'
+  refused: 'maneuver screening'
+  refused: 'encounter geometry'
+  refused: 'COVARIANCE FOR CONJUNCTION'
+  refused: 'estimate pc'
+  [PASS] all 13 forbidden purposes are refused -- 13 of 13
+
+==============================================================================
+purposes that must be accepted (the negative control)
+==============================================================================
+  accepted: 'ephemeris staleness check'
+  accepted: 'decide whether to re-task tracking'
+  accepted: 'pass prediction for a ground station'
+  accepted: 'is this TLE too old for my pointing budget'
+  accepted: 'deciding when to request a fresh element set'
+  accepted: 'spacecraft operations'
+  accepted: 'pc12345 is an identifier, not the word'
+  accepted: 'recovery of a lost object'
+  [PASS] all 8 legitimate purposes are accepted -- 8 of 8; without this the refusals above would be satisfied by a guard that raised on everything
+
+==============================================================================
+serialised keys that must be refused
+==============================================================================
+  refused: 'covariance'
+  refused: 'position_covariance'
+  refused: 'cov'
+  refused: 'cov_matrix'
+  refused: 'sigma_matrix'
+  refused: 'p_matrix'
+  refused: 'state_covariance'
+  refused: 'COVARIANCE'
+  [PASS] all 8 covariance-shaped keys are refused -- 8 of 8
+
+==============================================================================
+serialised keys that must be accepted (the negative control)
+==============================================================================
+  accepted all 7 ordinary keys: drift_km, log_residual_std, coverage, recovery, interval_score, ages_days, conservative_horizon_days
+  [PASS] ordinary keys pass the audit
+
+==============================================================================
+a nested key is found
+==============================================================================
+  probe...
+  [PASS] the audit walks nested mappings and names the path
+
+==============================================================================
+the two methods that exist only to refuse
+==============================================================================
+  refused: DriftReport.as_covariance
+  [PASS] DriftReport.as_covariance raises and names P071
+  refused: StalenessVerdict.as_covariance
+  [PASS] StalenessVerdict.as_covariance raises and names P071
+
+==============================================================================
+the serialised report is audited by the report itself
+==============================================================================
+  keys at the top level         : 10
+  quantity statement            : window-RMS model divergence in km against epoch age in days; half of...
+  [PASS] the payload states that it is not a covariance
+  [PASS] no covariance-shaped key appears at any depth of the payload -- 10 top-level keys scanned
+
+  And the audit is live rather than decorative: inserting such a key into
+  the same payload must raise.
+  [PASS] inserting a covariance key into the payload raises
+
+==============================================================================
+counts
+==============================================================================
+  refusals that fired           : 23
+  legitimate calls accepted     : 15
+
+  Both numbers matter. A guard that refused everything would make the
+  first number large and the second zero, and would be useless.
+

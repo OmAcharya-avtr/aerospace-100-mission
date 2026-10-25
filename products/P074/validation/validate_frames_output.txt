@@ -1,0 +1,112 @@
+
+==============================================================================
+orbitdrift -- coordinate transforms
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+  No transform here is cross-checked against astropy. It is not installed
+  in this environment and no claim of such a check appears anywhere in
+  this repository. Every reference below is either a published constant or
+  an independent algorithm implemented in this script.
+
+==============================================================================
+Greenwich mean sidereal time
+==============================================================================
+  GMST at J2000.0, measured     : 280.460618375 deg
+  published value               : 280.460618370 deg
+  difference                    : 5.000e-09 deg
+  [PASS] GMST at J2000.0 matches the published constant to 1e-6 deg -- 5.000e-09 deg
+  advance over one solar day    : 360 + 0.9856474 deg
+  published sidereal excess     : 0.9856473 deg
+  [PASS] the sidereal excess over a solar day matches to 1e-5 deg -- 6.629e-08 deg
+
+==============================================================================
+rotation matrices
+==============================================================================
+  worst |R R^T - I|             : 2.220e-16
+  worst |det R - 1|             : 2.220e-16
+  [PASS] every rotation is orthogonal with unit determinant to 1e-15 -- 2.220e-16, 2.220e-16
+
+==============================================================================
+TEME to ECEF round trip and invariants
+==============================================================================
+  worst round-trip closure      : 3.638e-12 km
+  worst relative radius change  : 3.226e-16
+  worst z change                : 0.000e+00 km
+  [PASS] round trip closes to 1e-9 km and the rotation preserves radius and z -- 3.638e-12 km, 3.226e-16, 0.000e+00 km
+
+==============================================================================
+geodetic height: Bowring's closed form against a fixed-point iteration
+==============================================================================
+  Two different algorithms for the same quantity. Bowring's is a single
+  pass built for points near the surface, so its departure grows with
+  height; the growth is measured here rather than quoted.
+  altitude km   worst |dh| over 91 latitudes   worst |dh| mm
+          0.0                    9.094947e-13           0.000
+        200.0                    3.234845e-07           0.323
+        400.0                    1.218578e-06           1.219
+        800.0                    4.345374e-06           4.345
+       1200.0                    8.770695e-06           8.771
+       1700.0                    1.548779e-05          15.488
+       3000.0                    3.577259e-05          35.773
+  [PASS] Bowring's height agrees to within 20 mm up to 1700 km -- worst 15.488 mm
+  [PASS] the departure grows monotonically with height, as the single-pass form must -- 0.000 mm, 0.323 mm, 1.219 mm, 4.345 mm, 8.771 mm, 15.488 mm, 35.773 mm
+
+==============================================================================
+radial / in-track / cross-track basis
+==============================================================================
+  worst |B B^T - I|             : 1.164e-15
+  worst |det B - 1|             : 6.661e-16
+  worst relative length change  : 4.394e-16
+  [PASS] the RIC basis is orthonormal, right-handed and an isometry to 1e-12 -- 1.164e-15, 6.661e-16, 4.394e-16
+
+==============================================================================
+the in-track axis is the one the secular growth appears on
+==============================================================================
+  A real element set's divergence is decomposed; the in-track share must
+  dominate, because a mean-motion error grows along track and the radial
+  and cross-track separations are periodic. If the basis rows were
+  permuted, this is the check that would catch it.
+  rows                          : 5376
+  median in-track share         : 0.999859
+  5th percentile in-track share : 0.987784
+  median radial share           : 0.009862
+  median cross-track share      : 0.005660
+  [PASS] the in-track component is the largest in at least 99 per cent of rows -- 0.996466
+  [PASS] the three components add in quadrature to the total -- worst relative departure 6.440e-16
+
+==============================================================================
+the low-precision Sun and Moon series, against known facts
+==============================================================================
+  solar distance at J2000.0     : 147100851.8 km = 0.983308 AU
+  Earth is near perihelion in the first week of January, so this must be
+  about 1.7 per cent below one astronomical unit.
+  [PASS] the solar distance at J2000.0 is between 0.980 and 0.986 AU -- 0.983308 AU
+  lunar distance over 2000 days : 357350 to 406018 km
+  published perigee-apogee range: about 356400 to 406700 km
+  [PASS] the lunar distance stays inside 352000 to 410000 km -- 357350 to 406018 km
+  lunar angular motion per day  : 11.9039 deg
+  published mean sidereal rate  : 13.176 deg/day
+  [PASS] the lunar daily motion is between 11 and 15 degrees -- 11.9039 deg/day
+
+==============================================================================
+negative control
+==============================================================================
+  A deliberately permuted RIC basis must break the in-track dominance
+  check above, otherwise that check is not testing the axis order.
+  in-track dominance with the radial and in-track axes swapped: 0.000000
+  [PASS] swapping the radial and in-track axes destroys the dominance (control fires) -- 0.000000 against the 0.99 threshold the real check uses
+

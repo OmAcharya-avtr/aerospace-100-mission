@@ -1,0 +1,89 @@
+
+==============================================================================
+orbitdrift -- numerical integrator against the closed-form two-body solution
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+==============================================================================
+step 1: the reference's own accuracy
+==============================================================================
+  Kepler's equation M = E - e sin E, solved by Newton-Raphson, with the
+  solution substituted back into the equation it solved. The residual is
+  the defining equation evaluated independently of the iteration.
+  eccentricity   worst |residual| over 64 mean anomalies
+       0.00000   2.220446e-16 rad
+       0.00010   8.881784e-16 rad
+       0.01000   8.881784e-16 rad
+       0.10000   8.881784e-16 rad
+       0.30000   1.776357e-15 rad
+       0.60000   8.881784e-16 rad
+       0.90000   1.776357e-15 rad
+       0.95000   2.664535e-15 rad
+  [PASS] Kepler's equation residual below 1e-12 rad for every case -- worst 2.665e-15 rad
+
+==============================================================================
+step 2: the closed form conserves its invariants exactly
+==============================================================================
+  No differential equation is integrated, so energy and |h| cannot drift.
+  case                         revolutions   energy spread   |h| spread
+  500 km circular-ish                    5       1.350e-15    5.556e-16
+  [PASS] 500 km circular-ish: closed-form invariants flat to 1e-13 -- energy 1.350e-15, |h| 5.556e-16
+  350 x 1200 km                          5       1.403e-15    6.823e-16
+  [PASS] 350 x 1200 km: closed-form invariants flat to 1e-13 -- energy 1.403e-15, |h| 6.823e-16
+  eccentric 300 x 20000 km               5       2.032e-15    1.007e-15
+  [PASS] eccentric 300 x 20000 km: closed-form invariants flat to 1e-13 -- energy 2.032e-15, |h| 1.007e-15
+
+==============================================================================
+step 3: the integrator against that reference
+==============================================================================
+  RK4 with only the central term, against the closed form at the same times.
+  A fixed step is a poor fit to an eccentric orbit: the perigee passage is
+  fast and the apogee arc is slow, so a step chosen per revolution is far
+  too coarse at perigee. The declared tolerance therefore depends on the
+  eccentricity, and the third case below is in the table to show the cost
+  rather than to pass a loose check. It is why the population in
+  fixtures/population.tle is capped near e = 0.05, which README.md states
+  under Limitations.
+
+  case                         steps/rev  revolutions   worst |dr| km   worst rel   declared
+  500 km circular-ish                360            8    1.321611e-03   1.921e-07    1.0e-07
+  500 km circular-ish               1440            8    3.441906e-06   5.004e-10    1.0e-07
+  [PASS] 500 km circular-ish (e=0.001): relative error below 1.0e-07 at 1440 steps/rev -- 5.004e-10
+  350 x 1200 km                      360            8    1.627121e-03   2.194e-07    1.0e-07
+  350 x 1200 km                     1440            8    4.700644e-06   6.201e-10    1.0e-07
+  [PASS] 350 x 1200 km (e=0.060): relative error below 1.0e-07 at 1440 steps/rev -- 6.201e-10
+  eccentric 300 x 20000 km           360            8    3.733481e+00   5.549e-04    2.0e-06
+  eccentric 300 x 20000 km          1440            8    6.823127e-03   1.014e-06    2.0e-06
+  [PASS] eccentric 300 x 20000 km (e=0.590): relative error below 2.0e-06 at 1440 steps/rev -- 1.014e-06
+
+==============================================================================
+step 4: the element round trip
+==============================================================================
+  State to elements to state, over a grid of conics.
+  conics tested                 : 322
+  worst position closure        : 7.275958e-10 km
+  worst velocity closure        : 2.646772e-13 km/s
+  [PASS] element round trip closes to 1e-6 km and 1e-9 km/s -- 7.276e-10 km, 2.647e-13 km/s
+
+==============================================================================
+negative control
+==============================================================================
+  The integrator run with the J2 term enabled must NOT match the two-body
+  closed form. If it did, either the zonal term is not reaching the
+  integrator or the reference is not a two-body reference.
+  worst departure with J2-J4 on : 233.0361 km
+  [PASS] the J2 run departs from the two-body closed form by more than 100 km -- 233.036 km against a 1e-3 km pass threshold for the two-body run
+

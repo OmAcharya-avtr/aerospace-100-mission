@@ -1,0 +1,139 @@
+
+==============================================================================
+orbitdrift -- worked example
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+==============================================================================
+step 1: the element set
+==============================================================================
+  The catalogue number and the orbit are those of a real object. The
+  element values are a plausible made-up set and are NOT a real published
+  element set for it; nothing in this repository has read the catalogue.
+
+  1 25544U 98067A   26015.50000000  .00016717  00000-0  10270-3 0  9003
+  2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537
+
+  perigee altitude              : 348.82 km
+  apogee altitude               : 357.85 km
+  eccentricity                  : 0.0006703
+  inclination                   : 51.6416 deg
+  B*                            : 1.027000e-04 1/earth-radii
+  period                        : 91.5957 min
+
+==============================================================================
+step 2: the divergence curve (baseline 2)
+==============================================================================
+  SGP4 against the independent numerical force model, started from the
+  SGP4 state at the element-set epoch so the curve is zero at zero age.
+
+  object                   : catalogue 25544
+  perigee altitude         : 348.8 km
+  eccentricity             : 0.000670
+  inclination              : 51.642 deg
+  B*                       : 1.027000e-04 1/earth-radii
+  divergence source        : sgp4-vs-numerical
+                             WGS72: two-body + J2-J4 + drag + luni-solar, step 15.2660 s (360.0 per rev)
+  
+  epoch age  model divergence  lower bound on larger model error
+     (days)              (km)                              (km)
+       0.032            0.0775                            0.0387
+       0.532            1.6484                            0.8242
+       1.032            4.5232                            2.2616
+       1.532            8.6913                            4.3457
+       2.032           14.1417                            7.0709
+       2.532           20.8914                           10.4457
+       3.032           28.9234                           14.4617
+       3.532           38.2641                           19.1321
+       4.032           48.8913                           24.4457
+       4.532           60.8401                           30.4200
+  
+  analytic growth forms fitted to this curve:
+    form              amplitude(km)   exponent   tau(d)   log-resid sd
+    drag_exponential        4.93916        nan     1.64       0.14978
+    linear                  6.69703     1.0000      nan       0.58322
+    power                   5.96234     1.3530      nan       0.27258
+    quadratic               4.81838     2.0000      nan       0.99360
+    best fitting form : drag_exponential
+
+==============================================================================
+step 3: a predictor with a MEASURED interval, fitted on held-out objects
+==============================================================================
+  A single element set cannot calibrate an interval: one curve gives one
+  fit and no held-out data. The interval below comes from the committed
+  population, fitted on the training objects and calibrated by split
+  conformal prediction on a disjoint set of objects, and its coverage is
+  measured on the test objects -- which is the number that makes the
+  horizon in step 4 mean anything.
+
+  predictor                     : conformal[analytic_power_altitude]
+  training objects              : 134
+  calibration rows              : 1316
+  held-out objects              : 58
+  held-out rows                 : 1624
+  nominal coverage              : 0.9000
+  MEASURED coverage             : 0.8547 [0.8366, 0.8715]
+  median interval width         : 86.1548 km
+  median log interval width     : 3.5627
+  mean interval score           : 481.4227 km
+
+==============================================================================
+step 4: the decision
+==============================================================================
+  The question: this element set is three days old and I need the
+  position to better than 5.0 km. Is it still good enough?
+
+  predictor                : conformal[analytic_power_altitude]
+  tolerance                : 5.000 km
+  median horizon           : 1.211 days
+  conservative horizon     : 0.292 days (upper end of a 90% interval)
+  interval coverage        : 0.8547 measured on held-out objects against 0.9000 nominal
+                             the interval UNDER-COVERS; the conservative horizon above is optimistic by that much
+  element set age          : 3.000 days
+  predicted drift at age   : 15.598 km [2.627, 92.619]
+  verdict                  : OUTSIDE
+
+  Read it as follows. The median horizon is the optimistic answer and the
+  one a point prediction gives: half the time the drift is already worse
+  than it says. The conservative horizon is the one to use, and it is only
+  as good as the measured coverage printed beside it.
+
+==============================================================================
+step 5: what this is not
+==============================================================================
+  The verdict above is a staleness horizon under a declared position
+  tolerance. It is not a covariance and it is not an input to a
+  conjunction assessment. Asking for either is refused:
+    report.as_covariance() -> CovarianceRefused
+      DriftReport.as_covariance was called; a model-divergence curve is not a stat
+  [PASS] report.as_covariance() raises and names P071
+    verdict.as_covariance() -> CovarianceRefused
+      StalenessVerdict.as_covariance was called; a staleness horizon is not a stat
+  [PASS] verdict.as_covariance() raises and names P071
+
+==============================================================================
+checks on the numbers above
+==============================================================================
+  [PASS] the divergence curve is monotone increasing -- 10 ages
+  [PASS] the conservative horizon is not later than the median horizon -- 0.2924 against 1.2109 days
+  [PASS] the verdict reports a measured coverage rather than a nominal one -- 0.8547 measured against 0.9000 nominal
+  [PASS] the serialised report carries no covariance-shaped key -- 10 top-level keys
+
+==============================================================================
+timings (UNSTABLE: wall clock on a shared two-core container)
+==============================================================================
+  divergence curve              : 36.8 s
+

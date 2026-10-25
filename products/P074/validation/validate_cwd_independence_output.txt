@@ -1,0 +1,109 @@
+
+==============================================================================
+orbitdrift -- every script runs from any working directory
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+  working directories exercised:
+    /              /
+    scratch        a temporary directory outside the repository
+    product root   a temporary directory outside the repository
+    own directory  the script's own directory
+
+  scripts: 26
+
+  script                                               /       scratch  product root  own director
+  validation/regenerate_dataset.py                     0             0             0             0
+  [PASS] validation/regenerate_dataset.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_approx_audit.py                  0             0             0             0
+  [PASS] validation/validate_approx_audit.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_atmosphere.py                    0             0             0             0
+  [PASS] validation/validate_atmosphere.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_bstar_sensitivity.py             0             0             0             0
+  [PASS] validation/validate_bstar_sensitivity.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_cli.py                           0             0             0             0
+  [PASS] validation/validate_cli.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_conservation.py                  0             0             0             0
+  [PASS] validation/validate_conservation.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_coverage_table.py                0             0             0             0
+  [PASS] validation/validate_coverage_table.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_frames.py                        0             0             0             0
+  [PASS] validation/validate_frames.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_growth_baseline.py               0             0             0             0
+  [PASS] validation/validate_growth_baseline.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_guard.py                         0             0             0             0
+  [PASS] validation/validate_guard.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_kepler_reference.py              0             0             0             0
+  [PASS] validation/validate_kepler_reference.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_lower_bound.py                   0             0             0             0
+  [PASS] validation/validate_lower_bound.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_predictors.py                    0             0             0             0
+  [PASS] validation/validate_predictors.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_reproducibility.py               0             0             0             0
+  [PASS] validation/validate_reproducibility.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_self_consistency.py              0             0             0             0
+  [PASS] validation/validate_self_consistency.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_sgp4_vectors.py                  0             0             0             0
+  [PASS] validation/validate_sgp4_vectors.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_step_refinement.py               0             0             0             0
+  [PASS] validation/validate_step_refinement.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/validate_third_body.py                    0             0             0             0
+  [PASS] validation/validate_third_body.py exits zero from all four directories -- 0, 0, 0, 0
+  validation/worked_example.py                         0             0             0             0
+  [PASS] validation/worked_example.py exits zero from all four directories -- 0, 0, 0, 0
+  examples/conservation_and_convergence.py             0             0             0             0
+  [PASS] examples/conservation_and_convergence.py exits zero from all four directories -- 0, 0, 0, 0
+  examples/coverage_table.py                           0             0             0             0
+  [PASS] examples/coverage_table.py exits zero from all four directories -- 0, 0, 0, 0
+  examples/divergence_curves.py                        0             0             0             0
+  [PASS] examples/divergence_curves.py exits zero from all four directories -- 0, 0, 0, 0
+  examples/growth_exponent_vs_altitude.py              0             0             0             0
+  [PASS] examples/growth_exponent_vs_altitude.py exits zero from all four directories -- 0, 0, 0, 0
+  examples/predictor_benchmark.py                      0             0             0             0
+  [PASS] examples/predictor_benchmark.py exits zero from all four directories -- 0, 0, 0, 0
+  examples/ric_decomposition.py                        0             0             0             0
+  [PASS] examples/ric_decomposition.py exits zero from all four directories -- 0, 0, 0, 0
+  examples/staleness_decision.py                       0             0             0             0
+  [PASS] examples/staleness_decision.py exits zero from all four directories -- 0, 0, 0, 0
+
+==============================================================================
+summary
+==============================================================================
+  scripts                       : 26
+  invocations                   : 104
+  non-zero exits                : 0
+  [PASS] every invocation exited zero -- 0 failures
+
+==============================================================================
+what this probe does and does not leave behind
+==============================================================================
+  ORBITDRIFT_FAST=1 makes Tee.save write nothing, so none of the runs
+  above replaced a committed validation output with reduced-sample
+  numbers.
+
+  The screenshots in screenshots/ ARE rewritten by the example runs, and
+  in probe mode they are drawn from a 24-object subset rather than the
+  full 192. That is stated here rather than quietly tolerated: after this
+  script runs, the committed screenshots must be regenerated by running
+  the examples without ORBITDRIFT_FAST set. The reproduction commands in
+  README.md put the example runs after this one for that reason.
+
+==============================================================================
+timings (UNSTABLE: wall clock on a shared two-core container)
+==============================================================================
+  104 invocations          : 346.0 s total
+  mean per invocation           : 3.33 s
+

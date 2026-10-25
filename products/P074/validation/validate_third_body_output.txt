@@ -1,0 +1,91 @@
+
+==============================================================================
+orbitdrift -- the luni-solar term against a cancellation-free expansion
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+==============================================================================
+the cancellation, quantified
+==============================================================================
+  Sun  at |r| =     6800 km: each term ~ 6.133e-06, result ~ 5.670e-10, ratio 9.245e-05
+  Sun  at |r| =    42164 km: each term ~ 6.133e-06, result ~ 3.516e-09, ratio 5.733e-04
+  Moon at |r| =     6800 km: each term ~ 3.027e-08, result ~ 1.023e-09, ratio 3.379e-02
+  Moon at |r| =    42164 km: each term ~ 3.027e-08, result ~ 6.342e-09, ratio 2.095e-01
+
+  The ratio is the fraction of the leading digits that survives the
+  subtraction. A ratio of 1e-4 costs four decimal digits of the sixteen
+  double precision carries, leaving twelve, which is ample.
+
+==============================================================================
+implemented form against the series, by body and radius
+==============================================================================
+  The leading term of the expansion is first order in |r|/|r_b| and the
+  next term is second order, so the leading term's RELATIVE error is first
+  order: eps = |r|/|r_b|. The measured difference must therefore track eps,
+  with a coefficient of order one that depends on the geometry.
+
+  body  |r| km    relative difference   eps = |r|/|r_b|   measured/eps
+  Sun       6800          6.933699e-05      4.622679e-05         1.4999
+  Sun      10000          1.019694e-04      6.798057e-05         1.5000
+  Sun      26600          2.711533e-04      1.808283e-04         1.4995
+  Sun      42164          4.299381e-04      2.866333e-04         1.5000
+  Moon      6800          2.588930e-02      1.689610e-02         1.5323
+  Moon     10000          3.811881e-02      2.484721e-02         1.5341
+  Moon     26600          1.063092e-01      6.609358e-02         1.6085
+  Moon     42164          1.813349e-01      1.047658e-01         1.7309
+
+  The check is two-sided and that matters. A difference much LARGER than
+  eps would mean the implemented form is losing more precision than the
+  cancellation accounts for. A difference much SMALLER than eps would mean
+  the series is not actually being truncated, which would make this a
+  comparison of two identical expressions and no check at all.
+  [PASS] Sun at 6800 km: difference is between 0.5 and 3 times eps -- measured 6.934e-05, eps 4.623e-05, ratio 1.4999
+  [PASS] Sun at 10000 km: difference is between 0.5 and 3 times eps -- measured 1.020e-04, eps 6.798e-05, ratio 1.5000
+  [PASS] Sun at 26600 km: difference is between 0.5 and 3 times eps -- measured 2.712e-04, eps 1.808e-04, ratio 1.4995
+  [PASS] Sun at 42164 km: difference is between 0.5 and 3 times eps -- measured 4.299e-04, eps 2.866e-04, ratio 1.5000
+  [PASS] Moon at 6800 km: difference is between 0.5 and 3 times eps -- measured 2.589e-02, eps 1.690e-02, ratio 1.5323
+  [PASS] Moon at 10000 km: difference is between 0.5 and 3 times eps -- measured 3.812e-02, eps 2.485e-02, ratio 1.5341
+  [PASS] Moon at 26600 km: difference is between 0.5 and 3 times eps -- measured 1.063e-01, eps 6.609e-02, ratio 1.6085
+  [PASS] Moon at 42164 km: difference is between 0.5 and 3 times eps -- measured 1.813e-01, eps 1.048e-01, ratio 1.7309
+
+==============================================================================
+exact cancellation at the geocentre
+==============================================================================
+  |a| at r = 0                  : 0.000e+00 km/s^2
+  [PASS] the direct and indirect terms cancel exactly at the geocentre -- 0.000e+00 km/s^2
+
+==============================================================================
+magnitudes, for the record
+==============================================================================
+  |r| km    |a_sun| km/s^2    |a_moon| km/s^2    two-body km/s^2
+      6800     2.969891e-10      8.086925e-10      8.620260e-03
+     26600     1.161756e-09      3.027913e-09      5.633456e-04
+     42164     1.841521e-09      4.637360e-09      2.242098e-04
+
+  At low Earth orbit the luni-solar terms are of order 1e-9 km/s^2 against
+  a central term of 8e-3, so they are a 1e-7 perturbation. They are
+  included because the divergence this product measures is itself a small
+  difference, not because they dominate anything.
+
+==============================================================================
+negative control
+==============================================================================
+  The series expansion with the sign of the quadrupole term flipped must
+  NOT agree, otherwise the comparison above is insensitive to the term it
+  is supposed to be checking.
+  relative difference with the sign flipped: 1.031527
+  [PASS] the flipped-sign series disagrees by more than 10 per cent (control fires) -- 1.031527
+

@@ -1,0 +1,102 @@
+
+==============================================================================
+orbitdrift -- the analytic growth baseline against the simulation
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+  dataset                       : 192 objects, 3 epoch groups, span 7.0 days, step 15.1806383917 s from a reference period of 5465.029821 s at 360 steps per revolution, 39840 steps, reported every 6.0 h, drift is the RMS over a one-period window; force model WGS72: two-body + J2-J4 + drag + luni-solar
+  objects                       : 192
+  rows                          : 5376
+
+==============================================================================
+fitted free exponent against perigee altitude
+==============================================================================
+  The physical prediction: p -> 1 where drag is negligible and p -> 2
+  where a drag-rate error dominates.
+
+  band km          n   mean p    sd p   min p   max p   median log-resid
+   300-450         42   1.2683  0.3914  0.3594  1.9910            0.21469
+   450-600         32   1.0249  0.3590  0.3100  1.9330            0.10389
+   600-800         31   1.1197  0.3383  0.3648  1.8794            0.09603
+   800-1100        41   1.0175  0.2020  0.4864  1.7940            0.05515
+  1100-1700        46   0.9685  0.0628  0.8285  1.1403            0.04165
+
+  all objects: mean p 1.0784, sd 0.3090, range 0.3100 to 1.9910
+  mean fitted standard error on p : 0.035581
+
+  correlation of p with log10(perigee altitude) : -0.2914
+  correlation of p with log10(drag parameter)   : +0.5090
+
+  p above 1100 km : 0.9685 +/- 0.0628 over 46 objects
+  p below  450 km : 1.2683 +/- 0.3914 over 42 objects
+
+==============================================================================
+checks on the physics
+==============================================================================
+  [PASS] the exponent above 1100 km is within 0.1 of the predicted linear value 1 -- 0.9685 +/- 0.0628
+  [PASS] the exponent above 1100 km has a small spread, so the linear form is a good description there and not an average of two regimes -- sd 0.0628
+  [PASS] the exponent below 450 km is larger than above 1100 km, as the drag-rate-error prediction requires -- 1.2683 against 0.9685
+  [PASS] the exponent falls with altitude (negative correlation) -- -0.2914
+  [PASS] the exponent rises with the drag parameter (positive correlation) -- +0.5090
+  [PASS] the band means do not rise with altitude by more than noise -- 1.2683, 1.0249, 1.1197, 1.0175, 0.9685
+
+==============================================================================
+how well each analytic form fits, per object
+==============================================================================
+  Log-residual standard deviation: a spread of RATIOS, so 0.1 is about
+  10 per cent. Lower is better.
+
+  form                n   median   mean    90th pct   wins
+  linear            192   0.1329  0.3344    1.0294      0
+  quadratic         192   1.1730  1.1276    1.3970      2
+  power             192   0.0747  0.2136    0.7515    124
+  drag_exponential  192   0.0924  0.2267    0.6807     66
+
+  best-fitting form counts      : {'power': 124, 'drag_exponential': 66, 'quadratic': 2}
+
+==============================================================================
+the strongest analytic form by altitude band
+==============================================================================
+  band km          n   best-form counts
+   300-450         42   {'drag_exponential': 23, 'power': 18, 'quadratic': 1}
+   450-600         32   {'power': 23, 'drag_exponential': 8, 'quadratic': 1}
+   600-800         31   {'power': 19, 'drag_exponential': 12}
+   800-1100        41   {'drag_exponential': 12, 'power': 29}
+  1100-1700        46   {'power': 35, 'drag_exponential': 11}
+
+  The free power law or the drag-exponential form wins almost everywhere.
+  The fixed linear and fixed quadratic forms are in the benchmark that
+  follows anyway, because they are the two forms the physics names and
+  because a form with one free parameter fewer is a stronger claim when
+  it holds.
+
+==============================================================================
+the baseline's quality, stated before the benchmark runs
+==============================================================================
+  median per-object log-residual spread of the free power law : 0.07469
+  90th percentile                                             : 0.75145
+  worst                                                       : 1.08056
+  [PASS] the free power law fits the median object to better than 15 per cent in the ratio, so the analytic baseline is strong before anything is learned -- median log-residual spread 0.07469
+
+==============================================================================
+negative control
+==============================================================================
+  Fitting the power law to a shuffled drift column must destroy the fit,
+  otherwise the residual spreads above are not measuring anything.
+  median log-residual spread, real      : 0.07469
+  median log-residual spread, shuffled  : 1.14177
+  [PASS] shuffling the drift column makes the fit at least five times worse -- 1.14177 against 0.07469
+

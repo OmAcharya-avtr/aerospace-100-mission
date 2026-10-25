@@ -1,0 +1,87 @@
+
+==============================================================================
+orbitdrift -- sensitivity of the divergence to the B* inversion
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+==============================================================================
+the inversion
+==============================================================================
+  reference density rho_0       : 0.157 kg/(m^2 ER)
+  relation                      : B* = (1/2) C_D (A/m) rho_0
+  what drag needs               : C_D A/m = 2 B* / rho_0
+  numerically                   : C_D A/m = 12.7389 B*
+  C_D cancels, so no drag coefficient is assumed. rho_0 is nominal and an
+  operational B* is not a physical ballistic parameter, so the product is
+  an assumption and this script bounds its effect.
+
+  B*          C_D A/m m^2/kg
+  +1.0e-06    +1.273885e-05
+  +1.0e-05    +1.273885e-04
+  +1.0e-04    +1.273885e-03
+  +1.0e-03    +1.273885e-02
+  +5.0e-03    +6.369427e-02
+  -1.0e-04    -1.273885e-03
+
+==============================================================================
+divergence at 2.0 days under a factor of two in C_D A/m
+==============================================================================
+  object  perigee km   B*          log10 dragpar   0.5x km     1.0x km     2.0x km   span/1.0x
+       0      1510.8   +9.72e-06       -19.2552      7.8199      7.8199      7.8200     0.0000
+      24       487.3   +1.99e-03       -13.6624     57.0295     50.3873     37.0944     0.3956
+      48       574.9   +3.25e-03       -14.0497      9.5257     11.8607     16.5346     0.5909
+      72       872.8   +1.00e-06       -19.0791     47.1176     47.1176     47.1177     0.0000
+      96       468.2   +1.81e-06       -16.5666     82.9854     82.9874     82.9916     0.0001
+     120       898.4   +2.53e-03       -15.7663      8.2224      8.1388      7.9717     0.0308
+     144       612.2   +1.20e-06       -17.7270      5.8417      5.8409      5.8393     0.0004
+     168      1475.3   +2.19e-06       -19.8441     18.1327     18.1327     18.1327     0.0000
+
+  median span / nominal         : 0.0002
+  worst span / nominal          : 0.5909
+
+  Read this as: a factor of two error in the drag parameter moves the
+  reported divergence by this fraction of itself. Where the fraction is
+  small the curve is dominated by the difference in dynamical structure
+  between SGP4 and the numerical model, which is the signal the product
+  is about. Where it is large the curve is dominated by the drag
+  assumption, and the number should be read as conditional on it.
+
+==============================================================================
+checks
+==============================================================================
+  [PASS] the drag parameter inversion is exactly 2 B* / rho_0 -- 1.273885350318e-03
+  [PASS] a negative B* passes through to a negative drag parameter, not zero -- -1.273885e-03
+  [PASS] a factor of two in the drag parameter moves the median divergence by less than half of itself -- median 0.0002, worst 0.5909
+
+  The sensitivity is not a function of altitude alone. The population draws
+  B* independently of altitude, so a 500 km object with B* = 1e-6 has
+  almost no drag and almost no sensitivity. The quantity that orders the
+  table is log10(C_D A/m * rho_perigee), the combination that actually
+  appears in the drag acceleration, and the correlation below is the
+  physical statement.
+
+  correlation of log10(sensitivity) with log10(drag parameter): 0.9626
+  heaviest drag parameter -13.662: sensitivity 0.395637
+  lightest drag parameter -19.844: sensitivity 0.000001
+  [PASS] the sensitivity rises with the drag parameter (correlation above 0.7) -- 0.9626 over 8 objects
+  [PASS] the most drag-affected object in the sample is materially sensitive, so the drag term is reaching the integrator -- 0.395637 at log10 drag parameter -13.662
+  [PASS] the least drag-affected object is insensitive, which is the expected result and not a defect -- 1.004935e-06 at log10 drag parameter -19.844
+
+==============================================================================
+timings (UNSTABLE: wall clock on a shared two-core container)
+==============================================================================
+  propagations                  : 24, 100.2 s total
+

@@ -1,0 +1,138 @@
+
+==============================================================================
+orbitdrift -- integrator convergence under step refinement
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+==============================================================================
+error against the closed-form two-body solution, 8 revolutions
+==============================================================================
+  case                            steps/rev   step s      |error| km    ratio   order
+  LEO 500 km, e=0.001, i=51.6           90  63.1722   7.895592e-01      nan     nan
+  LEO 500 km, e=0.001, i=51.6          180  31.5861   3.054330e-02   25.850   4.692
+  LEO 500 km, e=0.001, i=51.6          360  15.7931   1.321611e-03   23.111   4.530
+  LEO 500 km, e=0.001, i=51.6          720   7.8965   6.424760e-05   20.571   4.363
+  LEO 500 km, e=0.001, i=51.6         1440   3.9483   3.441906e-06   18.666   4.222
+  LEO 350 km, e=0.02, i=98.0            90  62.9030   7.987084e-01      nan     nan
+  LEO 350 km, e=0.02, i=98.0           180  31.4515   3.060958e-02   26.093   4.706
+  LEO 350 km, e=0.02, i=98.0           360  15.7257   1.310156e-03   23.363   4.546
+  LEO 350 km, e=0.02, i=98.0           720   7.8629   6.304465e-05   20.781   4.377
+  LEO 350 km, e=0.02, i=98.0          1440   3.9314   3.353205e-06   18.801   4.233
+  LEO 1400 km, e=0.005, i=20.0          90  76.4270   8.974495e-01      nan     nan
+  LEO 1400 km, e=0.005, i=20.0         180  38.2135   3.464997e-02   25.900   4.695
+  LEO 1400 km, e=0.005, i=20.0         360  19.1068   1.495975e-03   23.162   4.534
+  LEO 1400 km, e=0.005, i=20.0         720   9.5534   7.257178e-05   20.614   4.366
+  LEO 1400 km, e=0.005, i=20.0        1440   4.7767   3.881239e-06   18.698   4.225
+
+==============================================================================
+Richardson order, with no reference solution at all
+==============================================================================
+  p = log2((x_h - x_h/2) / (x_h/2 - x_h/4)), from the final position vector
+  case                            triple                 order
+  LEO 500 km, e=0.001, i=51.6       90/  180/  360     4.6990
+  LEO 500 km, e=0.001, i=51.6      180/  360/  720     4.5386
+  LEO 500 km, e=0.001, i=51.6      360/  720/ 1440     4.3701
+  LEO 350 km, e=0.02, i=98.0        90/  180/  360     4.7123
+  LEO 350 km, e=0.02, i=98.0       180/  360/  720     4.5542
+  LEO 350 km, e=0.02, i=98.0       360/  720/ 1440     4.3849
+  LEO 1400 km, e=0.005, i=20.0      90/  180/  360     4.7018
+  LEO 1400 km, e=0.005, i=20.0     180/  360/  720     4.5418
+  LEO 1400 km, e=0.005, i=20.0     360/  720/ 1440     4.3731
+
+==============================================================================
+with drag on: the atmosphere is discontinuous, and it does not matter
+==============================================================================
+  The published atmosphere table is 28 independent exponential fits, so
+  its band joins are discontinuous, which can cost a fixed-step method
+  its formal order. The measured jumps are at most 0.14 per cent
+  (validate_atmosphere_output.txt) and the orders below are
+  indistinguishable from the drag-free orders above, so the mechanism is
+  real and not material here.
+  case                            steps/rev   |difference to finest| km   order
+  LEO 500 km, e=0.001, i=51.6       90/  180/  360          7.599360e-01    4.6978
+  LEO 500 km, e=0.001, i=51.6      180/  360/  720          2.928121e-02    4.5370
+  LEO 500 km, e=0.001, i=51.6      360/  720/ 1440          1.261305e-03    4.3688
+
+==============================================================================
+the truncation floor against the signal it has to measure
+==============================================================================
+  The divergence this product reports is SGP4 against the numerical model.
+  The integrator's own error at the production step is a floor under that
+  measurement, and the ratio is what makes the measurement meaningful.
+  LEO 500 km, e=0.001, i=51.6    truncation floor at 7 days, 360 steps/rev: 1.135041e-01 km
+  LEO 350 km, e=0.02, i=98.0     truncation floor at 7 days, 360 steps/rev: 1.168030e-01 km
+  LEO 1400 km, e=0.005, i=20.0   truncation floor at 7 days, 360 steps/rev: 9.004421e-02 km
+
+  The divergence of the committed population is read from
+  fixtures/divergence_dataset.npz rather than recomputed here. Recomputing
+  eight seven-day curves cost 489 s of the 600 s per-script budget on a
+  shared two-core container, and the numbers are the same ones.
+
+    object  perigee km   divergence at 6.79 d, km   floor/divergence
+         0      1510.8                    20.5350          5.688e-03
+        24       487.3                   586.6032          1.991e-04
+        48       574.9                   274.1721          4.260e-04
+        72       872.8                   155.8415          7.495e-04
+        96       468.2                   277.6992          4.206e-04
+       120       898.4                    85.8567          1.360e-03
+       144       612.2                    27.8390          4.196e-03
+       168      1475.3                    56.3325          2.073e-03
+
+    truncation floor used (worst of the three cases) : 1.168030e-01 km
+    smallest divergence over all 192 objects        : 0.6315 km
+    largest divergence over all 192 objects         : 3540.2509 km
+
+  distribution of floor/divergence over the population:
+     50th percentile : 2.798e-03
+     75th percentile : 7.699e-03
+     90th percentile : 1.593e-02
+     95th percentile : 2.336e-02
+     99th percentile : 1.041e-01
+    worst            : 1.850e-01
+
+    objects where the floor exceeds 1 per cent of their divergence  : 34 of 192
+    objects where the floor exceeds 10 per cent of their divergence : 3 of 192
+
+  This is a REPORTED LIMITATION and not a passing result. For the handful of
+  objects whose seven-day divergence is under about a kilometre -- high
+  altitude, tiny B*, almost nothing for the two models to disagree about --
+  the integrator's own truncation error is a double-digit percentage of the
+  measured divergence, and those rows should be read as 'divergence below
+  about a kilometre' rather than as the value printed. README.md says so
+  under Limitations. The objects concerned are named below.
+
+    object  perigee km   divergence km   floor/divergence
+        80       776.8          0.8703          1.342e-01
+       124       460.3          0.6315          1.850e-01
+       147       841.3          1.1548          1.011e-01
+
+==============================================================================
+checks
+==============================================================================
+  [PASS] LEO 500 km, e=0.001, i=51.6: Richardson order between 4 and 5.2 -- 4.6990, 4.5386, 4.3701
+  [PASS] LEO 500 km, e=0.001, i=51.6: error against the closed form falls by 8 to 40 per halving -- 25.850, 23.111, 20.571, 18.666
+  [PASS] LEO 350 km, e=0.02, i=98.0: Richardson order between 4 and 5.2 -- 4.7123, 4.5542, 4.3849
+  [PASS] LEO 350 km, e=0.02, i=98.0: error against the closed form falls by 8 to 40 per halving -- 26.093, 23.363, 20.781, 18.801
+  [PASS] LEO 1400 km, e=0.005, i=20.0: Richardson order between 4 and 5.2 -- 4.7018, 4.5418, 4.3731
+  [PASS] LEO 1400 km, e=0.005, i=20.0: error against the closed form falls by 8 to 40 per halving -- 25.900, 23.162, 20.614, 18.698
+  [PASS] the truncation floor is below 1 per cent of the divergence for at least three quarters of the population -- median 2.798e-03, 75th percentile 7.699e-03, 90th percentile 1.593e-02
+  [PASS] the truncation floor is below 20 per cent of the divergence for EVERY object -- worst 1.850e-01 on the least divergent object; 34 object(s) above 1 per cent and 3 above 10 per cent, named above and in README.md under Limitations
+
+==============================================================================
+timings (UNSTABLE: wall clock on a shared two-core container)
+==============================================================================
+  truncation-floor runs         : 6.1 s over 3 cases
+

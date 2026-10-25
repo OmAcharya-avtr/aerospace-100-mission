@@ -1,0 +1,157 @@
+
+==============================================================================
+orbitdrift -- every documented command, executed
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+  Each command runs as a subprocess with PYTHONPATH=src and nothing else,
+  which is how the release gate invokes it.
+
+==============================================================================
+python -m orbitdrift version
+==============================================================================
+  exit status                   : 0 (expected 0)
+  [PASS] version: exit status is 0 -- got 0; stderr: 
+  [PASS] version: output contains 'orbitdrift 0.1.0'
+  [PASS] version: output contains 'astropy      not installed'
+  [PASS] version: output contains 'not flight-qualified'
+    orbitdrift 0.1.0
+    python       3.13.17
+    numpy        2.5.3
+    scipy        1.18.1
+    scikit-learn 1.9.1
+    matplotlib   3.11.2
+    sgp4         2.27
+    astropy      not installed; no number here is cross-checked against it
+    torch        not installed; the learned model is scikit-learn
+    orbitdrift is research-grade software. It is not flight-qualified, not certified, and not approved for operational aerospace use. It measures model divergence between two propagators; it does not measure ephemeris error against truth, and no output of it is a covariance or an input to a conjunction assessment.
+
+==============================================================================
+python -m orbitdrift vectors
+==============================================================================
+  exit status                   : 0 (expected 0)
+  [PASS] vectors: exit status is 0 -- got 0; stderr: 
+  [PASS] vectors: output contains '33 cases, 666 rows compared, 1 rows skipped'
+  [PASS] vectors: output contains 'worst position disagreement'
+    published SGP4 verification vectors from the installed sgp4 2.27 distribution
+      files SGP4-VER.TLE and tcppver.out, published with AIAA 2006-6753
+      satnum   rows  skipped   max |dr| km   max |dv| km/s
+      33 cases, 666 rows compared, 1 rows skipped on an error code
+      worst position disagreement 1.154503e-07 km
+      worst velocity disagreement 4.996954e-10 km/s
+
+==============================================================================
+python -m orbitdrift atmosphere
+==============================================================================
+  exit status                   : 0 (expected 0)
+  [PASS] atmosphere: exit status is 0 -- got 0; stderr: 
+  [PASS] atmosphere: output contains 'Table 8-4'
+  [PASS] atmosphere: output contains 'This model is static'
+  [PASS] atmosphere: output contains '3.725000e-12'
+    atmosphere model: Vallado Table 8-4 piecewise exponential (static, no solar index)
+    source: Vallado 2013, Fundamentals of Astrodynamics and Applications, Table 8-4
+      altitude km      density kg/m^3
+            200.0      2.789000e-10
+            300.0      2.418000e-11
+            400.0      3.725000e-12
+            500.0      6.967000e-13
+            600.0      1.454000e-13
+            800.0      1.170000e-14
+           1000.0      3.019000e-15
+           1400.0      6.786758e-16
+    This model is static: no solar index, no diurnal bulge, no geomagnetic term. In high solar activity the true density at 400 km can exceed it by a factor of several, and every drag-driven divergence number in this repository inherits that.
+
+==============================================================================
+python -m orbitdrift drift --span-days 1.0 --steps-per-rev 120 --report-every-hours 8
+==============================================================================
+  exit status                   : 0 (expected 0)
+  [PASS] drift: exit status is 0 -- got 0; stderr: 
+  [PASS] drift: output contains 'catalogue 25544'
+  [PASS] drift: output contains 'model divergence'
+  [PASS] drift: output contains 'lower bound on larger model error'
+  [PASS] drift: output contains 'analytic growth forms fitted'
+    object                   : catalogue 25544
+    perigee altitude         : 348.8 km
+    eccentricity             : 0.000670
+    inclination              : 51.642 deg
+    B*                       : 1.027000e-04 1/earth-radii
+    divergence source        : sgp4-vs-numerical
+                               WGS72: two-body + J2-J4 + drag + luni-solar, step 45.7979 s (120.0 per rev)
+    epoch age  model divergence  lower bound on larger model error
+       (days)              (km)                              (km)
+         0.032            0.0720                            0.0360
+         0.365            0.8635                            0.4318
+         0.698            2.1219                            1.0610
+    analytic growth forms fitted to this curve:
+      form              amplitude(km)   exponent   tau(d)   log-resid sd
+      drag_exponential        2.54267        nan     1.18       0.08161
+      linear                  2.53338     1.0000      nan       0.15883
+      power                   2.85320     1.0741      nan       0.14605
+      quadratic              12.60874     2.0000      nan       1.51183
+      best fitting form : drag_exponential
+
+==============================================================================
+python -m orbitdrift stale --span-days 1.0 --steps-per-rev 120 --report-every-hours 8 --tolerance-km 20 --age-days 3
+==============================================================================
+  exit status                   : 0 (expected 0)
+  [PASS] stale: exit status is 0 -- got 0; stderr: 
+  [PASS] stale: output contains 'median horizon'
+  [PASS] stale: output contains 'conservative horizon'
+  [PASS] stale: output contains 'no measured backing'
+  [PASS] stale: output contains 'verdict'
+    this object's own divergence curve is best fitted by the drag_exponential form
+      amplitude 2.542665 km, exponent nan, log-residual sd 0.08161
+    predictor                : own_curve_drag_exponential
+    tolerance                : 20.000 km
+    median horizon           : 2.573 days
+    conservative horizon     : 2.433 days (upper end of a 90% interval)
+    interval coverage        : not supplied. The conservative horizon above has no measured backing and must not be relied on.
+    element set age          : 3.000 days
+    predicted drift at age   : 29.841 km [26.092, 34.128]
+    verdict                  : OUTSIDE
+
+==============================================================================
+python -m orbitdrift stale --span-days 1.0 --steps-per-rev 120 --purpose covariance for conjunction screening
+==============================================================================
+  exit status                   : 3 (expected 3)
+  [PASS] stale with a refused purpose: exit status is 3 -- got 3; stderr: refused: The declared purpose 'covariance for conjunction screening' names 'covariance', which this package refuses to s
+  [PASS] stale with a refused purpose: the refusal names P071 -- refused: The declared purpose 'covariance for conjunction screening' names 'covariance', which this package refuses to s
+
+==============================================================================
+python -m orbitdrift --help
+==============================================================================
+  exit status                   : 0 (expected 0)
+  [PASS] help: exit status is 0 -- got 0; stderr: 
+  [PASS] help: output contains 'No output is a covariance'
+  [PASS] help: output contains 'P071 ConjProb'
+    usage: python -m orbitdrift [-h] {version,vectors,atmosphere,drift,stale} ...
+    Measure how fast two propagations of one element set separate, and turn that into an epoch-age budget.
+    positional arguments:
+      {version,vectors,atmosphere,drift,stale}
+        version             versions and the safety statement
+        vectors             reproduce the published SGP4 test vectors
+        atmosphere          print the declared atmosphere model
+        drift               divergence curve for one element set
+        stale               is this element set still good enough
+    options:
+      -h, --help            show this help message and exit
+    orbitdrift measures model divergence between two propagators. It does not measure ephemeris error against truth, because it has no precision ephemerides and no element-set archive. No output is a covariance and no output may be used as the input covariance of a conjunction assessment; see P071 ConjProb for that computation. Research grade; not flight-qualified, not certified, not approved for operational aerospace use.
+
+==============================================================================
+timings (UNSTABLE: wall clock on a shared two-core container)
+==============================================================================
+  7 invocations           : 15.5 s total
+

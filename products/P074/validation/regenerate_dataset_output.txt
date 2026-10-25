@@ -1,0 +1,54 @@
+
+==============================================================================
+orbitdrift -- regenerate the synthetic population and divergence dataset
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+==============================================================================
+population specification
+==============================================================================
+  n_objects                   : 192
+  n_epoch_groups              : 3
+  perigee_altitude_km         : log-uniform over [320, 1600]
+  eccentricity                : log-uniform over [5e-4, 5e-2], rejected if perigee < 300 km
+  inclination_deg             : uniform over [2, 100]
+  bstar                       : log-uniform magnitude over [1e-6, 5e-3]; the sign is negative for one object in sixteen, which is roughly the proportion of negative B* in the public catalogue and is included because a negative B* is a legal TLE that makes the drag term a thrust
+  raan_argp_mean_anomaly_deg  : uniform over [0, 360)
+  epochs                      : 2026-01-15, 2026-05-15, 2026-09-15 at 00:00 UT, one group each
+  seed                        : 20740825
+
+==============================================================================
+generation
+==============================================================================
+  population lines              : 578
+  population generation         : 0.010 s (table only)
+  batch 1/3: 64 objects, step 15.1806 s, 39840 steps
+  batch 2/3: 64 objects, step 15.1806 s, 39840 steps
+  batch 3/3: 64 objects, step 15.1806 s, 39840 steps
+
+  objects                       : 192
+  rows                          : 5376
+  columns                       : 17
+  detail                        : 192 objects, 3 epoch groups, span 7.0 days, step 15.1806383917 s from a reference period of 5465.029821 s at 360 steps per revolution, 39840 steps, reported every 6.0 h, drift is the RMS over a one-period window; force model WGS72: two-body + J2-J4 + drag + luni-solar
+  drift range, km               : 0.023069 to 3540.251
+  epoch age range, days         : 0.0316 to 6.7933
+
+  fixtures/population.tle                  32247 bytes  sha256 c1a862cbc73c58bc7b2c461f34aea5b58babba375888cf12cc18fbc95abfa90a
+  fixtures/divergence_dataset.npz         217505 bytes  sha256 2d54d126b7d4dda0cdf089703f23989a62184e06b45b11b9f80a23c2390f6f89
+
+timings (UNSTABLE: wall clock on a shared two-core container)
+  divergence table              : 203.4 s
+

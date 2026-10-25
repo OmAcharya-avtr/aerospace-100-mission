@@ -1,0 +1,136 @@
+
+==============================================================================
+orbitdrift -- conservation of energy and angular momentum
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+==============================================================================
+two-body only, 6 revolutions
+==============================================================================
+  all three quantities are exact constants of motion
+  case                            steps/rev   energy      |h|        h_z
+  LEO 500 km, e=0.001, i=51.6          180  5.4286e-08 2.7143e-08 2.7143e-08
+  LEO 500 km, e=0.001, i=51.6          360  1.6961e-09 8.4805e-10 8.4804e-10
+  LEO 500 km, e=0.001, i=51.6          720  5.3007e-11 2.6503e-11 2.6505e-11
+  LEO 500 km, e=0.001, i=51.6         1440  1.6570e-12 8.2847e-13 8.2576e-13
+  LEO 350 km, e=0.02, i=98.0           180  5.4995e-08 2.7375e-08 2.7375e-08
+  LEO 350 km, e=0.02, i=98.0           360  1.7183e-09 8.5530e-10 8.5531e-10
+  LEO 350 km, e=0.02, i=98.0           720  5.6265e-11 2.6729e-11 2.6723e-11
+  LEO 350 km, e=0.02, i=98.0          1440  1.9798e-12 8.3733e-13 8.3653e-13
+  LEO 1400 km, e=0.005, i=20.0         180  5.4328e-08 2.7157e-08 2.7157e-08
+  LEO 1400 km, e=0.005, i=20.0         360  1.6974e-09 8.4849e-10 8.4848e-10
+  LEO 1400 km, e=0.005, i=20.0         720  5.3047e-11 2.6516e-11 2.6515e-11
+  LEO 1400 km, e=0.005, i=20.0        1440  1.6577e-12 8.2848e-13 8.2881e-13
+
+==============================================================================
+two-body plus J2, J3, J4, 6 revolutions
+==============================================================================
+  energy and h_z are exact constants; |h| is NOT, and must not be
+  case                            steps/rev   energy      |h|        h_z
+  LEO 500 km, e=0.001, i=51.6          180  5.4273e-08 5.1252e-04 2.7061e-08
+  LEO 500 km, e=0.001, i=51.6          360  1.6958e-09 5.1254e-04 8.4550e-10
+  LEO 500 km, e=0.001, i=51.6          720  5.3002e-11 5.1254e-04 2.6422e-11
+  LEO 500 km, e=0.001, i=51.6         1440  1.6603e-12 5.1254e-04 8.2643e-13
+  LEO 350 km, e=0.02, i=98.0           180  5.4385e-08 8.0823e-04 2.6977e-08
+  LEO 350 km, e=0.02, i=98.0           360  1.6988e-09 8.0823e-04 8.4288e-10
+  LEO 350 km, e=0.02, i=98.0           720  5.5983e-11 8.0823e-04 2.6337e-11
+  LEO 350 km, e=0.02, i=98.0          1440  1.9809e-12 8.0823e-04 8.1778e-13
+  LEO 1400 km, e=0.005, i=20.0         180  5.4961e-08 7.8192e-05 2.7430e-08
+  LEO 1400 km, e=0.005, i=20.0         360  1.7174e-09 7.8218e-05 8.5703e-10
+  LEO 1400 km, e=0.005, i=20.0         720  5.3666e-11 7.8219e-05 2.6778e-11
+  LEO 1400 km, e=0.005, i=20.0        1440  1.6762e-12 7.8219e-05 8.3602e-13
+
+==============================================================================
+which residual is numerical and which is physical
+==============================================================================
+  ratio of the residual at one step to the residual at half that step.
+  A numerical residual shrinks; a physical amplitude does not move.
+  case                            quantity      ratios under halving
+  LEO 500 km, e=0.001, i=51.6    energy         32.005    31.995    31.924
+  LEO 500 km, e=0.001, i=51.6    |h|           0.99995   1.00000   1.00000
+  LEO 350 km, e=0.02, i=98.0     energy         32.014    30.345    28.261
+  LEO 350 km, e=0.02, i=98.0     |h|           1.00000   1.00000   1.00000
+  LEO 1400 km, e=0.005, i=20.0   energy         32.004    32.001    32.016
+  LEO 1400 km, e=0.005, i=20.0   |h|           0.99967   0.99999   1.00000
+
+==============================================================================
+drag: the energy must decrease, and the sign is derived not compared
+==============================================================================
+  samples                       : 97
+  energy at start               : -29.809950067 km^2/s^2
+  energy at end                 : -29.817022202 km^2/s^2
+  total change                  : -7.072135e-03 km^2/s^2
+  largest single increase       : -6.121481e-05 km^2/s^2
+  [PASS] energy decreases at every sample with drag on -- max difference -6.121e-05
+
+==============================================================================
+declared tolerance, which scales as h^5
+==============================================================================
+  steps/rev   declared tolerance   worst measured (two-body)   worst (zonal)
+        180           1.9200e-07                  5.4995e-08      5.4961e-08
+        360           6.0000e-09                  1.7183e-09      1.7174e-09
+        720           1.8750e-10                  5.6265e-11      5.5983e-11
+       1440           5.8594e-12                  1.9798e-12      1.9809e-12
+
+==============================================================================
+checks
+==============================================================================
+  [PASS] two-body energy residual at 180 steps/rev below 1.920e-07 -- worst 5.4995e-08
+  [PASS] zonal energy residual at 180 steps/rev below 1.920e-07 -- worst 5.4961e-08
+  [PASS] two-body energy residual at 360 steps/rev below 6.000e-09 -- worst 1.7183e-09
+  [PASS] zonal energy residual at 360 steps/rev below 6.000e-09 -- worst 1.7174e-09
+  [PASS] two-body energy residual at 720 steps/rev below 1.875e-10 -- worst 5.6265e-11
+  [PASS] zonal energy residual at 720 steps/rev below 1.875e-10 -- worst 5.5983e-11
+  [PASS] two-body energy residual at 1440 steps/rev below 5.859e-12 -- worst 1.9798e-12
+  [PASS] zonal energy residual at 1440 steps/rev below 5.859e-12 -- worst 1.9809e-12
+  [PASS] LEO 500 km, e=0.001, i=51.6: energy residual shrinks by 20 to 50 per halving (numerical) -- 32.00, 31.99, 31.92
+  [PASS] LEO 500 km, e=0.001, i=51.6: |h| residual is step-invariant to 1e-3 (physical) -- relative spread 5.007e-05 over 4 step sizes, value 5.125159e-04
+  [PASS] LEO 350 km, e=0.02, i=98.0: energy residual shrinks by 20 to 50 per halving (numerical) -- 32.01, 30.34, 28.26
+  [PASS] LEO 350 km, e=0.02, i=98.0: |h| residual is step-invariant to 1e-3 (physical) -- relative spread 1.787e-06 over 4 step sizes, value 8.082300e-04
+  [PASS] LEO 1400 km, e=0.005, i=20.0: energy residual shrinks by 20 to 50 per halving (numerical) -- 32.00, 32.00, 32.02
+  [PASS] LEO 1400 km, e=0.005, i=20.0: |h| residual is step-invariant to 1e-3 (physical) -- relative spread 3.401e-04 over 4 step sizes, value 7.819225e-05
+
+==============================================================================
+negative control, anchored on the true value
+==============================================================================
+  The guaranteed-firing offset for a check that accepts a quantity within b
+  of a reference is strictly MORE THAN 2b, measured from the true value,
+  because the unperturbed quantity could already sit anywhere in [-b, b].
+  Smaller offsets may or may not fire depending on where it actually sits,
+  and that is the trap: a control built on an offset of b is not a control.
+  Here the unperturbed residual sits near the bottom of the band, so an
+  offset of 2b fires -- which is sufficient but was not guaranteed in
+  advance, and the table below separates the two cases.
+
+  declared tolerance b          : 6.0000e-09
+  unperturbed residual          : 1.1307e-09 (0.1885 b)
+
+  offset (x b)   residual     fires?   guaranteed to fire?
+           0.5   1.8693e-09   no       no
+           1.0   4.8693e-09   no       no
+           2.0   1.0869e-08   yes      no
+           3.0   1.6869e-08   yes      yes
+  [PASS] an offset of 3.0 b fires, as it must -- residual 1.6869e-08 against tolerance 6.0000e-09
+
+  The 0.5 b row is the point of the whole table: it does not fire, so a
+  negative control built on an offset of half the tolerance would have
+  silently passed a check that was not testing anything.
+
+==============================================================================
+timings (UNSTABLE: wall clock on a shared two-core container)
+==============================================================================
+  drag run                      : 5.59 s
+

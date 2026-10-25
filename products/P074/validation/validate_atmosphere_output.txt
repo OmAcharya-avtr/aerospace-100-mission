@@ -1,0 +1,155 @@
+
+==============================================================================
+orbitdrift -- the declared atmosphere model
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+  model : Vallado Table 8-4 piecewise exponential (static, no solar index)
+  source: Vallado 2013, Fundamentals of Astrodynamics and Applications,
+          4th ed., Table 8-4, after CIRA-72 and the US Standard
+          Atmosphere 1976
+
+==============================================================================
+the table as implemented
+==============================================================================
+  base km    rho0 kg/m^3    scale height km
+      0.0    1.225000e+00             7.249
+     25.0    3.899000e-02             6.349
+     30.0    1.774000e-02             6.682
+     40.0    3.972000e-03             7.554
+     50.0    1.057000e-03             8.382
+     60.0    3.206000e-04             7.714
+     70.0    8.770000e-05             6.549
+     80.0    1.905000e-05             5.799
+     90.0    3.396000e-06             5.382
+    100.0    5.297000e-07             5.877
+    110.0    9.661000e-08             7.263
+    120.0    2.438000e-08             9.473
+    130.0    8.484000e-09            12.636
+    140.0    3.845000e-09            16.149
+    150.0    2.070000e-09            22.523
+    180.0    5.464000e-10            29.740
+    200.0    2.789000e-10            37.105
+    250.0    7.248000e-11            45.546
+    300.0    2.418000e-11            53.628
+    350.0    9.518000e-12            53.298
+    400.0    3.725000e-12            58.515
+    450.0    1.585000e-12            60.828
+    500.0    6.967000e-13            63.822
+    600.0    1.454000e-13            71.835
+    700.0    3.614000e-14            88.667
+    800.0    1.170000e-14           124.640
+    900.0    5.245000e-15           181.050
+   1000.0    3.019000e-15           268.000
+
+==============================================================================
+the table is reproduced exactly at each base altitude
+==============================================================================
+  worst relative departure      : 0.000e+00
+  [PASS] every base altitude returns its tabulated density -- 0.000e+00
+
+==============================================================================
+monotonicity
+==============================================================================
+  samples                       : 150001
+  samples where density rises   : 0
+  [PASS] density falls with height everywhere -- 0 rises
+
+==============================================================================
+the band joins are discontinuous, and by how much
+==============================================================================
+  The published table is 28 independent exponential fits, not one smooth
+  function, so the joins do not match exactly. The jumps are MEASURED
+  below rather than assumed, and the measurement changes the conclusion:
+  the largest is about 0.14 per cent, which is small enough that the
+  integrator's measured convergence order with drag on is
+  indistinguishable from its order with drag off (4.6978 / 4.5370 /
+  4.3688 against 4.6990 / 4.5386 / 4.3701 in
+  validate_step_refinement_output.txt). The order loss a discontinuous
+  right-hand side can cause is therefore a real mechanism that is not
+  material here, and saying so is more useful than warning about it.
+
+  join km   density below      density at        relative jump
+     25.0   3.893699e-02      3.899000e-02      +0.001362
+     30.0   1.773925e-02      1.774000e-02      +0.000042
+     40.0   3.971977e-03      3.972000e-03      +0.000006
+     50.0   1.057035e-03      1.057000e-03      -0.000033
+     60.0   3.205882e-04      3.206000e-04      +0.000037
+     70.0   8.769369e-05      8.770000e-05      +0.000072
+     80.0   1.904817e-05      1.905000e-05      +0.000096
+     90.0   3.396114e-06      3.396000e-06      -0.000034
+    100.0   5.296986e-07      5.297000e-07      +0.000003
+    110.0   9.661774e-08      9.661000e-08      -0.000080
+    120.0   2.438189e-08      2.438000e-08      -0.000078
+    130.0   8.483570e-09      8.484000e-09      +0.000051
+    140.0   3.845072e-09      3.845000e-09      -0.000019
+    150.0   2.069983e-09      2.070000e-09      +0.000008
+    180.0   5.463895e-10      5.464000e-10      +0.000019
+    200.0   2.789009e-10      2.789000e-10      -0.000003
+    250.0   7.248111e-11      7.248000e-11      -0.000015
+    300.0   2.417984e-11      2.418000e-11      +0.000006
+    350.0   9.517927e-12      9.518000e-12      +0.000008
+    400.0   3.724987e-12      3.725000e-12      +0.000004
+    450.0   1.585001e-12      1.585000e-12      -0.000001
+    500.0   6.966965e-13      6.967000e-13      +0.000005
+    600.0   1.454012e-13      1.454000e-13      -0.000009
+    700.0   3.614033e-14      3.614000e-14      -0.000009
+    800.0   1.169995e-14      1.170000e-14      +0.000004
+    900.0   5.245015e-15      5.245000e-15      -0.000003
+   1000.0   3.019048e-15      3.019000e-15      -0.000016
+
+  largest absolute relative jump: 0.001362 at a band join
+  [PASS] no band join jumps by more than 1 per cent -- largest 0.001362
+  [PASS] the joins are genuinely discontinuous (this is a property, not a defect) -- largest 0.001362
+
+==============================================================================
+what the static model cannot do
+==============================================================================
+  Published solar-cycle variation of thermospheric density at 400 km is
+  about an order of magnitude between solar minimum and solar maximum
+  (Vallado 2013 section 8.6.2; Picone et al. 2002 for NRLMSISE-00). This
+  model has no solar index at all, so it sits at one unspecified point in
+  that range. The consequence for this product, stated plainly: a
+  divergence curve driven by drag inherits that factor, and the curve is
+  therefore a measurement of model divergence under a declared static
+  atmosphere and not a prediction of what the drag will actually do.
+
+  altitude km    density kg/m^3    a factor of 10 either way
+        300.0    2.418000e-11      2.418e-12 to 2.418e-10
+        400.0    3.725000e-12      3.725e-13 to 3.725e-11
+        500.0    6.967000e-13      6.967e-14 to 6.967e-12
+        600.0    1.454000e-13      1.454e-14 to 1.454e-12
+        800.0    1.170000e-14      1.170e-15 to 1.170e-13
+       1000.0    3.019000e-15      3.019e-16 to 3.019e-14
+
+==============================================================================
+extrapolation above the table
+==============================================================================
+  Above 1000 km the final band is extrapolated. The drag acceleration
+  there is far below the integrator's truncation floor, so the
+  extrapolation cannot affect a reported number; the magnitudes are
+  published so a reader can confirm that rather than take it on trust.
+  altitude km   density kg/m^3   |a_drag| km/s^2 at C_D A/m = 1e-2 m^2/kg
+       1000.0   3.019000e-15   7.396550e-13
+       1500.0   4.673177e-16   1.144928e-13
+       2000.0   7.233714e-17   1.772260e-14
+       3000.0   1.733243e-18   4.246446e-16
+
+  The 1e-2 m^2/kg drag parameter above is a high-area-to-mass object. For
+  the population in fixtures/population.tle the median C_D A/m is nearer
+  1e-3 m^2/kg, a tenth of that.
+  [PASS] drag above 1000 km is below 1e-12 km/s^2 even at a 1e-2 m^2/kg drag parameter, which is five orders below the luni-solar terms' 1e-9 and eleven below the central term -- 7.397e-13 km/s^2 at 1000 km
+

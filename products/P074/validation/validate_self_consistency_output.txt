@@ -1,0 +1,125 @@
+
+==============================================================================
+orbitdrift -- baseline 1, SGP4 self-consistency between two element sets
+==============================================================================
+python            : 3.13.17
+numpy             : 2.5.3
+scipy             : 1.18.1
+scikit-learn      : 1.9.1
+sgp4              : 2.27
+matplotlib        : 3.11.2
+pytest            : 9.1.1
+hypothesis        : 6.170.9
+ruff              : 0.17.2
+astropy           : not installed  (NOT used; no number here is cross-checked against it)
+torch             : not installed  (NOT used; the learned model is scikit-learn)
+cpu cores         : 2
+product root      : P074 (printed relatively; see validation/_bootstrap.py)
+fast probe mode   : False
+
+==============================================================================
+what this baseline can and cannot see
+==============================================================================
+  Both sides are SGP4. Any error common to the theory cancels out of the
+  comparison: the atmosphere model, the truncation of the Brouwer-Lyddane
+  expansion, the absence of solar radiation pressure. What is left is the
+  part of the error that came from the fit, which is a real and useful
+  quantity and is not the whole error.
+
+==============================================================================
+the one real pair available in this environment
+==============================================================================
+  2000-179 line 1: checksum computed 3, printed 3
+  [PASS] the transcribed 2000-179 line 1 has a valid checksum -- 3 against 3
+  2000-179 line 2: checksum computed 7, printed 7
+  [PASS] the transcribed 2000-179 line 2 has a valid checksum -- 7 against 7
+  2020-287 line 1: checksum computed 8, printed 8
+  [PASS] the transcribed 2020-287 line 1 has a valid checksum -- 8 against 8
+  2020-287 line 2: checksum computed 9, printed 9
+  [PASS] the transcribed 2020-287 line 2 has a valid checksum -- 9 against 9
+
+  catalogue                     : 5 (Vanguard 1)
+  earlier epoch                 : JD 2451723.284951
+  later epoch                   : JD 2459135.703339
+  epoch gap                     : 7412.4184 days = 20.29 years
+  mean motion, earlier          : 0.047229445441 rad/min
+  mean motion, later            : 0.047336347163 rad/min
+  relative change in mean motion: 2.263455e-03
+
+  The gap is twenty years. The magnitude below is therefore MEANINGLESS as
+  a staleness figure and is not quoted as one anywhere: it is here because
+  it is the only real same-object element-set pair in this environment,
+  and running the code path on real data is worth more than not running
+  it. A staleness measurement needs pairs days apart, which requires an
+  element-set archive this product does not have. README.md says so.
+
+  epoch age of the earlier set, days      separation km
+                                7412.464            4315.497
+                                7442.464           15707.401
+                                7472.464           12373.480
+                                7502.464            7240.712
+                                7532.464           16688.003
+                                7562.464            8665.597
+  ... 248 reported ages in all
+  detail                        : catalogue 5, epoch gap 7412.4184 days, 2573283 samples
+  [PASS] the real pair produces a finite, positive separation curve -- 248 ages, range 4315.5 to 16709.2 km
+
+==============================================================================
+synthetic pair 1: a pure mean-anomaly offset, separation constant in time
+==============================================================================
+  Predicted separation: the chord of the orbit subtended by dM, which is
+  2 a sin(dM/2). For a near-circular orbit and a small offset that is
+  a dM. The prediction comes from the geometry of a circle and shares no
+  expression with the measurement.
+
+  dM rad      a dM km    chord km    measured km   measured/chord   spread
+  1.0e-05     0.06878     0.06878       0.06878          0.99996    0.0000
+  [PASS] dM = 1.0e-05: measured separation within 2 per cent of the chord -- ratio 0.99996
+  [PASS] dM = 1.0e-05: the separation is constant in time to 5 per cent -- relative spread 0.0000 over 12 ages
+  1.0e-04     0.68781     0.68781       0.68779          0.99996    0.0000
+  [PASS] dM = 1.0e-04: measured separation within 2 per cent of the chord -- ratio 0.99996
+  [PASS] dM = 1.0e-04: the separation is constant in time to 5 per cent -- relative spread 0.0000 over 12 ages
+  1.0e-03     6.87814     6.87813       6.87788          0.99996    0.0000
+  [PASS] dM = 1.0e-03: measured separation within 2 per cent of the chord -- ratio 0.99996
+  [PASS] dM = 1.0e-03: the separation is constant in time to 5 per cent -- relative spread 0.0000 over 12 ages
+  1.0e-02    68.78135    68.78106      68.77855          0.99996    0.0000
+  [PASS] dM = 1.0e-02: measured separation within 2 per cent of the chord -- ratio 0.99996
+  [PASS] dM = 1.0e-02: the separation is constant in time to 5 per cent -- relative spread 0.0000 over 12 ages
+
+==============================================================================
+synthetic pair 2: a pure mean-motion offset, separation linear in time
+==============================================================================
+  Predicted along-track separation: a * (mdot_late - mdot_early) * t, with
+  the rates in rad/min and t in minutes. The rates are the propagator's
+  own exposed secular rates; turning a phase difference into an arc length
+  is the geometric step, and that is what is being checked.
+
+  dn rad/min   fitted slope km/day   predicted km/day   ratio   r^2
+  1.0e-09               0.009870           0.009905   0.9966   0.999980
+  [PASS] dn = 1.0e-09: fitted growth rate within 5 per cent of a dn -- ratio 0.99655
+  [PASS] dn = 1.0e-09: the growth is linear in time to r^2 > 0.999 -- r^2 0.999980
+  1.0e-08               0.098704           0.099045   0.9966   0.999980
+  [PASS] dn = 1.0e-08: fitted growth rate within 5 per cent of a dn -- ratio 0.99655
+  [PASS] dn = 1.0e-08: the growth is linear in time to r^2 > 0.999 -- r^2 0.999980
+  1.0e-07               0.987035           0.990452   0.9965   0.999980
+  [PASS] dn = 1.0e-07: fitted growth rate within 5 per cent of a dn -- ratio 0.99655
+  [PASS] dn = 1.0e-07: the growth is linear in time to r^2 > 0.999 -- r^2 0.999980
+
+==============================================================================
+negative control: an identical pair
+==============================================================================
+  Two element sets with both offsets zero describe the same orbit at the
+  same phase, so the separation must be at the propagator's own rounding
+  level rather than a physical magnitude.
+  worst separation              : 7.691751e-10 km
+  as a fraction of the orbit    : 1.118e-13
+  [PASS] an identical pair separates by less than a metre -- 7.691751e-10 km
+
+==============================================================================
+refusals
+==============================================================================
+  refused: two different objects -- self-consistency needs two element sets for the same object; got catal
+  [PASS] two different objects is refused
+  refused: the later set given first -- the second element set must be later; the epoch gap is -7412.418388 da
+  [PASS] the later set given first is refused
+
