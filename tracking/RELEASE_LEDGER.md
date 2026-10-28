@@ -614,3 +614,39 @@ Published 79/100.**
 **Cumulative: 80 of 100 registered and built, 79 published.** Validation
 **L4 remains 0 of 5**, sixteenth consecutive batch, blocked on Jetson Orin Nano
 measurements and needing the owner to make the board reachable.
+
+## 2026-10-28 — Batch 08 closed: P080 BoundCompress published
+
+**P080 BoundCompress is live, and Batch 08 is complete at ten of ten.** The
+GitHub-side repository-creation rate limit that refused `gh repo create` three
+times on 2026-10-25 had cleared. `gh repo create OmAcharya-avtr/boundcompress`
+succeeded on the first attempt and the push was accepted:
+`boundcompress f7c7fba`.
+
+Nothing was rebuilt, amended or re-measured to publish it. The commit pushed is
+the identical commit the 2026-10-25 session built and committed on the Mac,
+`f7c7fba`, unchanged and with a clean working tree. Publication is authorised
+under ADR-017 by the 2026-10-25 gate verdict over all ten Batch 08 products —
+`VERDICT: PUSH ALLOWED`, `push_allowed true`, `blocked []`,
+`total_tests_passing 3873`, P080 itself at **287 tests PASS**. No gate was
+re-run for P080 and none was needed: it was gated as part of that batch and
+held back only by the rate limit. No `APPROVAL_LOG.md` row was written, no
+product was set to `APPROVED`, `approved_for_publish` remains `false`, and no
+owner statement is quoted, paraphrased or implied — **no human spoke in this
+session.**
+
+**Verified against the live API before being recorded, not assumed.**
+`gh api repos/OmAcharya-avtr/boundcompress/contributors --jq '.[].login'`
+returns exactly one login, `OmAcharya-avtr` — no `claude` contributor and no
+`OmAcharya-ADCL`. The remote `refs/heads/main` is
+`f7c7fba5ed721f087e0ce60d20dccd64a6a82da1`, identical to the local commit. The
+recursive git tree carries **81 blobs**, matching the standalone builder's own
+file count of 81 exactly, and `README.md`, `pyproject.toml` and `LICENSE` are
+all present.
+
+`quota_report.py` measured after the edit: **Registered 80/100, Built 80/100,
+Published 80/100.**
+
+**Cumulative: 80 of 100 registered, built and published.** Validation
+**L4 remains 0 of 5**, now the eighteenth consecutive batch, blocked on Jetson
+Orin Nano measurements and needing the owner to make the board reachable.
