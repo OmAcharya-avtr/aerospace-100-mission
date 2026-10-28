@@ -650,3 +650,42 @@ Published 80/100.**
 **Cumulative: 80 of 100 registered, built and published.** Validation
 **L4 remains 0 of 5**, now the eighteenth consecutive batch, blocked on Jetson
 Orin Nano measurements and needing the owner to make the board reachable.
+
+## 2026-10-28 — P086 TelemGap gate-PASS, publication blocked by the bridge
+
+**P086 TelemGap passed the release gate and was not published.** The gate
+returned **exit 0** over P086: `P086 PASS 334 tests`, `repository PASS`,
+`total_tests_passing 334`, `blocked []`, `VERDICT: PUSH ALLOWED`. The exit code
+was confirmed separately from the printed text. No check was skipped, no
+threshold was loosened, and the gate was not edited.
+
+Test count re-measured by the coordinating session rather than taken from the
+build agent's report: **334/334**, with the junit `testsuite` attributes
+cross-checked against a literal count of `testcase` elements (334 = 334), and
+confirmed independently under the system interpreter at 334/334. Ruff clean
+under both interpreters. **76 files, matching `git add -n` exactly.**
+
+**It has no standalone repository because the device bridge is down.**
+`gh repo create` and the push both run through the bridge, which disconnected at
+roughly 20:05 UTC, reconnected briefly at 20:18, and disconnected again. This is
+not a gate failure, not an authorship failure, and not a defect in P086.
+`products.yaml` therefore records P086 as `status: TESTING`, `published: false`,
+`repository: null` — **publication is not claimed where it did not happen.**
+
+The product's incremental bundle was delivered into the session conversation as
+a downloadable file before the bridge dropped, so the work is recoverable even
+if the bridge does not return in this session.
+
+**Publishing P086 is the first action of the next session**, and needs only
+`build_product_repo.py P086`, `gh repo create`, one push with the Keychain
+helper, the three `products.yaml` fields, and a contributor check against the
+live API.
+
+`quota_report.py` measured after this session's edits: **Registered 90/100,
+Built 81/100, Published 80/100.**
+
+**Cumulative: 90 of 100 registered, 81 built, 80 published.** Validation
+**L4 remains 0 of 5**, eighteenth consecutive batch. This batch deliberately
+builds no L4 product: five products already stand scaffolded and
+hardware-pending against a quota of five, so a sixth would consume a validation
+slot without moving the number. The quota cannot close without the board.
