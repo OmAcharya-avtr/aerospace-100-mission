@@ -1359,3 +1359,163 @@ products:
     published: true
     package: boundcompress
     pypi_name_check: "boundcompress FREE, probed with pip index versions against the live index on 2026-10-20; probe validated against numpy (2.5.4) / pulp (4.1.0) TAKEN and beamtwin / traceaudit FREE controls"
+  - id: P081
+    name: TwinDiverge
+    batch: 9
+    class: flagship
+    category: digital-twins
+    summary: "Attribute a twin-versus-reality residual to a parameter subset, and report which parameters are structurally unidentifiable from the supplied telemetry set BEFORE attributing anything to the rest. Baseline 1 local structural identifiability from sensitivity-matrix rank and conditioning with Fisher information and Cramer-Rao bounds per parameter, near-singular directions reported as identifiable parameter COMBINATIONS rather than individual parameters, practical identifiability separated from structural; baseline 2 first-order sensitivity attribution and generalised least squares on the identifiable subspace only with confidence regions; baseline 3 ground truth profile-likelihood per parameter, the reference the analytic covariance is scored against, with a flat profile overriding whatever the covariance claims. Learned residual-signature classifier mapping a residual time series to the responsible parameter subset, scored on accuracy at fixed computation budget AND separately on behaviour inside the unidentifiable subspace where the expected and most valuable result is that it returns a confident wrong attribution exactly where the analytic method correctly refuses to answer."
+    ai_enabled: true
+    validation_level: 3
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P081
+    approved_for_publish: false
+    published: false
+    package: twindiverge
+    pypi_name_check: "twindiverge FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls"
+  - id: P082
+    name: SiteDiverse
+    batch: 9
+    class: flagship
+    category: atmospheric-propagation
+    summary: "Optical ground-station site diversity availability computed under MEASURED spatial correlation, against the independence assumption that overstates it, with the overstatement as the headline output. Baseline 1 the naive product-of-marginals under full independence, implemented deliberately as the thing being refuted because it is what the practice does; baseline 2 Gaussian-copula and fitted exponential correlation-length models over site separation giving joint unavailability in closed form; baseline 3 ground truth direct empirical joint availability from the concurrent climatology record with bootstrap confidence intervals. Learned spatio-temporal cloud-field correlation model scored on held-out SITES and held-out TIME reported separately because a model can pass one and fail the other, with the expected result that the fitted correlation-length model is competitive and any learned margin is smaller than the bootstrap interval on the empirical reference. Climatology-uncertainty share propagated from the record's own sampling uncertainty and reported beside every availability figure."
+    ai_enabled: true
+    validation_level: 3
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P082
+    approved_for_publish: false
+    published: false
+    package: sitediverse
+    pypi_name_check: "sitediverse FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls"
+  - id: P083
+    name: HilVerdict
+    batch: 9
+    class: medium
+    category: hardware-in-the-loop
+    summary: "Decide whether a hardware-in-the-loop run was timing-faithful enough for its result to mean anything, and separate the deadline misses that measurably changed the trajectory from the large majority that did not. Baseline 1 closed-form bound on trajectory divergence from a miss of given duration derived from declared plant dynamics and its local linearisation - a miss whose bound falls below the declared tolerance CANNOT have mattered and that is a proof, not an estimate, expected to dispose of most misses; baseline 2 direct re-simulation with and without each surviving miss, slow, exact and the reference. Learned classifier over cheap log features for the case where re-simulation is unaffordable, scored on RECALL of consequential misses because dismissing a miss that mattered is not symmetric with re-simulating one that did not, with the expected result that the analytic bound wins outright and the learned component's only defensible role is the residual undecided set. Host-to-device clock drift and reset detection verified against synthetic drift of known rate."
+    ai_enabled: true
+    validation_level: 3
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P083
+    approved_for_publish: false
+    published: false
+    package: hilverdict
+    pypi_name_check: "hilverdict FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls"
+  - id: P084
+    name: TransferGap
+    batch: 9
+    class: medium
+    category: digital-twins
+    summary: "Bound the simulation-to-field discrepancy from the few paired field measurements actually available, and invert the bound to say how many MORE measurements would close it to a declared target at a declared confidence. Baseline 1 distribution-free Hoeffding and empirical-Bernstein bounds plus a one-sided tolerance interval with the sample-count requirement inverted in closed form from each, conservative and honest about it; baseline 2 bootstrap and conformal prediction giving a tighter interval under exchangeability, with exchangeability stated and TESTED rather than assumed. Learned discrepancy model mapping operating-condition features to expected gap, scored on ACHIEVED COVERAGE at the declared confidence rather than on tightness because a tighter interval that under-covers is worse than a loose one that holds, with the expected result at realistic field-sample sizes of tens that it under-covers and the distribution-free bound is the only trustworthy answer. Sample-count predictions verified by drawing the predicted number and checking the bound actually reaches the target at the stated rate."
+    ai_enabled: true
+    validation_level: 2
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P084
+    approved_for_publish: false
+    published: false
+    package: transfergap
+    pypi_name_check: "transfergap FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls"
+  - id: P085
+    name: PointModel
+    batch: 9
+    class: medium
+    category: pointing-acquisition-tracking
+    summary: "Decompose a pointing error budget from measured residuals with a confidence interval on every term and an explicit statement of which terms the observed geometry cannot separate. Weighted least squares over the declared pointing model design matrix with full covariance, condition number, per-term variance inflation, and the identifiable linear COMBINATIONS reported where individual terms are not separable; robust Huber and RANSAC-style fits alongside, because real residual sets carry acquisition-failure outliers, with the two fits' disagreement reported as a diagnostic rather than one silently preferred; term-by-term recovery verified against synthetic residual sets from known coefficients, the only way to verify an attribution is real. NO LEARNED COMPONENT, DELIBERATELY: the problem is a linear fit with a known design matrix whose entire difficulty is conditioning, a restricted geometry distribution makes standard terms mutually unidentifiable while least squares returns a confident split anyway, and the correct answer is a rank analysis - adding a model here would be the exact error this batch exists to avoid. Refraction term verified against an independent refraction calculation rather than against itself."
+    ai_enabled: false
+    validation_level: 2
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P085
+    approved_for_publish: false
+    published: false
+    package: pointmodel
+    pypi_name_check: "pointmodel FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls"
+  - id: P086
+    name: TelemGap
+    batch: 9
+    class: compact
+    category: space-operations
+    summary: "Separate missing telemetry from corrupt telemetry from correctly-received-and-misparsed telemetry, and emit an explicit refusable gap policy instead of a silent interpolation. Integrity report over gaps and their durations, duplicate and out-of-order frames, clock resets and backward jumps, with each gap classified as interpolable at a declared tolerance or not, and why. Baseline explicit rule screens over timestamp monotonicity, expected frame cadence, counter continuity and declared value ranges, the operational default and expected to be hard to beat because the classes are defined by rules. Learned frame-level anomaly classifier for the ambiguous residual the rules leave undecided, scored on per-class precision and recall against the rule screens AND against a majority-class guess so a useless model cannot look useful. Interpolation policy verified by interpolating across injected gaps of known shape and measuring actual reconstruction error against the declared tolerance, with a constructed long-outage case the policy must refuse."
+    ai_enabled: true
+    validation_level: 2
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P086
+    approved_for_publish: false
+    published: false
+    package: telemgap
+    pypi_name_check: "telemgap FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls"
+  - id: P087
+    name: RefractPath
+    batch: 9
+    class: compact
+    category: atmospheric-propagation
+    summary: "Slant-path atmospheric refraction computed by several independent standard methods with their DISAGREEMENT reported as a measured curve against elevation, and the elevation below which that disagreement exceeds a declared pointing tolerance measured rather than asserted. Baseline 1 the simple plane-parallel and standard low-precision closed forms, implemented as what is actually used; baseline 2 a ray-trace through a layered refractivity profile with refractivity from standard dispersion formulae, the reference the closed forms are scored against; ground-truth cross-check against PUBLISHED reference values and refraction tables at stated conditions, which the implementations must reproduce to a stated tolerance - a verification against values the product did not generate, the only kind that counts here. NO LEARNED COMPONENT, DELIBERATELY: this is a well-posed physical calculation with published references and the useful output is the cross-model disagreement, not a prediction. The low-elevation regime where every closed form fails is exhibited explicitly rather than extrapolated into, and wavelength dependence verified across the optical band against the dispersion formula independently."
+    ai_enabled: false
+    validation_level: 2
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P087
+    approved_for_publish: false
+    published: false
+    package: refractpath
+    pypi_name_check: "refractpath FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls"
+  - id: P088
+    name: TmTcDiff
+    batch: 9
+    class: compact
+    category: space-operations
+    summary: "Diff two versions of a telemetry and command dictionary and report which existing procedures and analyses break, ranking SILENT semantic change above loud breakage. The dangerous change is not the removed mnemonic, which fails loudly, but the one whose scale factor, unit, enum mapping or bit offset changed while the name stayed the same, so everything downstream keeps working and quietly means something else. Structural comparison over parsed definitions with explicit change classes - added, removed, renamed, retyped, rescaled, re-enumerated, bit-shifted - plus reference resolution against a corpus of procedures by name and by path, yielding an impact report naming what is broken, what is silently changed and what is unaffected. Rename detection by structural similarity with its FALSE-MATCH RATE MEASURED across a swept similarity threshold and dictionary size, the threshold justified by the measured curve rather than picked. NO LEARNED COMPONENT, DELIBERATELY: this is a structural comparison with a correct answer. Negative control is a pair with no semantic change but substantial textual reordering, verified to produce an empty semantic diff."
+    ai_enabled: false
+    validation_level: 2
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P088
+    approved_for_publish: false
+    published: false
+    package: tmtcdiff
+    pypi_name_check: "tmtcdiff FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls"
+  - id: P089
+    name: AlignCal
+    batch: 9
+    class: compact
+    category: aerospace-gnc
+    summary: "Estimate relative sensor alignment from flight time series, reporting which alignment degrees of freedom the observed motion actually EXCITES before producing any estimate - a vehicle that never rotated about an axis cannot have its alignment about that axis estimated at any data volume. Distinct from P026 WahbaKit which solves single-epoch attitude from vector pairs and from P017 EstimKit which is general estimation: this is the time-series relative alignment problem whose failure mode is unexcited degrees of freedom. Baseline 1 batch least-squares Wahba-type solution over the full record on the observable subspace only, with the observability Gramian computed per degree of freedom and unobservable directions named as the rotation axes they correspond to; baseline 2 recursive Kalman/MEKF alignment giving the same answer online, scored against the batch reference. Learned estimator for the short-record case scored on error against known injected misalignment AND separately inside the unobservable subspace, where the expected result is a confident estimate for a degree of freedom the data cannot support."
+    ai_enabled: true
+    validation_level: 2
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P089
+    approved_for_publish: false
+    published: false
+    package: aligncal
+    pypi_name_check: "aligncal FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls"
+  - id: P090
+    name: TleCheck
+    batch: 9
+    class: compact
+    category: aerospace-gnc
+    summary: "Screen a two-line element set before propagating it and classify each problem as will-fail-loudly, will-propagate-to-a-wrong-answer-silently, or benign. sgp4 parses and propagates a TLE and does both well; it does not say the element set is three weeks stale, that the drag term flipped sign, that two sources disagree by kilometres, or that an element is physically implausible - and those are the inputs that produce a confident wrong ephemeris. Baseline explicit rule screens over checksum and format validity, epoch age against a declared requirement, element bounds from orbital mechanics, and consistency against the object's own element history with an explicit outlier test. Learned screening classifier for the SILENT class, which rules cover worst, scored on recall at fixed false-positive rate against the rule screens AND against a majority-class baseline. The silent classification is verified by ACTUALLY PROPAGATING the corrupted set with sgp4 and measuring resulting position error against the uncorrupted propagation, so the class label is measured consequence rather than assumed."
+    ai_enabled: true
+    validation_level: 2
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P090
+    approved_for_publish: false
+    published: false
+    package: tlecheck
+    pypi_name_check: "tlecheck FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls"
