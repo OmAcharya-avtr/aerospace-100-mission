@@ -1,0 +1,76 @@
+
+==============================================================================
+telemgap -- every command line entry point, in a subprocess
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+scipy            : 1.18.1
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.9
+ruff             : 0.16.9
+xarray           : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P086 (printed relatively; see validation/_bootstrap.py)
+
+HOME and MPLCONFIGDIR are pointed outside the repository and
+PYTHONDONTWRITEBYTECODE is set for every subprocess; see _bootstrap.py.
+[PASS] telemgap --version -- exit 0, fragment 'telemgap 0.1.0' found
+[PASS] telemgap info -- exit 0, fragment 'WHAT THIS RECORD CANNOT DETERMINE' found
+[PASS] telemgap check --samples 1200 -- exit 0, fragment 'INTEGRITY REPORT (mode=strengthened)' found
+[PASS] telemgap check --samples 1200 --mode specified -- exit 0, fragment 'mode=specified' found
+[PASS] telemgap policy --samples 1500 -- exit 0, fragment 'realised reconstruction error' found
+[PASS] telemgap policy --samples 1500 --no-resolvability-gate -- exit 0, fragment 'GAP POLICY' found
+[PASS] telemgap refuse --outage-frames 21600 -- exit 0, fragment 'REFUSAL CHECK PASSED' found
+[PASS] telemgap determinability --samples 1200 --withhold none -- exit 0, fragment 'withheld: none' found
+[PASS] telemgap determinability --samples 1200 --withhold validity -- exit 0, fragment 'no per-frame error-control verdict is present' found
+[PASS] telemgap determinability --samples 1200 --withhold raw -- exit 0, fragment 'the raw words of equation (1) were not retained' found
+[PASS] telemgap benchmark --samples 2000 -- exit 0, fragment 'baseline versus learned' found
+
+command                                             exit  stdout lines  fragment  verdict
+--------------------------------------------------  ----  ------------  --------  -------
+--version                                           0     1             yes       ok     
+info                                                0     49            yes       ok     
+check --samples 1200                                0     97            yes       ok     
+check --samples 1200 --mode specified               0     97            yes       ok     
+policy --samples 1500                               0     77            yes       ok     
+policy --samples 1500 --no-resolvability-gate       0     77            yes       ok     
+refuse --outage-frames 21600                        0     13            yes       ok     
+determinability --samples 1200 --withhold none      0     42            yes       ok     
+determinability --samples 1200 --withhold validity  0     42            yes       ok     
+determinability --samples 1200 --withhold raw       0     42            yes       ok     
+benchmark --samples 2000                            0     77            yes       ok     
+
+==============================================================================
+an unknown command must fail rather than do something
+==============================================================================
+[PASS] an unknown subcommand exits non-zero -- exit 2
+[PASS] no subcommand exits non-zero -- exit 2
+
+==============================================================================
+the repository tree after every command has run
+==============================================================================
+directory      class      occurrences  in .gitignore  first matches
+-------------  ---------  -----------  -------------  -------------
+.config        forbidden  0            NO             -            
+__pycache__    tooling    0            yes            -            
+.pytest_cache  tooling    0            yes            -            
+.ruff_cache    tooling    0            yes            -            
+.hypothesis    tooling    0            yes            -            
+
+[PASS] no forbidden artifact directory was written into the repository -- 0 found: []
+[PASS] every tooling directory present in the tree is covered by .gitignore -- 0 uncovered: []
+
+==============================================================================
+command cost -- UNSTABLE, two cores shared with other work
+==============================================================================
+quantity      value 
+------------  ------
+commands run  11    
+total s       18.60 
+mean ms       1690.5
+
+CHECKS RUN: 15
+FAILED CHECKS (0): none

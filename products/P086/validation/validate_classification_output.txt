@@ -1,0 +1,135 @@
+
+==============================================================================
+telemgap -- three-way integrity classification on the held-out split
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+scipy            : 1.18.1
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.9
+ruff             : 0.16.9
+xarray           : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P086 (printed relatively; see validation/_bootstrap.py)
+
+frames            : 12000
+split seed        : 71120261 (test); training seed 20261028
+classes           : clean, corrupt, misparsed
+
+quantity              value
+--------------------  -----
+clean                 45185
+corrupt               153  
+misparsed             162  
+corrupt_in_range      110  
+corrupt_out_of_range  43   
+duplicate             12   
+reorder               12   
+clock_reset           2    
+missing_frames        637  
+frames                11375
+
+==============================================================================
+1. per-class scores of the two rule baselines
+==============================================================================
+rules/specified  population=45500  decided=0.9918  accuracy_on_decided=0.9982
+
+class      support  predicted  tp     precision  recall  f1      undecided  undec_rate  surfaced
+---------  -------  ---------  -----  ---------  ------  ------  ---------  ----------  --------
+clean      45185    44973      44896  0.9983     0.9936  0.9959  289        0.006396    1       
+corrupt    153      32         30     0.9375     0.1961  0.3243  76         0.4967      0.6928  
+misparsed  162      122        118    0.9672     0.7284  0.831   8          0.04938     0.7778  
+
+confusion (rows true, columns predicted):
+
+true \ pred  clean  corrupt  misparsed  undecided
+-----------  -----  -------  ---------  ---------
+clean        44896  0        0          289      
+corrupt      43     30       4          76       
+misparsed    34     2        118        8        
+
+rules/strengthened  population=45500  decided=0.9923  accuracy_on_decided=0.9991
+
+class      support  predicted  tp     precision  recall  f1      undecided  undec_rate  surfaced
+---------  -------  ---------  -----  ---------  ------  ------  ---------  ----------  --------
+clean      45185    44924      44896  0.9994     0.9936  0.9965  289        0.006396    1       
+corrupt    153      64         62     0.9688     0.4052  0.5714  55         0.3595      0.7647  
+misparsed  162      160        151    0.9437     0.9321  0.9379  8          0.04938     0.9815  
+
+confusion (rows true, columns predicted):
+
+true \ pred  clean  corrupt  misparsed  undecided
+-----------  -----  -------  ---------  ---------
+clean        44896  0        0          289      
+corrupt      27     62       9          55       
+misparsed    1      2        151        8        
+
+The strengthened baseline adds only the local-residual screen of equation (5). Its effect on the corrupt class is the measured value of that screen, and the reason the specified baseline is not the one the learned component is scored against.
+corrupt recall gained by the local-residual screen: +0.2092
+[PASS] the strengthened baseline has at least the corrupt recall of the specified one -- 0.1961 -> 0.4052
+[PASS] neither baseline exceeds a corrupt recall of 1 minus the in-range flip fraction plus the residual screen's reach -- the specified baseline cannot see an in-range bit error, which is the in_range_corruption determinability limit
+
+==============================================================================
+1b. the ceiling on any declared-range screen, enumerated
+==============================================================================
+channel          word codes  method      codes decoding in range  single-bit flips staying in range  max achievable range-screen recall
+---------------  ----------  ----------  -----------------------  ---------------------------------  ----------------------------------
+battery_voltage  65536       enumerated  0.381485                 0.862371                           0.137629                          
+valve_current    65536       enumerated  0.122086                 0.803993                           0.196007                          
+gyro_rate        65536       enumerated  0.183121                 0.763676                           0.236324                          
+tank_pressure    65536       enumerated  0.244156                 0.852486                           0.147514                          
+
+Worst channel: 0.862371 of single-bit flips of an in-range word produce another in-range word. That is an upper bound on what a declared-range screen must miss, it is a property of the channel's calibration rather than of the data, and it is what the in_range_corruption determinability limit reports on every call.
+[PASS] the enumerated in-range flip fraction agrees with the determinability limit -- 0.862370505
+
+==============================================================================
+2. what condition (7b) of the reinterpretation test is worth
+==============================================================================
+[PASS] condition (7b) tightens the rescue rate on battery_voltage -- (7a) alone 0.619171, (7a) and (7b) 0.123856
+[PASS] condition (7b) tightens the rescue rate on valve_current -- (7a) alone 1.000000, (7a) and (7b) 0.230179
+[PASS] condition (7b) tightens the rescue rate on gyro_rate -- (7a) alone 1.000000, (7a) and (7b) 0.314270
+[PASS] condition (7b) tightens the rescue rate on tank_pressure -- (7a) alone 0.447479, (7a) and (7b) 0.080322
+channel          word codes  (7a) alone  (7a) and (7b)  ratio
+---------------  ----------  ----------  -------------  -----
+battery_voltage  65536       0.619171    0.123856       5.00 
+valve_current    65536       1.000000    0.230179       4.34 
+gyro_rate        65536       1.000000    0.314270       3.18 
+tank_pressure    65536       0.447479    0.080322       5.57 
+
+Enumerated over every word code, with the local median placed at the channel's range midpoint and the robust sigma at 2 per cent of its span. A chance rescue under condition (7a) alone is common; requiring consistency with the neighbourhood is what makes a rescue evidence.
+
+==============================================================================
+3. the measured cost of withholding a field
+==============================================================================
+record            validity  raw words  corrupt verdicts  misparsed verdicts  undecided verdicts  corrupt R  misparsed R  corrupt surfaced  misparsed surfaced
+----------------  --------  ---------  ----------------  ------------------  ------------------  ---------  -----------  ----------------  ------------------
+complete          yes       yes        161               186                 352                 0.4052     0.9321       0.7647            0.9815            
+no validity flag  NO        yes        0                 210                 68                  0.0000     0.9383       0.3856            0.9938            
+no raw words      yes       NO         161               26                  512                 0.4052     0.0000       0.8235            0.9815            
+neither           NO        NO         0                 26                  252                 0.0000     0.0000       0.5948            0.9938            
+
+[PASS] withholding the raw words empties the misparsed class at the value level -- the raw_words determinability limit asserts this; it is measured here
+[PASS] withholding the raw words raises the undecided count -- 352 -> 512
+[PASS] withholding the validity flag lowers the corrupt verdict count -- 161 -> 0
+[PASS] every undecided verdict carries at least one stated reason -- 352 undecided verdicts
+[PASS] no decided verdict carries an undecided reason
+
+==============================================================================
+the ambiguous residual set the learned component is scored on
+==============================================================================
+quantity                       value   
+-----------------------------  --------
+rows in the record             45500   
+rows the rules left undecided  352     
+share of all rows              0.007736
+true clean among them          289     
+true corrupt among them        55      
+true misparsed among them      8       
+majority class share           0.821023
+[PASS] the ambiguous residual set is non-empty and contains more than one class -- 352 rows, 3 classes present
+
+CHECKS RUN: 13
+FAILED CHECKS (0): none

@@ -1,0 +1,176 @@
+
+==============================================================================
+telemgap -- the gap policy: bound, coverage, and two gates
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+scipy            : 1.18.1
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.9
+ruff             : 0.16.9
+xarray           : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P086 (printed relatively; see validation/_bootstrap.py)
+
+declared tolerances : {'battery_voltage': 0.05, 'valve_current': 0.01, 'gyro_rate': 0.02, 'tank_pressure': 0.02}
+coverage factor k   : 3
+max gap slots       : 4
+estimator half window: 7
+estimator bandwidth : 0.064040 of the sampling frequency (half-power point, computed)
+
+==============================================================================
+1. curvature per channel: analytic, Bernstein, declared, estimated
+==============================================================================
+channel          analytic eq12  bernstein eq8  declared      estimated eq9  noise floor  measurable  hf fraction  resolvable  est/analytic  policy uses
+---------------  -------------  -------------  ------------  -------------  -----------  ----------  -----------  ----------  ------------  -----------
+battery_voltage  0.000867779    0.00326025     0.000867779   0.0012577      0.000320832  yes         0.000092     yes         1.449330      declared   
+valve_current    9.8696e-07     9.8696e-07     not declared  0.000954889    0.000962496  NO          0.831081     NO          967.504979    estimated  
+gyro_rate        0.387163       2.32133        not declared  0.00190974     0.000240624  yes         0.039487     NO          0.004933      estimated  
+tank_pressure    6.09235e-07    6.09235e-07    6.09235e-07   0.000161668    0.000160416  NO          0.002546     yes         265.361948    declared   
+
+The gyro_rate channel carries a term at 0.35 of the sampling frequency. The closed-form transfer of the equation (9) estimator there is 0.00326383, so the estimator cannot see that term's curvature, and the measured est/analytic ratio above is the consequence. This is a bias, not noise: the estimate sits above its own noise floor and the measurability gate passes it.
+[PASS] the equation (9) estimate of the near-Nyquist channel is below one fiftieth of its analytic curvature -- 0.00190974 against 0.387163
+[PASS] the resolvability gate catches the near-Nyquist channel that the measurability gate passes -- measurable True, resolvable False
+[PASS] the Bernstein bound of equation (8) dominates the analytic bound of equation (12) on every single-term channel
+
+==============================================================================
+2. equation (3) as a theorem, against the noiseless truth
+==============================================================================
+channel          slots  h (s)  measured max |err|  eq3 bound    ratio     slack     vs eq12  vs eq8
+---------------  -----  -----  ------------------  -----------  --------  --------  -------  ------
+battery_voltage  1      2.0    0.000433667         0.00043389   0.999488  3.45e-16  ok       ok    
+battery_voltage  2      3.0    0.000866966         0.000976252  0.888056  3.45e-16  ok       ok    
+battery_voltage  3      4.0    0.00173168          0.00173556   0.997765  3.46e-16  ok       ok    
+battery_voltage  4      5.0    0.00259447          0.00271181   0.956729  3.47e-16  ok       ok    
+battery_voltage  6      7.0    0.00517695          0.00531515   0.973999  3.49e-16  ok       ok    
+battery_voltage  8      9.0    0.00859727          0.00878626   0.978489  3.52e-16  ok       ok    
+battery_voltage  12     13.0   0.0181005           0.0183318    0.987379  3.6e-16   ok       ok    
+battery_voltage  16     17.0   0.0308705           0.0313485    0.984753  3.72e-16  ok       ok    
+valve_current    1      2.0    4.93469e-07         4.9348e-07   0.999978  8.89e-19  ok       ok    
+valve_current    2      3.0    9.8689e-07          1.11033e-06  0.888826  8.89e-19  ok       ok    
+valve_current    3      4.0    1.97346e-06         1.97392e-06  0.999769  8.9e-19   ok       ok    
+valve_current    4      5.0    2.95975e-06         3.08425e-06  0.959632  8.91e-19  ok       ok    
+valve_current    6      7.0    5.91594e-06         6.04513e-06  0.978629  8.94e-19  ok       ok    
+valve_current    8      9.0    9.85115e-06         9.99297e-06  0.985807  8.97e-19  ok       ok    
+valve_current    12     13.0   2.06328e-05         2.08495e-05  0.989605  9.07e-19  ok       ok    
+valve_current    16     17.0   3.52363e-05         3.56539e-05  0.988286  9.2e-19   ok       ok    
+gyro_rate        1      2.0    0.12683             0.193581     0.655176  2.79e-16  ok       ok    
+gyro_rate        2      3.0    0.138004            0.435558     0.316845  4.93e-16  ok       ok    
+gyro_rate        3      4.0    0.105513            0.774325     0.136264  7.94e-16  ok       ok    
+gyro_rate        4      5.0    0.137456            1.20988      0.113611  1.18e-15  ok       ok    
+gyro_rate        6      7.0    0.12204             2.37137      0.051464  2.21e-15  ok       ok    
+gyro_rate        8      9.0    0.137025            3.92002      0.034955  3.59e-15  ok       ok    
+gyro_rate        12     13.0   0.134453            8.17881      0.016439  7.37e-15  ok       ok    
+gyro_rate        16     17.0   0.127171            13.9863      0.009093  1.25e-14  ok       ok    
+tank_pressure    1      2.0    3.04602e-07         3.04617e-07  0.999948  1.11e-17  ok       ok    
+tank_pressure    2      3.0    6.09211e-07         6.85389e-07  0.888854  1.11e-17  ok       ok    
+tank_pressure    3      4.0    1.21839e-06         1.21847e-06  0.999937  1.11e-17  ok       ok    
+tank_pressure    4      5.0    1.82756e-06         1.90386e-06  0.959924  1.11e-17  ok       ok    
+tank_pressure    6      7.0    3.65492e-06         3.73156e-06  0.979462  1.11e-17  ok       ok    
+tank_pressure    8      9.0    6.09112e-06         6.1685e-06   0.987455  1.11e-17  ok       ok    
+tank_pressure    12     13.0   1.27891e-05         1.28701e-05  0.993704  1.11e-17  ok       ok    
+tank_pressure    16     17.0   2.19189e-05         2.20086e-05  0.995925  1.11e-17  ok       ok    
+
+individual chord-versus-truth comparisons: 12800
+[PASS] equation (3) holds on every swept gap length and channel against the analytic curvature of equation (12) -- 0 violations in 32 cells, 12800 comparisons
+[PASS] equation (3) holds against the independently derived Bernstein bound of equation (8) -- the Bernstein bound rests on complex analysis, not on a Taylor remainder
+
+==============================================================================
+3. equation (3') as a coverage statement, on real noisy records
+==============================================================================
+seed      channel          slots  measured max |err|  worst predicted  tolerance  ratio    verdict 
+--------  ---------------  -----  ------------------  ---------------  ---------  -------  --------
+909       battery_voltage  8      0.00654654          0.0130452        0.05       0.5018   ok      
+909       tank_pressure    8      0.00261601          0.00600073       0.02       0.4359   ok      
+515       battery_voltage  12     0.00630946          0.0136412        0.05       0.4625   ok      
+515       tank_pressure    12     0.0020118           0.00600115       0.02       0.3352   ok      
+77        battery_voltage  7      0.00305915          0.0136477        0.05       0.2242   ok      
+77        tank_pressure    6      0.00235839          0.00600116       0.02       0.3930   ok      
+4242      battery_voltage  6      0.0050981           0.0130081        0.05       0.3919   ok      
+4242      tank_pressure    6      0.00258943          0.00600071       0.02       0.4315   ok      
+1         battery_voltage  9      0.324436            0.0136292        0.05       23.8045  EXCEEDED
+1         tank_pressure    8      0.00300356          0.00600114       0.02       0.5005   ok      
+2         battery_voltage  9      0.00583346          0.0130088        0.05       0.4484   ok      
+2         tank_pressure    9      0.00163278          0.00600071       0.02       0.2721   ok      
+31337     battery_voltage  7      0.00253758          0.0129981        0.05       0.1952   ok      
+31337     tank_pressure    7      0.0014649           0.0060007        0.02       0.2441   ok      
+20261028  battery_voltage  6      0.00596473          0.0130178        0.05       0.4582   ok      
+20261028  tank_pressure    6      0.0013192           0.00600071       0.02       0.2198   ok      
+
+channel-records compared : 16
+exceedances              : 1
+measured exceedance rate : 0.062500
+  seed 1 battery_voltage: frame 1069 is truly corrupt at this channel, no screen flagged it, and it anchors a permitted gap. In-range corruption: True; frame error control passed: True
+
+This is the product's main unfavourable result and it is published as measured. The policy's prediction is sound; the classification feeding its endpoint gate is not complete. The two numbers multiply: a gap endpoint is anomalous with roughly the record's anomaly rate, and the strengthened rule baseline misses about three fifths of corruptions because they stay inside the declared range and pass the frame error-control check. Declaring a tighter range, or supplying per-word rather than per-frame error control, is what removes it; nothing in this package can.
+[PASS] every exceedance of equation (3') traces to a gap endpoint whose ground-truth class is not clean and which no screen flagged -- 1 of 1 exceedances explained by the known mechanism; 1 of 16 channel-records exceeded
+
+==============================================================================
+4. what the curvature resolvability gate is worth
+==============================================================================
+seed      configuration  permitted gaps  slots  measured max |err|  worst predicted  tolerance  verdict 
+--------  -------------  --------------  -----  ------------------  ---------------  ---------  --------
+909       gate on        0               0      -                   -                0.02       ok      
+909       gate off       5               8      0.136366            0.0118565        0.02       EXCEEDED
+515       gate on        0               0      -                   -                0.02       ok      
+515       gate off       6               12     0.139878            0.0193576        0.02       EXCEEDED
+77        gate on        0               0      -                   -                0.02       ok      
+77        gate off       4               7      0.135771            0.019478         0.02       EXCEEDED
+4242      gate on        0               0      -                   -                0.02       ok      
+4242      gate off       5               6      0.135436            0.0129019        0.02       EXCEEDED
+1         gate on        0               0      -                   -                0.02       ok      
+1         gate off       5               9      0.128421            0.0186771        0.02       EXCEEDED
+2         gate on        0               0      -                   -                0.02       ok      
+2         gate off       7               9      0.134378            0.0134623        0.02       EXCEEDED
+31337     gate on        0               0      -                   -                0.02       ok      
+31337     gate off       4               6      0.140215            0.0146045        0.02       EXCEEDED
+20261028  gate on        0               0      -                   -                0.02       ok      
+20261028  gate off       4               6      0.12849             0.0132802        0.02       EXCEEDED
+
+[PASS] with the resolvability gate disabled, the near-Nyquist channel exceeds its prediction on at least one seed -- 8 of 8 seeds exceeded with the gate off
+[PASS] with the gate enabled, the near-Nyquist channel is refused on every seed
+
+==============================================================================
+5. what the endpoint integrity gate is worth
+==============================================================================
+seed      configuration  permitted  gaps failing the gate  worst channel    worst measured/predicted  verdict 
+--------  -------------  ---------  ---------------------  ---------------  ------------------------  --------
+909       gate on        10         8                      battery_voltage  0.5018                    ok      
+909       gate off       12         0                      battery_voltage  0.5018                    ok      
+515       gate on        12         4                      battery_voltage  0.4625                    ok      
+515       gate off       12         0                      battery_voltage  0.4625                    ok      
+77        gate on        7          1                      tank_pressure    0.3930                    ok      
+77        gate off       8          0                      tank_pressure    1565.4640                 EXCEEDED
+4242      gate on        10         8                      tank_pressure    0.4315                    ok      
+4242      gate off       14         0                      tank_pressure    1411.6764                 EXCEEDED
+1         gate on        9          6                      battery_voltage  23.8045                   EXCEEDED
+1         gate off       12         0                      tank_pressure    428.0321                  EXCEEDED
+2         gate on        14         4                      battery_voltage  0.4484                    ok      
+2         gate off       14         0                      battery_voltage  0.4484                    ok      
+31337     gate on        10         5                      tank_pressure    0.2441                    ok      
+31337     gate off       10         0                      tank_pressure    0.2441                    ok      
+20261028  gate on        8          4                      battery_voltage  0.4582                    ok      
+20261028  gate off       10         0                      battery_voltage  0.4582                    ok      
+
+The 'gate off' rows are produced by handing the policy an integrity report with its anomaly list emptied, which is exactly what a caller does who treats the integrity report as documentation rather than as an input.
+[PASS] with the endpoint gate blinded, at least one seed exceeds its prediction -- 3 of 8 seeds
+
+==============================================================================
+6. the noise-scale estimator of equation (16) against the true sigma
+==============================================================================
+channel          true sigma  eq16 estimate  ratio    top frequency Hz
+---------------  ----------  -------------  -------  ----------------
+battery_voltage  0.004       0.00411583     1.0290   0.00729927      
+valve_current    0.012       0.0120872      1.0073   0.0025          
+gyro_rate        0.003       0.111369       37.1232  0.35            
+tank_pressure    0.002       0.00211844     1.0592   0.000555556     
+
+Equation (16) reads a second difference as noise. A sinusoid near the sampling frequency produces large second differences, so on gyro_rate the estimator reads signal as noise by the ratio above. This is why the policy prefers a declared noise_sigma, and why the three channels without near-Nyquist content are recovered to within a few per cent.
+[PASS] equation (16) recovers the true sigma within 15 per cent on every channel with no near-Nyquist content
+[PASS] equation (16) overstates the noise of the near-Nyquist channel by more than a factor of ten
+
+CHECKS RUN: 11
+FAILED CHECKS (0): none

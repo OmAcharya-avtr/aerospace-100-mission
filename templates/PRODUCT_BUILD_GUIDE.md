@@ -3,10 +3,11 @@
 You are building one product of a 100-product aerospace software portfolio. Follow every rule below. Deviations must be documented in the product README under Limitations.
 
 ## Environment
-- Python **3.13.17** as measured on 2026-10-25 (this line read 3.11 for the
-  mission's first nine batches and was wrong from Batch 05 onward; the stale
-  figure is recorded rather than quietly replaced). Products should still
-  declare `requires-python = ">=3.11"`, but know you are MEASURING on 3.13.17.
+- Python **3.13.18** as measured on 2026-10-28 (3.13.17 on 2026-10-25; this
+  line read 3.11 for the mission's first nine batches and was wrong from
+  Batch 05 onward; each stale figure is recorded rather than quietly replaced).
+  Products should still declare `requires-python = ">=3.11"`, but know you are
+  MEASURING on 3.13.18.
   Already installed: numpy, scipy, matplotlib, scikit-learn, pytest, hypothesis,
   ruff, pyyaml, sgp4, pulp, pandas, joblib. Do NOT install anything else.
   PyTorch is NOT available and neither is astropy — ML uses scikit-learn or
@@ -26,11 +27,17 @@ You are building one product of a 100-product aerospace software portfolio. Foll
   arrangement, used 2026-10-24 and 2026-10-25: the coordinator pins ONE venv
   before dispatch and **every agent is forbidden to run `pip` at all**.
 - Two interpreters may coexist with identical numpy/scipy/sklearn but different
-  tooling. Measured 2026-10-25: the pinned venv and the system `python3` agreed
-  on Python 3.13.17, numpy 2.5.3, scipy 1.18.1, scikit-learn 1.9.1, sgp4 2.27
-  and pandas 3.0.5, but differed on pytest (8.4.2 vs 9.1.1), hypothesis (6.140.3
-  vs 6.170.9), matplotlib (3.10.8 vs 3.11.2) and ruff (0.14.2 vs 0.17.2).
-  **The gate uses the system one.** Verify under both.
+  tooling, and that skew has blocked products at the gate. Measured 2026-10-25:
+  the pinned venv and the system `python3` agreed on numpy, scipy,
+  scikit-learn, sgp4 and pandas but differed on pytest (8.4.2 vs 9.1.1),
+  hypothesis (6.140.3 vs 6.170.9), matplotlib (3.10.8 vs 3.11.2) and **ruff
+  (0.14.2 vs 0.17.2)**. That last one blocked P077 and P079 on `UP042` with no
+  source defect: both measured ruff-clean at build time and were blocked at gate
+  time because **the gate uses the system interpreter.**
+  **Fixed at its cause from 2026-10-28:** the pinned venv is now built to match
+  the system interpreter on every tool the gate uses. Measured 2026-10-28, venv
+  against system — Python 3.13.18 both, pytest 9.1.1 both, ruff 0.16.9 both.
+  Verify under both anyway; do not pin a different ruff.
 - 2 CPU cores. Any training or Monte Carlo run must finish in under 3 minutes. Size datasets/models accordingly and document the compute budget.
 - Matplotlib: use the Agg backend (`matplotlib.use("Agg")`), never show().
 

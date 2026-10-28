@@ -1,0 +1,51 @@
+
+==============================================================================
+telemgap -- the worked example from README.md
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+scipy            : 1.18.1
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.9
+ruff             : 0.16.9
+xarray           : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P086 (printed relatively; see validation/_bootstrap.py)
+
+frames received            : 3958
+gaps                       : 10
+frames the gaps imply lost : 54
+verdict counts             : {'missing': 10, 'corrupt': 159, 'misparsed': 125, 'undecided': 335}
+
+what this record cannot determine, first output of every call:
+  counter_horizon
+  in_range_corruption
+  gap_interior
+worst-channel share of single-bit errors a range screen cannot see: 0.862371
+
+policy decisions           : 40
+interpolation permitted    : 6
+interpolation refused      : 34
+
+first refusal: gap 0, channel battery_voltage
+  gap duration   : 3.927 s (3.93 cadence slots)
+  curvature used : 0.000867779 per s^2 (declared)
+  failed gates   : ['endpoints_clean', 'slew_bound']
+
+grid slots                 : 4000
+filled share               : 0.987125
+refused share              : 0.012875
+
+battery_voltage synthesised slots : 5
+  realised max absolute error     : 0.00243405 V
+  worst predicted by equation (3'): 0.0130086 V
+
+[PASS] the example's realised error stays inside what the policy predicted -- 0.00243405 against 0.0130086
+[PASS] the example refuses at least one gap and permits at least one -- 34 refused, 6 permitted
+[PASS] the determinability verdict names at least three undeterminable limits -- ['counter_horizon', 'in_range_corruption', 'gap_interior']
+
+CHECKS RUN: 3
+FAILED CHECKS (0): none

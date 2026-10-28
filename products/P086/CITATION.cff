@@ -1,0 +1,224 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  telemgap: separating missing telemetry from corrupt telemetry from a reader
+  that is wrong, with a refusable gap policy
+version: 0.1.0
+date-released: 2026-10-28
+license: Apache-2.0
+abstract: >-
+  Takes a decoded telemetry record with timestamps and produces an integrity
+  report: gaps with their durations, duplicate and out-of-order frames, clock
+  resets and backward jumps, and a classification of each anomaly into
+  missing, corrupt, or correctly-received-and-misparsed, with undecided as a
+  first-class fourth verdict that carries its reason. The first output of
+  every call is a determinability verdict -- seven limits computed from the
+  record supplied, each with a number, three of them structural and never
+  determinable. A misparse is concluded only on positive evidence: an
+  alternative declared reading of the same raw word that is both inside the
+  channel's range and consistent with its neighbours, a pair of conditions
+  that tightens the chance-rescue rate by a factor of 3.18 to 5.57 over range
+  membership alone. In front of any interpolation the package emits an
+  explicit, refusable policy: per gap and per channel, a Lagrange-remainder
+  error bound, a coverage term for endpoint measurement noise, a Nyquist gate,
+  a check that the curvature bound is measurable and resolvable at all, and a
+  check that the frames bounding the gap are not themselves anomalous.
+  Validation is level 2. The interpolation bound held on all 12,800
+  chord-versus-truth comparisons across 32 swept cells, against both the
+  analytic curvature and an independently derived Bernstein bound that shares
+  no mathematics with it. Gap, duplicate and reorder recall are 1.0000 on
+  every cell of a 16-cell swept grid, with zero timing false positives on
+  clean records. Four results are unfavourable to this package and are
+  published as measured. The declared-range screen cannot see 0.862371 of
+  single-bit errors on the worst channel, enumerated over all 65,536 word
+  codes, which caps the corrupt recall of every predictor here at 0.5098. The
+  coverage statement failed once in sixteen channel-records, traced to a bit
+  error that stayed in range and passed the frame error-control check, so no
+  screen saw it and the endpoint gate could not refuse the gap it anchored. An
+  estimated curvature bound under-predicts a near-Nyquist channel by a factor
+  of 203, a bias rather than noise, caught only by a resolvability gate whose
+  absence makes the policy exceed its prediction on 8 of 8 seeds. And on the
+  full held-out population the learned random forest wins four of nine
+  per-class metrics against the strengthened rule baseline -- rules 3, learned
+  4, tie 2 -- which is not what the specification predicted; the rules keep
+  the one large margin, surfacing 0.7647 of the corrupt class against 0.5098,
+  because they abstain where they cannot decide. On the ambiguous residual set
+  the learned component was scored against a majority-class guess: one
+  declared configuration beats it by 10.5 accuracy points and another loses to
+  it by 56.5, with the imbalance handling deciding the answer completely and
+  the architecture identical between them. Fifteen controls were run, eleven
+  of which must fire and eleven of which did, four of which must not and none
+  of which did. All numbers are measured against a seeded synthetic telemetry
+  generator whose equations are printed in its module docstring; no flight
+  data is used anywhere. Research grade. Not flight-qualified, not certified,
+  not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - telemetry
+  - space-operations
+  - data-integrity
+  - gap-analysis
+  - interpolation
+  - ccsds
+  - anomaly-classification
+references:
+  - type: book
+    authors:
+      - family-names: Hildebrand
+        given-names: "F. B."
+    title: "Introduction to Numerical Analysis"
+    edition: "2nd"
+    publisher:
+      name: "Dover"
+    year: 1987
+    notes: >-
+      Section 3.2 for the Lagrange remainder of a first-degree interpolating
+      polynomial, which is equation (3) of telemgap.policy, and for the
+      first-degree Taylor remainder behind the zero-order hold bound of
+      equation (4).
+  - type: book
+    authors:
+      - family-names: Atkinson
+        given-names: "K. E."
+    title: "An Introduction to Numerical Analysis"
+    edition: "2nd"
+    publisher:
+      name: "Wiley"
+    year: 1989
+    notes: >-
+      Section 3.2, the same interpolation remainder stated independently.
+  - type: book
+    authors:
+      - family-names: Boas
+        given-names: "R. P."
+    title: "Entire Functions"
+    publisher:
+      name: "Academic Press"
+    year: 1954
+    notes: >-
+      Theorem 11.1.2, Bernstein's inequality for band-limited functions. This
+      is equation (8) and it is the independent cross-check on equation (3):
+      a complex-analytic bound on an entire function of exponential type,
+      sharing no mathematics with a Taylor remainder on a real interval.
+  - type: article
+    authors:
+      - family-names: Shannon
+        given-names: "C. E."
+    title: "Communication in the presence of noise"
+    journal: "Proceedings of the IRE"
+    volume: 37
+    issue: 1
+    year: 1949
+    notes: >-
+      The sampling theorem behind the Nyquist gate of telemgap.policy. The
+      gate's default of four cadence slots is a declared policy choice and is
+      labelled as such wherever it is reported.
+  - type: article
+    authors:
+      - family-names: Savitzky
+        given-names: "A."
+      - family-names: Golay
+        given-names: "M. J. E."
+    title: >-
+      Smoothing and differentiation of data by simplified least squares
+      procedures
+    journal: "Analytical Chemistry"
+    volume: 36
+    issue: 8
+    year: 1964
+    notes: >-
+      The quadratic-fit second-derivative estimator of equation (9). Its
+      transfer function is computed in closed form by this package and is
+      0.00326383 at 0.35 of the sampling frequency, which is why its curvature
+      estimate of a near-Nyquist channel is 203 times too small.
+  - type: article
+    authors:
+      - family-names: Rousseeuw
+        given-names: "P. J."
+      - family-names: Croux
+        given-names: "C."
+    title: "Alternatives to the median absolute deviation"
+    journal: "Journal of the American Statistical Association"
+    volume: 88
+    issue: 424
+    year: 1993
+    notes: >-
+      The 1.4826 consistency constant making a scaled median absolute
+      deviation an unbiased estimator of the standard deviation for Gaussian
+      data, used in equations (5) and (16).
+  - type: article
+    authors:
+      - family-names: Harris
+        given-names: "F. J."
+    title: >-
+      On the use of windows for harmonic analysis with the discrete Fourier
+      transform
+    journal: "Proceedings of the IEEE"
+    volume: 66
+    issue: 1
+    year: 1978
+    notes: >-
+      The Hann window in equation (17), applied because a rectangular window
+      leaks a strong low-frequency term across the spectrum at a rate that
+      swamps the small high-frequency component the resolvability gate is
+      looking for.
+  - type: standard
+    title: >-
+      Evaluation of measurement data -- Guide to the expression of uncertainty
+      in measurement
+    institution:
+      name: "Joint Committee for Guides in Metrology"
+    number: "JCGM 100:2008"
+    year: 2008
+    notes: >-
+      Section 6.3, the coverage factor. This is why equation (3') is called a
+      coverage statement and never a bound: its deterministic part is a
+      theorem and its endpoint-noise term is not.
+  - type: standard
+    title: "TM Space Data Link Protocol"
+    institution:
+      name: "Consultative Committee for Space Data Systems"
+    number: "CCSDS 132.0-B-3"
+    year: 2021
+    notes: >-
+      Section 4.1.4.2, the Frame Error Control Field, which is what
+      TelemetryRecord.validity models. No numerical value in this repository is
+      taken from it.
+  - type: standard
+    title: "Space Packet Protocol"
+    institution:
+      name: "Consultative Committee for Space Data Systems"
+    number: "CCSDS 133.0-B-2"
+    year: 2020
+    notes: >-
+      Section 4.1.3.5 for the Packet Error Control Field and section 4.1 for
+      the big-endian wire order that makes a missing byte swap the commonest
+      decommutation fault on a little-endian ground host. The 14-bit packet
+      sequence count is the counter modulus of 16384 used by
+      telemgap.dataset. No numerical value in this repository is taken from it.
+  - type: standard
+    title: "Mission Operations -- Parameter Services"
+    institution:
+      name: "Consultative Committee for Space Data Systems"
+    number: "CCSDS 522.1-B-1"
+    year: 2021
+    notes: >-
+      Section 3, the affine parameter calibration that is equation (1), the
+      only decommutation form this package models.
+  - type: article
+    authors:
+      - family-names: Pedregosa
+        given-names: "F."
+      - family-names: Varoquaux
+        given-names: "G."
+      - family-names: Gramfort
+        given-names: "A."
+    title: "Scikit-learn: machine learning in Python"
+    journal: "Journal of Machine Learning Research"
+    volume: 12
+    year: 2011
+    notes: >-
+      RandomForestClassifier, whose per-member probabilities telemgap.learned
+      reads to produce the ensemble dispersion it reports as an uncertainty
+      output. That read is why scikit-learn is pinned below 1.10.

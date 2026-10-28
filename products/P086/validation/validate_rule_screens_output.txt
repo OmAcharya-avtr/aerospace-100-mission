@@ -1,0 +1,109 @@
+
+==============================================================================
+telemgap -- rule screens, per event class, over a swept grid
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+scipy            : 1.18.1
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.9
+ruff             : 0.16.9
+xarray           : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P086 (printed relatively; see validation/_bootstrap.py)
+
+frames per cell        : 3000
+anomaly rate multipliers: [0.5, 1.0, 2.0, 4.0]
+cadence jitter fractions: [0.0, 0.08, 0.16, 0.24]
+
+Equations (13) and (14) of telemgap.benchmark, applied to frame indices.
+
+==============================================================================
+swept grid -- no clock resets
+==============================================================================
+rate  jitter  gaps matched  gaps found  gap recall  deficit err  dup P   dup R   dup n  reord P  reord R  reord n  reset P  reset R  reset n
+----  ------  ------------  ----------  ----------  -----------  ------  ------  -----  -------  -------  -------  -------  -------  -------
+0.5   0       3/3           3           1.0000      0            1.0000  1.0000  4      1.0000   1.0000   4        nan      nan      0      
+0.5   0.08    3/3           3           1.0000      0            1.0000  1.0000  4      1.0000   1.0000   4        nan      nan      0      
+0.5   0.16    3/3           3           1.0000      0            1.0000  1.0000  4      1.0000   1.0000   4        nan      nan      0      
+0.5   0.24    3/3           3           1.0000      0            1.0000  1.0000  4      1.0000   1.0000   4        nan      nan      0      
+1     0       5/5           5           1.0000      0            1.0000  1.0000  8      1.0000   1.0000   8        nan      nan      0      
+1     0.08    6/6           6           1.0000      0            1.0000  1.0000  8      1.0000   1.0000   8        nan      nan      0      
+1     0.16    6/6           6           1.0000      0            1.0000  1.0000  8      1.0000   1.0000   8        nan      nan      0      
+1     0.24    6/6           6           1.0000      0            1.0000  1.0000  8      1.0000   1.0000   8        nan      nan      0      
+2     0       10/10         10          1.0000      0            1.0000  1.0000  16     1.0000   1.0000   16       nan      nan      0      
+2     0.08    9/9           9           1.0000      0            1.0000  1.0000  16     1.0000   1.0000   16       nan      nan      0      
+2     0.16    11/11         11          1.0000      0            1.0000  1.0000  16     1.0000   1.0000   16       nan      nan      0      
+2     0.24    12/12         12          1.0000      0            1.0000  1.0000  16     1.0000   1.0000   16       nan      nan      0      
+4     0       19/19         19          1.0000      0            1.0000  1.0000  32     1.0000   1.0000   32       nan      nan      0      
+4     0.08    18/18         18          1.0000      0            1.0000  1.0000  32     1.0000   1.0000   32       nan      nan      0      
+4     0.16    17/17         17          1.0000      0            1.0000  1.0000  32     1.0000   1.0000   32       nan      nan      0      
+4     0.24    20/20         20          1.0000      0            1.0000  1.0000  32     1.0000   1.0000   32       nan      nan      0      
+
+gap recall over the grid : min 1.0000  mean 1.0000
+worst duplicate    recall: 1.0000
+worst reorder      recall: 1.0000
+worst clock_reset  recall: 1.0000
+[PASS] every injected duplicate is found on every cell of a record with no clock reset -- worst recall 1.0000
+[PASS] every injected reorder is found on every cell of a record with no clock reset -- worst recall 1.0000
+[PASS] every injected gap run is matched on every cell of a record with no clock reset -- min gap recall 1.0000
+
+==============================================================================
+swept grid -- with clock resets
+==============================================================================
+rate  jitter  gaps matched  gaps found  gap recall  deficit err  dup P   dup R   dup n  reord P  reord R  reord n  reset P  reset R  reset n
+----  ------  ------------  ----------  ----------  -----------  ------  ------  -----  -------  -------  -------  -------  -------  -------
+0.5   0       3/3           3           1.0000      0            1.0000  1.0000  4      1.0000   1.0000   4        1.0000   1.0000   2      
+0.5   0.08    3/3           3           1.0000      0            1.0000  1.0000  4      1.0000   1.0000   4        1.0000   1.0000   2      
+0.5   0.16    3/3           3           1.0000      0            1.0000  1.0000  4      1.0000   1.0000   4        1.0000   1.0000   2      
+0.5   0.24    3/3           3           1.0000      0            1.0000  1.0000  4      1.0000   1.0000   4        1.0000   1.0000   2      
+1     0       6/6           6           1.0000      0            1.0000  1.0000  8      1.0000   1.0000   8        1.0000   1.0000   2      
+1     0.08    5/5           5           1.0000      0            1.0000  1.0000  8      1.0000   1.0000   8        1.0000   1.0000   2      
+1     0.16    5/6           5           0.8333      8            1.0000  1.0000  8      1.0000   1.0000   8        1.0000   1.0000   2      
+1     0.24    4/6           5           0.6667      4            1.0000  1.0000  8      1.0000   1.0000   8        1.0000   1.0000   2      
+2     0       6/6           6           1.0000      0            1.0000  1.0000  16     1.0000   1.0000   16       1.0000   1.0000   2      
+2     0.08    11/11         11          1.0000      0            1.0000  1.0000  16     1.0000   1.0000   16       1.0000   1.0000   2      
+2     0.16    11/11         11          1.0000      0            1.0000  1.0000  16     1.0000   1.0000   16       1.0000   1.0000   2      
+2     0.24    11/11         11          1.0000      0            1.0000  1.0000  16     1.0000   1.0000   16       1.0000   1.0000   2      
+4     0       22/23         22          0.9565      1            1.0000  1.0000  32     1.0000   1.0000   32       1.0000   1.0000   2      
+4     0.08    21/22         21          0.9545      3            1.0000  1.0000  32     1.0000   1.0000   32       1.0000   1.0000   2      
+4     0.16    20/21         20          0.9524      3            1.0000  1.0000  32     1.0000   1.0000   32       1.0000   1.0000   2      
+4     0.24    21/21         21          1.0000      0            1.0000  1.0000  32     1.0000   1.0000   32       1.0000   1.0000   2      
+
+gap recall over the grid : min 0.6667  mean 0.9602
+worst duplicate    recall: 1.0000
+worst reorder      recall: 1.0000
+worst clock_reset  recall: 1.0000
+[PASS] every injected clock reset is found -- worst recall 1.0000
+mean gap recall degradation from the clock resets: 1.0000 -> 0.9602
+
+==============================================================================
+false positives on a record with nothing injected
+==============================================================================
+jitter  gaps  dups  reorders  resets  cadence  range  residual
+------  ----  ----  --------  ------  -------  -----  --------
+0       0     0     0         0       0        31     32      
+0.08    0     0     0         0       0        25     26      
+0.16    0     0     0         0       115      18     19      
+0.24    0     0     0         0       697      35     38      
+
+range and residual findings on a record with nothing injected are NOT false positives: the valve_current channel carries a standing signedness fault by construction, which is a real anomaly the screens are right to report. The timing screens are the ones that must be silent.
+[PASS] no gap, duplicate, reorder or clock-reset false positive on any clean cell -- 0 across 4 cells
+The cadence screen fires on jitter alone once the per-sample jitter exceeds half the declared jitter_s of 0.25 s, which is the 2a rule in this script's docstring. Cells satisfying 2a <= jitter_s must be silent.
+[PASS] the cadence screen is silent on every clean cell satisfying 2a <= jitter_s -- 0 cadence findings on compliant cells
+
+==============================================================================
+screening cost -- UNSTABLE, two cores shared with other work
+==============================================================================
+quantity               value
+---------------------  -----
+records screened       32   
+frames per record      3000 
+mean screen time (ms)  27.3 
+total screen time (s)  0.87 
+
+CHECKS RUN: 6
+FAILED CHECKS (0): none

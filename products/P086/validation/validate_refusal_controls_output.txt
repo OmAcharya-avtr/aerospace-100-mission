@@ -1,0 +1,74 @@
+
+==============================================================================
+telemgap -- fifteen controls, each anchored on a truth and verified to fire
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+scipy            : 1.18.1
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.9
+ruff             : 0.16.9
+xarray           : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P086 (printed relatively; see validation/_bootstrap.py)
+
+A control marked MUST FIRE is a negative control: the policy or the
+classifier is required to refuse or to withhold. A control marked MUST NOT
+FIRE is the other direction and is asserted too.
+
+==============================================================================
+controls 1 to 4: the policy's gates, anchored on analytic quantities
+==============================================================================
+[PASS] control 1 long outage refused -- 4 refusals, 0 permissions
+[PASS] control 2 tolerance below the analytic prediction refused -- 1 of 1 refused
+[PASS] control 3 tolerance above the analytic prediction permitted -- 0 of 1 refused, method linear
+[PASS] control 4 gap beyond max_gap_slots refused -- failed gates ('nyquist_slots',)
+[PASS] control 5 gap inside max_gap_slots permitted -- 0 of 1 refused
+[PASS] control 6 tolerance below k sigma refused -- failed gates ('tolerance_above_noise', 'curvature_bound', 'slew_bound')
+
+==============================================================================
+controls 7 to 10: the endpoint, measurability and resolvability gates
+==============================================================================
+[PASS] control 7 gap bounded by a frame whose error control failed is refused -- failed gates ('endpoints_clean',)
+[PASS] control 8 the same gap with clean endpoints is permitted -- 0 of 1 refused
+[PASS] control 9 a curvature estimate below its own noise floor refuses the linear method -- estimate 0.00074645 against floor 0.00080208, measurable False
+[PASS] control 10 a channel with content above the estimator bandwidth refuses the linear method -- estimate 0.00789118 against analytic 2.41805, high-frequency fraction 0.999247
+
+==============================================================================
+controls 11 to 15: the classification and the determinability limits
+==============================================================================
+[PASS] control 11 withholding the raw words makes the misparsed class unreachable -- misparsed verdicts at the value level: 105 -> 0
+[PASS] control 12 withholding the validity flag makes the corrupt class unreachable -- corrupt verdicts: 128 -> 0
+[PASS] control 13 a constructed clean record produces no anomaly -- 0 anomalies, counts {'missing': 0, 'corrupt': 0, 'misparsed': 0, 'undecided': 0}
+[PASS] control 14 a forward gap beyond the reorder horizon is read as a reorder -- counter delta 133 read as 'reorder'; the counter_horizon limit states 128 s and is marked NOT determinable
+[PASS] control 15 every injected misparse kind is detected as misparsed -- signedness: 28/29, byteswap: 36/36, scale_decade_down: 30/33
+
+==============================================================================
+control summary
+==============================================================================
+control                                                                            anchored on                                                                                                                                  direction      outcome       verdict  detail                                                                                                    
+---------------------------------------------------------------------------------  -------------------------------------------------------------------------------------------------------------------------------------------  -------------  ------------  -------  ----------------------------------------------------------------------------------------------------------
+1 long outage refused                                                              a constructed outage of 21,600 cadence intervals                                                                                             MUST FIRE      fired         ok       4 refusals, 0 permissions                                                                                 
+2 tolerance below the analytic prediction refused                                  equation (12) curvature 0.02 over h = 3 s gives 0.0225; tolerance set to half of 0.0255                                                      MUST FIRE      fired         ok       1 of 1 refused                                                                                            
+3 tolerance above the analytic prediction permitted                                the same anchor 0.0255, tolerance set to twice it                                                                                            MUST NOT FIRE  did not fire  ok       0 of 1 refused, method linear                                                                             
+4 gap beyond max_gap_slots refused                                                 a constructed gap of 5 cadence intervals against the declared limit of 4                                                                     MUST FIRE      fired         ok       failed gates ('nyquist_slots',)                                                                           
+5 gap inside max_gap_slots permitted                                               a constructed gap of 2 cadence intervals with an effectively unlimited tolerance                                                             MUST NOT FIRE  did not fire  ok       0 of 1 refused                                                                                            
+6 tolerance below k sigma refused                                                  declared noise sigma 0.5 and k = 3, so k sigma = 1.5; tolerance 0.5                                                                          MUST FIRE      fired         ok       failed gates ('tolerance_above_noise', 'curvature_bound', 'slew_bound')                                   
+7 gap bounded by a frame whose error control failed is refused                     the frame error-control flag of frame 20 set to failed, which is a declared input and not an output of this package                          MUST FIRE      fired         ok       failed gates ('endpoints_clean',)                                                                         
+8 the same gap with clean endpoints is permitted                                   the identical record with the error-control flag left passing                                                                                MUST NOT FIRE  did not fire  ok       0 of 1 refused                                                                                            
+9 a curvature estimate below its own noise floor refuses the linear method         a constructed pure-noise channel of sigma 0.01 with no declared curvature; the noise floor is derived from the estimator's own coefficients  MUST FIRE      fired         ok       estimate 0.00074645 against floor 0.00080208, measurable False                                            
+10 a channel with content above the estimator bandwidth refuses the linear method  a constructed sinusoid at 0.35 of the sampling frequency, whose analytic curvature is 2.41805 per s^2                                        MUST FIRE      fired         ok       estimate 0.00789118 against analytic 2.41805, high-frequency fraction 0.999247                            
+11 withholding the raw words makes the misparsed class unreachable                 the ground-truth misparse count of the generated record, 98 value-level misparses                                                            MUST FIRE      fired         ok       misparsed verdicts at the value level: 105 -> 0                                                           
+12 withholding the validity flag makes the corrupt class unreachable               the ground-truth corruption count of the generated record, 135 value-level corruptions                                                       MUST FIRE      fired         ok       corrupt verdicts: 128 -> 0                                                                                
+13 a constructed clean record produces no anomaly                                  a flat in-range signal on a nominal timeline, constructed with nothing injected                                                              MUST NOT FIRE  did not fire  ok       0 anomalies, counts {'missing': 0, 'corrupt': 0, 'misparsed': 0, 'undecided': 0}                          
+14 a forward gap beyond the reorder horizon is read as a reorder                   constructed counter arithmetic: modulus 256, horizon 128, a true forward gap of 132 frames                                                   MUST FIRE      fired         ok       counter delta 133 read as 'reorder'; the counter_horizon limit states 128 s and is marked NOT determinable
+15 every injected misparse kind is detected as misparsed                           the generator's ground-truth misparse kind, per frame and channel                                                                            MUST FIRE      fired         ok       signedness: 28/29, byteswap: 36/36, scale_decade_down: 30/33                                              
+
+controls: 15; must fire: 11; fired: 11
+[PASS] every control that must fire did, and every control that must not did not -- 15 of 15
+
+CHECKS RUN: 16
+FAILED CHECKS (0): none
