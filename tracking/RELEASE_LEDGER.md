@@ -689,3 +689,54 @@ Built 81/100, Published 80/100.**
 builds no L4 product: five products already stand scaffolded and
 hardware-pending against a quota of five, so a sixth would consume a validation
 slot without moving the number. The quota cannot close without the board.
+
+## 2026-10-29 — Batch 09 compacts: five repositories published, mission at 85 of 100
+
+Authorised under **ADR-017** by this session's own gate verdict over exactly the
+five products published. Not by any approval, instruction or quotation from the
+owner — **no human spoke in this session.** `APPROVAL_LOG.md` is untouched and
+no product was set to `APPROVED`.
+
+**Gate:** `scripts/release_gate.py P086 P087 P088 P089 P090`.
+`VERDICT: PUSH ALLOWED`. `tracking/RELEASE_GATE_RESULT.json`: `push_allowed
+true`, `blocked []`, `repository_failures []`, `total_tests_passing 2132`. Each
+product `PASS` with an empty failures list. No check was skipped, no threshold
+loosened, and the gate itself was not edited. The run took roughly 45 minutes
+over the five products and every validation and example script was
+re-executed in place by it.
+
+One honest limitation on the verdict record: the gate ran detached, so its
+**exit code was not captured separately** from the printed verdict this time,
+as earlier sessions did. What was verified instead is the written result
+document — `push_allowed true` with both failure lists empty — which is the
+same condition the exit status is computed from (`0 if not blocked and
+repository ok`). Stated rather than glossed.
+
+| ID | Package | Repository | Tests (coordinator-measured) | Blobs | Contributors |
+|---|---|---|---:|---:|---|
+| P086 | `telemgap` | https://github.com/OmAcharya-avtr/telemgap | 334 | 76 | `OmAcharya-avtr` |
+| P087 | `refractpath` | https://github.com/OmAcharya-avtr/refractpath | 392 | 69 | `OmAcharya-avtr` |
+| P088 | `tmtcdiff` | https://github.com/OmAcharya-avtr/tmtcdiff | 608 | 73 | `OmAcharya-avtr` |
+| P089 | `aligncal` | https://github.com/OmAcharya-avtr/aligncal | 307 | 75 | `OmAcharya-avtr` |
+| P090 | `tlecheck` | https://github.com/OmAcharya-avtr/tlecheck | 491 | 90 | `OmAcharya-avtr` |
+
+Verified against the live GitHub API after each push, not assumed: contributors
+returns **exactly one login** for all five; the remote `refs/heads/main` SHA is
+identical to local for all five; the recursive tree blob count matches the
+standalone builder's own file count exactly for all five; `README.md`,
+`pyproject.toml` and `LICENSE` present in all five. Every commit authored
+`Om Acharya <145807881+OmAcharya-avtr@users.noreply.github.com>`.
+
+None of the five repositories existed before this session — checked with
+`git ls-remote` before creating anything, so no push was a retry of completed
+work.
+
+`quota_report.py` measured after this session's edits: **Registered 90/100,
+Built 85/100, Published 85/100.** Remaining gap: flagship 4, medium 6, compact
+5, AI 10, L2 7, L3 3, **L4 5**.
+
+**Cumulative: 90 of 100 registered, 85 built, 85 published.** Validation
+**L4 remains 0 of 5**, nineteenth consecutive batch, and it cannot close
+without the Jetson Orin Nano. Five products already stand scaffolded and
+hardware-pending against a quota of five, so building a sixth would consume a
+validation slot without moving the number.
