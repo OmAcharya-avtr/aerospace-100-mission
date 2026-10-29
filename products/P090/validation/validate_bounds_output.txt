@@ -1,0 +1,142 @@
+
+==============================================================================
+ENVIRONMENT
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (named in the alternatives table; no number here is compared against it)
+skyfield         : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P090 (printed relatively; see validation/_bootstrap.py)
+
+objects per split          : 420
+element history per object : 12 sets at 1.5 day cadence
+consequence horizon        : 1 days, 25 samples
+silent threshold           : 1 km (declared policy)
+epoch requirement          : 7 days (declared policy)
+target false-positive rate : 0.05 (declared policy)
+
+==============================================================================
+1. EQUATION (3): THE MEAN MOTION CEILING
+==============================================================================
+fastest circular Earth orbit : 17.0436417193 rev/day
+its period                   : 84.488986 minutes
+[PASS] mean_motion_ceiling_is_physical -- 17.043642 rev/day at the equatorial radius
+
+==============================================================================
+2. EQUATION (1) AGAINST THE PROPAGATOR'S OWN SEMI-MAJOR AXIS
+==============================================================================
+Equation (1) inverts Kepler's law on the Kozai mean motion written in the element set. sgp4 converts to the Brouwer mean motion first. The difference is the Kozai bias; it is reported, not removed.
+
+family                         n rev/day     eq (1) km       sgp4 km    bias km
+leo_sun_synchronous             14.60000     7071.3131     7068.3900     2.9231
+leo_low_inclination             15.50000     6794.8651     6795.3755    -0.5104
+leo_decaying                    15.92000     6674.8257     6675.2781    -0.4524
+meo_navigation                   2.00560    26560.6740    26560.6632     0.0108
+geo_stationary                   1.00272    42164.6843    42165.7288    -1.0445
+heo_critical_inclination         2.00600    26557.1430    26556.1543     0.9887
+
+largest absolute Kozai bias over the six families : 2.9231 km
+[PASS] kozai_bias_is_bounded -- largest 2.9231 km, against a screen whose loosest band is thousands of kilometres
+[PASS] kozai_bias_is_not_zero -- smallest 0.010803 km; a vanishing bias would mean the cross-check is not exercising the transformation
+
+==============================================================================
+3. EQUATIONS (16) AND (17) AGAINST THE PROPAGATOR'S SECULAR RATES
+==============================================================================
+Two implementations of the same first-order secular theory. sgp4's nodedot and argpdot carry higher-order terms, so the agreement is reported as a relative difference and bounded, not asserted.
+
+family                        eq(16) deg/d   sgp4 deg/d      rel  eq(17) deg/d   sgp4 deg/d      rel
+leo_sun_synchronous               0.990415     0.988853   0.0016     -3.118844    -3.116241   0.0008
+leo_low_inclination              -4.959309    -4.960693   0.0003      3.709107     3.701236   0.0021
+leo_decaying                     -5.231963    -5.233277   0.0003      3.803737     3.794856   0.0023
+meo_navigation                   -0.038781    -0.038781   0.0000      0.021803     0.021798   0.0002
+geo_stationary                   -0.013413    -0.013415   0.0001      0.026827     0.026830   0.0001
+heo_critical_inclination         -0.130586    -0.130551   0.0003      0.000356     0.000278   0.2799
+
+worst relative difference, equation (16) : 0.001579
+worst relative difference, equation (17) : 0.279937
+[PASS] nodal_regression_agrees_with_the_propagator -- worst 0.001579 relative
+[PASS] apsidal_precession_agrees_with_the_propagator -- worst 0.279937 relative; the critically inclined family sits where equation (17) vanishes and a relative comparison there is meaningless, which is why the bound is loose and is reported
+equation (17) at the critical inclination : 2.334e-10 deg/day
+[PASS] apsidal_precession_vanishes_at_the_critical_inclination -- 2.334e-10 deg/day at 63.4349488 degrees
+
+==============================================================================
+4. EQUATION (5) AGAINST AN INDEPENDENT DAY COUNT
+==============================================================================
+The proleptic Gregorian ordinal plus 1721424.5 is a different derivation of the Julian date: a day count from a different origin by a different algorithm. Compared on every month start of the 1957 to 2056 epoch-year window.
+
+month starts compared        : 1200
+bit-exact disagreements      : 0
+[PASS] julian_date_matches_an_independent_derivation -- 1200 month starts, 0 disagreements
+
+Outside the declared range the two differ by exactly one day:
+  1900-01: equation (5) 2415019.5, independent 2415020.5, difference -1.0 day
+  1900-02: equation (5) 2415050.5, independent 2415051.5, difference -1.0 day
+  2100-03: equation (5) 2488129.5, independent 2488128.5, difference +1.0 day
+  2100-12: equation (5) 2488404.5, independent 2488403.5, difference +1.0 day
+The two-digit epoch year window starts at 1957, so no element set this package can decode reaches those dates.
+
+==============================================================================
+5. EPOCH DECODING AGAINST THE PROPAGATOR, OVER THE CORPUS
+==============================================================================
+element sets compared        : 5447
+worst epoch difference       : 0.000e+00 days (0.000e+00 s)
+[PASS] epoch_decoding_matches_the_propagator -- worst 0.000e+00 seconds over 5447 element sets
+
+==============================================================================
+6. BOUND FINDINGS ON CONSTRUCTED VIOLATIONS
+==============================================================================
+case                      findings                  kinds expected
+clean                            0                      - 0
+[PASS] bounds_clean -- 0 findings, expected the set empty
+eccentricity_0.96                2        physical,policy 1
+    eccentricity_above_policy [policy] eccentricity 0.9600000 exceeds the declared band 0.9500000
+    perigee_below_surface [physical] perigee altitude -6106.3 km is below the equatorial radius; equation (2) places the orbit underground
+[PASS] bounds_eccentricity_0.96 -- 2 findings, expected the set ['eccentricity_above_policy']
+eccentricity_0.60                1               physical 1
+    perigee_below_surface [physical] perigee altitude -3660.2 km is below the equatorial radius; equation (2) places the orbit underground
+[PASS] bounds_eccentricity_0.60 -- 1 findings, expected the set ['perigee_below_surface']
+mean_motion_17.5                 2               physical 1
+    mean_motion_above_physical_ceiling [physical] mean motion 17.50000000 rev/day exceeds equation (3) ceiling 17.0436 rev/day for a circular orbit at the equatorial radius
+    perigee_below_surface [physical] perigee altitude -117.6 km is below the equatorial radius; equation (2) places the orbit underground
+[PASS] bounds_mean_motion_17.5 -- 2 findings, expected the set ['mean_motion_above_physical_ceiling']
+mean_motion_0.40                 1                 policy 1
+    mean_motion_below_policy [policy] mean motion 0.40000000 rev/day is below the declared band 0.5000 rev/day
+[PASS] bounds_mean_motion_0.40 -- 1 findings, expected the set ['mean_motion_below_policy']
+bstar_0.50                       1                 policy 1
+    bstar_magnitude_above_policy [policy] |bstar| 5.000000e-01 exceeds the declared band 1.000000e-01 inverse Earth radii
+[PASS] bounds_bstar_0.50 -- 1 findings, expected the set ['bstar_magnitude_above_policy']
+bstar_negative                   0                      - 0
+[PASS] bounds_bstar_negative -- 0 findings, expected the set empty
+
+A negative drag term produces no bound finding deliberately: it is legal in the text format and appears in real catalogues, so it is the history screen's business and not the bounds screen's.
+
+==============================================================================
+7. DERIVED GEOMETRY ON A PUBLISHED ELEMENT SET
+==============================================================================
+semi-major axis    : 6794.5627 km
+perigee altitude   : 411.3882 km
+apogee altitude    : 421.4672 km
+period             : 92.897024 minutes
+sgp4 perigee alt   : 411.8910 km (Brouwer, so it differs by the Kozai bias)
+[PASS] derived_perigee_is_in_the_right_place -- 411.3882 km
+[PASS] period_is_the_inverse_mean_motion -- 1440.000000000 minutes times rev/day
+
+==============================================================================
+8. A CONSTRUCTED INVALID-CHECKSUM ELEMENT SET, THE DECLARED CONTROL
+==============================================================================
+line 1 stated checksum  : 7
+line 1 computed checksum: 1
+[PASS] invalid_checksum_control_fires -- the constructed control is detected by arithmetic, not by a statistic
+[PASS] invalid_checksum_control_leaves_the_elements_untouched -- only column 69 differs
+
+CHECKS RUN: 19
+FAILED CHECKS (0): none

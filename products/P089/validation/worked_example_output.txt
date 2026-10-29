@@ -1,0 +1,61 @@
+WORKED EXAMPLE -- the block quoted in README.md, executed
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  scikit-learn     : 1.9.1
+  matplotlib       : 3.11.2
+  pytest           : 9.1.1
+  hypothesis       : 6.170.13
+  ruff (installed) : 0.17.3
+  ruff (on PATH)   : ruff 0.16.9  (a standalone binary, a DIFFERENT version from the installed distribution; the source is clean under both and the figures are in VALIDATION.md)
+  filterpy         : not installed  (named in the alternatives table; no number here is compared against it)
+  cpu cores        : 2
+  repository root  : P089 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+
+samples                  : 1500
+excitation shares (eq 9)  : [9.999363e-01 3.364890e-05 3.007891e-05]
+excitation entropy        : 0.001044 of 1.584963 bits
+Gramian rank (eq 8, 11)   : 2 of 3
+dominant rotation axis    : [ 0.8992  0.0024 -0.4375]
+
+per degree of freedom, worst last:
+  dof 0  observable    CRB      43.061 arcsec  excitation share 0.000030
+  dof 1  observable    CRB      43.061 arcsec  excitation share 0.000034
+  dof 2  unobservable  CRB          unbounded  excitation share 0.999936
+
+the record does not support dof 2, and that direction is
+  [ 0.8992  0.0024 -0.4375]
+which is 0.0000 deg from the dominant rotation axis.
+No volume of this motion would change that: by equation (10) the Gramian
+eigenvalue along a rotation axis is (W / s^2) (1 - p) with p = 1.
+
+batch estimate (eq 14-16) : [0.478813 0.797257 0.988465] mrad
+withheld degrees of freedom: (2,)
+  component along dof 2   : -6.706e-20 rad, projected out
+  bound reported there      : inf
+
+injected truth            : [-1.027121  0.969418  1.736265] mrad
+error, observable part    : 36.4446 arcsec
+error, unobservable part  : 346.7128 arcsec
+The second figure is the component of the truth the record cannot support.
+Every estimator carries it in full, including this one, which declines to
+guess at it rather than reporting a number for it.
+
+recursive estimate (19-22): [ 78.375006   0.956636 -36.870548] mrad
+prior retained per dof    : [0.002126 0.002095 0.2518  ]
+worst/best sigma ratio    : 120.1670
+The recursive estimator does not withhold anything. It reports what it does
+not know through its covariance: the prior it started with is still there in
+the direction the record never excited.
+
+==============================================================================
+[PASS] the record used by the README example is rank deficient -- rank 2 of 3
+[PASS] the withheld component is zero to within 1e-15 rad -- -6.706e-20 rad
+[PASS] the bound reported in the withheld direction is infinite -- inf
+[PASS] the recursive estimator keeps most of its prior in the withheld direction -- retained 0.251800
+
+CHECKS RUN: 4
+FAILED CHECKS (0): none

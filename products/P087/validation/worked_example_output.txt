@@ -1,0 +1,152 @@
+
+==============================================================================
+refractpath -- the worked example from README.md
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (alternatives table only)
+ephem            : not installed  (alternatives table only)
+pyerfa           : not installed  (alternatives table only)
+cpu cores        : 2
+repository root  : P087 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+the example, run
+==============================================================================
+
+VERDICT: USABLE
+  apparent elevation        : 60.00000 deg
+  declared tolerance        : 10.0000 arcsec
+  cross-model disagreement  : 1.66124 arcsec
+  profile envelope, eq (23) : 0.00071 arcsec
+  measured validity floor   : 11.21991 deg
+  above the floor           : True
+  plane-parallel hard floor : 1.37158 deg (analytic, eq 13)
+  oriani breakdown elevation: 1.92320 deg (computed, eq 14a)
+  refractivity rel. spread  : 3.540e-04
+  reasons: none; every gate passed
+  cannot be determined from these inputs at any elevation:
+    - the actual temperature profile above the observer: one surface temperature cannot determine it, and a radiosonde or a numerical weather profile would be required
+    - the depth and strength of any surface temperature inversion: it is the single largest term in horizon refraction and nothing in the inputs constrains it
+    - the horizontal refractivity gradient: the ray trace of equation (19) assumes spherical symmetry, and a real gradient along the line of sight produces a refraction that is not a function of elevation alone
+    - the turbulent component: this package computes the mean refraction only and says nothing about seeing, scintillation or short-term pointing jitter
+    - whether the published reference values this package is scored against are themselves right: they are reproduced, not verified
+  reference (ray trace)     : 34.074 arcsec
+  true elevation            : 59.99054 deg
+method            refraction (arcsec)  minus reference
+----------------  -------------------  ---------------
+oriani_series         34.074              -0.000
+raytrace              34.074              +0.000
+plane_parallel        34.132              +0.058
+bennett_1982          35.084              +1.010
+saemundsson_1986      35.735              +1.661
+
+VERDICT: DEGRADED
+  apparent elevation        : 25.00000 deg
+  declared tolerance        : 10.0000 arcsec
+  cross-model disagreement  : 5.73605 arcsec
+  profile envelope, eq (23) : 0.00102 arcsec
+  measured validity floor   : 11.21991 deg
+  above the floor           : True
+  plane-parallel hard floor : 1.37158 deg (analytic, eq 13)
+  oriani breakdown elevation: 1.92320 deg (computed, eq 14a)
+  refractivity rel. spread  : 3.540e-04
+  reasons:
+    - below the declared validity floor of: plane_parallel (30 deg)
+  cannot be determined from these inputs at any elevation:
+    - the actual temperature profile above the observer: one surface temperature cannot determine it, and a radiosonde or a numerical weather profile would be required
+    - the depth and strength of any surface temperature inversion: it is the single largest term in horizon refraction and nothing in the inputs constrains it
+    - the horizontal refractivity gradient: the ray trace of equation (19) assumes spherical symmetry, and a real gradient along the line of sight produces a refraction that is not a function of elevation alone
+    - the turbulent component: this package computes the mean refraction only and says nothing about seeing, scintillation or short-term pointing jitter
+    - whether the published reference values this package is scored against are themselves right: they are reproduced, not verified
+  reference (ray trace)     : 125.967 arcsec
+  true elevation            : 24.96501 deg
+method            refraction (arcsec)  minus reference
+----------------  -------------------  ---------------
+oriani_series        125.955              -0.012
+raytrace             125.967              +0.000
+plane_parallel       126.856              +0.889
+bennett_1982         129.443              +3.476
+saemundsson_1986     131.691              +5.724
+
+VERDICT: DEGRADED
+  apparent elevation        : 12.00000 deg
+  declared tolerance        : 10.0000 arcsec
+  cross-model disagreement  : 9.41525 arcsec
+  profile envelope, eq (23) : 0.10118 arcsec
+  measured validity floor   : 11.21991 deg
+  above the floor           : True
+  plane-parallel hard floor : 1.37158 deg (analytic, eq 13)
+  oriani breakdown elevation: 1.92320 deg (computed, eq 14a)
+  refractivity rel. spread  : 3.540e-04
+  reasons:
+    - below the declared validity floor of: oriani_series (15 deg), plane_parallel (30 deg)
+  cannot be determined from these inputs at any elevation:
+    - the actual temperature profile above the observer: one surface temperature cannot determine it, and a radiosonde or a numerical weather profile would be required
+    - the depth and strength of any surface temperature inversion: it is the single largest term in horizon refraction and nothing in the inputs constrains it
+    - the horizontal refractivity gradient: the ray trace of equation (19) assumes spherical symmetry, and a real gradient along the line of sight produces a refraction that is not a function of elevation alone
+    - the turbulent component: this package computes the mean refraction only and says nothing about seeing, scintillation or short-term pointing jitter
+    - whether the published reference values this package is scored against are themselves right: they are reproduced, not verified
+  reference (ray trace)     : 271.283 arcsec
+  true elevation            : 11.92464 deg
+method            refraction (arcsec)  minus reference
+----------------  -------------------  ---------------
+oriani_series        270.829              -0.454
+raytrace             271.283              +0.000
+bennett_1982         276.599              +5.316
+plane_parallel       279.001              +7.719
+saemundsson_1986     280.244              +8.961
+
+VERDICT: REFUSE
+  apparent elevation        : 6.00000 deg
+  declared tolerance        : 10.0000 arcsec
+  cross-model disagreement  : 65.54026 arcsec
+  profile envelope, eq (23) : 1.85222 arcsec
+  measured validity floor   : 11.21991 deg
+  above the floor           : False
+  plane-parallel hard floor : 1.37158 deg (analytic, eq 13)
+  oriani breakdown elevation: 1.92320 deg (computed, eq 14a)
+  refractivity rel. spread  : 3.540e-04
+  reasons:
+    - the ensemble of 5 independent standard methods spans 65.540 arcsec at 6.0000 deg apparent elevation, which is at or above the declared tolerance of 10.000 arcsec; the widest pair is oriani_series against plane_parallel
+    - 6.0000 deg is at or below the measured validity floor of 11.2199 deg for a tolerance of 10.000 arcsec
+    - below the declared validity floor of: oriani_series (15 deg), plane_parallel (30 deg)
+  cannot be determined from these inputs at any elevation:
+    - the actual temperature profile above the observer: one surface temperature cannot determine it, and a radiosonde or a numerical weather profile would be required
+    - the depth and strength of any surface temperature inversion: it is the single largest term in horizon refraction and nothing in the inputs constrains it
+    - the horizontal refractivity gradient: the ray trace of equation (19) assumes spherical symmetry, and a real gradient along the line of sight produces a refraction that is not a function of elevation alone
+    - the turbulent component: this package computes the mean refraction only and says nothing about seeing, scintillation or short-term pointing jitter
+    - whether the published reference values this package is scored against are themselves right: they are reproduced, not verified
+  reference (ray trace)     : 515.924 arcsec
+  true elevation            : 5.85669 deg
+method            refraction (arcsec)  minus reference
+----------------  -------------------  ---------------
+oriani_series        504.392             -11.532
+raytrace             515.924              +0.000
+bennett_1982         519.431              +3.507
+saemundsson_1986     522.634              +6.710
+plane_parallel       569.932             +54.008
+
+==============================================================================
+what the four calls say, in one table
+==============================================================================
+elevation  verdict   reference (arcsec)  eq (22)    eq (23)    floor (deg)
+---------  --------  ------------------  ---------  ---------  -----------
+  60.0     usable       34.074               1.661      0.001   11.220
+  25.0     degraded    125.967               5.736      0.001   11.220
+  12.0     degraded    271.283               9.415      0.101   11.220
+   6.0     refuse      515.924              65.540      1.852   11.220
+
+The declared tolerance is 10 arcsec throughout. The floor column is the same
+number in every row because it is a property of the atmosphere and the
+tolerance, not of the elevation asked for; the verdict column is what
+changes.
+[PASS] the four calls return the verdicts quoted in README.md -- usable, degraded, degraded, refuse
+
+CHECKS RUN: 1
+FAILED CHECKS (0): none

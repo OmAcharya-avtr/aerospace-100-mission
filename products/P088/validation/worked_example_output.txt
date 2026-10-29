@@ -1,0 +1,117 @@
+
+==============================================================================
+tmtcdiff -- worked example
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+deepdiff         : not installed  (alternatives table)
+jsonschema       : 4.26.0  (alternatives table)
+cpu cores        : 2
+repository root  : P088 (printed relatively; see validation/_bootstrap.py)
+
+old dictionary : version 1.0, 4 parameters, 1 command
+new dictionary : version 1.1, 5 parameters, 1 command
+
+==============================================================================
+the semantic diff
+==============================================================================
+dictionary 1.0 -> 1.1
+items 5 -> 6
+
+SILENT CHANGES FIRST. A silent change leaves every existing reference resolving
+and running, and alters what it means. Within-tier order is a declared
+convention and is not a measured ranking.
+
+-- silent (7) ----------------------------------------
+  [silent  ] rescaled             BATT_T_1  offset: 0.0 -> -273.15  every engineering value shifts by -273.15
+  [silent  ] unit_changed         BATT_T_1  unit: 'K' -> 'degC'
+  [silent  ] reenumerated         AOCS_MODE  enum: {0: 'IDLE', 1: 'SAFE_MODE', 2: 'NOMINAL_MODE'} -> {0: 'IDLE', 1: 'NOMINAL_MODE', 2: 'SAFE_MODE'}  codes relabelled [1, 2]; labels recoded ['NOMINAL_MODE', 'SAFE_MODE']
+  [silent  ] bit_shifted          BUS_V  bit_offset: 12 -> 14
+  [silent  ] argument_reordered   SET_HEATER  argument:DUTY.position: 1 -> 0  the same written call encodes different bits
+  [silent  ] argument_reordered   SET_HEATER  argument:HEATER_ID.position: 0 -> 1  the same written call encodes different bits
+  [silent  ] limits_changed       BATT_T_1  limits: (250.0, 330.0) -> (-23.0, 57.0)
+
+-- loud (1) ----------------------------------------
+  [loud    ] renamed              PAYL_CNT -> PAYLOAD_FRAME_COUNT  name: 'PAYL_CNT' -> 'PAYLOAD_FRAME_COUNT'  (similarity 0.8778)  structural match; a by-name reference to the old name fails to resolve
+
+-- advisory (1) ----------------------------------------
+  [advisory] added                BATT_I_1  name: None -> 'BATT_I_1'
+
+-- what this diff could not determine ------------------------
+  incomparable fields : 0
+  ambiguous renames   : 0
+  unmatched removals  : 0
+  unmatched additions : 1
+  fully determinable  : False
+  - scale and offset changes below a relative 1e-12 are not reported by construction
+
+==============================================================================
+the impact report
+==============================================================================
+impact of 1.0 -> 1.1 on the given corpus
+
+impact class      references  meaning
+----------------  ----------  -------------------------------------------------------
+silently_changed  7           resolves, runs, and now means something else
+broken            0           no longer resolves; fails visibly at load or first use
+renamed_away      1           no longer resolves; a renamed item matched structurally
+undecidable       1           constructed at run time; this tool cannot resolve it
+unaffected        0           resolves to an item with no silent or loud change
+
+-- silently_changed (7) ------------------------------------
+  [silently_changed] analysis/trend.py:3    BATT_T_1  limits_changed,rescaled,unit_changed  resolves in both versions; the meaning moved
+  [silently_changed] procedures/battery.proc:2    BATT_T_1  limits_changed,rescaled,unit_changed  resolves in both versions; the meaning moved
+  [silently_changed] procedures/battery.proc:3    BUS_V  bit_shifted  resolves in both versions; the meaning moved
+  [silently_changed] procedures/battery.proc:4    SAFE_MODE  reenumerated  label moved from AOCS_MODE code 1 to AOCS_MODE code 2
+  [silently_changed] procedures/battery.proc:5    SET_HEATER  argument_reordered  resolves in both versions; the meaning moved
+  [silently_changed] procedures/battery.proc:5    SET_HEATER.DUTY  argument_reordered  the call still parses and encodes different bits
+  [silently_changed] procedures/battery.proc:5    SET_HEATER.HEATER_ID  argument_reordered  the call still parses and encodes different bits
+
+-- renamed_away (1) ------------------------------------
+  [renamed_away    ] analysis/trend.py:4    PAYL_CNT  renamed  suggestion: PAYLOAD_FRAME_COUNT  structural match only; verify before applying
+
+-- undecidable (1) ------------------------------------
+  [undecidable     ] analysis/trend.py:6    "PANEL_T_%d" % index  name assembled by a run-time expression
+
+-- coverage verdict: what this assessment could not determine ----
+  corpus sources                 : 2
+  unreadable sources             : 0
+  references extracted           : 9
+  references undecidable         : 1 (0.1111 of extracted)
+  dictionary items               : 5
+  items referenced by the corpus : 5 (1.0000)
+  items never referenced         : 0
+  changed items                  : 5
+  changed items referenced       : 5 (1.0000)
+  changed items not referenced   : 0
+  ambiguous rename candidates    : 0
+  incomparable fields            : 0
+  ambiguous enum labels          : 0
+  fully determinable             : False
+  undetermined because:
+    - 1 of 9 extracted references are constructed at run time and cannot be resolved statically, so their impact is unknown
+
+-- interpretation --------------------------------------------
+  8 reference(s) are affected: 7 silently changed, 0 broken, 1 renamed away. The silently changed ones are listed first because nothing downstream of them fails.
+
+==============================================================================
+the three numbers a reader should take from this example
+==============================================================================
+silent changes       : 7
+loud changes         : 1
+silently changed refs: 7
+coverage of the dictionary by this corpus: 1.0000
+assessment fully determinable: False
+[PASS] the calibration change on BATT_T_1 is reported as silent
+[PASS] the swapped command argument positions are reported as silent
+[PASS] the renamed counter is reported with its replacement name -- {'PAYL_CNT': 'PAYLOAD_FRAME_COUNT'}
+[PASS] the run-time-constructed reference is reported as undecidable, not guessed -- 1 undecidable findings
+[PASS] the assessment is reported as not fully determinable
+
+CHECKS RUN: 5
+FAILED CHECKS (0): none

@@ -1,0 +1,92 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q --junitxml=junit.xml
+      - name: Test count from junit XML, never from stdout
+        run: |
+          python - <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse("junit.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          declared = int(suite.get("tests", "0"))
+          counted = len(suite.findall(".//testcase"))
+          print(f"declared {declared}, counted {counted}")
+          if declared == 0 or declared != counted:
+              sys.exit("junit.xml does not agree with itself, or no test ran")
+          PY
+      - name: CLI
+        run: |
+          python -m refractpath --version
+          python -m refractpath info
+          python -m refractpath refract --elevation 45
+          python -m refractpath refract --elevation 5 --tolerance 10
+          python -m refractpath curve --points 13
+          python -m refractpath floor --tolerance 10
+          python -m refractpath dispersion --points 8
+      - name: Published references, which exits 1 by design
+        run: |
+          # One of the six external reference checks does not pass: Bennett's
+          # published 0.07 arcmin accuracy claim is not reproduced against this
+          # package's ray trace below about 19 degrees. The command reports it
+          # and exits 1. An exit 0 here would mean the failure had been hidden,
+          # so this step asserts the non-zero status rather than tolerating it.
+          set +e
+          python -m refractpath references
+          status=$?
+          set -e
+          if [ "$status" -ne 1 ]; then
+            echo "expected exit 1 from 'refractpath references', got $status"
+            exit 1
+          fi
+      - name: Validation scripts
+        run: |
+          python validation/validate_published_references.py
+          python validation/validate_raytrace_convergence.py
+          python validation/validate_model_grid.py
+          python validation/validate_disagreement_floor.py
+          python validation/validate_dispersion.py
+          python validation/validate_profile_sensitivity.py
+          python validation/validate_low_elevation_failure.py
+          python validation/validate_controls.py
+          python validation/validate_cli.py
+          python validation/worked_example.py
+      - name: Validation scripts from the gate's working directory
+        run: |
+          cd validation
+          for script in validate_*.py worked_example.py; do
+            python "$script" > /dev/null
+          done
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/refraction_curves.py
+          python examples/disagreement_curve.py
+          python examples/validity_floor_map.py
+          python examples/profile_envelope.py
+          python examples/dispersion_band.py
+          python examples/published_references.py
+          python examples/verdict_map.py
+          python examples/atmosphere_profile.py

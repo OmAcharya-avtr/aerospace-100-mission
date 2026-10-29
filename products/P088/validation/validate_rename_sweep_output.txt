@@ -1,0 +1,204 @@
+
+==============================================================================
+tmtcdiff -- rename detection false-match rate across a swept grid
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+deepdiff         : not installed  (alternatives table)
+jsonschema       : 4.26.0  (alternatives table)
+cpu cores        : 2
+repository root  : P088 (printed relatively; see validation/_bootstrap.py)
+
+thresholds : 0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70, 0.75, 0.80, 0.85, 0.90, 0.95
+sizes      : 20, 50, 100, 200, 400
+seeds      : 12 per cell, 4100 to 4177 step 7
+strategies : greedy, optimal  (greedy is the baseline)
+
+A rename is inferred, not read, so it has a false-match rate. Every number
+below is counted from generated pairs whose rename ground truth is exact.
+
+==============================================================================
+strategy 'greedy' -- false-match rate by threshold and dictionary size
+==============================================================================
+threshold  n=20    n=50    n=100   n=200   n=400   false  accepted
+---------  ------  ------  ------  ------  ------  -----  --------
+0.40       0.2258  0.1667  0.0840  0.0400  0.0224  51     975
+0.45       0.2000  0.1304  0.0769  0.0323  0.0144  40     964
+0.50       0.1111  0.0769  0.0625  0.0244  0.0144  29     953
+0.55       0.0769  0.0769  0.0551  0.0164  0.0103  23     947
+0.60       0.0769  0.0625  0.0551  0.0164  0.0062  20     944
+0.65       0.0400  0.0625  0.0323  0.0083  0.0062  14     938
+0.70       0.0400  0.0164  0.0164  0.0000  0.0000  4      928
+0.75       0.0400  0.0000  0.0083  0.0000  0.0000  2      926
+0.80       0.0000  0.0000  0.0000  0.0000  0.0000  0      924
+0.85       0.0000  0.0000  0.0000  0.0000  0.0000  0      924
+0.90       0.0000  0.0000  0.0000  0.0000  0.0000  0      794
+0.95       0.0000  0.0000  0.0000  0.0000  0.0000  0      674
+
+strategy 'greedy' -- recall by threshold and dictionary size
+threshold  n=20    n=50    n=100   n=200   n=400   correct/injected  95% interval (pooled)
+---------  ------  ------  ------  ------  ------  ----------------  ---------------------
+0.40       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.45       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.50       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.55       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.60       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.65       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.70       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.75       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.80       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.85       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.90       0.7917  0.7833  0.8500  0.8542  0.8771  794/924           [0.8352, 0.8811]
+0.95       0.7500  0.7500  0.7500  0.7292  0.7208  674/924           [0.6996, 0.7579]
+
+==============================================================================
+strategy 'optimal' -- false-match rate by threshold and dictionary size
+==============================================================================
+threshold  n=20    n=50    n=100   n=200   n=400   false  accepted
+---------  ------  ------  ------  ------  ------  -----  --------
+0.40       0.2258  0.1781  0.0840  0.0438  0.0224  53     977
+0.45       0.2000  0.1176  0.0769  0.0361  0.0144  40     964
+0.50       0.1111  0.0625  0.0551  0.0244  0.0144  27     951
+0.55       0.0769  0.0625  0.0551  0.0164  0.0103  22     946
+0.60       0.0769  0.0476  0.0551  0.0164  0.0062  19     943
+0.65       0.0400  0.0476  0.0323  0.0083  0.0062  13     937
+0.70       0.0400  0.0164  0.0164  0.0000  0.0000  4      928
+0.75       0.0400  0.0000  0.0083  0.0000  0.0000  2      926
+0.80       0.0000  0.0000  0.0000  0.0000  0.0000  0      924
+0.85       0.0000  0.0000  0.0000  0.0000  0.0000  0      924
+0.90       0.0000  0.0000  0.0000  0.0000  0.0000  0      794
+0.95       0.0000  0.0000  0.0000  0.0000  0.0000  0      674
+
+strategy 'optimal' -- recall by threshold and dictionary size
+threshold  n=20    n=50    n=100   n=200   n=400   correct/injected  95% interval (pooled)
+---------  ------  ------  ------  ------  ------  ----------------  ---------------------
+0.40       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.45       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.50       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.55       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.60       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.65       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.70       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.75       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.80       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.85       1.0000  1.0000  1.0000  1.0000  1.0000  924/924           [0.9960, 1.0000]
+0.90       0.7917  0.7833  0.8500  0.8542  0.8771  794/924           [0.8352, 0.8811]
+0.95       0.7500  0.7500  0.7500  0.7292  0.7208  674/924           [0.6996, 0.7579]
+
+==============================================================================
+false matches per unrelated-item opportunity -- the size confound, named
+==============================================================================
+The false-match rate above has a confound that has to be stated: the number of
+injected renames grows with dictionary size (size // 10) while the unrelated
+removals and additions stay at 2 each, so the DENOMINATOR of the rate is
+dominated by true renames at the larger sizes. The rate therefore falls with
+size partly by construction. The table below removes the confound by counting
+false matches against the opportunity instead: 2 unrelated removals and 2
+unrelated additions per seed, so 24 opportunities per cell.
+
+strategy  threshold  n=20  n=50   n=100  n=200  n=400  pooled
+--------  ---------  ----  -----  -----  -----  -----  ------
+greedy    0.40       7/24  12/24  11/24  10/24  11/24  51/120
+greedy    0.45       6/24  9/24   10/24  8/24   7/24   40/120
+greedy    0.50       3/24  5/24   8/24   6/24   7/24   29/120
+greedy    0.55       2/24  5/24   7/24   4/24   5/24   23/120
+greedy    0.60       2/24  4/24   7/24   4/24   3/24   20/120
+greedy    0.65       1/24  4/24   4/24   2/24   3/24   14/120
+greedy    0.70       1/24  1/24   2/24   0/24   0/24   4/120
+greedy    0.75       1/24  0/24   1/24   0/24   0/24   2/120
+greedy    0.80       0/24  0/24   0/24   0/24   0/24   0/120
+greedy    0.85       0/24  0/24   0/24   0/24   0/24   0/120
+greedy    0.90       0/24  0/24   0/24   0/24   0/24   0/120
+greedy    0.95       0/24  0/24   0/24   0/24   0/24   0/120
+optimal   0.40       7/24  13/24  11/24  11/24  11/24  53/120
+optimal   0.45       6/24  8/24   10/24  9/24   7/24   40/120
+optimal   0.50       3/24  4/24   7/24   6/24   7/24   27/120
+optimal   0.55       2/24  4/24   7/24   4/24   5/24   22/120
+optimal   0.60       2/24  3/24   7/24   4/24   3/24   19/120
+optimal   0.65       1/24  3/24   4/24   2/24   3/24   13/120
+optimal   0.70       1/24  1/24   2/24   0/24   0/24   4/120
+optimal   0.75       1/24  0/24   1/24   0/24   0/24   2/120
+optimal   0.80       0/24  0/24   0/24   0/24   0/24   0/120
+optimal   0.85       0/24  0/24   0/24   0/24   0/24   0/120
+optimal   0.90       0/24  0/24   0/24   0/24   0/24   0/120
+optimal   0.95       0/24  0/24   0/24   0/24   0/24   0/120
+
+Read this way the dependence on dictionary size is weak and not monotone, and
+the dependence on threshold is the strong effect.
+
+==============================================================================
+threshold selection -- the criterion was declared before the grid was run
+==============================================================================
+
+strategy        : greedy
+rule fired      : 1
+note            : rule 1: lowest threshold with FMR 0 at every size
+threshold       : 0.80
+pooled recall   : 924/924 = 1.0000
+pooled accepted : 924, false 0
+
+strategy        : optimal
+rule fired      : 1
+note            : rule 1: lowest threshold with FMR 0 at every size
+threshold       : 0.80
+pooled recall   : 924/924 = 1.0000
+pooled accepted : 924, false 0
+
+The library default is taken from the 'optimal' strategy, which is the default
+strategy. The selected value is compared with the shipped constant below; a
+disagreement FAILS this script rather than being written back.
+[PASS] DEFAULT_RENAME_THRESHOLD equals the value the criterion selected -- constant 0.8, selected 0.80 by rule 1
+
+==============================================================================
+baseline comparison at the selected threshold -- greedy against optimal
+==============================================================================
+strategy  size  injected  accepted  correct  false  recall  FMR
+--------  ----  --------  --------  -------  -----  ------  ------
+greedy    20    24        24        24       0      1.0000  0.0000
+greedy    50    60        60        60       0      1.0000  0.0000
+greedy    100   120       120       120      0      1.0000  0.0000
+greedy    200   240       240       240      0      1.0000  0.0000
+greedy    400   480       480       480      0      1.0000  0.0000
+optimal   20    24        24        24       0      1.0000  0.0000
+optimal   50    60        60        60       0      1.0000  0.0000
+optimal   100   120       120       120      0      1.0000  0.0000
+optimal   200   240       240       240      0      1.0000  0.0000
+optimal   400   480       480       480      0      1.0000  0.0000
+
+greedy  : 924 correct, 0 false
+optimal : 924 correct, 0 false
+MEASURED RESULT: the greedy baseline and the optimal assignment are
+indistinguishable on this generator at the selected threshold. The optimal
+matcher is retained as the default because it cannot be worse by
+construction, not because it was measured better. It was not.
+
+largest difference in false matches between the two strategies in any cell of
+the whole grid: 1. Away from the selected threshold the two differ in
+both directions, so neither dominates.
+
+==============================================================================
+independently derived bound -- exact structural signature collisions
+==============================================================================
+The bound counts items sharing an EXACT structural signature. Two such items
+cannot be separated by the structural term at all, so every false match the
+structural term alone can make lies inside that set. The bound comes from
+counting the signature multiset and uses nothing the matcher computes.
+size  parameters  distinct signatures  colliding items  collision fraction  removed pool  added pool
+----  ----------  -------------------  ---------------  ------------------  ------------  ----------
+20    20          20                   0                0.0000              4             4
+50    50          50                   0                0.0000              7             7
+100   100         100                  0                0.0000              12            12
+200   200         197                  6                0.0300              22            22
+400   400         388                  24               0.0600              42            42
+
+A non-zero collision fraction is the reason the score carries a name term at
+all: on this generator the structural term alone cannot be sufficient.
+[PASS] the collision bound is computable and non-trivial at every swept size
+
+CHECKS RUN: 2
+FAILED CHECKS (0): none

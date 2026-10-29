@@ -1,0 +1,164 @@
+
+==============================================================================
+refractpath -- the cross-model disagreement curve and the measured floor
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (alternatives table only)
+ephem            : not installed  (alternatives table only)
+pyerfa           : not installed  (alternatives table only)
+cpu cores        : 2
+repository root  : P087 (printed relatively; see validation/_bootstrap.py)
+
+ensemble  : plane_parallel, oriani_series, bennett_1982, saemundsson_1986, raytrace
+tolerances: (1.0, 5.0, 10.0, 30.0, 60.0) arcsec
+grid      : 181 points, h = 90 (i/180)^2 degrees
+
+==============================================================================
+1. the ensemble and its spread against elevation, published conditions
+==============================================================================
+elevation  plane_parallel  oriani_series  bennett_1982  saemundsson_1986  raytrace     spread       widest pair
+---------  --------------  -------------  ------------  ----------------  -----------  -----------  ---------------------------------
+  90.0          0.0000          0.0000        -0.0811       -0.1157            0.0000       0.1157  saemundsson_1986 / plane_parallel
+  60.0         33.5665         33.5083        34.4827       35.1227           33.5085       1.6144  oriani_series / saemundsson_1986
+  45.0         58.1443         57.9932        59.6909       60.7981           57.9939       2.8049  oriani_series / saemundsson_1986
+  30.0        100.7374        100.2139       103.0386      104.8805          100.2192       4.6666  oriani_series / saemundsson_1986
+  20.0        159.8980        158.1233       162.2046      164.8687          158.1627       6.7455  oriani_series / saemundsson_1986
+  15.0        217.3946        213.1840       218.1736      221.3963          213.3453       8.2123  oriani_series / saemundsson_1986
+  10.0        331.2147        316.9923       323.4903      327.1801          318.1248      14.2224  oriani_series / plane_parallel
+   7.0        477.9919        436.4804       447.2241      450.6162          442.4346      41.5116  oriani_series / plane_parallel
+   5.0        677.2071        563.0581       592.9887      595.2284          589.6488     114.1489  oriani_series / plane_parallel
+   3.0       1172.9460        639.9452       860.6653      860.1721          858.9112     533.0009  oriani_series / plane_parallel
+   2.0       1920.9859         81.0089      1092.9646     1091.2042         1089.0980    1839.9769  oriani_series / plane_parallel
+   1.0     undefined       undefined        1459.7474     1460.1751         1445.4253      14.7497  raytrace / saemundsson_1986
+   0.5     undefined       undefined        1725.2226     1728.5785         1700.6531      27.9254  raytrace / saemundsson_1986
+   0.0     undefined       undefined        2068.6520     2065.9518         2034.5783      34.0737  raytrace / bennett_1982
+
+The spread column is equation (22). Read the widest-pair column with it: at
+moderate elevation the extremes are the Oriani series and Saemundsson's fit,
+and near the horizon they are whichever members are still defined.
+
+==============================================================================
+2. the spread is NOT monotone, and this is structural
+==============================================================================
+tolerance                  : 10 arcsec
+crossings found on the grid : 3
+spread monotone on the grid  : False
+
+below (deg)  spread below  above (deg)  spread above  undefined count
+-----------  ------------  -----------  ------------  ---------------
+  1.22500         10.8265    1.34444          9.2735  2 -> 2
+  1.34444          9.2735    1.46944       2030.6436  2 -> 1
+ 11.02500         10.6108   11.37778          9.6534  0 -> 0
+
+lowest crossing            : 1.22500 deg
+highest crossing, the floor : 11.24480 deg
+ratio                      : 9.179
+
+A bisection that assumed a single crossing and walked up from the horizon
+would stop at the lowest one and understate the floor by that ratio. The
+non-monotonicity is caused by members LEAVING the ensemble: the undefined
+count column shows plane_parallel and oriani_series dropping out at their
+own validity limits, and the spread falls when the most discrepant member
+goes. The floor reported by this package is always the HIGHEST crossing.
+[PASS] the disagreement curve is measured to be non-monotone and the floor is the highest crossing -- 3 crossings, floor 11.24480 deg against lowest crossing 1.22500 deg
+
+==============================================================================
+3. the measured floor, by tolerance and by atmospheric state
+==============================================================================
+state                                    1 arcsec  5 arcsec  10 arcsec  30 arcsec  60 arcsec
+---------------------------------------  --------  --------  ---------  ---------  ---------
+published 1010 hPa 10 C dry 550 nm        69.789    28.050    11.245      7.799      6.192
+cold dense 1035 hPa -25 C dry 550 nm      72.090    31.950    11.340      7.867      6.247
+hot humid 1005 hPa 35 C 90 pct 550 nm     70.611    29.607    13.259      7.767      6.167
+high site 700 hPa 0 C dry 550 nm          63.353    18.684     9.950      6.901      5.478
+blue 1010 hPa 10 C dry 400 nm             60.472    14.249    11.311      7.845      6.229
+near infrared 1010 hPa 10 C dry 1000 nm   73.676    35.124    17.152      7.765      6.165
+
+Every cell is the apparent elevation, in degrees, below which the five
+independent standard methods disagree by at least the column's tolerance.
+No correction from this package is suitable for operational pointing below
+the figure in the cell that matches your tolerance and your conditions.
+
+==============================================================================
+4. bracket evidence for one cell, so the bisection can be audited
+==============================================================================
+quantity                         value
+-------------------------------  ----------------------------------
+state                            published 1010 hPa 10 C dry 550 nm
+tolerance (arcsec)               10.0000
+floor (deg)                      11.244797
+bracket low (deg)                11.244797
+bracket high (deg)               11.244883
+bracket width (deg)              8.613e-05
+spread at bracket low (arcsec)   10.000223
+spread at bracket high (arcsec)  9.999993
+bisection iterations             12
+[PASS] the bracket straddles the tolerance and is closed to 1e-4 degrees -- width 8.613e-05 deg
+
+==============================================================================
+5. pairwise attribution at three elevations
+==============================================================================
+
+apparent elevation 45 deg, spread 2.8049 arcsec
+pair                               difference (arcsec)
+---------------------------------  -------------------
+oriani_series / saemundsson_1986       2.8049
+raytrace / saemundsson_1986            2.8043
+plane_parallel / saemundsson_1986      2.6538
+bennett_1982 / oriani_series           1.6976
+bennett_1982 / raytrace                1.6970
+bennett_1982 / plane_parallel          1.5465
+bennett_1982 / saemundsson_1986        1.1073
+oriani_series / plane_parallel         0.1511
+plane_parallel / raytrace              0.1504
+oriani_series / raytrace               0.0007
+
+apparent elevation 10 deg, spread 14.2224 arcsec
+pair                               difference (arcsec)
+---------------------------------  -------------------
+oriani_series / plane_parallel        14.2224
+plane_parallel / raytrace             13.0899
+oriani_series / saemundsson_1986      10.1878
+raytrace / saemundsson_1986            9.0553
+bennett_1982 / plane_parallel          7.7244
+bennett_1982 / oriani_series           6.4981
+bennett_1982 / raytrace                5.3656
+plane_parallel / saemundsson_1986      4.0346
+bennett_1982 / saemundsson_1986        3.6898
+oriani_series / raytrace               1.1325
+
+apparent elevation 0 deg, spread 34.0737 arcsec
+pair                             difference (arcsec)
+-------------------------------  -------------------
+bennett_1982 / raytrace             34.0737
+raytrace / saemundsson_1986         31.3734
+bennett_1982 / saemundsson_1986      2.7003
+
+==============================================================================
+6. the floor rises with a colder, denser atmosphere
+==============================================================================
+temperature (C)  floor at 10 arcsec (deg)
+---------------  ------------------------
+ -30.0            11.2488
+ -10.0            11.2465
+ +10.0            11.2448
+ +30.0            11.2436
+[PASS] the measured floor falls monotonically as the atmosphere warms and thins -- from 11.2488 deg at -30 C to 11.2436 deg at +30 C
+
+==============================================================================
+elapsed time -- UNSTABLE, two cores, reported for information only
+==============================================================================
+quantity                              value
+------------------------------------  -----
+floor measurements run                30
+mean wall-clock per measurement (ms)  589.8
+total wall-clock (s)                  17.69
+
+CHECKS RUN: 3
+FAILED CHECKS (0): none

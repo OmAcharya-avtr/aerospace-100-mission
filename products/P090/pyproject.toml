@@ -1,0 +1,111 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tlecheck"
+version = "0.1.0"
+description = "Screen a two-line element set before you propagate it, and say which of its problems the propagator will not tell you about."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "two-line-element",
+    "tle",
+    "sgp4",
+    "orbit-determination",
+    "space-situational-awareness",
+    "data-quality",
+    "aerospace-gnc",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+]
+
+# Every range below is bounded on BOTH sides, at the versions every number in
+# this repository was measured against. A floor with no ceiling is not a
+# dependency specification: five of the first fifty products of this mission
+# were found broken or silently wrong for a new install because pip resolved a
+# release published after the product was measured, and one of the five passed
+# its whole test suite while its validation numbers moved.
+#
+# sgp4 is the sharpest case here and the ceiling is deliberate.
+# `tlecheck.propagate` reads `Satrec.sgp4_array`, the integer error codes of
+# `sgp4.api.SGP4_ERRORS`, and `Satrec.sgp4_tsince`; `tlecheck.dataset`
+# additionally reads the post-propagation mean elements `nm`, `em`, `im`, `Om`,
+# `om` and `mm`, and the constants `xke` and `j2`. The mean-element attributes
+# are an implementation surface of the reference translation, not a documented
+# API with a stability promise, and the whole synthetic corpus of this
+# repository is built through them, so the ceiling sits at the minor version.
+# The cost is recorded in README.md under Limitations: this package cannot take
+# an sgp4 2.28 release without a port and a re-measure.
+#
+# scikit-learn is bounded at the minor version for the same kind of reason.
+# `tlecheck.learned` iterates `RandomForestClassifier.estimators_` and calls
+# `predict_proba` on individual members to compute the per-member vote
+# dispersion it reports as an uncertainty output. `estimators_` is documented;
+# the per-member probability semantics are not covered by any cross-minor
+# stability promise.
+#
+# numpy is bounded one notch looser. The code depends on `np.trapezoid`, on
+# `np.triu_indices`, and on median and percentile behaviour, all long-stable;
+# but numpy has resolved to three different patch releases across sessions of
+# this mission on an unbounded specifier.
+#
+# WHAT WAS NOT MEASURED, stated rather than implied. The mission's build guide
+# asks for the test suite to be run at both ends of every declared range. That
+# was not possible here: the build environment is a shared pre-pinned
+# interpreter that this product is forbidden to modify, and installing a second
+# version of sgp4, numpy or scikit-learn would have required running pip. Each
+# range is therefore bounded at the single version it was MEASURED at -- sgp4
+# 2.27, numpy 2.5.3, scikit-learn 1.9.1 -- widened only to the patch and minor
+# floor the code plainly supports. The ruff range is the one exception: 0.16.9
+# and 0.17.3 were both available and the source measured clean under both, so
+# that range is measured at both ends. This is recorded in README.md under
+# Limitations.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scikit-learn>=1.9,<1.10",
+    "sgp4>=2.27,<2.28",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=9.1,<9.2", "hypothesis>=6.170,<6.171"]
+examples = ["matplotlib>=3.11,<3.12"]
+dev = [
+    "pytest>=9.1,<9.2",
+    "hypothesis>=6.170,<6.171",
+    "ruff>=0.16,<0.18",
+    "matplotlib>=3.11,<3.12",
+]
+
+[project.scripts]
+tlecheck = "tlecheck.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/tlecheck"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["tlecheck"]
+known-local-folder = ["_bootstrap", "_common", "conftest"]

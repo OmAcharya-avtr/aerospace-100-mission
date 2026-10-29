@@ -1,0 +1,75 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q --junitxml=junit.xml
+      - name: Test count from junit XML, never from stdout
+        run: |
+          python - <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse("junit.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          declared = int(suite.get("tests", "0"))
+          counted = len(suite.findall(".//testcase"))
+          print(f"declared {declared}, counted {counted}")
+          if declared == 0 or declared != counted:
+              sys.exit("junit.xml does not agree with itself, or no test ran")
+          PY
+      - name: CLI
+        run: |
+          python -m tmtcdiff --version
+          python -m tmtcdiff info
+          python -m tmtcdiff taxonomy
+          python -m tmtcdiff demo --size 40 --max-rows 5
+          python -m tmtcdiff negative-control --size 40
+          python -m tmtcdiff sweep --sizes 30 --thresholds 0.6 0.8
+      - name: Validation scripts
+        run: |
+          python validation/validate_change_classes.py
+          python validation/validate_silent_changes.py
+          python validation/validate_rename_sweep.py
+          python validation/validate_negative_control.py
+          python validation/validate_impact_report.py
+          python validation/validate_bounds.py
+          python validation/validate_cli.py
+          python validation/worked_example.py
+      - name: Validation scripts from the gate's working directory
+        run: |
+          cd validation
+          for script in validate_*.py worked_example.py; do
+            python "$script" > /dev/null
+          done
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/taxonomy_map.py
+          python examples/dictionary_shapes.py
+          python examples/change_class_detection.py
+          python examples/silent_versus_loud.py
+          python examples/rename_threshold_sweep.py
+          python examples/similarity_matrix.py
+          python examples/negative_control.py
+          python examples/impact_breakdown.py
+          python examples/coverage_verdict.py

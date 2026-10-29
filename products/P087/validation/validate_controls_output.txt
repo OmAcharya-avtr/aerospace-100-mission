@@ -1,0 +1,63 @@
+
+==============================================================================
+refractpath -- controls, anchored on truths and asserted in both directions
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (alternatives table only)
+ephem            : not installed  (alternatives table only)
+pyerfa           : not installed  (alternatives table only)
+cpu cores        : 2
+repository root  : P087 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+controls that MUST fire
+==============================================================================
+[PASS] C1 equation (13) refuses below its analytic floor and answers above it -- floor 1.360182 deg from 90 - arcsin(1/n); probed at +/- 1e-6 deg
+[PASS] C2 equation (14) refuses below its computed breakdown and answers above it -- breakdown 1.950707 deg from equation (14a); probed at +/- 1e-4 deg
+[PASS] C3 the independent bracket rejects a 6.7% error at 45 degrees -- bracket [56.5733, 58.1271], measured 57.9931, injected 54.1088 and 61.8774; the injection is 2.5 times the bracket's own relative width of 2.6792%
+[PASS] C4 the independent bracket rejects a 25.6% error at 20 degrees -- bracket [143.5330, 159.7028], measured 158.1608, injected 117.7362 and 198.5853; the injection is 2.5 times the bracket's own relative width of 10.2237%
+[PASS] C5 the independent bracket rejects a 72.3% error at 10 degrees -- bracket [237.7035, 329.6550], measured 318.1216, injected 88.2429 and 548.0003; the injection is 2.5 times the bracket's own relative width of 28.9045%
+[PASS] C6 the independent bracket rejects the exact plane-parallel answer -- plane-parallel 58.14355 arcsec exceeds the upper bound 58.12707 arcsec by +0.01648
+[PASS] C7 the verdict refuses at 2 degrees against a 10 arcsec tolerance -- verdict refuse, disagreement 1839.977 arcsec, floor 11.2448 deg
+[PASS] C8 the profile envelope alone refuses when the cross-model spread is zero -- single-member ensemble, spread 0.000 arcsec, envelope 16.054 arcsec against a tolerance of 8.027 arcsec
+[PASS] C9 a near-vacuum atmosphere gives a refraction below 1e-3 arcsec -- 5.763e-07 arcsec at 1e-6 hPa, against 589.649 arcsec at 1010 hPa
+
+==============================================================================
+controls that MUST NOT fire
+==============================================================================
+[PASS] N1 the bracket does not reject the ray trace at any of 7 elevations -- 60, 45, 30, 20, 10, 5 and 2 degrees
+[PASS] N2 the verdict does not refuse at 80 degrees against a 10 arcsec tolerance -- verdict usable, disagreement 0.4240 arcsec, no reasons recorded
+[PASS] N3 a 200 m +20 K/km surface inversion does not refuse at 80 degrees -- verdict usable, envelope 0.00000 arcsec
+[PASS] N4 the equation (14a) guard does not refuse above the breakdown elevation -- breakdown 1.950707 deg; probed at 2, 3, 5, 15, 45 and 89 degrees
+[PASS] N5 the verdict label is unchanged across 400 to 633 nm at 80 degrees -- labels ['usable']; all four wavelengths are inside every formulation's published range
+
+==============================================================================
+summary
+==============================================================================
+group          count  fired as required
+-------------  -----  -----------------
+must fire      9      9 of 9
+must not fire  5      5 of 5
+
+Every control above is anchored on a quantity computed independently of the
+output it tests: a closed-form floor, a bracket from different mathematics,
+the vacuum, or an injected error scaled by the conditioning of the bound it
+is injected into. No control's criterion is a seed.
+
+==============================================================================
+the one external check that does not pass
+==============================================================================
+validation/validate_published_references.py reports the Bennett (1982)
+accuracy claim as FAILED against this package's ray trace below about 19
+degrees of apparent elevation. That is not a control; it is a cross-check
+against published material, and it is listed here so that a reader of this
+file does not conclude that everything in this product passes.
+
+CHECKS RUN: 14
+FAILED CHECKS (0): none

@@ -1,0 +1,63 @@
+
+==============================================================================
+tmtcdiff -- every validation script, from five working directories
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+deepdiff         : not installed  (alternatives table)
+jsonschema       : 4.26.0  (alternatives table)
+cpu cores        : 2
+repository root  : P088 (printed relatively; see validation/_bootstrap.py)
+
+scripts probed     : 8
+directories probed : 5
+  filesystem root              -> filesystem root
+  temporary directory          -> temporary directory
+  repository root              -> .
+  validation (the gate's cwd)  -> validation
+  src                          -> src
+
+Note: python -I is NOT used. Isolated mode removes the script's own
+directory from sys.path, so 'import _bootstrap' fails and the probe
+reports a failure that does not exist.
+
+==============================================================================
+exit status by script and working directory
+==============================================================================
+script                        filesystem root  temporary directory  repository root  validation (the gate's cwd)  src  verdict
+----------------------------  ---------------  -------------------  ---------------  ---------------------------  ---  -------
+validate_bounds.py            0                0                    0                0                            0    ok
+validate_change_classes.py    0                0                    0                0                            0    ok
+validate_cli.py               0                0                    0                0                            0    ok
+validate_impact_report.py     0                0                    0                0                            0    ok
+validate_negative_control.py  0                0                    0                0                            0    ok
+validate_rename_sweep.py      0                0                    0                0                            0    ok
+validate_silent_changes.py    0                0                    0                0                            0    ok
+worked_example.py             0                0                    0                0                            0    ok
+
+non-zero exit statuses : 0 of 40
+[PASS] every script exits zero from every working directory
+
+==============================================================================
+elapsed time -- UNSTABLE, two subprocesses at a time on two cores
+==============================================================================
+script                        filesystem root  temporary directory  repository root  validation (the gate's cwd)  src
+----------------------------  ---------------  -------------------  ---------------  ---------------------------  ----
+validate_bounds.py            9.2              9.6                  8.5              8.1                          7.9
+validate_change_classes.py    4.4              6.7                  5.8              7.8                          7.2
+validate_cli.py               17.6             18.0                 17.8             17.5                         16.4
+validate_impact_report.py     4.9              5.5                  3.4              2.6                          2.5
+validate_negative_control.py  3.8              3.7                  5.8              5.8                          5.3
+validate_rename_sweep.py      30.3             29.9                 31.3             31.4                         31.5
+validate_silent_changes.py    6.2              6.5                  6.2              5.8                          6.6
+worked_example.py             2.6              3.0                  3.2              3.1                          2.0
+
+No conclusion in this repository rests on a timing or on a ratio of timings.
+
+CHECKS RUN: 1
+FAILED CHECKS (0): none

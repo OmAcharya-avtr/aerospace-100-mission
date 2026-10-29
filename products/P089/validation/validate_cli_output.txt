@@ -1,0 +1,81 @@
+VALIDATION 7 -- THE COMMAND LINE
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  scikit-learn     : 1.9.1
+  matplotlib       : 3.11.2
+  pytest           : 9.1.1
+  hypothesis       : 6.170.13
+  ruff (installed) : 0.17.3
+  ruff (on PATH)   : ruff 0.16.9  (a standalone binary, a DIFFERENT version from the installed distribution; the source is clean under both and the figures are in VALIDATION.md)
+  filterpy         : not installed  (named in the alternatives table; no number here is compared against it)
+  cpu cores        : 2
+  repository root  : P089 (printed relatively; see validation/_bootstrap.py)
+
+  every command below is spawned as `python3 -m aligncal ...` with a temporary HOME and MPLCONFIGDIR outside the repository and PYTHONDONTWRITEBYTECODE=1 set
+
+==============================================================================
+7.1 every subcommand
+==============================================================================
+
+command                     exit  expected  stdout lines  fragments found
+version                        0         0             1              1/1
+[PASS] version: exit status 0 -- got 0
+[PASS] version: every expected fragment present -- 1 of 1
+info                           0         0            40              4/4
+[PASS] info: exit status 0 -- got 0
+[PASS] info: every expected fragment present -- 4 of 4
+observability                  0         0            20              4/4
+[PASS] observability: exit status 0 -- got 0
+[PASS] observability: every expected fragment present -- 4 of 4
+align, rich record             0         0            26              3/3
+[PASS] align, rich record: exit status 0 -- got 0
+[PASS] align, rich record: every expected fragment present -- 3 of 3
+align, single-axis record      0         0            28              3/3
+[PASS] align, single-axis record: exit status 0 -- got 0
+[PASS] align, single-axis record: every expected fragment present -- 3 of 3
+align, three secondaries       0         0            66              3/3
+[PASS] align, three secondaries: exit status 0 -- got 0
+[PASS] align, three secondaries: every expected fragment present -- 3 of 3
+compare                        0         0            28              3/3
+[PASS] compare: exit status 0 -- got 0
+[PASS] compare: every expected fragment present -- 3 of 3
+unobservable                   0         0            31              4/4
+[PASS] unobservable: exit status 0 -- got 0
+[PASS] unobservable: every expected fragment present -- 4 of 4
+benchmark                      0         0            14              3/3
+[PASS] benchmark: exit status 0 -- got 0
+[PASS] benchmark: every expected fragment present -- 3 of 3
+a rejected argument            2         2             0              1/1
+[PASS] a rejected argument: exit status 2 -- got 2
+[PASS] a rejected argument: every expected fragment present -- 1 of 1
+a rejected floor factor        2         2             0              1/1
+[PASS] a rejected floor factor: exit status 2 -- got 2
+[PASS] a rejected floor factor: every expected fragment present -- 1 of 1
+
+==============================================================================
+7.2 the tree was not polluted by any of those subprocesses
+==============================================================================
+  patterns checked : .config, .pytest_cache, .ruff_cache, .hypothesis, __pycache__
+  entries found    : 7
+    .hypothesis
+    .pytest_cache
+    .ruff_cache
+    examples/__pycache__
+    src/aligncal/__pycache__
+    tests/__pycache__
+    validation/__pycache__
+
+  __pycache__ and the tool caches are produced by running the test suite and the scripts, and every one of them is covered by an anchored pattern in .gitignore. What must NOT appear is .config, which is what a subprocess with a mis-set HOME writes.
+[PASS] no .config directory anywhere in the tree -- 0 found
+
+==============================================================================
+7.3 the CLI's own refusal language
+==============================================================================
+  forbidden phrases searched : flight-safe, flight safe, certified, mission-ready, production-ready, calibrated alignment
+  present                    : ['certified']
+[PASS] the CLI makes no flight-safety or certification claim -- the only occurrence of 'certified' is in the phrase 'not certified'
+
+CHECKS RUN: 24
+FAILED CHECKS (0): none

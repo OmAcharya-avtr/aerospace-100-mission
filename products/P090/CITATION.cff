@@ -1,0 +1,244 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  tlecheck: screening a two-line element set before propagation, with a
+  measured-consequence classification and a first-class statement of what the
+  screen cannot determine
+version: 0.1.0
+date-released: 2026-10-29
+license: Apache-2.0
+abstract: >-
+  Screens a two-line element set for format and checksum validity, epoch
+  staleness against a declared requirement, element plausibility against bounds
+  from orbital mechanics and against the object's own element history, ephemeris
+  continuity against its own predecessor, and cross-source disagreement; and
+  classifies each problem as one the propagator will report loudly, one that
+  will produce a confidently wrong ephemeris, or one that is benign. The
+  classification is a measured consequence rather than an assumed label: the
+  class boundary comes from propagating the element set and its uncorrupted
+  reference with sgp4 over the same grid and differencing the positions. The
+  first output of every call is a report of eleven things the screen cannot
+  determine, computed before any screen runs; three are structural and no amount
+  of data moves them. Integrity and consequence are separate outputs, because a
+  checksum says a character changed and nothing about what the change costs:
+  measured over 420 objects, all 31 element sets whose only corruption is the
+  checksum column have a propagated position error of exactly 0.0000 km, while
+  the checksum screen detects every one with a precision and recall of 1.0000
+  and no false positives in 363. The checksum's blindness is exact: it detects
+  0.888889 of two-column digit substitutions and 0.000000 of digit
+  transpositions, enumerated over 91,368 and 992 cases and confirmed against a
+  closed form of 72/81 derived by a congruence argument that enumerates nothing.
+  Validation is level 2. A single flipped drag-term sign, with a valid checksum
+  and every element inside every physical bound, is worth 1.8993 km after one
+  day, 93.0648 km after seven and 1704.5723 km after thirty. Four results are
+  unfavourable to this package and are published as measured. The product
+  specification predicted that the explicit rule screens would match or beat the
+  learned classifier on every class they cover, and on a 420-object held-out
+  split they do not: the learned model reaches a silent-class recall of 0.7946
+  at a false-positive rate of 0.0455 where the swept rule baseline reaches
+  0.4286, and it takes three of six per-class metrics against the rules' two.
+  The baseline was strengthened five times before that was published and the
+  margin fell from about +0.78 recall, a build-time figure labelled as not
+  reproducible from the shipped code, to the +0.3661 reported here. The rules keep what the model
+  cannot provide: an exact integrity verdict, a loud-failure recall of 0.9444
+  from a check against a number rather than an estimate, and a win of +0.2153
+  and +0.1463 of area on two corruption families withheld from the model's
+  training. The learned model answers confidently where the analytic screen
+  withholds its test, with 7 of 32 errors on the unresolvable subset carrying a
+  decision margin above 0.5 against 0 of 11 on the resolvable one. Four of six
+  orbit families cannot be screened for a one-kilometre consequence by comparing
+  element sets at all, with resolutions from 1.7898 km to 29.4676 km, and the
+  screen reports that rather than returning a verdict that is noise. The
+  cross-source screen's precision is capped at 0.8889 by a symmetry it cannot
+  break. Seventeen controls were run, twelve of which must fire and twelve of
+  which did, five of which must not and none of which did. All numbers are
+  measured against a seeded synthetic element catalogue whose generator is
+  documented in DATASET_CARD.md and whose element histories are built with the
+  SGP4 propagator itself; no flight data and no element catalogue is used or
+  shipped anywhere, and the authoritative element source is a catalogue this
+  product does not ship. A passing screen is not a statement that a propagated
+  ephemeris is accurate. Research grade. Not flight-qualified, not certified,
+  not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - two-line-element
+  - tle
+  - sgp4
+  - orbit-determination
+  - space-situational-awareness
+  - data-quality
+  - aerospace-gnc
+references:
+  - type: report
+    authors:
+      - family-names: Hoots
+        given-names: "F. R."
+      - family-names: Roehrich
+        given-names: "R. L."
+    title: "Models for Propagation of NORAD Element Sets"
+    number: "Spacetrack Report No. 3"
+    institution:
+      name: "U.S. Air Force Aerospace Defense Command"
+    year: 1980
+    notes: >-
+      The element definitions, the mean-element interpretation, and the
+      modulo-10 digit-sum checksum rule of tlecheck.elements. That rule is
+      verified in validate_elements.py against a published element set whose
+      stated checksums are 1 and 2 and whose computed checksums are 1 and 2.
+  - type: conference-paper
+    authors:
+      - family-names: Vallado
+        given-names: "D. A."
+      - family-names: Crawford
+        given-names: "P."
+      - family-names: Hujsak
+        given-names: "R."
+      - family-names: Kelso
+        given-names: "T. S."
+    title: "Revisiting Spacetrack Report #3"
+    collection-title: "AIAA/AAS Astrodynamics Specialist Conference"
+    number: "AIAA 2006-6753"
+    year: 2006
+    notes: >-
+      The paper the installed sgp4 distribution implements. Section 2 for the
+      column layout of the distributed text form, the implied-decimal
+      exponential fields and the 1957-2056 two-digit epoch year window; section
+      3 for the WGS-72 constants this package adopts; and the initl subroutine
+      for the un-Kozai transformation that is equation (18) of tlecheck.dataset.
+      The error codes 1 to 6 of sgp4.api.SGP4_ERRORS are this paper's.
+  - type: book
+    authors:
+      - family-names: Vallado
+        given-names: "D. A."
+    title: "Fundamentals of Astrodynamics and Applications"
+    edition: "4th"
+    publisher:
+      name: "Microcosm Press"
+    year: 2013
+    notes: >-
+      Equation (1-29) for the Kepler inversion that is equation (1); equations
+      (1-16) and (1-17) for the perigee and apogee radii of equation (2);
+      algorithm 14, equation (3-27), for the Julian date of equation (5), whose
+      declared validity range of 1900 March 1 to 2100 February 28 was verified
+      and whose one-day failure outside it is asserted as a test; and equations
+      (9-38) and (9-39) for the first-order J2 secular rates of equations (16)
+      and (17), which agree with the propagator's own nodedot and argpdot to a
+      worst relative difference of 0.001579 and 0.279937.
+  - type: article
+    authors:
+      - family-names: Kozai
+        given-names: "Y."
+    title: "The motion of a close earth satellite"
+    journal: "Astronomical Journal"
+    volume: 64
+    year: 1959
+    notes: >-
+      The mean motion written in a two-line element set is a Kozai mean motion.
+      Writing a Brouwer mean motion into that field instead biases the
+      semi-major axis by about half a kilometre, which this repository measured
+      as 112.09 km of along-track drift two and a half days later.
+  - type: article
+    authors:
+      - family-names: Brouwer
+        given-names: "D."
+    title: >-
+      Solution of the problem of artificial satellite theory without drag
+    journal: "Astronomical Journal"
+    volume: 64
+    year: 1959
+    notes: >-
+      The theory whose mean motion the propagator works with internally, and
+      the other end of the transformation of equation (18).
+  - type: article
+    authors:
+      - family-names: Rousseeuw
+        given-names: "P. J."
+      - family-names: Croux
+        given-names: "C."
+    title: "Alternatives to the median absolute deviation"
+    journal: "Journal of the American Statistical Association"
+    volume: 88
+    issue: 424
+    year: 1993
+    notes: >-
+      Section 2, the 1.4826 consistency constant making a scaled median absolute
+      deviation an unbiased estimator of the standard deviation for Gaussian
+      data. It is equation (7) and it is used by the history screen and by the
+      continuity screen. Its small-sample variance over twelve points is why
+      the measured per-element false-positive rate at a four-sigma threshold is
+      0.0433 rather than 0.0001, which this repository reports rather than
+      corrects.
+  - type: article
+    authors:
+      - family-names: Sen
+        given-names: "P. K."
+    title: >-
+      Estimates of the regression coefficient based on Kendall's tau
+    journal: "Journal of the American Statistical Association"
+    volume: 63
+    issue: 324
+    year: 1968
+    notes: >-
+      Equation (2.6), the median-of-pairwise-slopes estimator that is equation
+      (9), and section 5 for the median intercept paired with it. Used for the
+      three elements that genuinely drift: the node, the mean motion and the
+      drag term.
+  - type: article
+    authors:
+      - family-names: Theil
+        given-names: "H."
+    title: >-
+      A rank-invariant method of linear and polynomial regression analysis
+    journal: >-
+      Proceedings of the Royal Netherlands Academy of Sciences
+    volume: 53
+    year: 1950
+    notes: >-
+      The estimator Sen (1968) builds on.
+  - type: article
+    authors:
+      - family-names: Hamilton
+        given-names: "D. P."
+      - family-names: Burns
+        given-names: "J. A."
+    title: "Orbital stability zones about asteroids"
+    journal: "Icarus"
+    volume: 92
+    year: 1992
+    notes: >-
+      The form of the Hill-sphere stability radius behind equation (4). The
+      numerical value used is the standard Earth figure of about 1.5e6 km and it
+      is used only as an order-of-magnitude ceiling on the apogee a geocentric
+      two-body element set can describe.
+  - type: article
+    authors:
+      - family-names: Pedregosa
+        given-names: "F."
+      - family-names: Varoquaux
+        given-names: "G."
+      - family-names: Gramfort
+        given-names: "A."
+    title: "Scikit-learn: machine learning in Python"
+    journal: "Journal of Machine Learning Research"
+    volume: 12
+    year: 2011
+    notes: >-
+      RandomForestClassifier, whose per-member probabilities tlecheck.learned
+      reads to produce the ensemble dispersion of equation (19). That read is
+      why scikit-learn is pinned below 1.10.
+  - type: software
+    authors:
+      - name: "Brandon Rhodes and the sgp4 contributors"
+    title: "sgp4"
+    version: "2.27"
+    notes: >-
+      The propagator. Every consequence figure in this repository was produced
+      by it, every secular-rate and semi-major-axis cross-check is against its
+      internals, and this package screens for it and does not replace it. Two
+      measured behaviours of it motivate this package and neither is a defect
+      in it: it does not verify the element set checksum, and two lines of 69
+      spaces parse to object 0 with a mean motion of 0.0. tlecheck.dataset also
+      reads its post-propagation mean elements nm, em, im, Om, om and mm, which
+      are an implementation surface rather than a promised API, which is why the
+      dependency is pinned below 2.28.

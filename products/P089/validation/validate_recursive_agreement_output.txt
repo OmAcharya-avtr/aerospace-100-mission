@@ -1,0 +1,163 @@
+VALIDATION 3 -- BATCH AGAINST RECURSIVE ON THE OBSERVABLE SUBSPACE
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  scikit-learn     : 1.9.1
+  matplotlib       : 3.11.2
+  pytest           : 9.1.1
+  hypothesis       : 6.170.13
+  ruff (installed) : 0.17.3
+  ruff (on PATH)   : ruff 0.16.9  (a standalone binary, a DIFFERENT version from the installed distribution; the source is clean under both and the figures are in VALIDATION.md)
+  filterpy         : not installed  (named in the alternatives table; no number here is compared against it)
+  cpu cores        : 2
+  repository root  : P089 (printed relatively; see validation/_bootstrap.py)
+
+  declared tolerances, as fractions of the Cramer-Rao one sigma of (12), stated per regime:
+    well conditioned (rank 3, Gramian condition number < 10): 0.1
+    full rank, any conditioning                                 : 0.5
+    rank deficient                                              : none declared; reported as measured
+  grid: 5 profiles x 3 noise levels x 3 lengths x 4 seeds = 180 records
+
+==============================================================================
+3.1 agreement on the observable subspace, per cell
+==============================================================================
+'worst diff/CRB' is the largest absolute difference between the two estimates along any degree of freedom that clears the noise floor, divided by that degree of freedom's Cramer-Rao one sigma.
+
+profile              sigma     n  dofs  deficient  worst diff/CRB
+single_axis        5.0e-05   150     8          4        0.841947
+single_axis        5.0e-05   600     8          4        0.536985
+single_axis        5.0e-05  2400     8          4        1.942601
+single_axis        2.0e-04   150     8          4        0.284185
+single_axis        2.0e-04   600     8          4        0.142121
+single_axis        2.0e-04  2400     8          4        0.585020
+single_axis        8.0e-04   150     8          4        0.128099
+single_axis        8.0e-04   600     8          4        0.082461
+single_axis        8.0e-04  2400     8          4        0.196006
+near_single_axis   5.0e-05   150    12          0        0.061486
+near_single_axis   5.0e-05   600    12          0        0.037700
+near_single_axis   5.0e-05  2400    12          0        0.028813
+near_single_axis   2.0e-04   150    11          1        0.092933
+near_single_axis   2.0e-04   600    12          0        0.352091
+near_single_axis   2.0e-04  2400    12          0        0.258938
+near_single_axis   8.0e-04   150     8          4        0.098695
+near_single_axis   8.0e-04   600     8          4        0.119895
+near_single_axis   8.0e-04  2400     8          4        0.082121
+two_axis           5.0e-05   150    12          0        0.017685
+two_axis           5.0e-05   600    12          0        0.009276
+two_axis           5.0e-05  2400    12          0        0.005190
+two_axis           2.0e-04   150    12          0        0.025522
+two_axis           2.0e-04   600    12          0        0.014146
+two_axis           2.0e-04  2400    12          0        0.005136
+two_axis           8.0e-04   150    12          0        0.052809
+two_axis           8.0e-04   600    12          0        0.031843
+two_axis           8.0e-04  2400    12          0        0.007955
+three_axis         5.0e-05   150    12          0        0.009020
+three_axis         5.0e-05   600    12          0        0.005571
+three_axis         5.0e-05  2400    12          0        0.001761
+three_axis         2.0e-04   150    12          0        0.016683
+three_axis         2.0e-04   600    12          0        0.022252
+three_axis         2.0e-04  2400    12          0        0.002290
+three_axis         8.0e-04   150    12          0        0.042126
+three_axis         8.0e-04   600    12          0        0.038406
+three_axis         8.0e-04  2400    12          0        0.007573
+isotropic          5.0e-05   150    12          0        0.014497
+isotropic          5.0e-05   600    12          0        0.002247
+isotropic          5.0e-05  2400    12          0        0.002714
+isotropic          2.0e-04   150    12          0        0.026061
+isotropic          2.0e-04   600    12          0        0.008901
+isotropic          2.0e-04  2400    12          0        0.010162
+isotropic          8.0e-04   150    12          0        0.032095
+isotropic          8.0e-04   600    12          0        0.037226
+isotropic          8.0e-04  2400    12          0        0.042183
+
+regime                records       median          max   declared
+well_conditioned          108     0.006810     0.052809        0.1
+full_rank                 131     0.007962     0.352091        0.5
+rank_deficient             49     0.061812     1.942601       none
+
+  degrees of freedom compared: 491
+[PASS] batch and recursive agree to 0.1 of the bound on well_conditioned records -- worst 0.052809 of the Cramer-Rao one sigma over 108 records, median 6.810430e-03
+[PASS] batch and recursive agree to 0.5 of the bound on full_rank records -- worst 0.352091 of the Cramer-Rao one sigma over 131 records, median 7.961661e-03
+
+==============================================================================
+3.1b the rank-deficient records, reported as measured
+==============================================================================
+On a record with a degree of freedom below the noise floor the recursive estimator does not withhold anything: it accumulates a large rotation in the direction the record cannot support, and because composing rotations is not a linear operation that rotation moves the components the record DOES support. This is the same mechanism that makes the unconstrained SVD solution of (17) wrong about the observable subspace, measured independently in tests/test_batch.py, and it is the strongest argument in this repository for computing the observability verdict first.
+
+  rank-deficient records                  : 49
+  MEKF excursion in the unsupported dir   : median 45.1093 mrad, max 130.7890 mrad
+  injected misalignment magnitude bound   : 3.0000 mrad
+  leakage into the supported directions   : median 0.061812, max 1.942601 of the Cramer-Rao one sigma
+  full-rank records, same quantity        : median 7.961661e-03, max 0.352091
+  correlation(excursion, leakage)         : +0.3206
+
+[PASS] the leakage is larger on rank-deficient records than on full-rank ones -- rank-deficient max 1.942601 against full-rank max 0.352091
+[PASS] the leakage is explained by the size of the unconstrained excursion -- correlation +0.3206 between the MEKF's rotation in the unsupported direction and its disagreement with the batch solution on the supported ones
+
+==============================================================================
+3.2 what the filter does where the record supports nothing
+==============================================================================
+The MEKF carries a prior of one sigma 0.1 rad and solves over the full space, so it does not withhold anything. In a direction the record does not excite, the measurement Jacobian of (20) has no component, the gain is near zero and the covariance stays near the prior. 'prior retained' is the final one-sigma divided by the prior one-sigma: 1 means the record taught the filter nothing.
+
+  degrees of freedom below the floor      : 49
+  prior retained there, median            : 0.366386
+  prior retained there, min and max       : 0.171620, 0.641779
+  prior retained on observable dofs, median: 3.585607e-03
+  worst/best sigma ratio, median          : 1.7474
+  worst/best sigma ratio, max             : 495.7198
+
+The filter is therefore honest about what it does not know, through its covariance rather than through a refusal. The next figure is the test of that honesty: its error in the unsupported direction, divided by the one-sigma it reports there.
+  |error| / reported sigma, median        : 1.574558
+  |error| / reported sigma, 90th centile  : 4.100611
+  fraction inside 2 reported sigma        : 0.591837
+[PASS] the filter retains at least a tenth of its prior where the record supports nothing -- median retention 0.366386
+[PASS] the filter reduces its prior by 100x where the record does support a dof -- median retention 3.585607e-03
+
+  MEASURED AND UNFAVOURABLE, published as found: the filter's two-sigma interval contains the truth on only 0.591837 of the records with an unsupported degree of freedom, against a nominal 0.954500. The recursive estimator is therefore overconfident in the unsupported direction too -- less so than the learned estimator of section 5, which is measured there, but overconfident. The mechanism is equation (11): the filter forms its Jacobian from the MEASURED reference rate, so the reference sensor's own noise supplies apparent information in the unsupported direction and the filter reduces its prior there on the strength of it. Split by how much prior the filter kept:
+
+    prior retained below the median (0.3664): 0.291667 inside 2 sigma (24 records)
+    prior retained above the median            : 0.880000 inside 2 sigma (25 records)
+    correlation(prior retained, |error|/sigma) : -0.6690
+
+[PASS] the under-coverage is explained by the filter reducing its prior on noise alone -- correlation -0.6690; coverage 0.880000 where the prior was kept against 0.291667 where it was not. The only estimator in this repository that is not overconfident here is the batch solution of (14)-(16), which withholds the direction and reports an infinite bound.
+
+==============================================================================
+3.3 is the prior what separates the two solutions? Measured, not assumed.
+==============================================================================
+The shrinkage argument predicts the recursive estimate is the batch estimate scaled by lambda_i / (lambda_i + 1 / p0^2) along degree of freedom i, so tightening the prior from 0.1 rad to 0.01 rad should cut the disagreement by a factor of 100. Measured below on rich 1200-sample records.
+
+ prior p0 rad  worst diff/CRB  predicted shrink
+          0.1    1.186246e-02      2.364908e-05
+         0.03    7.069247e-03      2.627675e-04
+         0.01    3.361143e-03      2.364908e-03
+        0.003    2.653953e-02      2.627675e-02
+
+  The prior changed by a factor of 33.3, so the shrinkage argument predicts the disagreement to change by 1111. It changed by 0.4470.
+[PASS] the disagreement does NOT scale as the prior-shrinkage argument predicts -- measured factor 0.4470 against a predicted 1111; the residual disagreement is dominated by the sequential re-linearisation of (20) about a moving estimate, not by the filter's prior, so quoting the shrinkage figure as the expected agreement would be wrong by three orders of magnitude
+
+==============================================================================
+3.4 the Joseph form of (21), and whether it was needed
+==============================================================================
+The short-form covariance update loses symmetry and positive definiteness over the thousands of updates a rate record contains. The Joseph form is used instead, and its measured asymmetry and smallest eigenvalue are reported here so the claim is a number rather than an assertion.
+
+      n   worst P asymmetry   smallest P eigenvalue
+    150        1.734723e-18            1.636865e-07
+    600        8.673617e-19            5.570992e-08
+   2400        1.301043e-18            1.600333e-08
+   6000        2.168404e-18            6.483588e-09
+
+[PASS] the covariance stays positive definite over 6000 updates -- smallest eigenvalue seen 6.483588e-09 rad^2
+[PASS] the covariance stays symmetric to rounding over 6000 updates -- worst asymmetry 2.168404e-18 rad^2
+
+==============================================================================
+3.5 timings -- UNSTABLE, two shared cores, never quoted as a ratio in prose
+==============================================================================
+operation                            calls    total s    mean ms
+batch.solve, eq (14)-(16)              180     0.5216     2.8975
+recursive.run, eq (19)-(22)            180    49.9729   277.6270
+
+  The recursive estimator processes one sample at a time in Python and is slower than the batch solve here by an amount that is not reported as a ratio, because these figures move between runs on a shared two-core container. The recursive estimator exists to give an answer online, not to be faster.
+
+CHECKS RUN: 10
+FAILED CHECKS (0): none

@@ -1,0 +1,247 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  aligncal: relative sensor alignment from flight time series, with the
+  observability of each alignment degree of freedom reported before the estimate
+version: 0.1.0
+date-released: 2026-10-29
+license: Apache-2.0
+abstract: >-
+  Takes time-series angular rates from two or more attitude-relevant sensors
+  with a declared mounting geometry and estimates the relative misalignment
+  rotations with confidence intervals. The first output of every call is an
+  observability verdict: which alignment degrees of freedom the observed motion
+  actually excites, computed before the estimate it gates. The structural
+  result the package reports is that the observability Gramian of a rate-pair
+  alignment problem and the normalised rate second moment share eigenvectors
+  exactly, so the least observable alignment direction is the most excited
+  rotation axis and a vehicle that rotated about one fixed axis cannot have its
+  alignment about that axis estimated at any data volume. A bare numerical rank
+  test on the measured Gramian does not see this, because the reference
+  sensor's own noise fills the null space; numpy.linalg.matrix_rank reported
+  rank 3 on 5 of 5 records that support 2, and a declared noise floor is
+  therefore part of the verdict. The analytic baselines are a batch
+  least-squares Wahba-type solution restricted to the floor-clearing subspace,
+  cross-checked against Markley's SVD solution, and a multiplicative extended
+  Kalman filter scored against it; they agree to 0.052809 of the Cramer-Rao one
+  sigma on well-conditioned records. Validation is level 2 over 864 records:
+  the standardised recovery error against the Cramer-Rao bound has mean
+  -0.073846 and standard deviation 0.959812 against a standard normal, with no
+  score above 2.7673 in 2290, and the Gauss-Newton iteration converged on 864
+  of 864. Four results are unfavourable and are published as measured. The
+  regularised analytic baseline beats every learned configuration on the
+  held-out short-record population, 0.697326 against 0.760152 milliradians, on
+  all four excitation profiles. With a misalignment of 2 milliradians injected
+  entirely along a single-axis record's own rotation axis, the sharpest learned
+  configuration claims that component with a reported one sigma of 14.3540
+  arcseconds against a truth of 412.5296 arcseconds, 29.0693 of its own
+  standard deviations, with two-sigma coverage of 0.0000 over 120 records,
+  while the batch solution withholds the direction and reports an infinite
+  bound on all 120; along the best-observed direction of the same records the
+  same models cover at or above the nominal 0.954500. The recursive filter is
+  overconfident in the unsupported direction too, covering on 0.591837 of
+  records. An unconstrained SVD solution picks up a gauge rotation with a
+  median of 1.5355 radians in the null direction and that rotation contaminates
+  the directions the record does support. Sixteen controls were run, ten of
+  which must fire and ten of which did, six of which must not and none of which
+  did. All numbers are measured against a seeded synthetic generator whose
+  equations are printed in its module docstring; no flight data is used
+  anywhere, and the only sensor error modelled is white noise. Research grade.
+  Not flight-qualified, not certified, not approved for operational aerospace
+  use. An observable alignment is not a calibrated one.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - alignment
+  - observability
+  - attitude
+  - gyroscope
+  - calibration
+  - kalman-filter
+  - wahba
+  - aerospace
+references:
+  - type: article
+    authors:
+      - family-names: Wahba
+        given-names: "G."
+    title: "A least squares estimate of satellite attitude"
+    journal: "SIAM Review"
+    volume: 7
+    issue: 3
+    year: 1965
+    notes: >-
+      The minimisation of sum w_i |b_i - R r_i|^2 over rotations. Linearised
+      about the identity it becomes equation (14) of aligncal.batch, and the
+      matrix of the resulting normal equations is the Gramian of equation (8).
+  - type: article
+    authors:
+      - family-names: Markley
+        given-names: "F. L."
+    title: >-
+      Attitude determination using vector observations and the singular value
+      decomposition
+    journal: "Journal of the Astronautical Sciences"
+    volume: 36
+    issue: 3
+    year: 1988
+    notes: >-
+      The SVD solution of equation (17), used here as an independent
+      cross-check on the 3x3 normal equations. It has no mechanism to withhold
+      an unobservable degree of freedom, and the gauge rotation it returns
+      there is measured in control C13.
+  - type: article
+    authors:
+      - family-names: Lefferts
+        given-names: "E. J."
+      - family-names: Markley
+        given-names: "F. L."
+      - family-names: Shuster
+        given-names: "M. D."
+    title: "Kalman filtering for spacecraft attitude estimation"
+    journal: "Journal of Guidance, Control, and Dynamics"
+    volume: 5
+    issue: 5
+    year: 1982
+    notes: >-
+      The multiplicative error-state formulation and the reset of equation
+      (22), which is what makes aligncal.recursive an MEKF rather than an
+      additive filter.
+  - type: book
+    authors:
+      - family-names: Markley
+        given-names: "F. L."
+      - family-names: Crassidis
+        given-names: "J. L."
+    title: >-
+      Fundamentals of Spacecraft Attitude Determination and Control
+    publisher:
+      name: "Springer"
+    year: 2014
+    notes: >-
+      Section 2.9 for the small-rotation parameterisation and equation (2.113)
+      for Rodrigues' formula; section 6.2 for the sensor-alignment state and
+      the convention of a misalignment applied multiplicatively on a declared
+      mounting.
+  - type: book
+    authors:
+      - family-names: Kay
+        given-names: "S. M."
+    title: >-
+      Fundamentals of Statistical Signal Processing: Estimation Theory
+    publisher:
+      name: "Prentice Hall"
+    year: 1993
+    notes: >-
+      Section 3.9, the Cramer-Rao bound for the general linear Gaussian model,
+      which is equation (12). The bound constrains unbiased estimators only,
+      which is why the regularised variant of equation (18) is allowed below
+      it and why its bias is reported beside it.
+  - type: book
+    authors:
+      - family-names: Horn
+        given-names: "R. A."
+      - family-names: Johnson
+        given-names: "C. R."
+    title: "Matrix Analysis"
+    edition: "2nd"
+    publisher:
+      name: "Cambridge University Press"
+    year: 2013
+    notes: >-
+      Theorem 6.1.1, Gershgorin's circle theorem, and Theorem 4.2.2, the
+      Rayleigh quotient. Together they are the independent bracket of equation
+      (13) on the smallest Gramian eigenvalue, derived from mathematics the
+      eigensolver does not use.
+  - type: article
+    authors:
+      - family-names: Gershgorin
+        given-names: "S. A."
+    title: "Uber die Abgrenzung der Eigenwerte einer Matrix"
+    journal: "Izvestiya Akademii Nauk SSSR, Seriya Matematicheskaya"
+    volume: 6
+    year: 1931
+    notes: >-
+      The original statement of the circle theorem used in equation (13).
+  - type: book
+    authors:
+      - family-names: Bar-Shalom
+        given-names: "Y."
+      - family-names: Li
+        given-names: "X.-R."
+      - family-names: Kirubarajan
+        given-names: "T."
+    title: "Estimation with Applications to Tracking and Navigation"
+    publisher:
+      name: "Wiley"
+    year: 2001
+    notes: >-
+      Section 5.2, the Joseph-form covariance update of equation (21), used
+      because the short form loses symmetry and positive definiteness over the
+      thousands of updates a rate record contains.
+  - type: article
+    authors:
+      - family-names: James
+        given-names: "W."
+      - family-names: Stein
+        given-names: "C."
+    title: "Estimation with quadratic loss"
+    journal: >-
+      Proceedings of the Fourth Berkeley Symposium on Mathematical Statistics
+      and Probability
+    volume: 1
+    year: 1961
+    notes: >-
+      The bias-variance trade behind the regularised estimator of equation
+      (18) and behind the only mechanism by which a learned estimator can beat
+      an unbiased solution on a short record.
+  - type: book
+    authors:
+      - family-names: Lehmann
+        given-names: "E. L."
+      - family-names: Casella
+        given-names: "G."
+    title: "Theory of Point Estimation"
+    edition: "2nd"
+    publisher:
+      name: "Springer"
+    year: 1998
+    notes: >-
+      Section 4.1, Bayes risk. Cited for what is NOT claimed: equation (18) is
+      the posterior mean under a Gaussian prior matched in second moment, the
+      generated population's prior is not Gaussian, so no domination theorem
+      applies and the measured behaviour is a measurement rather than a
+      consequence.
+  - type: article
+    authors:
+      - family-names: Pedregosa
+        given-names: "F."
+      - family-names: Varoquaux
+        given-names: "G."
+      - family-names: Gramfort
+        given-names: "A."
+    title: "Scikit-learn: machine learning in Python"
+    journal: "Journal of Machine Learning Research"
+    volume: 12
+    year: 2011
+    notes: >-
+      RandomForestRegressor and Ridge. aligncal.learned reads the individual
+      ensemble members to form the spread it reports as its uncertainty
+      output, which is why scikit-learn is pinned below 1.10.
+  - type: article
+    authors:
+      - family-names: Virtanen
+        given-names: "P."
+      - family-names: Gommers
+        given-names: "R."
+      - family-names: Oliphant
+        given-names: "T. E."
+    title: "SciPy 1.0: fundamental algorithms for scientific computing in Python"
+    journal: "Nature Methods"
+    volume: 17
+    year: 2020
+    notes: >-
+      scipy.special.erf, used so that every nominal coverage figure reported
+      here is computed rather than written by hand, and
+      scipy.spatial.transform.Rotation, used in the test suite as an
+      independent cross-check on aligncal.geometry.

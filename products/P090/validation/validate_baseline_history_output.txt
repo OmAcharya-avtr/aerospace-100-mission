@@ -1,0 +1,86 @@
+
+==============================================================================
+ENVIRONMENT
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (named in the alternatives table; no number here is compared against it)
+skyfield         : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P090 (printed relatively; see validation/_bootstrap.py)
+
+objects per split          : 420
+element history per object : 12 sets at 1.5 day cadence
+consequence horizon        : 1 days, 25 samples
+silent threshold           : 1 km (declared policy)
+epoch requirement          : 7 days (declared policy)
+target false-positive rate : 0.05 (declared policy)
+
+==============================================================================
+1. THE ROBUST SCALE WITHOUT ITS QUANTISATION FLOOR
+==============================================================================
+The floor is one count of the element's own text field. Without it, a history whose mean motion is constant to the eighth written decimal has a detrended scale of order 1e-8 and the z-score of a one-count change is astronomical. Measured both ways on the same records, on two corpora: the current generator, whose element sets carry orbit-determination jitter, and the superseded version 1 generator, whose mean motion was advanced analytically with no jitter at all and therefore quantised to the written decimal. On the second corpus the candidate is constructed as the robust trend prediction plus exactly one count of the mean-motion field, 1e-8 rev/day, which is the smallest change the text format can express and the case the floor exists for.
+
+corpus                             variant                  n     finite max  infinities  frac > 4
+current generator, with jitter     with the floor         217        6.63045           0    0.0553
+current generator, with jitter     without the floor      217        6.63045           0    0.0553
+version 1 generator, no jitter     with the floor           2              1           0    0.0000
+version 1 generator, no jitter     without the floor        2    2.53136e+06           0    1.0000
+
+A correction worth stating plainly. On the CURRENT corpus the floor changes nothing: the largest finite z-score is 6.6304 either way, because the generator's declared mean-motion jitter of 1.5e-8 relative already keeps the robust scale above one count of the field. The blow-up that motivated the floor needs a history with no jitter, which is the superseded version 1 generator, and it is reproduced on that corpus below. The floor is still correct on its own terms -- it is derived from the text format and not from any corpus, and a real catalogue can publish element sets identical to the last written digit -- and its measured effect on the corpus this repository ships is nil. Both facts are published and neither is left to be inferred.
+
+version 1 corpus, largest finite z-score without the floor : 2.531364e+06
+version 1 corpus, largest finite z-score with the floor    : 1.000000
+version 1 corpus, infinities without the floor             : 0 of 2
+version 1 corpus, infinities with the floor                : 0 of 2
+version 1 corpus, ratio of the two                         : 2.531364e+06
+[PASS] the_floor_matters_on_a_quantised_history -- an unjittered history has a robust scale at the quantiser, so the unfloored z-score of a one-count residual is 2.531e+06 times the floored one
+[PASS] the_floor_changes_nothing_on_the_current_corpus -- largest finite z-score 6.6304 either way; reported rather than claimed as a benefit
+[PASS] the_floor_never_makes_anything_worse -- flooring a denominator can only lower a z-score, on both corpora
+
+==============================================================================
+2. THE NODE UNDER A LEVEL TEST INSTEAD OF A TREND TEST
+==============================================================================
+The node regresses secularly, so its deviation from the median of a history is the ratio of the candidate's lever arm to the history's, and carries no information about corruption. Measured both ways on the same uncorrupted element sets.
+
+test                     n        min     median        max     spread
+level, superseded      217     1.3787     1.4616     1.5246     0.1459
+trend, current         217     0.0277     1.3730    24.7032    24.6755
+
+Under the level test the node's z-score lies between 1.3787 and 1.5246 on 217 uncorrupted element sets, a spread of 0.1459. That is a fixed offset, not a measurement.
+[PASS] the_level_test_on_the_node_is_a_fixed_offset -- spread 0.1459 over 217 records
+
+==============================================================================
+3. THE TWO SUPERSEDED ELEMENT-HISTORY GENERATORS
+==============================================================================
+The propagated disagreement between consecutive uncorrupted element sets of the same object, which is what the continuity screen measures. A generator whose own histories disagree by hundreds of kilometres makes that screen measure the generator.
+
+family                   generator                                       median km       p90 km       max km
+leo_low_inclination      version 1, kinematic J2 history                   21.0265      36.2591      39.9868
+leo_low_inclination      version 2, Brouwer written as Kozai              112.0913     112.1144     112.1235
+leo_low_inclination      version 3, current, with the Kozai inverse         0.0564       0.0950       0.1162
+leo_sun_synchronous      version 1, kinematic J2 history                   49.3292      93.0954     103.8935
+leo_sun_synchronous      version 2, Brouwer written as Kozai              603.6437     603.6811     603.7031
+leo_sun_synchronous      version 3, current, with the Kozai inverse         0.0231       0.0421       0.0476
+
+leo_low_inclination: 21.03 km, then 112.09 km, then 0.0564 km. The second step is the Kozai inverse of equation (18) alone and it is worth a factor of 1987.
+leo_sun_synchronous: 49.33 km, then 603.64 km, then 0.0231 km. The second step is the Kozai inverse of equation (18) alone and it is worth a factor of 26175.
+The two superseded versions are not ordered against each other and the measurement says so: version 2 is worse than version 1 on both families here, because writing a Brouwer mean motion into the Kozai field is a systematic half-kilometre error in the semi-major axis while version 1's fault was a kinematic mean anomaly whose error happens to be smaller on these two orbits. Version 3 beats both by three orders of magnitude, which is the only ordering claimed.
+[PASS] the_current_generator_beats_both_superseded_versions -- version 3 beats both superseded versions on both families
+[PASS] the_kozai_inverse_alone_is_worth_two_orders_of_magnitude -- the only difference between versions 2 and 3 is one line
+
+==============================================================================
+4. WHAT THIS SECTION IS FOR
+==============================================================================
+Every figure in section 7 of validation/VALIDATION.md traces to this script. The point of keeping them is not completeness: it is that the published learned-versus-rules margin of +0.3661 recall is less than half the margin the first implementation of the baseline would have produced, and a reader is entitled to know how much of a reported margin is the problem and how much was the first attempt at the baseline.
+
+CHECKS RUN: 6
+FAILED CHECKS (0): none

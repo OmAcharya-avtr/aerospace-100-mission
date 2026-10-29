@@ -1,0 +1,200 @@
+
+==============================================================================
+ENVIRONMENT
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (named in the alternatives table; no number here is compared against it)
+skyfield         : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P090 (printed relatively; see validation/_bootstrap.py)
+
+objects per split          : 420
+element history per object : 12 sets at 1.5 day cadence
+consequence horizon        : 1 days, 25 samples
+silent threshold           : 1 km (declared policy)
+epoch requirement          : 7 days (declared policy)
+target false-positive rate : 0.05 (declared policy)
+
+architecture : random forest, 160 trees, max depth 12, min samples leaf 2
+random state : 20261029, fixed
+class weight : balanced
+
+PyTorch is not available in this environment and no neural network is used anywhere in this repository.
+
+==============================================================================
+1. THE CORPUS
+==============================================================================
+train          420 objects  will_fail_loudly=20  silently_wrong=122  benign=278
+test           420 objects  will_fail_loudly=18  silently_wrong=112  benign=290
+calibration    419 objects  will_fail_loudly=16  silently_wrong=127  benign=276
+
+The silently-wrong prevalence on the test split is 0.2667. Every label is a measured consequence: the candidate and its uncorrupted reference were propagated with sgp4 over the same grid and differenced, and the declared threshold is 1 km.
+
+==============================================================================
+2. THE HEADLINE: RECALL ON THE SILENT CLASS AT A FIXED FALSE-POSITIVE RATE
+==============================================================================
+Target false-positive rate 0.05. The achieved rate is reported beside the recall, because it is usually below the target and quoting the target as if it were achieved would overstate the result.
+
+predictor                            recall  achieved fpr    area  accuracy
+rules at their own threshold         0.8661        0.3019  0.8677    0.7429
+rules swept, equation (15)           0.4286        0.0455  0.8677    0.7429
+majority-class baseline              0.0000        0.0000  0.5000    0.6905
+learned elements_and_history         0.7768        0.0487  0.9583    0.8976
+learned elements_only                0.5804        0.0487  0.7960    0.8238
+learned with_rule_score              0.7946        0.0455  0.9629    0.9095
+
+The best learned configuration is 'with_rule_score' with a recall of 0.7946 at a false-positive rate of 0.0455. The swept rule baseline reaches 0.4286 at 0.0455. The learned model wins by +0.3661 recall at a comparable rate.
+
+THIS IS NOT WHAT THE PRODUCT SPECIFICATION PREDICTED. It predicted in writing that the explicit rule screens would match or beat the learned classifier on every class they cover. On this corpus they do not, on the silent class, by the margin above. The result is published as measured.
+[PASS] majority_baseline_is_at_chance -- its score is a constant, so its operating characteristic is the chance diagonal by construction and the area is 0.5000 exactly
+[PASS] every_learned_configuration_beats_the_majority_baseline_on_accuracy -- majority accuracy 0.6905
+[PASS] the_rule_baseline_also_beats_the_majority_baseline -- rules 0.7429 against majority 0.6905
+
+==============================================================================
+3. PER-CLASS PRECISION AND RECALL, EVERY PREDICTOR
+==============================================================================
+predictor                           will_fail_ P  will_fail_ R  silently_w P  silently_w R      benign P      benign R
+rules                                      0.8500        0.9444        0.5105        0.8661        0.9429        0.6828
+majority                                      nan        0.0000           nan        0.0000        0.6905        1.0000
+learned elements_and_history               0.9000        1.0000        0.8723        0.7321        0.9052        0.9552
+learned elements_only                      0.8182        1.0000        0.6792        0.6429        0.8767        0.8828
+learned with_rule_score                    0.8947        0.9444        0.8713        0.7857        0.9233        0.9552
+
+metric                                  rules    learned     winner
+will_fail_loudly precision             0.8500     0.8947    learned
+will_fail_loudly recall                0.9444     0.9444        tie
+silently_wrong precision               0.5105     0.8713    learned
+silently_wrong recall                  0.8661     0.7857      rules
+benign precision                       0.9429     0.9233      rules
+benign recall                          0.6828     0.9552    learned
+
+Per-class metric tally against the best learned configuration: rules 2, learned 3, tie 1.
+The rules keep the loud class, and they keep it for a reason that is not statistical: a physical bound violation is checked against a number, and the SGP4 error codes are exactly those cases. The learned model's loud prediction is an estimate of the same thing.
+
+==============================================================================
+4. WHAT THE RULES HOLD THAT A CLASSIFIER CANNOT: THE INTEGRITY VERDICT
+==============================================================================
+Integrity is a separate output from the consequence class. The checksum is arithmetic: there is no threshold, no training set and no error rate. Measured over the whole test split against the generator's ground truth.
+
+Two corruption families of the corpus leave the checksum inconsistent -- checksum_digit, where the checksum column alone is altered, and data_digit, where a data digit is altered and the stated checksum is left as it was. Three others recompute the checksum after corrupting the line, which is what a ground system that formats and then checksums does, and those are invisible to the checksum screen BY CONSTRUCTION. Both groups are counted.
+
+element sets whose checksum should be inconsistent : 57
+checksum screen flagged                            : 57
+true positives                                     : 57
+false positives                                    : 0
+false negatives                                    : 0
+precision                                          : 1.0000
+recall                                             : 1.0000
+
+element sets corrupted and then re-checksummed      : 85
+of which the checksum screen saw                    : 0
+That second number is the determinability limit of equation (13) made concrete. The checksum cannot see a corruption whose checksum was recomputed, at any configuration, and the report says so before any screen runs.
+
+element sets with a field this package could not read : 14
+of which the injected corruption was a field shift    : 14
+field-shifted element sets that stayed fully readable : 13 of 27
+
+The learned model is not scored in this section because it is not asked this question: nothing in its output is an integrity verdict. A caller who wants to know whether an element set is what its source wrote gets an exact answer from the checksum and could not get one from a classifier.
+[PASS] checksum_screen_has_no_false_positives -- 0 of 363 element sets with a consistent checksum were flagged; the checksum is arithmetic and cannot produce one
+[PASS] checksum_screen_has_no_false_negatives -- 0 of 57 inconsistent element sets were missed; precision and recall are both exactly 1 and neither is a statistic
+[PASS] re_checksummed_corruptions_are_invisible_to_the_checksum -- 0 of 85 seen; this is the limit, not a defect
+
+==============================================================================
+5. TRANSFER TO AN UNSEEN ORBIT FAMILY
+==============================================================================
+The learned model is retrained with one orbit family withheld and scored on that family alone. If its advantage were a memorised map from orbit regime to consequence it would collapse here.
+
+withheld family                 n  silent  rules area  held-out area  all-family area
+geo_stationary                 70      16      0.6528         0.8438           0.8819
+heo_critical_inclination       70      12      0.7744         0.9095           0.9583
+leo_decaying                   70      22      0.8442         0.8305           0.8741
+leo_low_inclination            70      25      0.9858         0.9973           1.0000
+leo_sun_synchronous            70      16      0.9340         0.9722           0.9769
+meo_navigation                 70      21      0.9417         0.9776           0.9815
+
+The learned model keeps its advantage on 5 of 6 withheld orbit families, so the advantage is not a memorised orbit-regime map.
+
+==============================================================================
+6. TRANSFER TO AN UNSEEN CORRUPTION FAMILY -- WHERE THE RULES WIN
+==============================================================================
+The same experiment with a corruption family withheld from training instead of an orbit family, and scored on that family against the uncorrupted records. This is the operationally honest test: a real corruption is not drawn from the distribution a model was trained on, and the rules did not need to see it.
+
+withheld corruption             n  silent  rules area  held-out area  all-family area  rules win
+data_digit                    244      15      0.8285         0.9045           0.9409      False
+field_shift                   245      18      0.9065         0.9534           0.9425      False
+sign_flip                     250      17      0.9488         0.9813           0.9912      False
+implausible_eccentricity      244       9      0.7858         0.9863           0.9910      False
+stale_epoch                   253      29      0.8601         0.6448           0.9438       True
+cross_source_divergence       243      24      0.9798         0.8335           0.9825       True
+
+The rules beat the learned model on 2 of 6 withheld corruption families.
+  stale_epoch: rules 0.8601, learned trained without it 0.6448 (a margin of +0.2153), learned trained with it 0.9438
+  cross_source_divergence: rules 0.9798, learned trained without it 0.8335 (a margin of +0.1463), learned trained with it 0.9825
+
+This is the rules' defensible advantage and it is a large one. The learned model's area falls by the margins above when the corruption family is withheld, and recovers when it is restored, so the drop is the unseen-family effect and nothing else. The rule screens do not care: every one of them is an explicit statement about what a plausible element set looks like and none of them was fitted to a corruption distribution.
+[PASS] the_rules_beat_the_learned_model_on_at_least_one_unseen_corruption_family -- 2 of 6 families
+
+==============================================================================
+7. CONFIDENT WHERE THE ANALYTIC SCREEN WITHHOLDS ITS TEST
+==============================================================================
+Equation (27) reports the continuity screen's resolution, and where that resolution exceeds the declared silent threshold the screen withholds its absolute test rather than returning a verdict that is noise. The learned model has no such mechanism. Its errors are counted separately on the two subsets, with its own decision margin.
+
+subset                     n  errors  error rate  margin>0.5    frac  mean margin
+resolves threshold       142      11      0.0775           0  0.0000       0.7291
+does NOT resolve         278      32      0.1151           7  0.2188       0.6403
+
+The learned model answers with a high decision margin on element sets whose orbit regime makes the analytic continuity test unresolvable, and 7 of its 32 errors on that subset carry a margin above 0.5. That is the failure mode this batch of the mission exists to look for: a confident answer about something the data does not support. The analytic screen's answer on the same records is that it cannot tell, which is less useful and more honest.
+[PASS] the_learned_model_makes_confident_errors_where_the_screen_withholds -- 7 errors with a margin above 0.5 on the unresolvable subset
+
+==============================================================================
+8. UNCERTAINTY OUTPUTS, ON THE INDEPENDENT CALIBRATION SPLIT
+==============================================================================
+Two outputs, both required: equation (19) ensemble dispersion and equation (20) decision margin. Measured on the calibration split, which neither trained nor selected anything.
+
+group            n  mean margin  mean dispersion
+correct        384       0.6871           0.2827
+wrong           35       0.2839           0.4211
+
+The margin is informative: it is higher on the predictions that turned out right than on the ones that turned out wrong. It is not a probability of being right and nothing here calibrates it to one.
+[PASS] the_margin_separates_right_from_wrong -- mean margin 0.6871 on correct against 0.2839 on wrong
+
+==============================================================================
+9. PER-FAMILY BREAKDOWN OF THE MEASURED SILENT CLASS
+==============================================================================
+Which injected corruptions actually produce the silent class, so the headline recall can be read against what it is recalling.
+
+injected corruption            will_fail_loudly     silently_wrong             benign
+none                                          0                  0                218
+checksum_digit                                0                  0                 31
+data_digit                                    0                 15                 11
+field_shift                                   1                 18                  8
+sign_flip                                     0                 17                 15
+implausible_eccentricity                     17                  9                  0
+stale_epoch                                   0                 29                  6
+cross_source_divergence                       0                 24                  1
+
+==============================================================================
+10. COMPUTE -- TIMINGS, DECLARED UNSTABLE
+==============================================================================
+These numbers move between runs on a shared machine and no conclusion in this repository rests on any of them. No ratio of them appears in prose anywhere. Every line in this section is tagged [unstable], and probe_working_directories.py drops tagged lines before hashing a script's output, so a timing cannot make a path check pass or fail.
+
+[unstable] stage                                      calls   total s   mean ms
+[unstable] screen, measure and featurise 3 splits         1     6.215    6214.8
+[unstable] fit, all three configurations                  3     0.985     328.4
+[unstable] predict the test split                         3     0.163      54.2
+
+[unstable] process time for this script so far : 14.879 s
+corpus size : 420 objects per split, 12 history element sets each, three splits
+Everything in this repository runs on two CPU cores with no GPU. The whole benchmark is well inside the mission's three-minute budget.
+
+CHECKS RUN: 9
+FAILED CHECKS (0): none

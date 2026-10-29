@@ -1,0 +1,145 @@
+
+==============================================================================
+ENVIRONMENT
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (named in the alternatives table; no number here is compared against it)
+skyfield         : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P090 (printed relatively; see validation/_bootstrap.py)
+
+objects per split          : 420
+element history per object : 12 sets at 1.5 day cadence
+consequence horizon        : 1 days, 25 samples
+silent threshold           : 1 km (declared policy)
+epoch requirement          : 7 days (declared policy)
+target false-positive rate : 0.05 (declared policy)
+
+==============================================================================
+CONSTRUCTED TRUTH
+==============================================================================
+Low-Earth control object, the anchor for controls 1 to 11 and 12 to 14:
+1 27000U 26000A   26200.50000000  .00001800  00000-0  40000-4 0  1126
+2 27000  51.6000 120.0000 0010000  40.0000 200.0000 15.50000000103604
+history element sets : 12
+
+Geostationary control object, the anchor for control 15:
+1 27001U 26000A   26200.50000000  .00000000  00000-0 -20000-4 0  1127
+2 27001   0.0600 120.0000 0002000  40.0000 200.0000  1.00272000103601
+history element sets : 12
+
+the truth itself screens as 'benign' with 0 problems and equation (15) score 0.746757
+
+==============================================================================
+CONTROLS THAT MUST FIRE (11)
+==============================================================================
+control                                        expected finding                      fired              class
+1_invalid_checksum                             checksum_mismatch                      True             benign
+    column 69 of line 1 altered, data untouched. The declared invalid-checksum control.
+    found: [format] checksum_mismatch
+[PASS] control_1_invalid_checksum_fires -- expected checksum_mismatch
+2_non_digit_checksum_column                    checksum_column_not_a_digit            True     silently_wrong
+    column 69 of line 1 is not a digit, so no checksum can be compared.
+    found: [format] checksum_column_not_a_digit
+[PASS] control_2_non_digit_checksum_column_fires -- expected checksum_column_not_a_digit
+3_valid_but_stale                              epoch_stale                            True     silently_wrong
+    a genuine uncorrupted element set 30 days old against a declared 7 day requirement. The declared valid-but-stale control.
+    found: [epoch] epoch_stale
+    found: [history] history_outlier_raan_deg
+    found: [history] history_outlier_mean_motion_rev_per_day
+    found: [continuity] ephemeris_continuity_exceeded
+[PASS] control_3_valid_but_stale_fires -- expected epoch_stale
+4_perigee_below_surface                        perigee_below_surface                  True   will_fail_loudly
+    eccentricity 0.6 on a 15.5 rev/day orbit puts the perigee underground.
+    found: [bounds] perigee_below_surface
+    found: [history] history_outlier_eccentricity
+[PASS] control_4_perigee_below_surface_fires -- expected perigee_below_surface
+5_mean_motion_above_the_ceiling                mean_motion_above_physical_ceiling     True   will_fail_loudly
+    17.5 rev/day exceeds the equation (3) ceiling of 17.0436 rev/day.
+    found: [bounds] mean_motion_above_physical_ceiling
+    found: [bounds] perigee_below_surface
+    found: [history] history_outlier_mean_motion_rev_per_day
+[PASS] control_5_mean_motion_above_the_ceiling_fires -- expected mean_motion_above_physical_ceiling
+6_drag_sign_flip_against_a_positive_history    history_outlier_bstar                  True     silently_wrong
+    the drag term's sign is flipped; the checksum is recomputed and valid and every bound holds, so only the history screen can see it.
+    found: [history] history_outlier_bstar
+    found: [continuity] ephemeris_continuity_exceeded
+[PASS] control_6_drag_sign_flip_against_a_positive_history_fires -- expected history_outlier_bstar
+7a_one_character_dropped_from_line_1           parse_fault                            True     silently_wrong
+    one character deleted from line 1 and the rest shifted left, with the checksum recomputed, so the line is internally self-consistent. The ephemeris type column ends up blank, which this package cannot read.
+    found: [format] parse_fault
+    found: [bounds] ephemeris_type_unexpected
+    found: [bounds] epoch_day_out_of_range
+    found: [epoch] epoch_stale
+    found: [history] history_outlier_raan_deg
+    found: [history] history_outlier_mean_motion_rev_per_day
+[PASS] control_7a_one_character_dropped_from_line_1_fires -- expected parse_fault
+7b_one_character_dropped_from_line_2           history_outlier_raan_deg               True     silently_wrong
+    the same fault on line 2, where every shifted field still parses as a number and every element stays inside every physical and policy bound. Measured: no field is unreadable and no bound fires, so the only screens that can see it are the ones that compare the object against itself. A shift is not one fault class; it is whatever the shifted characters happen to say, and on line 2 of this element set they say something plausible.
+    found: [history] history_outlier_raan_deg
+    found: [history] history_outlier_mean_motion_rev_per_day
+    found: [continuity] ephemeris_continuity_exceeded
+[PASS] control_7b_one_character_dropped_from_line_2_fires -- expected history_outlier_raan_deg
+8_cross_source_separation                      cross_source_divergence                True     silently_wrong
+    a second source whose mean motion differs in the fourth decimal.
+    found: [cross-source] cross_source_divergence
+[PASS] control_8_cross_source_separation_fires -- expected cross_source_divergence
+9_continuity_break                             ephemeris_continuity_exceeded          True     silently_wrong
+    the mean motion moved by 2.0e-5 rev/day, which is inside every bound and far outside the object's own element-to-element continuity.
+    found: [history] history_outlier_mean_motion_rev_per_day
+    found: [continuity] ephemeris_continuity_exceeded
+[PASS] control_9_continuity_break_fires -- expected ephemeris_continuity_exceeded
+10_future_epoch                                epoch_in_future                        True     silently_wrong
+    an element set whose epoch is 5 days ahead of the time it is wanted at.
+    found: [epoch] epoch_in_future
+    found: [history] history_outlier_raan_deg
+    found: [history] history_outlier_mean_motion_rev_per_day
+[PASS] control_10_future_epoch_fires -- expected epoch_in_future
+11_unexpected_ephemeris_type                   ephemeris_type_unexpected              True             benign
+    ephemeris type 3; distributed element sets carry 0.
+    found: [bounds] ephemeris_type_unexpected
+[PASS] control_11_unexpected_ephemeris_type_fires -- expected ephemeris_type_unexpected
+
+==============================================================================
+CONTROLS THAT MUST NOT FIRE (5)
+==============================================================================
+control                                         problems              class  integrity
+12_the_truth_itself                                    0             benign       True
+    the constructed truth with its own history. No screen may fire.
+[PASS] control_12_the_truth_itself_does_not_fire -- 0 problems found, expected 0
+13_valid_and_fresh                                     0             benign       True
+    a genuine element set 4 days old against a 7 day requirement.
+[PASS] control_13_valid_and_fresh_does_not_fire -- 0 problems found, expected 0
+14_last_digit_of_the_mean_anomaly                      0             benign       True
+    the mean anomaly moved by one count of its text field, 1.0e-4 degrees, which is below the continuity screen's resolution.
+[PASS] control_14_last_digit_of_the_mean_anomaly_does_not_fire -- 0 problems found, expected 0
+15_negative_drag_against_a_negative_history            0             benign       True
+    a geostationary object whose drag term is legitimately negative, with a history that is also negative. The bounds screen must not treat a negative drag term as a violation and the history screen must not treat it as an outlier.
+[PASS] control_15_negative_drag_against_a_negative_history_does_not_fire -- 0 problems found, expected 0
+16_an_agreeing_second_source                           0             benign       True
+    a second source whose mean motion differs in the eighth decimal, one count of the field.
+[PASS] control_16_an_agreeing_second_source_does_not_fire -- 0 problems found, expected 0
+
+==============================================================================
+SUMMARY
+==============================================================================
+controls that must fire     : 12
+controls that must not fire : 5
+total controls              : 17
+Every control is anchored on a constructed element set whose corruption is known exactly. None is anchored on an output of this package, and both directions are asserted.
+
+Measured consequence of the two specification-named controls, for the record: the invalid-checksum control has a propagated position error of exactly 0.000000 km, because only column 69 changed; the valid-but-stale control at 30 days has 3.2964 km. Both figures come from validate_consequence.py. The first is the one worth noticing: the loudest screen in the package fires on the corruption with no consequence at all, and the package reports the integrity failure and the benign consequence as two separate outputs rather than one.
+
+Not a control, stated because a reader will ask. Equation (15) scores 0.746757 on the truth itself, against a flag threshold of 1.0, so the margin on a clean element set is a factor of 1.34 if the score is non-zero.
+
+CHECKS RUN: 17
+FAILED CHECKS (0): none

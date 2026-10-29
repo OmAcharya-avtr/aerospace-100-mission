@@ -1,0 +1,142 @@
+VALIDATION 1 -- THE OBSERVABILITY VERDICT
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  scikit-learn     : 1.9.1
+  matplotlib       : 3.11.2
+  pytest           : 9.1.1
+  hypothesis       : 6.170.13
+  ruff (installed) : 0.17.3
+  ruff (on PATH)   : ruff 0.16.9  (a standalone binary, a DIFFERENT version from the installed distribution; the source is clean under both and the figures are in VALIDATION.md)
+  filterpy         : not installed  (named in the alternatives table; no number here is compared against it)
+  cpu cores        : 2
+  repository root  : P089 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1.1 equation (10): lambda_i = (W / s^2) (1 - p_i)
+==============================================================================
+The Gramian of (8) and the normalised rate second moment of (9) share eigenvectors exactly, so the least observable alignment direction is the most excited rotation axis. Measured as the worst relative departure over every declared profile and two noise levels.
+
+profile             sigma rad/s   worst rel err   rank         cond
+single_axis             5.0e-05       3.177e-16      2    2.399e+05
+single_axis             5.0e-04       3.658e-16      2         2402
+near_single_axis        5.0e-05       6.625e-16      3         2493
+near_single_axis        5.0e-04       6.870e-16      2         1229
+two_axis                5.0e-05       1.593e-16      3        2.091
+two_axis                5.0e-04       2.487e-16      3        2.092
+three_axis              5.0e-05       3.187e-16      3        1.695
+three_axis              5.0e-04       3.733e-16      3        1.696
+isotropic               5.0e-05       1.141e-16      3        1.083
+isotropic               5.0e-04       1.770e-16      3        1.068
+
+[PASS] equation (10) holds on every profile -- worst relative departure 6.870e-16, tolerance 1e-9
+
+==============================================================================
+1.2 the unobservable direction IS the rotation axis
+==============================================================================
+For a single-axis record, the angle between the worst-observed Gramian eigendirection and the record's dominant rotation axis, over 60 seeds. The excitation axes are placed by a seeded random rotation, so no seed has the motion along a body axis.
+
+  angle to the dominant rotation axis, deg: max 0.000000, median 0.000000
+  angle to the NEAREST body axis, deg     : min 7.0421, median 35.9916
+[PASS] the unobservable direction is the rotation axis on 60 of 60 seeds -- worst 0.000000 deg, tolerance 0.5 deg
+[PASS] the result is not trivial: the motion is never along a body axis -- closest approach 7.0421 deg, requirement > 5 deg
+
+==============================================================================
+1.3 equation (13): an independent bracket on lambda_min
+==============================================================================
+lambda_min is computed by numpy.linalg.eigh. It is bracketed below by Gershgorin's circle theorem and above by the Rayleigh quotient at the canonical basis vectors, neither of which uses an eigensolver. A negative lower bound is informative rather than wrong: it says diagonal dominance alone cannot separate the matrix from a singular one.
+
+profile                     lower     lambda_min          upper  consistent
+single_axis          -8.20901e+06        1440.25    4.48561e+06        True
+near_single_axis     -8.19797e+06        10447.5    4.49379e+06        True
+two_axis              1.53711e+07    2.26694e+07    2.67243e+07        True
+three_axis            1.82677e+07     2.2852e+07    2.75308e+07        True
+isotropic             5.62345e+06    5.68442e+06    5.69212e+06        True
+
+[PASS] the bracket of (13) contains lambda_min on every profile -- 0 of 5 inconsistent
+  the Gershgorin lower bound is negative on 2 of 5 profiles, which is reported rather than hidden: diagonal dominance is a weak test on a matrix this ill-conditioned.
+
+==============================================================================
+1.4 the noise floor of equation (11), and what it is for
+==============================================================================
+The Gramian is formed from the MEASURED reference rate, so the reference sensor's own noise contributes 2 sigma_A^2 per sample in every direction, including the one the motion never excited. A bare rank test on the measured Gramian is therefore wrong. Measured below: the smallest eigenvalue of a single-axis record against the floor, and the rank verdict with the gate and without it.
+
+  samples     lambda_min     floor (11)      ratio         cond  rank, gated  rank, bare
+      200         205.12            200     1.0256    1.255e+04            2           3
+      500        494.978            500     0.9900    1.531e+04            2           3
+     1000        1022.38           1000     1.0224    1.482e+04            2           3
+     2000        2004.75           2000     1.0024    1.527e+04            2           3
+     4000        4011.75           4000     1.0029    1.561e+04            2           3
+
+[PASS] a bare numerical rank test is fooled on every single-axis record -- numpy.linalg.matrix_rank reported 3 on 5 of 5 records that support 2
+[PASS] the floor gate of (11) is not fooled on any of them -- the gated verdict reported rank 2 on 5 of 5
+
+==============================================================================
+1.5 sensitivity of the verdict to the two declared thresholds
+==============================================================================
+Neither threshold is a specification. Both are swept here so the reader can see what the verdict depends on. The floor factor is swept at a fixed requirement of 1e-3 rad; the requirement is swept at a fixed floor factor of 4.
+
+ floor factor  single_axis  near_single     two_axis   three_axis    isotropic
+            1            2            3            3            3            3
+          1.5            2            3            3            3            3
+            2            2            3            3            3            3
+            4            2            3            3            3            3
+            8            2            2            3            3            3
+           16            2            2            3            3            3
+           64            2            2            3            3            3
+
+ requirement rad profile             observable  marginal  unobservable
+         1.0e-02 single_axis                  2         0             1
+         1.0e-02 near_single_axis             3         0             0
+         1.0e-02 three_axis                   3         0             0
+         1.0e-03 single_axis                  2         0             1
+         1.0e-03 near_single_axis             2         1             0
+         1.0e-03 three_axis                   3         0             0
+         1.0e-04 single_axis                  0         2             1
+         1.0e-04 near_single_axis             0         3             0
+         1.0e-04 three_axis                   0         3             0
+         1.0e-05 single_axis                  0         2             1
+         1.0e-05 near_single_axis             0         3             0
+         1.0e-05 three_axis                   0         3             0
+
+Reading: the rank verdict is stable in the floor factor from 1.5 to 64 on every profile, so the declared 4 is not load-bearing. The three-valued verdict IS sensitive to the declared requirement, which is the intended behaviour: a requirement is an input, and 'observable' has no meaning without one.
+
+==============================================================================
+1.6 two rotation axes are enough for three alignment degrees of freedom
+==============================================================================
+By (10), lambda_i = (W/s^2)(1 - p_i), and a two-axis rotation has p = (1/2, 1/2, 0), so the third eigenvalue is the LARGEST. It is easy to assume three excited axes are needed; measured below, two suffice. The conditioning is reported beside it and the ordering is NOT the one a reader would guess, which is why it is measured and not asserted.
+
+profile                   p0        p1        p2  rank         cond  worst CRB arcsec
+single_axis         0.999935  0.000034  0.000032     2    1.532e+04         unbounded
+near_single_axis    0.999553  0.000415  0.000032     3         2238          2008.475
+two_axis            0.509092  0.490892  0.000016     3        2.037            43.139
+three_axis          0.505429  0.318845  0.175727     3        1.667            42.847
+isotropic           0.378581  0.335706  0.285714     3        1.149            93.133
+
+[PASS] two excited rotation axes give rank 3 -- rank 3, condition number 2.0370
+[PASS] both two-axis and three-axis records are well conditioned -- two-axis 2.0370, three-axis 1.6666, both against a declared bound of 10
+  ORDERING, reported as measured and not as expected: the two-axis record is WORSE conditioned (2.0370) than the three-axis one (1.6666). Two equal-amplitude axes give p = (1/2, 1/2, 0) and therefore eigenvalues in the ratio 2:1:1 by (10); the three-axis profile's unequal amplitudes spread p more evenly and the ratio is closer to 1. Excitation on more axes is not the same thing as better conditioning, and the number of excited axes alone does not predict the ordering.
+
+==============================================================================
+1.7 a worked verdict, printed in full
+==============================================================================
+OBSERVABILITY VERDICT (computed before any estimate)
+  provenance        : aligncal.dataset.generate(profile='near_single_axis', samples=2000, rate_hz=100, amplitude=0.05, noise_sigma=0.0002, seed=31420266)
+  samples           : 2000, duration 19.99 s
+  excitation shares : p0 0.999537, p1 0.000432, p2 0.000031
+  excitation entropy: 0.005965 bits of a possible 1.584963
+  dominant rotation axis: [+0.3361, +0.8975, +0.2855]
+sensor secondary_1: rank 3 of 3
+  samples 2000, rotational energy 2.54957 rad^2/s^2
+  noise floor (eq 11) 2000, declared floor factor 4, declared requirement 0.001 rad
+  Gramian condition number 2157.92
+  lambda_min bracket (eq 13) [-1.15614e+07, 6.20847e+06], consistent: True
+  every degree of freedom clears the noise floor of eq (11)
+    dof 0: rotation about 43.5 deg from the x axis [+0.7259, -0.4400, +0.5287] -- observable, CRB 36.54 arcsec, excitation share 0.000031, floor ratio 1.593e+04
+    dof 1: rotation about 36.9 deg from the z axis [-0.6001, -0.0295, +0.7993] -- observable, CRB 36.55 arcsec, excitation share 0.000432, floor ratio 1.593e+04
+    dof 2: rotation about 26.2 deg from the y axis [+0.3361, +0.8975, +0.2855] -- marginal, CRB 1697.31 arcsec, excitation share 0.999537, floor ratio 7.384
+  per-body-axis CRB one sigma: x 571.45 arcsec, y 1523.47 arcsec, z 485.82 arcsec
+
+CHECKS RUN: 8
+FAILED CHECKS (0): none

@@ -1,0 +1,177 @@
+
+==============================================================================
+refractpath -- wavelength dependence and the four refractivity formulations
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (alternatives table only)
+ephem            : not installed  (alternatives table only)
+pyerfa           : not installed  (alternatives table only)
+cpu cores        : 2
+repository root  : P087 (printed relatively; see validation/_bootstrap.py)
+
+formulation                 published range (um)  source of the range
+--------------------------  --------------------  ------------------------------------------------------------------------------------------------------------------
+iau_explanatory_supplement  0.3 to 1              declared by this product; the Explanatory Supplement form is quoted for the optical band without a stated interval
+edlen_1966                  0.3 to 1.69           Edlen (1966), visible and near infrared
+birch_downs_1994            0.35 to 0.65          Birch and Downs (1993), the interval over which the fit was determined
+ciddor_1996                 0.3 to 1.69           Ciddor (1996), stated in that paper
+
+==============================================================================
+1. n - 1 at 15 C and 101325 Pa, dry, across the band
+==============================================================================
+lambda (um)  iau_explanatory_supplement  edlen_1966      birch_downs_1994  ciddor_1996     spread     rel spread
+-----------  --------------------------  --------------  ----------------  --------------  ---------  ----------
+ 0.3200      2.88940134e-04              2.89021508e-04  2.89035683e-04    2.89037617e-04  9.748e-08  3.373e-04
+ 0.3500      2.86095704e-04              2.86103480e-04  2.86117508e-04    2.86119607e-04  2.390e-08  8.355e-05
+ 0.4000      2.82786086e-04              2.82745342e-04  2.82759203e-04    2.82761823e-04  4.074e-08  1.441e-04
+ 0.4500      2.80571559e-04              2.80516848e-04  2.80530598e-04    2.80533356e-04  5.471e-08  1.950e-04
+ 0.5000      2.79014739e-04              2.78957593e-04  2.78971266e-04    2.78973811e-04  5.715e-08  2.048e-04
+ 0.5500      2.77877478e-04              2.77821877e-04  2.77835492e-04    2.77837635e-04  5.560e-08  2.001e-04
+ 0.6330      2.76566111e-04              2.76515317e-04  2.76528867e-04    2.76530210e-04  5.079e-08  1.837e-04
+ 0.7000      2.75837160e-04              2.75790272e-04  2.75803786e-04    2.75804499e-04  4.689e-08  1.700e-04
+ 0.8000      2.75076414e-04              2.75034429e-04  2.75047907e-04    2.75047797e-04  4.198e-08  1.526e-04
+ 1.0000      2.74189326e-04              2.74153998e-04  2.74167432e-04    2.74166131e-04  3.533e-08  1.289e-04
+ 1.2500      2.73625870e-04              2.73595232e-04  2.73608638e-04    2.73606437e-04  3.064e-08  1.120e-04
+ 1.5500      2.73277325e-04              2.73249745e-04  2.73263133e-04    2.73260316e-04  2.758e-08  1.009e-04
+ 1.6900      2.73174604e-04              2.73147947e-04  2.73161331e-04    2.73158322e-04  2.666e-08  9.759e-05
+
+[PASS] the four dry-air formulations agree to better than 1e-7 in n across the band -- worst 9.748e-08 at 0.32 um
+
+==============================================================================
+2. the same disagreement expressed as arcseconds of refraction
+==============================================================================
+Refraction is very nearly proportional to n - 1, so a spread in n maps onto
+a spread in arcseconds through the same factor at any fixed elevation. The
+table below is the measured ray-trace refraction at 45 degrees under each
+formulation, which includes the non-linear part rather than assuming it away.
+lambda (um)  iau_explanatory_supplement  edlen_1966  birch_downs_1994  ciddor_1996  spread
+-----------  --------------------------  ----------  ----------------  -----------  --------
+ 0.3200        59.44982                    59.46658    59.46950          59.46988    0.02006
+ 0.3500        58.86449                    58.86611    58.86899          58.86941    0.00492
+ 0.4000        58.18344                    58.17507    58.17792          58.17845    0.00837
+ 0.4500        57.72773                    57.71649    57.71932          57.71988    0.01124
+ 0.5000        57.40737                    57.39563    57.39844          57.39896    0.01174
+ 0.5500        57.17335                    57.16192    57.16473          57.16515    0.01142
+ 0.6330        56.90350                    56.89306    56.89585          56.89612    0.01044
+ 0.7000        56.75350                    56.74386    56.74665          56.74678    0.00963
+ 0.8000        56.59695                    56.58833    56.59110          56.59107    0.00862
+ 1.0000        56.41441                    56.40716    56.40992          56.40964    0.00725
+ 1.2500        56.29846                    56.29217    56.29493          56.29447    0.00629
+ 1.5500        56.22674                    56.22108    56.22383          56.22324    0.00566
+ 1.6900        56.20560                    56.20013    56.20289          56.20226    0.00547
+
+band where all four formulations are published valid: 0.35 to 0.633 um (6 of 13 sampled wavelengths)
+worst spread inside that band : 0.01174 arcsec
+worst spread over the whole sampled band : 0.02006 arcsec at 0.32 um, which is outside the published range of birch_downs_1994
+[PASS] inside the commonly published band the formulation choice is worth less than 0.02 arcsec at 45 degrees -- worst 0.01174 arcsec; the formulation choice is two orders of magnitude smaller than the spread between the refraction models themselves
+
+==============================================================================
+3. atmospheric dispersion: the refraction difference across the band
+==============================================================================
+elevation  400 nm (arcsec)  700 nm (arcsec)  difference  fraction   eq (15) difference
+---------  ---------------  ---------------  ----------  ---------  ------------------
+  60.0        34.2122          33.3703          0.8418     0.02523     0.0000
+  45.0        59.2119          57.7548          1.4571     0.02523     0.0000
+  30.0       102.3246          99.8059          2.5187     0.02524     0.0000
+  20.0       161.4876         157.5101          3.9775     0.02525     0.0000
+  10.0       324.8327         316.8082          8.0245     0.02533     0.0000
+   5.0       602.1919         587.1876         15.0043     0.02555     0.0000
+
+The last column is the finding. Equations (15) and (16) are monochromatic
+fits with no wavelength argument, so they predict exactly zero atmospheric
+dispersion at every elevation. The layered integral puts the 400-to-700 nm
+difference at the values in the fourth column, which exceeds a one-arcsecond
+pointing tolerance below the elevation measured next.
+
+elevation below which the 400-to-700 nm difference exceeds 1 arcsec: 55.426 deg
+This is a quantity equations (15) and (16) cannot represent at all, which is a different class of limitation from being a few arcseconds out.
+[PASS] equation (15) predicts exactly zero atmospheric dispersion -- its output is identical at 400 nm and 700 nm at every elevation tested, because the published formula takes no wavelength
+[PASS] equation (16) predicts exactly zero atmospheric dispersion -- same reason
+
+==============================================================================
+4. humidity: where the formulations really disagree
+==============================================================================
+t (C)   RH     e (Pa)     iau_explanatory_supplement  edlen_1966      birch_downs_1994  ciddor_1996     spread
+------  -----  ---------  --------------------------  --------------  ----------------  --------------  ---------
+   0.0   0.00       0.00  2.92196849e-04              2.92180984e-04  2.92195303e-04    2.92205931e-04  2.495e-08
+   0.0   0.50     306.76  2.92012324e-04              2.92070489e-04  2.92084808e-04    2.92088056e-04  7.573e-08
+   0.0   1.00     613.53  2.91827798e-04              2.91959994e-04  2.91974313e-04    2.91970574e-04  1.465e-07
+  10.0   0.00       0.00  2.81877342e-04              2.81834361e-04  2.81848173e-04    2.81851934e-04  4.298e-08
+  10.0   0.50     616.42  2.81519648e-04              2.81612330e-04  2.81626143e-04    2.81623355e-04  1.065e-07
+  10.0   1.00    1232.84  2.81161954e-04              2.81390300e-04  2.81404112e-04    2.81396078e-04  2.422e-07
+  20.0   0.00       0.00  2.72261877e-04              2.72193633e-04  2.72206972e-04    2.72208662e-04  6.824e-08
+  20.0   0.50    1174.28  2.71603716e-04              2.71770665e-04  2.71784005e-04    2.71788181e-04  1.845e-07
+  20.0   1.00    2348.56  2.70945554e-04              2.71347697e-04  2.71361037e-04    2.71371497e-04  4.259e-07
+  30.0   0.00       0.00  2.63280783e-04              2.63188942e-04  2.63201841e-04    2.63205365e-04  9.184e-08
+  30.0   0.50    2132.52  2.62124971e-04              2.62420822e-04  2.62433720e-04    2.62467568e-04  3.426e-07
+  30.0   1.00    4265.04  2.60969159e-04              2.61652701e-04  2.61665600e-04    2.61739597e-04  7.704e-07
+  40.0   0.00       0.00  2.54873285e-04              2.54759357e-04  2.54771842e-04    2.54780382e-04  1.139e-07
+  40.0   0.50    3709.72  2.52926849e-04              2.53423139e-04  2.53435624e-04    2.53539413e-04  6.126e-07
+  40.0   1.00    7419.44  2.50980412e-04              2.52086921e-04  2.52099406e-04    2.52320949e-04  1.341e-06
+
+spread at 40 C, dry       : 1.1393e-07
+spread at 40 C, saturated : 1.3405e-06
+ratio                     : 11.77
+[PASS] the humidity treatments disagree by more than ten times the dry-air spread at 40 C and saturation -- ratio 11.77; the Explanatory Supplement humidity term of equation (9) is the outlier
+
+What saturation at 30 C is worth in arcseconds, by the ray trace:
+elevation  dry (arcsec)  saturated   difference
+---------  ------------  ----------  ----------
+  45.0        54.1466       53.8458    -0.3008
+  20.0       147.5775      146.7515    -0.8261
+  10.0       296.2249      294.5236    -1.7013
+   5.0       546.0424      542.6559    -3.3865
+   1.0      1309.2000     1296.8218   -12.3783
+   0.0      1815.9199     1790.8689   -25.0510
+
+Negative throughout: water vapour LOWERS optical refractivity. It raises
+radio refractivity, and this product does not cover the radio band.
+
+==============================================================================
+5. the two saturation-vapour-pressure formulations
+==============================================================================
+t (C)   eq (4) Buck  eq (12) IAPWS x f  difference  relative
+------  -----------  -----------------  ----------  ---------
+ -10.0    286.5603     287.6221          +1.0618    +3.71e-03
+   0.0    611.2100     613.5362          +2.3262    +3.81e-03
+  10.0   1227.8602    1232.8525          +4.9923    +4.07e-03
+  20.0   2338.3400    2348.5798         +10.2398    +4.38e-03
+  30.0   4245.1257    4265.0841         +19.9583    +4.70e-03
+  40.0   7382.3596    7419.5149         +37.1553    +5.03e-03
+
+Equation (12) includes the Ciddor enhancement factor and equation (4) does
+not, which accounts for most of the offset. The tabulated value at 20 C is
+2339 Pa; both are inside 1 Pa of it.
+
+==============================================================================
+6. wavelength sensitivity of the refraction at the published conditions
+==============================================================================
+lambda (um)  raytrace 45 deg  raytrace 10 deg  raytrace 0 deg  eq (15) 45 deg
+-----------  ---------------  ---------------  --------------  --------------
+ 0.3200         60.3320         331.0025         2124.277         59.6909
+ 0.3500         59.7229         327.6470         2100.842         59.6909
+ 0.4000         59.0219         323.7861         2073.932         59.6909
+ 0.4500         58.5567         321.2239         2056.106         59.6909
+ 0.5000         58.2311         319.4309         2043.647         59.6909
+ 0.5500         57.9939         318.1248         2034.578         59.6909
+ 0.6330         57.7209         316.6217         2024.152         59.6909
+ 0.7000         57.5694         315.7875         2018.368         59.6909
+ 0.8000         57.4115         314.9176         2012.340         59.6909
+ 1.0000         57.2274         313.9042         2005.321         59.6909
+ 1.2500         57.1106         313.2608         2000.867         59.6909
+ 1.5500         57.0383         312.8630         1998.114         59.6909
+ 1.6900         57.0170         312.7457         1997.303         59.6909
+
+The last column is constant down the table, by construction of the published
+formula. The first three are not. At 45 degrees the sampled band spans
+3.3150 arcsec, and at the horizon it spans
+much more.
+
+CHECKS RUN: 5
+FAILED CHECKS (0): none

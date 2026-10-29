@@ -1,0 +1,153 @@
+
+==============================================================================
+refractpath -- equation (23), the unmeasured profile above the observer
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (alternatives table only)
+ephem            : not installed  (alternatives table only)
+pyerfa           : not installed  (alternatives table only)
+cpu cores        : 2
+repository root  : P087 (printed relatively; see validation/_bootstrap.py)
+
+base state: 1010 hPa, 10 C, dry, 0.55 um
+declared envelope members: dry_adiabatic -9.8 K/km, us_standard_1976 -6.5 K/km, isothermal +0.0 K/km
+
+==============================================================================
+1. surface lapse rate applied to the whole troposphere
+==============================================================================
+lapse (K/km)  45 deg      10 deg      5 deg       1 deg       0 deg
+------------  ----------  ----------  ----------  ----------  ----------
+  -9.8           57.9939    318.0461    588.4375   1409.6772   1933.3585
+  -8.0           57.9939    318.0888    589.0988   1429.3353   1988.6078
+  -6.5           57.9939    318.1248    589.6488   1445.4253   2034.5783
+  -4.0           57.9937    318.1851    590.5599   1471.6587   2111.0885
+  -2.0           57.9933    318.2329    591.2811   1492.1303   2172.2382
+  +0.0           57.9925    318.2797    591.9932   1512.1563   2233.3766
+  +5.0           57.9876    318.3863    593.7212   1560.3575   2386.4385
+ +10.0           57.9766    318.4684    595.3563   1606.0682   2540.3399
+ +20.0           57.9286    318.5266    598.2988   1690.8608   2853.4683
+ +30.0           57.8450    318.4372    600.8052   1768.0911   3178.7749
+
+elevation (deg)  range over the swept lapse rates (arcsec)  as arcmin
+---------------  -----------------------------------------  ---------
+45                   0.1489                                   0.0025
+10                   0.4805                                   0.0080
+5                   12.3676                                   0.2061
+1                  358.4139                                   5.9736
+0                 1245.4164                                  20.7569
+
+range over the three DECLARED envelope members at 45 deg : 0.00143 arcsec
+range over the full swept set at 45 deg                  : 0.14893 arcsec
+The full swept set includes a +30 K/km gradient applied to the WHOLE 11 km
+troposphere, which is not a physical atmosphere; it is swept to show where the
+sensitivity comes from, and the declared envelope of equation (23) uses only
+the three attainable members.
+[PASS] the three declared envelope members are worth less than 0.01 arcsec at 45 degrees -- range 0.00143 arcsec; the full swept set, including the unphysical whole-troposphere +30 K/km case, spans 0.14893 arcsec
+[PASS] the lapse rate is worth more than 1000 arcsec at zero elevation -- range 1245.42 arcsec = 20.757 arcmin; this is the single largest term in horizon refraction and the library cannot determine it from its inputs
+
+==============================================================================
+2. a shallow surface inversion of +20 K/km, by depth
+==============================================================================
+inversion depth (m)  45 deg      5 deg       1 deg       0 deg
+-------------------  ----------  ----------  ----------  ----------
+    25                  57.9939    589.6981   1449.2492   2171.5791
+    50                  57.9939    589.7471   1452.9898   2223.1197
+   100                  57.9939    589.8444   1460.2310   2290.9074
+   200                  57.9939    590.0360   1473.8173   2376.9027
+   400                  57.9939    590.4075   1497.8491   2480.0269
+   800                  57.9938    591.1059   1536.0828   2593.2510
+none                    57.9939    589.6488   1445.4253   2034.5783
+
+A 25 m inversion is invisible at 45 degrees and worth tens of arcseconds at
+the horizon. Nothing in the inputs this library accepts constrains either the
+depth or the strength, which is why both appear in the undeterminable list
+returned by every verdict.
+[PASS] a 25 m surface inversion moves the horizon refraction by more than 10 arcsec -- +137.001 arcsec against the US Standard Atmosphere 1976 profile
+
+==============================================================================
+3. observer height at fixed station pressure
+==============================================================================
+observer height (m)  45 deg      10 deg      5 deg       1 deg       0 deg
+-------------------  ----------  ----------  ----------  ----------  ----------
+     0                  57.9939    318.1248    589.6488   1445.4253   2034.5783
+   500                  57.9939    318.1257    589.6539   1445.4707   2034.6724
+  1500                  57.9939    318.1275    589.6640   1445.5615   2034.8606
+  3000                  57.9940    318.1303    589.6792   1445.6976   2035.1428
+  5000                  57.9940    318.1341    589.6995   1445.8790   2035.5191
+
+The refraction RISES with observer height at fixed station pressure, because
+a larger radius means a smaller beta and therefore a smaller curvature
+correction. The effect has the opposite sign to the one a reader might
+expect from thinking about air mass, and it is small.
+
+==============================================================================
+4. vapour scale height of equation (3), at 30 C and saturation
+==============================================================================
+vapour scale height (m)  45 deg      5 deg       1 deg       0 deg
+-----------------------  ----------  ----------  ----------  ----------
+  1000                      53.8457    542.5897   1294.7369   1779.6127
+  1500                      53.8458    542.6232   1295.9148   1786.6464
+  2000                      53.8458    542.6559   1296.8218   1790.8689
+  3000                      53.8459    542.7190   1298.1723   1795.9159
+  4000                      53.8460    542.7794   1299.1618   1798.9520
+
+   45.0 deg: range 0.0003 arcsec over a 1 km to 4 km vapour scale height
+    5.0 deg: range 0.1896 arcsec over a 1 km to 4 km vapour scale height
+    0.0 deg: range 19.3393 arcsec over a 1 km to 4 km vapour scale height
+
+Equation (3) is a declared default, not a published profile. Its crudeness is
+tolerable in the optical band because the numbers above are small; it would
+not be tolerable in the radio band, which this product does not cover.
+
+==============================================================================
+5. the headline comparison: equation (22) against equation (23)
+==============================================================================
+elevation  eq (22) spread  eq (23) envelope  ratio     larger term  undefined
+---------  --------------  ----------------  --------  -----------  ---------
+  90.0           0.1157          0.0000         0.000  cross-model  0
+  60.0           1.6144          0.0009         0.001  cross-model  0
+  45.0           2.8049          0.0014         0.001  cross-model  0
+  30.0           4.6666          0.0016         0.000  cross-model  0
+  20.0           6.7455          0.0061         0.001  cross-model  0
+  10.0          14.2224          0.2336         0.016  cross-model  0
+   5.0         114.1489          3.5557         0.031  cross-model  0
+   3.0         533.0009         16.0540         0.030  cross-model  0
+   2.0        1839.9769         38.7125         0.021  cross-model  0
+   1.0          14.7497        102.4791         6.948  profile      2
+   0.5          27.9254        172.9883         6.195  profile      2
+   0.0          34.0737        300.0181         8.805  profile      2
+
+the profile envelope is the larger term at 3 of 12 elevations tested
+
+Read this table before the disagreement curve. Above about 10 degrees the
+cross-model disagreement dominates and is the thing to budget for. Below it
+the unmeasured profile dominates, and no choice among the published methods
+will help, because they are all being asked about an atmosphere nobody
+measured. That is why the verdict refuses on the profile envelope alone and
+not only on the cross-model spread.
+[PASS] the profile envelope exceeds the cross-model spread at or below 1 degree -- measured at 1, 0.5 and 0 degrees, which is the regime in which both the plane-parallel model and the Oriani series have left the ensemble. Between about 1 and 5 degrees the cross-model spread is the larger term only because those two forms are diverging there; among the three methods that remain defined the profile term already dominates
+[PASS] the cross-model spread exceeds the profile envelope at or above 20 degrees -- measured at 90, 60, 45, 30 and 20 degrees
+
+==============================================================================
+6. the envelope members at a few elevations, in arcmin
+==============================================================================
+elevation  dry_adiabatic  us_standard_1976  isothermal
+---------  -------------  ----------------  ----------
+   5.0        9.8073         9.8275            9.8666
+   2.0       17.9257        18.1516           18.5709
+   1.0       23.4946        24.0904           25.2026
+   0.5       27.3497        28.3442           30.2328
+   0.0       32.2226        33.9096           37.2229
+
+Equation (23) is a LOWER bound on the profile uncertainty, not an upper one:
+a real surface inversion is steeper than isothermal, as section 2 shows, and
+the three members are a declared bracket rather than a distribution.
+
+CHECKS RUN: 5
+FAILED CHECKS (0): none

@@ -1,0 +1,133 @@
+
+==============================================================================
+refractpath -- ray trace numerical error budget
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (alternatives table only)
+ephem            : not installed  (alternatives table only)
+pyerfa           : not installed  (alternatives table only)
+cpu cores        : 2
+repository root  : P087 (printed relatively; see validation/_bootstrap.py)
+
+state: 1010 hPa, 10 C, dry, 0.55 um, US Standard Atmosphere 1976 surface lapse rate
+package defaults: 10000 shells, 90000 m ceiling, q = 3
+
+==============================================================================
+1. grid refinement -- refraction in arcsec by shell count
+==============================================================================
+shells  45 deg    20 deg     10 deg     5 deg      2 deg       1 deg       0.2 deg     0 deg
+------  --------  ---------  ---------  ---------  ----------  ----------  ----------  ----------
+500     57.99388  158.16271  318.12453  589.64762  1089.09208  1445.41242  1889.69325  2033.98383
+1000    57.99389  158.16273  318.12470  589.64853  1089.09657  1445.42220  1889.72341  2034.37003
+2500    57.99389  158.16274  318.12474  589.64877  1089.09778  1445.42486  1889.73176  2034.53022
+5000    57.99389  158.16274  318.12475  589.64880  1089.09794  1445.42524  1889.73295  2034.56570
+10000   57.99389  158.16274  318.12475  589.64881  1089.09799  1445.42533  1889.73325  2034.57833
+20000   57.99389  158.16274  318.12475  589.64881  1089.09800  1445.42536  1889.73332  2034.58282
+40000   57.99389  158.16274  318.12475  589.64881  1089.09800  1445.42536  1889.73334  2034.58441
+
+change on doubling the shell count, arcsec
+refinement      45 deg    20 deg    10 deg    5 deg     2 deg     1 deg     0.2 deg   0 deg
+--------------  --------  --------  --------  --------  --------  --------  --------  --------
+500 -> 1000     2.09e-06  2.37e-05  1.66e-04  9.08e-04  4.50e-03  9.78e-03  3.02e-02  3.86e-01
+1000 -> 2500    5.52e-07  6.23e-06  4.37e-05  2.39e-04  1.20e-03  2.66e-03  8.35e-03  1.60e-01
+2500 -> 5000    7.80e-08  8.81e-07  6.18e-06  3.37e-05  1.70e-04  3.77e-04  1.19e-03  3.55e-02
+5000 -> 10000   1.93e-08  2.18e-07  1.53e-06  8.34e-06  4.21e-05  9.38e-05  2.97e-04  1.26e-02
+10000 -> 20000  4.91e-09  5.54e-08  3.89e-07  2.12e-06  1.07e-05  2.36e-05  7.44e-05  4.49e-03
+20000 -> 40000  1.20e-09  1.36e-08  9.52e-08  5.19e-07  2.62e-06  5.84e-06  1.85e-05  1.59e-03
+
+elevation (deg)  default (arcsec)  finest (arcsec)  residual (arcsec)
+---------------  ----------------  ---------------  -----------------
+45               57.99389          57.99389         6.11e-09
+20               158.16274         158.16274        6.90e-08
+10               318.12475         318.12475        4.84e-07
+5                589.64881         589.64881        2.64e-06
+2                1089.09799        1089.09800       1.33e-05
+1                1445.42533        1445.42536       2.95e-05
+0.2              1889.73325        1889.73334       9.30e-05
+0                2034.57833        2034.58441       6.08e-03
+[PASS] grid residual above the horizon is below 1e-3 arcsec at the package default -- worst 9.299e-05 arcsec at 0.2 deg
+[PASS] grid residual at zero elevation is below 2e-2 arcsec at the package default -- 6.077e-03 arcsec; the horizon integrand has an integrable inverse-square-root singularity and converges more slowly
+
+==============================================================================
+2. truncation -- refraction neglected above the ceiling
+==============================================================================
+ceiling (km)  45 deg    5 deg      0 deg
+------------  --------  ---------  ----------
+50            57.95494  589.39946  2034.27981
+70            57.99119  589.63313  2034.56101
+86            57.99378  589.64823  2034.57784
+90            57.99389  589.64881  2034.57833
+110           57.99398  589.64929  2034.57815
+
+[PASS] truncation at the 90 km default is below 1e-2 arcsec against a 110 km ceiling -- worst 4.851e-04 arcsec
+
+==============================================================================
+3. grid exponent q of equation (20)
+==============================================================================
+q    45 deg    5 deg      1 deg       0 deg
+---  --------  ---------  ----------  ----------
+2    57.99389  589.64881  1445.42532  2034.31420
+2.5  57.99389  589.64881  1445.42533  2034.54635
+3    57.99389  589.64881  1445.42533  2034.57833
+4    57.99389  589.64881  1445.42533  2034.58470
+
+q concentrates shells near the observer. It matters only at the horizon,
+where the integrand is singular; q = 3 is the package default and q = 4
+changes the horizon answer by the amount tabulated above.
+
+==============================================================================
+4. independently derived bracket -- monotonicity and the mean value theorem
+==============================================================================
+elevation (deg)  lower     measured   upper      width/value  verdict
+---------------  --------  ---------  ---------  -----------  -------
+60               32.9536   33.5080    33.5597    0.0181       inside
+45               56.5733   57.9931    58.1271    0.0268       inside
+30               95.5016   100.2179   100.6790   0.0517       inside
+20               143.5330  158.1608   159.7028   0.1022       inside
+10               237.7035  318.1216   329.6550   0.2890       inside
+5                307.6048  589.6477   664.3955   0.6051       inside
+2                340.7794  1089.1223  1664.5416  1.2154       inside
+[PASS] the ray trace lies inside the independent bracket at every elevation tested -- 7 of 7
+
+==============================================================================
+5. the bracket is not vacuous -- controls anchored on the truth
+==============================================================================
+   60.0 deg: plane-parallel 33.56604 arcsec against upper bound 33.55968 arcsec, excess +0.00636
+   45.0 deg: plane-parallel 58.14355 arcsec against upper bound 58.12707 arcsec, excess +0.01648
+   30.0 deg: plane-parallel 100.73601 arcsec against upper bound 100.67904 arcsec, excess +0.05696
+   20.0 deg: plane-parallel 159.89588 arcsec against upper bound 159.70282 arcsec, excess +0.19306
+[PASS] the bracket rejects the exact plane-parallel answer at every elevation tested -- 4 of 4; the plane-parallel answer is kappa tan z to first order and the bound is ln(1 + kappa) tan z, which is strictly smaller
+[PASS] the bracket rejects a ray trace scaled by 2.5 times the bracket's own width -- 6 of 6; the injected error is anchored on the measured value and scaled by the conditioning of the bound, not by a constant
+
+==============================================================================
+6. plane-parallel limit -- a different derivation entirely
+==============================================================================
+Setting the observer radius to 1e5 Earth radii removes the curvature, so
+equation (19) must collapse onto the exact single-interface Snell solution
+of equation (13). Nothing is shared between the two: one is a shell sum,
+the other is one application of Snell's law.
+elevation (deg)  flat-Earth raytrace  exact Snell  relative difference
+---------------  -------------------  -----------  -------------------
+45               58.14346             58.14355     1.676e-06
+20               159.89560            159.89588    1.763e-06
+10               331.20956            331.21026    2.095e-06
+5                677.19547            677.19785    3.506e-06
+[PASS] the flattened ray trace reproduces the exact Snell solution to 2e-4 relative -- worst 3.506e-06; the residual is the finite 1e5-radius sphere and the 90 km ceiling, not the integrator
+
+==============================================================================
+elapsed time -- UNSTABLE, two cores, reported for information only
+==============================================================================
+quantity                                value
+--------------------------------------  -----
+ray traces run in the refinement sweep  56
+mean wall-clock per trace (ms)          3.829
+total wall-clock in the sweep (s)       0.21
+
+CHECKS RUN: 7
+FAILED CHECKS (0): none

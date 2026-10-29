@@ -1,0 +1,85 @@
+
+==============================================================================
+ENVIRONMENT
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (named in the alternatives table; no number here is compared against it)
+skyfield         : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P090 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+EVERY SCRIPT FROM EVERY WORKING DIRECTORY
+==============================================================================
+19 scripts times 5 working directories = 95 runs, at TLECHECK_VALIDATION_OBJECTS=24
+
+The columns are the exit status and the first sixteen hexadecimal digits of a hash of the complete standard output. All five must match for the contract to hold.
+
+Output files and figures are redirected into a temporary directory for the duration of this probe, so the committed full-size outputs are not overwritten with small-corpus numbers.
+
+script                                              root                   tmp               product            validation                   src
+validation/validate_baseline_history.py    0 89246e6fb42ccfd2    0 89246e6fb42ccfd2    0 89246e6fb42ccfd2    0 89246e6fb42ccfd2    0 89246e6fb42ccfd2
+validation/validate_bounds.py         0 0fcf87f019ad5425    0 0fcf87f019ad5425    0 0fcf87f019ad5425    0 0fcf87f019ad5425    0 0fcf87f019ad5425
+validation/validate_cli.py            0 e7fa73ca0f9da3e7    0 e7fa73ca0f9da3e7    0 e7fa73ca0f9da3e7    0 e7fa73ca0f9da3e7    0 e7fa73ca0f9da3e7
+validation/validate_consequence.py    0 63a421f47b3d1337    0 63a421f47b3d1337    0 63a421f47b3d1337    0 63a421f47b3d1337    0 63a421f47b3d1337
+validation/validate_controls.py       0 4f42c63887ac5cc0    0 4f42c63887ac5cc0    0 4f42c63887ac5cc0    0 4f42c63887ac5cc0    0 4f42c63887ac5cc0
+validation/validate_elements.py       0 109b9642b63f1084    0 109b9642b63f1084    0 109b9642b63f1084    0 109b9642b63f1084    0 109b9642b63f1084
+validation/validate_learned.py        1 5112f2b879bd0265    1 5112f2b879bd0265    1 5112f2b879bd0265    1 5112f2b879bd0265    1 5112f2b879bd0265
+validation/validate_rule_screens.py    1 13a1ffccac2fbdd2    1 13a1ffccac2fbdd2    1 13a1ffccac2fbdd2    1 13a1ffccac2fbdd2    1 13a1ffccac2fbdd2
+validation/worked_example.py          0 720d391c69ee9a32    0 720d391c69ee9a32    0 720d391c69ee9a32    0 720d391c69ee9a32    0 720d391c69ee9a32
+examples/consequence_by_corruption.py    0 b5ad9d5f38c5fb47    0 b5ad9d5f38c5fb47    0 b5ad9d5f38c5fb47    0 b5ad9d5f38c5fb47    0 b5ad9d5f38c5fb47
+examples/continuity_resolution.py     0 b04986307ed04865    0 b04986307ed04865    0 b04986307ed04865    0 b04986307ed04865    0 b04986307ed04865
+examples/corruption_transfer.py       0 7c6daa7e2eb869a9    0 7c6daa7e2eb869a9    0 7c6daa7e2eb869a9    0 7c6daa7e2eb869a9    0 7c6daa7e2eb869a9
+examples/determinability.py           0 e4518f66d171e94e    0 e4518f66d171e94e    0 e4518f66d171e94e    0 e4518f66d171e94e    0 e4518f66d171e94e
+examples/element_set_anatomy.py       0 01ffd1bd5cb4c3f6    0 01ffd1bd5cb4c3f6    0 01ffd1bd5cb4c3f6    0 01ffd1bd5cb4c3f6    0 01ffd1bd5cb4c3f6
+examples/learned_confidence.py        0 de5f434b82e5c3dc    0 de5f434b82e5c3dc    0 de5f434b82e5c3dc    0 de5f434b82e5c3dc    0 de5f434b82e5c3dc
+examples/precision_recall_grid.py     0 8eb7e993d083981d    0 8eb7e993d083981d    0 8eb7e993d083981d    0 8eb7e993d083981d    0 8eb7e993d083981d
+examples/recall_at_fpr.py             0 ae9556f2b74c6e4a    0 ae9556f2b74c6e4a    0 ae9556f2b74c6e4a    0 ae9556f2b74c6e4a    0 ae9556f2b74c6e4a
+examples/screen_verdict.py            0 64a6622be0ad92a2    0 64a6622be0ad92a2    0 64a6622be0ad92a2    0 64a6622be0ad92a2    0 64a6622be0ad92a2
+examples/sign_flip_growth.py          0 57dfd17f6aa4f74d    0 57dfd17f6aa4f74d    0 57dfd17f6aa4f74d    0 57dfd17f6aa4f74d    0 57dfd17f6aa4f74d
+
+[PASS] the_working_directory_changes_nothing -- 19 scripts, 95 runs, 0 scripts whose behaviour depended on the working directory
+
+==============================================================================
+OUTPUT FILES LAND BESIDE THEIR SCRIPTS, NOT BESIDE THE CALLER
+==============================================================================
+expected output files : 9
+missing               : 0
+[PASS] every_script_wrote_its_output_file_into_validation -- 9 of 9 present
+committed outputs NOT at the full corpus of 420 : 0
+[PASS] the_probe_did_not_overwrite_the_committed_outputs -- 9 of 9 still carry the full-size corpus line
+
+figures in screenshots/ : 10
+  screenshots/consequence_by_corruption.png
+  screenshots/continuity_resolution.png
+  screenshots/corruption_transfer.png
+  screenshots/determinability.png
+  screenshots/element_set_anatomy.png
+  screenshots/learned_confidence.png
+  screenshots/precision_recall_grid.png
+  screenshots/recall_at_fpr.png
+  screenshots/screen_verdict.png
+  screenshots/sign_flip_growth.png
+[PASS] every_example_wrote_its_figure_into_screenshots -- 10 figures for 10 examples
+
+==============================================================================
+THE TREE AFTERWARDS
+==============================================================================
+[PASS] no_config_in_the_repository -- .config absent
+[PASS] no_build_in_the_repository -- build absent
+[PASS] no_dist_in_the_repository -- dist absent
+Bytecode caches and the pytest, ruff and hypothesis caches are gitignored and are produced by the test suite rather than by these subprocesses, which set PYTHONDONTWRITEBYTECODE.
+
+This probe took 441 s of wall clock on two cores. That figure is a timing and is declared unstable; no conclusion rests on it.
+
+CHECKS RUN: 7
+FAILED CHECKS (0): none

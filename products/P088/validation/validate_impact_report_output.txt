@@ -1,0 +1,126 @@
+
+==============================================================================
+tmtcdiff -- impact classification and the coverage verdict
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+deepdiff         : not installed  (alternatives table)
+jsonschema       : 4.26.0  (alternatives table)
+cpu cores        : 2
+repository root  : P088 (printed relatively; see validation/_bootstrap.py)
+
+dictionary size : 60 parameters
+seeds           : 8 per class
+classes probed  : 17
+
+==============================================================================
+part 1 -- impact classification against known injections
+==============================================================================
+injected class       reference form  expected impact   correct  observed
+-------------------  --------------  ----------------  -------  ------------------
+rescaled             name            silently_changed  8/8      silently_changed:8
+unit_changed         name            silently_changed  8/8      silently_changed:8
+reenumerated         name            silently_changed  8/8      silently_changed:8
+bit_shifted          name            silently_changed  8/8      silently_changed:8
+retyped              name            silently_changed  8/8      silently_changed:8
+endianness_changed   name            silently_changed  8/8      silently_changed:8
+packet_moved         name            silently_changed  8/8      silently_changed:8
+limits_changed       name            silently_changed  8/8      silently_changed:8
+removed              name            broken            8/8      broken:8
+renamed              name            renamed_away      8/8      renamed_away:8
+path_moved           path            broken            8/8      broken:8
+description_changed  name            unaffected        8/8      unaffected:8
+command_removed      command         broken            8/8      broken:8
+command_renamed      command         renamed_away      8/8      renamed_away:8
+argument_reordered   argument        silently_changed  8/8      silently_changed:8
+argument_retyped     argument        silently_changed  8/8      silently_changed:8
+argument_rescaled    argument        silently_changed  8/8      silently_changed:8
+
+confusion table over every probed reference, expected against observed:
+expected \ observed  silently_changed  broken  renamed_away  undecidable  unaffected
+-------------------  ----------------  ------  ------------  -----------  ----------
+silently_changed     88                0       0             0            0
+broken               0                 24      0             0            0
+renamed_away         0                 0       16            0            0
+undecidable          0                 0       0             136          0
+unaffected           0                 0       0             0            144
+
+references probed : 408
+misclassified     : 0
+[PASS] every probed reference lands in its expected impact class -- 0 of 408 misclassified
+
+==============================================================================
+rename suggestions -- is the suggested new name the injected one?
+==============================================================================
+rename references probed : 8
+suggestion correct       : 8
+[PASS] the suggested replacement name is the injected rename target -- 8 of 8
+
+==============================================================================
+part 2 -- the coverage verdict, a computed output
+==============================================================================
+case                           references  undecidable  coverage  items unreferenced  determinable  reasons
+-----------------------------  ----------  -----------  --------  ------------------  ------------  -------
+A full coverage                75          0            1.0000    0                   True          0
+B changed item outside corpus  10          0            0.1333    65                  False         2
+C unreadable source present    10          2            0.0267    73                  False         3
+D empty corpus                 0           0            0.0000    75                  False         3
+E full coverage, no change     75          0            1.0000    0                   True          0
+
+case A reasons:
+case B reasons:
+  - 65 of 75 dictionary items are never referenced by this corpus, so this assessment says nothing about consumers outside it
+  - 1 changed item(s) are not referenced by this corpus: THER_T_BUS_24
+case C reasons:
+  - 1 corpus source(s) could not be read: binary/dump.bin (suffix .bin not recognised)
+  - 2 of 10 extracted references are constructed at run time and cannot be resolved statically, so their impact is unknown
+  - 73 of 75 dictionary items are never referenced by this corpus, so this assessment says nothing about consumers outside it
+case D reasons:
+  - 75 of 75 dictionary items are never referenced by this corpus, so this assessment says nothing about consumers outside it
+  - 1 changed item(s) are not referenced by this corpus: THER_T_BUS_24
+  - the corpus is empty, so no reference was assessed at all
+[PASS] full coverage with a zero numeric tolerance is reported as fully determinable -- reasons: ()
+[PASS] an independent count of referenced items agrees with the verdict -- 75 against 75
+[PASS] partial coverage is reported as not determinable
+[PASS] an empty corpus is reported as not determinable
+[PASS] an unreadable source appears in the verdict -- ('binary/dump.bin (suffix .bin not recognised)',)
+
+==============================================================================
+part 3 -- an empty finding list is not a safety statement
+==============================================================================
+Case B has a silent change in the dictionary and a corpus that does not
+reference the changed item. The actionable finding list is empty. The
+rendered interpretation must say the assessment is incomplete.
+
+case B actionable findings : 0
+case B silently changed    : 0
+case B interpretation:
+  No affected reference was found among the references this tool could resolve, and the assessment is NOT complete: 65 of 75 dictionary items are never referenced by this corpus, so this assessment says nothing about consumers outside it; 1 changed item(s) are not referenced by this corpus: THER_T_BUS_24
+  An empty finding list under partial coverage is an absence of evidence, not evidence of absence.
+[PASS] case B has no actionable finding at all -- 0 findings
+[PASS] the interpretation of an empty report under partial coverage says it is incomplete
+[PASS] the interpretation of an empty report under partial coverage names the reasons
+
+case E interpretation, full coverage and nothing changed, which is the only
+case in this script where the assessment is complete and empty:
+  No affected reference was found, and this assessment determined everything it was asked about: every extracted reference resolved statically, every source was readable, every changed item is referenced by the corpus, and no field was incomparable
+  That is a statement about this corpus and these two dictionary versions only.
+[PASS] case E is reported as fully determinable -- reasons: ()
+[PASS] even a complete, empty assessment is scoped to this corpus and these two versions
+
+case A interpretation, where a reference IS affected:
+  1 reference(s) are affected: 1 silently changed, 0 broken, 0 renamed away
+  The silently changed ones are listed first because nothing downstream of them fails.
+
+rendered reports scanned : 5
+forbidden words searched : safe, safely, certified, flight-qualified, production-ready
+occurrences found        : 0
+[PASS] no rendered impact report contains a safety or certification word -- []
+
+CHECKS RUN: 13
+FAILED CHECKS (0): none

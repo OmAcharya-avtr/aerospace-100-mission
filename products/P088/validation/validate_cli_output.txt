@@ -1,0 +1,99 @@
+
+==============================================================================
+tmtcdiff -- every CLI subcommand, as a subprocess
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+deepdiff         : not installed  (alternatives table)
+jsonschema       : 4.26.0  (alternatives table)
+cpu cores        : 2
+repository root  : P088 (printed relatively; see validation/_bootstrap.py)
+
+dictionary files written to a temporary directory outside .
+corpus sources written : 15 plus one unreadable file
+
+==============================================================================
+exit status of every invocation
+==============================================================================
+invocation              expected  actual  stdout lines  stderr lines  verdict
+----------------------  --------  ------  ------------  ------------  -------
+version                 0         0       1             0             ok
+info                    0         0       43            0             ok
+taxonomy                0         0       23            0             ok
+diff                    0         0       26            0             ok
+diff --no-renames       0         0       28            0             ok
+diff --strategy greedy  0         0       26            0             ok
+diff --fail-on-silent   2         2       26            0             ok
+impact                  0         0       94            0             ok
+demo                    0         0       98            0             ok
+sweep                   0         0       9             0             ok
+negative-control        0         0       8             0             ok
+missing file            1         1       0             1             ok
+bad threshold           1         1       0             1             ok
+unknown subcommand      2         2       0             3             ok
+[PASS] every CLI invocation exits with its expected status -- 0 of 14 unexpected
+
+==============================================================================
+quoted fragments -- what the README shows, from this run
+==============================================================================
+python -m tmtcdiff --version
+tmtcdiff 0.1.0
+
+python -m tmtcdiff negative-control --size 30
+dictionary size            : 37 items
+canonical text lines       : 631
+reordered text lines       : 631
+text lines differing       : 1254
+semantic changes reported  : 0
+silent changes reported    : 0
+loud changes reported      : 0
+control held: substantial textual reordering, empty semantic diff
+
+python -m tmtcdiff diff dictionary_1_0.json dictionary_1_1.json  (first 24 lines)
+dictionary 1.0 -> 1.1
+items 50 -> 50
+
+SILENT CHANGES FIRST. A silent change leaves every existing reference resolving
+and running, and alters what it means. Within-tier order is a declared
+convention and is not a measured ranking.
+
+-- silent (3) ----------------------------------------
+  [silent  ] rescaled             COMM_Q_STR_33  scale: 3.0517578125e-05 -> 1.9073486328125e-06  every engineering value scales by 0.0625
+  [silent  ] unit_changed         AOCS_I_BAT_26  unit: 'A' -> 'mA'
+  [silent  ] reenumerated         OBDH_S_RW_17  enum: {0: 'UNLOCKED', 1: 'ACQUIRING', 2: 'LOCKED'} -> {0: 'LOCKED', 1: 'ACQUIRING', 2: 'UNLOCKED'}  codes relabelled [0, 2]; labels recoded ['LOCKED', 'UNLOCKED']
+
+-- loud (2) ----------------------------------------
+  [loud    ] removed              THER_F_TANK_24  name: 'THER_F_TANK_24' -> None  references fail to resolve, visibly
+  [loud    ] renamed              COMM_F_PCDU_27 -> COMM_F_PCDU_27_NEW  name: 'COMM_F_PCDU_27' -> 'COMM_F_PCDU_27_NEW'  (similarity 0.9625)  structural match; a by-name reference to the old name fails to resolve
+
+-- advisory (1) ----------------------------------------
+  [advisory] added                PAYL_V_TX_454  name: None -> 'PAYL_V_TX_454'
+
+-- what this diff could not determine ------------------------
+  incomparable fields : 0
+  ambiguous renames   : 0
+  unmatched removals  : 1
+  unmatched additions : 1
+
+==============================================================================
+the unreadable corpus source appears in the impact output
+==============================================================================
+[PASS] the impact report names the unreadable source -- found
+[PASS] the impact report prints the coverage verdict
+[PASS] no CLI output contains a safety or certification claim
+[PASS] no CLI output contains the absolute repository path
+
+==============================================================================
+the tree is unchanged apart from this script's own output
+==============================================================================
+files gained : []
+files lost   : []
+[PASS] the run adds nothing to the repository but its own output file -- gained [], lost []
+
+CHECKS RUN: 6
+FAILED CHECKS (0): none

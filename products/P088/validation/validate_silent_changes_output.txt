@@ -1,0 +1,128 @@
+
+==============================================================================
+tmtcdiff -- the silent tier, measured separately and reported first
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+deepdiff         : not installed  (alternatives table)
+jsonschema       : 4.26.0  (alternatives table)
+cpu cores        : 2
+repository root  : P088 (printed relatively; see validation/_bootstrap.py)
+
+silent classes : 11
+sizes          : 40, 160
+seeds          : 10 per size
+
+==============================================================================
+silent-tier detection with every loud class also present in the pair
+==============================================================================
+silent class        injected  detected  TP  FP  FN  precision  recall
+------------------  --------  --------  --  --  --  ---------  ------
+rescaled            20        20        20  0   0   1.0000     1.0000
+unit_changed        20        20        20  0   0   1.0000     1.0000
+reenumerated        20        20        20  0   0   1.0000     1.0000
+bit_shifted         20        20        20  0   0   1.0000     1.0000
+retyped             20        20        20  0   0   1.0000     1.0000
+endianness_changed  20        20        20  0   0   1.0000     1.0000
+packet_moved        20        20        20  0   0   1.0000     1.0000
+limits_changed      20        20        20  0   0   1.0000     1.0000
+argument_reordered  20        20        20  0   0   1.0000     1.0000
+argument_retyped    20        20        20  0   0   1.0000     1.0000
+argument_rescaled   20        20        20  0   0   1.0000     1.0000
+
+tier    injected  TP   FP  FN  precision  recall
+------  --------  ---  --  --  ---------  ------
+silent  220       220  0   0   1.0000     1.0000
+loud    140       139  1   1   0.9929     0.9929
+
+Where the silent tier measures above the loud tier in this regime, the reason
+is structural rather than flattering: a silent change is read off two records
+that share a key, while a loud change in the presence of unrelated additions
+can be absorbed into an inferred rename. The two tiers are printed side by
+side above so a reader can see which way each metric actually went.
+[PASS] silent-tier recall is 1.0000 with the loud tier present -- recall 1.0000, 0 missed
+
+==============================================================================
+ranking -- every silent change precedes every loud change
+==============================================================================
+pairs checked              : 20
+pairs carrying both tiers  : 20
+ordering violations        : 0
+rendered-order violations  : 0
+[PASS] the ranked diff puts every silent change before every loud change
+[PASS] the rendered report puts the silent section first
+
+==============================================================================
+silence is testable -- does the old reference still resolve?
+==============================================================================
+A silent change must leave an existing by-name reference resolving; a loud
+change whose mechanism is resolution failure must stop it resolving. Both
+directions are measured below over isolated injections.
+
+class               tier    expected         old reference still resolves  verdict
+------------------  ------  ---------------  ----------------------------  ---------------------------------------------------------
+rescaled            silent  resolves         20/20                         as expected
+unit_changed        silent  resolves         20/20                         as expected
+reenumerated        silent  resolves         20/20                         as expected
+bit_shifted         silent  resolves         20/20                         as expected
+retyped             silent  resolves         20/20                         as expected
+endianness_changed  silent  resolves         20/20                         as expected
+packet_moved        silent  resolves         20/20                         as expected
+limits_changed      silent  resolves         20/20                         as expected
+path_moved          loud    stops resolving  0/20                          as expected
+removed             loud    stops resolving  0/20                          as expected
+renamed             loud    stops resolving  0/20                          as expected
+argument_reordered  silent  resolves         20/20                         as expected
+argument_retyped    silent  resolves         20/20                         as expected
+argument_rescaled   silent  resolves         20/20                         as expected
+argument_removed    loud    stops resolving  20/20                         command still resolves; breakage is at the argument level
+argument_added      loud    stops resolving  20/20                         command still resolves; breakage is at the argument level
+command_removed     loud    stops resolving  0/20                          as expected
+command_renamed     loud    stops resolving  0/20                          as expected
+[PASS] every silent change leaves the old by-name reference resolving -- 220 of 220
+[PASS] every resolution-breaking loud change stops the old reference resolving -- 100 of 100
+
+==============================================================================
+the one tier assignment this package cannot verify
+==============================================================================
+argument_added is classified LOUD on the assumption that a command system
+rejects a call that omits an argument. Measured below: after the injection the
+command still resolves and every argument an existing call passes is still
+present, so nothing in this package confirms the call fails. If the uplink
+system defaults a missing argument instead of rejecting the call, this class
+is SILENT and is ranked one tier too low by this taxonomy.
+
+injections checked                              : 20
+command still resolves after the injection     : 20
+every pre-existing argument still present      : 20
+[PASS] argument_added leaves the command resolving with its old arguments intact -- so its LOUD tier is an assumption about the command system, not a measurement
+
+==============================================================================
+why a removed enumeration label is silent rather than loud
+==============================================================================
+parameter            : OBDH_S_GYRO_23
+label removed        : 'ON'
+reported class       : reenumerated
+reported tier        : silent
+detail               : labels removed ['ON'] (an equality test on these never fires)
+parameter resolves   : True
+label still on this parameter : False
+label used by another parameter: True
+
+The last line is a second finding rather than an aside: the same label is in
+use on another parameter, so a bare label reference in a procedure cannot be
+attributed to one parameter. That ambiguity is counted in
+CoverageVerdict.ambiguous_enum_labels on every impact assessment.
+
+A procedure comparing the parameter against the removed label keeps running
+and its branch never fires. Nothing raises. That is the definition of silent
+used throughout this package.
+[PASS] a removed enumeration label is classified silent, not loud
+
+CHECKS RUN: 7
+FAILED CHECKS (0): none

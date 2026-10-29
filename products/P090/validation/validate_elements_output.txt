@@ -1,0 +1,89 @@
+
+==============================================================================
+ENVIRONMENT
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (named in the alternatives table; no number here is compared against it)
+skyfield         : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P090 (printed relatively; see validation/_bootstrap.py)
+
+objects per split          : 420
+element history per object : 12 sets at 1.5 day cadence
+consequence horizon        : 1 days, 25 samples
+silent threshold           : 1 km (declared policy)
+epoch requirement          : 7 days (declared policy)
+target false-positive rate : 0.05 (declared policy)
+
+==============================================================================
+1. CHECKSUM AGAINST A PUBLISHED ELEMENT SET
+==============================================================================
+The element set below is distributed in the sgp4 project's own documentation for object 25544 at epoch 2019-343.69339541. It is the only external known answer in this repository.
+
+1 25544U 98067A   19343.69339541  .00001764  00000-0  38792-4 0  9991
+2 25544  51.6439 211.2001 0007417  17.6667  85.6398 15.50103472202482
+
+line 1: stated 1, computed 1
+[PASS] checksum_line1 -- stated 1 equals computed 1
+line 2: stated 2, computed 2
+[PASS] checksum_line2 -- stated 2 equals computed 2
+
+==============================================================================
+2. FORMATTING ROUND TRIP, CHARACTER FOR CHARACTER
+==============================================================================
+formatted line 1 == published : True
+formatted line 2 == published : True
+[PASS] format_reproduces_published_line1 -- all 69 columns identical
+[PASS] format_reproduces_published_line2 -- all 69 columns identical
+
+==============================================================================
+3. FIELD ROUND TRIP OVER THE GENERATED CORPUS
+==============================================================================
+element sets examined : 5447
+element sets with a parse fault : 0
+lines with a bad checksum       : 0
+
+field                          worst reparse difference
+inclination_deg                               0.000e+00
+raan_deg                                      0.000e+00
+eccentricity                                  0.000e+00
+arg_perigee_deg                               0.000e+00
+mean_anomaly_deg                              0.000e+00
+mean_motion_rev_per_day                       0.000e+00
+[PASS] corpus_has_no_parse_faults -- 0 of 5447
+[PASS] corpus_checksums_all_valid -- 0 bad lines
+[PASS] reparse_is_bit_identical -- worst difference 0.000e+00
+
+==============================================================================
+4. EQUATION (13): EXACT CHECKSUM BLINDNESS, TWO WAYS
+==============================================================================
+The enumeration loops over every digit column and every replacement digit. The closed form counts the same sets by a congruence argument: for one column the nine replacements give the nine distinct non-zero residues modulo 10, so a single substitution always changes the sum; a transposition permutes the digits and changes nothing; and for a pair of columns exactly one of the nine residues at the second column cancels each residue at the first, so 9 of every 81 pairs are undetected.
+
+family                    line     enumerated    closed form        cases
+single_substitution          1   1.0000000000   1.0000000000          432
+[PASS] single_substitution_line1_matches_closed_form -- enumerated 1.0000000000, closed form 1.0000000000
+transposition                1   0.0000000000   0.0000000000          992
+[PASS] transposition_line1_matches_closed_form -- enumerated 0.0000000000, closed form 0.0000000000
+double_substitution          1   0.8888888889   0.8888888889        91368
+[PASS] double_substitution_line1_matches_closed_form -- enumerated 0.8888888889, closed form 0.8888888889
+single_substitution          2   1.0000000000   1.0000000000          477
+[PASS] single_substitution_line2_matches_closed_form -- enumerated 1.0000000000, closed form 1.0000000000
+transposition                2   0.0000000000   0.0000000000         1244
+[PASS] transposition_line2_matches_closed_form -- enumerated 0.0000000000, closed form 0.0000000000
+double_substitution          2   0.8888888889   0.8888888889       111618
+[PASS] double_substitution_line2_matches_closed_form -- enumerated 0.8888888889, closed form 0.8888888889
+
+So the fraction of two-digit corruptions that reach the propagator with a valid checksum is exactly 0.1111111111, one in nine, and the fraction of digit transpositions that do is exactly 1.0000000000. Neither depends on the digits of the line.
+[PASS] double_substitution_is_digit_independent -- a line with twelve digits replaced gives the same fraction
+
+CHECKS RUN: 14
+FAILED CHECKS (0): none

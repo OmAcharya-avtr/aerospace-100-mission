@@ -1,0 +1,226 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  refractpath: slant-path atmospheric refraction with the cross-model
+  disagreement measured and the validity floor computed
+version: 0.1.0
+date-released: 2026-10-29
+license: Apache-2.0
+abstract: >-
+  Takes an observer location, an apparent elevation and an atmospheric state,
+  and produces the refraction correction by five independent standard methods,
+  their disagreement, and the elevation below which that disagreement exceeds a
+  pointing tolerance the caller declares. The first output of every call is a
+  computed validity verdict -- usable, degraded or refuse -- with its reasons
+  named and five structural limits the library cannot determine from its inputs
+  at any elevation. Baseline 1 is the closed forms that are actually used: the
+  exact plane-parallel solution with its analytic floor at 90 minus arcsin of
+  1/n, Oriani's two-term series with a breakdown elevation computed in closed
+  form from the series coefficients, Bennett (1982) and Saemundsson (1986).
+  Baseline 2 is a ray trace through a layered spherically symmetric
+  refractivity profile, with refractivity from four independently published
+  dispersion formulations. Validation is level 2. The validity floor at 1010
+  hPa, 10 C, dry and 550 nm is 11.2448 degrees of apparent elevation for a 10
+  arcsec tolerance and 69.789 degrees for 1 arcsec, measured by bisection to a
+  bracket of 8.613e-05 degrees. The disagreement curve is measured to be
+  non-monotone, with three tolerance crossings, and a search that assumed one
+  crossing would understate the floor by a factor of 9.179. Five of six
+  external published references are reproduced within their stated tolerances
+  and one is not: Bennett's own published accuracy claim of 0.07 arcminutes is
+  exceeded below 19.1361 degrees, with a maximum measured departure of 34.0737
+  arcsec, and is published as measured. That claim was made against Garfinkel
+  (1967), which this package does not implement, so the miss measures the
+  difference between two reference atmospheres rather than an error in the
+  published formula, and this package cannot attribute it. No transcription of
+  a printed refraction table is shipped, because none was available to this
+  build. Several results are unfavourable to the published closed forms and are
+  published as measured: both navigational fits overstate the layered integral
+  at every one of 54 swept states above 15 degrees, their measured usable range
+  at a 10 arcsec budget is 15 and 30 degrees against a published range of 0 to
+  90, and below 7 degrees the sign of their error is not constant across the
+  state grid, so it cannot be removed by a scale factor. Below one degree the
+  unmeasured temperature profile above the observer is the larger error term by
+  factors of 6.9 to 8.8: three physically attainable surface lapse rates move
+  the horizon refraction by 300.0181 arcsec and the 45-degree refraction by
+  0.0014 arcsec. The ray trace was checked against a bracket derived from
+  monotonicity and the mean value theorem, which shares no mathematics with the
+  shell sum, and against the exact single-interface Snell solution in the
+  flat-Earth limit, which it reproduces to 3.506e-06 relative. Nine controls
+  were required to fire and nine fired; five were required not to fire and none
+  did. Nothing here is compared against a measurement, and astropy, ephem and
+  pyerfa are not installed in the measured environment. Research grade. Not
+  flight-qualified, not certified, not approved for operational aerospace use.
+  No correction computed here is suitable for operational pointing below the
+  measured validity floor.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - atmospheric-refraction
+  - atmospheric-propagation
+  - pointing
+  - ray-tracing
+  - refractivity
+  - dispersion
+  - astronomy
+references:
+  - type: article
+    authors:
+      - family-names: "Edlén"
+        given-names: "B."
+    title: "The refractive index of air"
+    journal: "Metrologia"
+    volume: 2
+    issue: 2
+    year: 1966
+    notes: >-
+      The dispersion of standard air, equation (5) of refractpath.refractivity.
+  - type: article
+    authors:
+      - family-names: Birch
+        given-names: "K. P."
+      - family-names: Downs
+        given-names: "M. J."
+    title: "An updated Edlén equation for the refractive index of air"
+    journal: "Metrologia"
+    volume: 30
+    issue: 3
+    year: 1993
+    notes: >-
+      Equations (6), (7) and (8). With the 1994 correction, Metrologia 31(4),
+      315-316. The published value of 2.7653e-4 for standard air at 633 nm is
+      the first of this product's six external reference checks.
+  - type: article
+    authors:
+      - family-names: Ciddor
+        given-names: "P. E."
+    title: >-
+      Refractive index of air: new equations for the visible and near infrared
+    journal: "Applied Optics"
+    volume: 35
+    issue: 9
+    year: 1996
+    notes: >-
+      Equations (10) to (12), the only formulation here that computes air
+      densities from an equation of state rather than an empirical pressure and
+      temperature scaling. Its BIPM-1991 density of standard dry air is the
+      second external reference check.
+  - type: article
+    authors:
+      - family-names: Bennett
+        given-names: "G. G."
+    title: >-
+      The calculation of astronomical refraction in marine navigation
+    journal: "Journal of Navigation"
+    volume: 35
+    issue: 2
+    year: 1982
+    notes: >-
+      Equation (15), and the published accuracy claim of 0.07 arcmin that this
+      product measures and reports as NOT reproduced below 19.1361 degrees
+      against its own ray trace.
+  - type: article
+    authors:
+      - family-names: "Sæmundsson"
+        given-names: "Þ."
+    title: "Atmospheric refraction"
+    journal: "Sky and Telescope"
+    volume: 72
+    year: 1986
+    notes: >-
+      Equation (16), taken as given in Meeus (1998) chapter 16, which is the
+      form this product implements.
+  - type: book
+    authors:
+      - family-names: Meeus
+        given-names: "J."
+    title: "Astronomical Algorithms"
+    edition: "2nd"
+    publisher:
+      name: "Willmann-Bell"
+    year: 1998
+    notes: >-
+      Chapter 16, Atmospheric Refraction. The source for equations (15), (16)
+      and the pressure and temperature scaling of equation (17), and for
+      Bennett's accuracy claim as quoted.
+  - type: book
+    authors:
+      - family-names: Smart
+        given-names: "W. M."
+    title: "Textbook on Spherical Astronomy"
+    edition: "6th"
+    publisher:
+      name: "Cambridge University Press"
+    year: 1977
+    notes: >-
+      Chapter 3, for Oriani's theorem, which is equation (14), for Bouguer's
+      formula, and for the constant of refraction, the fourth external
+      reference check.
+  - type: article
+    authors:
+      - family-names: Auer
+        given-names: "L. H."
+      - family-names: Standish
+        given-names: "E. M."
+    title: >-
+      Astronomical refraction: computation for all zenith angles
+    journal: "Astronomical Journal"
+    volume: 119
+    year: 2000
+    notes: >-
+      The refraction integral of equation (19) and the invariant of equation
+      (18), in the form this product integrates.
+  - type: article
+    authors:
+      - family-names: Garfinkel
+        given-names: "B."
+    title: "Astronomical refraction in a polytropic atmosphere"
+    journal: "Astronomical Journal"
+    volume: 72
+    year: 1967
+    notes: >-
+      NAMED, NOT IMPLEMENTED. This is the reference Bennett's accuracy claim
+      was made against. Because it is not implemented here, the failure of that
+      claim against this product's ray trace measures the difference between
+      two reference atmospheres and is not evidence that Bennett's formula is
+      wrong.
+  - type: article
+    authors:
+      - family-names: Buck
+        given-names: "A. L."
+    title: >-
+      New equations for computing vapor pressure and enhancement factor
+    journal: "Journal of Applied Meteorology"
+    volume: 20
+    year: 1981
+    notes: >-
+      Equation (4), the saturation vapour pressure over liquid water, compared
+      in this product against the IAPWS form quoted by Ciddor (1996) and
+      against the tabulated 2339 Pa at 20 C.
+  - type: report
+    title: "US Standard Atmosphere 1976"
+    institution:
+      name: "NOAA, NASA and USAF"
+    year: 1976
+    notes: >-
+      The lapse rates and layer structure of equation (2), and the standard dry
+      air density of 1.2250 kg/m^3 used as an external reference check. The
+      profile is anchored on the observer's own measurements rather than on
+      mean sea level, which is a modelling choice stated in the module
+      docstring.
+  - type: book
+    editors:
+      - family-names: Urban
+        given-names: "S. E."
+      - family-names: Seidelmann
+        given-names: "P. K."
+    title: >-
+      Explanatory Supplement to the Astronomical Almanac
+    edition: "3rd"
+    publisher:
+      name: "University Science Books"
+    year: 2013
+    notes: >-
+      The low-precision refractivity form of equation (9), and the 34 arcmin
+      horizon refraction adopted with 16 arcmin of semidiameter for rise and
+      set, which this product records as a convention rather than a measured
+      value.

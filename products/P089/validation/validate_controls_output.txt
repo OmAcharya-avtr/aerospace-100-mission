@@ -1,0 +1,137 @@
+VALIDATION 6 -- CONTROLS
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  scikit-learn     : 1.9.1
+  matplotlib       : 3.11.2
+  pytest           : 9.1.1
+  hypothesis       : 6.170.13
+  ruff (installed) : 0.17.3
+  ruff (on PATH)   : ruff 0.16.9  (a standalone binary, a DIFFERENT version from the installed distribution; the source is clean under both and the figures are in VALIDATION.md)
+  filterpy         : not installed  (named in the alternatives table; no number here is compared against it)
+  cpu cores        : 2
+  repository root  : P089 (printed relatively; see validation/_bootstrap.py)
+
+  base record: 1200 samples, three_axis excitation, 0.05 rad/s, 2e-4 rad/s noise unless stated
+
+==============================================================================
+6.1 invariances. These MUST NOT fire.
+==============================================================================
+
+C1  zero injected misalignment: the estimate must be inside its own bound.
+[PASS] C1 must NOT fire: a zero misalignment is estimated as zero to within 4 sigma -- worst standardised estimate 2.5396 over 20 records and 60 degrees of freedom
+
+C2  time order: the batch solution of a time-invariant state is a sum over samples, so permuting the record must not change it. The permutation keeps the timestamps increasing and permutes the rate rows.
+    difference 2.795409e-14 arcsec, 7.562e-16 of the Cramer-Rao one sigma
+[PASS] C2 must NOT fire: the batch estimate is invariant under permuting the record -- 7.562e-16 of the bound, against a declared 1e-6
+
+C3  rate sign: negating every rate leaves the Gramian of (8) unchanged -- it is quadratic -- and negates the residual of (7), so the estimate must be unchanged.
+    difference 0.000e+00 of the Cramer-Rao one sigma
+[PASS] C3 must NOT fire: the estimate is invariant under negating every rate -- 0.000e+00 of the bound
+
+C4  frame equivariance: rotating the reference frame by Q must rotate the estimate by Q. The record is rebuilt with reference rates Q w, the secondary rates untouched, and the declared mounting C Q^T, which is exactly the same physical situation described in a rotated frame.
+    estimate in the rotated frame vs Q times the original: 1.654e-13 of the Cramer-Rao one sigma
+[PASS] C4 must NOT fire: the estimate is equivariant under a frame rotation -- 1.654e-13 of the bound, against a declared 1e-4
+
+C5  declared noise: scaling every declared sigma by 10 scales the Gramian by 1/100 and therefore the Cramer-Rao one sigma by 10, and must leave the estimate itself unchanged, because the weight is common to both sides of the normal equations.
+    estimate difference 1.512e-16 of the original bound
+    bound ratio 10.000000, predicted 10.000000
+[PASS] C5 must NOT fire on the estimate: it is invariant to a common noise rescaling -- 1.512e-16 of the bound
+[PASS] C5 MUST fire on the bound: the Cramer-Rao one sigma scales by exactly 10 -- measured ratio 10.000000000
+
+==============================================================================
+6.2 injections and corruptions. These MUST fire, by a predicted amount.
+==============================================================================
+
+C6  a known misalignment injected into the observable subspace must be recovered. The injection is placed along the BEST-observed direction of the record, which is anchored on the Gramian and not on any estimate.
+    recovered fraction of the injection: median 1.019868, min 0.855947, max 1.160516
+    The tolerance below is in units of the Cramer-Rao one sigma and not as a percentage of the injection. At 1200 samples the bound on this direction is about 0.23 mrad against a 2 mrad injection, so a 1.3-sigma miss looks like a 16 per cent error and is the expected noise; a 5 per cent tolerance would be a tolerance on the noise rather than on the estimator.
+    standardised recovery error: mean +0.2395, worst |z| 1.8138
+[PASS] C6 MUST fire: an injection in the observable subspace is recovered to within 4 sigma -- worst standardised error 1.8138 over 20 records, median recovered fraction 1.019868
+
+C7  the same magnitude injected along the record's own rotation axis must NOT be recovered -- it must be withheld, exactly, with an infinite bound. The control is anchored on the chosen truth and the record is verified rank deficient first.
+    rank-deficient records: 20 of 20; withheld on 20
+    largest absolute claim along the axis: 1.577e-19 rad
+[PASS] C7 MUST fire: the unsupported direction is withheld on every rank-deficient record -- 20 of 20 withheld, largest claim 1.577e-19 rad
+
+C8  a wrong declared mounting must be absorbed into the estimate. A known extra rotation of 5 mrad is applied to the DECLARED mounting only, leaving the data untouched, and the estimate must move by that rotation.
+    estimate moved 5.000000 mrad, predicted 5.000000 mrad
+[PASS] C8 MUST fire: a 5 mrad error in the declared mounting moves the estimate by 5 mrad -- measured 5.000000 mrad against a predicted 5.000000 mrad; a mis-declared mounting is indistinguishable from a misalignment and this product cannot separate them
+
+C9  negating the injected misalignment must negate the estimate. Anchored on the injection, not on the first estimate.
+    sum of the two estimates: 0.397661 mrad against individual magnitudes of 2.024782 mrad
+    The two records share a seed, so they share the same rate samples, but their noise draws differ because the generator draws the misalignment before the measurement noise. The residual sum is therefore the sum of two independent estimation errors and its expected magnitude is sqrt(2) times the total Cramer-Rao one sigma of 0.360011 mrad, which is 0.509132 mrad.
+[PASS] C9 MUST fire: negating the injection negates the estimate -- residual sum 0.397661 mrad against a predicted 0.509132 mrad and a declared bound of 4 times that
+
+C10 replacing the secondary's measurements with pure noise must leave the OBSERVABILITY verdict unchanged -- it depends only on the reference motion -- and must leave the estimate near zero with a residual at the noise level.
+    observability eigenvalues unchanged: True
+    weighted residual RMS 5.013450e-02 rad/s against 4.896814e-04 rad/s on the intact record
+    estimate magnitude 6.703251 mrad
+[PASS] C10 MUST fire on the residual: a noise-only secondary raises it by a factor of 10 -- 102.3819 times the intact residual
+[PASS] C10 must NOT fire on the verdict: observability depends only on the reference motion -- every Gramian eigenvalue is unchanged to 1e-9 relative, which is the reason the verdict can be computed before the estimate at all
+
+==============================================================================
+6.3 what the observability verdict is worth. These MUST fire.
+==============================================================================
+
+C11 the noise-floor gate of (11) removed. With floor_factor at its minimum of 1, a single-axis record's smallest eigenvalue -- which is the reference sensor's own noise -- is no longer refused, and the estimator is asked for a component the record does not contain.
+    ranks declared with the gate at 1.0: [2, 3], rank 3 on 9 of 20
+    claim along the unsupported axis, gate at 4.0: max 1.570e-19 rad
+    claim along the unsupported axis, gate at 1.0: median 0.0000 mrad, max 1106.2243 mrad
+    injected truth there: 2.0000 mrad
+[PASS] C11 MUST fire: without the floor gate the estimator answers where it cannot -- unguarded claims reach 1106.2243 mrad while the gated solution reports exactly nothing
+
+C12 the recursive estimator has no withholding mechanism at all. On the same records it returns a number in the unsupported direction whatever the gate is set to, which is why the batch solution is the reference and the filter's covariance is the only thing that says so.
+    MEKF claim along the unsupported axis: median 58.2150 mrad, max 157.0320 mrad
+[PASS] C12 MUST fire: the recursive estimator answers in the unsupported direction -- median claim 58.2150 mrad against an injected 2.0000 mrad; the filter is honest only through its covariance
+
+C13 the unconstrained SVD solution of (17) is wrong about the OBSERVABLE directions on a rank-deficient record, not only about the unobservable one. The gauge rotation it picks up in the null direction contaminates the rest through the non-linearity of rotation composition.
+    SVD gauge rotation in the null direction: median 1.5355 rad, min 0.1428 rad, against an injected 0.0020 rad
+    contamination of the observable subspace : median 0.1380 mrad, which is 0.5998 of the Cramer-Rao one sigma (0.2310 mrad)
+    The contamination is reported in units of the bound and not as a pass/fail, because its size depends on where the truth sits relative to the null direction. Measured on 2000-sample single-axis records with a RANDOM injected misalignment rather than an axis-aligned one, the same quantity is 2.54 of the bound; that figure is in tests/test_batch.py, where it is asserted to exceed the whole magnitude of the correct estimate.
+[PASS] C13 MUST fire: the SVD solution picks up a gauge rotation of order a radian -- smallest gauge rotation 0.1428 rad against an injected 0.0020 rad, a factor of 71; equation (17) has no mechanism to withhold the direction and reports whatever the decomposition's gauge gives
+
+==============================================================================
+6.4 audit: does any assertion in the suite rest on pytest.approx's default?
+==============================================================================
+pytest.approx(expected, rel=r) passes if EITHER the relative or an absolute bound is met, and the absolute default is 1e-12. For a misalignment component of order 1e-5 rad, every relative tolerance tighter than 1e-7 is therefore silently replaced by the default and the assertion stops testing what it says it tests.
+
+The audit is not a source scan. The whole suite is re-run in a subprocess with pytest.approx PATCHED so that a call carrying rel= and no abs= raises, which is the only way to find out what actually depends on the default.
+
+    suite re-run with the default forced off, exit 1
+    tests declared 307, testcase elements 307
+    assertions depending on the hidden default: 1
+      test_pytest_approx_absolute_default_is_never_relied_on
+
+    The single dependent test is the deliberate demonstration in tests/test_regressions.py, which asserts BOTH branches: that a bare rel= passes on a value wrong by 1e-13 and that the same comparison with abs=0.0 does not. It is supposed to fail under this audit. No measurement in this repository rests on the default.
+[PASS] exactly one assertion in the suite depends on pytest.approx's absolute default -- 1 of 307 tests, and the junit declaration agrees with its own 307 testcase elements
+
+==============================================================================
+6.5 the control tally
+==============================================================================
+  controls that MUST fire     : 10; fired: 10
+  controls that must NOT fire : 6; fired: 0
+
+control                                       direction   fired   verdict
+C1 zero injection                              must not   False        ok
+C2 time permutation                            must not   False        ok
+C3 rate sign                                   must not   False        ok
+C4 frame equivariance                          must not   False        ok
+C5a estimate under noise rescaling             must not   False        ok
+C5b bound under noise rescaling               must fire    True        ok
+C6 observable injection recovered             must fire    True        ok
+C7 unobservable injection withheld            must fire    True        ok
+C8 mis-declared mounting                      must fire    True        ok
+C9 sign of the injection                      must fire    True        ok
+C10a residual on a noise-only secondary       must fire    True        ok
+C10b verdict on a noise-only secondary         must not   False        ok
+C11 floor gate removed                        must fire    True        ok
+C12 recursive has no refusal                  must fire    True        ok
+C13 SVD contamination                         must fire    True        ok
+audit of pytest.approx tolerances             must fire    True        ok
+
+[PASS] every control behaved in its declared direction -- 16 of 16
+
+CHECKS RUN: 17
+FAILED CHECKS (0): none

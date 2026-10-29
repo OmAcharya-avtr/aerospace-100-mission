@@ -1,0 +1,76 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q --junitxml=junit_self.xml
+      - name: Test count from junit XML, never from stdout
+        run: |
+          python - <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse("junit_self.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          declared = int(suite.get("tests", "0"))
+          counted = len(suite.findall(".//testcase"))
+          print(f"declared {declared}, counted {counted}")
+          if declared == 0 or declared != counted:
+              sys.exit("junit_self.xml does not agree with itself, or no test ran")
+          PY
+      - name: CLI
+        run: |
+          python -m aligncal --version
+          python -m aligncal info
+          python -m aligncal observability --profile single_axis --samples 1500
+          python -m aligncal align --profile three_axis --samples 1500
+          python -m aligncal compare --profile single_axis --samples 600
+          python -m aligncal unobservable --profile single_axis --samples 150 --train 400
+          python -m aligncal benchmark --train 400 --test 120 --samples 150
+      - name: Validation scripts
+        run: |
+          python validation/validate_observability.py
+          python validation/validate_recovery_grid.py
+          python validation/validate_recursive_agreement.py
+          python validation/validate_unobservable.py
+          python validation/validate_learned.py
+          python validation/validate_controls.py
+          python validation/validate_cli.py
+          python validation/worked_example.py
+      - name: Validation scripts from the gate's working directory
+        run: |
+          cd validation
+          for script in validate_observability.py validate_recovery_grid.py worked_example.py; do
+            python "$script" > /dev/null
+          done
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/rate_profiles.py
+          python examples/observability_map.py
+          python examples/residual_structure.py
+          python examples/recovery_vs_crb.py
+          python examples/batch_versus_recursive.py
+          python examples/unobservable_subspace.py
+          python examples/learned_versus_baselines.py
+          python examples/learned_calibration.py
+          python examples/prior_and_record_length.py

@@ -1,0 +1,166 @@
+
+==============================================================================
+ENVIRONMENT
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (named in the alternatives table; no number here is compared against it)
+skyfield         : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P090 (printed relatively; see validation/_bootstrap.py)
+
+objects per split          : 420
+element history per object : 12 sets at 1.5 day cadence
+consequence horizon        : 1 days, 25 samples
+silent threshold           : 1 km (declared policy)
+epoch requirement          : 7 days (declared policy)
+target false-positive rate : 0.05 (declared policy)
+
+==============================================================================
+1. PER-CLASS PRECISION AND RECALL OVER A SWEPT CORRUPTION RATE
+==============================================================================
+Six corruption rates, one grid cell each, every cell screened and measured independently. The rate changes the class balance, so precision moves with it and recall should not.
+
+  rate     n  will_fail_lo P  will_fail_lo R  silently_wro P  silently_wro R        benign P        benign R  accuracy
+  0.10   420          1.0000          1.0000          0.1982          0.9167          0.9935          0.7747    0.7833
+  0.25   420          0.7059          1.0000          0.3333          0.8182          0.9813          0.7450    0.7619
+  0.40   420          0.5000          0.8462          0.5000          0.8283          0.9701          0.7370    0.7619
+  0.50   420          0.8500          0.9444          0.5105          0.8661          0.9429          0.6828    0.7429
+  0.75   420          0.7073          0.8286          0.6349          0.8644          0.9130          0.6058    0.7333
+  1.00   420          0.6889          0.9118          0.7097          0.8722          0.8438          0.5094    0.7381
+
+will_fail_loudly     recall across the grid: min 0.8286, median 0.9281, max 1.0000
+silently_wrong       recall across the grid: min 0.8182, median 0.8652, max 0.9167
+benign               recall across the grid: min 0.5094, median 0.7099, max 0.7747
+[PASS] grid_was_swept -- 6 corruption-rate cells, 420 objects each
+
+The loud recall is NOT 1.0 on every cell and the reason is a deliberate trade in the decision table. The rules predict a loud failure only from a physical bound violation, which maps to a documented SGP4 error code. An element set whose characters have shifted so far that a field will not parse is classified silently wrong instead, with an infinite equation (15) score, because the propagator very often reads such a line without complaint and returns a confident wrong position. The misses below are the records where the propagator did refuse it after all.
+
+  rate  loud measured  missed  unreadable  flagged silent  no finding
+  0.10              1       0           0               0           0
+  0.25             12       0           0               0           0
+  0.40             13       2           2               0           0
+  0.50             18       1           1               0           0
+  0.75             35       6           3               3           0
+  1.00             34       3           2               1           0
+
+Across the grid the rules missed 12 loud failures: 8 were element sets this package could not parse, 4 were flagged as silently wrong by a screen with a magnitude, and 0 were not flagged at all. Only the last group is a miss in the operational sense, because the first two are rejected by the screen with a different reason attached. That is the measured cost of the trade and it is published beside the benefit: the field-shift operating characteristic went from 0.3686, below chance, to 0.9065 when the trade was made.
+[PASS] loud_recall_is_high_on_every_cell -- min 0.8286, median 0.9281 over 6 cells
+[PASS] no_loud_failure_passed_the_screen_unflagged -- 0 of 12 missed loud failures were not flagged by any screen; the rest were flagged with a different class
+
+==============================================================================
+2. THE RULE BASELINE AS A SWEPT SCORE, EQUATION (15)
+==============================================================================
+Scoring a rule set only at its own operating point understates it, so equation (15) is swept and the whole operating characteristic is reported beside the point.
+
+  rate  own recall   own fpr  swept recall  swept fpr    area
+  0.25      0.8182    0.2466        0.5455     0.0438  0.8284
+  0.50      0.8661    0.3019        0.4286     0.0455  0.8677
+  0.75      0.8644    0.3621        0.0000     0.0000  0.7707
+  1.00      0.8722    0.4197        0.0000     0.0000  0.7331
+[PASS] rule_score_beats_chance_on_every_cell -- min area 0.7331 over 4 cells
+
+==============================================================================
+3. THE DECLARED FOUR-SIGMA THRESHOLD, SWEPT
+==============================================================================
+The history and continuity screens both use a declared modified z-score threshold of 4.0. It was not chosen by fitting the corruption corpus; the per-element false-positive rate it produces on uncorrupted element sets is measured here, and the sweep shows what other choices would cost.
+
+ threshold   silent P   silent R  accuracy    area
+       2.0     0.2968     0.9196    0.3976  0.8209
+       3.0     0.4050     0.8750    0.6238  0.8564
+       4.0     0.5105     0.8661    0.7429  0.8677
+       5.0     0.5105     0.8661    0.7429  0.8701
+       8.0     0.5132     0.8661    0.7452  0.8697
+
+==============================================================================
+4. THE PER-ELEMENT FALSE-POSITIVE RATE OF THE HISTORY SCREEN
+==============================================================================
+Measured on uncorrupted element sets only, which is the only population where a history finding is unambiguously a false positive.
+
+ history length   z tests  frac > 4      p95      p99        max
+              4      1035    0.2116  12.9284  37.8628   129.1525
+              7      1050    0.0867   5.3959  11.3011 12778.2416
+             12      1085    0.0433   3.8566   6.5087 14034.0863
+             18      1055    0.0152   2.8939   4.2772  9990.4655
+
+At the declared history length of 12 the measured per-element false-positive rate at a four-sigma threshold is 0.0433, against the 0.0001 a Gaussian four-sigma tail would give. The excess is the small-sample variance of a median absolute deviation over twelve points and it is reported rather than corrected: a scale estimated from twelve numbers is not a scale, and the screen's operating point reflects that.
+[PASS] history_false_positive_rate_falls_with_history_length -- 0.2116 at 4 sets against 0.0152 at 18
+
+==============================================================================
+5. EQUATION (27): THE CONTINUITY SCREEN'S RESOLUTION, BY ORBIT FAMILY
+==============================================================================
+The screen's resolution is the robust scale of the object's own consecutive element-set disagreement. Where it exceeds the declared silent threshold the screen cannot resolve a threshold-sized error for that object and the absolute test of equation (26) is withheld. This is a computed limit and it is returned with every verdict.
+
+family                          n  median offset km  median normal km  median resolution km  resolves 1 km
+geo_stationary                 39            4.1977            4.5579                3.3303          False
+heo_critical_inclination       40            4.6428            5.0580                2.1048          False
+leo_decaying                   33           50.3644           41.5192               29.4676          False
+leo_low_inclination            31            0.8501            0.8558                0.4723           True
+leo_sun_synchronous            35            0.9948            0.8064                0.3895           True
+meo_navigation                 39            2.9360            2.8900                1.7898          False
+
+2 of 6 orbit families have a continuity resolution at or below the declared 1 km threshold. For the rest, comparing element sets cannot see a one-kilometre consequence at all, and the screen says so instead of returning a verdict that is noise. The decaying low-Earth family is the extreme case and the reason is physical: a high-drag object's element set genuinely does not predict its own successor's ephemeris to within kilometres.
+[PASS] some_families_do_not_resolve_the_threshold -- 4 of 6 families do not; this is the limit the screen exists to report
+[PASS] resolution_is_always_above_its_floor -- the declared 0.050 km floor holds on every family
+
+==============================================================================
+6. THE STRUCTURAL LIMIT OF THE CROSS-SOURCE SCREEN, MEASURED
+==============================================================================
+The corpus contains two constructions of the same observable situation. In the cross_source_divergence family the candidate is the perturbed source and the other source is clean, so the measured consequence is real. In the uncorrupted family with a second source attached the candidate is the clean one and the other source is perturbed, so the measured consequence is zero. The two are indistinguishable from the two element sets alone, because equation (12) is symmetric. No screen can be right on both and the measured cost is below.
+
+records with a second source : 130
+
+construction                            n     min km   median km      max km  above 1 km
+candidate is the clean source         105     0.0000      0.0819      4.0612           3
+candidate is the perturbed source      25     0.8786      6.0241     89.1645          24
+
+measured class        records the divergence screen flagged
+will_fail_loudly                                          0
+silently_wrong                                           24
+benign                                                    3
+
+divergence screen fired on 27 records
+of which 24 were measured silently wrong, a precision of 0.8889 for this screen alone
+
+3 records whose candidate is the clean source have a cross-source separation above the declared 1 km threshold. Those are irreducible false positives for this screen: the two element sets in front of it are the same two element sets as in a cross_source_divergence record, with the labels swapped. Equation (12) is symmetric and cannot tell them apart. The complement of the precision above is not a defect in the screen; it is the structural limit the determinability report names, and this is its measured size.
+[PASS] divergence_screen_fired -- 27 records; a control that does not fire is not evidence
+[PASS] both_constructions_of_the_symmetric_situation_are_present -- ['candidate is the clean source', 'candidate is the perturbed source']; the corpus contains the same observable situation labelled both ways, which is what makes the structural limit measurable
+
+Whether the two distributions overlap at this corpus size is a property of the generator's declared perturbation scales and is reported rather than asserted: measured here, the clean construction reaches 4.0612 km and the perturbed construction starts at 0.8786 km, so they overlap. The symmetry below holds whether they overlap or not.
+
+object 40007: equation (12) forward  10.44971342 km
+object 40007: equation (12) backward 10.44971342 km
+which source is correct, forward  : None
+which source is correct, backward : None
+[PASS] equation_12_is_bit_exactly_symmetric -- swapping the two arguments changes nothing, which is why the attribution is not available at any threshold
+[PASS] the_screen_never_names_a_source -- the field is present in the result and is always None
+
+==============================================================================
+7. EVERY SCREEN'S FIRING RATE ON UNCORRUPTED ELEMENT SETS
+==============================================================================
+The per-screen false-positive tally, so a reader can see which screen contributes which part of the baseline's operating point.
+
+uncorrupted element sets : 218
+
+screen finding                            fired     rate
+history:bstar                                14   0.0642
+history:mean_motion_rev_per_day              12   0.0550
+history:raan_deg                              9   0.0413
+history:eccentricity                          6   0.0275
+history:inclination_deg                       6   0.0275
+continuity_z_exceeded                         3   0.0138
+cross_source_diverged                         3   0.0138
+bounds:perigee_below_policy                   1   0.0046
+[PASS] no_checksum_or_parse_false_positive_on_clean_records -- the format and checksum screens are arithmetic and have no false positive rate at all
+[PASS] rule_baseline_predicts_benign_on_most_clean_records -- benign recall 0.6828
+
+CHECKS RUN: 13
+FAILED CHECKS (0): none

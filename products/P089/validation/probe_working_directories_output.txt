@@ -1,0 +1,66 @@
+WORKING-DIRECTORY PROBE
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  scikit-learn     : 1.9.1
+  matplotlib       : 3.11.2
+  pytest           : 9.1.1
+  hypothesis       : 6.170.13
+  ruff (installed) : 0.17.3
+  ruff (on PATH)   : ruff 0.16.9  (a standalone binary, a DIFFERENT version from the installed distribution; the source is clean under both and the figures are in VALIDATION.md)
+  filterpy         : not installed  (named in the alternatives table; no number here is compared against it)
+  cpu cores        : 2
+  repository root  : P089 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+every script from five working directories
+==============================================================================
+
+  Directory names are printed as labels rather than as paths, because no committed file in this repository may carry an absolute path.
+
+script                                 filesystem root  system temporary      product root        validation               src
+validate_observability.py                            0                 0                 0                 0                 0
+[PASS] validate_observability.py exits 0 from all five directories -- statuses [0, 0, 0, 0, 0]
+validate_recovery_grid.py                            0                 0                 0                 0                 0
+[PASS] validate_recovery_grid.py exits 0 from all five directories -- statuses [0, 0, 0, 0, 0]
+worked_example.py                                    0                 0                 0                 0                 0
+[PASS] worked_example.py exits 0 from all five directories -- statuses [0, 0, 0, 0, 0]
+
+==============================================================================
+the expensive scripts, once each, from the directory the gate uses
+==============================================================================
+
+  Each of these spawns work of its own -- a full pytest run, a learned-model fit, or eleven command-line subprocesses -- and running them from five directories would dominate the validation budget on two shared cores. Each calls bootstrap() as its first statement exactly as the scripts above do.
+
+script                                exit from validation/
+validate_recursive_agreement.py                           0
+[PASS] validate_recursive_agreement.py exits 0 from validation/ -- status 0
+validate_unobservable.py                                  0
+[PASS] validate_unobservable.py exits 0 from validation/ -- status 0
+validate_learned.py                                       0
+[PASS] validate_learned.py exits 0 from validation/ -- status 0
+validate_controls.py                                      0
+[PASS] validate_controls.py exits 0 from validation/ -- status 0
+validate_cli.py                                           0
+[PASS] validate_cli.py exits 0 from validation/ -- status 0
+
+==============================================================================
+the output files all landed in validation/, not beside the caller
+==============================================================================
+  expected output files : 8
+  missing               : none
+  stray output files    : none
+[PASS] every script wrote its output into validation/ -- 8 of 8 present, 0 stray
+
+==============================================================================
+no absolute path in any committed text file
+==============================================================================
+  The patterns are assembled from os.sep rather than written out, and this script's own previous output is deleted before the scan, because three consecutive sessions of this mission introduced exactly that defect in the act of writing about it.
+
+  files scanned : 102
+  offenders     : 0
+[PASS] no committed text file contains an absolute container or host path -- 0 offenders
+
+CHECKS RUN: 10
+FAILED CHECKS (0): none

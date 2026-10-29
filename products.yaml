@@ -1463,7 +1463,7 @@ products:
     summary: "Slant-path atmospheric refraction computed by several independent standard methods with their DISAGREEMENT reported as a measured curve against elevation, and the elevation below which that disagreement exceeds a declared pointing tolerance measured rather than asserted. Baseline 1 the simple plane-parallel and standard low-precision closed forms, implemented as what is actually used; baseline 2 a ray-trace through a layered refractivity profile with refractivity from standard dispersion formulae, the reference the closed forms are scored against; ground-truth cross-check against PUBLISHED reference values and refraction tables at stated conditions, which the implementations must reproduce to a stated tolerance - a verification against values the product did not generate, the only kind that counts here. NO LEARNED COMPONENT, DELIBERATELY: this is a well-posed physical calculation with published references and the useful output is the cross-model disagreement, not a prediction. The low-elevation regime where every closed form fails is exhibited explicitly rather than extrapolated into, and wavelength dependence verified across the optical band against the dispersion formula independently."
     ai_enabled: false
     validation_level: 2
-    status: NOT STARTED
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P087
@@ -1479,7 +1479,7 @@ products:
     summary: "Diff two versions of a telemetry and command dictionary and report which existing procedures and analyses break, ranking SILENT semantic change above loud breakage. The dangerous change is not the removed mnemonic, which fails loudly, but the one whose scale factor, unit, enum mapping or bit offset changed while the name stayed the same, so everything downstream keeps working and quietly means something else. Structural comparison over parsed definitions with explicit change classes - added, removed, renamed, retyped, rescaled, re-enumerated, bit-shifted - plus reference resolution against a corpus of procedures by name and by path, yielding an impact report naming what is broken, what is silently changed and what is unaffected. Rename detection by structural similarity with its FALSE-MATCH RATE MEASURED across a swept similarity threshold and dictionary size, the threshold justified by the measured curve rather than picked. NO LEARNED COMPONENT, DELIBERATELY: this is a structural comparison with a correct answer. Negative control is a pair with no semantic change but substantial textual reordering, verified to produce an empty semantic diff."
     ai_enabled: false
     validation_level: 2
-    status: NOT STARTED
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P088
@@ -1495,7 +1495,7 @@ products:
     summary: "Estimate relative sensor alignment from flight time series, reporting which alignment degrees of freedom the observed motion actually EXCITES before producing any estimate - a vehicle that never rotated about an axis cannot have its alignment about that axis estimated at any data volume. Distinct from P026 WahbaKit which solves single-epoch attitude from vector pairs and from P017 EstimKit which is general estimation: this is the time-series relative alignment problem whose failure mode is unexcited degrees of freedom. Baseline 1 batch least-squares Wahba-type solution over the full record on the observable subspace only, with the observability Gramian computed per degree of freedom and unobservable directions named as the rotation axes they correspond to; baseline 2 recursive Kalman/MEKF alignment giving the same answer online, scored against the batch reference. Learned estimator for the short-record case scored on error against known injected misalignment AND separately inside the unobservable subspace, where the expected result is a confident estimate for a degree of freedom the data cannot support."
     ai_enabled: true
     validation_level: 2
-    status: NOT STARTED
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P089
@@ -1511,7 +1511,7 @@ products:
     summary: "Screen a two-line element set before propagating it and classify each problem as will-fail-loudly, will-propagate-to-a-wrong-answer-silently, or benign. sgp4 parses and propagates a TLE and does both well; it does not say the element set is three weeks stale, that the drag term flipped sign, that two sources disagree by kilometres, or that an element is physically implausible - and those are the inputs that produce a confident wrong ephemeris. Baseline explicit rule screens over checksum and format validity, epoch age against a declared requirement, element bounds from orbital mechanics, and consistency against the object's own element history with an explicit outlier test. Learned screening classifier for the SILENT class, which rules cover worst, scored on recall at fixed false-positive rate against the rule screens AND against a majority-class baseline. The silent classification is verified by ACTUALLY PROPAGATING the corrupted set with sgp4 and measuring resulting position error against the uncorrupted propagation, so the class label is measured consequence rather than assumed."
     ai_enabled: true
     validation_level: 2
-    status: NOT STARTED
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P090

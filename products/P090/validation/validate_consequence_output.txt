@@ -1,0 +1,138 @@
+
+==============================================================================
+ENVIRONMENT
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (named in the alternatives table; no number here is compared against it)
+skyfield         : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P090 (printed relatively; see validation/_bootstrap.py)
+
+objects per split          : 420
+element history per object : 12 sets at 1.5 day cadence
+consequence horizon        : 1 days, 25 samples
+silent threshold           : 1 km (declared policy)
+epoch requirement          : 7 days (declared policy)
+target false-positive rate : 0.05 (declared policy)
+
+objects screened : 420 (split 'test')
+
+==============================================================================
+1. MEASURED CONSEQUENCE BY INJECTED CORRUPTION FAMILY
+==============================================================================
+Propagated with sgp4 over 1 days at 25 samples, declared silent threshold 1 km.
+
+injected corruption             n  will_fail_loudly    silently_wrong            benign  median max km  largest max km
+none                          218                 0                 0               218       0.000000          0.0000
+checksum_digit                 31                 0                 0                31       0.000000          0.0000
+data_digit                     26                 0                15                11       5.802850      16479.1961
+field_shift                    27                 1                18                 8      35.837773      44276.0284
+sign_flip                      32                 0                17                15       1.246071       1920.7668
+implausible_eccentricity       26                17                 9                 0   34269.839604      72754.6552
+stale_epoch                    35                 0                29                 6       4.931675       2910.9148
+cross_source_divergence        25                 0                24                 1       6.024142         89.1645
+
+The checksum_digit family is the one worth reading twice. Its corruption is the checksum column alone, so the data is intact and the propagated position error is exactly 0.0 km on all 31 of them. The checksum screen fires on every one and it is right to: the element set is not what its source wrote. The consequence of that change, measured, is nothing. Those are two different statements and this package returns them separately.
+[PASS] checksum_only_corruption_has_zero_measured_consequence -- largest measured error 0.000000 km over 31 element sets
+[PASS] every_class_is_populated -- all three consequence classes occur in the corpus
+
+==============================================================================
+2. THE CLASS BOUNDARY MOVES WITH THE DECLARED THRESHOLD
+==============================================================================
+The threshold is a policy value and not a physical constant. A reader screening for conjunction assessment and a reader screening for a ground-station pass schedule do not want the same number, so the boundary is swept rather than asserted.
+
+ threshold km    benign    silent      loud
+          0.1       278       124        18
+          0.5       282       120        18
+          1.0       290       112        18
+          5.0       324        78        18
+         50.0       361        41        18
+        500.0       374        28        18
+[PASS] silent_count_falls_as_the_threshold_rises -- 124 at 0.1 km against 28 at 500 km
+[PASS] loud_count_is_threshold_independent -- a loud failure is the propagator's own verdict and no threshold changes it
+
+==============================================================================
+3. THE CONSEQUENCE GROWS WITH THE PREDICTION HORIZON
+==============================================================================
+A corrupted drag term costs nothing at the epoch and a great deal a week later. The horizon is a declared choice and this is what it is worth.
+
+ horizon days    benign    silent      loud   median silent km
+         0.25       298       107        15            11.9186
+         1.00       290       112        18             9.3469
+         3.00       285       117        18            17.2932
+         7.00       285       114        21            31.3619
+
+==============================================================================
+4. A SINGLE SIGN FLIP ON A PUBLISHED ELEMENT SET, IN KILOMETRES
+==============================================================================
+reference line 1 : 1 25544U 98067A   19343.69339541  .00001764  00000-0  38792-4 0  9991
+flipped   line 1 : 1 25544U 98067A   19343.69339541  .00001764  00000-0 -38792-4 0  9992
+
+The two lines differ in one column, the sign of the drag term, and both carry a valid checksum. Every element is inside every physical bound. The propagator reports success at every sample.
+
+ horizon days   max error km   rms error km              class
+          1.0         1.8993         0.8759     silently_wrong
+          3.0        17.0910         7.8059     silently_wrong
+          7.0        93.0648        42.2865     silently_wrong
+         14.0       372.5879       168.7601     silently_wrong
+         30.0      1704.5723       773.1676     silently_wrong
+[PASS] sign_flip_is_silently_wrong_at_seven_days -- 93.0648 km, propagator reported success at every sample
+[PASS] sign_flip_is_invisible_to_the_checksum -- the flipped line carries a valid checksum
+
+==============================================================================
+5. A CONSTRUCTED VALID-BUT-STALE ELEMENT SET, THE DECLARED CONTROL
+==============================================================================
+The control is a genuine, uncorrupted element set whose only defect is its age. It is constructed with tlecheck.dataset.rewound, which runs the propagator back to the older epoch and writes the mean elements it computed there, so the element set describes the same orbit at an earlier time. Nothing in its characters is wrong: the checksum is valid, every element is inside every bound, and the propagator reports success.
+
+Stamping an earlier epoch onto an element set without moving its angles does NOT produce an older element set, it produces a different orbit. The first version of this control did that and measured 9752.6918 km at an age of 1.5 days, which is a meaningless number. The figures below are from the propagator-based construction.
+
+  age days   max error km              class   stale  checksum ok
+       0.0         0.0000             benign   False         True
+       1.5         0.0193             benign   False         True
+       3.0         0.0462             benign   False         True
+       7.5         0.2458             benign    True         True
+      15.0         0.8737             benign    True         True
+      30.0         3.2964     silently_wrong    True         True
+      60.0        12.7868     silently_wrong    True         True
+[PASS] stale_control_fires_above_the_requirement -- every constructed age above the declared 7 day requirement is flagged
+[PASS] stale_control_does_not_fire_below_the_requirement -- no constructed age below the requirement is flagged; the control is asserted in both directions
+[PASS] stale_control_is_otherwise_clean -- every constructed control carries a valid checksum and no bound finding
+[PASS] stale_consequence_rises_with_age -- the measured position error is monotone in the age over the constructed ladder
+
+A disagreement worth reporting rather than resolving. The declared epoch requirement of 7 days flags this element set from an age of 7.5 days onward, and the measured consequence first exceeds the declared 1 km threshold at an age of 30 days. For this object the staleness policy is the more conservative of the two by a factor of about four. Neither number is wrong: the requirement is an operational choice and the threshold is a different operational choice, and a screen that reported only one of them would be hiding the gap. The determinability report returns the requirement with every verdict for exactly this reason.
+
+==============================================================================
+6. DOES THE RULE BASELINE'S LOUD PREDICTION MATCH THE PROPAGATOR?
+==============================================================================
+The rules predict a loud failure from a physical bound violation, on the grounds that the SGP4 error codes are exactly those cases. That is a prediction and it is scored here against what the propagator actually did.
+
+records                         : 420
+rules predicted a loud failure  : 20
+propagator failed loudly        : 18
+both                            : 17
+loud recall                     : 0.9444
+loud precision                  : 0.8500
+
+SGP4 error codes seen on the loud records:
+  code 0: 18 samples
+  code 6: 18 samples
+
+the loud failures the rules did not predict as loud:
+  a field this package could not read : 1
+  flagged silently wrong instead      : 0
+  not flagged by any screen           : 0
+[PASS] no_loud_failure_passed_the_screen_unflagged -- 0 of 18 loud failures were not flagged at all; the rest were flagged with a different class attached
+[PASS] the_rules_predict_loud_on_most_loud_failures -- recall 0.9444 on 18 loud failures
+The rules both over-predict and under-predict a loud failure, and both are measured above. They over-predict because an element set whose eccentricity is implausible for its object sometimes still propagates, and when it does the measured class is silently wrong. They under-predict because an element set with a field this package cannot read is classified silently wrong rather than loud, deliberately: the propagator usually reads such a line without complaint, and predicting a loud failure from a parse failure drove the field-shift operating characteristic below chance. Neither direction is tuned away.
+
+CHECKS RUN: 12
+FAILED CHECKS (0): none

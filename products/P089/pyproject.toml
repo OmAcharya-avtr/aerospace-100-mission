@@ -1,0 +1,110 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aligncal"
+version = "0.1.0"
+description = "Estimate relative sensor alignment from flight time series, with the observability of each alignment degree of freedom reported before the estimate."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "alignment",
+    "observability",
+    "attitude",
+    "gyroscope",
+    "calibration",
+    "kalman-filter",
+    "wahba",
+    "aerospace",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+]
+
+# Every range below is bounded on BOTH sides, at the versions every number in
+# this repository was measured against. A floor with no ceiling is not a
+# dependency specification: five of the first fifty products of this mission
+# were found broken or silently wrong for a new install because pip resolved a
+# release published after the product was measured, and one of the five passed
+# its whole suite while its validation numbers moved.
+#
+# scikit-learn is the sharpest case. `aligncal.learned` reads
+# `RandomForestRegressor.estimators_` and calls `predict` on individual members
+# to form the per-member spread it reports as its uncertainty output.
+# `estimators_` is documented, but the per-member prediction semantics of a
+# multi-output forest are not covered by any cross-minor stability promise, so
+# the ceiling sits at the minor version. The cost is recorded in README.md under
+# Limitations: this package cannot take a scikit-learn 1.10 release without a
+# port and a re-measure.
+#
+# scipy is a real dependency and a small one. `aligncal.benchmark` uses
+# `scipy.special.erf` to compute the nominal coverage figures it reports, so no
+# such figure is hand-written; the test suite additionally cross-checks every
+# rotation in `aligncal.geometry` against `scipy.spatial.transform.Rotation`,
+# which is an implementation this package did not write. Nothing in the
+# estimators calls scipy.
+#
+# numpy is bounded one notch looser. The code depends on `linalg.eigh`,
+# `linalg.svd` and `linalg.solve` and on float64 semantics, all long stable; but
+# numpy has resolved to three different patch releases across sessions of this
+# mission on an unbounded specifier.
+#
+# WHAT WAS NOT MEASURED, stated rather than implied. The build guide asks for
+# the suite to be run at both ends of every declared range. That was not
+# possible here: the build environment is a shared pre-pinned interpreter that
+# this product is forbidden to modify, and installing a second version of numpy,
+# scipy or scikit-learn would have required running pip. Those three ranges are
+# bounded at the single version each was MEASURED at -- numpy 2.5.3, scipy
+# 1.18.1 and scikit-learn 1.9.1 -- widened only to the minor floor the code
+# plainly supports. The ruff range is the one exception: 0.16.9 and 0.17.3 were
+# both available in the measured environment and the source is clean under both,
+# so that range is measured at both ends. This is recorded in README.md under
+# Limitations.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scipy>=1.18,<1.19",
+    "scikit-learn>=1.9,<1.10",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=9.1,<9.2", "hypothesis>=6.170,<6.171"]
+examples = ["matplotlib>=3.11,<3.12"]
+dev = [
+    "pytest>=9.1,<9.2",
+    "hypothesis>=6.170,<6.171",
+    "ruff>=0.16,<0.18",
+    "matplotlib>=3.11,<3.12",
+]
+
+[project.scripts]
+aligncal = "aligncal.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/aligncal"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["aligncal"]
+known-local-folder = ["_bootstrap", "_common"]

@@ -1,0 +1,141 @@
+
+==============================================================================
+ENVIRONMENT
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (named in the alternatives table; no number here is compared against it)
+skyfield         : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P090 (printed relatively; see validation/_bootstrap.py)
+
+objects per split          : 420
+element history per object : 12 sets at 1.5 day cadence
+consequence horizon        : 1 days, 25 samples
+silent threshold           : 1 km (declared policy)
+epoch requirement          : 7 days (declared policy)
+target false-positive rate : 0.05 (declared policy)
+
+every subprocess is given a temporary HOME and MPLCONFIGDIR outside the repository and PYTHONDONTWRITEBYTECODE=1
+
+==============================================================================
+1. EVERY SUBCOMMAND, IN A SUBPROCESS
+==============================================================================
+
+$ python -m tlecheck --version
+exit status : 0
+stdout lines: 1
+[PASS] cli_version_exits_zero -- status 0
+[PASS] cli_version_says_tlecheck_0.1.0 -- expected 'tlecheck 0.1.0' in the output
+
+$ python -m tlecheck info
+exit status : 0
+stdout lines: 40
+[PASS] cli_info_exits_zero -- status 0
+[PASS] cli_info_says_ships_no_element_catalogue -- expected 'ships no element catalogue' in the output
+[PASS] cli_info_says_Not_flight-qualified -- expected 'Not flight-qualified' in the output
+[PASS] cli_info_says_17.043642_rev/day -- expected '17.043642 rev/day' in the output
+
+$ python -m tlecheck check --objects 48 --corruption none
+exit status : 0
+stdout lines: 82
+[PASS] cli_check_clean_exits_zero -- status 0
+[PASS] cli_check_clean_says_WHAT_THIS_SCREEN_CANNOT_DETE -- expected 'WHAT THIS SCREEN CANNOT DETERMINE' in the output
+[PASS] cli_check_clean_says_predicted_consequence_class -- expected 'predicted consequence class : benign' in the output
+
+$ python -m tlecheck check --objects 48 --corruption sign_flip
+exit status : 0
+stdout lines: 85
+[PASS] cli_check_sign_flip_exits_zero -- status 0
+[PASS] cli_check_sign_flip_says_QUALITY_VERDICT -- expected 'QUALITY VERDICT' in the output
+[PASS] cli_check_sign_flip_says_integrity_intact -- expected 'integrity intact' in the output
+
+$ python -m tlecheck check --objects 48 --corruption data_digit
+exit status : 0
+stdout lines: 90
+[PASS] cli_check_data_digit_exits_zero -- status 0
+[PASS] cli_check_data_digit_says_checksum_mismatch -- expected 'checksum_mismatch' in the output
+
+$ python -m tlecheck determinability --objects 12
+exit status : 0
+stdout lines: 57
+[PASS] cli_determinability_exits_zero -- status 0
+[PASS] cli_determinability_says_propagated_ephemeris_accurac -- expected 'propagated_ephemeris_accuracy' in the output
+[PASS] cli_determinability_says_continuity_resolution_km -- expected 'continuity_resolution_km' in the output
+
+$ python -m tlecheck consequence --objects 120
+exit status : 0
+stdout lines: 11
+[PASS] cli_consequence_exits_zero -- status 0
+[PASS] cli_consequence_says_median_max_error_km -- expected 'median max error km' in the output
+[PASS] cli_consequence_says_checksum_digit -- expected 'checksum_digit' in the output
+
+$ python -m tlecheck screen --objects 120
+exit status : 0
+stdout lines: 10
+[PASS] cli_screen_exits_zero -- status 0
+[PASS] cli_screen_says_rule_baseline_against_measur -- expected 'rule baseline against measured consequence' in the output
+[PASS] cli_screen_says_operating-characteristic_are -- expected 'operating-characteristic area' in the output
+
+$ python -m tlecheck benchmark --objects 180
+exit status : 0
+stdout lines: 12
+[PASS] cli_benchmark_exits_zero -- status 0
+[PASS] cli_benchmark_says_majority-class_baseline -- expected 'majority-class baseline' in the output
+[PASS] cli_benchmark_says_learned_elements_and_history -- expected 'learned elements_and_history' in the output
+
+$ python -m tlecheck divergence --objects 60
+exit status : 0
+stdout lines: 10
+[PASS] cli_divergence_exits_zero -- status 0
+[PASS] cli_divergence_says_which_source_is_right:_None -- expected 'which source is right: None' in the output
+[PASS] cli_divergence_says_not_determinable -- expected 'not determinable' in the output
+
+==============================================================================
+2. ERROR PATHS RETURN A STATUS AND A MESSAGE, NOT A TRACEBACK
+==============================================================================
+
+$ python -m tlecheck check --objects 6 --corruption cross_source_divergence
+exit status : 2
+stderr      : tlecheck: no record with corruption 'cross_source_divergence' in this sample; increase --objects or choose another family
+[PASS] cli_missing_family_exits_two -- status 2
+[PASS] cli_missing_family_has_no_traceback -- a bad input produces a message, not a stack trace
+[PASS] cli_missing_family_explains_itself -- expected 'no record with corruption' in stderr
+
+$ python -m tlecheck check --file no_such_element_set.txt
+exit status : 2
+stderr      : tlecheck: [Errno 2] No such file or directory: 'no_such_element_set.txt'
+[PASS] cli_absent_file_exits_two -- status 2
+[PASS] cli_absent_file_has_no_traceback -- a bad input produces a message, not a stack trace
+
+$ python -m tlecheck check --file validation/_cli_probe_short.txt
+exit status : 2
+stderr      : tlecheck: _cli_probe_short.txt holds 1 non-empty lines; two element set lines are needed. A three-line record with a name line is accepted by taking the last two lines.
+[PASS] cli_short_file_exits_two -- status 2
+[PASS] cli_short_file_has_no_traceback -- a bad input produces a message, not a stack trace
+[PASS] cli_short_file_explains_itself -- expected 'two element set lines' in stderr
+
+==============================================================================
+3. THE TREE AFTER EVERY COMMAND HAS RUN
+==============================================================================
+checked for : .config, .pytest_cache, .ruff_cache, .hypothesis, build, dist
+present     : .pytest_cache, .ruff_cache, .hypothesis
+[PASS] no_config_directory_in_the_repository -- matplotlib wrote .config/matplotlib into an earlier product of this mission through exactly this path
+[PASS] no_probe_file_left_behind -- the temporary element set file written by this script is removed
+__pycache__ directories in the tree : 4
+  examples/__pycache__
+  src/tlecheck/__pycache__
+  tests/__pycache__
+  validation/__pycache__
+Bytecode caches are gitignored and are produced by running the test suite, not by these subprocesses, which set PYTHONDONTWRITEBYTECODE.
+
+CHECKS RUN: 39
+FAILED CHECKS (0): none

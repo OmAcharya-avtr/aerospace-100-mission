@@ -1,0 +1,117 @@
+
+==============================================================================
+tmtcdiff -- negative control: textual reordering with no semantic change
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+deepdiff         : not installed  (alternatives table)
+jsonschema       : 4.26.0  (alternatives table)
+cpu cores        : 2
+repository root  : P088 (printed relatively; see validation/_bootstrap.py)
+
+sizes : 20, 60, 150, 300
+seeds : 6 per size
+
+==============================================================================
+the control -- reordered and respelled, semantically identical
+==============================================================================
+size  seed  text lines  lines differing  fraction  changes  silent  loud  advisory
+----  ----  ----------  ---------------  --------  -------  ------  ----  --------
+20    7400  435         862              1.9816    0        0       0     0
+20    7417  432         856              1.9815    0        0       0     0
+20    7434  423         838              1.9811    0        0       0     0
+20    7451  436         864              1.9817    0        0       0     0
+20    7468  431         854              1.9814    0        0       0     0
+20    7485  432         856              1.9815    0        0       0     0
+60    7400  1267        2526             1.9937    0        0       0     0
+60    7417  1284        2560             1.9938    0        0       0     0
+60    7434  1272        2536             1.9937    0        0       0     0
+60    7451  1284        2560             1.9938    0        0       0     0
+60    7468  1273        2538             1.9937    0        0       0     0
+60    7485  1275        2542             1.9937    0        0       0     0
+150   7400  3142        6276             1.9975    0        0       0     0
+150   7417  3160        6312             1.9975    0        0       0     0
+150   7434  3161        6314             1.9975    0        0       0     0
+150   7451  3168        6328             1.9975    0        0       0     0
+150   7468  3157        6306             1.9975    0        0       0     0
+150   7485  3143        6278             1.9975    0        0       0     0
+300   7400  6290        12572            1.9987    0        0       0     0
+300   7417  6314        12620            1.9987    0        0       0     0
+300   7434  6299        12590            1.9987    0        0       0     0
+300   7451  6335        12662            1.9987    0        0       0     0
+300   7468  6287        12566            1.9987    0        0       0     0
+300   7485  6303        12598            1.9987    0        0       0     0
+
+pairs run                       : 24
+semantic changes reported, total: 0
+round-trip identity failures    : 0
+[PASS] the reordering control produces an empty semantic diff on every pair -- 0 changes reported across 24 pairs
+[PASS] the reordered document re-reads to a field-identical dictionary -- 0 of 24 pairs differed
+
+==============================================================================
+what a text diff reports on the same pair -- difflib, measured
+==============================================================================
+difflib is named in this package's alternatives table. It is the right tool
+for comparing text and it is doing exactly its job here; the point of the
+table is the size of the gap between a text diff and a semantic one on a
+change set that contains no semantic change at all.
+
+size  text lines  difflib lines differing  difflib changed blocks  difflib line ratio  tmtcdiff semantic changes
+----  ----------  -----------------------  ----------------------  ------------------  -------------------------
+20    435         862                      3                       0.0092              0
+60    1267        2526                     3                       0.0032              0
+150   3142        6276                     3                       0.0013              0
+300   6290        12572                    3                       0.0006              0
+[PASS] a text diff reports a large difference where the semantic diff reports none
+
+==============================================================================
+controls that must FIRE -- reordering must not mask a real change
+==============================================================================
+Each row reorders the document AND injects one real change of one silent
+class. The diff must report exactly that change and nothing else. A control
+that cannot fail is not evidence, so both directions are asserted.
+
+injected silent class  detected  extra changes  verdict
+---------------------  --------  -------------  -------
+rescaled               6/6       0              fired
+unit_changed           6/6       0              fired
+reenumerated           6/6       0              fired
+bit_shifted            6/6       0              fired
+retyped                6/6       0              fired
+endianness_changed     6/6       0              fired
+packet_moved           6/6       0              fired
+limits_changed         6/6       0              fired
+argument_reordered     6/6       0              fired
+argument_retyped       6/6       0              fired
+argument_rescaled      6/6       0              fired
+
+controls fired : 66 of 66
+extra changes reported across all controls : 0
+[PASS] every silent class is still detected through the reordering -- 66 of 66
+[PASS] the reordering introduces no change of its own alongside a real one -- 0 extra changes
+
+==============================================================================
+reordering and respelling, separated
+==============================================================================
+The control combines two mechanisms. Each is run alone, so a failure could
+be attributed.
+
+mechanism          size  lines differing  semantic changes
+-----------------  ----  ---------------  ----------------
+reorder only       20    862              0
+reorder only       60    2526             0
+reorder only       150   6276             0
+reorder only       300   12572            0
+reorder + respell  20    862              0
+reorder + respell  60    2526             0
+reorder + respell  150   6276             0
+reorder + respell  300   12572            0
+[PASS] both mechanisms independently produce an empty semantic diff
+
+CHECKS RUN: 6
+FAILED CHECKS (0): none

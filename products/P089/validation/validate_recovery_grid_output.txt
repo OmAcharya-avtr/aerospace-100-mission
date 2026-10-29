@@ -1,0 +1,142 @@
+VALIDATION 2 -- RECOVERY ACROSS THE SWEPT GRID, AGAINST THE CRAMER-RAO BOUND
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  scikit-learn     : 1.9.1
+  matplotlib       : 3.11.2
+  pytest           : 9.1.1
+  hypothesis       : 6.170.13
+  ruff (installed) : 0.17.3
+  ruff (on PATH)   : ruff 0.16.9  (a standalone binary, a DIFFERENT version from the installed distribution; the source is clean under both and the figures are in VALIDATION.md)
+  filterpy         : not installed  (named in the alternatives table; no number here is compared against it)
+  cpu cores        : 2
+  repository root  : P089 (printed relatively; see validation/_bootstrap.py)
+
+  grid: 4 excitation profiles x 3 noise levels x 3 record lengths x 24 seeds = 864 records
+  injected misalignment: magnitude uniform on [0, 3] mrad, direction uniform on the sphere
+  body rate amplitude: 0.05 rad/s; sampling 100 Hz
+  MAP prior one sigma (eq 18): 0.001 rad
+
+==============================================================================
+2.1 the grid
+==============================================================================
+All error figures are in milliradians. 'obs RMSE' is the root mean square over the cell of the NORM of the error inside the span of the floor-clearing degrees of freedom; 'CRB' is the MEDIAN over the cell of the total Cramer-Rao one sigma on that same subspace, sqrt(sum 1/lambda_i). 'obs/CRB' and 'MAP/CRB' are the MEDIAN of the PER-RECORD ratio of those two quantities, not a ratio of the two columns beside them: within one cell the bound varies by orders of magnitude between seeds because the excitation shares of (9) do, so a ratio of root-mean-squares is decided by the single worst-conditioned seed. For an efficient unbiased estimator the median per-record ratio is the median of a chi variate divided by sqrt of its degrees of freedom: 0.8326 on a rank-2 record and 0.8881 on a rank-3 one. 'unobs RMSE' is the per-component root mean square outside the retained span. 'z std' is the standard deviation of the standardised score (24) over the cell.
+
+The per-record ratio is reported for information and is NOT the check. Its expected value depends on how the bound's mass is spread across directions: when all three contribute equally it is median(chi_3)/sqrt(3) = 0.8881, and when one ill-conditioned direction dominates the sum it falls to median(chi_1) = 0.6745. The near_single_axis cells are the second case. The check is on the standardised score of (24), one per retained degree of freedom, which is standard normal regardless of conditioning.
+
+profile              sigma     n  rank   CRB mrad   obs RMSE  obs/CRB    MAP obs  MAP/CRB  unobs RMSE   z std
+single_axis        5.0e-05   150  2.00     0.2320     0.1995   0.7413     0.1983   0.6149      0.5006  0.8535
+single_axis        5.0e-05   600  2.00     0.1167     0.1171   0.8282     0.1149   0.8262      0.5680  1.0134
+single_axis        5.0e-05  2400  2.00     0.0577     0.0602   0.8871     0.0598   0.8898      0.4667  1.0287
+single_axis        2.0e-04   150  2.00     0.9280     0.7975   0.7405     0.7554   0.8022      0.5006  0.8531
+single_axis        2.0e-04   600  2.00     0.4669     0.4682   0.8302     0.4216   0.7675      0.5680  1.0132
+single_axis        2.0e-04  2400  2.00     0.2307     0.2415   0.8871     0.2338   0.8297      0.4667  1.0324
+single_axis        8.0e-04   150  2.00     3.7092     3.1796   0.7322     1.5498   0.3998      0.5003  0.8512
+single_axis        8.0e-04   600  2.00     1.8662     1.8699   0.8384     1.0693   0.5027      0.5680  1.0121
+single_axis        8.0e-04  2400  2.00     0.9226     0.9707   0.8942     0.7594   0.6342      0.4669  1.0379
+near_single_axis   5.0e-05   150  2.96    11.5648    15.6557   0.8279     0.9185   0.0591      0.0216  0.9467
+near_single_axis   5.0e-05   600  3.00     4.1022     3.1783   0.4741     0.9035   0.1167      0.0000  0.9398
+near_single_axis   5.0e-05  2400  3.00     2.0425     1.9351   0.4213     0.6851   0.2617      0.0000  1.0060
+near_single_axis   2.0e-04   150  2.46     0.9581    29.8009   0.8808     0.9561   0.2059      0.3732  0.9653
+near_single_axis   2.0e-04   600  3.00    15.2927    13.0077   0.4669     1.0534   0.0487      0.0000  0.9613
+near_single_axis   2.0e-04  2400  3.00     7.6059     7.7644   0.4669     0.8129   0.0728      0.0000  1.0280
+near_single_axis   8.0e-04   150  2.00     3.7085     3.1752   0.7397     1.5489   0.3992      0.5003  0.8508
+near_single_axis   8.0e-04   600  2.00     1.8660     1.8645   0.8304     1.0647   0.5010      0.5682  1.0080
+near_single_axis   8.0e-04  2400  2.00     0.9225     0.9708   0.8868     0.7601   0.6326      0.4668  1.0504
+two_axis           5.0e-05   150  3.00     0.3868     0.9537   0.7396     0.4065   0.7297      0.0000  0.9762
+two_axis           5.0e-05   600  3.00     0.1310     0.1140   0.8813     0.1115   0.8807      0.0000  0.8951
+two_axis           5.0e-05  2400  3.00     0.0647     0.0635   0.7657     0.0634   0.7616      0.0000  0.9908
+two_axis           2.0e-04   150  3.00     1.5484     3.8361   0.7316     1.0905   0.4858      0.0000  0.9769
+two_axis           2.0e-04   600  3.00     0.5242     0.4559   0.8810     0.4091   0.7454      0.0000  0.8949
+two_axis           2.0e-04  2400  3.00     0.2586     0.2543   0.7648     0.2491   0.7766      0.0000  0.9913
+two_axis           8.0e-04   150  3.00     6.2068    15.6081   0.7160     1.7399   0.2758      0.0000  0.9837
+two_axis           8.0e-04   600  3.00     2.0957     1.8233   0.8801     1.0818   0.4313      0.0000  0.8947
+two_axis           8.0e-04  2400  3.00     1.0341     1.0195   0.7617     0.8296   0.7452      0.0000  0.9937
+three_axis         5.0e-05   150  3.00     0.3079     0.3096   0.7278     0.3003   0.7885      0.0000  0.9204
+three_axis         5.0e-05   600  3.00     0.1290     0.1154   0.8203     0.1150   0.8134      0.0000  0.9186
+three_axis         5.0e-05  2400  3.00     0.0626     0.0593   0.8820     0.0592   0.8623      0.0000  0.9476
+three_axis         2.0e-04   150  3.00     1.2317     1.2395   0.7318     0.9546   0.6839      0.0000  0.9202
+three_axis         2.0e-04   600  3.00     0.5162     0.4616   0.8216     0.4441   0.7591      0.0000  0.9182
+three_axis         2.0e-04  2400  3.00     0.2504     0.2374   0.8795     0.2339   0.8046      0.0000  0.9478
+three_axis         8.0e-04   150  3.00     4.9241     4.9809   0.7507     1.7154   0.3502      0.0000  0.9198
+three_axis         8.0e-04   600  3.00     2.0642     1.8446   0.8273     1.2283   0.5641      0.0000  0.9171
+three_axis         8.0e-04  2400  3.00     1.0012     0.9500   0.8698     0.8049   0.7357      0.0000  0.9488
+
+==============================================================================
+2.2 the unbiased batch solution against the bound
+==============================================================================
+  cells                             : 36
+  records                           : 864
+  standardised scores, eq (24)      : 2290
+  per-record |e_obs|/CRB, median over all cells : 0.820958
+  per-record |e_obs|/CRB, min and max cell      : 0.421274, 0.894207
+  predicted for an efficient estimator          : 0.8326 (rank 2), 0.8881 (rank 3)
+  RMS-of-norm / RMS-of-CRB, min and max cell    : 0.775207, 1.692261  <- the badly behaved statistic, shown for comparison
+  z mean                            : -0.073846
+  z standard deviation              : 0.959812
+  |z| > 3 fraction                  : 0.000000 against a standard-normal 0.002700
+  Gauss-Newton convergence          : 864 of 864
+
+The bound applies to UNBIASED estimators. A standard deviation of the standardised score materially below 1 would mean the batch solution is biased; materially above 1 would mean the bound is wrong or the estimator is inefficient. Both directions are checked.
+[PASS] the standardised score of (24) has unit spread over the whole grid -- measured 0.959812, declared window [0.85, 1.20]
+[PASS] the standardised score of (24) is unbiased over the whole grid -- measured -0.073846, declared bound 0.1
+
+  per-cell z std, min and max       : 0.850811, 1.050421
+  per-cell z mean, min and max      : -0.172245, +0.123971
+  each cell holds about 48 scores, so the standard error of a cell mean is about 0.1443 and of a cell standard deviation about 0.1021; the windows below are set from those.
+[PASS] every cell's standardised score has a standard deviation in [0.5, 1.6] -- cell range [0.850811, 1.050421]
+[PASS] every cell's standardised score has a mean inside 4 standard errors of zero -- worst cell mean -0.172245 against a bound of 0.577350
+[PASS] no standardised score anywhere in the grid exceeds 5 sigma -- worst |z| 2.7673 over 2290 scores
+[PASS] the Gauss-Newton iteration converged on every record in the grid -- 864 of 864
+
+==============================================================================
+2.3 the regularised MAP solution falls BELOW the bound, and why that is allowed
+==============================================================================
+  MAP obs RMSE / CRB, median        : 0.659065
+  cells below the bound             : 36 of 36
+  MAP standardised z, mean          : -0.025297
+  MAP standardised z, std           : 0.810464
+
+The Cramer-Rao bound of (12) constrains unbiased estimators only. The MAP estimator of (18) shrinks toward zero and is therefore biased, so a ratio below 1 is not a violation of anything. The price is the bias, measured below per profile as the mean projection of the error onto the truth direction, which is negative when the estimate is systematically short.
+
+profile               n   batch bias     MAP bias   truth RMS
+single_axis         150    -0.024752    -0.477266    1.718445
+single_axis         600     0.024666    -0.100967    1.503669
+single_axis        2400     0.022560    -0.008735    1.416004
+near_single_axis    150    -3.546016    -0.604155    1.813005
+near_single_axis    600     0.969795    -0.537865    1.796879
+near_single_axis   2400     0.260953    -0.365917    1.630516
+two_axis            150     0.054002    -0.645761    1.924776
+two_axis            600     0.038685    -0.088969    1.796879
+two_axis           2400    -0.005897    -0.033915    1.630516
+three_axis          150    -0.092569    -0.575443    1.924776
+three_axis          600    -0.023835    -0.142862    1.796879
+three_axis         2400    -0.002460    -0.029621    1.630516
+
+  (bias figures in mrad, projected onto the observable part of the truth)
+
+==============================================================================
+2.4 the unobservable component is carried in full by every estimator
+==============================================================================
+The 'unobs RMSE' column of 2.1 is identical in structure for every estimator in this repository, because none of them can recover a component the record does not contain. For the single-axis profile it is about the per-component spread of the injected population, as it must be.
+
+profile             unobs RMSE mrad  mean rank
+single_axis                0.513471     2.0000
+near_single_axis           0.321590     2.6019
+two_axis                   0.000000     3.0000
+three_axis                 0.000000     3.0000
+
+[PASS] the single-axis unobservable error matches the injected population spread -- measured 0.513471 mrad against a predicted 1.000000 mrad (one component of a population with magnitude uniform on [0, 3] mrad)
+
+==============================================================================
+2.5 timings -- UNSTABLE, two shared cores, never quoted as a ratio in prose
+==============================================================================
+operation                            calls    total s    mean ms
+batch.solve, eq (14)-(16)              864     2.3195     2.6846
+batch.solve_map, eq (18)               864     2.2456     2.5991
+
+  These figures move between runs on a shared two-core container.
+
+CHECKS RUN: 7
+FAILED CHECKS (0): none

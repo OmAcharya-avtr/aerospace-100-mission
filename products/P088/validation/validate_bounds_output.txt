@@ -1,0 +1,219 @@
+
+==============================================================================
+tmtcdiff -- checks against independently derived bounds and identities
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+deepdiff         : not installed  (alternatives table)
+jsonschema       : 4.26.0  (alternatives table)
+cpu cores        : 2
+repository root  : P088 (printed relatively; see validation/_bootstrap.py)
+
+sizes : 30, 80, 200
+seeds : 8 per size
+
+==============================================================================
+bound 1 -- cardinality conservation, from set sizes alone
+==============================================================================
+size  seed  old params  added  removed  predicted  actual  predicted cmds  actual cmds  verdict
+----  ----  ----------  -----  -------  ---------  ------  --------------  -----------  -------
+30    9600  30          1      1        30         30      7               7            ok
+30    9623  30          1      1        30         30      7               7            ok
+30    9646  30          1      1        30         30      7               7            ok
+30    9669  30          0      0        30         30      7               7            ok
+30    9692  30          1      1        30         30      7               7            ok
+30    9715  30          1      1        30         30      7               7            ok
+30    9738  30          1      1        30         30      7               7            ok
+30    9761  30          1      1        30         30      7               7            ok
+80    9600  80          1      1        80         80      20              20           ok
+80    9623  80          1      1        80         80      20              20           ok
+80    9646  80          1      1        80         80      20              20           ok
+80    9669  80          1      1        80         80      20              20           ok
+80    9692  80          1      1        80         80      20              20           ok
+80    9715  80          1      1        80         80      20              20           ok
+80    9738  80          1      1        80         80      20              20           ok
+80    9761  80          1      1        80         80      20              20           ok
+200   9600  200         1      1        200        200     50              50           ok
+200   9623  200         1      1        200        200     50              50           ok
+200   9646  200         1      1        200        200     50              50           ok
+200   9669  200         1      1        200        200     50              50           ok
+200   9692  200         1      1        200        200     50              50           ok
+200   9715  200         1      1        200        200     50              50           ok
+200   9738  200         1      1        200        200     50              50           ok
+200   9761  200         1      1        200        200     50              50           ok
+[PASS] item cardinality is conserved on every pair -- 0 of 24 pairs violated the identity
+
+==============================================================================
+bound 2 -- a silent change exists if and only if the signature tuple differs
+==============================================================================
+size  seed  shared names  silent by diff  signature differs  symmetric difference  verdict
+----  ----  ------------  --------------  -----------------  --------------------  -------
+30    9600  28            8               8                  0                     ok
+30    9623  28            8               8                  0                     ok
+30    9646  28            8               8                  0                     ok
+30    9669  28            8               8                  0                     ok
+30    9692  28            8               8                  0                     ok
+30    9715  28            8               8                  0                     ok
+30    9738  28            8               8                  0                     ok
+30    9761  28            8               8                  0                     ok
+80    9600  78            8               8                  0                     ok
+80    9623  78            8               8                  0                     ok
+80    9646  78            8               8                  0                     ok
+80    9669  78            8               8                  0                     ok
+80    9692  78            8               8                  0                     ok
+80    9715  78            8               8                  0                     ok
+80    9738  78            8               8                  0                     ok
+80    9761  78            8               8                  0                     ok
+200   9600  198           8               8                  0                     ok
+200   9623  198           8               8                  0                     ok
+200   9646  198           8               8                  0                     ok
+200   9669  198           8               8                  0                     ok
+200   9692  198           8               8                  0                     ok
+200   9715  198           8               8                  0                     ok
+200   9738  198           8               8                  0                     ok
+200   9761  198           8               8                  0                     ok
+[PASS] the two routes to 'this item changed meaning' agree item for item -- 0 items disagreed
+
+The two routes are not the same computation. The diff classifies one field
+at a time through math.isclose; the signature comparison is one tuple
+equality. With the numeric tolerance set to exactly zero the two predicates
+coincide, so the identity is exact and not approximate.
+
+==============================================================================
+bound 3 -- accepted matches with a perfect structural term, counted two ways
+==============================================================================
+size  seed  removed pool  added pool  identical-signature pairs (bound)  accepted with structural 1.0  verdict
+----  ----  ------------  ----------  ---------------------------------  ----------------------------  -------
+30    9600  6             6           3                                  3                             ok
+30    9623  6             6           3                                  3                             ok
+30    9646  6             6           3                                  3                             ok
+30    9669  6             6           3                                  3                             ok
+30    9692  6             6           3                                  3                             ok
+30    9715  6             6           3                                  3                             ok
+30    9738  6             6           3                                  3                             ok
+30    9761  6             6           3                                  3                             ok
+80    9600  11            11          8                                  8                             ok
+80    9623  11            11          8                                  8                             ok
+80    9646  11            11          8                                  8                             ok
+80    9669  11            11          8                                  8                             ok
+80    9692  11            11          8                                  8                             ok
+80    9715  11            11          8                                  8                             ok
+80    9738  11            11          8                                  8                             ok
+80    9761  11            11          8                                  8                             ok
+200   9600  23            23          20                                 20                            ok
+200   9623  23            23          20                                 20                            ok
+200   9646  23            23          20                                 20                            ok
+200   9669  23            23          20                                 20                            ok
+200   9692  23            23          20                                 20                            ok
+200   9715  23            23          20                                 20                            ok
+200   9738  23            23          20                                 20                            ok
+200   9761  23            23          20                                 20                            ok
+[PASS] accepted perfect-structural matches never exceed the counting bound -- 0 of 24 pairs violated the bound
+
+==============================================================================
+bound 4 -- missed renames predicted from the score distribution
+==============================================================================
+size  seed  true renames  missed by the diff  scoring below threshold  verdict
+----  ----  ------------  ------------------  -----------------------  -------
+30    9600  3             0                   0                        ok
+30    9623  3             0                   0                        ok
+30    9646  3             0                   0                        ok
+30    9669  3             0                   0                        ok
+30    9692  3             0                   0                        ok
+30    9715  3             0                   0                        ok
+30    9738  3             0                   0                        ok
+30    9761  3             0                   0                        ok
+80    9600  8             0                   0                        ok
+80    9623  8             0                   0                        ok
+80    9646  8             0                   0                        ok
+80    9669  8             0                   0                        ok
+80    9692  8             0                   0                        ok
+80    9715  8             0                   0                        ok
+80    9738  8             0                   0                        ok
+80    9761  8             0                   0                        ok
+200   9600  20            0                   0                        ok
+200   9623  20            0                   0                        ok
+200   9646  20            0                   0                        ok
+200   9669  20            0                   0                        ok
+200   9692  20            0                   0                        ok
+200   9715  20            0                   0                        ok
+200   9738  20            0                   0                        ok
+200   9761  20            0                   0                        ok
+[PASS] every missed rename is exactly a rename whose score fell below the threshold -- 0 of 24 pairs disagreed
+
+A disagreement here would mean a rename was missed for a reason other than
+the acceptance rule -- for instance because the assignment gave its partner
+to a different item. On this generator that does not happen; it is not
+guaranteed in general, and the check is here to detect it if it starts.
+
+==============================================================================
+bound 5 -- union bounds on the impact findings, counted over the references
+==============================================================================
+size  seed  references  silently changed  bound  broken + renamed  unresolvable refs  verdict
+----  ----  ----------  ----------------  -----  ----------------  -----------------  -------
+30    9600  95          42                48     22                12                 ok
+30    9623  95          43                47     21                13                 ok
+30    9646  95          43                45     23                13                 ok
+30    9669  96          43                48     24                12                 ok
+30    9692  95          43                48     20                12                 ok
+30    9715  96          44                47     22                12                 ok
+30    9738  95          42                44     23                11                 ok
+30    9761  95          42                43     24                12                 ok
+80    9600  92          42                46     19                11                 ok
+80    9623  91          41                41     19                11                 ok
+80    9646  97          42                48     22                12                 ok
+80    9669  98          41                47     23                13                 ok
+80    9692  95          42                46     21                11                 ok
+80    9715  91          42                44     22                12                 ok
+80    9738  94          43                47     20                12                 ok
+80    9761  93          41                43     19                11                 ok
+200   9600  102         41                45     25                13                 ok
+200   9623  98          41                45     21                11                 ok
+200   9646  98          41                45     25                13                 ok
+200   9669  96          43                45     21                11                 ok
+200   9692  95          42                45     22                12                 ok
+200   9715  94          41                45     22                12                 ok
+200   9738  99          41                45     24                12                 ok
+200   9761  97          42                48     23                13                 ok
+[PASS] no impact class outnumbers the references that could produce it -- 0 of 24 pairs violated a bound
+
+==============================================================================
+where bound 3 is loose, and by how much
+==============================================================================
+Bound 3 counts identical-signature pairs in the removed and added pools. It
+is an upper bound on perfect-structural matches and nothing stops it being
+far above the realised count: the matcher also has to clear the threshold on
+the combined score, which carries a name term. The slack is reported rather
+than presented as a tight result.
+
+size  candidate pairs  identical signatures  accepted perfect  slack
+----  ---------------  --------------------  ----------------  -----
+30    36               3                     3                 0
+80    121              8                     8                 0
+200   529              20                    20                0
+
+Measured outcome: the slack is zero at every swept size, so on this generator
+the bound is tight rather than loose. Every injected rename preserves the
+structural signature exactly -- the generator changes only the name -- and
+every such pair also clears the combined threshold. A generator that also
+perturbed a field across the rename would open the slack up, and the bound
+would still hold.
+
+==============================================================================
+control -- the structural signature cannot see a name
+==============================================================================
+parameter                 : AOCS_B_BAT_20
+renamed to                : AOCS_B_BAT_20_COMPLETELY_DIFFERENT
+structural signatures equal : True
+structural term           : 1.0000
+name term                 : 0.5532
+combined score            : 0.8660
+[PASS] renaming an item and clearing its path leaves its structural signature identical
+
+CHECKS RUN: 6
+FAILED CHECKS (0): none

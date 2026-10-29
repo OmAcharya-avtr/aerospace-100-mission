@@ -1,0 +1,140 @@
+
+==============================================================================
+tmtcdiff -- per-class detection precision and recall
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+deepdiff         : not installed  (alternatives table)
+jsonschema       : 4.26.0  (alternatives table)
+cpu cores        : 2
+repository root  : P088 (printed relatively; see validation/_bootstrap.py)
+
+classes injected : 21
+sizes            : 30, 120
+seeds            : 10 per cell, 5200 to 5299 step 11
+pairs per regime : 20 per class (isolated), 20 total (combined)
+
+Rename detection runs at the threshold selected by
+validation/validate_rename_sweep.py. Nothing here retunes it.
+
+==============================================================================
+isolated regime -- one injected class per pair
+==============================================================================
+change class         tier      injected  detected  TP  FP  FN  precision  recall  pairs fired
+-------------------  --------  --------  --------  --  --  --  ---------  ------  -----------
+argument_reordered   silent    20        20        20  0   0   1.0000     1.0000  20/20
+argument_rescaled    silent    20        20        20  0   0   1.0000     1.0000  20/20
+argument_retyped     silent    20        20        20  0   0   1.0000     1.0000  20/20
+bit_shifted          silent    20        20        20  0   0   1.0000     1.0000  20/20
+endianness_changed   silent    20        20        20  0   0   1.0000     1.0000  20/20
+limits_changed       silent    20        20        20  0   0   1.0000     1.0000  20/20
+packet_moved         silent    20        20        20  0   0   1.0000     1.0000  20/20
+reenumerated         silent    20        20        20  0   0   1.0000     1.0000  20/20
+rescaled             silent    20        20        20  0   0   1.0000     1.0000  20/20
+retyped              silent    20        20        20  0   0   1.0000     1.0000  20/20
+unit_changed         silent    20        20        20  0   0   1.0000     1.0000  20/20
+argument_added       loud      20        20        20  0   0   1.0000     1.0000  20/20
+argument_removed     loud      20        20        20  0   0   1.0000     1.0000  20/20
+command_removed      loud      20        20        20  0   0   1.0000     1.0000  20/20
+command_renamed      loud      20        20        20  0   0   1.0000     1.0000  20/20
+path_moved           loud      20        20        20  0   0   1.0000     1.0000  20/20
+removed              loud      20        20        20  0   0   1.0000     1.0000  20/20
+renamed              loud      20        20        20  0   0   1.0000     1.0000  20/20
+added                advisory  20        20        20  0   0   1.0000     1.0000  20/20
+command_added        advisory  20        20        20  0   0   1.0000     1.0000  20/20
+description_changed  advisory  20        20        20  0   0   1.0000     1.0000  20/20
+
+micro-averaged over every class: precision 1.0000, recall 1.0000, TP 420, FP 0, FN 0
+[PASS] every injected class fires on every isolated pair -- all classes fired on all pairs
+[PASS] isolated regime has no false positive of any class -- 0 false positives
+
+==============================================================================
+combined regime -- every injectable class in the same pair
+==============================================================================
+change class         tier      injected  detected  TP  FP  FN  precision  recall
+-------------------  --------  --------  --------  --  --  --  ---------  ------
+argument_reordered   silent    20        20        20  0   0   1.0000     1.0000
+argument_rescaled    silent    20        20        20  0   0   1.0000     1.0000
+argument_retyped     silent    20        20        20  0   0   1.0000     1.0000
+bit_shifted          silent    20        22        20  2   0   0.9091     1.0000
+endianness_changed   silent    20        20        20  0   0   1.0000     1.0000
+limits_changed       silent    20        20        20  0   0   1.0000     1.0000
+packet_moved         silent    20        20        20  0   0   1.0000     1.0000
+reenumerated         silent    20        21        20  1   0   0.9524     1.0000
+rescaled             silent    20        20        20  0   0   1.0000     1.0000
+retyped              silent    20        20        20  0   0   1.0000     1.0000
+unit_changed         silent    20        20        20  0   0   1.0000     1.0000
+argument_added       loud      20        20        20  0   0   1.0000     1.0000
+argument_removed     loud      20        20        20  0   0   1.0000     1.0000
+command_removed      loud      20        14        14  0   6   1.0000     0.7000
+command_renamed      loud      20        26        20  6   0   0.7692     1.0000
+path_moved           loud      20        20        20  0   0   1.0000     1.0000
+removed              loud      20        18        18  0   2   1.0000     0.9000
+renamed              loud      20        22        20  2   0   0.9091     1.0000
+added                advisory  20        18        18  0   2   1.0000     0.9000
+command_added        advisory  20        14        14  0   6   1.0000     0.7000
+description_changed  advisory  20        23        20  3   0   0.8696     1.0000
+
+micro-averaged: precision 0.9665, recall 0.9619, TP 404, FP 14, FN 16
+
+The combined regime is where the classes interact. An unrelated removal and
+an unrelated addition in the same pair can be paired as a rename; that costs
+recall on 'removed' and 'added' and precision on 'renamed'. The numbers above
+are not softened: where a class loses recall in the combined regime but not
+in the isolated one, the cause is that interaction and nothing else.
+  removed          isolated recall 1.0000 -> combined 0.9000; precision 1.0000 -> 1.0000
+  added            isolated recall 1.0000 -> combined 0.9000; precision 1.0000 -> 1.0000
+  renamed          isolated recall 1.0000 -> combined 1.0000; precision 1.0000 -> 0.9091
+
+==============================================================================
+the silent tier on its own -- the class this product exists for
+==============================================================================
+tier    classes  injected  TP   FP  FN  precision  recall
+------  -------  --------  ---  --  --  ---------  ------
+silent  11       220       220  0   0   1.0000     1.0000
+loud    7        140       140  0   0   1.0000     1.0000
+[PASS] silent-tier recall is 1.0000 in the isolated regime -- recall 1.0000
+
+==============================================================================
+detection floor on a relative scale change -- measured by bisection
+==============================================================================
+The comparison uses math.isclose with the configured relative tolerance and
+an absolute tolerance of exactly zero, so the relative bound is the one that
+acts. The floor below is found by bisection on the injected relative change,
+not read off the configured tolerance.
+
+configured rel_tol  smallest detected relative change  largest undetected      ratio to rel_tol
+------------------  ---------------------------------  ----------------------  ----------------
+1e-12               9.999778782798785e-13              9.9997787827987829e-13  0.999978
+1e-09               9.9999997171806854e-10             9.9999997171806833e-10  1.000000
+1e-06               1.0000009998956119e-06             1.0000009998956116e-06  1.000001
+
+A scale change below the floor is not reported. That is returned to the
+caller in DiffLimits.reasons on every diff, not left in documentation.
+[PASS] the measured floor tracks the configured tolerance
+
+==============================================================================
+no-change control -- a dictionary against itself must report nothing
+==============================================================================
+pairs checked : 20
+pairs reporting a change : 0
+[PASS] a dictionary diffed against itself reports zero changes -- all clean
+
+==============================================================================
+timing -- UNSTABLE, two cores, informational only
+==============================================================================
+quantity              value
+--------------------  -----
+diffs run             440
+total wall clock (s)  2.738
+mean per diff (ms)    6.223
+
+No conclusion in this repository rests on a timing or on a ratio of timings.
+
+CHECKS RUN: 5
+FAILED CHECKS (0): none

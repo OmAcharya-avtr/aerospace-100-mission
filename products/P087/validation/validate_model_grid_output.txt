@@ -1,0 +1,228 @@
+
+==============================================================================
+refractpath -- every closed form against the ray trace, swept
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (alternatives table only)
+ephem            : not installed  (alternatives table only)
+pyerfa           : not installed  (alternatives table only)
+cpu cores        : 2
+repository root  : P087 (printed relatively; see validation/_bootstrap.py)
+
+elevations : 14  (90.0, 60.0, 45.0, 30.0, 20.0, 15.0, 10.0, 7.0, 5.0, 3.0, 2.0, 1.0, 0.5, 0.0)
+pressures  : (700.0, 900.0, 1030.0) hPa
+temperatures: (-30.0, 10.0, 35.0) C
+humidities : (0.0, 0.9)
+wavelengths: (0.4, 0.55, 1.0) um
+states     : 54
+cells      : 756
+declared pointing tolerance for the measured ranges below: 10 arcsec
+
+==============================================================================
+maximum absolute error against the ray trace, arcsec, over all 54 states
+==============================================================================
+elevation  plane_parallel  oriani_series  bennett_1982  saemundsson_1986  mean reference
+---------  --------------  -------------  ------------  ----------------  --------------
+  90.0           0.0000          0.0000         0.0963        0.1374             0.000
+  60.0           0.0603          0.0003         1.6545        2.4177            29.900
+  45.0           0.1563          0.0007         2.8670        4.1900            51.749
+  30.0           0.5390          0.0057         4.7724        6.9870            89.431
+  20.0           1.8104          0.0450         6.9185       10.1339           141.151
+  15.0           4.2400          0.1854         8.8968       12.2692           190.424
+  10.0          13.8348          1.2983        12.1190       15.4135           284.049
+   7.0          38.1280          6.7676        15.5780       18.3467           395.273
+   5.0          95.8933         29.8737        22.1935       21.4150           527.252
+   3.0         361.9216        241.0549        52.9807       43.4751           769.526
+   2.0        1035.9934       1040.2506        85.8231       68.0302           977.621
+   1.0     undefined       undefined          147.9814      104.9989          1301.564
+   0.5     undefined       undefined          204.0707      138.0109          1534.895
+   0.0     undefined       undefined          300.8100      208.1177          1841.692
+
+==============================================================================
+root-mean-square error against the ray trace, arcsec
+==============================================================================
+elevation  plane_parallel  oriani_series  bennett_1982  saemundsson_1986
+---------  --------------  -------------  ------------  ----------------
+  90.0           0.0000          0.0000         0.0736        0.1050
+  60.0           0.0511          0.0002         0.9568        1.5041
+  45.0           0.1324          0.0005         1.6639        2.6106
+  30.0           0.4558          0.0041         2.7777        4.3415
+  20.0           1.5264          0.0328         4.0390        6.2580
+  15.0           3.5623          0.1373         4.9381        7.5384
+  10.0          11.5194          0.9806         6.0219        8.6304
+   7.0          31.3092          5.1897         7.1737        8.5828
+   5.0          77.1627         23.2446        10.1968        9.5049
+   3.0         277.1443        191.8867        21.6857       19.1404
+   2.0         734.4883        857.2952        36.2216       31.2217
+   1.0     undefined       undefined           66.7916       53.2725
+   0.5     undefined       undefined           95.0443       73.2030
+   0.0     undefined       undefined          140.2720      109.7515
+
+==============================================================================
+relative error against the ray trace, fraction
+==============================================================================
+elevation  plane_parallel  oriani_series  bennett_1982  saemundsson_1986
+---------  --------------  -------------  ------------  ----------------
+  90.0     -               -              -             -
+  60.0        0.00290         0.00001        0.07940       0.11603
+  45.0        0.00433         0.00002        0.07951       0.11620
+  30.0        0.00865         0.00009        0.07661       0.11217
+  20.0        0.01843         0.00046        0.07043       0.10317
+  15.0        0.03203         0.00140        0.06721       0.09269
+  10.0        0.07028         0.00660        0.06156       0.07830
+   7.0        0.13985         0.02482        0.05714       0.06729
+   5.0        0.26548         0.08270        0.06144       0.05929
+   3.0        0.69663         0.46398        0.10198       0.08368
+   2.0        1.59142         1.59796        0.13184       0.10450
+   1.0     undefined       undefined         0.17463       0.12391
+   0.5     undefined       undefined         0.20763       0.14042
+   0.0     undefined       undefined         0.26082       0.18045
+
+The relative column is the point the absolute columns hide: a method can sit
+inside a tight ARCSECOND budget near the horizon, where the refraction is
+half a degree, and still be several per cent wrong there, while the same
+absolute error at 60 degrees is a fraction of a per cent of a much smaller
+number. Neither column alone describes a pointing error.
+
+==============================================================================
+SIGNED error against the ray trace, arcsec: minimum, median, maximum
+==============================================================================
+elevation  method            min         median      max         sign
+---------  ----------------  ----------  ----------  ----------  ----------
+  90.0     plane_parallel       +0.0000     +0.0000     +0.0000  MIXED SIGN
+  90.0     oriani_series        +0.0000     +0.0000     +0.0000  MIXED SIGN
+  90.0     bennett_1982         -0.0963     -0.0723     -0.0516  all under
+  90.0     saemundsson_1986     -0.1374     -0.1031     -0.0737  all under
+  60.0     plane_parallel       +0.0397     +0.0517     +0.0603  all over
+  60.0     oriani_series        -0.0002     -0.0001     +0.0003  MIXED SIGN
+  60.0     bennett_1982         +0.2517     +0.9151     +1.6545  all over
+  60.0     saemundsson_1986     +0.6561     +1.4325     +2.4177  all over
+  45.0     plane_parallel       +0.1027     +0.1341     +0.1563  all over
+  45.0     oriani_series        -0.0007     -0.0005     +0.0004  MIXED SIGN
+  45.0     bennett_1982         +0.4466     +1.5944     +2.8670  all over
+  45.0     saemundsson_1986     +1.1434     +2.4866     +4.1900  all over
+  30.0     plane_parallel       +0.3531     +0.4615     +0.5390  all over
+  30.0     oriani_series        -0.0057     -0.0041     -0.0012  all under
+  30.0     bennett_1982         +0.7204     +2.6805     +4.7724  all over
+  30.0     saemundsson_1986     +1.8652     +4.1458     +6.9870  all over
+  20.0     plane_parallel       +1.1791     +1.5451     +1.8104  all over
+  20.0     oriani_series        -0.0450     -0.0322     -0.0220  all under
+  20.0     bennett_1982         +0.8026     +3.8653     +6.9185  all over
+  20.0     saemundsson_1986     +2.5540     +6.0110    +10.1339  all over
+  15.0     plane_parallel       +2.7421     +3.6040     +4.2400  all over
+  15.0     oriani_series        -0.1854     -0.1325     -0.0964  all under
+  15.0     bennett_1982         +0.3401     +4.5086     +8.8968  all over
+  15.0     saemundsson_1986     +2.8563     +7.2910    +12.2692  all over
+  10.0     plane_parallel       +8.7908    +11.6794    +13.8348  all over
+  10.0     oriani_series        -1.2983     -0.9334     -0.6822  all under
+  10.0     bennett_1982         -2.9110     +4.7106    +12.1190  MIXED SIGN
+  10.0     saemundsson_1986     +1.0802     +8.1191    +15.4135  all over
+   7.0     plane_parallel      +23.5702    +31.5679    +38.1280  all over
+   7.0     oriani_series        -6.7676     -4.9806     -3.6384  all under
+   7.0     bennett_1982         -9.9530     +4.7828    +15.5780  MIXED SIGN
+   7.0     saemundsson_1986     -4.3645     +6.5171    +18.3467  MIXED SIGN
+   5.0     plane_parallel      +56.9155    +77.4427    +95.8933  all over
+   5.0     oriani_series       -29.8737    -22.7094    -16.5508  all under
+   5.0     bennett_1982        -22.1935     +2.8204    +20.2291  MIXED SIGN
+   5.0     saemundsson_1986    -16.0413     +3.6768    +21.4150  MIXED SIGN
+   3.0     plane_parallel     +193.9426   +274.8749   +361.9216  all over
+   3.0     oriani_series      -241.0549   -194.3107   -140.7603  all under
+   3.0     bennett_1982        -52.9807     +3.2594    +33.6386  MIXED SIGN
+   3.0     saemundsson_1986    -43.4751     -2.6942    +30.5709  MIXED SIGN
+   2.0     plane_parallel     +471.9792   +711.9755  +1035.9934  all over
+   2.0     oriani_series     -1040.2506   -870.1472   -663.4956  all under
+   2.0     bennett_1982        -85.8231     +8.3313    +52.4401  MIXED SIGN
+   2.0     saemundsson_1986    -68.0302     -3.9895    +45.7236  MIXED SIGN
+   1.0     plane_parallel    undefined
+   1.0     oriani_series     undefined
+   1.0     bennett_1982       -147.9814    +22.2162    +95.6087  MIXED SIGN
+   1.0     saemundsson_1986   -104.9989     +0.9079    +84.9073  MIXED SIGN
+   0.5     plane_parallel    undefined
+   0.5     oriani_series     undefined
+   0.5     bennett_1982       -204.0707    +35.7204   +134.5438  MIXED SIGN
+   0.5     saemundsson_1986   -138.0109     +4.1180   +120.7972  MIXED SIGN
+   0.0     plane_parallel    undefined
+   0.0     oriani_series     undefined
+   0.0     bennett_1982       -300.8100    +51.4047   +188.8277  MIXED SIGN
+   0.0     saemundsson_1986   -208.1177     +3.2108   +161.9127  MIXED SIGN
+
+The sign column is the finding. Above 15 degrees the plane-parallel model and
+both published fits OVERSTATE the refraction relative to the layered integral
+at every one of the 54 swept states, and the Oriani series understates it by
+a few hundredths of an arcsecond. Below about 7 degrees the sign of the
+published fits' error stops being constant across the state grid: the same
+formula is high in one atmosphere and low in another, so the departure cannot
+be corrected by a scale factor.
+
+==============================================================================
+measured lowest elevation at which each method stays inside the tolerance
+==============================================================================
+method            equation  declared floor (deg)  measured floor (deg)  measured vs declared
+----------------  --------  --------------------  --------------------  --------------------
+plane_parallel    (13)      30                    15                    wider or equal
+oriani_series     (14)      15                    7                     wider or equal
+bennett_1982      (15)      0                     15                    narrower
+saemundsson_1986  (16)      0                     30                    narrower
+
+The measured floor is the lowest elevation above which the method's maximum
+error over all 54 states stays at or below 10 arcsec, on this
+grid, against this package's ray trace. It is a measurement, not a claim
+about the published formula's accuracy against its own reference.
+
+==============================================================================
+how many of the 54 states each method is defined at
+==============================================================================
+elevation  plane_parallel  oriani_series  bennett_1982  saemundsson_1986
+---------  --------------  -------------  ------------  ----------------
+  90.0      54              54             54            54
+  60.0      54              54             54            54
+  45.0      54              54             54            54
+  30.0      54              54             54            54
+  20.0      54              54             54            54
+  15.0      54              54             54            54
+  10.0      54              54             54            54
+   7.0      54              54             54            54
+   5.0      54              54             54            54
+   3.0      54              54             54            54
+   2.0      54              36             54            54
+   1.0       0               0             54            54
+   0.5       0               0             54            54
+   0.0       0               0             54            54
+
+==============================================================================
+verdicts
+==============================================================================
+[PASS] plane_parallel is within 5 arcsec of the ray trace at 45 degrees over every swept state -- worst 0.1563 arcsec over 54 states
+[PASS] oriani_series is within 5 arcsec of the ray trace at 45 degrees over every swept state -- worst 0.0007 arcsec over 54 states
+[PASS] bennett_1982 is within 5 arcsec of the ray trace at 45 degrees over every swept state -- worst 2.8670 arcsec over 54 states
+[PASS] saemundsson_1986 is within 5 arcsec of the ray trace at 45 degrees over every swept state -- worst 4.1900 arcsec over 54 states
+[PASS] oriani_series is within 1 arcsec of the ray trace at its declared 15 degree floor -- worst 0.1854 arcsec; the two-term series and the shell integral are independent derivations and agreeing this closely is the strongest internal consistency result in this package
+[PASS] plane_parallel is within its declared 30 degree floor to better than 1 arcsec -- worst 0.5390 arcsec
+[PASS] plane_parallel overstates the ray trace at every swept state at 45 degrees -- signed error from +0.1027 to +0.1563 arcsec over 54 states; a systematic offset between a published form and a layered integral, reported and not corrected
+[PASS] bennett_1982 overstates the ray trace at every swept state at 45 degrees -- signed error from +0.4466 to +2.8670 arcsec over 54 states; a systematic offset between a published form and a layered integral, reported and not corrected
+[PASS] saemundsson_1986 overstates the ray trace at every swept state at 45 degrees -- signed error from +1.1434 to +4.1900 arcsec over 54 states; a systematic offset between a published form and a layered integral, reported and not corrected
+[PASS] plane_parallel overstates the ray trace at every swept state at 20 degrees -- signed error from +1.1791 to +1.8104 arcsec over 54 states; a systematic offset between a published form and a layered integral, reported and not corrected
+[PASS] bennett_1982 overstates the ray trace at every swept state at 20 degrees -- signed error from +0.8026 to +6.9185 arcsec over 54 states; a systematic offset between a published form and a layered integral, reported and not corrected
+[PASS] saemundsson_1986 overstates the ray trace at every swept state at 20 degrees -- signed error from +2.5540 to +10.1339 arcsec over 54 states; a systematic offset between a published form and a layered integral, reported and not corrected
+[PASS] oriani_series understates the ray trace at every swept state at 20 degrees -- signed error from -0.0450 to -0.0220 arcsec over 54 states
+[PASS] oriani_series understates the ray trace at every swept state at 10 degrees -- signed error from -1.2983 to -0.6822 arcsec over 54 states
+[PASS] the sign of the bennett_1982 error is NOT constant across the grid at 5 degrees -- signed error from -22.194 to +20.229 arcsec; a departure with no constant sign cannot be removed by a scale factor
+[PASS] the bennett_1982 signed error at the horizon spans more than 400 arcsec across the swept states -- span 489.64 arcsec, from -300.81 to +188.83; equation (17) carries no wavelength and only a density ratio, and at the horizon that is not enough
+
+==============================================================================
+elapsed time -- UNSTABLE, two cores, reported for information only
+==============================================================================
+quantity                        value
+------------------------------  -----
+ray traces run                  756
+mean wall-clock per trace (ms)  3.867
+total wall-clock (s)            2.92
+
+CHECKS RUN: 16
+FAILED CHECKS (0): none

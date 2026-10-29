@@ -1,0 +1,175 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  tmtcdiff: a change-class taxonomy for telemetry and command dictionaries,
+  with silent-semantic-change ranking and a computed coverage verdict
+version: 0.1.0
+date-released: 2026-10-29
+license: Apache-2.0
+abstract: >-
+  Compares two versions of a telemetry and command dictionary and reports,
+  against an optional corpus of procedures, scripts and configuration files,
+  which existing references break and which now mean something else. The
+  contribution is not the structural comparison, which general structured
+  differs already do well; it is a 21-class change taxonomy for telemetry
+  definitions, partitioned into three tiers by failure visibility, and the
+  ranking of the silent tier above loud breakage. A silent change leaves every
+  existing reference resolving and running while altering what it means: a
+  changed scale factor, unit, bit offset, byte order, data type, enumeration
+  mapping or command argument position under an unchanged name. A loud change
+  stops a reference resolving and announces itself. Eleven of the twenty-one
+  classes are silent, seven loud and three advisory, and the silent tier is
+  reported first by every function in the package. Validation is level 2 and
+  every number is measured against a seeded synthetic generator; no flight
+  database is used, read or approximated. Per-class detection measured
+  precision 1.0000 and recall 1.0000 over 420 injected changes when one class
+  is injected per pair, and micro-averaged precision 0.9665 and recall 0.9619
+  when all twenty-one are injected into the same pair, where command_removed
+  recall falls to 0.7000 and command_renamed precision to 0.7692 because an
+  unrelated removal and an unrelated addition can be paired as a rename.
+  Rename detection is inferred rather than read, so its false-match rate was
+  measured across a swept grid of twelve thresholds, five dictionary sizes,
+  twelve seeds and two matching strategies; it falls from 0.2258 to exactly
+  zero at a threshold of 0.80, which is the value a criterion declared before
+  the sweep then selected, while recall holds at 1.0000 to 0.85 and falls to
+  0.7208 at 0.95. The greedy baseline matched the optimal rectangular
+  assignment exactly at the selected threshold, 924 correct and 0 false for
+  both, and never differed by more than two false matches in any cell of the
+  grid; the optimal matcher is kept as the default because it cannot be worse
+  by construction, not because it measured better. The required negative
+  control holds: a document reordered and respelled across its entries, keys,
+  enumerations and argument declarations differs on 2526 text lines at sixty
+  parameters and produces an empty semantic diff on all twenty-four swept
+  pairs, while sixty-six of sixty-six injected silent changes are still
+  detected through the same reordering. Five bounds and identities derived
+  from mathematics the diff does not use hold on every pair. One tier
+  assignment is reported as an assumption rather than a measurement:
+  argument_added is classified loud on the assumption that a command system
+  rejects a call missing an argument, and the package cannot confirm that. The
+  impact assessment returns a coverage verdict as a first-class value naming
+  what it could not determine - references constructed at run time, dictionary
+  items the corpus never mentions, sources that could not be read, rename
+  candidates on the threshold, and fields the model does not represent - and
+  an empty finding list is never rendered as a statement that an upgrade is
+  safe. Research grade. Not flight-qualified, not certified, not approved for
+  operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - telemetry
+  - telecommand
+  - spacecraft-operations
+  - semantic-diff
+  - change-impact-analysis
+  - mission-database
+  - regression-detection
+references:
+  - type: standard
+    title: "XML Telemetric and Command Exchange (XTCE)"
+    institution:
+      name: "Consultative Committee for Space Data Systems"
+    number: "CCSDS 660.0-B"
+    notes: >-
+      The source of the modelling convention this package's record layout
+      follows: a telemetry parameter is located by a bit offset and a bit
+      width inside a container, carries a calibrator, and may carry an
+      enumerated parameter type. This package implements none of the XTCE
+      schema, reads none of its files, and takes no numerical value from it.
+  - type: standard
+    title: "Telemetry and telecommand packet utilization"
+    institution:
+      name: "European Cooperation for Space Standardization"
+    number: "ECSS-E-ST-70-41C"
+    year: 2016
+    notes: >-
+      The degree-one polynomial calibration and the status-code calibration
+      that the scale, offset and enum fields model, and the out-of-limit
+      checking service that makes a limits change a distinct class from a
+      calibration change. No numerical value in this repository is taken from
+      it.
+  - type: standard
+    title: "Space Packet Protocol"
+    institution:
+      name: "Consultative Committee for Space Data Systems"
+    number: "CCSDS 133.0-B-2"
+    year: 2020
+    notes: >-
+      The packet structure the bit_offset and bit_width fields locate a
+      parameter within. Named for context; this package parses no packets.
+  - type: article
+    authors:
+      - family-names: Ratcliff
+        given-names: "J. W."
+      - family-names: Metzener
+        given-names: "D. E."
+    title: "Pattern Matching: the Gestalt Approach"
+    journal: "Dr. Dobb's Journal"
+    year: 1988
+    notes: >-
+      The similarity measure behind difflib.SequenceMatcher.ratio, which
+      supplies the name and description terms of the rename score.
+  - type: article
+    authors:
+      - family-names: Kuhn
+        given-names: "H. W."
+    title: "The Hungarian method for the assignment problem"
+    journal: "Naval Research Logistics Quarterly"
+    volume: 2
+    year: 1955
+    notes: >-
+      The assignment problem the optimal rename matcher solves over the
+      removed-by-added score matrix.
+  - type: article
+    authors:
+      - family-names: Crouse
+        given-names: "D. F."
+    title: "On implementing 2D rectangular assignment algorithms"
+    journal: "IEEE Transactions on Aerospace and Electronic Systems"
+    volume: 52
+    issue: 4
+    year: 2016
+    notes: >-
+      The algorithm scipy documents as the implementation behind
+      scipy.optimize.linear_sum_assignment, used for the optimal pairing.
+  - type: book
+    authors:
+      - family-names: Feller
+        given-names: "W."
+    title: "An Introduction to Probability Theory and Its Applications, Volume I"
+    edition: "3rd"
+    publisher:
+      name: "Wiley"
+    year: 1968
+    notes: >-
+      Chapter II, the occupancy counting argument behind
+      signature_collision_bound, the bound the measured false-match rate is
+      checked against.
+  - type: article
+    authors:
+      - family-names: Clopper
+        given-names: "C. J."
+      - family-names: Pearson
+        given-names: "E. S."
+    title: >-
+      The use of confidence or fiducial limits illustrated in the case of the
+      binomial
+    journal: "Biometrika"
+    volume: 26
+    issue: 4
+    year: 1934
+    notes: >-
+      The exact binomial interval reported beside every measured rate. Chosen
+      because the counts of interest here are small and often zero, where a
+      normal approximation gives an interval of zero width.
+  - type: book
+    authors:
+      - family-names: van Rijsbergen
+        given-names: "C. J."
+    title: "Information Retrieval"
+    edition: "2nd"
+    publisher:
+      name: "Butterworths"
+    year: 1979
+    notes: >-
+      Chapter 7, the precision, recall and F1 definitions used throughout the
+      per-class detection tables.

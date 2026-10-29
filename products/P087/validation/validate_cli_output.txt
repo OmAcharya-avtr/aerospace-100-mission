@@ -1,0 +1,76 @@
+
+==============================================================================
+refractpath -- command line, every invocation run as a subprocess
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (alternatives table only)
+ephem            : not installed  (alternatives table only)
+pyerfa           : not installed  (alternatives table only)
+cpu cores        : 2
+repository root  : P087 (printed relatively; see validation/_bootstrap.py)
+
+Subprocess environment: HOME and MPLCONFIGDIR point at a temporary directory
+outside this repository and PYTHONDONTWRITEBYTECODE is set, so a subprocess
+cannot write a cache into the tree.
+[PASS] python -m refractpath --version -- exit 0 (expected 0), stdout contains 'refractpath': True
+[PASS] python -m refractpath info -- exit 0 (expected 0), stdout contains 'Not flight-qualified': True
+[PASS] python -m refractpath refract --elevation 45 -- exit 0 (expected 0), stdout contains 'VERDICT: USABLE': True
+[PASS] python -m refractpath refract --elevation 80 --tolerance 1 -- exit 0 (expected 0), stdout contains 'VERDICT:': True
+[PASS] python -m refractpath refract --elevation 5 --tolerance 10 -- exit 0 (expected 0), stdout contains 'VERDICT: REFUSE': True
+[PASS] python -m refractpath refract --elevation 30 --pressure 780 --temperature -8 --humidity 0.35 --wavelength 0.85 --observer-height 2200 -- exit 0 (expected 0), stdout contains 'profile envelope': True
+[PASS] python -m refractpath curve --points 13 -- exit 0 (expected 0), stdout contains 'spread': True
+[PASS] python -m refractpath curve --low 0 --high 3 --points 7 -- exit 0 (expected 0), stdout contains 'undefined': True
+[PASS] python -m refractpath floor --tolerance 10 -- exit 0 (expected 0), stdout contains 'measured validity floor': True
+[PASS] python -m refractpath floor --tolerance 1 -- exit 0 (expected 0), stdout contains 'tolerance crossings on grid': True
+[PASS] python -m refractpath dispersion --points 8 -- exit 0 (expected 0), stdout contains 'rel spread': True
+[PASS] python -m refractpath references -- exit 1 (expected 1), stdout contains 'bennett_accuracy_claim': True
+[PASS] python -m refractpath refract --humidity 43 -- exit 2 (expected 2)
+[PASS] python -m refractpath refract --elevation 100 -- exit 2 (expected 2)
+[PASS] python -m refractpath floor --tolerance 0 -- exit 2 (expected 2)
+
+==============================================================================
+summary
+==============================================================================
+command                                                     expected  actual  status ok  fragment ok  stdout bytes
+----------------------------------------------------------  --------  ------  ---------  -----------  ------------
+--version                                                   0         0       yes        yes          18
+info                                                        0         0       yes        yes          4950
+refract --elevation 45                                      0         0       yes        yes          2237
+refract --elevation 80 --tolerance 1                        0         0       yes        yes          2236
+refract --elevation 5 --tolerance 10                        0         0       yes        yes          2643
+refract --elevation 30 --pressure 780 --temperature -8 --h  0         0       yes        yes          2292
+curve --points 13                                           0         0       yes        yes          1495
+curve --low 0 --high 3 --points 7                           0         0       yes        yes          895
+floor --tolerance 10                                        0         0       yes        yes          619
+floor --tolerance 1                                         0         0       yes        yes          617
+dispersion --points 8                                       0         0       yes        yes          1122
+references                                                  1         1       yes        yes          1742
+refract --humidity 43                                       2         2       yes        yes          0
+refract --elevation 100                                     2         2       yes        yes          0
+floor --tolerance 0                                         2         2       yes        yes          0
+
+The `references` row expects exit 1. One of the six external reference checks
+fails and the command reports it; an exit 0 there would mean the failure had
+been hidden.
+
+==============================================================================
+the subprocess environment cannot pollute this repository
+==============================================================================
+HOME outside the repository                  : True
+MPLCONFIGDIR outside the repository          : True
+PYTHONDONTWRITEBYTECODE                      : '1'
+MPLBACKEND                                   : 'Agg'
+[PASS] the subprocess environment points HOME and MPLCONFIGDIR outside the repository and disables bytecode writing -- this is the exact property an earlier product of this mission got wrong, and it is deterministic
+[PASS] no .config directory exists anywhere inside the repository -- none found
+
+cache directories created during this run (informational, not a check) : 0
+which : none
+
+CHECKS RUN: 17
+FAILED CHECKS (0): none

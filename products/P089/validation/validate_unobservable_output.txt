@@ -1,0 +1,145 @@
+VALIDATION 4 -- THE UNOBSERVABLE SUBSPACE
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  scikit-learn     : 1.9.1
+  matplotlib       : 3.11.2
+  pytest           : 9.1.1
+  hypothesis       : 6.170.13
+  ruff (installed) : 0.17.3
+  ruff (on PATH)   : ruff 0.16.9  (a standalone binary, a DIFFERENT version from the installed distribution; the source is clean under both and the figures are in VALIDATION.md)
+  filterpy         : not installed  (named in the alternatives table; no number here is compared against it)
+  cpu cores        : 2
+  repository root  : P089 (printed relatively; see validation/_bootstrap.py)
+
+  records                 : 120 single-axis records of 150 samples
+  injected misalignment   : 2 mrad, entirely along each record's own dominant rotation axis
+  body rate amplitude     : 0.05 rad/s; sensor noise 2e-4 rad/s; 100 Hz
+  the control is anchored on the injected truth, not on any estimator's output
+
+  learned estimators fitted on 2500 short records of 150 samples, seeded; the training population deliberately includes single-axis records, so every configuration had the opportunity to learn to refuse.
+
+==============================================================================
+4.1 the control fires: every record is rank deficient by its own Gramian
+==============================================================================
+  rank deficient            : 120 of 120
+  angle between the unobservable direction and the rotation axis, deg: max 0.000001
+  floor ratio of the unsupported direction: median 0.982263, max 1.228994, against a declared gate of 4
+[PASS] every record in the control is rank deficient -- 120 of 120; a control that did not fire would make the rest of this section meaningless
+[PASS] the injected misalignment lies along the unsupported direction -- worst angle 0.000001 deg between the injection axis and the worst-observed Gramian eigendirection
+
+==============================================================================
+4.2 what each estimator says about the component it cannot have
+==============================================================================
+'claim' is the estimated component along the unsupported direction, 'error' is its distance from the injected truth, 'sigma' is the uncertainty the estimator itself reports there, and '|err|/sigma' is how many of its own standard deviations it is wrong by. 'cover 2s' is the fraction of records whose truth lies inside two reported standard deviations, against a nominal 0.954500.
+
+  injected truth along the unsupported direction: median 412.5296 arcsec
+
+estimator               claim arcsec  |err| arcsec   sigma arcsec  |err|/sigma  cover 2s
+batch (14)-(16)              -0.0000      412.5296  inf (refused)       0.0000    0.0000
+recursive MEKF              501.3101     8205.6294     12868.0069       0.6393    0.9917
+batch MAP (18)               -0.0343      412.5639       206.2496       2.0003    0.4917
+learned forest               -0.5320      413.0616       149.3864       2.7775    0.0750
+learned forest_deep          -1.6141      414.1437       169.0386       2.4939    0.2083
+learned bagged_ridge         -7.5118      420.0414        14.3540      29.0693    0.0000
+learned trivial              -4.6774      417.2070       207.5599       1.9987    0.5083
+
+  batch (14)-(16)        WITHHELD: reports no number and an infinite bound
+  recursive MEKF         returns a number with a visibly inflated sigma
+  batch MAP (18)         no refusal mechanism; returns the prior mean and the prior sigma
+  learned forest         sigma inflated 1.2364x against its own best direction
+  learned forest_deep    sigma inflated 1.2318x against its own best direction
+  learned bagged_ridge   sigma inflated 1.1379x against its own best direction
+  learned trivial        sigma inflated 0.9907x against its own best direction
+
+==============================================================================
+4.3 the prediction the specification made, tested
+==============================================================================
+The prediction: the learned estimator returns a confident estimate for a degree of freedom the data cannot support, while the analytic method correctly reports it unobservable. Three things have to be true for that to be the measured outcome, and each is checked separately.
+
+  (a) the analytic method returns no number there. Largest absolute claim over 120 records: 7.041e-19 rad.
+[PASS] (a) the batch solution withholds the unsupported direction on every record -- largest absolute claim 7.041e-19 rad, and the bound it reports there is infinite on every record
+
+  (b) the learned estimator's reported uncertainty is not materially larger in the unsupported direction than in the best-observed one, where the analytic ratio is infinite.
+configuration           sigma inflation   sigma arcsec
+forest                           1.2364       149.3864
+forest_deep                      1.2318       169.0386
+bagged_ridge                     1.1379        14.3540
+trivial                          0.9907       207.5599
+
+[PASS] (b) no declared learned configuration inflates its uncertainty by more than 2x there -- worst inflation 1.2364 across the three declared configurations, against an infinite analytic ratio
+
+  (c) the learned interval does not contain the truth. Nominal two-sigma coverage for a correctly calibrated interval is 0.954500.
+configuration           cover 2 sigma   |err|/sigma median
+forest                         0.0750               2.7775
+forest_deep                    0.2083               2.4939
+bagged_ridge                   0.0000              29.0693
+trivial                        0.5083               1.9987
+
+[PASS] (c) every declared learned configuration's two-sigma interval misses the truth on most records -- best two-sigma coverage 0.2083 across the three declared configurations, against a nominal 0.954500
+
+  MEASURED AND UNFAVOURABLE TO THE LEARNED COMPONENT: the trivial estimator -- which predicts the training mean, within rounding of no misalignment at all, and reports the training spread as its uncertainty -- has a two-sigma coverage of 0.5083 here, BETTER than any of the three declared learned configurations (forest 0.0750, forest_deep 0.2083, bagged_ridge 0.0000). Predicting zero with an honest spread is better calibrated in the unsupported direction than any learned estimator measured here, and it is reported as measured.
+
+  The sharpest configuration is bagged_ridge: it reports a one-sigma of 14.3540 arcsec and is wrong by 29.0693 of it, with a two-sigma interval that contains the truth on 0.0000 of records. The analytic method reports an infinite bound and no number. THE SPECIFICATION'S PREDICTION IS CONFIRMED.
+
+==============================================================================
+4.4 how much of this is the unobservable direction specifically
+==============================================================================
+A learned estimator could be overconfident everywhere, in which case the measurement above would say nothing about observability. The same quantities are therefore measured along the BEST-observed direction of the same records, where the analytic bound is finite and the batch solution does answer.
+
+configuration           cover 2s, worst dir   cover 2s, best dir  analytic cover, best
+forest                               0.0750               1.0000                0.9750
+forest_deep                          0.2083               1.0000                0.9750
+bagged_ridge                         0.0000               0.7250                0.9750
+trivial                              0.5083               1.0000                0.9750
+
+Reading, and this is the sharpest form of the result. Along the BEST-observed direction every learned configuration's two-sigma interval covers the truth at or above the nominal 0.954500 -- two of them at 1.0000, which is over-covering rather than under-covering. Along the direction the record cannot support, the same intervals from the same models on the same records collapse to between 0.0000 and 0.2083. The overconfidence is therefore NOT a global property of these models; it appears exactly where the data stops supporting an answer, and nothing in the model's own output distinguishes the two cases. The analytic bound in the last column does distinguish them: it is near nominal where it is finite and infinite where it is not.
+
+==============================================================================
+4.5 record length does not help, which is the whole point
+==============================================================================
+A degree of freedom that the motion does not excite is not estimated better with more data. The same injection is measured at four record lengths spanning a factor of 32.
+
+ samples  rank  floor ratio   batch claim  MEKF |err| arcsec  learned |err| arcsec  learned sigma
+     150  2.00     0.964472     1.484e-19          7463.4828              420.3538        14.3797
+     600  2.00     0.991843     1.166e-19          9938.1013              420.0481        14.8592
+    2400  2.00     0.988895     5.970e-20         10489.7062              419.7694        16.5399
+    4800  2.00     1.000220     3.671e-20          5633.8583              421.0006        17.8471
+
+Reading: the rank verdict and the floor ratio are flat in record length, as equation (10) requires -- the excitation share does not change when the same motion runs for longer. The learned error does not fall. A degree of freedom the motion never excited is not a sample-size problem.
+
+==============================================================================
+4.6 one record, printed in full
+==============================================================================
+sensor secondary_1: rank 2 of 3 -- RANK DEFICIENT
+  samples 150, rotational energy 0.17411 rad^2/s^2
+  noise floor (eq 11) 150, declared floor factor 4, declared requirement 0.001 rad
+  Gramian condition number 13855.1
+  lambda_min bracket (eq 13) [-493176, 410351], consistent: True
+  the record does NOT support these degrees of freedom at any data volume:
+    dof 2: rotation about 25.7 deg from the z axis [-0.0276, +0.4333, +0.9008] -- unobservable, CRB unbounded, excitation share 0.999928, floor ratio 1.047
+    the dominant rotation axis of this record is [-0.0276, +0.4333, +0.9008]; the worst-observed direction lies 0.0000 deg from it
+    dof 0: rotation about 26.2 deg from the y axis [+0.1033, +0.8976, -0.4286] -- observable, CRB 139.82 arcsec, excitation share 0.000035, floor ratio 1.451e+04
+    dof 1: rotation about 6.1 deg from the x axis [+0.9943, -0.0812, +0.0695] -- observable, CRB 139.82 arcsec, excitation share 0.000037, floor ratio 1.451e+04
+    dof 2: rotation about 25.7 deg from the z axis [-0.0276, +0.4333, +0.9008] -- unobservable, CRB unbounded, excitation share 0.999928, floor ratio 1.047
+  per-body-axis CRB one sigma: x unbounded, y unbounded, z unbounded
+BATCH ESTIMATE for secondary_1 (equations 14-16)
+  theta = [+0.216981, +0.453806, -0.211618] mrad, magnitude 112.561 arcsec
+    dof 0 (observable): +107.347 +/- 139.819 arcsec (1 sigma, CRB)
+    dof 1 (observable): +33.864 +/- 139.819 arcsec (1 sigma, CRB)
+    dof 2 (unobservable): WITHHELD, not estimated -- the record does not support it; returned exactly 0, reported component +4.581e-20 rad
+  Gauss-Newton iterations 4, converged True; weighted residual RMS 0.000495423 -> 0.000495074 rad/s
+RECURSIVE (MEKF) ESTIMATE for secondary_1 (equations 19-22)
+  theta = [-0.317116, +8.864731, +17.272990] mrad
+    dof 0 (observable): +107.616 +/- 139.921 arcsec (1 sigma, filter P); prior retained 0.006784
+    dof 1 (observable): +34.250 +/- 140.513 arcsec (1 sigma, filter P); prior retained 0.006812
+    dof 2 (unobservable): +4003.559 +/- 12585.893 arcsec (1 sigma, filter P); prior retained 0.610181
+  prior one sigma 0.1 rad, process noise 0 rad^2/s; worst/best sigma ratio 89.9501
+  P symmetry worst 8.67362e-19 rad^2, smallest eigenvalue 4.59474e-07 rad^2
+LEARNED ESTIMATE (bagged_ridge) for secondary_1
+    dof 2 (unobservable): -8.880 +/- 15.343 arcsec (1 sigma, ensemble spread)
+    the injected truth there is +412.530 arcsec, which is 27.4655 of the reported sigma away
+
+CHECKS RUN: 5
+FAILED CHECKS (0): none

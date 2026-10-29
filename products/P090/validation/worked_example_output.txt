@@ -1,0 +1,63 @@
+
+==============================================================================
+ENVIRONMENT
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scikit-learn     : 1.9.1
+sgp4             : 2.27
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.13
+ruff             : 0.17.3
+astropy          : not installed  (named in the alternatives table; no number here is compared against it)
+skyfield         : not installed  (named in the alternatives table; no number here is compared against it)
+cpu cores        : 2
+repository root  : P090 (printed relatively; see validation/_bootstrap.py)
+
+objects per split          : 420
+element history per object : 12 sets at 1.5 day cadence
+consequence horizon        : 1 days, 25 samples
+silent threshold           : 1 km (declared policy)
+epoch requirement          : 7 days (declared policy)
+target false-positive rate : 0.05 (declared policy)
+
+==============================================================================
+THE WORKED EXAMPLE OF README.md
+==============================================================================
+
+the element set as received:
+1 25544U 98067A   19343.69339541  .00001764  00000-0 -38792-4 0  9992
+2 25544  51.6439 211.2001 0007417  17.6667  85.6398 15.50103472202482
+
+checksum line 1 stated 2, computed 2 -- the line is internally consistent
+integrity intact            : True
+predicted consequence class : silently_wrong
+equation (15) risk score    : 25.151756
+problems found              : 2
+  [history] history_outlier_bstar -> silently_wrong
+  [continuity] ephemeris_continuity_exceeded -> silently_wrong
+
+what this screen reports as not determinable, as returned:
+  propagated_ephemeris_accuracy (structural)
+  which_source_is_correct (structural)
+  element_covariance (structural)
+  cross_source_divergence (data-dependent)
+
+two of the computed limits, with their numbers:
+  checksum_blindness_to_double_substitution = 0.888889
+  continuity_resolution_km = 0.565978
+
+measured consequence of using it, against the uncorrupted element set:
+  class            silently_wrong
+  max error        121.6833 km over 7 days
+  rms error        58.8670 km
+  threshold        1 km (declared policy)
+[PASS] the_worked_example_flags_the_sign_flip -- predicted 'silently_wrong'
+[PASS] the_worked_example_keeps_a_valid_checksum -- the corruption is invisible to the checksum, which is the point
+[PASS] the_worked_example_consequence_is_measured -- 121.6833 km, propagated with sgp4
+
+CHECKS RUN: 3
+FAILED CHECKS (0): none

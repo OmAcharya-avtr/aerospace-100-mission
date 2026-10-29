@@ -1,0 +1,157 @@
+VALIDATION 5 -- THE LEARNED ESTIMATOR AGAINST THE BASELINES
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  scipy            : 1.18.1
+  scikit-learn     : 1.9.1
+  matplotlib       : 3.11.2
+  pytest           : 9.1.1
+  hypothesis       : 6.170.13
+  ruff (installed) : 0.17.3
+  ruff (on PATH)   : ruff 0.16.9  (a standalone binary, a DIFFERENT version from the installed distribution; the source is clean under both and the figures are in VALIDATION.md)
+  filterpy         : not installed  (named in the alternatives table; no number here is compared against it)
+  cpu cores        : 2
+  repository root  : P089 (printed relatively; see validation/_bootstrap.py)
+
+  training records   : 2500 short records of 150 samples, seed 20261029
+  test records       : 600 held-out short records, seed 70120261
+  MAP prior one sigma: 0.001 rad, which is the per-component standard deviation of the generated misalignment population
+  no hyperparameter search was run; the three declared configurations are reported as they are
+
+==============================================================================
+5.1 the short-record population, which is the case the learned estimator is for
+==============================================================================
+All figures in milliradians. 'RMSE obs' is the per-component root mean square of the error inside the span of the floor-clearing degrees of freedom and is the ranking column. 'RMSE unobs' is outside that span and is approximately equal for every estimator by construction.
+
+estimator                  n     RMSE tot     RMSE obs   RMSE unobs      med tot      med obs    worst tot
+batch (14)-(16)          600     5.716038     5.703693     0.375465     2.189928     1.973535    93.072086
+batch MAP (18)           600     0.792044     0.697326     0.375594     0.997971     0.848352     3.110015
+learned forest           600     0.853146     0.760152     0.387333     1.164870     0.979755     3.303029
+learned forest_deep      600     0.860938     0.766268     0.392489     1.180213     0.980421     3.396035
+learned bagged_ridge     600     0.959229     0.882258     0.376485     1.441612     1.229948     3.606330
+learned trivial          600     1.010964     0.938906     0.374837     1.493447     1.310148     3.017492
+
+  ranking on the observable subspace, best first:
+    1. batch MAP (18)         0.697326 mrad
+    2. learned forest         0.760152 mrad
+    3. learned forest_deep    0.766268 mrad
+    4. learned bagged_ridge   0.882258 mrad
+    5. learned trivial        0.938906 mrad
+    6. batch (14)-(16)        5.703693 mrad
+
+  best learned configuration : learned forest at 0.760152 mrad
+  specified Baseline 1       : 5.703693 mrad
+  strengthened MAP baseline  : 0.697326 mrad
+  trivial baseline           : 0.938906 mrad
+
+[PASS] the best learned configuration beats the trivial baseline -- 0.760152 against 0.938906 mrad, a reduction of 19.04 per cent -- so the learned component has learned something
+[PASS] the best learned configuration beats the SPECIFIED Baseline 1 on short records -- 0.760152 against 5.703693 mrad; the unbiased maximum-likelihood solution has a variance set by the Cramer-Rao bound, and on a 150-sample record that bound is comparable to the spread of the misalignment population itself
+[PASS] THE BASELINE WINS: the strengthened MAP baseline beats every learned configuration -- MAP 0.697326 mrad against the best learned 0.760152 mrad, a margin of 9.01 per cent in favour of the analytic method. This is the expected result and it is published as measured: the only mechanism by which a learned estimator can beat an unbiased solution on a short record is shrinkage toward the population it was trained on, and equation (18) performs exactly that shrinkage in closed form with no training, no features and no model.
+
+==============================================================================
+5.2 the same comparison per excitation profile
+==============================================================================
+Broken down so that the aggregate is not hiding a reversal. Figures are the per-component RMSE on the observable subspace, in milliradians.
+
+estimator               near_single_axis       single_axis        three_axis          two_axis
+batch (14)-(16)                 9.646938          2.165575          3.786346          4.776661
+batch MAP (18)                  0.622288          0.610842          0.733758          0.805069
+learned forest                  0.672626          0.644768          0.815333          0.884320
+learned forest_deep             0.682229          0.651793          0.816655          0.891769
+learned bagged_ridge            0.797436          0.766245          0.933713          1.011513
+learned trivial                 0.840019          0.843124          0.996265          1.057706
+
+  no profile reverses the aggregate conclusion
+[PASS] the MAP baseline's win is not an artefact of one profile -- 0 of 4 profiles reverse it
+
+==============================================================================
+5.3 record length: how the MAP advantage behaves, and why it never vanishes
+==============================================================================
+Swept on a FIXED well-excited configuration -- three_axis, 0.05 rad/s amplitude, 2e-4 rad/s noise -- so that record length is the only thing varying. The learned estimator was trained on 150-sample records, so everything to the right of the first column is outside its training distribution, and that is stated rather than hidden.
+
+ samples        batch    batch MAP  learned best    trivial           winner
+     150     0.862279     0.561053      0.706580   1.029100        batch MAP
+     300     0.450052     0.379527      0.599069   1.005139        batch MAP
+     600     0.290345     0.269755      0.511520   0.978978        batch MAP
+    1200     0.206505     0.200060      0.560866   1.111313        batch MAP
+    2400     0.142100     0.141564      0.470404   0.949245        batch MAP
+    4800     0.105545     0.105291      0.508229   1.020816        batch MAP
+    9600     0.075992     0.075205      0.555153   1.071082        batch MAP
+
+  MEASURED: the unbiased batch solution does not overtake the regularised one anywhere from 150 to 9600 samples in this measurement, a factor of 64 in record length. The advantage COLLAPSES, from 34.93 per cent at 150 samples to 1.04 per cent at 9600, and the remaining difference at the long end is at the level of this measurement's own sampling noise: the same sweep run with 40 records per point instead of 60, in examples/prior_and_record_length.py, measures a ratio of 1.001 at 4800 samples, which is the unbiased solution winning by a tenth of a per cent.
+
+  What is NOT claimed: that equation (18) is optimal. It is the posterior mean under a GAUSSIAN prior whose per-component variance matches the generated population's second moment. The population's actual prior is not Gaussian -- the magnitude is uniform on [0, 3] mrad and the direction is uniform on the sphere -- so (18) is not the Bayes estimator for it and no domination theorem applies. The behaviour above is a measurement, not a consequence of one.
+[PASS] the MAP advantage over the unbiased solution shrinks as the record lengthens -- MAP/batch RMSE ratio 0.650663 at 150 samples and 0.989640 at 9600; the advantage is bought entirely with the prior and it is worth less the more the record says
+
+==============================================================================
+5.3a the MAP win is bought with the prior: mis-specify it and it loses
+==============================================================================
+The regularised baseline wins above because it was handed the correct prior scale. That is a real advantage of an analytic method -- the shrinkage is in closed form, needs no training data and can be stated in a document -- but it is not free. The same estimator with a prior ten times too tight is measured below against the unbiased solution, on the same fixed configuration.
+
+ samples        batch  MAP, true prior  MAP, 10x tight  MAP, 10x loose
+     150     0.862279         0.561053        1.002141        0.840808
+     600     0.290345         0.269755        0.869195        0.289972
+    2400     0.142100         0.141564        0.634698        0.142081
+    9600     0.075992         0.075205        0.369287        0.075982
+
+[PASS] a prior ten times too tight makes the MAP baseline LOSE to the unbiased one -- the mis-specified MAP estimator is worse than the unbiased batch solution at 4 of 4 record lengths; the analytic win of 5.1 is therefore a statement about knowing the population, not a free lunch
+
+==============================================================================
+5.3b the same estimators on a long MIXED population, reported as measured
+==============================================================================
+The population here is the same wide mixture the learned estimator was trained on -- amplitude 0.01 to 0.08 rad/s, noise 5e-5 to 8e-4 rad/s, every profile including single-axis -- at 2400 samples. The conclusion is NOT the same as the fixed-configuration sweep above, and the difference is the point.
+
+estimator                  n     RMSE tot     RMSE obs   RMSE unobs      med tot      med obs    worst tot
+batch (14)-(16)          120     1.238742     1.193928     0.330178     0.585889     0.324041    15.391442
+batch MAP (18)           120     0.516072     0.394345     0.332900     0.515585     0.306840     2.312418
+learned forest           120     0.668037     0.569063     0.349915     0.949306     0.761152     2.792745
+learned forest_deep      120     0.660047     0.558510     0.351750     0.899390     0.671522     2.720652
+learned bagged_ridge     120     1.005301     0.949010     0.331678     1.476586     1.356032     3.932207
+learned trivial          120     1.019410     0.965445     0.327283     1.650000     1.473074     2.999040
+
+  MEASURED, and NOT what the fixed-configuration sweep predicts: on this mixed population at 2400 samples the regularised MAP variant still wins (0.394345 mrad) and the unbiased batch solution is still the worst analytic option (1.193928 mrad). The reason is that the mixture contains records whose Cramer-Rao bound is large at any length -- single-axis records, and low-amplitude records at high noise -- and a root-mean-square over the population is dominated by those. Record length is not what decides the crossover; the information content of the record is, and equation (10) is what says how much of that there is.
+  The best learned configuration reaches 0.558510 mrad here, applied 16 times outside the record length it was trained on.
+[PASS] the MAP baseline beats every learned configuration on the long mixed population too -- MAP 0.394345 against the best learned 0.558510 mrad
+
+==============================================================================
+5.4 the uncertainty output, and whether it means anything
+==============================================================================
+Every learned configuration reports a per-component standard deviation from the spread of its ensemble members. That is a model-spread uncertainty and not a calibrated posterior, and the measurement below is how far from calibrated it is: the fraction of components whose error lies inside two reported standard deviations, against a nominal 0.954500, over the whole held-out short-record population.
+
+estimator               cover 2 sigma   median sigma mrad   RMSE obs mrad  sigma/RMSE
+forest                       0.916667            0.771451        0.853146      0.9042
+forest_deep                  0.939444            0.847459        0.860938      0.9843
+bagged_ridge                 0.187778            0.077611        0.959229      0.0809
+trivial                      0.941111            1.019584        1.010964      1.0085
+
+  The bagged_ridge configuration reports a median one-sigma an order of magnitude below its own realised error, which is the overconfidence measured in section 4 and it is present on the whole population, not only in the unobservable subspace.
+[PASS] no learned configuration's two-sigma interval reaches nominal coverage -- measured forest 0.916667, forest_deep 0.939444, bagged_ridge 0.187778 against a nominal 0.954500
+  For comparison the trivial estimator reaches 0.941111, which is better than two of the three learned configurations: its uncertainty is the honest spread of a predictor that uses no input, and that is a hard thing to beat with a model that is not calibrated.
+
+==============================================================================
+5.5 the analytic bound is calibrated, and that is the contrast
+==============================================================================
+The Cramer-Rao one sigma of (12) is checked as an interval in exactly the same way as the learned ensemble spread, over the same records, on each retained degree of freedom.
+
+  batch solution, 1 sigma : measured 0.661017, nominal 0.682689
+  batch solution, 2 sigma : measured 0.953064, nominal 0.954500
+  batch solution, 3 sigma : measured 0.997392, nominal 0.997300
+
+[PASS] the Cramer-Rao interval is calibrated to within 0.03 of nominal at two sigma -- measured 0.953064 against nominal 0.954500 over 1534 degrees of freedom
+
+==============================================================================
+5.6 compute budget and timings -- UNSTABLE, two shared cores
+==============================================================================
+operation                              calls    total s      mean ms
+fit all four estimators                    1    18.1860   18185.9644
+predict/solve batch                      600     1.1885       1.9809
+predict/solve map                        600     1.1165       1.8608
+predict/solve forest                       1     0.0868      86.8387
+predict/solve forest_deep                  1     0.1021     102.0755
+predict/solve bagged_ridge                 1     0.0117      11.6641
+predict/solve trivial                      1     0.0178      17.8083
+
+  Total compute for this product: training is 2500 generated records of 150 samples and three ensembles, and it fits in the figure above. No GPU, no PyTorch, two cores. Every script in validation/ completes in under three minutes on the measured container.
+
+CHECKS RUN: 9
+FAILED CHECKS (0): none
