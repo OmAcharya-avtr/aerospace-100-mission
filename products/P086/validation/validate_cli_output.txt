@@ -9,8 +9,8 @@ matplotlib       : 3.11.2
 scipy            : 1.18.1
 pandas           : 3.0.5
 pytest           : 9.1.1
-hypothesis       : 6.170.13
-ruff             : 0.17.3
+hypothesis       : 6.170.9
+ruff             : 0.16.9
 xarray           : not installed  (named in the alternatives table; no number here is compared against it)
 cpu cores        : 2
 repository root  : P086 (printed relatively; see validation/_bootstrap.py)
@@ -52,13 +52,13 @@ an unknown command must fail rather than do something
 ==============================================================================
 the repository tree after every command has run
 ==============================================================================
-directory      class      occurrences  in .gitignore  first matches                                                            
--------------  ---------  -----------  -------------  -------------------------------------------------------------------------
-.config        forbidden  0            yes            -                                                                        
-__pycache__    tooling    4            yes            ['examples/__pycache__', 'src/telemgap/__pycache__', 'tests/__pycache__']
-.pytest_cache  tooling    0            yes            -                                                                        
-.ruff_cache    tooling    1            yes            ['.ruff_cache']                                                          
-.hypothesis    tooling    1            yes            ['.hypothesis']                                                          
+directory      class      occurrences  in .gitignore  first matches
+-------------  ---------  -----------  -------------  -------------
+.config        forbidden  0            NO             -            
+__pycache__    tooling    0            yes            -            
+.pytest_cache  tooling    0            yes            -            
+.ruff_cache    tooling    0            yes            -            
+.hypothesis    tooling    0            yes            -            
 
 [PASS] no forbidden artifact directory was written into the repository -- 0 found: []
 [PASS] every tooling directory present in the tree is covered by .gitignore -- 0 uncovered: []
@@ -69,8 +69,8 @@ command cost -- UNSTABLE, two cores shared with other work
 quantity      value 
 ------------  ------
 commands run  11    
-total s       24.89 
-mean ms       2262.5
+total s       18.60 
+mean ms       1690.5
 
 CHECKS RUN: 15
 FAILED CHECKS (0): none
