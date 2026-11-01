@@ -1,0 +1,156 @@
+
+==============================================================================
+pointmodel -- refraction against an independent ray trace
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+astropy          : not installed  (named in README; no number here is compared against it)
+cpu cores        : 2
+repository root  : P085 (printed relatively; see validation/_bootstrap.py)
+
+The independent calculation is pointmodel.refraction.raytrace_refraction, a
+numerical integration of the refraction integral written in this repository.
+No refraction package is installed in this environment and none is called.
+
+grid : 16 true altitudes from 10.0 to 85.0 degrees
+site : 1010 hPa, 10 C
+
+==============================================================================
+1. the normalised refraction shape, equation (6)
+==============================================================================
+This is the design-matrix column. rho_hat(E) = R(E) / R(45 deg), so the
+overall scale cancels and the comparison is independent of the refractivity
+constant. The fitted RF coefficient absorbs the scale; it cannot absorb a
+shape difference, so this is the comparison that bears on the product.
+
+true el deg  shape bennett  shape raytrace (radio)  rel diff     shape raytrace (optical)  rel diff   
+-----------  -------------  ----------------------  -----------  ------------------------  -----------
+10.00        5.419427       5.528001                -1.9641e-02  5.529149                  -1.9844e-02
+15.00        3.655057       3.691141                -9.7758e-03  3.691473                  -9.8649e-03
+20.00        2.717411       2.731964                -5.3268e-03  2.732090                  -5.3729e-03
+25.00        2.131415       2.137799                -2.9861e-03  2.137854                  -3.0117e-03
+30.00        1.726204       1.729027                -1.6328e-03  1.729051                  -1.6471e-03
+35.00        1.425696       1.426848                -8.0782e-04  1.426859                  -8.1528e-04
+40.00        1.190958       1.191314                -2.9877e-04  1.191318                  -3.0179e-04
+45.00        1.000000       1.000000                +0.0000e+00  1.000000                  +0.0000e+00
+50.00        0.839436       0.839318                +1.4049e-04  0.839316                  +1.4262e-04
+55.00        0.700621       0.700521                +1.4234e-04  0.700519                  +1.4602e-04
+60.00        0.577688       0.577689                -1.2457e-06  0.577686                  +3.5637e-06
+65.00        0.466475       0.466629                -3.2994e-04  0.466626                  -3.2430e-04
+70.00        0.363904       0.364248                -9.4389e-04  0.364246                  -9.3763e-04
+75.00        0.267606       0.268168                -2.0944e-03  0.268166                  -2.0877e-03
+80.00        0.175674       0.176477                -4.5533e-03  0.176476                  -4.5463e-03
+85.00        0.086496       0.087565                -1.2204e-02  0.087564                  -1.2197e-02
+
+max relative shape difference, radio constant   : 1.964086e-02
+max relative shape difference, optical constant : 1.984431e-02
+
+The two agree to within 2.0 per cent of the shape over 10 to 85 degrees, and
+changing the refractivity constant by 1.75 per cent moves that figure by
+1.0 per cent of itself, which is the quantitative statement that the shape
+comparison does not depend on the constant.
+
+[PASS] the shape agrees to better than 2.5 per cent over 10 to 85 degrees -- radio 1.9641e-02, optical 1.9844e-02
+[PASS] the shape comparison is insensitive to the refractivity constant -- ratio = 1.010359
+The worst shape disagreement is at 10.00 degrees elevation, which is the low end of the grid where the real atmosphere's temperature profile matters most and a two-parameter fit is weakest.
+
+==============================================================================
+2. the absolute refraction, against Meeus's published accuracy
+==============================================================================
+Meeus (1998) chapter 16 states the accuracy of equation (16.4) as about 0.07 arcminutes, which is 4.2 arcsec. That figure is the acceptance
+criterion here; it is published and is not chosen by this repository.
+
+ray-trace refractivity constant  K / (K/hPa)  max |bennett - raytrace| arcsec  mean bennett / raytrace  within 4.2 arcsec
+-------------------------------  -----------  -------------------------------  -----------------------  -----------------
+radio dry                        77.6000      8.4736                           1.043524                 NO               
+optical 550 nm                   78.9586      4.1270                           1.025533                 yes              
+
+true el deg  bennett arcsec  raytrace radio  diff     raytrace optical  diff   
+-----------  --------------  --------------  -------  ----------------  -------
+10.00        323.4903        315.0167        +8.4736  320.6025          +2.8878
+15.00        218.1736        210.3420        +7.8315  214.0466          +4.1270
+20.00        162.2046        155.6827        +6.5219  158.4177          +3.7870
+25.00        127.2260        121.8238        +5.4022  123.9614          +3.2646
+30.00        103.0386        98.5297         +4.5089  100.2574          +2.7812
+35.00        85.1010         81.3099         +3.7912  82.7351           +2.3659
+40.00        71.0894         67.8878         +3.2015  69.0775           +2.0119
+45.00        59.6909         56.9856         +2.7052  57.9841           +1.7068
+50.00        50.1067         47.8291         +2.2776  48.6670           +1.4397
+55.00        41.8207         39.9197         +1.9010  40.6189           +1.2018
+60.00        34.4827         32.9200         +1.5627  33.4966           +0.9861
+65.00        27.8443         26.5911         +1.2532  27.0569           +0.7874
+70.00        21.7218         20.7569         +0.9649  21.1205           +0.6013
+75.00        15.9737         15.2817         +0.6919  15.5494           +0.4243
+80.00        10.4861         10.0567         +0.4294  10.2328           +0.2533
+85.00        5.1630          4.9900          +0.1731  5.0773            +0.0857
+
+Reported as measured, including the part that does not pass.
+
+With the OPTICAL constant the largest absolute disagreement is 4.1270 arcsec
+against the 4.2 arcsec Meeus quotes: inside it, with 1.7 per cent of margin.
+That margin is thin and is stated rather than rounded away.
+
+With the RADIO DRY constant the largest disagreement is 8.4736 arcsec, which
+EXCEEDS the quoted accuracy by a factor of 2.02. That is not a defect in
+either calculation: the radio dry-air constant is 1.75 per cent below the
+optical one and Bennett's formula is an optical fit, so the comparison is
+between two different physical quantities. It is reported because a reader
+fitting a radio antenna's pointing model is using an optical refraction
+formula, and the size of that mismatch is 1.75 per cent of the refraction,
+which at 10 degrees elevation is 5.7 arcsec and is not negligible for a
+pointing model.
+
+[PASS] the optical comparison is inside Meeus's published accuracy -- 4.1270 arcsec against 4.2
+[PASS] the radio comparison is NOT, and the excess is the refractivity constant -- 8.4736 arcsec; the two mean ratios differ by 1.7543 per cent against a constant difference of 1.7508 per cent
+
+==============================================================================
+3. the plane-parallel limit of the refraction integral
+==============================================================================
+The flat-atmosphere limit of equation (4) is (n0 - 1) tan(z), which needs no
+quadrature. The departure of the spherical integral from it is derivable
+without running either: Snell's invariant gives
+  sin(zeta) = sin(z) / (1 + h/R) * (n0/n),
+so to leading order d(ln sin zeta) = -h/R, hence d(zeta) = -(h/R) tan(zeta)
+and d(tan zeta)/tan(zeta) = -(h/R) sec^2(zeta). Weighted at the refractivity
+scale height H = R_specific T0 / g, the predicted relative departure is
+-(H/R_earth) sec^2(z).
+
+scale height H            : 8288.1514 m
+H / R_earth               : 1.300918e-03
+
+apparent el deg  raytrace arcsec  plane parallel arcsec  measured departure  predicted -(H/R)sec^2 z  measured / predicted
+---------------  ---------------  ---------------------  ------------------  -----------------------  --------------------
+88.0             1.991181         1.993772               -1.299572e-03       -1.302505e-03            0.9977              
+85.0             4.988563         4.995091               -1.307011e-03       -1.310876e-03            0.9971              
+80.0             10.053810        10.067240              -1.334105e-03       -1.341366e-03            0.9946              
+70.0             20.750416        20.780574              -1.451260e-03       -1.473257e-03            0.9851              
+60.0             32.907845        32.963327              -1.683148e-03       -1.734558e-03            0.9704              
+50.0             47.806581        47.907686              -2.110418e-03       -2.216880e-03            0.9520              
+
+[PASS] the departure is negative at every elevation, as derived
+[PASS] the measured departure matches the derived leading-order prediction -- ratios inside [0.3, 2.0]; the prediction is leading order only and the weighting height is approximated by the isothermal scale height
+
+==============================================================================
+4. the quadrature's reported absolute error
+==============================================================================
+scipy.integrate.quad returns an error estimate with every result. It is
+recorded here so that the agreement figures above cannot be attributed to
+the integration.
+
+apparent el deg  refraction arcsec  reported |abs error| arcsec
+---------------  -----------------  ---------------------------
+10.0             312.386150         2.923e-09                  
+30.0             98.421771          1.178e-09                  
+45.0             56.954234          1.410e-09                  
+60.0             32.907845          8.148e-10                  
+85.0             4.988563           1.446e-09                  
+
+[PASS] the quadrature's reported absolute error is below 1e-6 arcsec everywhere -- worst = 2.923e-09 arcsec
+
+CHECKS RUN: 7
+FAILED CHECKS (0): none

@@ -1,0 +1,111 @@
+
+==============================================================================
+pointmodel -- the pytest.approx default-tolerance audit
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+astropy          : not installed  (named in README; no number here is compared against it)
+cpu cores        : 2
+repository root  : P085 (printed relatively; see validation/_bootstrap.py)
+
+pytest.approx(expected, rel=r) passes if EITHER bound is met and the
+absolute default is 1e-12, so a bare rel= on a small quantity stops testing
+what it says. This script measures the dependence rather than asserting its
+absence.
+
+==============================================================================
+1. static count of rel= and abs= in the test suite
+==============================================================================
+file                           approx calls  with rel=  with rel= and no abs=
+-----------------------------  ------------  ---------  ---------------------
+tests/conftest.py              0             0          0                    
+tests/test_budget.py           1             1          0                    
+tests/test_cli.py              0             0          0                    
+tests/test_geometry.py         20            20         0                    
+tests/test_identifiability.py  4             4          0                    
+tests/test_properties.py       10            10         0                    
+tests/test_refraction.py       23            23         0                    
+tests/test_regressions.py      9             9          0                    
+tests/test_report.py           0             0          0                    
+tests/test_robust.py           2             2          0                    
+tests/test_synthetic.py        11            11         0                    
+tests/test_terms.py            19            19         0                    
+tests/test_wls.py              11            11         0                    
+
+total approx calls carrying rel=        : 110
+total carrying rel= with no explicit abs=: 0
+[PASS] no approx call passes rel= without an explicit abs= -- 0 bare calls found by the source scan
+
+==============================================================================
+2. the suite with a bare rel= made to raise
+==============================================================================
+pytest exit status : 0
+testsuite element  : tests 241, failures 0, errors 0, skipped 0
+testcase elements  : 241
+last stdout line   : 241 passed in 19.59s
+
+[PASS] the junit XML agrees with itself and collected a non-zero test count -- 241 declared against 241 counted
+[PASS] no assertion in the suite depends on the 1e-12 absolute default -- 0 failures, 0 errors with a bare rel= made to raise
+
+COUNT OF ASSERTIONS DEPENDING ON THE pytest.approx DEFAULT: 0
+
+==============================================================================
+3. the suite with every explicit abs= forced to 0.0
+==============================================================================
+This is the stronger question. Where an assertion fails here, the
+ABSOLUTE bound is the one doing the work and the relative bound alone would
+not hold. That is correct and necessary for a comparison against an exact
+zero, which has no relative bound at all, and it is wrong anywhere else, so
+every failure is named below and accounted for.
+
+pytest exit status : 1
+testsuite element  : tests 241, failures 9, errors 0, skipped 0
+testcase elements  : 241
+last stdout line   : 9 failed, 232 passed in 23.96s
+
+tests whose assertions rest on an absolute bound:
+
+  tests.test_geometry.TestSkyVectorAndTangents::test_sky_vector_at_the_cardinal_directions
+  tests.test_geometry.TestSkyVectorAndTangents::test_tangents_are_orthonormal_and_perpendicular_to_the_vector
+  tests.test_geometry.TestTotalSmallAngle::test_elevation_side_terms_combine_before_taking_the_modulus
+  tests.test_identifiability.TestDirectionsAndCombinations::test_combinations_are_a_complete_reparameterisation
+  tests.test_properties.TestDesignMatrixIdentities::test_azimuth_is_periodic
+  tests.test_properties.TestFitIdentities::test_fit_is_equivariant_under_adding_a_model_signal
+  tests.test_refraction.TestBennettValidity::test_zero_crossing_solves_the_quadratic
+  tests.test_synthetic.TestGeneration::test_custom_coefficients_are_used
+  tests.test_terms.TestDesignMatrixKnownAnswers::test_east_at_sixty_degrees
+
+COUNT OF ASSERTIONS RESTING ON AN ABSOLUTE BOUND: 9 tests of 241
+
+Six of the nine compare a quantity against an exact zero, where a relative
+bound has no meaning at all: a tangent-basis orthogonality, a cardinal sky
+vector, a cancelling elevation-side rotation, the off-diagonal of an
+orthogonality identity, a structurally zero design-matrix entry at azimuth
+90 degrees, and a design-matrix column difference under a full turn of
+azimuth.
+
+The remaining three use an absolute bound for a different and stated
+reason, and are named here so that the distinction is not glossed:
+
+  test_fit_is_equivariant_under_adding_a_model_signal -- the bound is
+    1e-12 * condition_number * scale, derived from the conditioning of the
+    solve rather than chosen, which is why rel= is 0.0 there. The pinned
+    Hypothesis counterexample in tests/test_regressions.py is the record of
+    an absolute 1e-12 being falsified on this very identity.
+  test_zero_crossing_solves_the_quadratic -- a root-finding residual: the
+    quantity tested is h + 7.31/(h + 4.4) - 90, which is zero at the root,
+    so the comparison is against 90.0 with an absolute bound of 1e-12,
+    equivalent to a relative 1.1e-14.
+  test_custom_coefficients_are_used -- the second-order truncation of the
+    exact rotation model is an ABSOLUTE quantity, -(CA^2/2) tan(E) arcsec,
+    not a relative one, so the cross-elevation block is compared to 100.0
+    arcsec with an absolute bound of 0.1 arcsec.
+[PASS] the junit XML agrees with itself in the zero run
+
+CHECKS RUN: 4
+FAILED CHECKS (0): none

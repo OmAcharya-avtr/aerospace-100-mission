@@ -1,0 +1,273 @@
+
+==============================================================================
+pointmodel -- rank, identifiability, and the confident split
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+astropy          : not installed  (named in README; no number here is compared against it)
+cpu cores        : 2
+repository root  : P085 (printed relatively; see validation/_bootstrap.py)
+
+declared sigma        : 2 arcsec per residual row
+declared observations : 300
+declared geometry seed: 20260101
+monte carlo           : 200 noise realisations per geometry
+declared thresholds   : null <= 0.001, marginal <= 0.01
+
+==============================================================================
+1. singular-value spectrum of every declared geometry
+==============================================================================
+300 observations per geometry, seed 20260101, columns normalised to
+unit length before the decomposition, so every ratio below is a statement
+about geometry and not about units.
+
+geometry   condition   rank  verdict            max VIF     terms refused         
+---------  ----------  ----  -----------------  ----------  ----------------------
+full_sky   1.2887e+02  9     weakly determined  3.0703e+03  -                     
+low_el     3.1722e+03  8     not separable      1.5044e+06  IE,TF,TS              
+narrow_el  6.4926e+05  6     not separable      7.2988e+10  TF,TS,RF,IA,CA,NPAE,IE
+single_az  2.1428e+15  7     not separable      5.2584e+29  AN,AW,NPAE,IE         
+two_az     1.2897e+02  9     weakly determined  3.0706e+03  -                     
+
+Full singular-value ratios s_k / s_1:
+
+geometry   s0         s1         s2         s3         s4         s5         s6         s7         s8       
+---------  ---------  ---------  ---------  ---------  ---------  ---------  ---------  ---------  ---------
+full_sky   1.000e+00  8.872e-01  5.327e-01  5.219e-01  3.431e-01  2.312e-01  7.042e-02  1.986e-02  7.760e-03
+low_el     1.000e+00  8.747e-01  5.258e-01  4.890e-01  2.037e-01  1.178e-01  1.999e-02  1.170e-03  3.152e-04
+narrow_el  1.000e+00  8.658e-01  5.048e-01  4.905e-01  2.170e-02  1.377e-02  2.288e-04  7.039e-05  1.540e-06
+single_az  1.000e+00  8.460e-01  3.035e-01  2.231e-01  6.076e-02  1.788e-02  8.430e-03  7.178e-16  4.667e-16
+two_az     1.000e+00  8.875e-01  5.261e-01  5.248e-01  3.426e-01  2.309e-01  7.047e-02  1.983e-02  7.754e-03
+
+full_sky:
+  no direction below the declared null threshold
+  weakly determined:
+    [8] +0.722*IE -0.639*TS -0.246*TF -0.101*RF  (s/s1 = 7.760e-03, weakly determined)
+
+low_el:
+  NOT IDENTIFIABLE:
+    [8] +0.715*IE -0.636*TF -0.290*TS -0.007*RF  (s/s1 = 3.152e-04, not identifiable)
+  weakly determined:
+    [7] -0.706*CA +0.679*IA +0.203*NPAE +0.000*TF  (s/s1 = 1.170e-03, weakly determined)
+
+narrow_el:
+  NOT IDENTIFIABLE:
+    [6] -0.884*TF +0.398*RF +0.237*TS +0.059*IE  (s/s1 = 2.288e-04, not identifiable)
+    [7] +0.707*CA -0.500*NPAE -0.500*IA -0.000*TF  (s/s1 = 7.039e-05, not identifiable)
+    [8] +0.737*IE -0.626*TS -0.205*TF -0.149*RF  (s/s1 = 1.540e-06, not identifiable)
+
+single_az:
+  NOT IDENTIFIABLE:
+    [7] +0.698*NPAE -0.574*AW -0.414*AN +0.113*IE  (s/s1 = 7.178e-16, not identifiable)
+    [8] +0.691*IE +0.595*AN -0.382*AW -0.151*NPAE  (s/s1 = 4.667e-16, not identifiable)
+  weakly determined:
+    [6] -0.741*TS +0.364*IE -0.334*AN +0.334*AW  (s/s1 = 8.430e-03, weakly determined)
+
+two_az:
+  no direction below the declared null threshold
+  weakly determined:
+    [8] -0.722*IE +0.639*TS +0.246*TF +0.101*RF  (s/s1 = 7.754e-03, weakly determined)
+
+[PASS] the two well-scheduled geometries are separable -- full_sky condition 128.9, two_az 129
+[PASS] the three restricted geometries are not separable
+[PASS] the narrow elevation band refuses the IA/CA/NPAE cross-elevation constant
+[PASS] the single azimuth refuses the azimuth-axis tilt and NPAE
+[PASS] the single azimuth is exactly rank deficient by two -- s7/s0 = 7.178e-16, s6/s0 = 8.430e-03
+[PASS] the azimuth-axis tilt survives a narrow elevation band -- cos(A) and sin(A) are fully sampled there
+
+==============================================================================
+2. the confident split: 200 noise realisations per geometry
+==============================================================================
+The geometry is held fixed and only the noise is redrawn, so everything
+below is a property of the geometry. Three quantities are compared for each
+coefficient: its bias against the TRUE value, its empirical scatter over
+realisations, and the formal standard error that each solver reports.
+
+'svd se' is from pointmodel.wls.fit, the recommended path, which truncates
+the directions below its rcond and reports the covariance of the estimator
+it actually returns. 'normal se' is from pointmodel.wls.normal_equation_fit,
+which forms A^T W A and inverts it, as a fitter written straight from a
+textbook does.
+
+
+full_sky:
+
+term  truth    svd bias  svd sd  svd se  normal bias  normal sd  normal se
+----  -------  --------  ------  ------  -----------  ---------  ---------
+IA    -45.000  +0.124    1.908   1.694   +0.1236      1.908      1.694    
+IE    30.000   +0.532    5.669   6.198   +0.5322      5.669      6.198    
+CA    12.000   -0.169    2.677   2.389   -0.1694      2.677      2.389    
+AN    -8.000   -0.002    0.1297  0.1282  -0.00242     0.1297     0.1282   
+AW    5.000    +0.004    0.1286  0.1278  +0.00379     0.1286     0.1278   
+NPAE  20.000   +0.158    2.122   1.888   +0.1577      2.122      1.888    
+TF    -25.000  -0.081    2.205   2.332   -0.08137     2.205      2.332    
+TS    6.000    -0.515    5.043   5.499   -0.5147      5.043      5.499    
+RF    58.000   -0.107    0.8633  0.9389  -0.1072      0.8633     0.9389   
+
+low_el:
+
+term  truth    svd bias  svd sd  svd se  normal bias  normal sd  normal se
+----  -------  --------  ------  ------  -----------  ---------  ---------
+IA    -45.000  +3.514    38.76   34.41   +3.514       38.76      34.41    
+IE    30.000   +15.740   124.9   137.2   +15.74       124.9      137.2    
+CA    12.000   -3.616    40.31   35.8    -3.616       40.31      35.8     
+AN    -8.000   -0.002    0.1536  0.1505  -0.002001    0.1536     0.1505   
+AW    5.000    +0.010    0.1563  0.1555  +0.01005     0.1563     0.1555   
+NPAE  20.000   +1.007    11.68   10.4    +1.007       11.68      10.4     
+TF    -25.000  -13.780   111     121.9   -13.78       111        121.9    
+TS    6.000    -6.745    51      55.76   -6.745       51         55.76    
+RF    58.000   -0.184    1.307   1.422   -0.1838      1.307      1.422    
+
+narrow_el:
+
+term  truth    svd bias   svd sd     svd se     normal bias  normal sd  normal se
+----  -------  ---------  ---------  ---------  -----------  ---------  ---------
+IA    -45.000  +52.958    514.9      458.2      +52.96       514.9      458.2    
+IE    30.000   +3815.536  2.808e+04  3.023e+04  +3816        2.808e+04  3.023e+04
+CA    12.000   -75.008    728.4      648.3      -75.01       728.4      648.3    
+AN    -8.000   -0.002     0.1293     0.1291     -0.0018      0.1293     0.1291   
+AW    5.000    +0.004     0.1314     0.1307     +0.003763    0.1314     0.1307   
+NPAE  20.000   +53.163    515.6      458.9      +53.16       515.6      458.9    
+TF    -25.000  -1049.002  7793       8407       -1049        7794       8407     
+TS    6.000    -3246.325  2.387e+04  2.569e+04  -3246        2.387e+04  2.569e+04
+RF    58.000   -778.278   5698       6124       -778.3       5698       6124     
+
+single_az:
+
+term  truth    svd bias  svd sd  svd se  normal bias  normal sd  normal se
+----  -------  --------  ------  ------  -----------  ---------  ---------
+IA    -45.000  +0.115    1.907   1.694   -0.3614      1.906      1.854    
+IE    30.000   -12.713   2.461   2.695   -163.8       4.084      1.201e+06
+CA    12.000   -0.160    2.675   2.388   -2.891       2.675      2.613    
+AN    -8.000   -2.607    2.361   2.534   -293.2       5.271      2.487e+06
+AW    5.000    +16.125   2.321   2.534   -57.47       5.121      2.461e+06
+NPAE  20.000   -9.407    1.245   1.109   +251.7       5.467      3.287e+06
+TF    -25.000  -0.085    2.199   2.331   -0.08453     2.199      2.551    
+TS    6.000    -0.514    5.032   5.493   -0.5136      5.032      6.011    
+RF    58.000   -0.106    0.8641  0.9371  -0.1062      0.8641     1.026    
+
+two_az:
+
+term  truth    svd bias  svd sd  svd se  normal bias  normal sd  normal se
+----  -------  --------  ------  ------  -----------  ---------  ---------
+IA    -45.000  +0.124    1.906   1.693   +0.1238      1.906      1.693    
+IE    30.000   +0.512    5.678   6.186   +0.5119      5.678      6.186    
+CA    12.000   -0.170    2.671   2.386   -0.1705      2.671      2.386    
+AN    -8.000   +0.002    0.1435  0.1525  +0.001772    0.1435     0.1525   
+AW    5.000    -0.002    0.1175  0.1125  -0.001576    0.1175     0.1125   
+NPAE  20.000   +0.158    2.114   1.885   +0.1581      2.114      1.885    
+TF    -25.000  -0.074    2.206   2.329   -0.0738      2.206      2.329    
+TS    6.000    -0.497    5.054   5.487   -0.4971      5.054      5.487    
+RF    58.000   -0.104    0.8678  0.9361  -0.1042      0.8678     0.9361   
+
+Read the single_az block. The least-squares estimate of AN, AW, NPAE and IE
+is repeatable across noise realisations to a few arcseconds and sits tens of
+arcseconds from the truth, while the normal-equation solver reports formal
+standard errors in the millions of arcseconds for the same parameters. A
+repeatable wrong number with a meaningless error bar is the failure this
+product exists to prevent.
+
+[PASS] on single_az the least-squares split is repeatable -- largest scatter on the degenerate terms = 2.461 arcsec
+[PASS] and on single_az it is wrong by more than its own scatter -- largest |bias| = 16.12 arcsec against a largest scatter of 2.461 arcsec
+[PASS] the normal-equation standard errors on single_az are unrelated to the scatter -- smallest ratio = 2.94e+05
+[PASS] on narrow_el the least-squares split is wrong by hundreds of arcseconds -- largest |bias| = 3816 arcsec
+[PASS] on full_sky both solvers agree with the truth and with each other
+
+==============================================================================
+3. the identifiable combinations carry the bias the terms do not
+==============================================================================
+The same Monte Carlo, scored in two parameterisations. What separates them
+is the BIAS, not the total error: the total error of any quantity here also
+contains the noise scatter, which is the same size in both
+parameterisations and has nothing to do with the geometry. The bias is the
+systematic part, it is the part an error bar does not show, and it is what a
+degeneracy produces.
+
+Each combination is divided by the norm of its own weight vector so that
+both columns are in arcseconds.
+
+geometry   combinations determined  worst per-term |bias| arcsec  worst combination |bias| arcsec  bias ratio  worst per-term sd  worst combination sd
+---------  -----------------------  ----------------------------  -------------------------------  ----------  -----------------  --------------------
+full_sky   8                        0.5322                        0.2434                           2.186       5.669              3.686               
+low_el     7                        15.74                         0.1102                           142.8       124.9              1.5                 
+narrow_el  6                        3816                          0.1388                           2.748e+04   2.808e+04          5.995               
+single_az  6                        16.12                         0.2121                           76.02       5.032              3.434               
+two_az     8                        0.5119                        0.2448                           2.091       5.678              3.678               
+
+The bias ratio is the number that matters. On the two well-scheduled
+geometries it is near one and both biases are a fraction of an arcsecond:
+there is no degeneracy and nothing is systematically wrong. On the three
+restricted geometries the per-term bias is one to four orders of magnitude
+larger than the bias in the combinations the geometry actually determines.
+
+[PASS] on every restricted geometry the per-term bias exceeds the combination bias by at least a factor of ten -- full_sky 2.186; low_el 142.8; narrow_el 2.748e+04; single_az 76.02; two_az 2.091
+[PASS] every determined combination has a bias below one arcsecond -- worst = 0.2448 arcsec
+[PASS] on the well-scheduled geometries the per-term bias is below one arcsecond
+
+==============================================================================
+4. does the rank analysis catch the terms that are actually wrong
+==============================================================================
+The criterion is declared in advance and anchored on the TRUE value: a
+coefficient is BADLY DETERMINED when its mean least-squares estimate over
+the Monte Carlo sits more than k declared sigmas from the truth. The rank
+analysis never sees the truth. Two values of k are scored and both are
+reported, so that the scoring cannot be read as having been tuned.
+
+geometry   worst |bias| arcsec  refused by the rank analysis
+---------  -------------------  ----------------------------
+full_sky   0.5322               -                           
+low_el     15.74                IE,TF,TS                    
+narrow_el  3816                 TF,TS,RF,IA,CA,NPAE,IE      
+single_az  16.12                AN,AW,NPAE,IE               
+two_az     0.5119               -                           
+
+criterion k = 2 declared sigmas (4 arcsec of bias):
+
+geometry   badly determined (truth-anchored)  tp  fp  fn  tn
+---------  ---------------------------------  --  --  --  --
+full_sky   -                                  0   0   0   9 
+low_el     IE,TF,TS                           3   0   0   6 
+narrow_el  IA,IE,CA,NPAE,TF,TS,RF             7   0   0   2 
+single_az  IE,AW,NPAE                         3   1   0   5 
+two_az     -                                  0   0   0   9 
+
+  totals: tp 13, fp 1, fn 0, tn 31; recall 1.0000, precision 0.9286
+[PASS] the rank analysis refuses every coefficient biased beyond 2 sigma -- 0 badly determined coefficients were not refused
+
+criterion k = 10 declared sigmas (20 arcsec of bias):
+
+geometry   badly determined (truth-anchored)  tp  fp  fn  tn
+---------  ---------------------------------  --  --  --  --
+full_sky   -                                  0   0   0   9 
+low_el     -                                  0   3   0   6 
+narrow_el  IA,IE,CA,NPAE,TF,TS,RF             7   0   0   2 
+single_az  -                                  0   4   0   5 
+two_az     -                                  0   0   0   9 
+
+  totals: tp 7, fp 7, fn 0, tn 31; recall 1.0000, precision 0.5000
+[PASS] the rank analysis refuses every coefficient biased beyond 10 sigma -- 0 badly determined coefficients were not refused
+
+k sigmas  tp  fp  fn  tn  recall  precision
+--------  --  --  --  --  ------  ---------
+2         13  1   0   31  1.0000  0.9286   
+10        7   7   0   31  1.0000  0.5000   
+
+A false positive here is a term the analysis refuses whose Monte Carlo bias
+happens to be small. It is a conservative refusal, not an error: the
+geometry genuinely cannot separate the direction, and this particular truth
+happens to sit near where the minimum-norm solution lands. Nothing is lost,
+because the identifiable combinations are reported in place of the split. The
+recall is the number the refusal has to earn, and it is 1.0000 under both
+criteria; the precision is 0.5000 at k = 10 and higher at k = 2, which is
+reported rather than chosen.
+
+[PASS] recall is 1.0000 under both declared criteria
+[PASS] the rank analysis refuses nothing on the two well-scheduled geometries
+
+CHECKS RUN: 18
+FAILED CHECKS (0): none

@@ -1,0 +1,191 @@
+
+==============================================================================
+pointmodel -- the design matrix against an independently derived bound
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+astropy          : not installed  (named in README; no number here is compared against it)
+cpu cores        : 2
+repository root  : P085 (printed relatively; see validation/_bootstrap.py)
+
+The bound is equation (15) of pointmodel.geometry: the operator-norm Taylor
+remainder of a product of matrix exponentials. Nothing in
+pointmodel.terms uses it. It has no fitted constant and no slack term, and
+its tolerance follows the conditioning of the problem through s^2.
+
+==============================================================================
+1. equation (16) over five decades of misalignment amplitude
+==============================================================================
+For each amplitude, 400 random directions over azimuth and 3 to 88 degrees
+elevation, with all nine coefficients drawn uniformly on [-A, A]. The error
+is the Euclidean distance between the exact beam vector of equation (12) and
+the first-order reconstruction from the design matrix; the bound is B(s) of
+equation (15) with s the sum of the five small rotation magnitudes.
+
+amplitude arcsec  worst error (vector norm)  bound B(s)    worst error / bound  violations of 400
+----------------  -------------------------  ------------  -------------------  -----------------
+1                 1.697412e-09               4.716205e-09  0.388813             0                
+10                2.210219e-07               5.935691e-07  0.372361             0                
+100               5.762266e-06               1.794489e-05  0.344846             0                
+1000              2.283529e-03               5.945080e-03  0.385712             0                
+10000             5.383570e-02               2.841863e-01  0.262713             0                
+
+[PASS] the bound is never violated at any amplitude
+[PASS] the bound is not vacuous: the worst ratio exceeds 0.1 at every amplitude -- worst ratios 0.3888, 0.3724, 0.3448, 0.3857, 0.2627
+[PASS] the worst ratio is stable across five decades -- max/min = 1.4800
+
+==============================================================================
+2. the truncation error scales as the square of the misalignment
+==============================================================================
+Measured by fitting a straight line to log(worst error) against
+log(amplitude) over the five decades above, on one fixed set of directions
+and one fixed coefficient direction scaled by the amplitude. The derived
+exponent is exactly 2.
+
+amplitude arcsec  worst error (vector norm)
+----------------  -------------------------
+1                 6.153963e-10             
+10                6.153951e-08             
+100               6.153810e-06             
+1000              6.152198e-04             
+10000             6.115320e-02             
+
+fitted exponent : 1.999440   (derived value: 2)
+fitted prefactor: 10^-9.210300
+
+[PASS] the fitted exponent is 2 to within one per cent -- slope = 1.999440
+
+==============================================================================
+3. negative controls: every column corrupted in turn
+==============================================================================
+Each control is anchored on the exact rotation model -- the TRUTH -- and not
+on any output of the fit. A corruption that did not push the reconstruction
+outside the bound is reported as having failed to fire.
+
+The bound has a RESOLUTION, and it is stated rather than discovered by a
+reader. B(s) admits an error of B(s) * 206265 arcsec, so a corruption
+smaller than that is inside the bound and cannot be detected by it. With all
+nine coefficients at 100 arcsec the total small angle s of equation (14) is
+about 800 arcsec and the bound admits roughly 3 arcsec of sky error; with
+all nine at 10 arcsec it admits roughly 0.03 arcsec. So the scale-error
+controls are run at 10 arcsec, where the bound is tight, and a deliberately
+undetectable corruption is run at 100 arcsec as a must-NOT-fire control.
+
+bound at 100 arcsec coefficients : 9.488707e-05 = 19.571864 arcsec of sky error
+bound at 10 arcsec coefficients  : 9.392269e-07 = 0.193729 arcsec of sky error
+
+[PASS] the uncorrupted design matrix violates the bound nowhere, at either amplitude -- 0 and 0 of 200 observations
+[PASS] control: IA: sign flip, 100 arcsec (must fire) -- FIRED; 200 of 200 observations outside the bound
+[PASS] control: IE: sign flip, 100 arcsec (must fire) -- FIRED; 200 of 200 observations outside the bound
+[PASS] control: CA: sign flip, 100 arcsec (must fire) -- FIRED; 200 of 200 observations outside the bound
+[PASS] control: AN: sign flip, 100 arcsec (must fire) -- FIRED; 200 of 200 observations outside the bound
+[PASS] control: AW: sign flip, 100 arcsec (must fire) -- FIRED; 200 of 200 observations outside the bound
+[PASS] control: NPAE: sign flip, 100 arcsec (must fire) -- FIRED; 198 of 200 observations outside the bound
+[PASS] control: TF: sign flip, 100 arcsec (must fire) -- FIRED; 200 of 200 observations outside the bound
+[PASS] control: TS: sign flip, 100 arcsec (must fire) -- FIRED; 198 of 200 observations outside the bound
+[PASS] control: RF: sign flip, 100 arcsec (must fire) -- FIRED; 200 of 200 observations outside the bound
+[PASS] control: IA: 1 per cent scale, 10 arcsec (must fire) -- FIRED; 169 of 200 observations outside the bound
+[PASS] control: IE: 1 per cent scale, 10 arcsec (must fire) -- FIRED; 193 of 200 observations outside the bound
+[PASS] control: CA: 1 per cent scale, 10 arcsec (must fire) -- FIRED; 194 of 200 observations outside the bound
+[PASS] control: AN: 1 per cent scale, 10 arcsec (must fire) -- FIRED; 181 of 200 observations outside the bound
+[PASS] control: AW: 1 per cent scale, 10 arcsec (must fire) -- FIRED; 180 of 200 observations outside the bound
+[PASS] control: NPAE: 1 per cent scale, 10 arcsec (must fire) -- FIRED; 159 of 200 observations outside the bound
+[PASS] control: TF: 1 per cent scale, 10 arcsec (must fire) -- FIRED; 167 of 200 observations outside the bound
+[PASS] control: TS: 1 per cent scale, 10 arcsec (must fire) -- FIRED; 160 of 200 observations outside the bound
+[PASS] control: RF: 1 per cent scale, 10 arcsec (must fire) -- FIRED; 174 of 200 observations outside the bound
+[PASS] control: IA: 1 part per million scale, 100 arcsec (must NOT fire) -- did not fire; 0 of 200 observations outside the bound
+[PASS] control: IE: 1 part per million scale, 100 arcsec (must NOT fire) -- did not fire; 0 of 200 observations outside the bound
+[PASS] control: CA: 1 part per million scale, 100 arcsec (must NOT fire) -- did not fire; 0 of 200 observations outside the bound
+[PASS] control: AN: 1 part per million scale, 100 arcsec (must NOT fire) -- did not fire; 0 of 200 observations outside the bound
+[PASS] control: AW: 1 part per million scale, 100 arcsec (must NOT fire) -- did not fire; 0 of 200 observations outside the bound
+[PASS] control: NPAE: 1 part per million scale, 100 arcsec (must NOT fire) -- did not fire; 0 of 200 observations outside the bound
+[PASS] control: TF: 1 part per million scale, 100 arcsec (must NOT fire) -- did not fire; 0 of 200 observations outside the bound
+[PASS] control: TS: 1 part per million scale, 100 arcsec (must NOT fire) -- did not fire; 0 of 200 observations outside the bound
+[PASS] control: RF: 1 part per million scale, 100 arcsec (must NOT fire) -- did not fire; 0 of 200 observations outside the bound
+
+term  corruption                            outside the bound  observations  verdict
+----  ------------------------------------  -----------------  ------------  -------
+IA    sign flip, 100 arcsec                 200                200           FIRED  
+IE    sign flip, 100 arcsec                 200                200           FIRED  
+CA    sign flip, 100 arcsec                 200                200           FIRED  
+AN    sign flip, 100 arcsec                 200                200           FIRED  
+AW    sign flip, 100 arcsec                 200                200           FIRED  
+NPAE  sign flip, 100 arcsec                 198                200           FIRED  
+TF    sign flip, 100 arcsec                 200                200           FIRED  
+TS    sign flip, 100 arcsec                 198                200           FIRED  
+RF    sign flip, 100 arcsec                 200                200           FIRED  
+IA    1 per cent scale, 10 arcsec           169                200           FIRED  
+IE    1 per cent scale, 10 arcsec           193                200           FIRED  
+CA    1 per cent scale, 10 arcsec           194                200           FIRED  
+AN    1 per cent scale, 10 arcsec           181                200           FIRED  
+AW    1 per cent scale, 10 arcsec           180                200           FIRED  
+NPAE  1 per cent scale, 10 arcsec           159                200           FIRED  
+TF    1 per cent scale, 10 arcsec           167                200           FIRED  
+TS    1 per cent scale, 10 arcsec           160                200           FIRED  
+RF    1 per cent scale, 10 arcsec           174                200           FIRED  
+IA    1 part per million scale, 100 arcsec  0                  200           -      
+IE    1 part per million scale, 100 arcsec  0                  200           -      
+CA    1 part per million scale, 100 arcsec  0                  200           -      
+AN    1 part per million scale, 100 arcsec  0                  200           -      
+AW    1 part per million scale, 100 arcsec  0                  200           -      
+NPAE  1 part per million scale, 100 arcsec  0                  200           -      
+TF    1 part per million scale, 100 arcsec  0                  200           -      
+TS    1 part per million scale, 100 arcsec  0                  200           -      
+RF    1 part per million scale, 100 arcsec  0                  200           -      
+
+The third block is the honest statement of what this bound cannot do. A one
+part per million column error at 100 arcsec coefficients produces 1e-4
+arcsec of sky error, which is thirty thousand times inside the bound, and no
+bound of this form can see it. Detecting an error that small needs the
+term-recovery check of validate_term_recovery.py, which is a different
+instrument and is why both exist.
+
+Measured detection threshold: the smallest relative column error the bound
+catches, found by bisection on the scale factor, at 10 arcsec coefficients.
+
+term  smallest detected column error, per cent
+----  ----------------------------------------
+IA    0.375562                                
+IE    0.208311                                
+CA    0.190248                                
+AN    0.189408                                
+AW    0.191879                                
+NPAE  0.190417                                
+TF    0.374678                                
+TS    0.208496                                
+RF    0.118757                                
+
+[PASS] every column has a finite detection threshold below 1 per cent at 10 arcsec coefficients -- worst = 0.375562 per cent
+
+==============================================================================
+4. the sky-plane error grows toward the zenith; the bound does not
+==============================================================================
+The vector-space comparison of equation (16) is deliberate. In sky-plane
+angles the cross-elevation error of a rank-deficient direction carries a
+factor of sec(E), so a comparison in angles would have to carry an
+elevation-dependent tolerance and a reader could not tell an amplification
+from a model error. In vector space there is no such factor and the bound is
+a single expression.
+
+elevation deg  worst vector error  bound B(s)  error / bound  worst sky-plane error arcsec  sec(E) 
+-------------  ------------------  ----------  -------------  ----------------------------  -------
+5              8.7555e-05          2.5865e-04  0.3385         5.8220e+00                    1.0038 
+15             2.7918e-05          1.0080e-04  0.2770         3.2027e+00                    1.0353 
+30             1.7315e-05          6.8691e-05  0.2521         2.8005e+00                    1.1547 
+45             1.4138e-05          5.8132e-05  0.2432         3.2228e+00                    1.4142 
+60             1.2240e-05          5.1327e-05  0.2385         4.4315e+00                    2.0000 
+75             1.0597e-05          4.5200e-05  0.2345         7.9486e+00                    3.8637 
+85             9.4586e-06          4.1062e-05  0.2303         2.1824e+01                    11.4737
+88             9.1049e-06          3.9797e-05  0.2288         5.4272e+01                    28.6537
+
+[PASS] the vector-space bound holds at every elevation in the declared range
+[PASS] the sky-plane error grows with sec(E) while the bound does not -- 88 deg: 5.4272e+01 arcsec against 45 deg: 3.2228e+00 arcsec
+
+CHECKS RUN: 35
+CONTROLS: 27 declared, 18 fired
+FAILED CHECKS (0): none

@@ -1,0 +1,217 @@
+
+==============================================================================
+pointmodel -- negative controls, anchored on the true value
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+astropy          : not installed  (named in README; no number here is compared against it)
+cpu cores        : 2
+repository root  : P085 (printed relatively; see validation/_bootstrap.py)
+
+declared sigma        : 2 arcsec per residual row
+declared observations : 300
+declared geometry seed: 20260101
+a recovery is WRONG when a coefficient is more than 5 declared sigmas (10 arcsec) from the truth
+
+
+==============================================================================
+A. the uncorrupted baseline, which every control is measured against
+==============================================================================
+worst |coefficient error|, with noise      : 8.108193 arcsec
+worst |coefficient error|, noiseless       : 0.104373 arcsec
+
+[PASS] control: the correct model on noiseless data is WRONG (must NOT fire) -- did not fire; 0.104373 arcsec
+[PASS] control: the correct model on noisy data is WRONG (must NOT fire) -- did not fire; 8.108193 arcsec
+
+==============================================================================
+B. corrupting the design matrix
+==============================================================================
+Each corruption is applied to the MODEL while the data keep coming from the
+exact rotation composition with the true coefficients, so the truth is
+untouched and the comparison is against it.
+
+[PASS] control: sign flip on the IA column (must fire) -- FIRED; worst |error| 90.0664 arcsec against a baseline of 0.1044
+[PASS] control: sign flip on the IE column (must fire) -- FIRED; worst |error| 59.9501 arcsec against a baseline of 0.1044
+[PASS] control: sign flip on the CA column (must fire) -- FIRED; worst |error| 24.1044 arcsec against a baseline of 0.1044
+[PASS] control: sign flip on the AN column (must fire) -- FIRED; worst |error| 16.0020 arcsec against a baseline of 0.1044
+[PASS] control: sign flip on the AW column (must fire) -- FIRED; worst |error| 10.0024 arcsec against a baseline of 0.1044
+[PASS] control: sign flip on the NPAE column (must fire) -- FIRED; worst |error| 39.9377 arcsec against a baseline of 0.1044
+[PASS] control: sign flip on the TF column (must fire) -- FIRED; worst |error| 49.9698 arcsec against a baseline of 0.1044
+[PASS] control: sign flip on the TS column (must fire) -- FIRED; worst |error| 12.0323 arcsec against a baseline of 0.1044
+[PASS] control: sign flip on the RF column (must fire) -- FIRED; worst |error| 116.0029 arcsec against a baseline of 0.1044
+[PASS] control: the refraction column replaced by cos(E) (must fire) -- FIRED; worst |error| 353.2475 arcsec. cos(E) is in the same family as the flexure column, which is exactly why a wrong refraction shape is absorbed by the flexure terms and corrupts them rather than itself
+[PASS] control: the refraction column replaced by the independent ray trace's own shape (must NOT fire) -- did not fire; worst |error| 3.7463 arcsec. The two shapes differ by up to 2.0 per cent and the fit absorbs that into the flexure terms without exceeding the declared criterion. This is the control that says the preceding one measures a wrong shape and not merely a changed one
+[PASS] control: the cross-elevation and elevation blocks swapped (must fire) -- FIRED; worst |error| 377.7035 arcsec
+
+corruption                                    worst |coefficient error| arcsec
+--------------------------------------------  --------------------------------
+sign flip on IA                               90.0664                         
+sign flip on IE                               59.9501                         
+sign flip on CA                               24.1044                         
+sign flip on AN                               16.0020                         
+sign flip on AW                               10.0024                         
+sign flip on NPAE                             39.9377                         
+sign flip on TF                               49.9698                         
+sign flip on TS                               12.0323                         
+sign flip on RF                               116.0029                        
+refraction shape replaced by cos(E)           353.2475                        
+refraction shape from the ray trace           3.7463                          
+cross-elevation and elevation blocks swapped  377.7035                        
+
+==============================================================================
+C. omitting a term that the data contain
+==============================================================================
+The model is fitted with eight columns while the truth has nine. The
+omitted term's signal has to go somewhere, and where it goes is the
+measurement. There are two places it can go, and the control tests for
+BOTH, because an omission that goes to only one of them would pass a
+control that tested only the other:
+
+  (i)  into the remaining coefficients, as a bias -- measured as the largest
+       |bias| / se over the eight remaining terms, with the standard errors
+       taken from the DECLARED sigma so that the quantity asks whether the
+       bias would be visible against the noise the user declared. The
+       criterion follows each term's own conditioning through its se rather
+       than being an absolute number of arcseconds.
+  (ii) into the post-fit residual, as unexplained signal -- measured against
+       the correct model's own post-fit residual on the same data.
+
+An omission is DETECTABLE when either exceeds its criterion. The absolute
+bias in arcseconds is reported beside both, because it is what a reader of a
+pointing report would see.
+
+correct model, noiseless: post-fit rms 0.003056 arcsec, worst |bias|/se 0.042332
+
+[PASS] control: omitting the IA term from the model (must fire) -- FIRED; |bias| 62.5420 arcsec, |bias|/se 152.357, post-fit rms 2.1039 arcsec (688.5x the correct model's)
+[PASS] control: omitting the IE term from the model (must fire) -- FIRED; |bias| 26.5407 arcsec, |bias|/se 69.382, post-fit rms 0.3822 arcsec (125.1x the correct model's)
+[PASS] control: omitting the CA term from the model (must fire) -- FIRED; |bias| 9.4131 arcsec, |bias|/se 35.169, post-fit rms 0.4009 arcsec (131.2x the correct model's)
+[PASS] control: omitting the AN term from the model (must fire) -- FIRED; |bias| 14.2897 arcsec, |bias|/se 3.359, post-fit rms 4.9359 arcsec (1615.2x the correct model's)
+[PASS] control: omitting the AW term from the model (must fire) -- FIRED; |bias| 5.0654 arcsec, |bias|/se 1.007, post-fit rms 3.0945 arcsec (1012.6x the correct model's)
+[PASS] control: omitting the NPAE term from the model (must fire) -- FIRED; |bias| 25.0934 arcsec, |bias|/se 74.093, post-fit rms 0.8355 arcsec (273.4x the correct model's)
+[PASS] control: omitting the TF term from the model (must fire) -- FIRED; |bias| 60.4525 arcsec, |bias|/se 22.784, post-fit rms 0.8471 arcsec (277.2x the correct model's)
+[PASS] control: omitting the TS term from the model (must fire) -- FIRED; |bias| 6.7347 arcsec, |bias|/se 15.618, post-fit rms 0.0868 arcsec (28.4x the correct model's)
+[PASS] control: omitting the RF term from the model (must fire) -- FIRED; |bias| 353.2473 arcsec, |bias|/se 163.599, post-fit rms 4.8864 arcsec (1599.0x the correct model's)
+
+omitted term  worst |bias| arcsec  worst |bias|/se  post-fit rms arcsec  rms vs correct model  detected by
+------------  -------------------  ---------------  -------------------  --------------------  -----------
+IA            62.5420              152.357          2.1039               688.5                 bias       
+IE            26.5407              69.382           0.3822               125.1                 bias       
+CA            9.4131               35.169           0.4009               131.2                 bias       
+AN            14.2897              3.359            4.9359               1615.2                residual   
+AW            5.0654               1.007            3.0945               1012.6                residual   
+NPAE          25.0934              74.093           0.8355               273.4                 bias       
+TF            60.4525              22.784           0.8471               277.2                 bias       
+TS            6.7347               15.618           0.0868               28.4                  bias       
+RF            353.2473             163.599          4.8864               1599.0                bias       
+
+Read the AN and AW rows. Omitting either leaves a 3 to 5 arcsec post-fit
+residual and barely biases the remaining coefficients at all -- |bias|/se of
+3.36 and 1.01 against 152 for IA. That is because the azimuth-axis tilt
+columns are nearly orthogonal to every other column on a full-sky geometry,
+where their variance inflation factor is close to one. It is a useful fact
+about this model: a missing tilt term shows up in the residual and not in
+the other coefficients, while a missing index or refraction term corrupts
+the coefficients and can leave the residual almost clean. A control that
+tested only one of the two routes would have missed half of these.
+
+==============================================================================
+D. the geometry
+==============================================================================
+The rank analysis must refuse where the geometry cannot separate the terms
+and must refuse nothing where it can. Both directions are controls.
+
+[PASS] control: the rank analysis on the full_sky geometry (must NOT fire) -- did not fire; condition number 1.2887e+02, refused nothing
+[PASS] control: the rank analysis on the low_el geometry (must fire) -- FIRED; condition number 3.1722e+03, refused IE, TF, TS
+[PASS] control: the rank analysis on the narrow_el geometry (must fire) -- FIRED; condition number 6.4926e+05, refused TF, TS, RF, IA, CA, NPAE, IE
+[PASS] control: the rank analysis on the single_az geometry (must fire) -- FIRED; condition number 2.1428e+15, refused AN, AW, NPAE, IE
+[PASS] control: the rank analysis on the two_az geometry (must NOT fire) -- did not fire; condition number 1.2897e+02, refused nothing
+
+geometry   condition   declared         verdict       
+---------  ----------  ---------------  --------------
+full_sky   1.2887e+02  must NOT refuse  did not refuse
+low_el     3.1722e+03  must refuse      refused       
+narrow_el  6.4926e+05  must refuse      refused       
+single_az  2.1428e+15  must refuse      refused       
+two_az     1.2897e+02  must NOT refuse  did not refuse
+
+==============================================================================
+E. perturbation along a null direction
+==============================================================================
+Adding a large multiple of a refused direction to the coefficients must
+leave the predicted residual field alone -- that is what 'not identifiable'
+means -- while adding the same step along the best-determined direction must
+move it. Both are controls on the same geometry.
+
+[PASS] control: a 1000 arcsec step along null direction 6 changes the prediction (must NOT fire) -- did not fire; predicted sky rms shift 2.468451e-01 arcsec against a declared sigma of 2
+[PASS] control: a 1000 arcsec step along null direction 7 changes the prediction (must NOT fire) -- did not fire; predicted sky rms shift 8.628485e-02 arcsec against a declared sigma of 2
+[PASS] control: a 1000 arcsec step along null direction 8 changes the prediction (must NOT fire) -- did not fire; predicted sky rms shift 1.929303e-03 arcsec against a declared sigma of 2
+[PASS] control: a 1000 arcsec step along the best-determined direction changes the prediction (must fire) -- FIRED; predicted sky rms shift 1.226145e+03 arcsec
+
+direction                    predicted sky rms shift arcsec
+---------------------------  ------------------------------
+null direction 6             2.468451e-01                  
+null direction 7             8.628485e-02                  
+null direction 8             1.929303e-03                  
+best-determined direction 0  1.226145e+03                  
+
+==============================================================================
+F. the declared noise and the fit quality
+==============================================================================
+A declared sigma ten times too small must show up as a reduced chi-square
+near one hundred, and ten times too large as near one hundredth. The fit
+does not correct the declaration and does not hide it.
+
+sigma factor  declared sigma arcsec  reduced chi-square
+------------  ---------------------  ------------------
+0.1           0.2                    92.736273         
+1             2                      0.927363          
+10            20                     0.009274          
+
+[PASS] control: a reduced chi-square far from one on a correctly declared sigma (must NOT fire) -- did not fire; reduced chi-square 0.927363
+[PASS] control: a reduced chi-square far from one on a sigma ten times too small (must fire) -- FIRED; reduced chi-square 92.736273, expected near 100
+
+==============================================================================
+G. contamination and the diagnostic
+==============================================================================
+least squares worst |error|, contaminated : 93.3636 arcsec
+least squares worst |error|, clean        : 8.1082 arcsec
+huber worst |error|, contaminated         : 8.9369 arcsec
+disagreement, contaminated                : 5.4521 arcsec
+disagreement, clean                       : 0.0563 arcsec
+
+[PASS] control: 6 per cent acquisition failures make least squares WRONG (must fire) -- FIRED; 93.3636 arcsec
+[PASS] control: 6 per cent acquisition failures make Huber WRONG (must NOT fire) -- did not fire; 8.9369 arcsec
+[PASS] control: the diagnostic on a contaminated run (must fire) -- FIRED; predicted sky rms 5.4521 arcsec
+[PASS] control: the diagnostic on a clean run (must NOT fire) -- did not fire; predicted sky rms 0.0563 arcsec
+
+==============================================================================
+H. input rejection
+==============================================================================
+Out-of-range input must raise rather than return a wrong answer. Each of
+these is a control that must fire.
+
+[PASS] control: elevation below the refraction model's validity range (must fire) -- FIRED; elevation_rad must lie within [2.0, 89.9] degrees, the declared validity range of the refr
+[PASS] control: elevation above the refraction model's validity range (must fire) -- FIRED; elevation_rad must lie within [2.0, 89.9] degrees, the declared validity range of the refr
+[PASS] control: a non-positive sigma (must fire) -- FIRED; sigma must be strictly positive, got a minimum of 0
+[PASS] control: an unknown term name (must fire) -- FIRED; unknown pointing-model term(s) ['TILT']; the declared terms are ['IA', 'IE', 'CA', 'AN', '
+[PASS] control: a confidence level of one (must fire) -- FIRED; confidence_level must lie strictly in (0, 1), got 1.0
+[PASS] control: an unknown geometry (must fire) -- FIRED; unknown geometry 'equator'; declared geometries are ['full_sky', 'low_el', 'narrow_el', 's
+[PASS] control: a refraction altitude at the zenith (must fire) -- FIRED; bennett_refraction is refused above 89.9 deg elevation, where equation (1) returns a negat
+[PASS] control: an odd row count for RANSAC (must fire) -- FIRED; design has 21 rows; the stacked convention needs an even count (cross-elevation block abov
+[PASS] control: inconsistent identifiability thresholds (must fire) -- FIRED; thresholds must satisfy 0 < null_threshold <= marginal_threshold < 1; got null_threshold=0
+
+==============================================================================
+summary
+==============================================================================
+47 controls declared, 36 fired, 11 did not.
+Each one's declared direction is in its line above. A control that did not
+fire when it must is a FAILED CHECK and is listed at the end.
+
+CHECKS RUN: 47
+CONTROLS: 47 declared, 36 fired
+FAILED CHECKS (0): none

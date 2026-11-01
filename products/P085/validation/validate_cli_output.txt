@@ -1,0 +1,129 @@
+
+==============================================================================
+pointmodel -- the command line, in subprocesses
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+astropy          : not installed  (named in README; no number here is compared against it)
+cpu cores        : 2
+repository root  : P085 (printed relatively; see validation/_bootstrap.py)
+
+Each subprocess receives HOME and MPLCONFIGDIR in a temporary directory
+outside the repository and PYTHONDONTWRITEBYTECODE=1.
+
+==============================================================================
+1. commands that must succeed
+==============================================================================
+[PASS] `python -m pointmodel --version` exits zero
+[PASS] `version` prints every expected fragment
+[PASS] `python -m pointmodel terms` exits zero
+[PASS] `terms` prints every expected fragment
+[PASS] `python -m pointmodel identify --geometry full_sky --observations 200` exits zero
+[PASS] `identify full_sky` prints every expected fragment
+[PASS] `python -m pointmodel identify --geometry narrow_el --observations 200` exits zero
+[PASS] `identify narrow_el` prints every expected fragment
+[PASS] `python -m pointmodel compare --observations 200` exits zero
+[PASS] `compare` prints every expected fragment
+[PASS] `python -m pointmodel decompose --observations 200` exits zero
+[PASS] `decompose full_sky` prints every expected fragment
+[PASS] `python -m pointmodel decompose --geometry narrow_el --observations 200 --no-robust` exits zero
+[PASS] `decompose narrow_el` prints every expected fragment
+[PASS] `python -m pointmodel outliers --observations 200 --outlier-fraction 0.06` exits zero
+[PASS] `outliers` prints every expected fragment
+[PASS] `python -m pointmodel refraction --steps 6` exits zero
+[PASS] `refraction` prints every expected fragment
+
+command              arguments                                                      exit  stdout lines  fragments
+-------------------  -------------------------------------------------------------  ----  ------------  ---------
+version              --version                                                      0     1             ok       
+terms                terms                                                          0     17            ok       
+identify full_sky    identify --geometry full_sky --observations 200                0     56            ok       
+identify narrow_el   identify --geometry narrow_el --observations 200               0     61            ok       
+compare              compare --observations 200                                     0     13            ok       
+decompose full_sky   decompose --observations 200                                   0     194           ok       
+decompose narrow_el  decompose --geometry narrow_el --observations 200 --no-robust  0     108           ok       
+outliers             outliers --observations 200 --outlier-fraction 0.06            0     105           ok       
+refraction           refraction --steps 6                                           0     40            ok       
+
+==============================================================================
+2. commands that must fail, with the status they must fail with
+==============================================================================
+[PASS] control: `no command` is rejected (must fire) -- FIRED; exit 2, expected 2; pointmodel: error: the following arguments are required: command
+[PASS] control: `unknown command` is rejected (must fire) -- FIRED; exit 2, expected 2; pointmodel: error: argument command: invalid choice: 'predict' (choose from 'ter
+[PASS] control: `unknown geometry` is rejected (must fire) -- FIRED; exit 2, expected 2; pointmodel identify: error: argument --geometry: invalid choice: 'equator' (choo
+[PASS] control: `negative sigma` is rejected (must fire) -- FIRED; exit 2, expected 2; error: sigma_arcsec must be non-negative, got -1.0
+[PASS] control: `out-of-range threshold` is rejected (must fire) -- FIRED; exit 2, expected 2; error: thresholds must satisfy 0 < null_threshold <= marginal_threshold < 1; got
+
+case                    arguments                                       exit  expected  verdict
+----------------------  ----------------------------------------------  ----  --------  -------
+no command              (none)                                          2     2         ok     
+unknown command         predict                                         2     2         ok     
+unknown geometry        identify --geometry equator                     2     2         ok     
+negative sigma          decompose --observations 100 --sigma -1         2     2         ok     
+out-of-range threshold  identify --observations 100 --null-threshold 5  2     2         ok     
+
+==============================================================================
+3. every cache directory in the tree is covered by .gitignore
+==============================================================================
+A cache directory is not itself a defect: the test runner and the
+interpreter create them and .gitignore excludes them. What IS a defect is
+one that .gitignore does not cover, because it then reaches a commit and
+the release gate fails a tracked build artifact.
+
+Coverage is read from .gitignore the way git reads it. A pattern with no
+slash matches at ANY depth; a pattern with a leading slash matches only at
+the repository root. That distinction is the P060 defect of this mission,
+where a bare junit.xml in a product .gitignore silently excluded a required
+committed fixture several directories down.
+
+pattern        gitignore form  found  paths
+-------------  --------------  -----  -----
+__pycache__    floating        0      -    
+.pytest_cache  anchored        0      -    
+.ruff_cache    anchored        0      -    
+.hypothesis    anchored        0      -    
+.config        anchored        0      -    
+
+uncovered : none
+
+[PASS] every cache directory present in the tree is covered by .gitignore -- 0 uncovered
+
+==============================================================================
+3b. this script's own subprocesses create no cache directory
+==============================================================================
+The absolute question -- is the tree clean right now -- cannot be asked
+here, because whatever ran before this script may have left a cache
+directory of its own and that is not this script's business. What IS this
+script's business is that the subprocesses it starts add nothing, and that
+is measured by a snapshot taken before and after.
+
+appeared after two subprocesses : none
+
+[PASS] no cache directory appears while this script runs its subprocesses -- 0 appeared
+
+==============================================================================
+4. no committed file carries an absolute path
+==============================================================================
+Release-gate check 8 fails a batch on an absolute home-directory path in any
+TRACKED file, so the scan skips anything inside a directory .gitignore
+excludes: a Hypothesis example database or a pytest cache is full of
+absolute paths and is not committed. The patterns are assembled from os.sep
+so that this check does not contain the string it looks for, and this
+script's own output file is excluded because it is rewritten at the end of
+this run. Three consecutive sessions of this mission introduced that defect
+in the act of writing about it.
+
+text files scanned : 64
+skipped as ignored : 0
+offenders          : none
+
+[PASS] no scanned text file contains a home-directory absolute path -- 0 offenders
+
+CHECKS RUN: 26
+CONTROLS: 5 declared, 5 fired
+FAILED CHECKS (0): none

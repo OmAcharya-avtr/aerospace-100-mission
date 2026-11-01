@@ -1,0 +1,63 @@
+
+==============================================================================
+pointmodel -- the worked example from README.md
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+astropy          : not installed  (named in README; no number here is compared against it)
+cpu cores        : 2
+repository root  : P085 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+the worked example from README.md
+==============================================================================
+
+verdict        : not separable
+rank           : 6 of 9
+condition      : 6.493e+05
+terms refused  : IA, IE, CA, NPAE, TF, TS, RF
+
+what the geometry cannot determine:
+  -0.884*TF +0.398*RF +0.237*TS +0.059*IE  (s/s1 = 2.288e-04, not identifiable)
+  +0.707*CA -0.500*NPAE -0.500*IA -0.000*TF  (s/s1 = 7.039e-05, not identifiable)
+  +0.737*IE -0.626*TS -0.205*TF -0.149*RF  (s/s1 = 1.540e-06, not identifiable)
+
+what it did determine, best first:
+  -0.577*RF -0.576*IE -0.408*TS -0.407*TF  precision |g|/se = 676
+  +0.706*CA +0.499*NPAE +0.499*IA +0.053*AN  precision |g|/se = 56
+  +0.736*AN +0.675*AW -0.026*IE -0.025*RF  precision |g|/se = 34.9
+
+the per-term budget, with the refusal marked:
+  REF IA      -381.0607 +/-  454.2406  truth -45.0000  error    -336.0607
+  REF IE    -55755.9850 +/- 29969.0468  truth  30.0000  error  -55785.9850
+  REF CA       478.9603 +/-  642.7482  truth  12.0000  error    +466.9603
+  ok  AN        -8.1427 +/-    0.1280  truth  -8.0000  error      -0.1427
+  ok  AW         5.0072 +/-    0.1296  truth   5.0000  error      +0.0072
+  REF NPAE    -304.3041 +/-  454.9508  truth  20.0000  error    -324.3041
+  REF TF     15819.5133 +/- 8335.2651  truth -25.0000  error  +15844.5133
+  REF TS     47300.4923 +/- 25467.0907  truth   6.0000  error  +47294.4923
+  REF RF     11198.1416 +/- 6071.9087  truth  58.0000  error  +11140.1416
+
+worst error on a SEPARABLE term  : 0.1427 arcsec
+worst error on a REFUSED term    : 55785.9850 arcsec
+post-fit residual rms            : 1.9069 arcsec
+robust disagreement              : 0.0565 arcsec, flagged False
+
+The refusal is the point. The post-fit residual is a fraction of the
+declared noise and the robust diagnostic is clean, so by every ordinary
+measure the fit is good. Seven of the nine coefficients are refused, and
+four of the seven are wrong by thousands of arcseconds: the elevation index
+by 55,786. Nothing but a rank analysis says so.
+
+[PASS] the narrow band is refused -- rank 6 of 9
+[PASS] every separable term is recovered to better than 2 arcsec -- worst 0.1427 arcsec
+[PASS] at least one refused term is wrong by more than 100 arcsec -- worst 55785.9850 arcsec
+[PASS] the fit looks good by its residual alone -- post-fit rms 1.9069 arcsec against a declared sigma of 2
+
+CHECKS RUN: 4
+FAILED CHECKS (0): none

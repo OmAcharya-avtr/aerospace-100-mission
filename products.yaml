@@ -1431,7 +1431,7 @@ products:
     summary: "Decompose a pointing error budget from measured residuals with a confidence interval on every term and an explicit statement of which terms the observed geometry cannot separate. Weighted least squares over the declared pointing model design matrix with full covariance, condition number, per-term variance inflation, and the identifiable linear COMBINATIONS reported where individual terms are not separable; robust Huber and RANSAC-style fits alongside, because real residual sets carry acquisition-failure outliers, with the two fits' disagreement reported as a diagnostic rather than one silently preferred; term-by-term recovery verified against synthetic residual sets from known coefficients, the only way to verify an attribution is real. NO LEARNED COMPONENT, DELIBERATELY: the problem is a linear fit with a known design matrix whose entire difficulty is conditioning, a restricted geometry distribution makes standard terms mutually unidentifiable while least squares returns a confident split anyway, and the correct answer is a rank analysis - adding a model here would be the exact error this batch exists to avoid. Refraction term verified against an independent refraction calculation rather than against itself."
     ai_enabled: false
     validation_level: 2
-    status: NOT STARTED
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P085

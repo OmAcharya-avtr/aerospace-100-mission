@@ -1,0 +1,78 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q --junit-xml=junit.xml
+      - name: Test count from junit XML, never from stdout
+        run: |
+          python - <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse("junit.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          declared = int(suite.get("tests", "0"))
+          counted = len(suite.findall(".//testcase"))
+          print(f"declared {declared}, counted {counted}")
+          if declared == 0 or declared != counted:
+              sys.exit("junit.xml does not agree with itself, or no test ran")
+          PY
+      - name: CLI
+        run: |
+          python -m pointmodel --version
+          python -m pointmodel terms
+          python -m pointmodel compare --observations 200
+          python -m pointmodel identify --geometry narrow_el --observations 200
+          python -m pointmodel decompose --observations 200
+          python -m pointmodel outliers --observations 200 --outlier-fraction 0.06
+          python -m pointmodel refraction --steps 6
+      - name: Validation scripts
+        run: |
+          python validation/validate_term_recovery.py
+          python validation/validate_linearisation.py
+          python validation/validate_refraction.py
+          python validation/validate_identifiability.py
+          python validation/validate_robust.py
+          python validation/validate_negative_controls.py
+          python validation/validate_approx_audit.py
+          python validation/validate_cli.py
+          python validation/worked_example.py
+      - name: Validation scripts from the gate's working directory
+        run: |
+          cd validation
+          for script in validate_*.py worked_example.py; do
+            python "$script" > /dev/null
+          done
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/term_shapes.py
+          python examples/geometry_coverage.py
+          python examples/identifiability_map.py
+          python examples/null_space_directions.py
+          python examples/confident_split.py
+          python examples/confidence_intervals.py
+          python examples/budget_contributions.py
+          python examples/linearisation_bound.py
+          python examples/refraction_crosscheck.py
+          python examples/robust_vs_wls.py
