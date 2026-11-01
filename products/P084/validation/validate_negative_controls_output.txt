@@ -1,0 +1,165 @@
+
+==============================================================================
+transfergap -- negative controls, anchored on the truth
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+mapie            : not installed  (named in README; no number here is compared against it)
+crepes           : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P084 (printed relatively; see validation/_bootstrap.py)
+
+true E[d]                       : 5.119305 +/- 0.006100 kN.m
+true 0.95 quantile of d           : 12.782511 kN.m
+declared confidence             : 0.95
+trials per control              : 400
+binomial se at a rate of 0.95  : 0.010897
+
+A control FIRES when the quantity it watches crosses the declared criterion.
+Every criterion below is the DECLARED level with a three-standard-error
+Monte Carlo allowance, never a level chosen until the control passed.
+
+==============================================================================
+1. the mean bound: a corrupted slack must lose coverage
+==============================================================================
+The corruption is a factor on the slack of equation (3). The factor needed
+to GUARANTEE a miss is not assumed: it is derived from the sampling
+standard deviation of the sample mean at this n, printed below, so that the
+control cannot be too weak to fire. A control that cannot fire reads as
+evidence and is worse than no control.
+
+  sampling sd of the mean of 40 gaps : 0.609923 kN.m
+  Hoeffding slack at n=40            : 7.740455 kN.m
+  true E[d]                          : 5.119305 kN.m
+
+slack factor  corrupted bound minus truth, in sd of the mean  coverage of the TRUE mean  criterion  control     
+------------  ----------------------------------------------  -------------------------  ---------  ------------
++1.00         +12.69                                          1.0000                     0.9173     did not fire
++0.75         +9.52                                           1.0000                     0.9173     did not fire
++0.25         +3.17                                           1.0000                     0.9173     did not fire
++0.00         -0.00                                           0.4800                     0.9173     FIRED       
+-0.50         -6.35                                           0.0000                     0.9173     FIRED       
+-1.00         -12.69                                          0.0000                     0.9173     FIRED       
+
+[PASS] control: the correct Hoeffding bound at n=40 keeps its coverage (must NOT fire) -- did not fire; coverage 1.0000 against a criterion of 0.9173
+[PASS] control: a Hoeffding slack with the WRONG SIGN, factor -0.5, loses coverage of the true mean (must fire) -- FIRED; coverage 0.0000 against a criterion of 0.9173; the corrupted bound sits 6.35 sd of the sample mean BELOW the truth, so a miss is guaranteed and not lucky
+[PASS] control: a Hoeffding slack with the WRONG SIGN, factor -1, loses coverage of the true mean (must fire) -- FIRED; coverage 0.0000 against a criterion of 0.9173; the corrupted bound sits 12.69 sd of the sample mean BELOW the truth, so a miss is guaranteed and not lucky
+
+REPORTED AS FOUND, and it changed the design of this control. A slack
+SCALED DOWN does not lose coverage at n = 40 at any factor down to 0.25, and
+not even at 0.00 -- the bound reduced to the bare sample mean still covers
+the true mean on essentially every draw, because the sample mean of 40 gaps
+has a sampling sd of about 0.61 kN.m and is unbiased. The first version of
+this control used factors of 0.5 and 0.25 and did NOT fire, which is exactly
+the too-weak-control defect this mission has shipped before: the corruption
+was smaller than the quantity it had to overcome. The must-fire controls
+above are therefore SIGN errors, whose margin below the truth is computed
+from the sampling sd and printed, so the control is guaranteed to fire by
+construction rather than by luck.
+
+The same measurement says something about the bound itself: Hoeffding's
+inequality on a population with R = 40 kN.m and a mean of 5.1 is loose
+enough that its entire slack could be deleted without losing coverage at
+this sample size. That is the cost of distribution-freeness and it is the
+reason this package reports the slack in its own column.
+
+==============================================================================
+2. Wilks' limit: a sample below the requirement must fail the statement
+==============================================================================
+n   predicted 1 - p^n  measured rate  criterion  control     
+--  -----------------  -------------  ---------  ------------
+59  0.9515             0.9600         0.9173     did not fire
+45  0.9006             0.9200         0.9173     did not fire
+30  0.7854             0.8225         0.9173     FIRED       
+20  0.6415             0.6375         0.9173     FIRED       
+
+[PASS] control: Wilks' limit at the required n=59 reaches the declared confidence (must NOT fire) -- did not fire; measured rate 0.9600
+[PASS] control: Wilks' limit from only 30 measurements misses the declared confidence (must fire) -- FIRED; measured rate 0.8225, predicted 1 - p^n = 0.7854
+[PASS] control: Wilks' limit from only 20 measurements misses the declared confidence (must fire) -- FIRED; measured rate 0.6375, predicted 1 - p^n = 0.6415
+
+==============================================================================
+3. split conformal: an off-by-one order index must lose coverage
+==============================================================================
+index offset  k used  mean coverage on the pool  criterion  control     
+------------  ------  -------------------------  ---------  ------------
+0             58      0.9488                     0.9173     did not fire
+-1            57      0.9314                     0.9173     did not fire
+-3            55      0.9002                     0.9173     FIRED       
+-8            50      0.8181                     0.9173     FIRED       
+
+[PASS] control: the conformal limit at the index of equation (12) keeps its coverage (must NOT fire) -- did not fire; coverage 0.9488
+[PASS] control: a conformal order index short by 3 loses coverage (must fire) -- FIRED; coverage 0.9002 against a criterion of 0.9173
+[PASS] control: a conformal order index short by 8 loses coverage (must fire) -- FIRED; coverage 0.8181 against a criterion of 0.9173
+
+==============================================================================
+4. the exchangeability test: both directions
+==============================================================================
+The criterion is the DECLARED alpha of the test plus three standard errors,
+not a level chosen to make a control pass.
+
+campaign  statistic   rejection rate  criterion (alpha + 3 se)  control     
+--------  ----------  --------------  ------------------------  ------------
+random    trend       0.0500          0.0962                    did not fire
+random    half_split  0.0750          0.0962                    did not fire
+swept     trend       1.0000          0.0962                    FIRED       
+swept     half_split  1.0000          0.0962                    FIRED       
+
+[PASS] control: the trend test does not reject an exchangeable campaign above alpha (must NOT fire) -- did not fire; rejection rate 0.0500 at n=120
+[PASS] control: the trend test rejects the non-exchangeable swept campaign (must fire) -- FIRED; rejection rate 1.0000 at n=120
+[PASS] control: the half_split test does not reject an exchangeable campaign above alpha (must NOT fire) -- did not fire; rejection rate 0.0750 at n=120
+[PASS] control: the half_split test rejects the non-exchangeable swept campaign (must fire) -- FIRED; rejection rate 1.0000 at n=120
+
+==============================================================================
+5. the learned model: shuffled labels must destroy its discrimination
+==============================================================================
+The criterion is anchored on the TRUE conditional mean gap of equation (22),
+not on the model's own output. A model fitted to gaps that have been
+permuted relative to their operating conditions has no information left,
+and its rank correlation with the conditional truth must collapse to zero.
+
+training labels  rank correlation with the conditional truth  +/- se  criterion  control     
+---------------  -------------------------------------------  ------  ---------  ------------
+as measured      0.7309                                       0.0306  0.2000     did not fire
+labels shuffled  0.0215                                       0.0613  0.2000     FIRED       
+
+[PASS] control: the learned model fitted to its own measurements discriminates conditions (must NOT fire) -- did not fire; correlation 0.7309 +/- 0.0306 at n=60
+[PASS] control: the learned model fitted to shuffled labels loses all discrimination (must fire) -- FIRED; correlation 0.0215 +/- 0.0613
+
+==============================================================================
+6. the plug-in learned mean bound: it must be caught under-covering
+==============================================================================
+Equation (29) is in this package because it is the construction a programme
+would reach for and it has no guarantee. The control asserts that the
+measurement CATCHES it, anchored on the true mean.
+
+  coverage of the true mean at n=40, 200 trials: 0.6250
+  criterion                                    : 0.9038
+[PASS] control: the plug-in learned mean bound of equation (29) is caught under-covering (must fire) -- FIRED; coverage 0.6250 against a declared 0.95
+
+==============================================================================
+7. input validation: a range below the data must be refused
+==============================================================================
+[PASS] control: a declared R below the observed maximum is refused (must fire) -- FIRED; R = 9.0469 against an observed maximum of 18.0937 kN.m
+
+==============================================================================
+8. a corruption deliberately too small to detect must NOT fire
+==============================================================================
+A control that fires on everything is not a control. This one perturbs the
+gaps by one part in 1e13, far below any reported precision, and asserts
+that nothing changes: the Hoeffding bound moves by less than 1e-9 kN.m and
+the exchangeability verdict is unchanged.
+
+  bound before 12.221189859100, after 12.221189859100, change 5.915e-13 kN.m
+[PASS] control: a one-part-in-1e13 perturbation does not move the bound by 1e-9 (must NOT fire) -- did not fire; change 5.915e-13 kN.m
+[PASS] control: a one-part-in-1e13 perturbation does not change the exchangeability verdict (must NOT fire) -- did not fire; p 0.2600 before, 0.2600 after
+
+CHECKS RUN: 19
+CONTROLS: 19 declared, 11 fired
+FAILED CHECKS (0): none

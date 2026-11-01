@@ -1,0 +1,185 @@
+"""Run every validation script from four working directories, including the gate's.
+
+Why this is a committed script rather than a one-off shell loop
+--------------------------------------------------------------
+Three products in one batch of this mission passed every check in their own
+build and then failed the release gate, because the gate runs each validation
+script with its working directory set to the script's own directory rather
+than to the product root. Measured on one of them: exit 0 from the product
+root, exit 1 from anywhere else. The build agent, the agent's self-report and
+the coordinator's re-measurement all ran the scripts the same way. Three
+independent verifications agreeing does not help when they share an
+assumption, so the probe is committed and its output is committed with it.
+
+The four directories are the filesystem root, the system temporary directory,
+the repository root, and ``validation/`` -- which is what the gate uses.
+``python -I`` is deliberately **not** used: isolated mode strips the script's
+own directory from ``sys.path``, so ``import _bootstrap`` fails and the probe
+reports a failure that does not exist.
+
+The examples are probed too, from the repository root and from
+``examples/``, which are the two directories they are run from in practice.
+
+This script is slow: it runs the whole validation suite four times. Elapsed
+times are recorded for information and are explicitly unstable.
+"""
+
+from __future__ import annotations
+
+import subprocess
+import sys
+import tempfile
+import time
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+
+from _bootstrap import Tee, bootstrap, environment_lines, relative, subprocess_environment
+
+ROOT = bootstrap()
+
+from transfergap.report import format_table  # noqa: E402
+
+VALIDATION = ROOT / "validation"
+EXAMPLES = ROOT / "examples"
+
+#: Validation scripts probed: every one but this, which would recurse, and not
+#: the underscore-prefixed support modules, which are imported rather than run.
+SCRIPTS: tuple[tuple[str, Path], ...] = tuple(
+    (f"validation/{path.name}", path)
+    for path in sorted(VALIDATION.glob("*.py"))
+    if not path.name.startswith("_") and path.name != Path(__file__).name
+)
+
+EXAMPLE_SCRIPTS: tuple[tuple[str, Path], ...] = tuple(
+    (f"examples/{path.name}", path)
+    for path in sorted(EXAMPLES.glob("*.py"))
+    if path.name != "_common.py"
+)
+
+DIRECTORIES: tuple[tuple[str, Path], ...] = (
+    ("filesystem root", Path("/")),
+    ("temporary directory", Path(tempfile.gettempdir())),
+    ("repository root", ROOT),
+    ("validation (the gate's cwd)", VALIDATION),
+)
+
+EXAMPLE_DIRECTORIES: tuple[tuple[str, Path], ...] = (
+    ("repository root", ROOT),
+    ("examples", EXAMPLES),
+)
+
+
+def run_one(
+    label: str,
+    script: Path,
+    directory_label: str,
+    directory: Path,
+    environment: dict[str, str],
+) -> tuple[str, str, int, float, str]:
+    """Run ``script`` with ``cwd=directory`` and return its status and elapsed time."""
+    started = time.perf_counter()
+    completed = subprocess.run(  # noqa: S603 - fixed argv, no shell
+        [sys.executable, str(script)],
+        cwd=str(directory),
+        capture_output=True,
+        text=True,
+        check=False,
+        env=environment,
+    )
+    return (
+        label,
+        directory_label,
+        int(completed.returncode),
+        time.perf_counter() - started,
+        completed.stderr.strip()[-300:],
+    )
+
+
+def probe(
+    out: Tee,
+    title: str,
+    scripts: tuple[tuple[str, Path], ...],
+    directories: tuple[tuple[str, Path], ...],
+    environment: dict[str, str],
+) -> int:
+    """Run every script from every directory and tabulate the exit statuses."""
+    out.rule(title)
+    jobs = [
+        (label, script, directory_label, directory, environment)
+        for label, script in scripts
+        for directory_label, directory in directories
+    ]
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        results = list(pool.map(lambda job: run_one(*job), jobs))
+
+    by_script: dict[str, dict[str, tuple[int, float, str]]] = {}
+    for label, directory_label, status, elapsed, stderr in results:
+        by_script.setdefault(label, {})[directory_label] = (status, elapsed, stderr)
+
+    labels = [label for label, _ in directories]
+    rows = []
+    failures = 0
+    for label, _ in scripts:
+        row = [label]
+        for directory_label in labels:
+            status, _, _ = by_script[label][directory_label]
+            row.append(str(status))
+            if status != 0:
+                failures += 1
+        row.append("ok" if all(by_script[label][n][0] == 0 for n in labels) else "FAILED")
+        rows.append(row)
+    out(format_table(["script", *labels, "verdict"], rows))
+    out("")
+    out(f"non-zero exit statuses : {failures} of {len(jobs)}")
+    for label, _ in scripts:
+        for directory_label in labels:
+            status, _, stderr = by_script[label][directory_label]
+            if status != 0 and stderr:
+                out(f"  {label} from {directory_label}: {stderr}")
+    out("")
+    out("elapsed seconds -- UNSTABLE, two subprocesses at a time on two cores")
+    out(format_table(
+        ["script", *labels],
+        [
+            [label, *[f"{by_script[label][n][1]:.1f}" for n in labels]]
+            for label, _ in scripts
+        ],
+    ))
+    return failures
+
+
+def main() -> int:
+    out = Tee("probe_working_directories_output.txt")
+    out.rule("transfergap -- every script, from every working directory that matters")
+    for line in environment_lines():
+        out(line)
+    out("")
+    out(f"validation scripts probed : {len(SCRIPTS)}")
+    out(f"example scripts probed    : {len(EXAMPLE_SCRIPTS)}")
+    for label, directory in DIRECTORIES:
+        shown = relative(directory) if directory == ROOT or ROOT in directory.parents else label
+        out(f"  {label:<28s} -> {shown}")
+    out("")
+    out("Note: python -I is NOT used. Isolated mode removes the script's own")
+    out("directory from sys.path, so 'import _bootstrap' fails and the probe")
+    out("reports a failure that does not exist.")
+
+    environment = subprocess_environment()
+    failures = probe(
+        out, "validation scripts, from four working directories", SCRIPTS, DIRECTORIES,
+        environment,
+    )
+    failures += probe(
+        out, "examples, from two working directories", EXAMPLE_SCRIPTS,
+        EXAMPLE_DIRECTORIES, environment,
+    )
+    out("")
+    out.check("every script exits zero from every working directory probed", failures == 0,
+              f"{failures} non-zero exit statuses in total")
+    path = out.save()
+    print(f"\nwritten: {path}")
+    return 1 if out.failures else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

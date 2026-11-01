@@ -1,0 +1,157 @@
+
+==============================================================================
+transfergap -- bounds from mathematics this implementation does not use
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+mapie            : not installed  (named in README; no number here is compared against it)
+crepes           : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P084 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+A. Hoeffding's exponential bound against the exact binomial tail
+==============================================================================
+The two-point distribution on {0, R} is the extremal case for Hoeffding's
+inequality at a fixed range, so this is where the bound is tightest. The
+exact tail of equation (28) must never exceed the exponential bound.
+
+The comparison is in log space with an allowance of 64 eps times the
+magnitude of log(bound), because the two sides span nineteen decades and an
+absolute allowance on the probabilities would be vacuous at one end and
+impossible at the other.
+
+n    p    t/R   exact tail  Hoeffding bound  exact/bound  verdict
+---  ---  ----  ----------  ---------------  -----------  -------
+10   0.1  0.05  2.6390e-01  9.5123e-01       2.7743e-01   ok     
+10   0.1  0.1   2.6390e-01  8.1873e-01       3.2233e-01   ok     
+10   0.1  0.2   1.2795e-02  4.4933e-01       2.8476e-02   ok     
+10   0.1  0.35  1.6349e-03  8.6294e-02       1.8946e-02   ok     
+10   0.3  0.05  3.5039e-01  9.5123e-01       3.6835e-01   ok     
+10   0.3  0.1   3.5039e-01  8.1873e-01       4.2797e-01   ok     
+10   0.3  0.2   1.5027e-01  4.4933e-01       3.3443e-01   ok     
+10   0.3  0.35  1.0592e-02  8.6294e-02       1.2274e-01   ok     
+10   0.5  0.05  3.7695e-01  9.5123e-01       3.9628e-01   ok     
+10   0.5  0.1   3.7695e-01  8.1873e-01       4.6041e-01   ok     
+10   0.5  0.2   1.7188e-01  4.4933e-01       3.8251e-01   ok     
+10   0.5  0.35  1.0742e-02  8.6294e-02       1.2448e-01   ok     
+25   0.1  0.05  2.3641e-01  8.8250e-01       2.6789e-01   ok     
+25   0.1  0.1   9.7994e-02  6.0653e-01       1.6156e-01   ok     
+25   0.1  0.2   2.2613e-03  1.3534e-01       1.6709e-02   ok     
+25   0.1  0.35  1.4839e-06  2.1875e-03       6.7837e-04   ok     
+25   0.3  0.05  3.2307e-01  8.8250e-01       3.6609e-01   ok     
+25   0.3  0.1   1.8944e-01  6.0653e-01       3.1233e-01   ok     
+25   0.3  0.2   1.7470e-02  1.3534e-01       1.2908e-01   ok     
+25   0.3  0.35  9.8624e-05  2.1875e-03       4.5086e-02   ok     
+25   0.5  0.05  3.4502e-01  8.8250e-01       3.9096e-01   ok     
+25   0.5  0.1   2.1218e-01  6.0653e-01       3.4982e-01   ok     
+25   0.5  0.2   2.1643e-02  1.3534e-01       1.5992e-01   ok     
+25   0.5  0.35  7.8261e-05  2.1875e-03       3.5777e-02   ok     
+50   0.1  0.05  1.2215e-01  7.7880e-01       1.5684e-01   ok     
+50   0.1  0.1   2.4538e-02  3.6788e-01       6.6701e-02   ok     
+50   0.1  0.2   1.7497e-05  1.8316e-02       9.5530e-04   ok     
+50   0.1  0.35  7.1695e-11  4.7851e-06       1.4983e-05   ok     
+50   0.3  0.05  2.1781e-01  7.7880e-01       2.7967e-01   ok     
+50   0.3  0.1   8.4803e-02  3.6788e-01       2.3052e-01   ok     
+50   0.3  0.2   2.3695e-03  1.8316e-02       1.2937e-01   ok     
+50   0.3  0.35  1.6112e-07  4.7851e-06       3.3671e-02   ok     
+50   0.5  0.05  2.3994e-01  7.7880e-01       3.0809e-01   ok     
+50   0.5  0.1   1.0132e-01  3.6788e-01       2.7541e-01   ok     
+50   0.5  0.2   3.3002e-03  1.8316e-02       1.8019e-01   ok     
+50   0.5  0.35  1.0493e-07  4.7851e-06       2.1929e-02   ok     
+100  0.1  0.05  3.9891e-02  6.0653e-01       6.5768e-02   ok     
+100  0.1  0.1   1.9786e-03  1.3534e-01       1.4620e-02   ok     
+100  0.1  0.2   6.0470e-09  3.3546e-04       1.8026e-05   ok     
+100  0.1  0.35  2.1546e-19  2.2897e-11       9.4098e-09   ok     
+100  0.3  0.05  1.6286e-01  6.0653e-01       2.6851e-01   ok     
+100  0.3  0.1   2.0989e-02  1.3534e-01       1.5509e-01   ok     
+100  0.3  0.2   2.2061e-05  3.3546e-04       6.5763e-02   ok     
+100  0.3  0.35  5.5103e-13  2.2897e-11       2.4065e-02   ok     
+100  0.5  0.05  1.3563e-01  6.0653e-01       2.2361e-01   ok     
+100  0.5  0.1   2.8444e-02  1.3534e-01       2.1017e-01   ok     
+100  0.5  0.2   3.9251e-05  3.3546e-04       1.1700e-01   ok     
+100  0.5  0.35  2.4127e-13  2.2897e-11       1.0537e-02   ok     
+250  0.1  0.05  6.2258e-03  2.8650e-01       2.1730e-02   ok     
+250  0.1  0.1   1.6631e-06  6.7379e-03       2.4683e-04   ok     
+250  0.1  0.2   3.8828e-19  2.0612e-09       1.8838e-10   ok     
+250  0.1  0.35  1.7958e-46  2.5088e-27       7.1582e-20   ok     
+250  0.3  0.05  4.3735e-02  2.8650e-01       1.5265e-01   ok     
+250  0.3  0.1   4.7934e-04  6.7379e-03       7.1140e-02   ok     
+250  0.3  0.2   2.9809e-11  2.0612e-09       1.4462e-02   ok     
+250  0.3  0.35  1.9474e-30  2.5088e-27       7.7622e-04   ok     
+250  0.5  0.05  5.6833e-02  2.8650e-01       1.9837e-01   ok     
+250  0.5  0.1   9.4165e-04  6.7379e-03       1.3975e-01   ok     
+250  0.5  0.2   1.1052e-10  2.0612e-09       5.3622e-02   ok     
+250  0.5  0.35  1.5546e-31  2.5088e-27       6.1967e-05   ok     
+500  0.1  0.05  1.7045e-04  8.2085e-02       2.0765e-03   ok     
+500  0.1  0.1   1.8018e-11  4.5400e-05       3.9687e-07   ok     
+500  0.1  0.2   5.7638e-36  4.2484e-18       1.3567e-18   ok     
+500  0.1  0.35  2.8944e-90  6.2940e-54       4.5986e-37   ok     
+500  0.3  0.05  9.0576e-03  8.2085e-02       1.1034e-01   ok     
+500  0.3  0.1   1.2314e-06  4.5400e-05       2.7124e-02   ok     
+500  0.3  0.2   7.2768e-21  4.2484e-18       1.7128e-03   ok     
+500  0.3  0.35  1.7128e-58  6.2940e-54       2.7214e-05   ok     
+500  0.5  0.05  1.4163e-02  8.2085e-02       1.7254e-01   ok     
+500  0.5  0.1   4.4700e-06  4.5400e-05       9.8459e-02   ok     
+500  0.5  0.2   9.1712e-20  4.2484e-18       2.1588e-02   ok     
+500  0.5  0.35  1.1405e-60  6.2940e-54       1.8120e-07   ok     
+
+grid points                     : 72
+violations                      : 0
+worst exact/bound ratio         : 0.460412
+points where the ratio is < 1e-6: 7 (the bound is loose there, which
+                                  is a property of the inequality and is why
+                                  this product reports the bound and not a
+                                  claim that it is tight)
+
+[PASS] the exact binomial tail never exceeds Hoeffding's exponential bound -- 72 grid points, worst ratio 0.460412
+[PASS] the bound is not vacuous everywhere: at least one grid point has a ratio above 0.1 -- worst ratio 0.460412; a bound never within a decade of the truth would be untestable
+
+==============================================================================
+B. split conformal against the two-sided finite-sample bracket
+==============================================================================
+Equation (13) is two-sided, so a merely conservative limit fails it. The
+test uses uniform scores, where the truth is known exactly, and the
+allowance is four binomial standard errors of the measured rate.
+
+n    k    bracket low  bracket high  measured  +/- 4 se  verdict
+---  ---  -----------  ------------  --------  --------  -------
+19   19   0.950000     1.000000      0.948350  0.004359  inside 
+39   38   0.950000     0.975000      0.948625  0.004359  inside 
+59   57   0.950000     0.966667      0.947675  0.004359  inside 
+99   95   0.950000     0.960000      0.948950  0.004359  inside 
+199  190  0.950000     0.955000      0.947175  0.004359  inside 
+
+[PASS] the measured conformal coverage lies inside the bracket of equation (13) at every n -- 40000 repetitions per row, 0 rows outside
+
+The upper half of the bracket is the part that matters here. A limit that
+simply takes the sample maximum would have a coverage above it at every n,
+so passing this check is evidence that the order index of equation (12) is
+the right one and not merely a safe one.
+
+==============================================================================
+C. Wilks' required n against the Beta(n, 1) order-statistic law
+==============================================================================
+The implementation computes ceil(ln delta / ln p). The check measures the
+distribution of the achieved coverage by Monte Carlo and compares it with
+scipy.stats.beta(n, 1), a different derivation of the same fact.
+
+p     conf  required n  Beta(n,1) sf  1 - p^n   measured  +/- 4 se  verdict
+----  ----  ----------  ------------  --------  --------  --------  -------
+0.9   0.9   22          0.901523      0.901523  0.900925  0.005959  ok     
+0.95  0.95  59          0.951505      0.951505  0.951025  0.004296  ok     
+0.99  0.95  299         0.950464      0.950464  0.950175  0.004340  ok     
+
+[PASS] the measured coverage distribution matches the Beta(n, 1) law and reaches the declared confidence -- 40000 repetitions per row
+
+The required n at p = 0.95, confidence 0.95 is 59.
+
+CHECKS RUN: 4
+FAILED CHECKS (0): none

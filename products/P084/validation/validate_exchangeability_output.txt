@@ -1,0 +1,95 @@
+
+==============================================================================
+transfergap -- the exchangeability test, size and power
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+mapie            : not installed  (named in README; no number here is compared against it)
+crepes           : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P084 (printed relatively; see validation/_bootstrap.py)
+
+declared alpha            : 0.05
+permutations per test     : 399 (smallest attainable p-value 0.0025)
+independent campaigns     : 300 per table cell
+binomial standard error at a rate of 0.05: 0.0126
+
+The 'random' campaign draws every operating condition independently and is
+exchangeable by construction. The 'swept' campaign sweeps Mach number
+monotonically across the index, as a flight-test card is actually flown, so
+the discrepancy distribution depends on where in the campaign a point sits
+and the sample is NOT exchangeable in the index.
+
+==============================================================================
+1. SIZE on the exchangeable campaign -- must not exceed alpha
+==============================================================================
+statistic   n    rejection rate  +/- se  alpha + 3 se  verdict
+----------  ---  --------------  ------  ------------  -------
+trend       15   0.0567          0.0133  0.0877        ok     
+trend       25   0.0333          0.0104  0.0877        ok     
+trend       40   0.0667          0.0144  0.0877        ok     
+trend       60   0.0567          0.0133  0.0877        ok     
+trend       120  0.0767          0.0154  0.0877        ok     
+half_split  15   0.0533          0.0130  0.0877        ok     
+half_split  25   0.0400          0.0113  0.0877        ok     
+half_split  40   0.0467          0.0122  0.0877        ok     
+half_split  60   0.0333          0.0104  0.0877        ok     
+half_split  120  0.0733          0.0151  0.0877        ok     
+
+[PASS] the test's size does not exceed the declared alpha on exchangeable data -- 10 cells, 0 above alpha + 3 se
+
+==============================================================================
+2. POWER on the deliberately non-exchangeable swept campaign
+==============================================================================
+statistic   n    rejection rate (power)  +/- se
+----------  ---  ----------------------  ------
+trend       15   0.4300                  0.0286
+trend       25   0.6467                  0.0276
+trend       40   0.8000                  0.0231
+trend       60   0.9500                  0.0126
+trend       120  0.9967                  0.0033
+half_split  15   0.4333                  0.0286
+half_split  25   0.7067                  0.0263
+half_split  40   0.8867                  0.0183
+half_split  60   0.9633                  0.0109
+half_split  120  1.0000                  0.0000
+
+REPORTED AS FOUND. The power is not 1.0 at the sample sizes this product is
+about, and that is the honest and useful number: at n = 15 the test misses a
+genuinely non-exchangeable campaign most of the time. A programme with
+fifteen paired points cannot establish that its conformal bound is valid,
+and the distribution-free bound of equation (3), which needs no such
+assumption, is the only answer available to it.
+
+[PASS] the trend statistic has power above 0.80 at n = 60 or more -- n=60 0.9500, n=120 0.9967
+[PASS] the trend statistic has power well below 1.0 at n = 15 -- n=15 power 0.4300; a test that claimed to detect drift from fifteen points would be the defect here
+[PASS] the half_split statistic has power above 0.80 at n = 60 or more -- n=60 0.9633, n=120 1.0000
+[PASS] the half_split statistic has power well below 1.0 at n = 15 -- n=15 power 0.4333; a test that claimed to detect drift from fifteen points would be the defect here
+
+==============================================================================
+3. a single campaign is not evidence
+==============================================================================
+The campaign at n = 40, seed 0, of the 'swept' shape -- the one the command
+line prints by default -- is shown here against the measured power, so that
+a reader who runs that command and sees a non-rejection knows why.
+
+statistic   observed  p       verdict on this one draw  measured power at n=40
+----------  --------  ------  ------------------------  ----------------------
+trend       0.1614    0.3200  not rejected              0.8000                
+half_split  2.1690    0.1250  not rejected              0.8867                
+
+A hard case for comparison: 40 strictly increasing values, where the trend
+statistic takes its maximum of 1.0 and no permutation can match it.
+  observed 1.000000, p = 0.002500 (the floor, 1/(B+1) = 0.002500)
+[PASS] a strictly monotone sample gives the smallest attainable p-value -- p = 0.002500
+[PASS] the p-value is never zero, as equation (18) requires -- the +1 in both numerator and denominator is what makes this a valid p-value
+
+CHECKS RUN: 7
+FAILED CHECKS (0): none

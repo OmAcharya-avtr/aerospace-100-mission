@@ -1,0 +1,214 @@
+
+==============================================================================
+transfergap -- coverage versus width: baseline against learned model
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+mapie            : not installed  (named in README; no number here is compared against it)
+crepes           : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P084 (printed relatively; see validation/_bootstrap.py)
+
+declared confidence  : 0.95
+declared proportion  : 0.95
+field sample sizes   : [15, 25, 40, 60]
+repetitions          : 80 independent campaigns per cell
+held-out pool        : 2500 fresh paired measurements
+true E[d]            : 5.119305 +/- 0.006100 kN.m
+true 0.95 quantile of d : 12.782511 kN.m
+censoring at R       : clip fraction 0.000000, so the neglect of the clip in equation (22) is below the printed precision
+
+Model hyperparameters are DECLARED, not tuned. There is no tuning loop in
+this repository.
+  {'n_estimators': 80, 'learning_rate': 0.12, 'max_depth': 2, 'min_samples_leaf': 3, 'subsample': 1.0}
+
+The coverage study fits the upper quantile ensemble only (fit_full=False),
+because only the upper band is scored and three ensembles cost three times
+the compute. The full three-quantile model, with its interval and its
+crossing diagnostic, is measured separately in part 3.
+
+==============================================================================
+1. the MEAN target: bounds on E[d]
+==============================================================================
+method                n   declared  coverage  +/- se  tol rate  mean upper [kN.m]  fails  dist-free  verdict     
+--------------------  --  --------  --------  ------  --------  -----------------  -----  ---------  ------------
+hoeffding             15  0.950     1.0000    0.0000  -         17.710             0      yes        covers      
+empirical_bernstein   15  0.950     1.0000    0.0000  -         32.224             0      yes        covers      
+bootstrap_percentile  15  0.950     0.8875    0.0353  -         6.632              0      NO         covers      
+learned_mean_plugin   15  0.950     0.5750    0.0553  -         5.276              0      NO         UNDER-COVERS
+hoeffding             25  0.950     1.0000    0.0000  -         15.132             0      yes        covers      
+empirical_bernstein   25  0.950     1.0000    0.0000  -         21.781             0      yes        covers      
+bootstrap_percentile  25  0.950     0.9375    0.0271  -         6.626              0      NO         covers      
+learned_mean_plugin   25  0.950     0.6375    0.0537  -         5.419              0      NO         UNDER-COVERS
+hoeffding             40  0.950     1.0000    0.0000  -         12.895             0      yes        covers      
+empirical_bernstein   40  0.950     1.0000    0.0000  -         15.624             0      yes        covers      
+bootstrap_percentile  40  0.950     0.9500    0.0244  -         6.166              0      NO         covers      
+learned_mean_plugin   40  0.950     0.7000    0.0512  -         5.471              0      NO         UNDER-COVERS
+hoeffding             60  0.950     1.0000    0.0000  -         11.547             0      yes        covers      
+empirical_bernstein   60  0.950     1.0000    0.0000  -         12.426             0      yes        covers      
+bootstrap_percentile  60  0.950     0.9500    0.0244  -         6.070              0      NO         covers      
+learned_mean_plugin   60  0.950     0.7750    0.0467  -         5.459              0      NO         UNDER-COVERS
+
+coverage is the achieved rate; mean upper is the width. The verdict is on
+COVERAGE ONLY: a tighter limit that under-covers is worse than a loose one
+that holds. 'covers' means not measurably below the declared level, with a
+two-standard-error Monte Carlo allowance, not that coverage is proved.
+tol rate is the fraction of repetitions whose own coverage reached the
+declared proportion -- the training-conditional statement a tolerance
+interval makes and a marginal conformal interval does not.
+
+reference: the true E[d] is 5.119305 kN.m. 'mean upper' is
+the bound's value; the excess over the truth is the price of the guarantee.
+method                n   coverage  mean upper [kN.m]  excess over truth [kN.m]  dist-free
+--------------------  --  --------  -----------------  ------------------------  ---------
+hoeffding             15  1.0000    17.7105            12.5912                   yes      
+empirical_bernstein   15  1.0000    32.2240            27.1047                   yes      
+bootstrap_percentile  15  0.8875    6.6319             1.5126                    NO       
+learned_mean_plugin   15  0.5750    5.2758             0.1565                    NO       
+hoeffding             25  1.0000    15.1323            10.0130                   yes      
+empirical_bernstein   25  1.0000    21.7808            16.6615                   yes      
+bootstrap_percentile  25  0.9375    6.6262             1.5069                    NO       
+learned_mean_plugin   25  0.6375    5.4187             0.2993                    NO       
+hoeffding             40  1.0000    12.8947            7.7754                    yes      
+empirical_bernstein   40  1.0000    15.6242            10.5049                   yes      
+bootstrap_percentile  40  0.9500    6.1660             1.0467                    NO       
+learned_mean_plugin   40  0.7000    5.4709             0.3516                    NO       
+hoeffding             60  1.0000    11.5470            6.4277                    yes      
+empirical_bernstein   60  1.0000    12.4260            7.3067                    yes      
+bootstrap_percentile  60  0.9500    6.0697             0.9504                    NO       
+learned_mean_plugin   60  0.7750    5.4588             0.3395                    NO       
+
+==============================================================================
+2. the QUANTILE target: limits covering a future field measurement
+==============================================================================
+method                      n   declared  coverage  +/- se  tol rate  mean upper [kN.m]  fails  dist-free  verdict     
+--------------------------  --  --------  --------  ------  --------  -----------------  -----  ---------  ------------
+wilks_tolerance             15  0.950     nan       nan     nan       nan                80     yes        no limit    
+split_conformal             15  0.950     nan       nan     nan       nan                80     yes        no limit    
+normal_tolerance            15  0.950     0.9588    0.0064  0.7000    14.558             0      NO         covers      
+learned_quantile            15  0.950     0.8761    0.0109  0.2125    10.233             0      NO         UNDER-COVERS
+learned_quantile_conformal  15  0.950     nan       nan     nan       nan                80     yes        no limit    
+wilks_tolerance             25  0.950     nan       nan     nan       nan                80     yes        no limit    
+split_conformal             25  0.950     0.9577    0.0068  0.7125    14.701             0      yes        covers      
+normal_tolerance            25  0.950     0.9560    0.0060  0.6625    13.819             0      NO         covers      
+learned_quantile            25  0.950     0.8754    0.0077  0.0625    9.799              0      NO         UNDER-COVERS
+learned_quantile_conformal  25  0.950     nan       nan     nan       nan                80     yes        no limit    
+wilks_tolerance             40  0.950     nan       nan     nan       nan                80     yes        no limit    
+split_conformal             40  0.950     0.9524    0.0059  0.6250    13.528             0      yes        covers      
+normal_tolerance            40  0.950     0.9551    0.0053  0.6250    13.415             0      NO         covers      
+learned_quantile            40  0.950     0.8769    0.0078  0.0625    9.539              0      NO         UNDER-COVERS
+learned_quantile_conformal  40  0.950     0.9571    0.0064  0.6375    14.591             0      yes        covers      
+wilks_tolerance             60  0.950     0.9868    0.0046  0.9750    18.292             0      yes        covers      
+split_conformal             60  0.950     0.9558    0.0053  0.6375    13.468             0      yes        covers      
+normal_tolerance            60  0.950     0.9535    0.0050  0.5875    13.077             0      NO         covers      
+learned_quantile            60  0.950     0.8843    0.0063  0.0500    9.433              0      NO         UNDER-COVERS
+learned_quantile_conformal  60  0.950     0.9721    0.0050  0.8625    14.445             0      yes        covers      
+
+coverage is the achieved rate; mean upper is the width. The verdict is on
+COVERAGE ONLY: a tighter limit that under-covers is worse than a loose one
+that holds. 'covers' means not measurably below the declared level, with a
+two-standard-error Monte Carlo allowance, not that coverage is proved.
+tol rate is the fraction of repetitions whose own coverage reached the
+declared proportion -- the training-conditional statement a tolerance
+interval makes and a marginal conformal interval does not.
+
+THE COMPARISON THIS PRODUCT EXISTS TO MAKE, read off the table above:
+
+  n = 15:
+    distribution-free Wilks limit  : NO LIMIT EXISTS at this n (equation 7 needs 59)
+    split conformal                : NO LIMIT EXISTS at this n (equation 12 needs 19)
+    learned conditional quantile   : coverage 0.8761, width 10.233 kN.m
+    learned, conformalised         : NO LIMIT EXISTS at this n (the split leaves fewer than 19 calibration scores)
+  n = 25:
+    distribution-free Wilks limit  : NO LIMIT EXISTS at this n (equation 7 needs 59)
+    split conformal                : coverage 0.9577, width 14.701 kN.m
+    learned conditional quantile   : coverage 0.8754, width 9.799 kN.m
+    learned, conformalised         : NO LIMIT EXISTS at this n (the split leaves fewer than 19 calibration scores)
+  n = 40:
+    distribution-free Wilks limit  : NO LIMIT EXISTS at this n (equation 7 needs 59)
+    split conformal                : coverage 0.9524, width 13.528 kN.m
+    learned conditional quantile   : coverage 0.8769, width 9.539 kN.m
+    learned, conformalised         : coverage 0.9571, width 14.591 kN.m
+  n = 60:
+    distribution-free Wilks limit  : coverage 0.9868, width 18.292 kN.m
+    split conformal                : coverage 0.9558, width 13.468 kN.m
+    learned conditional quantile   : coverage 0.8843, width 9.433 kN.m
+    learned, conformalised         : coverage 0.9721, width 14.445 kN.m
+
+[PASS] wilks_tolerance at n=15 correctly refuses to produce a limit -- 80 of 80 repetitions raised
+[PASS] split_conformal at n=15 correctly refuses to produce a limit -- 80 of 80 repetitions raised
+[PASS] learned_quantile_conformal at n=15 correctly refuses to produce a limit -- 80 of 80 repetitions raised
+[PASS] wilks_tolerance at n=25 correctly refuses to produce a limit -- 80 of 80 repetitions raised
+[PASS] split_conformal at n=25 covers its declared 0.95 -- coverage 0.9577 +/- 0.0068, width 14.701 kN.m
+[PASS] learned_quantile_conformal at n=25 correctly refuses to produce a limit -- 80 of 80 repetitions raised
+[PASS] wilks_tolerance at n=40 correctly refuses to produce a limit -- 80 of 80 repetitions raised
+[PASS] split_conformal at n=40 covers its declared 0.95 -- coverage 0.9524 +/- 0.0059, width 13.528 kN.m
+[PASS] learned_quantile_conformal at n=40 covers its declared 0.95 -- coverage 0.9571 +/- 0.0064, width 14.591 kN.m
+[PASS] wilks_tolerance at n=60 covers its declared 0.95 -- coverage 0.9868 +/- 0.0046, width 18.292 kN.m
+[PASS] split_conformal at n=60 covers its declared 0.95 -- coverage 0.9558 +/- 0.0053, width 13.468 kN.m
+[PASS] learned_quantile_conformal at n=60 covers its declared 0.95 -- coverage 0.9721 +/- 0.0050, width 14.445 kN.m
+
+REPORTED AS FOUND, and it is the result the specification predicted:
+  the raw learned conditional quantile under-covers at 4 of 4 field sample sizes.
+    n = 15: coverage 0.8761 +/- 0.0109 against a declared 0.95, width 10.233 kN.m (UNDER-COVERS)
+    n = 25: coverage 0.8754 +/- 0.0077 against a declared 0.95, width 9.799 kN.m (UNDER-COVERS)
+    n = 40: coverage 0.8769 +/- 0.0078 against a declared 0.95, width 9.539 kN.m (UNDER-COVERS)
+    n = 60: coverage 0.8843 +/- 0.0063 against a declared 0.95, width 9.433 kN.m (UNDER-COVERS)
+
+  It is also the TIGHTEST limit in the table at every n, which is exactly
+  why tightness is not the scoring rule. A limit that is 30 per cent
+  narrower and misses the declared coverage by several standard errors is
+  not a better answer; it is a worse one wearing a better number.
+
+  The conformalised learned limit recovers the coverage and gives back the
+  width, and it needs MORE data than the model does: the calibration split
+  must leave at least 19 scores for equation (12), so it does not exist
+  below n = 40 at a half-and-half split while the raw model happily returns
+  a number from 15 points.
+
+[PASS] the raw learned conditional quantile is measurably below its declared coverage at a field sample size of tens -- 4 of 4 sizes under-cover; this is the specification's stated expectation and it is confirmed, not assumed
+[PASS] at every n where both exist, a distribution-free limit covers and the raw learned limit is narrower than it -- tightness without coverage, measured
+
+==============================================================================
+3. what the learned model is for: CONDITIONAL discrimination
+==============================================================================
+No marginal bound in this package can say the twin is worse at Mach 0.9.
+The learned model can, and that is measured here against the true
+conditional mean gap of equation (22), separately from its coverage.
+
+n   rank correlation with the true conditional mean  +/- sd over 12 draws  quantile crossing rate
+--  -----------------------------------------------  --------------------  ----------------------
+15  0.5371                                           0.2707                0.025300              
+25  0.6007                                           0.2732                0.043600              
+40  0.6358                                           0.1887                0.031333              
+60  0.6793                                           0.1385                0.019867              
+
+The correlation is Spearman's, between the model's conditional median and
+the true conditional mean gap, over the pool ordered by the truth. It is
+the model's discrimination and not its calibration: a model can rank
+conditions perfectly and still under-cover, and at these sample sizes it
+does both.
+
+Quantile crossing is the symptom of thin training data: three independently
+fitted ensembles can return an upper quantile below the median. The rate is
+reported rather than sorted away, because sorting hides how thin the data
+was.
+
+==============================================================================
+compute
+==============================================================================
+model and scoring wall clock: 55.7 s over 56 blocks
+declared budget             : under 180 s on two cores
+[PASS] the whole study finishes inside the declared three-minute budget -- 55.7 s
+
+This model is not certified for operational flight use.
+
+CHECKS RUN: 15
+FAILED CHECKS (0): none

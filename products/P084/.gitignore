@@ -1,0 +1,19 @@
+# Scratch-file patterns are ANCHORED with a leading slash. A pattern with no
+# slash matches at ANY depth: a bare junit.xml in a product .gitignore silently
+# excluded a required committed fixture in P060 of this mission, and a cold
+# clone then failed with 17 failures and 9 errors while every local check
+# passed.
+__pycache__/
+*.py[cod]
+*.egg-info/
+/build/
+/dist/
+/.venv/
+/venv/
+/.pytest_cache/
+/.hypothesis/
+/.ruff_cache/
+/.coverage
+/htmlcov/
+/junit.xml
+/.config/

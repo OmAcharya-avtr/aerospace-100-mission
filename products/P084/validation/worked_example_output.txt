@@ -1,0 +1,119 @@
+
+==============================================================================
+transfergap -- a fifteen-point campaign, worked through
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+mapie            : not installed  (named in README; no number here is compared against it)
+crepes           : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P084 (printed relatively; see validation/_bootstrap.py)
+
+paired measurements : 15
+unit                : kN.m
+declared range R    : 40.0000 kN.m
+operating conditions: mach, altitude_km, alpha_deg, load_factor
+
+the fifteen discrepancies, in the order flown:
+  3.469  4.075  15.229  5.724  3.340  4.509  5.991  3.681  6.848  1.710  9.041  11.320  2.021  6.779  5.172
+  sample mean 5.9271 kN.m, sd 3.6230, max 15.2290
+
+==============================================================================
+step 1 -- test the assumption before using anything that rests on it
+==============================================================================
+statistic   n   perms  observed  null mean  null sd  p       verdict     
+----------  --  -----  --------  ---------  -------  ------  ------------
+trend       15  1999   0.1179    0.2184     0.1578   0.6905  not rejected
+half_split  15  1999   0.0790    1.6122     1.1194   0.9675  not rejected
+
+A rejection is evidence AGAINST exchangeability: the bootstrap and split-
+conformal limits have no guarantee on that sample. A non-rejection is not
+evidence FOR exchangeability; these two statistics have power against drift
+and against a step change and little against anything else.
+
+At n = 15 the measured POWER of this test against the swept-card
+alternative is 0.43, so a non-rejection here is close to uninformative.
+That is itself the answer: a fifteen-point campaign cannot establish the
+assumption its tighter bounds need, so the distribution-free bound is the
+one to quote.
+
+==============================================================================
+step 2 -- the bounds that exist at this sample size
+==============================================================================
+method                target    n   conf   prop   estimate [kN.m]  upper [kN.m]  slack [kN.m]  dist-free
+--------------------  --------  --  -----  -----  ---------------  ------------  ------------  ---------
+hoeffding             mean      15  0.950  -      5.9271           18.5672       12.6401       yes      
+empirical_bernstein   mean      15  0.950  -      5.9271           33.0605       27.1334       yes      
+bootstrap_percentile  mean      15  0.950  -      5.9271           7.5069        1.5798        NO       
+normal_tolerance      quantile  15  0.950  0.950  5.9271           15.2238       9.2966        NO       
+
+target 'mean' bounds E[d]; target 'quantile' covers a future measurement.
+The two answer different questions and are not comparable row to row.
+dist-free = NO means the number rests on a distributional or asymptotic
+assumption and carries no finite-sample guarantee.
+
+Wilks' nonparametric tolerance limit does not exist at n = 15:
+  Wilks' limit at proportion 0.95 and confidence 0.95 needs n >= 59 by equation (7) (ln(0.05)/ln(0.95)); got n = 15. The largest of 15 observations does not cover 0.95 of the population at that confidence, and returning it anyway would be the defect this package exists to avoid.
+
+the split-conformal limit does not exist at n = 15:
+  split conformal at alpha = 0.05 needs n >= 19 calibration scores by equation (12); got n = 15, which asks for the 16-th smallest of 15. There is no finite conformal quantile at this sample size.
+
+
+==============================================================================
+step 3 -- how many more flights
+==============================================================================
+method               basis      have  need  MORE  target slack [kN.m]  slack at need [kN.m]  conf 
+-------------------  ---------  ----  ----  ----  -------------------  --------------------  -----
+hoeffding            exact      15    600   585   2.000                1.999                 0.950
+empirical_bernstein  plug-in    15    251   236   2.000                1.998                 0.950
+wilks_tolerance      existence  15    59    44    -                    -                     0.950
+split_conformal      existence  15    19    4     -                    -                     0.950
+
+hoeffding: exact: the Hoeffding slack of equation (3) depends only on R, delta and n, so this count is a guarantee about the SLACK. It is not a guarantee about the value of the bound, which also moves with the sample mean.
+empirical_bernstein: plug-in: equation (11) uses the sample variance of the 15 measurements in hand as a stand-in for the population variance, so this count is a PREDICTION. Its measured hit rate at this sample size is in validation/validate_inversion_output.txt.
+wilks_tolerance: existence: equation (7), n >= ln(delta)/ln(p). Below 59 measurements the largest observation does not cover 0.95 of the population at confidence 0.95, whatever its value.
+split_conformal: existence: equation (12) asks for the ceil((n+1)*0.95)-th smallest of n calibration scores, which is above n until n = 19. This is a MARGINAL guarantee, weaker than the Wilks row above it.
+
+==============================================================================
+step 4 -- what the learned model adds, and what it costs
+==============================================================================
+conditional band over a 2000-point held-out pool:
+  mean upper band      12.2930 kN.m
+  mean interval width  9.1370 kN.m
+  quantile crossing    0.062000 of conditions
+  achieved coverage    0.9430 against a declared 0.95
+
+For reference, the true population 0.95 quantile of the discrepancy
+is 12.8140 kN.m and the true mean is 5.1199. Those are
+available here only because the data is synthetic.
+
+The learned band is NARROWER than the normal-theory tolerance limit above --
+the only limit on a FUTURE measurement that exists at n = 15 at all -- and
+its coverage is below what it declares. Over 80 independent campaigns at
+this sample size the measured coverage is 0.8761 against a declared 0.95;
+see validation/validate_learned_model_output.txt. The model's value here is
+not the bound, it is the ranking: it says WHERE in the envelope the twin is
+worst, which no marginal bound in this package can do.
+
+This model is not certified for operational flight use.
+
+==============================================================================
+the answer a programme would write down
+==============================================================================
+  From 15 paired points, the mean sim-to-field discrepancy in wing-root
+  bending moment is at most 18.57 kN.m with 0.95 confidence,
+  distribution-free (Hoeffding 1963), assuming independent sampling and a
+  declared channel range of 40 kN.m.
+  Reaching a slack of 2 kN.m needs 600 points in total, 585 more.
+  No tolerance limit on a FUTURE measurement can be stated from 15 points:
+  equation (7) needs 59 and equation (12) needs 19.
+
+CHECKS RUN: 0
+FAILED CHECKS (0): none

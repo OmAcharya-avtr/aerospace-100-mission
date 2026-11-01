@@ -1,0 +1,74 @@
+
+==============================================================================
+transfergap -- the command line, and the tree it must not pollute
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+mapie            : not installed  (named in README; no number here is compared against it)
+crepes           : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P084 (printed relatively; see validation/_bootstrap.py)
+
+Every subprocess below runs with HOME and MPLCONFIGDIR in a temporary
+directory outside the repository and PYTHONDONTWRITEBYTECODE=1.
+
+==============================================================================
+1. every subcommand, as a user runs it
+==============================================================================
+[PASS] python -m transfergap --version -- exit 0
+[PASS] python -m transfergap bounds --n 60 --seed 202 -- exit 0
+[PASS] python -m transfergap bounds --n 15 --seed 101 -- exit 0
+[PASS] python -m transfergap plan --n 15 --target-slack 2.0 -- exit 0
+[PASS] python -m transfergap exchangeability --n 120 --campaign swept --permutations 399 -- exit 0
+[PASS] python -m transfergap learned --n 60 --seed 202 -- exit 0
+[PASS] python -m transfergap truth --draws 50000 -- exit 0
+
+command                                               exit  stdout lines  verdict
+----------------------------------------------------  ----  ------------  -------
+--version                                             0     1             ok     
+bounds --n 60 --seed 202                              0     15            ok     
+bounds --n 15 --seed 101                              0     15            ok     
+plan --n 15 --target-slack 2.0                        0     13            ok     
+exchangeability --n 120 --campaign swept --permutati  0     11            ok     
+learned --n 60 --seed 202                             0     11            ok     
+truth --draws 50000                                   0     14            ok     
+
+==============================================================================
+2. a bad argument must exit non-zero and say why
+==============================================================================
+  exit status 2
+  stderr      error: confidence must lie strictly inside (0, 1); got 1.5
+[PASS] an out-of-range confidence exits 2 with an actionable message -- exit 2
+
+==============================================================================
+3. the tree carries no cache or build directory
+==============================================================================
+  directories searched for : ['__pycache__', '.pytest_cache', '.ruff_cache', '.hypothesis', '.config']
+  found                    : none
+[PASS] no cache or config directory exists anywhere in the tree -- 0 found
+  .pyc files               : none
+[PASS] no compiled bytecode file exists anywhere in the tree -- 0 found
+
+==============================================================================
+4. no committed file carries an absolute path
+==============================================================================
+The patterns are assembled from os.sep, and this script's own output file is
+deleted before the scan so that the scanner cannot report itself.
+
+  text files scanned : 63
+  needles            : 4 directory prefixes assembled from os.sep -- home, Users, root, tmp
+    (named rather than printed as literals: this output file is committed,
+     and a committed file containing the literal pattern is exactly what a
+     repository-wide absolute-path scanner is looking for)
+  offenders          : none
+[PASS] no text file in the tree contains an absolute host path -- 0 offenders in 63 files
+
+CHECKS RUN: 11
+FAILED CHECKS (0): none

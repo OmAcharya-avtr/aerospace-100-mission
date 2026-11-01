@@ -1,0 +1,109 @@
+
+==============================================================================
+transfergap -- the sample-count inversions, verified by drawing the samples
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+mapie            : not installed  (named in README; no number here is compared against it)
+crepes           : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P084 (printed relatively; see validation/_bootstrap.py)
+
+declared confidence   : 0.95
+declared proportion   : 0.95
+declared R            : 40.0000 kN.m
+true E[d]             : 5.119305 +/- 0.006100 kN.m
+true Var[d]           : 14.929125 kN.m^2
+15-point pilot Var[d] : 20.446342 kN.m^2 (137.0 per cent of the truth)
+independent trials    : 600 per row
+
+The pilot variance is UNDERSTATED here, which is the common direction for a
+small sample of a right-skewed quantity, and the consequence is visible in
+the table below: the plan built on it asks for too few flights.
+
+==============================================================================
+1. Hoeffding: the slack is data-free, so the hit rate must be exactly 1.0
+==============================================================================
+target slack  predicted n  min realised slack  max realised slack  slack hit rate  coverage of true mean
+------------  -----------  ------------------  ------------------  --------------  ---------------------
+2.0           600          1.998577            1.998577            1.0000          1.0000               
+3.0           267          2.995993            2.995993            1.0000          1.0000               
+5.0           96           4.996442            4.996442            1.0000          1.0000               
+8.0           38           7.941539            7.941539            1.0000          1.0000               
+
+[PASS] the Hoeffding slack hit rate is exactly 1.0 at every predicted n -- 4 targets, 600 trials each; the realised slack is identical across trials because equation (3) does not read the data
+
+==============================================================================
+2. empirical Bernstein: the slack is random, so the hit rate is not 1.0
+==============================================================================
+Two plug-in variances. The first is the true population variance, the best
+case. The second is the 15-point pilot estimate, the realistic case.
+
+plug-in         target slack  predicted n  mean realised slack  slack hit rate  +/- se  coverage of true mean
+--------------  ------------  -----------  -------------------  --------------  ------  ---------------------
+0.5 x true      2.0           230          2.1953               0.0000          0.0000  1.0000               
+0.5 x true      3.0           146          3.2416               0.0000          0.0000  1.0000               
+0.5 x true      5.0           84           5.2878               0.0117          0.0044  1.0000               
+0.5 x true      8.0           51           8.3370               0.0367          0.0077  1.0000               
+true variance   2.0           257          1.9984               0.5167          0.0204  1.0000               
+true variance   3.0           160          2.9925               0.5450          0.0203  1.0000               
+true variance   5.0           90           4.9590               0.6433          0.0196  1.0000               
+true variance   8.0           54           7.9043               0.7083          0.0186  1.0000               
+2.0 x true      2.0           302          1.7452               1.0000          0.0000  1.0000               
+2.0 x true      3.0           183          2.6634               1.0000          0.0000  1.0000               
+2.0 x true      5.0           100          4.5167               1.0000          0.0000  1.0000               
+2.0 x true      8.0           58           7.4195               0.9983          0.0017  1.0000               
+15-point pilot  2.0           275          1.8878               0.9967          0.0024  1.0000               
+15-point pilot  3.0           169          2.8542               0.9933          0.0033  1.0000               
+15-point pilot  5.0           94           4.7737               0.9767          0.0062  1.0000               
+15-point pilot  8.0           56           7.6499               0.9583          0.0082  1.0000               
+
+REPORTED AS FOUND. Read the two blocks against each other. With the true
+variance the hit rate is near one half, because the plan is built on the
+MEAN variance and a realised sample is above it half the time -- the
+inversion is a median prediction, not a guarantee, and nothing in equation
+(11) claims otherwise. With the pilot variance, which is understated, the
+predicted n is smaller and the hit rate is lower still. A programme that
+needs a guarantee on the slack has to use the Hoeffding plan of part 1.
+
+[PASS] the empirical Bernstein coverage of the true mean reaches the declared confidence at every predicted n -- the bound itself holds even where the SLACK prediction misses; those are different claims
+[PASS] the empirical Bernstein slack hit rate is strictly below 1.0 under a plug-in variance -- hit rates ['0.5167', '0.5450', '0.6433', '0.7083'] with the true variance
+[PASS] the hit rate is monotone in the plug-in variance, anchored on the TRUE value -- half ['0.0000', '0.0000', '0.0117', '0.0367'] <= true ['0.5167', '0.5450', '0.6433', '0.7083'] <= double ['1.0000', '1.0000', '1.0000', '0.9983']
+
+The 15-point pilot at the declared seed gives 20.4463 kN.m^2 against a true 14.9291, a ratio of 1.3696: it OVERSTATES the variance, so
+its plan asks for more flights than needed and its hit rates ['0.9967', '0.9933', '0.9767', '0.9583'] sit above the true-variance block. The
+expectation written into this script's docstring was the opposite and is
+recorded there as falsified. One pilot draw does not establish a direction;
+the anchored half-and-double rows above do.
+
+==============================================================================
+3. Wilks: the tolerance statement itself, at the predicted n
+==============================================================================
+At the n of equation (7), the fraction of campaigns whose largest
+observation covers at least p of the population must reach 1 - delta. The
+population quantile is the reference and comes from the synthetic truth.
+
+p     confidence  required n  true p-quantile [kN.m]  measured rate  +/- se  verdict
+----  ----------  ----------  ----------------------  -------------  ------  -------
+0.9   0.9         22          10.3760                 0.9050         0.0120  ok     
+0.95  0.95        59          12.8204                 0.9500         0.0089  ok     
+0.9   0.99        44          10.3760                 0.9900         0.0041  ok     
+
+[PASS] the Wilks tolerance statement holds at the predicted n for every (p, confidence) pair -- 600 campaigns per row
+
+==============================================================================
+compute
+==============================================================================
+total Monte Carlo wall clock: 1.5 s over 23 blocks
+declared budget             : under 180 s on two cores
+[PASS] the Monte Carlo finishes inside the declared three-minute budget -- 1.5 s
+
+CHECKS RUN: 6
+FAILED CHECKS (0): none
