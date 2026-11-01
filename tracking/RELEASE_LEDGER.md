@@ -816,3 +816,31 @@ Built 86/100, Published 86/100.** Remaining gap: flagship 4, medium 5, compact
 
 **Cumulative: 90 of 100 registered, 86 built, 86 published.** **L4 remains 0 of
 5**, tenth consecutive batch, and it cannot close without the Jetson Orin Nano.
+
+### 2026-11-01 addendum — P084 TransferGap withheld
+
+| Product | Status | Commit | Tests | Gate |
+|---|---|---|---|---|
+| P084 TransferGap | **`NEEDS HARDENING`** — not published | `a88d36e` (monorepo only) | 188 passing | **`VERDICT: PUSH BLOCKED`** |
+
+Gate output, verbatim:
+
+```
+P084  BLOCKED    188 tests
+         ! validation/probe_working_directories.py exit 1: no output
+         ! validation/validate_cli.py exit 1: no output
+repository  PASS
+VERDICT: PUSH BLOCKED
+```
+
+No repository was created, nothing was published, no check was skipped and no
+threshold was loosened. The two failures are one root cause, diagnosed by
+reproducing the gate's exact invocation: `validate_cli.py`'s own interpreter
+imports the package without `PYTHONDONTWRITEBYTECODE=1`, writing 11 `.pyc`
+files, and then scans the tree for exactly those files. The build agent's
+hypothesis — that the gate's earlier pytest run caused it — was tested on an
+emptied tree and **falsified**. A fourth occurrence of the self-reporting-scanner
+class recorded in `PRODUCT_BUILD_GUIDE.md`.
+
+The source is committed at `NEEDS HARDENING` so it is not lost a third time.
+That is not publication. **Published count is unchanged at 86.**

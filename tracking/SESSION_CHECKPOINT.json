@@ -1,8 +1,8 @@
 {
   "batch": 9,
-  "phase": "validation_complete",
-  "phase_index": 6,
-  "updated": "2026-11-01T06:40:00Z",
+  "phase": "readiness_report_complete",
+  "phase_index": 9,
+  "updated": "2026-11-01T09:55:00Z",
   "session_date": "2026-11-01",
   "session_type": "SERIAL BUILD. Phase -1 passed all three checks against the live remote. P085 PointModel built, independently re-measured and PUSHED to the monorepo before any second build was started. First product to survive a session since 2026-10-29.",
   "phase_minus_1": "ALL THREE PASS. (1) osascript returned alive; gh auth status reports logged in to github.com as OmAcharya-avtr (keyring), active true. (2) mission-repo on main, zero dirty lines after fetch, HEAD 2589786, and the container's independent clone of the public repository returned the same SHA. (3) Write capability probed on the live remote: branch probe-1793502493 pushed, then deleted, each step confirmed by the remote's own output. All push output passed through the github_pat_ redaction filter. No push attempted from the container and none planned.",
@@ -27,6 +27,7 @@
     "P090"
   ],
   "products_built": [
+    "P084",
     "P085",
     "P086",
     "P087",
@@ -37,15 +38,22 @@
   "products_not_started": [
     "P081",
     "P082",
-    "P083",
+    "P083"
+  ],
+  "products_needs_hardening": [
     "P084"
   ],
-  "products_needs_hardening": [],
-  "products_published_this_session": [],
+  "products_published_this_session": [
+    "P085"
+  ],
   "quota_after_p085": "Registered 90/100, Built 86/100, Published 85/100. Gap: flagship 4, medium 5, compact 5, AI 10, L1 0, L2 6, L3 3, L4 5. Measured by scripts/quota_report.py against the committed products.yaml.",
   "prompt_deviations_recorded": "(1) The prompt instructs a batch of ten - 2 flagship, 3 medium, 5 compact. The registry's unbuilt remainder is 2 flagship and 2 medium; the five compacts P086-P090 are already built and published. The prompt's own rule, read products.yaml and never assume, governs. (2) The prompt allows five concurrent build agents. ONE was used, deliberately, for the reason recorded under THE_FINDING_OF_THIS_SESSION. The prompt's own Rule Zero - a night that builds and cannot publish is worse than a night that does nothing - is the authority for building fewer products and publishing them. (3) The prompt's L4 instruction is not followed, for the reason recorded above. (4) pulp is installed because the prompt says to and ships no solver, measured three times now; no product built tonight depends on it. The prompt text remains stale by roughly seventy products.",
   "blocked": false,
   "blocked_on": "Nothing blocks building. Needs the owner: (1) the Jetson Orin Nano for L4, holding five products and arithmetically required to close the quota, now the tenth batch asking; (2) the folder grant absent at fire time for the NINTH consecutive run - get_device_info returned an empty connectedFolders list although the task's own system reminder names the folder as connected, recovered in one call with device_request_folder_access; (3) a tool that reports the coordinating session's own token usage - ninth consecutive session unable to close the accounting, and it needs a tool, not more discipline; (4) the task prompt text stale by roughly seventy products; (5) ratification of bebc3d7, unratified for eleven sessions; (6) P032's unbounded pulp floor needs a ceiling and P004/P023 need migrating off the removed CBC solver entry point; (7) project memory unreachable from scheduled runs on this device, fourth consecutive run; (8) a committed pre-commit check for absolute host paths, now five sessions recommended and tonight measurably expensive - it cost a full gate re-run of roughly twenty-two minutes on an otherwise passing product.",
   "carry_overs_open": "P001 full-repo gate blocker (4 collection/execution errors plus four scripts exiting 1 on a missing private module), open since 2026-10-18 and blocking the full-repo gate for FOURTEEN days; scikit_learn_exposure_STILL_UNMEASURED; gate_misses_required_documentation; gate_no_output_message; p056_p058_validation_layout; five_unrelated_local_product_repos; p065_has_no_docs_dir; unbounded_bare_names; P004 validate_scheduler.py exiting 1 from its own directory; no pre-commit check for absolute host paths.",
-  "next_action": "Re-run the gate scoped to P085 now that the repository-wide path defect is fixed. On exit 0, publish the standalone pointmodel repository under ADR-017 and ADR-018, record the URL in products.yaml and tracking/RELEASE_LEDGER.md, verify the contributor list is one name, and push the final report. P081-P084 remain unbuilt and specified; the next run should build them ONE AT A TIME and push each before starting the next."
+  "next_action": "HARDEN P084 FIRST - it is the cheapest product on the board. Source already committed at a88d36e; the whole blocker is one process writing bytecode. Set PYTHONDONTWRITEBYTECODE=1 on validate_cli.py own interpreter, re-run from all four directories, re-run the gate, publish on exit 0. Then build P083, P081, P082 ONE AT A TIME, pushing each before starting the next. Two serial builds plus two gate runs filled this session, so plan on TWO products a night, not five. Also add the general self-scanner rule to PRODUCT_BUILD_GUIDE.md and write the pre-commit absolute-path check. Do NOT rebuild P085 or P084.",
+  "P084_OUTCOME": "Built by one agent (436,398 tokens, 94 tool calls, 83 min 30 s), 188 tests re-measured from junit XML with testsuite and testcase counts agreeing, ruff clean under both installations, dependencies bounded on both sides. Gate returned VERDICT: PUSH BLOCKED on validation/probe_working_directories.py and validation/validate_cli.py, both exit 1. Set to NEEDS HARDENING; NOTHING published, no repository created, no check skipped, no threshold loosened. Source committed at a88d36e so it is not lost a third time; that is not publication. ONE root cause: validate_cli.py imports the package in its OWN interpreter without PYTHONDONTWRITEBYTECODE=1, writes 11 .pyc files, then scans the tree for exactly those files and fails itself; the probe script simply reports that same failure from four directories. The build agent predicted the gate pytest run was responsible - tested on an emptied tree and FALSIFIED. Fourth occurrence of the self-reporting-scanner class the build guide already records.",
+  "quota_at_session_end": "Registered 90/100, Built 87/100, Published 86/100. Gap: flagship 4, medium 4, compact 5, AI 10, L1 0, L2 5, L3 3, L4 5.",
+  "pushes_used": "5 of 5. (1) 1d3959b Rule Zero stub. (2) 574f678 P085 built. (3) 037668e + 3a65134 checkpoint, gate check-8 fix, P085 PUBLISHED. (4) a88d36e P084 built, pushed BEFORE gating. (5) 274d6b0 P084 NEEDS HARDENING with exact gate output, final report. Per-product repositories are separate and not counted.",
+  "token_accounting": "Agents: 2, 0 terminated, 0 resumed. P085 agent aed8db99ed4de1438 566,551 tokens / 181 tool calls / 6,545,343 ms. P084 agent a806e8faa8f232296 436,398 tokens / 94 tool calls / 5,009,805 ms. Agent total 1,002,949 tokens / 275 tool calls / 11,555,148 ms. Coordinating session: NOT RECORDED - no tool available to this session reports it, ninth consecutive session, needs a tool not more discipline. No estimate entered."
 }
