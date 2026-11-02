@@ -1,0 +1,146 @@
+
+==============================================================================
+hilverdict -- baseline 2, the re-simulation reference
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+control          : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P083 (printed relatively; see validation/_bootstrap.py)
+
+declared tolerance 1.0, declared substeps 4, run length 200 iterations at 10.0 ms (2.0 s)
+metric anisotropy 200, incidence tolerance 0.0100 deg
+
+==============================================================================
+1. determinism, and a control that it is not vacuous
+==============================================================================
+  two identical calls, states bit-identical : True
+[PASS] the simulator is bit-deterministic for identical inputs -- np.array_equal on the full state array
+[PASS] control: a different seed gives a different timing trace (must fire) -- FIRED; largest duration difference 4.131086e-02 s
+
+The reference TRAJECTORY does not depend on the seed, only the timing trace
+does: the manoeuvre is a declared command schedule and the plant is
+deterministic. Largest state difference between two seeds: 0.000e+00.
+[PASS] two runs of the same campaign share their reference trajectory exactly -- 0.000e+00; the seed drives the execution times only
+
+==============================================================================
+2. prefix reuse is lossless
+==============================================================================
+The per-miss study starts the with-miss branch at the miss, from the
+reference state there. The affordable thing and the obviously-correct thing
+must agree.
+
+  misses compared                    : 128
+  worst |whole-run - tail| state gap : 0.000000e+00
+[PASS] re-simulating only the tail is bit-identical to re-simulating the whole run -- worst gap 0.000000e+00; the prefix is the reference trajectory and the integrator is deterministic, so the agreement is exact and not merely within tolerance
+
+==============================================================================
+3. step-size convergence of the peak divergence, and of the VERDICT
+==============================================================================
+The verdict is a threshold comparison on a number the integrator produces,
+so the question is not how the number moves but whether the comparison
+flips. Flips are counted, and any miss whose peak sits within the measured
+step-size spread of the tolerance is named.
+
+substeps  misses  worst absolute shift  worst relative shift  verdict flips vs 16 substeps
+--------  ------  --------------------  --------------------  ----------------------------
+2         47      3.166175e-07          1.411163e+01          0                           
+4         47      1.962626e-08          1.000000e+00          0                           
+8         47      1.151901e-09          5.876000e-02          0                           
+16        47      0.000000e+00          0.000000e+00          0                           
+[PASS] no verdict flips between the declared 4 substeps and 16 -- 0 flips in total across the step sizes compared
+
+Per miss, the step-size shift between 4 and 16 substeps against that miss's
+own distance from the tolerance. A miss whose shift exceeds its margin is one
+whose verdict the integrator, not the plant, decides.
+  misses examined                         : 47
+  worst shift-to-margin quotient          : 5.416102e-08
+  misses whose quotient reaches 1         : 0
+  closest any peak comes to the tolerance : 2.566413e-02
+[PASS] no miss's verdict is decided by the integrator's step size -- worst shift-to-margin quotient 5.416102e-08 over 47 misses
+
+==============================================================================
+4. the optional early exit, measured rather than trusted
+==============================================================================
+Its stopping criterion rests on the same linearisation as baseline 1, so
+using it by default would make the reference depend on the thing the
+reference exists to check. It is off by default and its agreement with the
+full-horizon reference is measured here.
+
+  misses compared                  : 228
+  worst |full - early| peak        : 0.000000e+00
+  verdict flips                    : 0
+  plant evaluations, full horizon  : 379280
+  plant evaluations, early exit    : 319008
+  evaluations saved                : 0.158912
+[PASS] the early exit reproduces the full-horizon peak exactly on this population -- worst difference 0.000000e+00, 0 verdict flips over 228 misses
+[PASS] the early exit actually saves work, so the previous check is not vacuous -- 0.158912 of plant evaluations
+
+==============================================================================
+5. superposition: the only statement here about miss interactions
+==============================================================================
+The per-miss analysis is one miss at a time. Re-simulating a run with ALL
+its misses at once gives the quantity the per-miss answers do not cover, and
+it is compared against two things: the aggregate bound of equation (15),
+which must dominate it, and the SUM of the individual divergences, whose
+departure from it is the nonlinear interaction residual.
+
+run                    misses  all-misses divergence  largest single  sum of singles  aggregate bound eq (15)  ratio to bound
+---------------------  ------  ---------------------  --------------  --------------  -----------------------  --------------
+nominal-3deg-seed3000  13      0.974336               0.974336        1.895002        12.050325                0.080856      
+nominal-6deg-seed3001  15      0.435925               0.435925        0.671415        2.411131                 0.180797      
+nominal-8deg-seed3002  19      14.994873              14.856009       16.032351       76.072800                0.197112      
+loaded-3deg-seed3003   23      2.896624               2.621514        4.111383        33.242815                0.087135      
+loaded-6deg-seed3004   29      2.176111               2.400480        4.787875        17.032848                0.127760      
+loaded-8deg-seed3005   29      0.677961               0.493668        1.449645        42.015169                0.016136      
+bursty-3deg-seed3006   13      3.741782               3.639445        3.865645        14.728622                0.254048      
+bursty-6deg-seed3007   16      6.839852               6.781174        7.516408        69.834302                0.097944      
+bursty-8deg-seed3008   25      20.442027              17.110017       28.393602       993.685092               0.020572      
+nominal-3deg-seed3009  11      0.214214               0.214214        0.286158        1.003540                 0.213458      
+nominal-6deg-seed3010  17      0.365985               0.361901        0.696037        2.190217                 0.167100      
+nominal-8deg-seed3011  18      6.789817               6.758733        7.013828        36.356727                0.186755      
+loaded-3deg-seed3012   21      0.223161               0.168438        0.320816        1.105868                 0.201797      
+loaded-6deg-seed3013   25      0.648763               0.996368        1.838433        5.331651                 0.121681      
+loaded-8deg-seed3014   29      10.053013              10.209380       18.841092       148.180599               0.067843      
+bursty-3deg-seed3015   16      11.170974              12.424004       26.064505       3276.429548              0.003409      
+bursty-6deg-seed3016   19      5.347314               4.712752        9.772345        935.877292               0.005714      
+bursty-8deg-seed3017   24      5.776523               5.717006        6.873469        116.798192               0.049457      
+[PASS] the aggregate bound of equation (15) dominates the all-misses divergence -- 0 of 18 runs
+
+The all-misses divergence is not the sum of the singles and is not claimed
+to be: misses close together interact through the closed loop, and a run
+whose largest single miss is already the dominant term has a joint figure
+close to it. What the table shows is that the superposition BOUND holds,
+which is the claim equation (15) makes.
+  worst joint / sum-of-singles   : 0.968062
+  worst joint / largest single   : 1.373314
+[PASS] the all-misses divergence exceeds the largest single miss on at least one run -- 11 of 18 runs, which is why the per-miss answer is not the whole answer
+
+==============================================================================
+6. what the reference costs
+==============================================================================
+run                    misses  plant evaluations  wall [ms]  microseconds per evaluation
+---------------------  ------  -----------------  ---------  ---------------------------
+nominal-3deg-seed3000  13      17904              13.96      0.7795                     
+nominal-6deg-seed3001  15      25072              19.69      0.7855                     
+nominal-8deg-seed3002  19      26112              22.15      0.8482                     
+loaded-3deg-seed3003   23      45024              35.39      0.7861                     
+loaded-6deg-seed3004   29      53552              42.98      0.8026                     
+loaded-8deg-seed3005   29      43104              34.71      0.8053                     
+
+Wall-clock figures are UNSTABLE on shared hardware and are reported for
+information. The evaluation counts are exact: a miss costs
+4 x 4 x steps_remaining right-hand-side evaluations,
+plus two more segments for the split period.
+[PASS] the whole cost section stays inside a few seconds on two cores -- 168.9 ms for 210768 evaluations
+
+CHECKS RUN: 11
+CONTROLS: 1 declared, 1 fired
+FAILED CHECKS (0): none

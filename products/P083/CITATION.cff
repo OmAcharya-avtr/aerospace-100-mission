@@ -1,0 +1,286 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  hilverdict: deciding whether a hardware-in-the-loop run was timing-faithful,
+  and which deadline misses measurably mattered
+version: 0.1.0
+date-released: 2026-11-02
+license: Apache-2.0
+abstract: >-
+  Decides whether a hardware-in-the-loop run was timing-faithful enough for
+  its result to mean anything, and separates the deadline misses that
+  measurably changed the trajectory from the large majority that did not.
+  Three layers, used in that order. Baseline 1 is a closed-form upper bound on
+  the trajectory divergence a miss of given duration holding a given input
+  step can cause in the declared linearisation, built from Dahlquist's
+  logarithmic-norm inequality, Van Loan's block-exponential discretisation and
+  an exact finite-horizon amplification factor; a miss whose bound falls below
+  the declared tolerance CANNOT have mattered, which is a proof rather than an
+  estimate, and the bound inverts in closed form into a single overrun
+  threshold per run. Baseline 2 is direct re-simulation of the declared
+  nonlinear plant with and without each surviving miss: slow, exact, and the
+  reference every other number is scored against. A gradient-boosted
+  classifier over fourteen cheap log features covers the case where
+  re-simulation is unaffordable, scored on RECALL of consequential misses
+  because dismissing a miss that mattered is not symmetric with re-simulating
+  one that did not. Host-to-device clock drift and resets are checked before
+  any duration is believed, by least squares and Theil-Sen against synthetic
+  drift of known rate. Validation is level 3. Measured over 875 misses in 45
+  synthetic runs, the certificate is never violated by the nonlinear reference
+  and dismisses 0.876571 of misses with 0 of 50 consequential misses among
+  them, at a worst ratio of true divergence to bound of 0.710647 and a median
+  of 0.338738, saving 0.869239 of the plant evaluations the reference costs.
+  On 841 held-out misses the certificate reaches a recall of 1.0000 and
+  dismisses none of 47 consequential misses, while the learned classifier, at
+  the only threshold a user could actually have chosen without the test
+  labels, reaches 0.7234 and dismisses 13; on the certificate's residual set
+  it dismisses 11 of 47 and saves 0.000000 of the re-simulations at no cost in
+  recall. The analytic bound wins outright, and the learned component has no
+  defensible role on this population. The bound's looseness is measured to be
+  a direct function of the declared metric's anisotropy, with the median ratio
+  of truth to bound falling from 0.984466 at anisotropy 5 to 0.326902 at the
+  declared 200, and the bound overstates an eight-period hold by about a
+  factor of 1055. Clock drift is recovered within four standard errors at all
+  36 sweep points with a worst absolute error of 9.059894 ppm against injected
+  rates up to 20000 ppm, and resets are detected with recall and precision
+  1.000000 over 24 injected resets with a measured detection floor of 1.1e-4
+  seconds; an uncorrected 20000 ppm drift wrongly gains or loses 28 misses
+  over 12 runs and the correction removes all of it. Twenty-three negative
+  controls are declared, fourteen must fire and all fourteen do, nine must not
+  fire and none do. All numbers are measured against synthetic runs generated
+  by the package's own declared equations; no measurement of any real rig,
+  flight computer or test article appears anywhere. Research grade. Not
+  flight-qualified, not certified, not approved for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - hardware-in-the-loop
+  - real-time
+  - deadline-miss
+  - sampled-data-control
+  - logarithmic-norm
+  - trajectory-divergence
+  - clock-drift
+  - verification
+references:
+  - type: report
+    authors:
+      - family-names: Dahlquist
+        given-names: "G."
+    title: >-
+      Stability and error bounds in the numerical integration of ordinary
+      differential equations
+    institution:
+      name: "Transactions of the Royal Institute of Technology, Stockholm"
+    year: 1958
+    number: "130"
+    notes: >-
+      The logarithmic norm and the inequality || exp(M t) || <= exp(mu_2(M) t),
+      which is equation (8) of hilverdict.certificate and the foundation of
+      equations (10) and (11). Verified here over 124 matrices and 26 times
+      each with no violations in 3224 pairs.
+  - type: book
+    authors:
+      - family-names: Coppel
+        given-names: "W. A."
+    title: "Stability and Asymptotic Behavior of Differential Equations"
+    publisher:
+      name: "Heath"
+    year: 1965
+    notes: >-
+      Chapter 2, the logarithmic norm and the differential inequality it
+      gives. Cited for the standard statement of equation (8).
+  - type: article
+    authors:
+      - family-names: "Soderlind"
+        given-names: "G."
+    title: "The logarithmic norm. History and modern theory"
+    journal: "BIT Numerical Mathematics"
+    volume: 46
+    issue: 3
+    year: 2006
+    start: 631
+    end: 652
+    notes: >-
+      The modern review and proof of the logarithmic-norm bound, including its
+      metric dependence, which is the mechanism behind this product's measured
+      anisotropy effect.
+  - type: article
+    authors:
+      - family-names: "Van Loan"
+        given-names: "C. F."
+    title: "Computing integrals involving the matrix exponential"
+    journal: "IEEE Transactions on Automatic Control"
+    volume: 23
+    issue: 3
+    year: 1978
+    start: 395
+    end: 404
+    notes: >-
+      Section II, the block-exponential method for the zero-order-hold
+      matrices of equation (7). Used rather than A^-1 (A_d - I) B because it
+      needs no matrix inverse; the inverse formula is retained here only as a
+      cross-check and agrees to 2.220446e-16.
+  - type: book
+    authors:
+      - family-names: Butcher
+        given-names: "J. C."
+    title: "Numerical Methods for Ordinary Differential Equations"
+    edition: "3rd"
+    publisher:
+      name: "Wiley"
+    year: 2016
+    notes: >-
+      Section 232, the classical fourth-order Runge-Kutta scheme used as the
+      re-simulation reference. Its order is measured here at 3.9924 to 4.0074
+      against the exact matrix-exponential solution of the linear plant.
+  - type: article
+    authors:
+      - family-names: Hespanha
+        given-names: "J. P."
+      - family-names: Naghshtabrizi
+        given-names: "P."
+      - family-names: Xu
+        given-names: "Y."
+    title: "A survey of recent results in networked control systems"
+    journal: "Proceedings of the IEEE"
+    volume: 95
+    issue: 1
+    year: 2007
+    start: 138
+    end: 162
+    notes: >-
+      Section III, the hold-last-value dropout model that is this product's
+      declared consequence of a deadline miss.
+  - type: article
+    authors:
+      - family-names: Schenato
+        given-names: "L."
+      - family-names: Sinopoli
+        given-names: "B."
+      - family-names: Franceschetti
+        given-names: "M."
+      - family-names: Poolla
+        given-names: "K."
+      - family-names: Sastry
+        given-names: "S. S."
+    title: "Foundations of control and estimation over lossy networks"
+    journal: "Proceedings of the IEEE"
+    volume: 95
+    issue: 1
+    year: 2007
+    start: 163
+    end: 187
+    notes: >-
+      The same hold-last-value model from the estimation side, cited for the
+      standard statement of what an actuator does when a command does not
+      arrive.
+  - type: book
+    authors:
+      - family-names: Etkin
+        given-names: "B."
+      - family-names: Reid
+        given-names: "L. D."
+    title: "Dynamics of Flight: Stability and Control"
+    edition: "3rd"
+    publisher:
+      name: "Wiley"
+    year: 1996
+    notes: >-
+      Chapter 6, the linear short-period form of equations (1)-(2). The
+      coefficients used here are declared, not taken from this or any other
+      source.
+  - type: book
+    authors:
+      - family-names: Stengel
+        given-names: "R. F."
+    title: "Flight Dynamics"
+    publisher:
+      name: "Princeton University Press"
+    year: 2004
+    notes: >-
+      Chapter 5, the nonlinear pitching-moment extension whose cubic shape
+      equation (2) takes. Again the coefficients are declared and are a
+      fiction with an engineering shape.
+  - type: article
+    authors:
+      - family-names: Theil
+        given-names: "H."
+    title: >-
+      A rank-invariant method of linear and polynomial regression analysis
+    journal: "Nederlandse Akademie van Wetenschappen Proceedings"
+    volume: 53
+    year: 1950
+    start: 386
+    end: 392
+    notes: >-
+      The median-of-pairwise-slopes estimator used for the robust clock-drift
+      fit, reported beside least squares in every segment table.
+  - type: article
+    authors:
+      - family-names: Sen
+        given-names: "P. K."
+    title: "Estimates of the regression coefficient based on Kendall's tau"
+    journal: "Journal of the American Statistical Association"
+    volume: 63
+    issue: 324
+    year: 1968
+    start: 1379
+    end: 1389
+    notes: >-
+      The modern treatment of the same estimator and its 29 per cent
+      breakdown point, which is the property measured here: at 40 of 201
+      timestamps corrupted its error is 0.0421 ppm against least squares'
+      605.9140 ppm.
+  - type: article
+    authors:
+      - family-names: Rousseeuw
+        given-names: "P. J."
+      - family-names: Croux
+        given-names: "C."
+    title: "Alternatives to the median absolute deviation"
+    journal: "Journal of the American Statistical Association"
+    volume: 88
+    issue: 424
+    year: 1993
+    start: 1273
+    end: 1283
+    notes: >-
+      Section 1, the 1.4826 scaling that makes the median absolute deviation
+      consistent for a Gaussian, which sets the reset detector's threshold.
+  - type: article
+    authors:
+      - family-names: Clopper
+        given-names: "C. J."
+      - family-names: Pearson
+        given-names: "E. S."
+    title: >-
+      The use of confidence or fiducial limits illustrated in the case of the
+      binomial
+    journal: "Biometrika"
+    volume: 26
+    issue: 4
+    year: 1934
+    start: 404
+    end: 413
+    notes: >-
+      The exact binomial interval attached to every recall reported here. Used
+      rather than a normal approximation because a recall of 1 out of 47 has a
+      normal standard error of zero, which is the one answer that is certainly
+      false.
+  - type: article
+    authors:
+      - family-names: Friedman
+        given-names: "J. H."
+    title: "Greedy function approximation: a gradient boosting machine"
+    journal: "Annals of Statistics"
+    volume: 29
+    issue: 5
+    year: 2001
+    start: 1189
+    end: 1232
+    notes: >-
+      The gradient boosting algorithm behind
+      sklearn.ensemble.GradientBoostingClassifier, which fits the learned
+      component. Its measured recall of 0.7234 against the analytic
+      certificate's 1.0000 is this product's headline negative result.

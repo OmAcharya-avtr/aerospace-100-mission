@@ -1,0 +1,204 @@
+
+==============================================================================
+hilverdict -- host-to-device clock drift and reset detection
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+control          : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P083 (printed relatively; see validation/_bootstrap.py)
+
+declared drift allowance 100 ppm, run length 200 iterations at 10 ms
+
+==============================================================================
+1. drift recovery against synthetic drift of KNOWN rate
+==============================================================================
+The injected rate is the truth. The reported error is |estimated - injected|
+in parts per million, and the standard error the estimator reports is
+printed beside it so the two can be compared.
+
+jitter [s]  injected [ppm]  estimated [ppm]  |error| [ppm]  se [ppm]   error/se  verdict       
+----------  --------------  ---------------  -------------  ---------  --------  --------------
+2e-07       -20000          -19999.991621    0.008379       0.024671   0.340     CLOCK_DRIFTING
+2e-07       -5000           -5000.017216     0.017216       0.026498   0.650     CLOCK_DRIFTING
+2e-07       -500            -500.006709      0.006709       0.025163   0.267     CLOCK_DRIFTING
+2e-07       -50             -49.978543       0.021457       0.023410   0.917     CLOCK_CLEAN   
+2e-07       0               0.005187         0.005187       0.023090   0.225     CLOCK_CLEAN   
+2e-07       50              50.021457        0.021457       0.023410   0.917     CLOCK_CLEAN   
+2e-07       500             499.993291       0.006709       0.025163   0.267     CLOCK_DRIFTING
+2e-07       5000            4999.982784      0.017216       0.026498   0.650     CLOCK_DRIFTING
+2e-07       20000           20000.008379     0.008379       0.024671   0.340     CLOCK_DRIFTING
+1e-06       -20000          -19999.973282    0.026718       0.121322   0.220     CLOCK_DRIFTING
+1e-06       -5000           -5000.073696     0.073696       0.131862   0.559     CLOCK_DRIFTING
+1e-06       -500            -500.037092      0.037092       0.123070   0.301     CLOCK_DRIFTING
+1e-06       -50             -49.910064       0.089936       0.116734   0.770     CLOCK_CLEAN   
+1e-06       0               -0.001729        0.001729       0.112077   0.015     CLOCK_CLEAN   
+1e-06       50              50.089936        0.089936       0.116734   0.770     CLOCK_CLEAN   
+1e-06       500             499.962908       0.037092       0.123070   0.301     CLOCK_DRIFTING
+1e-06       5000            4999.926304      0.073696       0.131862   0.559     CLOCK_DRIFTING
+1e-06       20000           20000.026718     0.026718       0.121322   0.220     CLOCK_DRIFTING
+1e-05       -20000          -19999.723083    0.276917       1.214486   0.228     CLOCK_DRIFTING
+1e-05       -5000           -5000.691961     0.691961       1.318935   0.525     CLOCK_DRIFTING
+1e-05       -500            -500.364933      0.364933       1.228219   0.297     CLOCK_DRIFTING
+1e-05       -50             -49.094739       0.905261       1.169772   0.774     CLOCK_CLEAN   
+1e-05       0               -0.031683        0.031683       1.124812   0.028     CLOCK_CLEAN   
+1e-05       50              50.905261        0.905261       1.169772   0.774     CLOCK_CLEAN   
+1e-05       500             499.635067       0.364933       1.228219   0.297     CLOCK_DRIFTING
+1e-05       5000            4999.308039      0.691961       1.318935   0.525     CLOCK_DRIFTING
+1e-05       20000           20000.276917     0.276917       1.214486   0.228     CLOCK_DRIFTING
+0.0001      -20000          -19997.241702    2.758298       12.147530  0.227     CLOCK_DRIFTING
+0.0001      -5000           -5006.926289     6.926289       13.183769  0.525     CLOCK_DRIFTING
+0.0001      -500            -503.639929      3.639929       12.277098  0.296     CLOCK_DRIFTING
+0.0001      -50             -40.940106       9.059894       11.696606  0.775     CLOCK_CLEAN   
+0.0001      0               -0.313566        0.313566       11.251063  0.028     CLOCK_CLEAN   
+0.0001      50              59.059894        9.059894       11.696606  0.775     CLOCK_CLEAN   
+0.0001      500             496.360071       3.639929       12.277098  0.296     CLOCK_DRIFTING
+0.0001      5000            4993.073711      6.926289       13.183769  0.525     CLOCK_DRIFTING
+0.0001      20000           20002.758298     2.758298       12.147530  0.227     CLOCK_DRIFTING
+  worst absolute error over the sweep : 9.059894 ppm
+  estimates inside 4 standard errors  : 36 of 36
+[PASS] every drift in the sweep is recovered inside four of its own standard errors -- 36 of 36
+[PASS] the worst absolute recovery error over the sweep is below 10 ppm -- 9.059894 ppm against injected rates up to 20000 ppm
+
+Verdict agreement with the declared allowance:
+  verdicts matching the declared allowance of 100 ppm: 36 of 36
+[PASS] the clock verdict matches the declared allowance on every sweep point -- 36 of 36
+
+==============================================================================
+2. reset detection against injected resets of known index
+==============================================================================
+Recall and precision are scored against the indices the generator used,
+which it returns for this purpose rather than letting the detector grade
+its own homework. A detection is counted correct when it lands on the
+injected index exactly: the reset takes effect at one sample and there is
+no ambiguity to allow for.
+
+jitter [s]  injected  truth          detected       correct  spurious
+----------  --------  -------------  -------------  -------  --------
+2e-07       0         []             []             0        0       
+2e-07       1         [80]           [80]           1        0       
+2e-07       2         [50, 141]      [50, 141]      2        0       
+2e-07       3         [30, 90, 161]  [30, 90, 161]  3        0       
+1e-06       0         []             []             0        0       
+1e-06       1         [80]           [80]           1        0       
+1e-06       2         [50, 141]      [50, 141]      2        0       
+1e-06       3         [30, 90, 161]  [30, 90, 161]  3        0       
+1e-05       0         []             []             0        0       
+1e-05       1         [80]           [80]           1        0       
+1e-05       2         [50, 141]      [50, 141]      2        0       
+1e-05       3         [30, 90, 161]  [30, 90, 161]  3        0       
+0.0001      0         []             []             0        0       
+0.0001      1         [80]           [80]           1        0       
+0.0001      2         [50, 141]      [50, 141]      2        0       
+0.0001      3         [30, 90, 161]  [30, 90, 161]  3        0       
+  resets injected : 24
+  resets detected : 24
+  correct         : 24
+  recall          : 1.000000
+  precision       : 1.000000
+[PASS] every injected reset in the sweep is detected at the exact index -- recall 1.000000 over 24 injected resets
+[PASS] no spurious reset is reported anywhere in the sweep -- precision 1.000000, 0 spurious detections
+
+The reset-free rows above are the false-positive control: a run with no
+reset must produce no detection, and a reset-free series is included at
+every jitter level.
+[PASS] control: a reset-free series produces a detection (must NOT fire) -- did not fire; 4 reset-free series, detections ['[]', '[]', '[]', '[]']
+[PASS] control: a series with three injected resets produces three detections (must fire) -- FIRED; 4 such series
+
+==============================================================================
+3. the detection floor: the smallest reset the detector finds
+==============================================================================
+The threshold is the larger of eight robust scales of the first differences
+and a declared absolute floor of 1e-4 s, so a reset whose offset jump is
+smaller than that floor is NOT detected. That is a real limitation and the
+floor is measured here rather than asserted to be zero.
+
+offset jump [s]  detected  indices reported
+---------------  --------  ----------------
+1e-07            no        []              
+1e-06            no        []              
+1e-05            no        []              
+5e-05            no        []              
+9e-05            no        []              
+0.00011          yes       [100]           
+0.001            yes       [100]           
+0.01             yes       [100]           
+0.1              yes       [100]           
+
+  smallest jump detected : 0.00011 s
+  largest jump missed    : 9e-05 s
+  as a fraction of a 10 ms period: 0.009000 missed, 0.011000 detected
+[PASS] the detection floor is between the declared 1e-4 s and one period -- smallest detected 0.00011 s
+[PASS] control: a reset smaller than the declared floor is missed (must fire) -- FIRED; largest missed 9e-05 s; this is the limitation, reported rather than hidden
+
+What a missed reset costs: an offset jump below the floor shifts every
+later timestamp by that amount, which is at most 1e-4 s, or 1 per cent of
+a period. A duration straddling it is wrong by the same amount. So the
+undetected cases are exactly the ones whose consequence for a duration is
+bounded by the floor, and the report says so.
+
+==============================================================================
+4. least squares against Theil-Sen under corrupted timestamps
+==============================================================================
+The two estimators are provided because they fail differently. Least
+squares is efficient under the declared Gaussian jitter and is pulled by a
+single bad timestamp; Theil-Sen has a breakdown point of 29 per cent. Both
+are reported in every segment table, and this is the measurement behind
+that choice.
+
+corrupted samples  least squares [ppm]  |error|    theil-sen [ppm]  |error|
+-----------------  -------------------  ---------  ---------------  -------
+0                  299.9674             0.0326     299.9583         0.0417 
+1                  -32.5285             332.5285   299.9568         0.0432 
+2                  -594.0772            894.0772   299.9528         0.0472 
+5                  248.2458             51.7542    299.9569         0.0431 
+10                 2893.4357            2593.4357  299.9732         0.0268 
+20                 -409.3572            709.3572   299.9555         0.0445 
+40                 -305.9140            605.9140   299.9579         0.0421 
+
+[PASS] Theil-Sen beats least squares when a fifth of the timestamps are corrupted -- Theil-Sen error 0.0421 ppm against least squares 605.9140 ppm at 40 corrupted samples of 201
+[PASS] control: least squares is measurably degraded by corrupted timestamps (must fire) -- FIRED; error grows from 0.0326 ppm clean to 605.9140 ppm at 40 corrupted samples
+[PASS] control: Theil-Sen is degraded as badly as least squares (must NOT fire) -- did not fire; Theil-Sen 0.0421 ppm against least squares 605.9140 ppm
+
+==============================================================================
+5. the consequence for the verdict: which iterations appear to miss
+==============================================================================
+The recorded durations are measured on the device clock, so a clock running
+fast by rho reports every interval as (1 + rho) times its true length and
+the set of iterations that appear to have overrun their deadline changes.
+This is why the clock check runs before anything else in
+hilverdict.verdict, and the size of the effect is measured here.
+
+drift [ppm]  true misses  apparent misses  after correction  spurious  missed  residual after correction
+-----------  -----------  ---------------  ----------------  --------  ------  -------------------------
+-20000       228          208              228               0         20      0                        
+-5000        228          223              228               0         5       0                        
+-500         228          228              228               0         0       0                        
+-50          228          228              228               0         0       0                        
+0            228          228              228               0         0       0                        
+50           228          228              228               0         0       0                        
+500          228          228              228               0         0       0                        
+5000         228          233              228               5         0       0                        
+20000        228          256              228               28        0       0                        
+
+  worst miscount from uncorrected drift : 28 misses
+  worst residual miscount after correction : 0 misses
+[PASS] the drift correction removes most of the miscount -- 0 against 28 over 12 runs per drift level
+[PASS] control: uncorrected drift changes the set of apparent misses (must fire) -- FIRED; 28 misses gained or lost at the worst drift level
+
+A reset is NOT correctable in this way, which is why a detected reset makes
+the run undecidable:
+  verdict : CLOCK_RESET
+  resets  : [80]
+[PASS] a run with an injected reset is reported as CLOCK_RESET -- verdict CLOCK_RESET
+
+CHECKS RUN: 15
+CONTROLS: 6 declared, 4 fired
+FAILED CHECKS (0): none

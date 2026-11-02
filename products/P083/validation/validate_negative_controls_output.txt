@@ -1,0 +1,144 @@
+
+==============================================================================
+hilverdict -- negative controls, each asserted to fire or not to fire
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+control          : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P083 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the certificate, with each of its inputs corrupted
+==============================================================================
+Every row is the SAME re-simulated divergences compared against a bound
+computed from a corrupted input. The honest bound must not be violated; each
+corrupted bound must be, or the input it corrupts was not load-bearing.
+
+bound variant                                          misses  violations  worst ratio
+-----------------------------------------------------  ------  ----------  -----------
+the honest bound                                       324     0           0.705061   
+the input step understated by a factor of 10           324     286         7.049347   
+the overrun understated by a factor of 10              324     322         7.161161   
+the input gain || S B || understated by a factor of 4  324     236         2.820077   
+
+[PASS] control: the bound with the honest bound is violated (must NOT fire) -- did not fire; 0 violations of 324 misses, worst ratio 0.705061
+[PASS] control: the bound with the input step understated by a factor of 10 is violated (must fire) -- FIRED; 286 violations of 324 misses, worst ratio 7.049347
+[PASS] control: the bound with the overrun understated by a factor of 10 is violated (must fire) -- FIRED; 322 violations of 324 misses, worst ratio 7.161161
+[PASS] control: the bound with the input gain || S B || understated by a factor of 4 is violated (must fire) -- FIRED; 236 violations of 324 misses, worst ratio 2.820077
+
+A corrupted LINEARISATION, rather than a corrupted scalar: the certificate
+built at an operating point 10 deg away from the one the run sits at.
+  violations : 0 of 324
+  worst ratio: 0.704993
+  mu_S moves from 98.577700 to 98.587295 1/s and
+  gamma_sup from 3.203899 to 3.214852
+
+Reported as measured, not as a control: moving the operating point to the
+destabilising end of the declared cubic makes the linearisation LESS stable
+and the bound LARGER, so it is not violated. A mis-declared operating point
+is therefore dangerous in the other direction -- declaring a high-incidence
+run at the origin -- and that is the direction the refusal in
+hilverdict.certificate guards.
+[PASS] the operating-point sensitivity of the bound is measured and reported -- worst ratio 0.704993 at a 10 deg operating-point error
+
+==============================================================================
+2. the three declared refusals, each shown to fire and not to over-fire
+==============================================================================
+[PASS] control: an admissible run is refused (must NOT fire) -- did not fire; refusals []
+  a 14 deg manoeuvre saturates 5 of 200 iterations
+[PASS] control: a run that saturates the actuator is refused (must fire) -- FIRED; 1 refusal(s)
+  a 40 deg manoeuvre on the linear high-authority variant reaches 14.1460 deg of incidence
+[PASS] control: a run beyond the declared incidence validity limit is refused (must fire) -- FIRED; 1 refusal(s)
+  scaling the durations by 1.6 gives a mean utilisation of 1.380264
+[PASS] control: a run whose mean utilisation reaches 1 is refused (must fire) -- FIRED; utilisation 1.380264
+
+[PASS] control: require_admissible raises on a refused run (must fire) -- FIRED; ValueError from require_admissible
+[PASS] control: require_admissible raises on an admissible run (must NOT fire) -- did not fire; no exception expected
+
+case              run                    refusals  run verdict    
+----------------  ---------------------  --------  ---------------
+admissible run    loaded-6deg-seed3000   0         TIMING_FAITHFUL
+saturating run    loaded-14deg-seed3000  1         UNDECIDABLE    
+beyond validity   loaded-40deg-seed3000  1         UNDECIDABLE    
+utilisation >= 1  overloaded             1         UNDECIDABLE    
+[PASS] a refused run is reported UNDECIDABLE and never as timing-faithful -- verdicts ['TIMING_FAITHFUL', 'UNDECIDABLE', 'UNDECIDABLE', 'UNDECIDABLE']
+
+==============================================================================
+3. the clock checks, against injected clock behaviour
+==============================================================================
+injected                           drift [ppm]  estimated [ppm]  resets  clock verdict   run verdict    
+---------------------------------  -----------  ---------------  ------  --------------  ---------------
+no drift, no reset                 0            -0.006325        []      CLOCK_CLEAN     TIMING_FAITHFUL
+drift inside the allowance         50           49.993675        []      CLOCK_CLEAN     TIMING_FAITHFUL
+drift far beyond the allowance     2000         1999.993675      []      CLOCK_DRIFTING  TIMING_FAITHFUL
+a reset at 45 per cent of the run  0            0.073635         [90]    CLOCK_RESET     UNDECIDABLE    
+
+[PASS] control: a clean clock is reported as drifting (must NOT fire) -- did not fire; CLOCK_CLEAN
+[PASS] control: a drift inside the declared allowance is reported as drifting (must NOT fire) -- did not fire; CLOCK_CLEAN
+[PASS] control: a drift far beyond the allowance is reported as drifting (must fire) -- FIRED; CLOCK_DRIFTING
+[PASS] control: an injected reset makes the run undecidable (must fire) -- FIRED; run verdict UNDECIDABLE
+
+==============================================================================
+4. the re-simulation reference, against cases with a known answer
+==============================================================================
+  re-simulating with an EMPTY miss set reproduces the reference to 0.000e+00
+[PASS] control: an empty miss set produces a non-zero divergence (must NOT fire) -- did not fire; largest divergence 0.000e+00
+
+  misses with an exactly zero input step : 3
+  worst divergence among them            : 0.000e+00
+  measured integrator floor              : 2.397e-09
+[PASS] control: a zero input step produces a divergence above the integrator floor (must NOT fire) -- did not fire; 0.000e+00 against a floor of 2.397e-09
+
+  a run with no overrun at all : TIMING_FAITHFUL, 0 misses
+[PASS] control: a run with no overrun is reported as anything but timing-faithful (must NOT fire) -- did not fire; verdict TIMING_FAITHFUL
+
+==============================================================================
+5. the learned pipeline, against shuffled labels and blinded features
+==============================================================================
+A model whose labels have been shuffled must lose its skill, and a model
+blinded to the two features the certificate uses must get measurably worse.
+Both are scored at the SAME flag rate so the comparison is of recall and
+not of operating point.
+
+The statistic is the SMALLEST flag rate at which a model still catches
+every consequential miss on the held-out runs. A model that has lost
+information has to flag more to catch the same set. Comparing at a fixed
+flag rate would not work: at a flag rate of 0.25 all three models reach a
+recall of 1 on this population and the comparison is saturated, which is
+how an earlier version of this control came to be too weak to fire.
+
+model                        misses  consequential  recall at a 0.25 flag rate  flag rate needed for recall 1
+---------------------------  ------  -------------  --------------------------  -----------------------------
+honest model                 153     9              1.000000                    0.058824                     
+labels shuffled in training  153     9              0.333333                    0.901961                     
+blinded to tau and du        153     9              1.000000                    0.124183                     
+
+[PASS] control: shuffling the training labels makes the model need a far larger flag rate (must fire) -- FIRED; 0.901961 against the honest model's 0.058824
+[PASS] control: blinding the model to tau and du makes it need a larger flag rate (must fire) -- FIRED; 0.124183 against the honest model's 0.058824
+
+[PASS] control: fitting on a single-class label set raises (must fire) -- FIRED; ValueError from MissClassifier.fit
+[PASS] control: asking for a recall above 1 raises (must fire) -- FIRED; target_recall 1.5 is outside (0, 1]
+
+==============================================================================
+6. the metric, mis-declared
+==============================================================================
+The bound is a statement in the units of the declared metric. A bound
+computed in one metric and compared against a divergence measured in a
+tighter one is wrong, and must be caught by the same comparison.
+
+  honest bound     : 0 violations, worst ratio 0.705061
+  mis-declared (0.10 deg instead of 0.01 deg) : 111 violations, worst ratio 5.665929
+[PASS] control: a bound computed in a 10x looser metric is violated by the tighter metric's divergences (must fire) -- FIRED; 111 violations, worst ratio 5.665929
+[PASS] control: the honest bound in its own metric is violated (must NOT fire) -- did not fire; 0 violations
+
+CHECKS RUN: 25
+CONTROLS: 23 declared, 14 fired
+FAILED CHECKS (0): none

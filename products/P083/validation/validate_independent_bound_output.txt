@@ -1,0 +1,187 @@
+
+==============================================================================
+hilverdict -- the certificate against mathematics it does not use
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+control          : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P083 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the horizon factor against a Gronwall factor from different mathematics
+==============================================================================
+Equation (12) takes powers of the discrete closed-loop map. Equation (16)
+never forms that map: it bounds the closed loop as the open loop plus a
+state-dependent input and uses the sub-additivity of the logarithmic norm.
+The second must dominate the first. It is much looser, and the horizon at
+which it becomes vacuous is reported, because a check that is vacuous
+everywhere is not a check.
+
+horizon N  gamma_sup, eq (12)  Gronwall, eq (16)  ratio        
+---------  ------------------  -----------------  -------------
+0          1.000000            1.000000e+00       1.000000e+00 
+1          1.599218            4.920026e+00       3.250426e-01 
+2          2.166009            2.420666e+01       8.947991e-02 
+3          2.581261            1.190974e+02       2.167354e-02 
+5          3.031549            2.882949e+03       1.051545e-03 
+8          3.203899            3.433517e+05       9.331247e-06 
+12         3.203899            2.011911e+08       1.592466e-08 
+20         3.203899            6.907930e+13       4.638002e-14 
+40         3.203899            4.771950e+27       6.714025e-28 
+100        3.203899            1.573040e+69       2.036757e-69 
+200        3.203899            2.474454e+138      1.294790e-138
+[PASS] the discrete horizon factor never exceeds the Gronwall factor -- 0 of 11 horizons
+
+The Gronwall factor first exceeds 1e6 at a horizon of 12 sample
+instants, which is 'vacuous' by any reading. It is a real check only over
+the first few periods, and that is exactly where the certificate's peak
+amplification lives: gamma_m peaks at m = 8.
+gamma_m peaks at m = 8, where the Gronwall factor already stands at
+3.433517e+05. So this check constrains
+equation (12) only over the first period or two and is a weak check beyond
+that. It is reported at that strength rather than as a general verification:
+the sub-additivity route throws away the cancellation that makes the closed
+loop contract, and in a metric with an anisotropy of 200 it throws away a great deal.
+[PASS] the Gronwall check is non-vacuous over the first period -- Gronwall at N = 1 is 4.920026 against gamma_sup(1) = 1.599218
+
+==============================================================================
+2. the hold injection bound against the exact vector integral
+==============================================================================
+Equation (10) bounds || integral_0^tau exp(A(tau-s)) B du(s) ds ||_S by
+|| S B ||_2 phi(mu_S, tau) du_max. For a CONSTANT input error the integral
+is exact and computable by Van Loan's block exponential, so the inequality
+can be checked rather than believed. Van Loan's method involves no norm
+inequality of any kind.
+
+tau [ms]  exact || S Int B ||  bound, eq (10)  ratio      
+--------  -------------------  --------------  -----------
+0.001     0.001208709          0.001208715     0.999994540
+0.01      0.012091856          0.012092517     0.999945309
+0.1       0.121395730          0.121463274     0.999443909
+0.5       0.617620307          0.619468947     0.997015768
+1         1.262010019          1.270235788     0.993524219
+5         7.406836009          7.810687881     0.948294967
+10        17.637792326         20.597080606    0.856324868
+30        87.432868810         223.719758259   0.390814247
+50        202.243104517        1682.511971043  0.120203070
+[PASS] equation (10) is never violated by the exact integral -- 0 of 9 overruns
+[PASS] equation (10) is tight as tau goes to zero, so it is not vacuous -- tightest ratio 0.999994540
+
+==============================================================================
+3. the whole certificate against the EXACT linear response
+==============================================================================
+On the linear plant the divergence a miss causes has a closed form that uses
+no norm and no inequality: the injected error is a vector integral, and it
+propagates by repeated multiplication by the closed-loop matrix. Taking the
+weighted norm of that sequence gives the answer the certificate must bound.
+
+quantity                                             value       
+---------------------------------------------------  ------------
+misses with a sub-period hold                        189         
+violations of eq (13) by the exact linear response   0           
+worst ratio exact/bound                              0.705074628 
+worst |simulated - closed form| on the linear plant  4.239319e-09
+[PASS] the exact linear response never exceeds the certificate -- 0 of 189 misses, worst ratio 0.705074628
+[PASS] the integrator reproduces the closed-form linear response -- worst difference 4.239319e-09 in metric units; the integrator is fourth-order at 4 substeps and the comparison is against an exact matrix-exponential propagation
+
+==============================================================================
+4. equation (9) against adaptive quadrature
+==============================================================================
+phi(mu, t) is the integral of exp(mu s) from 0 to t. scipy.integrate.quad
+evaluates that integral adaptively and knows nothing about expm1.
+
+mu [1/s]  t [s]  phi closed form        quad                   relative difference
+--------  -----  ---------------------  ---------------------  -------------------
+-98.5777  0.01   6.358951594973450e-03  6.358951594973450e-03  0.000e+00          
+-1        0.01   9.950166250831947e-03  9.950166250831945e-03  1.743e-16          
+0         0.01   1.000000000000000e-02  1.000000000000000e-02  0.000e+00          
+1         0.01   1.005016708416806e-02  1.005016708416806e-02  1.726e-16          
+18.4885   0.01   1.098412948389851e-02  1.098412948389851e-02  0.000e+00          
+98.5777   0.01   1.704131211015260e-02  1.704131211015260e-02  0.000e+00          
+[PASS] equation (9) agrees with adaptive quadrature -- worst relative difference 2.697168e-16 over 24 cases, tolerance 1e-12
+
+==============================================================================
+5. every factor in equation (13) is necessary on this data
+==============================================================================
+A bound whose factors could be deleted without consequence would not be
+evidence of anything. Each truncated bound below is compared against the
+same nonlinear re-simulations, and each one IS violated. These are negative
+controls on the derivation itself, anchored on the re-simulated truth.
+
+bound variant                         misses  violations  worst ratio
+------------------------------------  ------  ----------  -----------
+full equation (13)                    324     0           0.705076   
+without c_free, eq (11)               324     47          1.889527   
+without gamma_sup, eq (12)            324     192         1.214826   
+without c_free AND without gamma_sup  324     271         6.053855   
+
+[PASS] control: the full bound is not violated (must NOT fire) -- did not fire; 0 violations of 324 misses
+[PASS] control: the bound without c_free, eq (11) is violated (must fire) -- FIRED; 47 violations, worst ratio 1.889527
+[PASS] control: the bound without gamma_sup, eq (12) is violated (must fire) -- FIRED; 192 violations, worst ratio 1.214826
+[PASS] control: the bound without c_free AND without gamma_sup is violated (must fire) -- FIRED; 271 violations, worst ratio 6.053855
+
+THE ONE FACTOR THIS POPULATION DOES NOT FALSIFY: phi(mu_S, tau) against tau.
+Replacing equation (9) by tau -- which would make the bound invalid in
+general, since mu_S > 0 means exp(mu_S s) > 1 over the whole hold -- is NOT
+violated anywhere in this population. That is reported as measured and is
+NOT offered as a control, because a control that cannot fire is a failed
+control and not a passing product. What it means is that the exponential in
+equation (9) is the certificate's largest single source of conservatism on
+this plant, and section 6 measures how large.
+
+  misses compared              : 324
+  violations of the tau form   : 0
+  worst ratio divergence/bound : 0.717512
+[PASS] the phi-versus-tau substitution is measured, and its result is reported as found -- 0 violations of 324; not a control, see the paragraph above
+
+==============================================================================
+6. where the conservatism comes from: long holds
+==============================================================================
+Equation (9) grows like exp(mu_S tau) while the measured divergence of this
+plant grows roughly linearly in tau, because mu_S is large here as an
+artifact of the anisotropic metric and not because the dynamics expand. The
+consequence is a bound that is within a small factor of the truth for a
+sub-period overrun and
+enormously conservative for a hold of several periods. That is measured
+here, against re-simulation, at the three largest input steps in a declared
+run.
+
+iter  tau/T  du [deg]  re-simulated divergence  bound, eq (13)  ratio   
+----  -----  --------  -----------------------  --------------  --------
+50    0.5    27.2839   8.7367                   31.9351         0.273575
+50    1.5    27.2839   24.8926                  169.7969        0.146602
+50    3      27.2839   48.4034                  914.7109        0.052917
+50    5      27.2839   80.1851                  6879.1962       0.011656
+50    8      27.2839   126.8096                 133315.3956     0.000951
+80    0.5    27.2745   8.7326                   31.9242         0.273542
+80    1.5    27.2745   24.8775                  169.7389        0.146563
+80    3      27.2745   48.3579                  914.3981        0.052885
+80    5      27.2745   80.0606                  6876.8432       0.011642
+80    8      27.2745   126.4599                 133269.7961     0.000949
+110   0.5    20.4879   6.5602                   23.9806         0.273562
+110   1.5    20.4879   18.6875                  127.5033        0.146565
+110   3      20.4879   36.3218                  686.8715        0.052880
+110   5      20.4879   60.1216                  5165.7018       0.011639
+110   8      20.4879   94.9301                  100108.7282     0.000948
+
+  tightest ratio at a sub-period hold : 0.273575
+  loosest ratio at a hold of 5 periods or more : 0.000948
+
+So at a hold of eight periods the bound overstates the divergence by about a
+factor of 1055. A miss that long is not dismissed by the
+certificate and is sent to re-simulation, which is the correct outcome and
+costs one integration; but a user wanting the certificate to settle long
+holds will not get it, and that is a limitation, not a tuning knob.
+[PASS] the bound is far tighter at sub-period holds than at multi-period holds -- tightest sub-period ratio 0.273575 against loosest multi-period ratio 0.000948
+
+CHECKS RUN: 13
+CONTROLS: 4 declared, 3 fired
+FAILED CHECKS (0): none

@@ -9,9 +9,21 @@ why the comparison is exact in finite samples and needs no asymptotics.
 
 from __future__ import annotations
 
-import numpy as np
+# Bytecode must not be written anywhere inside this tree. validation/
+# validate_cli.py asserts that no __pycache__ directory and no .pyc file
+# exists in the repository, so an interpreter that caches its own imports
+# here makes that check report itself. It is set in each entry script,
+# before _bootstrap is imported, and not inside _bootstrap, because CPython
+# writes a module's cache BEFORE executing that module: _bootstrap cannot
+# set this on its own behalf. The imports below therefore follow a statement
+# and carry the same E402 waiver the post-bootstrap imports already carry.
+import sys  # noqa: E402
 
-from _common import (
+sys.dont_write_bytecode = True
+
+import numpy as np  # noqa: E402
+
+from _common import (  # noqa: E402
     DISTRIBUTION_FREE,
     NEUTRAL,
     REFUSED,

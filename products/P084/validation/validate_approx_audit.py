@@ -22,14 +22,31 @@ elements, because a suite that collects zero tests exits 0 and prints success.
 
 from __future__ import annotations
 
-import re
-import subprocess
-import sys
-import tempfile
-import xml.etree.ElementTree as ElementTree
-from pathlib import Path
+# Bytecode must not be written anywhere inside this tree. validation/
+# validate_cli.py asserts that no __pycache__ directory and no .pyc file
+# exists in the repository, so an interpreter that caches its own imports
+# here makes that check report itself. It is set in each entry script,
+# before _bootstrap is imported, and not inside _bootstrap, because CPython
+# writes a module's cache BEFORE executing that module: _bootstrap cannot
+# set this on its own behalf. The imports below therefore follow a statement
+# and carry the same E402 waiver the post-bootstrap imports already carry.
+import sys  # noqa: E402
 
-from _bootstrap import Tee, bootstrap, environment_lines, relative, subprocess_environment
+sys.dont_write_bytecode = True
+
+import re  # noqa: E402
+import subprocess  # noqa: E402
+import tempfile  # noqa: E402
+import xml.etree.ElementTree as ElementTree  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+from _bootstrap import (  # noqa: E402
+    Tee,
+    bootstrap,
+    environment_lines,
+    relative,
+    subprocess_environment,
+)
 
 ROOT = bootstrap()
 

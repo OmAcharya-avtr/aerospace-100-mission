@@ -1,0 +1,103 @@
+
+==============================================================================
+hilverdict -- every example, run, with its printed numbers recorded
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+control          : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P083 (printed relatively; see validation/_bootstrap.py)
+
+Each example is run from the repository root as a subprocess with HOME and
+MPLCONFIGDIR in a temporary directory outside the repository.
+[PASS] examples/bound_vs_truth.py exits zero and writes its figure -- exit 0, figure rewritten
+[PASS] examples/certificate_threshold.py exits zero and writes its figure -- exit 0, figure rewritten
+[PASS] examples/clock_drift.py exits zero and writes its figure -- exit 0, figure rewritten
+[PASS] examples/divergence_traces.py exits zero and writes its figure -- exit 0, figure rewritten
+[PASS] examples/miss_disposition.py exits zero and writes its figure -- exit 0, figure rewritten
+[PASS] examples/recall_tradeoff.py exits zero and writes its figure -- exit 0, figure rewritten
+[PASS] examples/verdict_and_cost.py exits zero and writes its figure -- exit 0, figure rewritten
+
+example                            exit  figure rewritten  size [KiB]  elapsed [s]
+---------------------------------  ----  ----------------  ----------  -----------
+examples/bound_vs_truth.py         0     yes               108         5.9        
+examples/certificate_threshold.py  0     yes               102         2.5        
+examples/clock_drift.py            0     yes               87          2.7        
+examples/divergence_traces.py      0     yes               114         2.5        
+examples/miss_disposition.py       0     yes               122         3.7        
+examples/recall_tradeoff.py        0     yes               87          6.7        
+examples/verdict_and_cost.py       0     yes               69          3.3        
+
+Elapsed seconds are UNSTABLE on shared hardware and are reported for
+information only.
+
+==============================================================================
+what each example printed
+==============================================================================
+
+--- examples/bound_vs_truth.py ---
+  written: screenshots/bound_vs_truth.png
+  misses compared 493
+  violations 0
+  worst ratio 0.481837, median 0.350805
+  anisotropy sweep medians 0.984646, 0.941158, 0.930807, 0.794037, 0.347690
+  np version 2.5.3
+
+--- examples/certificate_threshold.py ---
+  written: screenshots/certificate_threshold.png
+  certified overrun at a 1 deg input step: 4.408112 ms
+  at a 0.05 deg input step: 25.109992 ms
+  mu_S = 98.577700 1/s, gamma_sup = 3.203899, c_free = 2.679893
+  np version 2.5.3
+
+--- examples/clock_drift.py ---
+  written: screenshots/clock_drift.png
+  true misses per drift level: [176, 176, 176, 176, 176, 176, 176, 176]
+  apparent misses            : [156, 172, 175, 176, 176, 177, 185, 196]
+  after correction           : [176, 176, 176, 176, 176, 176, 176, 176]
+  wrongly gained or lost     : [20, 4, 1, 0, 0, 1, 9, 20]
+  reset detected at [90]
+  np version 2.5.3
+
+--- examples/divergence_traces.py ---
+  written: screenshots/divergence_traces.png
+  dismissed by eq (13): iteration 48, bound 0.001079, re-simulated 0.000405
+  undecided, then inconsequential: iteration 110, bound 1.421538, re-simulated 0.529640
+  consequential: iteration 111, bound 350.642537, re-simulated 22.967525
+  np version 2.5.3
+
+--- examples/miss_disposition.py ---
+  written: screenshots/miss_disposition.png
+  misses 704, dismissed 611, consequential 42
+  dismissal rate 0.867898
+  consequential misses among the dismissed: 0
+  np version 2.5.3
+
+--- examples/recall_tradeoff.py ---
+  written: screenshots/recall_tradeoff.png
+  certificate: recall 1.000000 at flag rate 0.119769
+  learned at the train-chosen threshold: recall 0.900000 at flag rate 0.051948
+  test misses 693, consequential 40
+  np version 2.5.3
+
+--- examples/verdict_and_cost.py ---
+  written: screenshots/verdict_and_cost.png
+  TIMING_FAITHFUL: 5
+  NOT_TIMING_FAITHFUL: 13
+  UNDECIDABLE: 2
+  misses total 338
+  plant evaluations, every miss : 558624
+  plant evaluations, residual   : 83696
+  saved 0.850175
+  certificate wall clock, median 6.758 ms; reference, median 29.236 ms (UNSTABLE on shared hardware)
+  np version 2.5.3
+
+CHECKS RUN: 7
+FAILED CHECKS (0): none

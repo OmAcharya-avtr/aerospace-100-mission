@@ -1,0 +1,167 @@
+
+==============================================================================
+hilverdict -- one run, worked through
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+control          : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P083 (printed relatively; see validation/_bootstrap.py)
+
+declared run: seed 902, profile loaded, 8 deg manoeuvre, 200 iterations at 10 ms
+declared tolerance: 1 in a metric of 0.0100 deg incidence and 2.0000 deg/s pitch rate
+
+==============================================================================
+step 0: what the rig recorded
+==============================================================================
+  iterations                 : 200
+  mean utilisation           : 0.863510
+  overruns, direct count     : 22
+  overruns, cascade count    : 55
+  cascade / direct           : 2.500000
+  longest overrun            : 34.7377 ms against a 10 ms deadline
+  peak reference incidence   : 2.7959 deg
+  saturated iterations       : 0
+
+A timing report that stops here has not answered the question. Twenty-two
+overruns is not a verdict.
+
+==============================================================================
+step 1: the clock, before any duration is believed
+==============================================================================
+CLOCK VERDICT: CLOCK_CLEAN
+  pooled drift      : 0.0361 ppm +- 0.0255
+  declared allowance: 100.0000 ppm
+  resets detected   : none
+
+start  stop  samples  drift [ppm]  se [ppm]  theil-sen [ppm]
+-----  ----  -------  -----------  --------  ---------------
+0      201   201      0.0361       0.0255    0.0000         
+
+a reset makes every duration spanning it meaningless, so a detected reset
+makes the run undecidable whatever the fitted rates look like. A drift is
+correctable and the correction changes which iterations appear to miss.
+
+==============================================================================
+step 2: the analytic certificate, equation (13)
+==============================================================================
+quantity                         value              
+-------------------------------  -------------------
+run                              loaded-8deg-seed902
+misses recorded                  22                 
+dismissed in closed form         19                 
+left undecided                   3                  
+dismissal rate                   0.8636             
+aggregate bound, eq (15)         378.1773           
+tolerance                        1.0000             
+certified overrun, eq (14) [ms]  0.2009             
+
+the certified overrun is evaluated at this run's LARGEST input step and full horizon,
+so it is the conservative single threshold: any miss shorter than it is dismissed
+whatever else the run was doing at the time.
+
+iter  tau [ms]  tau/T  p  du [deg]  horizon  bound   margin   verdict    proof
+----  --------  -----  -  --------  -------  ------  -------  ---------  -----
+2     7.397     0.740  0  0.0000    197      0.0000  1.0000   DISMISSED  yes  
+4     13.663    1.366  1  0.0000    194      0.0000  1.0000   DISMISSED  yes  
+16    0.155     0.016  0  0.0000    183      0.0000  1.0000   DISMISSED  yes  
+48    0.183     0.018  0  0.0323    151      0.0011  0.9989   DISMISSED  yes  
+62    1.366     0.137  0  0.0874    137      0.0231  0.9769   DISMISSED  yes  
+79    1.714     0.171  0  0.0447    120      0.0151  0.9849   DISMISSED  yes  
+81    0.265     0.026  0  11.4415   118      0.5555  0.4445   DISMISSED  yes  
+93    1.353     0.135  0  0.0497    106      0.0130  0.9870   DISMISSED  yes  
+103   6.421     0.642  0  0.0388    96       0.0630  0.9370   DISMISSED  yes  
+107   0.269     0.027  0  0.0377    92       0.0019  0.9981   DISMISSED  yes  
+109   2.310     0.231  0  0.0366    90       0.0172  0.9828   DISMISSED  yes  
+110   0.284     0.028  0  27.2105   89       1.4215  -0.4215  UNDECIDED  -    
+
+showing 12 of 22 misses
+bound is equation (13) in the declared metric; the tolerance is 1 by
+construction, so a bound below 1 is a dismissal. proof = yes means the
+dismissal is a theorem about the declared linearisation, not a measurement.
+UNDECIDED is not a claim that the miss mattered: it is the certificate
+declining, and re-simulation settles it.
+
+==============================================================================
+step 3: re-simulation, on the residual only
+==============================================================================
+the certificate left 3 of 22 misses undecided: [110, 111, 174]
+
+iter  tau [ms]  peak divergence  at iter  steps  plant calls  verdict        
+----  --------  ---------------  -------  -----  -----------  ---------------
+110   0.284     0.5296           118      90     1456         INCONSEQUENTIAL
+111   24.738    22.9675          120      89     1440         CONSEQUENTIAL  
+174   21.359    1.7763           183      26     432          CONSEQUENTIAL  
+
+peak divergence is the largest weighted-norm difference between the
+with-miss and the miss-free trajectory, in the declared metric. This is
+the reference every other number in this product is scored against.
+
+  plant evaluations paid for          : 3328
+  plant evaluations if every miss had been re-simulated : 32576
+  saved by the certificate            : 0.897839
+
+==============================================================================
+step 4: the verdict
+==============================================================================
+RUN VERDICT: NOT_TIMING_FAITHFUL  (loaded-8deg-seed902)
+  - 2 of 22 misses moved the trajectory past the declared tolerance; iterations [111, 174]
+
+quantity                      value      
+----------------------------  -----------
+misses recorded               22         
+dismissed by the certificate  19         
+re-simulated                  3          
+consequential                 2          
+re-simulations saved          0.8636     
+aggregate bound, eq (15)      378.1773   
+aggregate below tolerance     NO         
+mean utilisation              0.8635     
+cascade / direct overruns     2.500      
+clock                         CLOCK_CLEAN
+
+TIMING_FAITHFUL is an evidence statement about the declared plant,
+controller, metric and tolerance. It is not a certification, not an
+airworthiness statement, and not a claim about any real rig. A cascade
+ratio well above 1 means the run is further from the declared
+non-cascading miss model than the single word above suggests.
+
+==============================================================================
+the paragraph a programme would write down
+==============================================================================
+
+  Run loaded-8deg-seed902 recorded 22 deadline overruns in
+  200 iterations at a mean utilisation of 0.8635. The host-to-device
+  clock was within 100 ppm with no reset, so the recorded
+  durations are believable.
+
+  19 of those 22 overruns are
+  dismissed in closed form: for the declared plant, controller and
+  linearisation, no overrun of that duration holding that input step can
+  move the trajectory past the declared tolerance. That is a proof about
+  the declared model, not an estimate, and it is why only
+  3 overruns needed re-simulating.
+
+  Of those 3, 2 measurably changed the
+  trajectory. The worst, iteration
+  111 with a 24.7377 ms overrun,
+  moved it by 22.9675 times the declared tolerance,
+  peaking 9 iterations later.
+
+  The run is therefore NOT_TIMING_FAITHFUL: its result is not timing-faithful
+  at the declared tolerance, and the iterations to look at are
+  [111, 174].
+
+  This is research-grade software. The statement above is evidence about a
+  declared model, not a certification, and nothing here is flight-qualified
+  or approved for operational aerospace use.
+
+CHECKS RUN: 0
+FAILED CHECKS (0): none

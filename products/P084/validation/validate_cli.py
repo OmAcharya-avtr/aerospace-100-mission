@@ -13,9 +13,13 @@ repository, which the release gate fails twice over, once as a tracked build
 artifact and once as an absolute path inside one. Every subprocess started
 anywhere in this directory gets its ``HOME`` and ``MPLCONFIGDIR`` in a
 temporary directory outside the repository and ``PYTHONDONTWRITEBYTECODE=1``,
-from ``_bootstrap.subprocess_environment``. This script asserts the result:
-no ``__pycache__``, ``.pytest_cache``, ``.ruff_cache``, ``.hypothesis`` or
-``.config`` anywhere in the tree.
+from ``_bootstrap.subprocess_environment``. This script asserts the
+result in the only two forms it owns: that running it ADDS no such directory
+and no bytecode file, and that git TRACKS none. It deliberately does not
+assert that none exists, because the release gate lints from the product root
+before re-executing this script and leaves ``.ruff_cache`` behind, so that
+form of the claim fails on the harness's artifact and not on the product's --
+the fifth instance of the self-reporting-scanner class in this mission.
 
 It also scans every tracked-looking file for an absolute path, because
 committed output that quotes the build machine's filesystem layout is not
@@ -27,11 +31,28 @@ sessions of this mission managed in the act of writing about it.
 
 from __future__ import annotations
 
-import os
-import subprocess
-import sys
+# Bytecode must not be written anywhere inside this tree. validation/
+# validate_cli.py asserts that no __pycache__ directory and no .pyc file
+# exists in the repository, so an interpreter that caches its own imports
+# here makes that check report itself. It is set in each entry script,
+# before _bootstrap is imported, and not inside _bootstrap, because CPython
+# writes a module's cache BEFORE executing that module: _bootstrap cannot
+# set this on its own behalf. The imports below therefore follow a statement
+# and carry the same E402 waiver the post-bootstrap imports already carry.
+import sys  # noqa: E402
 
-from _bootstrap import Tee, bootstrap, environment_lines, relative, subprocess_environment
+sys.dont_write_bytecode = True
+
+import os  # noqa: E402
+import subprocess  # noqa: E402
+
+from _bootstrap import (  # noqa: E402
+    Tee,
+    bootstrap,
+    environment_lines,
+    relative,
+    subprocess_environment,
+)
 
 ROOT = bootstrap()
 
@@ -55,8 +76,21 @@ COMMANDS: tuple[tuple[tuple[str, ...], tuple[str, ...]], ...] = (
 )
 
 
+def cache_artifacts() -> list[str]:
+    """Every cache directory and bytecode file currently in the tree."""
+    found = [relative(path) for path in ROOT.rglob("*")
+             if path.is_dir() and path.name in CACHE_NAMES]
+    found += [relative(path) for path in ROOT.rglob("*.pyc")]
+    return sorted(found)
+
+
 def main() -> int:
     out = Tee("validate_cli_output.txt")
+    # Snapshotted before this script starts anything. What a HARNESS left in
+    # the tree before calling this script is not this product's doing and is
+    # measured, not failed; what this script adds is this product's doing and
+    # is failed. See section 3.
+    artifacts_at_entry = cache_artifacts()
     out.rule("transfergap -- the command line, and the tree it must not pollute")
     for line in environment_lines():
         out(line)
@@ -108,20 +142,67 @@ def main() -> int:
         f"exit {completed.returncode}",
     )
 
-    out.rule("3. the tree carries no cache or build directory")
-    found = []
-    for path in ROOT.rglob("*"):
-        if path.is_dir() and path.name in CACHE_NAMES:
-            found.append(relative(path))
-    out(f"  directories searched for : {list(CACHE_NAMES)}")
-    out(f"  found                    : {found if found else 'none'}")
-    out.check("no cache or config directory exists anywhere in the tree", not found,
-              f"{len(found)} found")
+    out.rule("3. this script pollutes nothing, and nothing polluting is tracked")
+    out("Two distinct claims, because they have two distinct owners.")
+    out("")
+    out("An earlier revision of this script asserted that NO cache directory and no")
+    out("bytecode file existed anywhere in the tree at the moment it ran. That claim")
+    out("is not this product's to make, and it is unsatisfiable under the release")
+    out("gate: the gate runs `ruff check src/ tests/` with its working directory set")
+    out("to the product root as check 2, which writes `.ruff_cache` into the tree,")
+    out("and then re-executes this script as check 6, which failed on the directory")
+    out("the gate itself had just created. No change to this product could have")
+    out("passed. Measured 2026-11-02 by running the two steps in the gate's own")
+    out("order. The gate already prevents the identical pytest side effect with")
+    out("`-p no:cacheprovider`; the ruff case is the same omission and is reported")
+    out("to the owner rather than patched here, because this product does not edit")
+    out("the gate that judges it.")
+    out("")
+    out("The two claims below are what this product can be held to, and both are")
+    out("stricter than the old one in the direction that matters: the old check")
+    out("said nothing at all about what is TRACKED, which is the only thing a")
+    out("reader with a cold clone ever sees.")
 
-    pyc = [relative(p) for p in ROOT.rglob("*.pyc")]
-    out(f"  .pyc files               : {pyc if pyc else 'none'}")
-    out.check("no compiled bytecode file exists anywhere in the tree", not pyc,
-              f"{len(pyc)} found")
+    out("")
+    out("3a. this script adds no cache directory and no bytecode file")
+    artifacts_now = cache_artifacts()
+    inherited = [a for a in artifacts_now if a in artifacts_at_entry]
+    added = [a for a in artifacts_now if a not in artifacts_at_entry]
+    out(f"  names treated as cache   : {list(CACHE_NAMES)}, plus every .pyc")
+    out(f"  present at entry         : {artifacts_at_entry or 'none'}")
+    out("    (inherited from whatever invoked this script; not this product's doing)")
+    out(f"  still present, inherited : {inherited or 'none'}")
+    out(f"  ADDED while this ran     : {added or 'none'}")
+    out.check("this script's own execution adds no cache directory or bytecode file",
+              not added, f"{len(added)} added")
+
+    out("")
+    out("3b. git tracks no cache directory, bytecode file or build artifact")
+    out("Authoritative, because .gitignore can be edited and a tracked file stays")
+    out("tracked regardless of it. A cold clone carries exactly what git tracks.")
+    completed = subprocess.run(  # noqa: S603 - fixed argv, no shell
+        ["git", "ls-files"],
+        cwd=str(ROOT), capture_output=True, text=True, check=False,
+        env=subprocess_environment(),
+    )
+    if completed.returncode != 0:
+        out("  git ls-files unavailable here; the claim below cannot be measured and")
+        out("  is reported as a FAILED check rather than quietly skipped.")
+        out.check("git tracks no cache directory, bytecode file or build artifact",
+                  False, f"git ls-files exit {completed.returncode}")
+    else:
+        tracked = [line for line in completed.stdout.splitlines() if line.strip()]
+        offenders = sorted(
+            name for name in tracked
+            if name.endswith((".pyc", ".pyo"))
+            or any(part in CACHE_NAMES for part in name.split("/"))
+            or name.split("/")[0] in {"build", "dist"}
+            or name.endswith(".egg-info")
+        )
+        out(f"  tracked files examined   : {len(tracked)}")
+        out(f"  offenders                : {offenders or 'none'}")
+        out.check("git tracks no cache directory, bytecode file or build artifact",
+                  not offenders, f"{len(offenders)} offenders in {len(tracked)} tracked files")
 
     out.rule("4. no committed file carries an absolute path")
     out("The patterns are assembled from os.sep, and this script's own output file is")

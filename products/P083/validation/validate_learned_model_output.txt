@@ -1,0 +1,262 @@
+
+==============================================================================
+hilverdict -- the analytic certificate against the learned classifier
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+control          : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P083 (printed relatively; see validation/_bootstrap.py)
+
+spec: n_estimators=150, learning_rate=0.08, max_depth=3, min_samples_leaf=4, subsample=0.9, positive_weight=8.0, seed=20260301, abstention_band=0.05
+
+==============================================================================
+1. the populations, and the labels the reference produced
+==============================================================================
+Labels come from baseline 2: a miss is consequential when the re-simulated
+peak divergence reaches the declared tolerance. Nothing here labels a miss
+by a prediction.
+
+population  runs  refused  misses  consequential  rate      undecided by eq (13)  label time [s]
+----------  ----  -------  ------  -------------  --------  --------------------  --------------
+train       72    0        1415    102            0.072085  204                   2.46          
+test        45    0        841     47             0.055886  97                    1.51          
+
+declared tolerance 1.0, declared recall target 1.0
+features: 14 -- overrun_periods, overrun_s, hold_periods, input_step_rad, abs_command_rad, abs_alpha_rad, abs_rate_rad_s, tracking_error_rad, remaining_fraction, command_activity_rad, misses_in_window, consecutive_misses, local_utilisation, steps_to_switch
+
+Two of those features, overrun_s and input_step_rad, are EXACTLY the two
+numbers equation (13) is a function of. The learned model is given
+everything the proof uses and twelve further features besides, so a loss
+here is a loss on the merits.
+[PASS] the training and test populations are disjoint by run -- 72 training seeds, 45 test seeds, 0 shared
+[PASS] both populations contain consequential and inconsequential misses -- train 102/1415, test 47/841
+[PASS] the certificate dismisses no consequential miss in either population -- train 0, test 0
+
+==============================================================================
+2. the comparison, scored on recall of consequential misses
+==============================================================================
+EVERY learned threshold below is chosen on the TRAINING runs and then
+applied unchanged to the test runs. That protocol is not a formality: a
+threshold picked as 'the smallest flag rate that reaches recall 1' using
+the test labels reaches recall 1 BY CONSTRUCTION, and reporting that as an
+out-of-sample result would be a leak. The leaked version is shown too, in
+its own row, labelled as an oracle a user cannot have.
+
+method                                                        misses  consequential  recall  recall 95% interval  missed  flag rate  dismissal rate  proof
+------------------------------------------------------------  ------  -------------  ------  -------------------  ------  ---------  --------------  -----
+analytic certificate, eq (13)                                 841     47             1.0000  [0.9245, 1.0000]     0       0.1153     0.8847          yes  
+learned, threshold from train at recall 1                     841     47             0.7234  [0.5736, 0.8438]     13      0.0428     0.9572          NO   
+learned, threshold from train at the certificate's flag rate  841     47             1.0000  [0.9245, 1.0000]     0       0.1296     0.8704          NO   
+learned at the untuned 0.5                                    841     47             0.8936  [0.7690, 0.9645]     5       0.0595     0.9405          NO   
+learned with abstention referred, threshold from train        841     47             0.7447  [0.5965, 0.8606]     12      0.0440     0.9560          NO   
+learned, ORACLE threshold chosen on the test labels           841     47             1.0000  [0.9245, 1.0000]     0       0.0654     0.9346          NO   
+trivial: flag every miss                                      841     47             1.0000  [0.9245, 1.0000]     0       1.0000     0.0000          NO   
+trivial: overrun threshold from train at recall 1             841     47             0.9574  [0.8546, 0.9948]     2       0.6445     0.3555          NO   
+
+recall is of CONSEQUENTIAL misses and is the quantity that decides.
+'missed' counts consequential misses the method dismissed: the
+asymmetric error. 'proof' = yes means the dismissals are a theorem
+about the declared linearisation; NO means they rest on a measurement
+or a prediction and carry the sampling error of the interval beside
+them.
+
+quantity                                           value              
+-------------------------------------------------  -------------------
+threshold chosen on train at the recall target     0.982633274        
+its recall and flag rate ON TRAIN                  1.000000 / 0.072085
+train flag rate of the certificate                 0.144170           
+threshold chosen on train to match that flag rate  0.001004319        
+overrun threshold chosen on train [ms]             0.800454           
+its recall and flag rate ON TRAIN                  1.000000 / 0.641696
+ORACLE threshold from the test labels              0.123918555        
+its recall and flag rate on test                   1.000000 / 0.065398
+certificate flag rate on test                      0.115339           
+
+THE RESULT, computed from the table above rather than written in advance:
+
+  The analytic certificate reaches recall 1.000000 at flag rate 0.115339, dismissing
+  0 of 47 consequential misses.
+  The learned classifier at the train-chosen threshold reaches recall 0.723404
+  at flag rate 0.042806, dismissing 13 consequential misses.
+
+  So the learned component FAILS the scoring rule outright: it dismisses
+  misses that mattered, which is the asymmetric error, while the
+  certificate dismisses none and cannot.
+
+  The oracle row, whose threshold was chosen using the test labels, reaches
+  recall 1.000000 at flag rate 0.065398. It is an upper bound on what any
+  threshold of this model could do on this exact sample and is not
+  achievable by a user, who does not have the labels.
+
+[PASS] the analytic certificate reaches the declared recall target -- recall 1.000000, 0 consequential misses dismissed
+[PASS] the certificate's dismissals cost nothing in recall, by construction -- 0 of 47
+[PASS] the certificate beats the trivial flag-everything policy on cost -- flag rate 0.115339 against 1.000000 at the same recall
+[PASS] the certificate beats the trivial overrun threshold at equal recall -- 0.115339 against 0.644471
+[PASS] every learned recall is reported with an exact interval that admits a worse value -- lower limits 0.5736, 0.9245, 0.7690, 0.5965, 0.9245, 0.9245, 0.8546
+
+Reported, not asserted: which method had the lower flag rate at the
+declared recall on this sample.
+  certificate flag rate : 0.115339 (recall 1.000000, proof)
+  learned flag rate     : 0.042806 (recall 0.723404, estimate)
+  matched-rate learned recall : 1.000000 (0 consequential misses dismissed)
+
+==============================================================================
+2b. how much the learned recall moves between folds of the test runs
+==============================================================================
+The certificate's recall is a theorem and cannot move. The learned
+classifier's is a statistic, and the test population is split into three
+disjoint folds of 15 runs each -- by RUN, never by miss -- to measure
+how far it moves at the SAME train-chosen threshold.
+
+fold  misses  consequential  certificate recall  certificate flag rate  learned recall  learned flag rate
+----  ------  -------------  ------------------  ---------------------  --------------  -----------------
+0     261     16             1.000000            0.103448               0.812500        0.049808         
+1     272     17             1.000000            0.121324               0.588235        0.040441         
+2     308     14             1.000000            0.120130               0.785714        0.038961         
+
+  certificate recall across folds : 1.000000 to 1.000000
+  learned recall across folds     : 0.588235 to 0.812500
+  learned recall spread           : 0.224265
+[PASS] the certificate's recall is identical on every fold -- 1.000000 to 1.000000
+[PASS] the learned recall across folds is reported, whichever way it came out -- spread 0.224265, from 0.588235 to 0.812500 at a fixed threshold
+
+==============================================================================
+3. the residual undecided set: the only role the specification allows
+==============================================================================
+Restricted to the misses the certificate cannot settle, can a classifier
+save any of the re-simulations that set would otherwise cost? A model is
+fitted on the TRAINING runs' residual misses only, and scored on the test
+runs' residual misses only.
+
+quantity                                 value   
+---------------------------------------  --------
+training residual misses                 204     
+of which consequential                   102     
+test residual misses                     97      
+of which consequential                   47      
+consequential rate in the test residual  0.484536
+
+method                                                      misses  consequential  recall  recall 95% interval  missed  flag rate  dismissal rate  proof
+----------------------------------------------------------  ------  -------------  ------  -------------------  ------  ---------  --------------  -----
+residual-only model, threshold from the train residual      97      47             0.7660  [0.6197, 0.8770]     11      0.4021     0.5979          NO   
+residual-only model, ORACLE threshold from the test labels  97      47             1.0000  [0.9245, 1.0000]     0       0.6701     0.3299          NO   
+re-simulate the whole residual                              97      47             1.0000  [0.9245, 1.0000]     0       1.0000     0.0000          NO   
+
+recall is of CONSEQUENTIAL misses and is the quantity that decides.
+'missed' counts consequential misses the method dismissed: the
+asymmetric error. 'proof' = yes means the dismissals are a theorem
+about the declared linearisation; NO means they rest on a measurement
+or a prediction and carry the sampling error of the interval beside
+them.
+
+quantity                                value              
+--------------------------------------  -------------------
+threshold chosen on the train residual  0.986548210        
+its recall and flag rate ON TRAIN       1.000000 / 0.500000
+its recall ON TEST                      0.765957           
+its flag rate ON TEST                   0.402062           
+consequential misses it dismissed       11                 
+oracle flag rate at recall 1 on test    0.670103           
+
+  re-simulations saved at no cost in recall : 0.000000
+
+Operating points on the residual, so the whole curve is visible and not
+only the point that flatters the model:
+threshold  recall    flag rate
+---------  --------  ---------
+0.000242   1.000000  1.000000 
+0.001926   1.000000  0.917526 
+0.004156   1.000000  0.824742 
+0.014554   1.000000  0.742268 
+0.040333   0.978723  0.659794 
+0.545491   0.957447  0.577320 
+0.825460   0.851064  0.494845 
+0.981513   0.765957  0.412371 
+0.997725   0.638298  0.329897 
+0.999059   0.468085  0.247423 
+0.999691   0.297872  0.164948 
+0.999875   0.148936  0.082474 
+0.999949   0.000000  0.000000 
+
+MEASURED RESULT: on the residual set, at the threshold a user could
+actually have chosen, the model dismisses
+11 of 47 consequential
+misses. It therefore saves nothing that a user is entitled to take: the
+saving is bought with exactly the error the scoring rule forbids. The
+oracle row shows that a threshold chosen WITH the test labels could have
+reached recall 1 while flagging 0.670103 of the
+residual, so the information is in the model; what is missing is any way
+to find that threshold without the labels.
+[PASS] the residual-set result is reported as measured, whichever way it came out -- flag rate 0.402062 at recall 0.765957, 11 consequential misses dismissed, saving 0.000000
+
+==============================================================================
+4. what each policy costs in plant evaluations
+==============================================================================
+The unit is a right-hand-side evaluation of equations (1)-(2). The cost of
+re-simulating a miss is known exactly from its remaining horizon, so these
+are counts and not timings.
+
+policy                                      plant evaluations  fraction of the full cost  consequential misses dismissed, as a rate
+------------------------------------------  -----------------  -------------------------  -----------------------------------------
+re-simulate every miss                      1415712            1.000000                   0.055886                                 
+certificate, then re-simulate the residual  185120             0.130761                   0.000000                                 
+
+  evaluations saved by baseline 1 at no cost in recall : 0.869239
+[PASS] the certificate saves most of the reference's cost at zero cost in recall -- 0.869239 of plant evaluations over 841 misses
+
+==============================================================================
+5. the model itself: calibration, and what it leaned on
+==============================================================================
+mean predicted  observed rate  misses  gap     
+--------------  -------------  ------  --------
+0.001510        0.002538       788     0.001028
+0.306796        1.000000       2       0.693204
+0.528292        0.500000       2       0.028292
+0.728487        0.500000       4       0.228487
+0.976380        0.888889       45      0.087491
+
+  Brier score                 : 0.010345
+  base-rate predictor's Brier : 0.052763
+  worst calibration gap       : 0.693204
+[PASS] the model beats the base-rate predictor on the Brier score -- 0.010345 against 0.052763
+
+A Brier score better than the base rate says the probabilities carry
+information. It does not say the model is useful for THIS decision, which
+is what section 2 measures and section 2 is the verdict.
+
+feature               impurity importance
+--------------------  -------------------
+input_step_rad        0.779548           
+overrun_s             0.112442           
+overrun_periods       0.076083           
+command_activity_rad  0.021644           
+abs_command_rad       0.006845           
+local_utilisation     0.002260           
+misses_in_window      0.000372           
+steps_to_switch       0.000225           
+tracking_error_rad    0.000188           
+hold_periods          0.000172           
+abs_rate_rad_s        0.000148           
+abs_alpha_rad         0.000057           
+remaining_fraction    0.000015           
+consecutive_misses    0.000000           
+
+Impurity importance is biased towards features with many distinct values
+and is a description of the fitted trees, never evidence about the plant.
+What it does show is that the model concentrated on the same two quantities
+equation (13) is built from, which is the expected outcome: there was
+nothing else to find.
+[PASS] the model's two most important features are the two the certificate uses -- top two were ['input_step_rad', 'overrun_s']
+
+This model is not certified for operational flight use.
+
+CHECKS RUN: 14
+FAILED CHECKS (0): none

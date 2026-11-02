@@ -1,0 +1,203 @@
+
+==============================================================================
+hilverdict -- the declared plant, its discretisation and its integrator
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+control          : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P083 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the trim of equations (4)-(5) is exact for the CUBIC plant
+==============================================================================
+A linearised feedforward would leave a residual growing as alpha^3.
+Equations (4)-(5) solve the cubic trim in closed form, so the residual is
+rounding and nothing else.
+
+alpha_c [deg]  q_trim [rad/s]   u_trim [rad]     max |xdot|
+-------------  ---------------  ---------------  ----------
+0              0.000000000000   0.000000000000   0.000e+00 
+0.5            0.009702589667   -0.004274365808  1.388e-17 
+2              0.038823883877   -0.017022323169  2.168e-18 
+6              0.116817897045   -0.049143383882  2.220e-16 
+10             0.195850646449   -0.075493687722  2.220e-16 
+-6             -0.116817897045  0.049143383882   2.220e-16 
+-10            -0.195850646449  0.075493687722   2.220e-16 
+[PASS] the trim residual is at rounding level at every amplitude tried -- worst max |xdot| = 2.220446e-16 1/s, tolerance 1e-14
+
+The same trim computed WITHOUT the cubic term, applied to the cubic plant:
+  residual at alpha_c = 10 deg: 2.232962e-01 1/s
+[PASS] dropping the cubic term from the trim leaves a residual far above rounding -- 2.232962e-01 1/s against the exact trim's 2.220e-16
+
+==============================================================================
+2. the Jacobian is the Jacobian, by central differences
+==============================================================================
+Central differences are second-order accurate, so the expected agreement is
+O(h^2) times a third derivative; the tolerance is set from that and not from
+a round number.
+
+alpha [deg]  analytic dM/dalpha  central difference  max |difference|
+-----------  ------------------  ------------------  ----------------
+0            -9.000000000        -9.000000000        4.651e-11       
+1            -8.961618205        -8.961618205        3.463e-11       
+5            -8.040455128        -8.040455128        8.265e-11       
+10           -5.161820511        -5.161820510        2.188e-10       
+[PASS] the analytic Jacobian agrees with central differences -- worst 2.188205e-10 1/s, tolerance 1e-6 (central-difference truncation at h = 1e-06 is O(h^2) x |d3f| and |d3f| <= 6 |m_alpha3| = 252)
+
+The cubic term's contribution to the (1,0) entry is 3 m_alpha3 alpha^2, so
+the Jacobian at 10 deg differs from the one at 0 deg by:
+  measured 3.838179489313 1/s^2, closed form 3.838179489313 1/s^2
+[PASS] the Jacobian's incidence dependence matches 3 m_alpha3 alpha^2 exactly -- difference 4.441e-16
+
+==============================================================================
+3. the zero-order-hold matrices of equation (7), three ways
+==============================================================================
+Van Loan's block exponential, against the inverse formula A^-1 (A_d - I) B
+and against composite Simpson quadrature of the defining integral. The
+second and third use mathematics the implementation does not: the inverse
+formula needs A invertible, which the implementation deliberately avoids,
+and the quadrature knows nothing about matrix exponentials beyond expm.
+
+period [ms]  A_d vs expm  B_d vs inverse formula  B_d vs Simpson
+-----------  -----------  ----------------------  --------------
+1            0.000e+00    1.214e-16               6.939e-18     
+5            0.000e+00    5.356e-17               2.082e-16     
+10           0.000e+00    1.388e-16               3.331e-16     
+50           1.110e-16    2.220e-16               8.882e-16     
+[PASS] B_d agrees with the inverse formula A^-1 (A_d - I) B -- worst 2.220446e-16, tolerance 1e-15
+[PASS] B_d agrees with composite Simpson quadrature of its own definition -- worst 8.881784e-16, tolerance 1e-13 at 2048 panels
+
+==============================================================================
+4. the integrator's convergence order, and its exactness on the linear plant
+==============================================================================
+On the LINEAR plant the exact solution is a matrix exponential, so the
+integrator's error is measurable against truth and not only against itself.
+
+substeps  error vs matrix exponential  ratio to previous
+--------  ---------------------------  -----------------
+1         5.024209e-11                                  
+2         3.156695e-12                 15.9160          
+4         1.978711e-13                 15.9533          
+8         1.238270e-14                 15.9796          
+16        7.699437e-16                 16.0826          
+32        5.003708e-17                 15.3875          
+
+measured orders from successive halvings: 3.9924, 3.9958, 3.9982, 4.0074, 3.9437
+[PASS] the integrator converges at fourth order on the linear plant -- orders 3.9924, 3.9958, 3.9982, 4.0074, 3.9437 against the advertised 4
+[PASS] at the declared 4 substeps the error is below 1e-10 of the state norm -- relative error 2.245295e-12
+
+Nonlinear plant, Richardson against the 256-substep solution:
+substeps  error vs 256 substeps  ratio to previous
+--------  ---------------------  -----------------
+1         4.835467e-11                            
+2         3.024763e-12           15.9863          
+4         1.892359e-13           15.9841          
+8         1.186227e-14           15.9528          
+16        7.867693e-16           15.0772          
+
+==============================================================================
+5. the divergence metric of equation (6)
+==============================================================================
+The weights ARE the declared engineering tolerances, so the verdict
+threshold is exactly 1 and nothing in this repository tunes it.
+
+declared quantity       value     
+----------------------  ----------
+alpha tolerance [deg]   0.010000  
+rate tolerance [deg/s]  2.000000  
+anisotropy              200.000000
+
+  norm of exactly the alpha tolerance : 1.000000000000000
+  norm of exactly the rate tolerance  : 1.000000000000000
+  norm of both at once                : 1.414213562373095 (sqrt(2) = 1.414213562373095)
+[PASS] a difference of exactly one declared tolerance scores 1 in each channel -- both channels
+[PASS] both tolerances at once scores sqrt(2) -- 1.41421356237309515
+
+Homogeneity and the triangle inequality, over 20000 random pairs:
+  worst RELATIVE homogeneity residual : 4.862279e-16
+  smallest triangle slack    : 1.288072e-10
+[PASS] the metric is absolutely homogeneous, to relative rounding -- worst relative residual 4.862279e-16, tolerance 1e-14; the norms are of order 1e3 in these units so an absolute tolerance would be testing the size of the numbers rather than the identity
+[PASS] the metric satisfies the triangle inequality -- smallest slack 1.288072e-10
+
+==============================================================================
+6. the closed loop, and the amplitude every campaign actually reaches
+==============================================================================
+quantity                           value                                   
+---------------------------------  ----------------------------------------
+closed-loop spectral radius        0.984651507                             
+open-loop eigenvalues              -1.400000+2.993326j, -1.400000-2.993326j
+actuator limit [deg]               40.0000                                 
+declared incidence validity [deg]  10.0000                                 
+[PASS] the declared closed loop is asymptotically stable -- spectral radius 0.984651507
+
+The monodromy by matrix construction, against a step response measured by
+the integrator itself -- two different code paths for the same matrix:
+  max |Phi_constructed - Phi_measured| = 4.085621e-13
+[PASS] the constructed monodromy matches a measured step response -- 4.085621e-13; the integrator and the cubic term both contribute
+
+campaign      peak |alpha| [deg]  peak |u| [deg]  saturated steps  validity
+------------  ------------------  --------------  ---------------  --------
+nominal-3deg  1.0592              13.3302         0                inside  
+nominal-6deg  2.1079              26.5267         0                inside  
+nominal-8deg  2.7959              35.1840         0                inside  
+loaded-3deg   1.0592              13.3302         0                inside  
+loaded-6deg   2.1079              26.5267         0                inside  
+loaded-8deg   2.7959              35.1840         0                inside  
+bursty-3deg   1.0592              13.3302         0                inside  
+bursty-6deg   2.1079              26.5267         0                inside  
+bursty-8deg   2.7959              35.1840         0                inside  
+[PASS] every declared campaign stays inside the actuator limit and the validity region -- 9 campaigns
+
+==============================================================================
+7. the integrator floor: the divergence that is not a divergence
+==============================================================================
+A miss with a zero input step injects nothing, so the true divergence is
+exactly zero. The with-miss branch nevertheless integrates the period in two
+pieces and the reference integrates it in one, so their fixed-step truncation
+errors differ. That difference is the FLOOR below which no divergence
+measurement means anything, and it is measured here rather than assumed.
+
+substeps  worst zero-input divergence  substep count
+--------  ---------------------------  -------------
+2         3.851159e-08                              
+4         2.396608e-09                 declared     
+8         1.494631e-10                              
+16        9.331158e-12                              
+
+MEASURED INTEGRATOR FLOOR at the declared 4 substeps:
+  2.396608e-09 in metric units, which is 2.397e-09 of the declared
+  tolerance of 1. validate_certificate.py measures the same quantity through
+  the same function and adds it to the bound before testing soundness.
+[PASS] the integrator floor at the declared substep count is below 1e-6 of tolerance -- 2.396608e-09
+[PASS] the floor falls by roughly 16 per halving of the step, as fourth order requires -- ratios 16.0692, 16.0348, 16.0176
+
+The same quantity over the soundness population, as it actually arises:
+  misses examined                        : 228
+  misses with an exactly zero input step : 30
+  worst divergence among those           : 0.000000e+00
+[PASS] a zero input step produces a divergence at or below the declared floor -- 0.000000e+00 against the floor 2.396608e-09
+
+==============================================================================
+8. refusals and input validation
+==============================================================================
+invalid input                                     exception   message                                                                 
+------------------------------------------------  ----------  ------------------------------------------------------------------------
+DivergenceMetric with a zero alpha tolerance      ValueError  both tolerances must be positive; got alpha=0.0, rate=1.0               
+zoh_matrices with a non-square Jacobian           ValueError  jacobian must be square, got shape (2, 3)                               
+zoh_matrices with a negative duration             ValueError  duration_s must be non-negative, got -0.01                              
+a plant whose trim denominator vanishes           ValueError  the declared plant has m_delta == m_q * z_delta, so equation (4) has no 
+SamplingLaw with a deadline past the period       ValueError  deadline_s must lie in (0, period_s]; got deadline_s=0.02, period_s=0.01
+simulate with a miss outside the simulated range  ValueError  miss index 7 is outside the simulated range [0, 5)                      
+simulate with a non-positive overrun              ValueError  miss at index 2 has a non-positive overrun 0.0                          
+[PASS] every invalid input raises with an actionable message -- 7 of 7 raised
+
+CHECKS RUN: 19
+FAILED CHECKS (0): none

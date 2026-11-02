@@ -48,13 +48,42 @@ truth --draws 50000                                   0     14            ok
 [PASS] an out-of-range confidence exits 2 with an actionable message -- exit 2
 
 ==============================================================================
-3. the tree carries no cache or build directory
+3. this script pollutes nothing, and nothing polluting is tracked
 ==============================================================================
-  directories searched for : ['__pycache__', '.pytest_cache', '.ruff_cache', '.hypothesis', '.config']
-  found                    : none
-[PASS] no cache or config directory exists anywhere in the tree -- 0 found
-  .pyc files               : none
-[PASS] no compiled bytecode file exists anywhere in the tree -- 0 found
+Two distinct claims, because they have two distinct owners.
+
+An earlier revision of this script asserted that NO cache directory and no
+bytecode file existed anywhere in the tree at the moment it ran. That claim
+is not this product's to make, and it is unsatisfiable under the release
+gate: the gate runs `ruff check src/ tests/` with its working directory set
+to the product root as check 2, which writes `.ruff_cache` into the tree,
+and then re-executes this script as check 6, which failed on the directory
+the gate itself had just created. No change to this product could have
+passed. Measured 2026-11-02 by running the two steps in the gate's own
+order. The gate already prevents the identical pytest side effect with
+`-p no:cacheprovider`; the ruff case is the same omission and is reported
+to the owner rather than patched here, because this product does not edit
+the gate that judges it.
+
+The two claims below are what this product can be held to, and both are
+stricter than the old one in the direction that matters: the old check
+said nothing at all about what is TRACKED, which is the only thing a
+reader with a cold clone ever sees.
+
+3a. this script adds no cache directory and no bytecode file
+  names treated as cache   : ['__pycache__', '.pytest_cache', '.ruff_cache', '.hypothesis', '.config'], plus every .pyc
+  present at entry         : none
+    (inherited from whatever invoked this script; not this product's doing)
+  still present, inherited : none
+  ADDED while this ran     : none
+[PASS] this script's own execution adds no cache directory or bytecode file -- 0 added
+
+3b. git tracks no cache directory, bytecode file or build artifact
+Authoritative, because .gitignore can be edited and a tracked file stays
+tracked regardless of it. A cold clone carries exactly what git tracks.
+  tracked files examined   : 70
+  offenders                : none
+[PASS] git tracks no cache directory, bytecode file or build artifact -- 0 offenders in 70 tracked files
 
 ==============================================================================
 4. no committed file carries an absolute path

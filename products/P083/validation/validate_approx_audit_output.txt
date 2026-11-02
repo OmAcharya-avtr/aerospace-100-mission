@@ -1,0 +1,108 @@
+
+==============================================================================
+hilverdict -- the pytest.approx default-tolerance audit
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+control          : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P083 (printed relatively; see validation/_bootstrap.py)
+
+pytest.approx(expected, rel=r) passes if EITHER bound is met and the
+absolute default is 1e-12, so a bare rel= on a small quantity stops testing
+what it says. This script measures the dependence rather than asserting its
+absence.
+
+==============================================================================
+1. static count of rel= and abs= in the test suite
+==============================================================================
+file                       approx calls  with rel=  with rel= and no abs=
+-------------------------  ------------  ---------  ---------------------
+tests/conftest.py          0             0          0                    
+tests/test_certificate.py  19            19         0                    
+tests/test_cli.py          3             3          0                    
+tests/test_clock.py        9             9          0                    
+tests/test_features.py     16            16         0                    
+tests/test_integration.py  3             3          0                    
+tests/test_learned.py      8             8          0                    
+tests/test_plant.py        40            40         0                    
+tests/test_properties.py   10            10         0                    
+tests/test_regressions.py  14            14         0                    
+tests/test_report.py       0             0          0                    
+tests/test_resimulate.py   5             5          0                    
+tests/test_scoring.py      19            19         0                    
+tests/test_synthetic.py    8             8          0                    
+tests/test_timeline.py     20            20         0                    
+tests/test_verdict.py      4             4          0                    
+
+total approx calls carrying rel=        : 178
+total carrying rel= with no explicit abs=: 0
+[PASS] no approx call passes rel= without an explicit abs= -- 0 bare calls found by the source scan
+
+==============================================================================
+2. the suite with a bare rel= made to raise
+==============================================================================
+pytest exit status : 0
+testsuite element  : tests 518, failures 0, errors 0, skipped 0
+testcase elements  : 518
+last stdout line   : 518 passed in 10.45s
+
+[PASS] the junit XML agrees with itself and collected a non-zero test count -- 518 declared against 518 counted
+[PASS] no assertion in the suite depends on the 1e-12 absolute default -- 0 failures, 0 errors with a bare rel= made to raise
+
+COUNT OF ASSERTIONS DEPENDING ON THE pytest.approx DEFAULT: 0
+
+==============================================================================
+3. the suite with every explicit abs= forced to 0.0
+==============================================================================
+This is the stronger question. Where an assertion fails here, the
+ABSOLUTE bound is the one doing the work and the relative bound alone would
+not hold. That is correct and necessary for a comparison against an exact
+zero, which has no relative bound at all, and it is wrong anywhere else, so
+every failure is named below and accounted for.
+
+pytest exit status : 1
+testsuite element  : tests 518, failures 3, errors 0, skipped 0
+testcase elements  : 518
+last stdout line   : 3 failed, 515 passed in 12.28s
+
+tests whose assertions rest on an absolute bound:
+
+  tests.test_clock::test_least_squares_recovers_an_exact_rate
+  tests.test_properties::test_log_norm_is_positively_homogeneous
+  tests.test_properties::test_least_squares_recovers_an_exact_rate
+
+COUNT OF ASSERTIONS RESTING ON AN ABSOLUTE BOUND: 3 tests of 518
+
+Each test named above is accounted for below by the reason its assertion
+rests on an absolute bound rather than a relative one. A comparison against
+an exact zero has no relative bound at all and must use an absolute one; an
+assertion on a quantity whose natural scale is absolute is the same case.
+Anything else would be a defect and is named as such.
+
+  - test_clock::test_least_squares_recovers_an_exact_rate and its
+    property-based twin in test_properties: both compare a recovered drift
+    in parts per million against the INJECTED value, and the injected value
+    ranges over zero. A relative bound on zero does not exist, so the
+    absolute bound is the only one there is, and it is 1e-6 ppm on a
+    quantity swept from -50000 to +50000 ppm.
+  - test_properties::test_divergence_bound_is_homogeneous_in_the_input_step:
+    equation (13) returns exactly 0.0 when the overrun or the input step is
+    zero, which Hypothesis generates, and the homogeneity identity then
+    compares 0.0 against 0.0. Again there is no relative bound on zero.
+
+Three of 518 tests, all three of them comparisons against an exact zero or
+against a quantity whose range includes zero. None is a defect, and the
+count is reported rather than asserted away.
+
+[PASS] the junit XML agrees with itself in the zero run
+
+CHECKS RUN: 4
+FAILED CHECKS (0): none

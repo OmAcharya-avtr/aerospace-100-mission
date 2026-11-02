@@ -1,0 +1,120 @@
+
+==============================================================================
+hilverdict -- the command line, and the tree it must not pollute
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.14
+ruff             : 0.17.3
+control          : not installed  (named in README; no number here is compared against it)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P083 (printed relatively; see validation/_bootstrap.py)
+
+Every subprocess below runs with HOME and MPLCONFIGDIR in a temporary
+directory outside the repository and PYTHONDONTWRITEBYTECODE=1.
+
+==============================================================================
+1. every subcommand, as a user runs it
+==============================================================================
+[PASS] python -m hilverdict --version -- exit 0
+[PASS] python -m hilverdict --help -- exit 0
+[PASS] python -m hilverdict threshold --steps 200 -- exit 0
+[PASS] python -m hilverdict certify --seed 902 --profile loaded --amplitude-deg 8.0 -- exit 0
+[PASS] python -m hilverdict resimulate --seed 902 --profile loaded --amplitude-deg 8.0 -- exit 0
+[PASS] python -m hilverdict verdict --seed 902 --profile loaded --amplitude-deg 8.0 -- exit 0
+[PASS] python -m hilverdict clock --seed 902 --drift-ppm 5000 -- exit 0
+[PASS] python -m hilverdict clock --seed 902 --resets 0.4 -- exit 0
+[PASS] python -m hilverdict verdict --seed 902 --resets 0.4 -- exit 0
+[PASS] python -m hilverdict certify --seed 902 --amplitude-deg 14.0 -- exit 0
+[PASS] python -m hilverdict learned --train-runs 9 --test-runs 6 --steps 120 -- exit 0
+
+command                                               exit  stdout lines  verdict
+----------------------------------------------------  ----  ------------  -------
+--version                                             0     1             ok     
+--help                                                0     19            ok     
+threshold --steps 200                                 0     25            ok     
+certify --seed 902 --profile loaded --amplitude-deg   0     46            ok     
+resimulate --seed 902 --profile loaded --amplitude-d  0     19            ok     
+verdict --seed 902 --profile loaded --amplitude-deg   0     23            ok     
+clock --seed 902 --drift-ppm 5000                     0     14            ok     
+clock --seed 902 --resets 0.4                         0     15            ok     
+verdict --seed 902 --resets 0.4                       0     23            ok     
+certify --seed 902 --amplitude-deg 14.0               0     49            ok     
+learned --train-runs 9 --test-runs 6 --steps 120      0     36            ok     
+
+==============================================================================
+2. a bad argument must exit non-zero and say why
+==============================================================================
+[PASS] `certify --tolerance 0` exits 2 with an actionable message -- exit 2
+[PASS] `certify --steps 1` exits 2 with an actionable message -- exit 2
+[PASS] `certify --profile turbo` exits 2 with an actionable message -- exit 2
+[PASS] `learned --target-recall 1.5` exits 2 with an actionable message -- exit 2
+[PASS] `invent` exits 2 with an actionable message -- exit 2
+
+argv                         exit  last stderr line                                                                          
+---------------------------  ----  ------------------------------------------------------------------------------------------
+certify --tolerance 0        2     python -m hilverdict: error: --tolerance must be strictly positive, got 0.0; the divergenc
+certify --steps 1            2     python -m hilverdict: error: --steps must be at least 2, got 1                            
+certify --profile turbo      2     python -m hilverdict certify: error: argument --profile: invalid choice: 'turbo' (choose f
+learned --target-recall 1.5  2     python -m hilverdict: error: --target-recall must lie in (0, 1], got 1.5                  
+invent                       2     python -m hilverdict: error: argument command: invalid choice: 'invent' (choose from 'cert
+
+==============================================================================
+3. this script pollutes nothing, and nothing polluting is tracked
+==============================================================================
+Two distinct claims, because they have two distinct owners.
+
+An earlier revision of this script asserted that NO cache directory and no
+bytecode file existed anywhere in the tree at the moment it ran. That claim
+is not this product's to make, and it is unsatisfiable under the release
+gate: the gate runs `ruff check src/ tests/` with its working directory set
+to the product root as check 2, which writes `.ruff_cache` into the tree,
+and then re-executes this script as check 6, which failed on the directory
+the gate itself had just created. No change to this product could have
+passed. Measured 2026-11-02 by running the two steps in the gate's own
+order. The gate already prevents the identical pytest side effect with
+`-p no:cacheprovider`; the ruff case is the same omission and is reported
+to the owner rather than patched here, because this product does not edit
+the gate that judges it.
+
+The two claims below are what this product can be held to, and both are
+stricter than the old one in the direction that matters: the old check
+said nothing at all about what is TRACKED, which is the only thing a
+reader with a cold clone ever sees.
+
+3a. this script adds no cache directory and no bytecode file
+  names treated as cache   : ['__pycache__', '.pytest_cache', '.ruff_cache', '.hypothesis', '.config'], plus every .pyc
+  present at entry         : none
+    (inherited from whatever invoked this script; not this product's doing)
+  still present, inherited : none
+  ADDED while this ran     : none
+[PASS] this script's own execution adds no cache directory or bytecode file -- 0 added
+
+3b. git tracks no cache directory, bytecode file or build artifact
+Authoritative, because .gitignore can be edited and a tracked file stays
+tracked regardless of it. A cold clone carries exactly what git tracks.
+  tracked files examined   : 0
+  offenders                : none
+[PASS] git tracks no cache directory, bytecode file or build artifact -- 0 offenders in 0 tracked files
+
+==============================================================================
+4. no committed file carries an absolute path
+==============================================================================
+The patterns are assembled from os.sep, and this script's own output file is
+deleted before the scan so that the scanner cannot report itself.
+
+  text files scanned : 73
+  needles            : 4 directory prefixes assembled from os.sep -- home, Users, root, tmp
+    (named rather than printed as literals: this output file is committed,
+     and a committed file containing the literal pattern is exactly what a
+     repository-wide absolute-path scanner is looking for)
+  offenders          : none
+[PASS] no text file in the tree contains an absolute host path -- 0 offenders in 73 files
+
+CHECKS RUN: 19
+FAILED CHECKS (0): none
