@@ -1,5 +1,65 @@
 # Mission Status
 
+> ## Reconciliation — 2026-11-02 (authoritative; supersedes the blocks below)
+>
+> Figures measured this session: registry totals from `scripts/quota_report.py`
+> run against `products.yaml` after the publication edits; test counts from
+> junit XML in the gate run of this session; contributor counts from `gh api`
+> against each live repository.
+>
+> - **The mission stands at 88 of 100 published.** `quota_report.py` measured
+>   this session: Registered 90/100, Built 88/100, **Published 88/100**.
+>   Remaining gap: flagship 4, medium 3, compact 5, AI 8, L1 0, L2 5, L3 2,
+>   **L4 5**.
+>
+> - **Two products published tonight.** P084 TransferGap
+>   (`transfergap`, 188 tests, Level 2) and P083 HilVerdict (`hilverdict`,
+>   518 tests, Level 3). Authorising verdict: `release_gate.py P083 P084`
+>   returned `P083 PASS 518 tests`, `P084 PASS 188 tests`,
+>   `repository PASS`, `Total tests passing: 706`,
+>   `VERDICT: PUSH ALLOWED`. Published under ADR-017 on that verdict alone —
+>   no `APPROVAL_LOG.md` row, no product set to `APPROVED`,
+>   `approved_for_publish` stays `false` on both, and no owner statement
+>   quoted or implied. No human spoke in this session.
+>
+> - **P084 was ungateable by construction, and last night's diagnosis was
+>   incomplete.** Two root causes, not one. (1) The validation scripts' own
+>   interpreter wrote 11 `.pyc` files into the tree and `validate_cli.py` then
+>   found them — the product's defect, fixed at cause. (2) Gate check 2 lints
+>   from the product root, writing `.ruff_cache` into the tree, and check 6
+>   then re-executes `validate_cli.py`, which asserted no cache directory
+>   existed: **the gate created the condition it then failed, one check
+>   earlier, every run.** Had only cause 1 been fixed, tonight would have
+>   produced a second BLOCKED verdict on the same product. The gate was NOT
+>   edited; the scanner was narrowed to the two claims the product owns, and
+>   the one-line gate fix is recorded as needing the owner.
+>
+> - **Authorship invariant holds.** `gh api contributors` returns exactly one
+>   login, `OmAcharya-avtr`, for `hilverdict`, for `transfergap` and for the
+>   monorepo. `git log --format='%ae %ce' | sort -u` over the entire history
+>   returns exactly one pair. **Seventh occurrence of the co-authorship
+>   trailer mechanism; this session wrote it once and amended it out before
+>   any push**, which confirms the 2026-10-18 governance note's prediction
+>   empirically rather than merely arguing it.
+>
+> - **Validation L4 remains 0 of 5, the eleventh consecutive batch.** It is
+>   now arithmetically required: 5 of the 12 remaining slots are L4, and five
+>   products carry scaffolding waiting on the Jetson Orin Nano. **This needs
+>   the owner:** the board powered on and reachable, its hostname or IP, and
+>   passwordless SSH from the Mac.
+>
+> - **Only two registered products remain unbuilt:** P081 TwinDiverge and
+>   P082 SiteDiverse, both flagship, both Level 3. P091-P100 are not yet
+>   registered. The task prompt text is stale by roughly sixty-six products
+>   and should be corrected.
+>
+> - **Durable work added:** `PRODUCT_BUILD_GUIDE.md` gains the self-check
+>   section, which narrows the 2026-10-25 rule that cost P084 a night;
+>   `scripts/check_absolute_paths.py` and `hooks/pre-commit` implement the
+>   pre-commit absolute-path check recommended for five sessions. Install it
+>   with `git config core.hooksPath hooks`.
+
+
 > ## Reconciliation — 2026-10-20 (authoritative; supersedes the blocks below)
 >
 > Figures measured this session: registry totals from `scripts/quota_report.py`

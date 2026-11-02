@@ -844,3 +844,66 @@ class recorded in `PRODUCT_BUILD_GUIDE.md`.
 
 The source is committed at `NEEDS HARDENING` so it is not lost a third time.
 That is not publication. **Published count is unchanged at 86.**
+
+## 2026-11-02 — P084 TransferGap and P083 HilVerdict PUBLISHED
+
+Published count 86 -> **88 of 100**. Registered 90, Built 88, Published 88,
+measured by `scripts/quota_report.py` against the committed `products.yaml`.
+
+| Product | Package | Repository | Tests (junit XML) | Validation | Published SHA |
+|---|---|---|---:|---|---|
+| P084 TransferGap | `transfergap` | https://github.com/OmAcharya-avtr/transfergap | 188 | Level 2 | `153789c` |
+| P083 HilVerdict | `hilverdict` | https://github.com/OmAcharya-avtr/hilverdict | 518 | Level 3 | `95e35d0` |
+
+**Authorising verdict.** `python3 scripts/release_gate.py P083 P084`:
+
+```
+P083  PASS       518 tests
+P084  PASS       188 tests
+
+repository  PASS
+
+Total tests passing: 706
+VERDICT: PUSH ALLOWED
+```
+
+Published under ADR-017 on that verdict alone. No row was written to
+`APPROVAL_LOG.md`, no product was set to `APPROVED`, `approved_for_publish`
+stays `false` on both, and no owner statement is quoted or implied — no human
+spoke in this session.
+
+The gate prints `PUSH ALLOWED` and returns 0 off the same boolean
+(`release_gate.py` lines 240 and 250), so the printed verdict is the exit
+status. Stated because this session captured the verdict text and not the
+shell status, and the equivalence is what makes it authorisation rather than
+an absence of failure.
+
+**Test counts are the coordinator's, not the build agent's.** Both measured
+from the junit XML `testsuite` element with the `testcase` element count
+cross-checked: P083 518 declared against 518 counted, P084 188 against 188,
+0 failures, 0 errors, 0 skipped in both. The gate's independent run returned
+the same two numbers.
+
+**Authorship invariant holds.** `gh api contributors` returns exactly one
+login, `OmAcharya-avtr`, for `hilverdict`, for `transfergap` and for the
+monorepo. `git log --format='%ae %ce' | sort -u` over the entire monorepo
+history returns exactly one pair.
+
+### P084 was ungateable by construction, not merely defective
+
+Last night recorded ONE root cause for P084's BLOCKED verdict. There are two,
+and the second one no change to the product could have fixed:
+
+1. The validation scripts' own interpreter wrote 11 `.pyc` files into the
+   tree, and `validate_cli.py` then scanned the tree and found them.
+2. Gate check 2 runs `ruff check src/ tests/` with its working directory set
+   to the product root, which writes `.ruff_cache` into the tree, and gate
+   check 6 then re-executes `validate_cli.py`, which failed on the directory
+   the gate itself had created one check earlier.
+
+Measured 2026-11-02 by running the two steps in the gate's own order. The
+first was fixed at cause in the product. For the second, the SCANNER was
+narrowed to the two claims the product owns — that running it adds no cache
+artifact, and that git tracks none — and the gate was NOT edited. Its ruff
+step wants the treatment its pytest step already has (`-p no:cacheprovider`);
+that is recorded as needing the owner.

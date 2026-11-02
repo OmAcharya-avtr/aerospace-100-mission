@@ -332,3 +332,58 @@ which cache files carry.
   `os.sep` and delete its own previous output before scanning, or it reports
   itself. Three consecutive sessions introduced this defect in the act of
   writing about it.
+
+### A self-check may only assert what the product owns (added 2026-11-02)
+
+The rule in the section above — assert the tree contains no `__pycache__`,
+`.pytest_cache`, `.ruff_cache`, `.hypothesis` or `.config` — is now narrowed,
+because as written it cost P084 a whole night and could never have been
+satisfied.
+
+Two mechanisms, both measured on 2026-11-02:
+
+1. A script's OWN interpreter pollutes. `validate_cli.py` imported the product
+   package to call it, which wrote 11 `.pyc` files into the tree, and then
+   scanned the tree for exactly those files and failed itself. Setting
+   `PYTHONDONTWRITEBYTECODE=1` for spawned subprocesses does nothing about
+   this: the polluting interpreter is the script's own.
+
+   **Every runnable script under `validation/` and `examples/` sets
+   `sys.dont_write_bytecode = True` as its first statement after
+   `from __future__ import annotations`, before any other import.** It cannot
+   be delegated to the shared `_bootstrap` module, because CPython writes a
+   module's bytecode cache BEFORE executing that module, so `_bootstrap`
+   cannot set it on its own behalf. The subsequent module-level imports then
+   carry `# noqa: E402`. The reference implementation is
+   `products/P084/validation/validate_cli.py`.
+
+2. The HARNESS pollutes before the script runs. Release-gate check 2 runs
+   `ruff check src/ tests/` with its working directory set to the product
+   root, which writes `.ruff_cache` into the tree; check 6 then re-executes
+   the validation scripts. A script asserting that no cache directory EXISTS
+   fails on the directory the gate itself created one check earlier, and no
+   change to the product can fix it. Check 1's pytest run can leave
+   `.hypothesis` the same way.
+
+   **A self-check asserts what the product owns, which is two things and not
+   the third:**
+
+   - that running the script ADDS no cache directory and no bytecode file —
+     snapshot the tree at entry, compare at exit, fail on anything new;
+   - that git TRACKS no cache directory, bytecode file or build artifact,
+     which is what a cold clone actually carries and what release-gate
+     check 9 independently enforces;
+   - **not** that no such artifact exists, because what a harness leaves in
+     the tree before calling the script is not the product's doing. Report it,
+     named as inherited, and do not fail on it.
+
+   The second claim is new and is stricter than the old one in the dimension
+   that matters: the old check said nothing at all about tracked content.
+
+This is the FIFTH occurrence of the self-reporting-scanner class in this
+mission, after the three consecutive sessions recorded above and P084's own.
+The general rule, worth stating once in its general form: **a check whose own
+execution can create the condition it tests is not a check.** Before
+committing any scanner, run it twice in a row from a clean tree and confirm
+the second run agrees with the first, and run it once after whatever harness
+will invoke it has done its own work.

@@ -1399,12 +1399,12 @@ products:
     summary: "Decide whether a hardware-in-the-loop run was timing-faithful enough for its result to mean anything, and separate the deadline misses that measurably changed the trajectory from the large majority that did not. Baseline 1 closed-form bound on trajectory divergence from a miss of given duration derived from declared plant dynamics and its local linearisation - a miss whose bound falls below the declared tolerance CANNOT have mattered and that is a proof, not an estimate, expected to dispose of most misses; baseline 2 direct re-simulation with and without each surviving miss, slow, exact and the reference. Learned classifier over cheap log features for the case where re-simulation is unaffordable, scored on RECALL of consequential misses because dismissing a miss that mattered is not symmetric with re-simulating one that did not, with the expected result that the analytic bound wins outright and the learned component's only defensible role is the residual undecided set. Host-to-device clock drift and reset detection verified against synthetic drift of known rate."
     ai_enabled: true
     validation_level: 3
-    status: NOT STARTED
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/hilverdict
     local_path: products/P083
     approved_for_publish: false
-    published: false
+    published: true
     package: hilverdict
     pypi_name_check: "hilverdict FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls"
   - id: P084
@@ -1415,12 +1415,12 @@ products:
     summary: "Bound the simulation-to-field discrepancy from the few paired field measurements actually available, and invert the bound to say how many MORE measurements would close it to a declared target at a declared confidence. Baseline 1 distribution-free Hoeffding and empirical-Bernstein bounds plus a one-sided tolerance interval with the sample-count requirement inverted in closed form from each, conservative and honest about it; baseline 2 bootstrap and conformal prediction giving a tighter interval under exchangeability, with exchangeability stated and TESTED rather than assumed. Learned discrepancy model mapping operating-condition features to expected gap, scored on ACHIEVED COVERAGE at the declared confidence rather than on tightness because a tighter interval that under-covers is worse than a loose one that holds, with the expected result at realistic field-sample sizes of tens that it under-covers and the distribution-free bound is the only trustworthy answer. Sample-count predictions verified by drawing the predicted number and checking the bound actually reaches the target at the stated rate."
     ai_enabled: true
     validation_level: 2
-    status: NEEDS HARDENING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/transfergap
     local_path: products/P084
     approved_for_publish: false
-    published: false
+    published: true
     package: transfergap
     pypi_name_check: "transfergap FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls"
   - id: P085

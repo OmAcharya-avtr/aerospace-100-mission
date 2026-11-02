@@ -1,0 +1,11 @@
+#!/bin/sh
+# Install with, from the repository root:
+#   git config core.hooksPath hooks
+#
+# Fails the commit if an absolute private path from this machine is staged.
+# Release-gate check 8 fails the repository for the same thing; discovering it
+# here costs under a second, and discovering it at the gate cost roughly
+# twenty-two minutes of re-run on 2026-11-01.
+#
+# To commit anyway, deliberately: git commit --no-verify
+exec python3 "$(git rev-parse --show-toplevel)/scripts/check_absolute_paths.py"
