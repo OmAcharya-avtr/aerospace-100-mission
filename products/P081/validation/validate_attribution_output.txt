@@ -1,0 +1,192 @@
+
+==============================================================================
+twindiverge -- baseline 2, on the identifiable subspace only
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+sympy            : not installed  (named in README as the symbolic route this product does NOT take)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P081 (printed relatively; see validation/_bootstrap.py)
+
+declared confidence level : 0.95
+declared control sigma    : 4.0
+
+==============================================================================
+1. coverage of the identifiable directions' confidence intervals
+==============================================================================
+perturbation : [0.002 0.    0.    0.    0.   ]
+realisations : 400
+
+The criterion is the declared four standard errors of the coverage
+proportion, sqrt(p(1-p)/n) with p the nominal level, and not a 95 per cent
+interval: a criterion at the nominal level is expected to fire once in
+twenty by construction.
+
+direction    combination                                         standard deviation  coverage  exact interval on the coverage  sigmas from nominal
+-----------  --------------------------------------------------  ------------------  --------  ------------------------------  -------------------
+direction 1  J^-0.633 k_t^+0.768 T_c^-0.082 b^-0.045 c_d^-0.008  5.456446e-05        0.962500  [0.938903, 0.978862]            1.1471             
+direction 2  J^-0.599 k_t^-0.409 T_c^+0.592 b^+0.346 c_d^+0.070  0.001482            0.967500  [0.945065, 0.982584]            1.6059             
+direction 3  J^-0.144 k_t^-0.148 T_c^-0.664 b^+0.651 c_d^+0.305  0.137134            0.952500  [0.926815, 0.971163]            0.2294             
+direction 4  J^+0.143 k_t^+0.143 T_c^+0.047 b^+0.505 c_d^-0.838  21.057100           0.940000  [0.912038, 0.961182]            0.9177             
+
+standard error of a coverage proportion at n = 400 : 0.010897
+[PASS] every identifiable direction's interval covers the truth at its nominal rate -- worst deviation 1.6059 sigmas against the declared 4.0
+
+==============================================================================
+2. the equivalence family produces identical noiseless telemetry
+==============================================================================
+For every test case, the single-parameter perturbation and its partner
+under equation (6). Two different physical faults; one trajectory. Exact in
+exact arithmetic.
+
+pairs compared                       : 120
+worst relative rate difference        : 2.340688e-16
+worst case                            : seed 20095, b
+
+and the same for the observations, which share a noise seed. These are NOT
+bit-identical and were not expected to be: the two clean trajectories differ
+in their last bit, and adding the same noise sample to two values that
+differ in the last bit gives two results that differ in the last bit. The
+measurement is therefore the size of the difference against the noise, not
+an equality.
+
+pairs whose observations are bit-identical  : 97 of 120
+worst absolute observation difference       : 2.842171e-14 rad/s
+declared rate-sensor noise                  : 2.000000e-02 rad/s
+as a fraction of the noise                  : 1.421085e-12
+peak rate on this campaign                  : 121.480544 rad/s
+one unit in its last place                  : 1.421085e-14 rad/s
+the difference, in those units              : 2.000
+
+[PASS] a perturbation and its equivalent partner give the same noiseless rate record -- worst relative difference 2.340688e-16 over 120 pairs
+[PASS] a pair's observations differ by at most a few units in the last place -- worst difference 2.842171e-14 rad/s = 2.000 units in the last place of the peak rate, and 1.421e-12 of the declared sensor noise; 97 of 120 pairs are bit-identical and the rest differ in the last bit
+
+==============================================================================
+3. the two single-parameter routes, on every declared telemetry set
+==============================================================================
+Equation (14) is the estimator the specification names for baseline 2.
+Equation (15) is the constrained maximum likelihood. Both are reported, and
+where the specified one is worse that is stated rather than dropped.
+
+set                eq (14) accuracy  eq (15) accuracy  routes agree  eq (15) minus eq (14)
+-----------------  ----------------  ----------------  ------------  ---------------------
+rate_full          1.000000          1.000000          1.000000      +0.000000            
+rate_torque_full   1.000000          1.000000          1.000000      +0.000000            
+rate_short         0.758333          0.741667          0.983333      -0.016667            
+rate_torque_short  0.750000          0.725000          0.975000      -0.025000            
+rate_coast         0.691667          0.691667          1.000000      +0.000000            
+
+cases per set : 120 single-parameter test cases
+
+MEASURED AND REPORTED AS FOUND: equation (15) is not uniformly better.
+Its margin over equation (14) ranges from -0.025000 on rate_torque_short to +0.000000.
+On the reference set the two routes are measured at 1.000000 and 1.000000 respectively. Both are printed by the
+CLI and by render_attribution on every case, and neither is dropped.
+
+[PASS] the stronger route on the reference set is the one the pipeline reports -- equation (15) 1.000000 against equation (14) 1.000000 on rate_full
+
+==============================================================================
+4. the detection test
+==============================================================================
+chi-square of the null hypothesis delta = 0 against its declared quantile.
+
+kind    cases  detection rate  median chi2   least chi2  greatest chi2 
+------  -----  --------------  ------------  ----------  --------------
+single  120    0.975000        16655.754509  213.814127  4750835.523769
+weak    120    0.708333        496.766120    172.334090  72820.805337  
+scale   120    0.016667        199.742686    162.556674  256.188695    
+none    120    0.016667        199.742686    162.556674  256.188695    
+
+rows in the telemetry set : 201
+detection threshold       : 250.561359
+
+declared detection level            : 0.99, so the expected
+false-positive rate is              : 0.010000
+standard error at n = 120            : 0.009083
+
+The scale and none populations are the same observations to within the last
+bit, so their detection rates are expected to be equal as well as small.
+
+[PASS] the false-positive rate on pure-scale cases matches the declared level -- measured 0.016667 against an expected 0.010000, 0.7340 sigmas
+[PASS] the false-positive rate on null cases matches the declared level -- measured 0.016667 against an expected 0.010000, 0.7340 sigmas
+[PASS] the scale and none populations have the same detection rate -- 0.016667 and 0.016667; they are the same observations to within the last bit
+[PASS] an ordinary single-parameter fault is detected in at least 95 per cent of cases -- detection rate 0.975000 over 120 cases; the misses are the smallest perturbations of the weakest parameter on this 20 s record
+
+REPORTED, NOT ASSERTED: the out-of-distribution weak population, whose
+perturbations are a tenth the size, is detected at 0.708333.
+
+==============================================================================
+5. refusal as a reported outcome, on every declared telemetry set
+==============================================================================
+One declared case, run through the whole ordered pipeline on each set.
+
+set                truth  detected  what the product delivers  eq (15) under its assumption  ambiguity declared  equivalent alternatives
+-----------------  -----  --------  -------------------------  ----------------------------  ------------------  -----------------------
+rate_full          b      yes       REFUSED                    b                             yes                 1                      
+rate_torque_full   b      yes       b                          b                             no                  0                      
+rate_short         b      yes       REFUSED                    b                             yes                 1                      
+rate_torque_short  b      yes       b                          b                             no                  0                      
+rate_coast         b      yes       REFUSED                    b                             yes                 2                      
+
+and the full report for the reference set:
+
+telemetry set            : rate_full
+residual chi-square      : 18849632.488187 on 2001 rows
+detection threshold      : 2151.102444
+detected                 : yes
+chi-square after the fit : 1943.944082
+
+identifiable directions, equation (13):
+
+combination                                         estimate   sd            z           95 per cent interval    significant
+--------------------------------------------------  ---------  ------------  ----------  ----------------------  -----------
+J^-0.487 k_t^+0.842 T_c^-0.182 b^-0.136 c_d^-0.036  +0.017642  4.677542e-06  +3771.5373  [+0.017632, +0.017651]  yes        
+J^-0.731 k_t^-0.248 T_c^+0.503 b^+0.377 c_d^+0.099  -0.048944  2.276973e-05  -2149.5159  [-0.048989, -0.048899]  yes        
+J^-0.118 k_t^-0.118 T_c^-0.715 b^+0.540 c_d^+0.411  -0.064432  0.001224      -52.6477    [-0.066831, -0.062033]  yes        
+J^+0.123 k_t^+0.123 T_c^-0.047 b^+0.589 c_d^-0.788  -0.157707  0.073789      -2.1373     [-0.302330, -0.013083]  yes        
+
+per-parameter attribution. REFUSED means baseline 1 found this parameter
+structurally unidentifiable from this telemetry set, and no residual can
+change that:
+
+parameter  estimate  95 per cent half-width  standing                   
+---------  --------  ----------------------  ---------------------------
+J          REFUSED   REFUSED                 structurally unidentifiable
+k_t        REFUSED   REFUSED                 structurally unidentifiable
+T_c        REFUSED   REFUSED                 structurally unidentifiable
+b          REFUSED   REFUSED                 structurally unidentifiable
+c_d        REFUSED   REFUSED                 structurally unidentifiable
+
+single-parameter routes. Both ASSUME exactly one parameter moved, which
+this telemetry set cannot verify:
+
+parameter  share, eq (14)  chi2, eq (15)    amplitude  weight, eq (16)
+---------  --------------  ---------------  ---------  ---------------
+J          0.468455        10019436.134881  -0.027266  0.000000       
+k_t        0.804680        3681705.555151   +0.021589  0.000000       
+T_c        0.999254        14071.009867     -0.096808  0.000000       
+b          0.999893        2021.242358      -0.129383  1.000000       
+c_d        0.999211        14863.526093     -0.489494  0.000000       
+
+first-order sensitivity attribution, eq (14) : b
+constrained maximum likelihood, eq (15)      : b (relative weight 1.000000)
+
+THE ATTRIBUTION ABOVE IS NOT UNIQUE. Every row below produces identical
+noiseless telemetry on this set; the telemetry cannot distinguish them:
+
+alternative   J          k_t        T_c        b          c_d      
+------------  ---------  ---------  ---------  ---------  ---------
+chosen        +0.000000  +0.000000  +0.000000  -0.129383  +0.000000
+equivalent 1  +0.129383  +0.129383  +0.129383  +0.000000  +0.129383
+
+[PASS] every rate-only set refuses and declares its equivalence family -- 3 of 3 rate-only sets refuse and declare; 2 of 2 two-channel sets answer
+
+CHECKS RUN: 9
+FAILED CHECKS (0): none

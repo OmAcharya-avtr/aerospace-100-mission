@@ -1,0 +1,189 @@
+
+==============================================================================
+twindiverge -- the declared plant, against mathematics it does not use
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+sympy            : not installed  (named in README as the symbolic route this product does NOT take)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P081 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+0. the declared plant
+==============================================================================
+parameter  nominal       unit           
+---------  ------------  ---------------
+J          0.013000      kg m^2         
+k_t        0.032000      N m / A        
+T_c        0.002500      N m            
+b          1.200000e-05  N m s / rad    
+c_d        2.000000e-08  N m s^2 / rad^2
+
+Values are DECLARED, not measured, and are not taken from any source.
+Declared validity window : 20.0 to 400.0 rad/s, one sign only.
+
+campaign  length [s]  samples  driven [s]  min rate    max rate    excursion
+--------  ----------  -------  ----------  ----------  ----------  ---------
+full      200.0       2001     40.0        100.000000  184.222061  84.222061
+short     20.0        201      10.0        100.000000  121.480544  21.480544
+coast     60.0        601      0.0         82.639285   100.000000  17.360715
+
+==============================================================================
+1. the integrator against the exact closed form, equations (20) and (21)
+==============================================================================
+twindiverge.reference solves equation (18) in closed form. Nothing in the
+package uses it. Exact in exact arithmetic; the figures below are rounding.
+
+campaign  worst absolute [rad/s]  worst relative
+--------  ----------------------  --------------
+full      8.526513e-13            6.615096e-15  
+short     2.415845e-13            2.032225e-15  
+coast     3.268497e-13            3.470098e-15  
+
+[PASS] the integrator matches the closed form of equation (18) on every campaign -- worst relative difference 6.615096e-15 over 3 campaigns
+
+==============================================================================
+2. convergence order, by Richardson extrapolation
+==============================================================================
+The declared plant's truncation error at its declared 0.1 s step is already
+below rounding, so the order is measured on the declared stiff set below.
+
+parameter  value         unit           
+---------  ------------  ---------------
+J          0.013000      kg m^2         
+k_t        1.302500      N m / A        
+T_c        0.002500      N m            
+b          0.013000      N m s / rad    
+c_d        2.000000e-08  N m s^2 / rad^2
+
+exact terminal rate at t = 2.0 s : 106.748852247025 rad/s
+
+step [s]  absolute error [rad/s]  measured order
+--------  ----------------------  --------------
+0.4       4.042466e-03            nan           
+0.2       2.135585e-04            4.2425        
+0.1       1.227606e-05            4.1207        
+0.05      7.358658e-07            4.0603        
+0.025     4.503241e-08            4.0304        
+0.0125    2.775579e-09            4.0201        
+
+[PASS] the integrator converges at fourth order -- measured orders from 4.0201 to 4.2425
+
+==============================================================================
+3. identity A, equation (6): the rate channel cannot see the torque scale
+==============================================================================
+sum over j of d(omega)/d(log theta_j) = 0, at every sample. Proved on paper
+in twindiverge.plant; the rank computation of baseline 1 is the independent
+numerical route and is checked in validate_identifiability.py.
+
+campaign  log-parameter offset             largest sensitivity  relative residual
+--------  -------------------------------  -------------------  -----------------
+full      [0. 0. 0. 0. 0.]                 9.574568e+01         1.748608e-15     
+full      [0.2 0.  0.  0.  0. ]            7.882673e+01         3.199964e-15     
+full      [ 0.   -0.15  0.    0.    0.  ]  8.245421e+01         1.664240e-15     
+full      [0.1 0.1 0.1 0.1 0.1]            9.574568e+01         1.771799e-15     
+full      [-0.12  0.09 -0.07  0.21 -0.18]  1.172527e+02         3.802603e-15     
+short     [0. 0. 0. 0. 0.]                 2.445914e+01         7.602982e-16     
+short     [0.2 0.  0.  0.  0. ]            2.004921e+01         9.579859e-16     
+short     [ 0.   -0.15  0.    0.    0.  ]  2.105291e+01         7.066477e-16     
+short     [0.1 0.1 0.1 0.1 0.1]            2.445914e+01         1.055339e-15     
+short     [-0.12  0.09 -0.07  0.21 -0.18]  3.012199e+01         8.716814e-16     
+coast     [0. 0. 0. 0. 0.]                 1.674580e+01         5.767978e-16     
+coast     [0.2 0.  0.  0.  0. ]            1.388770e+01         1.175161e-15     
+coast     [ 0.   -0.15  0.    0.    0.  ]  1.674580e+01         5.767978e-16     
+coast     [0.1 0.1 0.1 0.1 0.1]            1.674580e+01         5.767978e-16     
+coast     [-0.12  0.09 -0.07  0.21 -0.18]  1.887066e+01         7.412995e-16     
+
+[PASS] identity A holds at every sample, every campaign and every probe point -- worst relative residual 3.802603e-15 over 15 combinations
+
+==============================================================================
+4. identity B, equation (7): the torque channel can
+==============================================================================
+sum over j of d(tau)/d(log theta_j) = tau(t), exactly.
+
+campaign  log-parameter offset             largest torque [N m]  relative residual
+--------  -------------------------------  --------------------  -----------------
+full      [0. 0. 0. 0. 0.]                 2.810000e-02          3.704036e-16     
+full      [0.2 0.  0.  0.  0. ]            2.810000e-02          3.704036e-16     
+full      [ 0.   -0.15  0.    0.    0.  ]  2.364266e-02          2.934905e-16     
+full      [0.1 0.1 0.1 0.1 0.1]            3.105530e-02          3.351550e-16     
+full      [-0.12  0.09 -0.07  0.21 -0.18]  3.103512e-02          4.471639e-16     
+short     [0. 0. 0. 0. 0.]                 2.810000e-02          2.469357e-16     
+short     [0.2 0.  0.  0.  0. ]            2.810000e-02          3.704036e-16     
+short     [ 0.   -0.15  0.    0.    0.  ]  2.364266e-02          2.934905e-16     
+short     [0.1 0.1 0.1 0.1 0.1]            3.105530e-02          3.351550e-16     
+short     [-0.12  0.09 -0.07  0.21 -0.18]  3.103512e-02          3.353729e-16     
+coast     [0. 0. 0. 0. 0.]                 3.900000e-03          2.224004e-16     
+coast     [0.2 0.  0.  0.  0. ]            3.900000e-03          2.224004e-16     
+coast     [ 0.   -0.15  0.    0.    0.  ]  3.900000e-03          2.224004e-16     
+coast     [0.1 0.1 0.1 0.1 0.1]            4.310167e-03          4.024725e-16     
+coast     [-0.12  0.09 -0.07  0.21 -0.18]  3.978452e-03          2.180149e-16     
+
+[PASS] identity B holds at every sample, every campaign and every probe point -- worst relative residual 4.471639e-16 over 15 combinations
+
+==============================================================================
+5. the forward sensitivities against an independent complex step
+==============================================================================
+Equation (3) integrated alongside the state, against a complex-step
+derivative computed by a separate complex-arithmetic Runge-Kutta recurrence
+written out again in this file. Equation (1) is a polynomial in the rate and
+linear in the parameters, hence analytic, so the complex step is exact to
+machine precision with no subtractive cancellation. A central difference is
+reported beside it with its own cancellation floor, eps * |omega| / h, which
+is the reason the complex step and not the difference is the check.
+
+[PASS] coast/k_t: an unexcited parameter is zero on all three routes -- complex step and central difference both exactly zero
+campaign  parameter  largest sensitivity  complex step  central difference  difference floor
+--------  ---------  -------------------  ------------  ------------------  ----------------
+full      J          8.187871e+01         1.909158e-15  2.333078e-10        4.995867e-11    
+full      k_t        9.574568e+01         4.304265e-15  2.328769e-10        4.272309e-11    
+full      T_c        3.362711e+01         1.690405e-15  1.567581e-09        1.216445e-10    
+full      b          2.432110e+01         2.337206e-15  8.396237e-10        1.681894e-10    
+full      c_d        6.203905e+00         2.290631e-15  2.582738e-09        6.593511e-10    
+short     J          2.134391e+01         9.987056e-16  2.904677e-10        1.263784e-10    
+short     k_t        2.445914e+01         8.715059e-16  2.393806e-10        1.102823e-10    
+short     T_c        3.797068e+00         5.847792e-16  1.179249e-09        7.103929e-10    
+short     b          2.102288e+00         7.393431e-16  1.785726e-09        1.283083e-09    
+short     c_d        4.053684e-01         5.477600e-16  8.867716e-09        6.654219e-09    
+coast     J          1.674580e+01         8.486221e-16  8.127454e-10        1.325972e-10    
+coast     k_t        0.000000e+00         0.000000e+00  0.000000e+00        unexcited       
+coast     T_c        1.113461e+01         7.976737e-16  4.736667e-10        1.994184e-10    
+coast     b          4.869514e+00         1.094374e-15  2.110978e-09        4.559892e-10    
+coast     c_d        7.416767e-01         1.945983e-15  1.009055e-08        2.993819e-09    
+
+'complex step' and 'central difference' are each the worst relative
+disagreement with equation (3) over the record; 'difference floor' is the
+central difference's own cancellation floor, eps * max|omega| / (h * |s_j|).
+
+[PASS] the forward sensitivities agree with the independent complex step -- worst relative difference 4.304265e-15 over 15 columns
+[PASS] the central difference agrees with equation (3) to within its own floor -- worst central-difference disagreement is 12.887 times its cancellation floor
+
+==============================================================================
+6. the zero-order hold, where this build found a defect
+==============================================================================
+The current is sampled ONCE PER STEP at the step's left endpoint and used
+for all four Runge-Kutta stages. The first version of the integrator
+evaluated it per stage, so the fourth stage of the step ENDING at the
+current switch saw the new current. Measured then: global error
+4.102564e-02 rad/s at the end of a 20 s driven segment at a 0.1 s step, and
+a convergence order of 1.0000 over steps from 0.4 s to 0.025 s. Measured
+now, at the sample immediately after the switch of the `full` campaign:
+
+  switch sample index      : 400 (t = 40.0 s)
+  integrated rate          : 184.222061474012 rad/s
+  closed-form rate         : 184.222061474012 rad/s
+  absolute difference      : 1.989520e-13 rad/s
+  relative difference      : 1.079957e-15
+  the defect's own figure  : 4.102564e-02 rad/s, a factor of 2.062e+11 larger
+
+[PASS] the sample at the current switch matches the closed form -- relative difference 1.079957e-15
+
+CHECKS RUN: 8
+FAILED CHECKS (0): none

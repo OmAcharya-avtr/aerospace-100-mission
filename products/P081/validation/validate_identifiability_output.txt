@@ -1,0 +1,371 @@
+
+==============================================================================
+twindiverge -- baseline 1, and the derivation it must agree with
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+sympy            : not installed  (named in README as the symbolic route this product does NOT take)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P081 (printed relatively; see validation/_bootstrap.py)
+
+declared rank cutoff        : 1.0e-10 (relative singular value)
+declared null-component tol : 1.0e-06
+declared practical limit    : 1.00 (relative standard error)
+
+==============================================================================
+1. the identifiability table for every declared telemetry set
+==============================================================================
+set                channels     length [s]  rows  rank  margin [decades]  condition     REFUSED              WEAK         IDENTIFIABLE       
+-----------------  -----------  ----------  ----  ----  ----------------  ------------  -------------------  -----------  -------------------
+rate_full          rate         200.0       2001  4     5.6483            1.577511e+04  J, k_t, T_c, b, c_d  none         none               
+rate_torque_full   rate+torque  200.0       4002  5     5.7896            1.623256e+04  none                 none         J, k_t, T_c, b, c_d
+rate_short         rate         20.0        201   4     4.4135            3.859124e+05  J, k_t, T_c, b, c_d  none         none               
+rate_torque_short  rate+torque  20.0        402   5     4.5000            3.162214e+05  none                 T_c, b, c_d  J, k_t             
+rate_coast         rate         60.0        601   3     5.2952            5.067366e+04  J, k_t, T_c, b, c_d  none         none               
+
+
+------------------------------------------------------------------------------
+telemetry set rate_full: 200 s rate-only record, 40 s driven. The reference set: rank 4 of 5, the single null direction being the exact scale direction of equation (6).
+------------------------------------------------------------------------------
+telemetry set            : rate_full
+numerical rank           : 4 of 5 (relative cutoff 1.0e-10)
+rank margin              : 5.6483 decades from the cutoff to the nearest singular-value ratio
+condition number (rank)  : 1.577511e+04
+Fisher condition number  : 5.268523e+16  (the square; nothing here is computed from it)
+Fisher least eigenvalue  : -4.684327e-08  (a Fisher matrix is positive semi-definite; a negative value here is rounding from forming A^T A)
+
+i  singular value  ratio to largest  in null space
+-  --------------  ----------------  -------------
+1  213787.510613   1.000000e+00      no           
+2  43917.958516    2.054281e-01      no           
+3  817.102948      3.822033e-03      no           
+4  13.552207       6.339101e-05      no           
+5  4.805307e-11    2.247702e-16      yes          
+
+parameter  unit             verdict  null component  CRB (relative)  pinv diagonal (NOT a bound)
+---------  ---------------  -------  --------------  --------------  ---------------------------
+J          kg m^2           REFUSED  4.472136e-01    inf             0.009084                   
+k_t        N m / A          REFUSED  4.472136e-01    inf             0.009052                   
+T_c        N m              REFUSED  4.472136e-01    inf             0.003605                   
+b          N m s / rad      REFUSED  4.472136e-01    inf             0.043486                   
+c_d        N m s^2 / rad^2  REFUSED  4.472136e-01    inf             0.058119                   
+
+identifiable combinations, equation (11), best determined first:
+
+combination                                         CRB on its relative standard error
+--------------------------------------------------  ----------------------------------
+J^-0.487 k_t^+0.842 T_c^-0.182 b^-0.136 c_d^-0.036  4.677542e-06                      
+J^-0.731 k_t^-0.248 T_c^+0.503 b^+0.377 c_d^+0.099  2.276973e-05                      
+J^-0.118 k_t^-0.118 T_c^-0.715 b^+0.540 c_d^+0.411  0.001224                          
+J^+0.123 k_t^+0.123 T_c^-0.047 b^+0.589 c_d^-0.788  0.073789                          
+
+null space (orthonormal rows, logarithmic parameters):
+
+direction  J          k_t        T_c        b          c_d      
+---------  ---------  ---------  ---------  ---------  ---------
+n1         +0.447214  +0.447214  +0.447214  +0.447214  +0.447214
+
+------------------------------------------------------------------------------
+telemetry set rate_torque_full: The same campaign with a reaction-torque sensor added. Full rank, because the scale direction's sensitivity in the torque channel is exactly the torque signal, equation (7).
+------------------------------------------------------------------------------
+telemetry set            : rate_torque_full
+numerical rank           : 5 of 5 (relative cutoff 1.0e-10)
+rank margin              : 5.7896 decades from the cutoff to the nearest singular-value ratio
+condition number (rank)  : 1.623256e+04
+Fisher condition number  : 2.634961e+08  (the square; nothing here is computed from it)
+Fisher least eigenvalue  : +1.734834e+02  (a Fisher matrix is positive semi-definite; a negative value here is rounding from forming A^T A)
+
+i  singular value  ratio to largest  in null space
+-  --------------  ----------------  -------------
+1  213804.096884   1.000000e+00      no           
+2  43931.503660    2.054755e-01      no           
+3  1405.881994     6.575562e-03      no           
+4  783.691931      3.665467e-03      no           
+5  13.171310       6.160457e-05      no           
+
+parameter  unit             verdict       null component  CRB (relative)  pinv diagonal (NOT a bound)
+---------  ---------------  ------------  --------------  --------------  ---------------------------
+J          kg m^2           IDENTIFIABLE  0.000000e+00    0.000345        0.000345                   
+k_t        N m / A          IDENTIFIABLE  0.000000e+00    0.000345        0.000345                   
+T_c        N m              IDENTIFIABLE  0.000000e+00    0.012492        0.012492                   
+b          N m s / rad      IDENTIFIABLE  0.000000e+00    0.034149        0.034149                   
+c_d        N m s^2 / rad^2  IDENTIFIABLE  0.000000e+00    0.066663        0.066663                   
+
+identifiable combinations, equation (11), best determined first:
+
+combination                                         CRB on its relative standard error
+--------------------------------------------------  ----------------------------------
+J^-0.487 k_t^+0.842 T_c^-0.182 b^-0.136 c_d^-0.036  4.677179e-06                      
+J^-0.731 k_t^-0.249 T_c^+0.502 b^+0.377 c_d^+0.099  2.276271e-05                      
+J^-0.475 k_t^-0.476 T_c^-0.641 b^-0.363 c_d^-0.066  0.000711                          
+J^+0.051 k_t^+0.051 T_c^-0.525 b^+0.711 c_d^+0.462  0.001276                          
+T_c^+0.164 b^-0.450 c_d^+0.878                      0.075923                          
+
+------------------------------------------------------------------------------
+telemetry set rate_short: 20 s rate-only record. Structurally identical to rate_full -- rank 4, same null direction -- and PRACTICALLY far worse, which is the distinction this set exists to make.
+------------------------------------------------------------------------------
+telemetry set            : rate_short
+numerical rank           : 4 of 5 (relative cutoff 1.0e-10)
+rank margin              : 4.4135 decades from the cutoff to the nearest singular-value ratio
+condition number (rank)  : 3.859124e+05
+Fisher condition number  : 1.124918e+16  (the square; nothing here is computed from it)
+Fisher least eigenvalue  : -3.476632e-08  (a Fisher matrix is positive semi-definite; a negative value here is rounding from forming A^T A)
+
+i  singular value  ratio to largest  in null space
+-  --------------  ----------------  -------------
+1  18326.948681    1.000000e+00      no           
+2  674.590993      3.680869e-02      no           
+3  7.292134        3.978913e-04      no           
+4  0.047490        2.591262e-06      no           
+5  1.218362e-12    6.647927e-17      yes          
+
+parameter  unit             verdict  null component  CRB (relative)  pinv diagonal (NOT a bound)
+---------  ---------------  -------  --------------  --------------  ---------------------------
+J          kg m^2           REFUSED  4.472136e-01    inf             3.006316                   
+k_t        N m / A          REFUSED  4.472136e-01    inf             3.006953                   
+T_c        N m              REFUSED  4.472136e-01    inf             0.994184                   
+b          N m s / rad      REFUSED  4.472136e-01    inf             10.637765                  
+c_d        N m s^2 / rad^2  REFUSED  4.472136e-01    inf             17.640581                  
+
+identifiable combinations, equation (11), best determined first:
+
+combination                                         CRB on its relative standard error
+--------------------------------------------------  ----------------------------------
+J^-0.633 k_t^+0.768 T_c^-0.082 b^-0.045 c_d^-0.008  5.456446e-05                      
+J^-0.599 k_t^-0.409 T_c^+0.592 b^+0.346 c_d^+0.070  0.001482                          
+J^-0.144 k_t^-0.148 T_c^-0.664 b^+0.651 c_d^+0.305  0.137134                          
+J^+0.143 k_t^+0.143 T_c^+0.047 b^+0.505 c_d^-0.838  21.057100                         
+
+null space (orthonormal rows, logarithmic parameters):
+
+direction  J          k_t        T_c        b          c_d      
+---------  ---------  ---------  ---------  ---------  ---------
+n1         -0.447214  -0.447214  -0.447214  -0.447214  -0.447214
+
+------------------------------------------------------------------------------
+telemetry set rate_torque_short: 20 s record with both channels. Structurally full rank -- the torque channel removes the scale degeneracy whatever the record length -- and practically unable to determine the drag coefficient at all. This is the set on which the WEAK verdict appears.
+------------------------------------------------------------------------------
+telemetry set            : rate_torque_short
+numerical rank           : 5 of 5 (relative cutoff 1.0e-10)
+rank margin              : 4.5000 decades from the cutoff to the nearest singular-value ratio
+condition number (rank)  : 3.162214e+05
+Fisher condition number  : 9.999599e+10  (the square; nothing here is computed from it)
+Fisher least eigenvalue  : +3.374070e-03  (a Fisher matrix is positive semi-definite; a negative value here is rounding from forming A^T A)
+
+i  singular value  ratio to largest  in null space
+-  --------------  ----------------  -------------
+1  18368.272274    1.000000e+00      no           
+2  1152.080030     6.272120e-02      no           
+3  424.885667      2.313150e-02      no           
+4  7.876792        4.288260e-04      no           
+5  0.058087        3.162341e-06      no           
+
+parameter  unit             verdict       null component  CRB (relative)  pinv diagonal (NOT a bound)
+---------  ---------------  ------------  --------------  --------------  ---------------------------
+J          kg m^2           IDENTIFIABLE  0.000000e+00    0.000726        0.000726                   
+k_t        N m / A          IDENTIFIABLE  0.000000e+00    0.000991        0.000991                   
+T_c        N m              WEAK          0.000000e+00    1.572593        1.572593                   
+b          N m s / rad      WEAK          0.000000e+00    5.945670        5.945670                   
+c_d        N m s^2 / rad^2  WEAK          0.000000e+00    16.080114       16.080114                  
+
+identifiable combinations, equation (11), best determined first:
+
+combination                                         CRB on its relative standard error
+--------------------------------------------------  ----------------------------------
+J^-0.630 k_t^+0.771 T_c^-0.082 b^-0.045 c_d^-0.008  5.444170e-05                      
+J^-0.768 k_t^-0.600 T_c^+0.194 b^+0.112 c_d^+0.022  0.000868                          
+J^+0.117 k_t^+0.214 T_c^+0.832 b^+0.488 c_d^+0.099  0.002354                          
+k_t^-0.004 T_c^-0.505 b^+0.793 c_d^+0.342           0.126955                          
+T_c^+0.091 b^-0.345 c_d^+0.934                      17.215632                         
+
+------------------------------------------------------------------------------
+telemetry set rate_coast: 60 s undriven coast-down. Rank 3 of 5: the scale direction plus k_t, which a zero current never excites.
+------------------------------------------------------------------------------
+telemetry set            : rate_coast
+numerical rank           : 3 of 5 (relative cutoff 1.0e-10)
+rank margin              : 5.2952 decades from the cutoff to the nearest singular-value ratio
+condition number (rank)  : 5.067366e+04
+Fisher condition number  : 3.217764e+21  (the square; nothing here is computed from it)
+Fisher least eigenvalue  : +1.100096e-08  (a Fisher matrix is positive semi-definite; a negative value here is rounding from forming A^T A)
+
+i  singular value  ratio to largest  in null space
+-  --------------  ----------------  -------------
+1  14897.873804    1.000000e+00      no           
+2  68.713268       4.612287e-03      no           
+3  0.293996        1.973412e-05      no           
+4  1.491703e-12    1.001286e-16      yes          
+5  1.128226e-15    7.573069e-20      yes          
+
+parameter  unit             verdict  null component  CRB (relative)  pinv diagonal (NOT a bound)
+---------  ---------------  -------  --------------  --------------  ---------------------------
+J          kg m^2           REFUSED  5.000000e-01    inf             0.661961                   
+k_t        N m / A          REFUSED  1.000000e+00    inf             1.888175e-16               
+T_c        N m              REFUSED  5.000000e-01    inf             0.425827                   
+b          N m s / rad      REFUSED  5.000000e-01    inf             1.732002                   
+c_d        N m s^2 / rad^2  REFUSED  5.000000e-01    inf             2.819645                   
+
+identifiable combinations, equation (11), best determined first:
+
+combination                              CRB on its relative standard error
+---------------------------------------  ----------------------------------
+J^-0.810 T_c^+0.534 b^+0.239 c_d^+0.037  6.712367e-05                      
+J^-0.236 T_c^-0.670 b^+0.658 c_d^+0.248  0.014553                          
+J^-0.195 T_c^-0.125 b^-0.509 c_d^+0.829  3.401402                          
+
+null space (orthonormal rows, logarithmic parameters):
+
+direction  J          k_t        T_c        b          c_d      
+---------  ---------  ---------  ---------  ---------  ---------
+n1         -0.500000  +0.000001  -0.500000  -0.500000  -0.500000
+n2         -0.000001  -1.000000  -0.000001  -0.000001  -0.000001
+
+[PASS] every declared telemetry set has a rank margin of at least four decades -- worst margin 4.4135 decades
+[PASS] the rate-only sets refuse every parameter and the two-channel sets none -- three rate-only sets refuse 5 of 5; two two-channel sets refuse 0 of 5
+
+==============================================================================
+2. the computed null space against the derivation -- the central check
+==============================================================================
+The derived basis is algebra from identities A and B of twindiverge.plant
+and from the corollary about an unexcited parameter. It never touches a
+sensitivity matrix. The computed basis is the right singular vectors of
+equation (8) below the rank cutoff. Exact in exact arithmetic; the angles
+below are the measured rounding.
+
+set                derived dimension  computed dimension  dimensions agree  worst principal angle [deg]
+-----------------  -----------------  ------------------  ----------------  ---------------------------
+rate_full          1                  1                   yes               0.000000e+00               
+rate_torque_full   0                  0                   yes               (both empty)               
+rate_short         1                  1                   yes               0.000000e+00               
+rate_torque_short  0                  0                   yes               (both empty)               
+rate_coast         2                  2                   yes               1.207418e-06               
+
+rate_full: derived basis
+direction  J                k_t              T_c              b                c_d            
+---------  ---------------  ---------------  ---------------  ---------------  ---------------
+d1         -0.447213595500  -0.447213595500  -0.447213595500  -0.447213595500  -0.447213595500
+rate_full: computed basis
+direction  J                k_t              T_c              b                c_d            
+---------  ---------------  ---------------  ---------------  ---------------  ---------------
+c1         +0.447213595500  +0.447213595500  +0.447213595500  +0.447213595499  +0.447213595501
+
+rate_short: derived basis
+direction  J                k_t              T_c              b                c_d            
+---------  ---------------  ---------------  ---------------  ---------------  ---------------
+d1         -0.447213595500  -0.447213595500  -0.447213595500  -0.447213595500  -0.447213595500
+rate_short: computed basis
+direction  J                k_t              T_c              b                c_d            
+---------  ---------------  ---------------  ---------------  ---------------  ---------------
+c1         -0.447213595502  -0.447213595502  -0.447213595501  -0.447213595507  -0.447213595489
+
+rate_coast: derived basis
+direction  J                k_t              T_c              b                c_d            
+---------  ---------------  ---------------  ---------------  ---------------  ---------------
+d1         +0.000000000000  -1.000000000000  -0.000000000000  -0.000000000000  -0.000000000000
+d2         +0.500000000000  +0.000000000000  +0.500000000000  +0.500000000000  +0.500000000000
+rate_coast: computed basis
+direction  J                k_t              T_c              b                c_d            
+---------  ---------------  ---------------  ---------------  ---------------  ---------------
+c1         -0.500000000000  +0.000001134188  -0.500000000000  -0.500000000000  -0.500000000000
+c2         -0.000000567094  -0.999999999999  -0.000000567094  -0.000000567094  -0.000000567094
+
+[PASS] the derived and computed null spaces have the same dimension everywhere -- 5 of 5 telemetry sets agree
+[PASS] the derived and computed null spaces are the same subspace -- worst principal angle 1.207418e-06 degrees over all declared sets
+
+==============================================================================
+3. a perturbation inside the null space changes no telemetry
+==============================================================================
+The angle above is linear algebra. This is the trajectory: two parameter
+sets differing by a null-space vector, simulated and compared.
+
+set                perturbation                     its null projection                                            relative rate difference
+-----------------  -------------------------------  -------------------------------------------------------------  ------------------------
+rate_full          [0.08 0.   0.   0.   0.  ]       [0.016 0.016 0.016 0.016 0.016]                                3.195020e-16            
+rate_full          [ 0.    0.   -0.11  0.    0.  ]  [-0.022 -0.022 -0.022 -0.022 -0.022]                           1.536298e-16            
+rate_full          [-0.05  0.13  0.02 -0.09  0.07]  [0.016 0.016 0.016 0.016 0.016]                                5.611774e-16            
+rate_torque_full   -                                -                                                              no null space           
+rate_short         [0.08 0.   0.   0.   0.  ]       [0.016 0.016 0.016 0.016 0.016]                                1.185832e-16            
+rate_short         [ 0.    0.   -0.11  0.    0.  ]  [-0.022 -0.022 -0.022 -0.022 -0.022]                           0.000000e+00            
+rate_short         [-0.05  0.13  0.02 -0.09  0.07]  [0.016 0.016 0.016 0.016 0.016]                                5.631127e-16            
+rate_torque_short  -                                -                                                              no null space           
+rate_coast         [0.08 0.   0.   0.   0.  ]       [ 2.0000e-02 -4.2187e-18  2.0000e-02  2.0000e-02  2.0000e-02]  0.000000e+00            
+rate_coast         [ 0.    0.   -0.11  0.    0.  ]  [-2.7500e-02  3.5318e-17 -2.7500e-02 -2.7500e-02 -2.7500e-02]  0.000000e+00            
+rate_coast         [-0.05  0.13  0.02 -0.09  0.07]  [-0.0125  0.13   -0.0125 -0.0125 -0.0125]                      0.000000e+00            
+
+[PASS] removing the null projection from a perturbation changes no rate record -- worst relative rate difference 5.631127e-16
+
+==============================================================================
+4. structural against practical identifiability, by record length
+==============================================================================
+The model and the observation function are the same at every row. Only the
+record changes. Structural identifiability is a property of the first two
+and does not move; practical identifiability is a property of the third and
+moves by four orders of magnitude. This is the distinction Raue et al. 2009
+draws, measured on this plant.
+
+length [s]  samples  rank  least ratio   margin [decades]  worst direction CRB  best direction CRB  refused            
+----------  -------  ----  ------------  ----------------  -------------------  ------------------  -------------------
+10.0        101      4     5.176139e-17  3.1962            2285.926965          0.000359            J, k_t, T_c, b, c_d
+20.0        201      4     6.237874e-17  3.7962            204.779634           0.000128            J, k_t, T_c, b, c_d
+40.0        401      4     8.540526e-17  4.3947            18.540781            4.600710e-05        J, k_t, T_c, b, c_d
+80.0        801      4     1.523425e-16  4.9922            1.708846             1.678281e-05        J, k_t, T_c, b, c_d
+120.0       1201     4     1.722821e-16  5.3441            0.427029             9.430604e-06        J, k_t, T_c, b, c_d
+200.0       2001     4     2.247702e-16  5.6483            0.073789             4.677542e-06        J, k_t, T_c, b, c_d
+
+ranks observed over the sweep              : [4]
+worst-direction bound at the shortest record: 2285.926965
+worst-direction bound at the longest record : 0.073789
+ratio                                      : 30979.354329
+
+[PASS] the structural rank does not move over the record-length sweep -- rank 4 at every one of 6 record lengths
+[PASS] the practical bound moves by more than three orders of magnitude -- worst-direction bound falls from 2285.926965 to 0.073789, a factor of 30979.4
+
+==============================================================================
+5. what is reported in place of a refused parameter
+==============================================================================
+For the reference set, the four identifiable combinations of equation (11).
+The rate channel sees exactly the four ratios k_t/J, T_c/J, b/J and c_d/J,
+which is a four-dimensional space, and these four combinations span it.
+
+combination                                         CRB on its relative standard error
+--------------------------------------------------  ----------------------------------
+J^-0.487 k_t^+0.842 T_c^-0.182 b^-0.136 c_d^-0.036  4.677542e-06                      
+J^-0.731 k_t^-0.248 T_c^+0.503 b^+0.377 c_d^+0.099  2.276973e-05                      
+J^-0.118 k_t^-0.118 T_c^-0.715 b^+0.540 c_d^+0.411  0.001224                          
+J^+0.123 k_t^+0.123 T_c^-0.047 b^+0.589 c_d^-0.788  0.073789                          
+
+the four ratios, written as log-parameter directions:
+ratio       J     k_t   T_c   b     c_d 
+----------  ----  ----  ----  ----  ----
+log(k_t/J)  -1.0  +1.0  +0.0  +0.0  +0.0
+log(T_c/J)  -1.0  +0.0  +1.0  +0.0  +0.0
+log(b/J)    -1.0  +0.0  +0.0  +1.0  +0.0
+log(c_d/J)  -1.0  +0.0  +0.0  +0.0  +1.0
+
+principal angles between the ratio space and the identifiable subspace, degrees:
+  angle 1 : 1.207418e-06
+  angle 2 : 8.537736e-07
+  angle 3 : 0.000000e+00
+  angle 4 : 0.000000e+00
+
+The tolerance below is 1e-5 degrees, the same as part 2's, and for the same
+reason: a singular subspace whose complementary singular value is at the
+1e-16 level is itself resolved only to about the square root of that, so an
+angle of order 1e-6 degrees IS the measured precision of the decomposition
+and not a discrepancy. Exact in exact arithmetic.
+
+[PASS] the identifiable subspace of the reference set IS the space of ratios -- worst principal angle 1.207418e-06 degrees
+
+and the one direction that is NOT in it:
+  J^+0.447214 k_t^+0.447214 T_c^+0.447214 b^+0.447214 c_d^+0.447214
+  which is the geometric mean of all five parameters: the absolute torque
+  scale, which a rate record cannot see.
+
+CHECKS RUN: 8
+FAILED CHECKS (0): none

@@ -1,0 +1,395 @@
+
+==============================================================================
+twindiverge -- the learned classifier against the analytic baselines
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+sympy            : not installed  (named in README as the symbolic route this product does NOT take)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P081 (printed relatively; see validation/_bootstrap.py)
+
+telemetry set              : rate_full (2001 rows)
+baseline 1 rank            : 4 of 5
+baseline 1 refuses         : J, k_t, T_c, b, c_d
+null space dimension       : 1
+
+training cases             : 240 (single-parameter only)
+test cases per population  : 120
+null-subspace cases        : 120
+seed sets disjoint         : True (0 shared seeds)
+
+declared magnitude range          : 0.02 to 0.15
+declared weak magnitude range     : 0.002 to 0.02
+declared boosting stages          : 150
+declared tree depth               : 3
+declared learning rate            : 0.1
+declared random state             : 20261109
+declared abstention threshold     : 0.50
+declared confident threshold      : 0.50
+
+==============================================================================
+1. the computation budget, measured
+==============================================================================
+The specification asks for accuracy at a fixed computation budget, so the
+budget is measured rather than argued about. The analytic setup is paid
+once per telemetry set and the learned fit once per training set; both are
+amortised over a campaign and are reported separately from the per-case
+costs.
+
+item                                    seconds   note                                                    
+--------------------------------------  --------  --------------------------------------------------------
+analytic setup, once per telemetry set  0.079955  one joint state-and-sensitivity integration plus one SVD
+learned fit, once per training set      1.704589  both variants, 240 and 480 cases                        
+analytic attribution per case           0.000475  mean of 40; equations (12) to (16)                      
+learned prediction per case             0.000929  mean of 40; one ensemble evaluation                     
+
+learned cost per case divided by analytic cost per case : 1.956294
+whole study wall clock                                  : 4.197 s
+
+[PASS] the whole learned study finishes inside the declared three-minute budget -- 4.197 s on 2 cores
+
+==============================================================================
+2. every method on every population
+==============================================================================
+
+------------------------------------------------------------------------------
+population single: 120 cases
+------------------------------------------------------------------------------
+detected as a real change : 1.000000 (120/120, 0.95 CP [0.969727, 1.000000])
+
+method                accuracy  exact interval        mean confidence  confident and wrong  refusal rate  ambiguity declared  Brier   
+--------------------  --------  --------------------  ---------------  -------------------  ------------  ------------------  --------
+analytic-gated        0.000000  [0.000000, 0.030273]  nan              0.000000             1.000000      1.000000            nan     
+analytic-sensitivity  1.000000  [0.969727, 1.000000]  0.998334         0.000000             0.000000      1.000000            nan     
+analytic-constrained  1.000000  [0.969727, 1.000000]  1.000000         0.000000             0.000000      1.000000            nan     
+learned-parameter     0.991667  [0.954444, 0.999789]  0.993426         0.000000             0.008333      0.000000            0.006568
+learned-refusal       0.991667  [0.954444, 0.999789]  0.994042         0.000000             0.008333      0.000000            0.008441
+
+------------------------------------------------------------------------------
+population weak: 120 cases
+------------------------------------------------------------------------------
+detected as a real change : 1.000000 (120/120, 0.95 CP [0.969727, 1.000000])
+
+method                accuracy  exact interval        mean confidence  confident and wrong  refusal rate  ambiguity declared  Brier   
+--------------------  --------  --------------------  ---------------  -------------------  ------------  ------------------  --------
+analytic-gated        0.000000  [0.000000, 0.030273]  nan              0.000000             1.000000      1.000000            nan     
+analytic-sensitivity  0.941667  [0.883502, 0.976228]  0.931724         0.050000             0.000000      1.000000            nan     
+analytic-constrained  0.941667  [0.883502, 0.976228]  0.950976         0.041667             0.000000      1.000000            nan     
+learned-parameter     0.641667  [0.549039, 0.727122]  0.900976         0.275000             0.083333      0.000000            0.579620
+learned-refusal       0.325000  [0.242345, 0.416527]  0.902401         0.541667             0.133333      0.000000            1.197593
+
+------------------------------------------------------------------------------
+population equivalent: 120 cases
+------------------------------------------------------------------------------
+detected as a real change : 1.000000 (120/120, 0.95 CP [0.969727, 1.000000])
+
+method                accuracy  exact interval        mean confidence  confident and wrong  refusal rate  ambiguity declared  Brier   
+--------------------  --------  --------------------  ---------------  -------------------  ------------  ------------------  --------
+analytic-gated        1.000000  [0.969727, 1.000000]  nan              0.000000             1.000000      1.000000            nan     
+analytic-sensitivity  0.000000  [0.000000, 0.030273]  0.998334         1.000000             0.000000      1.000000            nan     
+analytic-constrained  0.000000  [0.000000, 0.030273]  1.000000         1.000000             0.000000      1.000000            nan     
+learned-parameter     0.000000  [0.000000, 0.030273]  0.993426         0.991667             0.008333      0.000000            0.993340
+learned-refusal       0.008333  [0.000211, 0.045556]  0.994042         0.991667             0.008333      0.000000            0.992325
+
+------------------------------------------------------------------------------
+population scale: 120 cases
+------------------------------------------------------------------------------
+detected as a real change : 0.000000 (0/120, 0.95 CP [0.000000, 0.030273])
+
+method                accuracy  exact interval        mean confidence  confident and wrong  refusal rate  ambiguity declared  Brier       
+--------------------  --------  --------------------  ---------------  -------------------  ------------  ------------------  ------------
+analytic-gated        1.000000  [0.969727, 1.000000]  nan              0.000000             1.000000      1.000000            nan         
+analytic-sensitivity  0.000000  [0.000000, 0.030273]  0.000636         0.000000             0.000000      1.000000            nan         
+analytic-constrained  1.000000  [0.969727, 1.000000]  0.246418         0.000000             1.000000      1.000000            nan         
+learned-parameter     0.000000  [0.000000, 0.030273]  0.522102         0.991667             0.008333      0.000000            0.499721    
+learned-refusal       1.000000  [0.969727, 1.000000]  1.000000         0.000000             0.000000      0.000000            1.807904e-16
+
+------------------------------------------------------------------------------
+population none: 120 cases
+------------------------------------------------------------------------------
+detected as a real change : 0.000000 (0/120, 0.95 CP [0.000000, 0.030273])
+
+method                accuracy  exact interval        mean confidence  confident and wrong  refusal rate  ambiguity declared  Brier       
+--------------------  --------  --------------------  ---------------  -------------------  ------------  ------------------  ------------
+analytic-gated        1.000000  [0.969727, 1.000000]  nan              0.000000             1.000000      1.000000            nan         
+analytic-sensitivity  0.000000  [0.000000, 0.030273]  0.000636         0.000000             0.000000      1.000000            nan         
+analytic-constrained  1.000000  [0.969727, 1.000000]  0.246418         0.000000             1.000000      1.000000            nan         
+learned-parameter     0.000000  [0.000000, 0.030273]  0.522102         0.991667             0.008333      0.000000            0.499721    
+learned-refusal       1.000000  [0.969727, 1.000000]  1.000000         0.000000             0.000000      0.000000            1.807904e-16
+
+==============================================================================
+3. the headline: inside the unidentifiable subspace
+==============================================================================
+The `equivalent` population. Each case produces telemetry identical to a
+single-parameter fault, so the residual is large, easily detected, and
+CANNOT be attributed to any one parameter. The correct answers are 'no
+attributable change' and 'refused'.
+
+method                accuracy  mean confidence  confident and wrong  exact interval on that  refusal rate  ambiguity declared
+--------------------  --------  ---------------  -------------------  ----------------------  ------------  ------------------
+analytic-gated        1.000000  nan              0.000000             [0.000000, 0.030273]    1.000000      1.000000          
+analytic-sensitivity  0.000000  0.998334         1.000000             [0.969727, 1.000000]    0.000000      1.000000          
+analytic-constrained  0.000000  1.000000         1.000000             [0.969727, 1.000000]    0.000000      1.000000          
+learned-parameter     0.000000  0.993426         0.991667             [0.954444, 0.999789]    0.008333      0.000000          
+learned-refusal       0.008333  0.994042         0.991667             [0.954444, 0.999789]    0.008333      0.000000          
+
+MEASURED RESULT, reported as found and not retuned:
+
+  the analytic path refuses 1.000000 of these cases and declares the
+  equivalence family on 1.000000 of them, so its accuracy under the
+  scoring convention is 1.000000;
+  the specified learned classifier answers with a mean confidence of 0.993426,
+  reaches an accuracy of 0.000000, is confident AND wrong on 0.991667
+  of them, and declares an ambiguity on 0.000000;
+  the six-class ablation, which has a refusal class but was trained only on
+  pure-scale examples of it, reaches 0.008333 here and is confident and
+  wrong on 0.991667.
+
+This is the expected and the most valuable result in the product: the
+learned component returns a confident wrong attribution exactly where the
+analytic method correctly refuses to answer. It is research evidence and
+nothing here is tuned to soften it.
+
+[PASS] the analytic path refuses every case inside the unidentifiable subspace -- refusal rate 1.000000 over 120 cases
+[PASS] the analytic path declares its equivalence family on every such case -- 1.000000
+[PASS] no single-parameter answer can be correct there, so accuracy is zero -- the learned classifier's accuracy is 0.000000; the true cause is a four-parameter change and the label set has no such class
+[PASS] the learned classifier declares no ambiguity anywhere in that population -- 0.000000
+
+==============================================================================
+4. the pair test: the same input, two different truths
+==============================================================================
+Each `equivalent` case shares a noise seed with its `single` partner and
+their observations differ by at most two units in the last place, so any
+classifier MUST return the same answer for both. Measured here rather than
+argued: the fraction of pairs on which the learned classifier agrees with
+itself, and the fraction on which the analytic path agrees with itself.
+
+pairs                                          : 120
+pairs on which the learned label agrees        : 120
+pairs on which the analytic answer agrees      : 120
+mean learned confidence over both members      : 0.993426
+least learned confidence over both members     : 0.211119
+
+The two members of a pair have DIFFERENT true causes. A classifier that
+agrees with itself on a pair is therefore wrong on one member of it, by
+construction and whatever it answers. That is not a defect of the
+classifier: it is what an unidentifiable subspace means, and the point is
+that the classifier cannot say so while the analytic path does.
+
+[PASS] the learned classifier gives the same answer to both members of every pair -- 120 of 120
+[PASS] the analytic path gives the same answer to both members of every pair -- 120 of 120; that answer is REFUSED
+
+==============================================================================
+5. outside the unidentifiable subspace: the baseline comparison
+==============================================================================
+Ordinary single-parameter faults, and the same faults a tenth the size.
+
+population  method                accuracy  exact interval        mean confidence  confident and wrong
+----------  --------------------  --------  --------------------  ---------------  -------------------
+single      analytic-gated        0.000000  [0.000000, 0.030273]  nan              0.000000           
+single      analytic-sensitivity  1.000000  [0.969727, 1.000000]  0.998334         0.000000           
+single      analytic-constrained  1.000000  [0.969727, 1.000000]  1.000000         0.000000           
+single      learned-parameter     0.991667  [0.954444, 0.999789]  0.993426         0.000000           
+single      learned-refusal       0.991667  [0.954444, 0.999789]  0.994042         0.000000           
+weak        analytic-gated        0.000000  [0.000000, 0.030273]  nan              0.000000           
+weak        analytic-sensitivity  0.941667  [0.883502, 0.976228]  0.931724         0.050000           
+weak        analytic-constrained  0.941667  [0.883502, 0.976228]  0.950976         0.041667           
+weak        learned-parameter     0.641667  [0.549039, 0.727122]  0.900976         0.275000           
+weak        learned-refusal       0.325000  [0.242345, 0.416527]  0.902401         0.541667           
+
+MEASURED RESULT, reported as found:
+
+  on `single`, the strongest analytic attributor reaches 1.000000 and the
+  learned classifier reaches 0.991667, a margin of -0.008333;
+  on `weak`, which is outside the learned component's training
+  distribution, the strongest analytic attributor reaches 0.941667 and the
+  learned classifier reaches 0.641667, a margin of -0.300000.
+
+A baseline win is research evidence and is never removed, softened or
+retuned away. The specified first-order sensitivity attribution of equation
+(14) is reported in the table above beside the stronger constrained
+maximum likelihood of equation (15), per the build guide's rule that a
+specified baseline which measures weakly is reported next to the stronger
+one rather than dropped.
+
+==============================================================================
+6. the no-residual populations
+==============================================================================
+A pure scale change and no change at all. These produce the SAME
+observations to within the last bit, so every score on them must agree.
+
+population  method                accuracy  mean confidence  confident and wrong  refusal rate
+----------  --------------------  --------  ---------------  -------------------  ------------
+scale       analytic-gated        1.000000  nan              0.000000             1.000000    
+scale       analytic-sensitivity  0.000000  0.000636         0.000000             0.000000    
+scale       analytic-constrained  1.000000  0.246418         0.000000             1.000000    
+scale       learned-parameter     0.000000  0.522102         0.991667             0.008333    
+scale       learned-refusal       1.000000  1.000000         0.000000             0.000000    
+none        analytic-gated        1.000000  nan              0.000000             1.000000    
+none        analytic-sensitivity  0.000000  0.000636         0.000000             0.000000    
+none        analytic-constrained  1.000000  0.246418         0.000000             1.000000    
+none        learned-parameter     0.000000  0.522102         0.991667             0.008333    
+none        learned-refusal       1.000000  1.000000         0.000000             0.000000    
+
+[PASS] every method scores identically on the scale and none populations -- they are the same observations to within the last bit, so a difference would be a defect in the scoring and not a result
+
+MEASURED RESULT: on a residual that is pure sensor noise, the specified
+learned classifier answers with a mean confidence of 0.522102 and is
+confident and wrong on 0.991667 of cases, while the analytic
+detection test refuses 1.000000 of them. The six-class ablation,
+which WAS trained on this population's kind, reaches 1.000000 here.
+
+==============================================================================
+7. the ablation's cost
+==============================================================================
+The sixth class is not free. What it buys on the no-residual populations
+and what it costs elsewhere, side by side:
+
+population  five-class accuracy  six-class accuracy  difference  five-class Brier  six-class Brier
+----------  -------------------  ------------------  ----------  ----------------  ---------------
+single      0.991667             0.991667            +0.000000   0.006568          0.008441       
+weak        0.641667             0.325000            -0.316667   0.579620          1.197593       
+equivalent  0.000000             0.008333            +0.008333   0.993340          0.992325       
+scale       0.000000             1.000000            +1.000000   0.499721          1.807904e-16   
+none        0.000000             1.000000            +1.000000   0.499721          1.807904e-16   
+
+MEASURED RESULT: a refusal class trained on pure-scale examples generalises
+to pure-scale cases and NOT to the ambiguity case, where the residual is
+large and only the attribution is impossible. Giving a classifier the
+option of refusing does not give it the ability to tell when to.
+
+==============================================================================
+8. calibration and feature importances
+==============================================================================
+Reliability of the specified classifier's confidence, per population.
+
+population single:
+bin low  bin high  cases  mean confidence  accuracy
+-------  --------  -----  ---------------  --------
+0.00     0.20      0      nan              nan     
+0.20     0.40      1      0.211119         0.000000
+0.40     0.60      0      nan              nan     
+0.60     0.80      0      nan              nan     
+0.80     0.90      0      nan              nan     
+0.90     1.00      119    1.000000         1.000000
+
+population weak:
+bin low  bin high  cases  mean confidence  accuracy
+-------  --------  -----  ---------------  --------
+0.00     0.20      0      nan              nan     
+0.20     0.40      10     0.232457         0.000000
+0.40     0.60      8      0.507901         0.250000
+0.60     0.80      1      0.743205         0.000000
+0.80     0.90      0      nan              nan     
+0.90     1.00      101    0.999862         0.742574
+
+population equivalent:
+bin low  bin high  cases  mean confidence  accuracy
+-------  --------  -----  ---------------  --------
+0.00     0.20      0      nan              nan     
+0.20     0.40      1      0.211119         0.000000
+0.40     0.60      0      nan              nan     
+0.60     0.80      0      nan              nan     
+0.80     0.90      0      nan              nan     
+0.90     1.00      119    1.000000         0.000000
+
+population scale:
+bin low  bin high  cases  mean confidence  accuracy
+-------  --------  -----  ---------------  --------
+0.00     0.20      0      nan              nan     
+0.20     0.40      1      0.343999         0.000000
+0.40     0.60      119    0.523598         0.000000
+0.60     0.80      0      nan              nan     
+0.80     0.90      0      nan              nan     
+0.90     1.00      0      nan              nan     
+
+population none:
+bin low  bin high  cases  mean confidence  accuracy
+-------  --------  -----  ---------------  --------
+0.00     0.20      0      nan              nan     
+0.20     0.40      1      0.343999         0.000000
+0.40     0.60      119    0.523598         0.000000
+0.60     0.80      0      nan              nan     
+0.80     0.90      0      nan              nan     
+0.90     1.00      0      nan              nan     
+
+impurity-based feature importances of the specified classifier. These
+describe what the fitted trees used and are NOT evidence about the
+physics; the physics is baseline 1's business.
+
+feature                 importance
+----------------------  ----------
+driven_coast_rms_ratio  0.597297  
+peak_abs                0.170777  
+rms                     0.108459  
+peak_position           0.061955  
+corr_rate_squared       0.020292  
+corr_rate               0.014537  
+mean_driven             0.012066  
+mean_q2                 0.007964  
+slope_q2                0.003499  
+slope_q1                0.002325  
+slope_q4                0.000359  
+mean_q1                 0.000315  
+mean_coast              0.000088  
+mean_q3                 0.000040  
+mean_q4                 0.000016  
+slope_q3                0.000014  
+
+==============================================================================
+9. confusion matrices on the two single-parameter populations
+==============================================================================
+
+population single, learned classifier:
+true/pred       J   k_t  T_c  b   c_d  UNIDENTIFIABLE  MULTI
+--------------  --  ---  ---  --  ---  --------------  -----
+J               22  0    0    0   0    0               0    
+k_t             0   23   0    0   0    0               0    
+T_c             0   0    29   0   1    0               0    
+b               0   0    0    24  0    0               0    
+c_d             0   0    0    0   21   0               0    
+UNIDENTIFIABLE  0   0    0    0   0    0               0    
+MULTI           0   0    0    0   0    0               0    
+
+population single, equation (15) under its sparsity assumption:
+true/pred       J   k_t  T_c  b   c_d  UNIDENTIFIABLE  MULTI
+--------------  --  ---  ---  --  ---  --------------  -----
+J               22  0    0    0   0    0               0    
+k_t             0   23   0    0   0    0               0    
+T_c             0   0    30   0   0    0               0    
+b               0   0    0    24  0    0               0    
+c_d             0   0    0    0   21   0               0    
+UNIDENTIFIABLE  0   0    0    0   0    0               0    
+MULTI           0   0    0    0   0    0               0    
+
+population weak, learned classifier:
+true/pred       J   k_t  T_c  b  c_d  UNIDENTIFIABLE  MULTI
+--------------  --  ---  ---  -  ---  --------------  -----
+J               22  0    0    0  0    0               0    
+k_t             0   23   0    0  0    0               0    
+T_c             0   0    13   0  17   0               0    
+b               0   0    5    0  19   0               0    
+c_d             0   0    2    0  19   0               0    
+UNIDENTIFIABLE  0   0    0    0  0    0               0    
+MULTI           0   0    0    0  0    0               0    
+
+population weak, equation (15) under its sparsity assumption:
+true/pred       J   k_t  T_c  b   c_d  UNIDENTIFIABLE  MULTI
+--------------  --  ---  ---  --  ---  --------------  -----
+J               22  0    0    0   0    0               0    
+k_t             0   23   0    0   0    0               0    
+T_c             0   0    29   1   0    0               0    
+b               0   0    0    24  0    0               0    
+c_d             0   0    0    6   15   0               0    
+UNIDENTIFIABLE  0   0    0    0   0    0               0    
+MULTI           0   0    0    0   0    0               0    
+
+CHECKS RUN: 8
+FAILED CHECKS (0): none

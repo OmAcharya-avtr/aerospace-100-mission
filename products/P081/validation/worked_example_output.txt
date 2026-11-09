@@ -1,0 +1,242 @@
+
+==============================================================================
+twindiverge -- the worked example of README.md
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+sympy            : not installed  (named in README as the symbolic route this product does NOT take)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P081 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+the situation
+==============================================================================
+telemetry set : rate_full
+  200 s rate-only record, 40 s driven. The reference set: rank 4 of 5, the single null direction being the exact scale direction of equation (6).
+campaign      : 200.0 s at 0.1 s, 2001 samples, +1.00 A for the first 40.0 s
+channels      : rate
+noise         : 0.02 rad/s on the rate channel
+
+the twin's parameters:
+
+parameter  twin value    unit           
+---------  ------------  ---------------
+J          0.013000      kg m^2         
+k_t        0.032000      N m / A        
+T_c        0.002500      N m            
+b          1.200000e-05  N m s / rad    
+c_d        2.000000e-08  N m s^2 / rad^2
+
+and reality, which the engineer does not know:
+
+parameter  true value    relative change  in logarithm
+---------  ------------  ---------------  ------------
+J          0.014083      +0.083287        +0.080000   
+k_t        0.032000      +0.000000        +0.000000   
+T_c        0.002500      +0.000000        +0.000000   
+b          1.200000e-05  +0.000000        +0.000000   
+c_d        2.000000e-08  +0.000000        +0.000000   
+
+==============================================================================
+step 0: the residual
+==============================================================================
+peak residual            : 6.319409 rad/s
+root-mean-square residual: 3.780459 rad/s
+declared sensor noise    : 0.020000 rad/s
+ratio                    : 189.022935
+
+So there is a real discrepancy, about 24 times the sensor noise. The
+question is what to blame.
+
+==============================================================================
+step 1: baseline 1, which runs first and is binding
+==============================================================================
+telemetry set            : rate_full
+numerical rank           : 4 of 5 (relative cutoff 1.0e-10)
+rank margin              : 5.6483 decades from the cutoff to the nearest singular-value ratio
+condition number (rank)  : 1.577511e+04
+Fisher condition number  : 5.268523e+16  (the square; nothing here is computed from it)
+Fisher least eigenvalue  : -4.684327e-08  (a Fisher matrix is positive semi-definite; a negative value here is rounding from forming A^T A)
+
+i  singular value  ratio to largest  in null space
+-  --------------  ----------------  -------------
+1  213787.510613   1.000000e+00      no           
+2  43917.958516    2.054281e-01      no           
+3  817.102948      3.822033e-03      no           
+4  13.552207       6.339101e-05      no           
+5  4.805307e-11    2.247702e-16      yes          
+
+parameter  unit             verdict  null component  CRB (relative)  pinv diagonal (NOT a bound)
+---------  ---------------  -------  --------------  --------------  ---------------------------
+J          kg m^2           REFUSED  4.472136e-01    inf             0.009084                   
+k_t        N m / A          REFUSED  4.472136e-01    inf             0.009052                   
+T_c        N m              REFUSED  4.472136e-01    inf             0.003605                   
+b          N m s / rad      REFUSED  4.472136e-01    inf             0.043486                   
+c_d        N m s^2 / rad^2  REFUSED  4.472136e-01    inf             0.058119                   
+
+identifiable combinations, equation (11), best determined first:
+
+combination                                         CRB on its relative standard error
+--------------------------------------------------  ----------------------------------
+J^-0.487 k_t^+0.842 T_c^-0.182 b^-0.136 c_d^-0.036  4.677542e-06                      
+J^-0.731 k_t^-0.248 T_c^+0.503 b^+0.377 c_d^+0.099  2.276973e-05                      
+J^-0.118 k_t^-0.118 T_c^-0.715 b^+0.540 c_d^+0.411  0.001224                          
+J^+0.123 k_t^+0.123 T_c^-0.047 b^+0.589 c_d^-0.788  0.073789                          
+
+null space (orthonormal rows, logarithmic parameters):
+
+direction  J          k_t        T_c        b          c_d      
+---------  ---------  ---------  ---------  ---------  ---------
+n1         +0.447214  +0.447214  +0.447214  +0.447214  +0.447214
+
+Every one of the five parameters is REFUSED. The reason is one exact
+identity: the rate channel's five sensitivities sum to zero at every
+sample, so scaling all five parameters by the same factor changes nothing
+the sensor can see. No residual can tell J from the other four.
+
+==============================================================================
+step 2: baseline 2, on the identifiable subspace only
+==============================================================================
+telemetry set            : rate_full
+residual chi-square      : 71495069.426184 on 2001 rows
+detection threshold      : 2151.102444
+detected                 : yes
+chi-square after the fit : 2040.357291
+
+identifiable directions, equation (13):
+
+combination                                         estimate   sd            z           95 per cent interval    significant
+--------------------------------------------------  ---------  ------------  ----------  ----------------------  -----------
+J^-0.487 k_t^+0.842 T_c^-0.182 b^-0.136 c_d^-0.036  -0.037898  4.677542e-06  -8102.2078  [-0.037908, -0.037889]  yes        
+J^-0.731 k_t^-0.248 T_c^+0.503 b^+0.377 c_d^+0.099  -0.055060  2.276973e-05  -2418.1104  [-0.055104, -0.055015]  yes        
+J^-0.118 k_t^-0.118 T_c^-0.715 b^+0.540 c_d^+0.411  +0.000136  0.001224      +0.1115     [-0.002262, +0.002535]  no         
+J^+0.123 k_t^+0.123 T_c^-0.047 b^+0.589 c_d^-0.788  -0.028838  0.073789      -0.3908     [-0.173461, +0.115785]  no         
+
+per-parameter attribution. REFUSED means baseline 1 found this parameter
+structurally unidentifiable from this telemetry set, and no residual can
+change that:
+
+parameter  estimate  95 per cent half-width  standing                   
+---------  --------  ----------------------  ---------------------------
+J          REFUSED   REFUSED                 structurally unidentifiable
+k_t        REFUSED   REFUSED                 structurally unidentifiable
+T_c        REFUSED   REFUSED                 structurally unidentifiable
+b          REFUSED   REFUSED                 structurally unidentifiable
+c_d        REFUSED   REFUSED                 structurally unidentifiable
+
+single-parameter routes. Both ASSUME exactly one parameter moved, which
+this telemetry set cannot verify:
+
+parameter  share, eq (14)  chi2, eq (15)    amplitude  weight, eq (16)
+---------  --------------  ---------------  ---------  ---------------
+J          0.999894        7609.797826      +0.077581  1.000000       
+k_t        0.882061        8432091.744759   -0.044021  0.000000       
+T_c        0.480407        37148362.234659  +0.130726  0.000000       
+b          0.478982        37250241.030182  +0.174399  0.000000       
+c_d        0.481269        37086680.668148  +0.661606  0.000000       
+
+first-order sensitivity attribution, eq (14) : J
+constrained maximum likelihood, eq (15)      : J (relative weight 1.000000)
+
+THE ATTRIBUTION ABOVE IS NOT UNIQUE. Every row below produces identical
+noiseless telemetry on this set; the telemetry cannot distinguish them:
+
+alternative   J          k_t        T_c        b          c_d      
+------------  ---------  ---------  ---------  ---------  ---------
+chosen        +0.077581  +0.000000  +0.000000  +0.000000  +0.000000
+equivalent 1  +0.000000  -0.077581  -0.077581  -0.077581  -0.077581
+
+==============================================================================
+step 3: what the engineer is told
+==============================================================================
+
+  A real discrepancy is present:
+    chi-square 71495069.426184 on 2001 rows against a threshold of 2151.102444.
+
+  No per-parameter attribution is possible from this telemetry set.
+    refused: J, k_t, T_c, b, c_d
+
+  What DID change, in the combinations this record can see:
+    J^-0.487 k_t^+0.842 T_c^-0.182 b^-0.136 c_d^-0.036 moved by -0.037898 +/- 0.000009 (z = -8102.208)
+    J^-0.731 k_t^-0.248 T_c^+0.503 b^+0.377 c_d^+0.099 moved by -0.055060 +/- 0.000045 (z = -2418.110)
+
+  Under the additional assumption that exactly one parameter moved -- which
+  this telemetry set cannot verify -- the best single-parameter explanation
+  is J by +0.077581
+  in logarithm, with relative weight 1.000000 against the other four.
+
+  And the alternatives that cannot be distinguished from it:
+
+alternative   J          k_t        T_c        b          c_d      
+------------  ---------  ---------  ---------  ---------  ---------
+chosen        +0.077581  +0.000000  +0.000000  +0.000000  +0.000000
+equivalent 1  +0.000000  -0.077581  -0.077581  -0.077581  -0.077581
+
+  worst rate difference between the alternatives: 2.842171e-14 rad/s,
+  against a sensor noise of 0.020000 rad/s.
+
+  How close is the estimate? Equation (12) is a LINEAR estimator of a
+  nonlinear model, so at an eight per cent perturbation it carries a
+  second-order error, and that error is larger than the statistical
+  interval in the two best-determined directions. Both are printed:
+
+combination                                         estimate   truth's projection  difference     standard error  difference in standard errors
+--------------------------------------------------  ---------  ------------------  -------------  --------------  -----------------------------
+J^-0.487 k_t^+0.842 T_c^-0.182 b^-0.136 c_d^-0.036  -0.037898  -0.038975           +1.076469e-03  4.677542e-06    +230.14                      
+J^-0.731 k_t^-0.248 T_c^+0.503 b^+0.377 c_d^+0.099  -0.055060  -0.058443           +3.383033e-03  2.276973e-05    +148.58                      
+J^-0.118 k_t^-0.118 T_c^-0.715 b^+0.540 c_d^+0.411  +0.000136  -0.009404           +9.540554e-03  0.001224        +7.80                        
+J^+0.123 k_t^+0.123 T_c^-0.047 b^+0.589 c_d^-0.788  -0.028838  +0.009847           -3.868486e-02  0.073789        -0.52                        
+
+  That is not a defect to be hidden behind a wider interval: it is what a
+  first-order attribution costs at this perturbation size, and it is
+  measured below rather than asserted. The error must be SECOND order in
+  the perturbation, so halving the perturbation must quarter it.
+
+  The measurement below uses NOISELESS telemetry. With noise, the
+  statistical error of 4.677542e-06 in the best direction is comparable to
+  the second-order term once the perturbation falls below about one per
+  cent, the two partly cancel, and the measured order rises above 2 for a
+  reason that has nothing to do with the linearisation: measured with noise
+  at this seed, the orders were 2.0178, 2.0895, 2.4366 and 3.2620.
+
+perturbation on log J  error in the best direction  halving order
+---------------------  ---------------------------  -------------
+0.080                  1.081920e-03                 -            
+0.040                  2.712685e-04                 1.9958       
+0.020                  6.790768e-05                 1.9981       
+0.010                  1.698772e-05                 1.9991       
+0.005                  4.248247e-06                 1.9996       
+
+[PASS] the linearisation error of equation (12) is second order in the perturbation -- measured halving orders from 1.9958 to 1.9996, against the 2 that a second-order term requires
+[PASS] the single-parameter route names the parameter that actually moved -- chose J under its declared and unverifiable sparsity assumption
+[PASS] the alternatives it cannot distinguish produce the same rate record -- worst difference 2.842171e-14 rad/s, which is 1.421e-12 of the sensor noise
+
+==============================================================================
+step 4: what a second sensor would buy
+==============================================================================
+The same campaign with a reaction-torque sensor between the wheel housing
+and its mount. The scale direction's sensitivity in that channel is exactly
+the torque signal, equation (7), so the degeneracy disappears.
+
+parameter  verdict       estimate   95 per cent half-width  truth    
+---------  ------------  ---------  ----------------------  ---------
+J          IDENTIFIABLE  +0.077606  0.000676                +0.080000
+k_t        IDENTIFIABLE  +0.000683  0.000676                +0.000000
+T_c        IDENTIFIABLE  +0.003065  0.024485                +0.000000
+b          IDENTIFIABLE  -0.010139  0.066931                +0.000000
+c_d        IDENTIFIABLE  +0.041253  0.130656                +0.000000
+
+equivalent alternatives : 0
+
+[PASS] adding the torque channel removes every refusal -- refused 0 of 5
+[PASS] and the inertia estimate then covers the truth -- estimate +0.077606 against a truth of +0.080000, half-width 0.000676 plus the five per cent second-order allowance
+
+CHECKS RUN: 5
+FAILED CHECKS (0): none

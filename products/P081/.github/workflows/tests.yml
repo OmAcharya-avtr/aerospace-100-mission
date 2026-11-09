@@ -1,0 +1,83 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q --junit-xml=junit.xml
+      - name: Test count from junit XML, never from stdout
+        run: |
+          python - <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse("junit.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          declared = int(suite.get("tests", "0"))
+          counted = len(suite.findall(".//testcase"))
+          print(f"declared {declared}, counted {counted}")
+          if declared == 0 or declared != counted:
+              sys.exit("junit.xml does not agree with itself, or no test ran")
+          PY
+      - name: CLI
+        run: |
+          python -m twindiverge --version
+          python -m twindiverge telemetry
+          python -m twindiverge identify --telemetry rate_full
+          python -m twindiverge identify --telemetry rate_torque_short
+          python -m twindiverge nullspace --telemetry rate_coast
+          python -m twindiverge attribute --telemetry rate_full --seed 20000 --kind single
+          python -m twindiverge attribute --telemetry rate_full --seed 20000 --kind equivalent
+          python -m twindiverge profile --telemetry rate_short --seed 20000 --points 5
+          python -m twindiverge crb --telemetry rate_torque_short --realisations 8
+          python -m twindiverge sweep
+          python -m twindiverge learned --telemetry rate_short --train-runs 60 --test-runs 20 --null-runs 20
+      - name: Validation scripts
+        run: |
+          python validation/validate_plant.py
+          python validation/validate_identifiability.py
+          python validation/validate_attribution.py
+          python validation/validate_profile.py
+          python validation/validate_independent_bound.py
+          python validation/validate_learned_model.py
+          python validation/validate_negative_controls.py
+          python validation/validate_approx_audit.py
+          python validation/worked_example.py
+      - name: Validation scripts from the gate's working directory
+        run: |
+          cd validation
+          for script in validate_plant.py validate_identifiability.py validate_attribution.py worked_example.py; do
+            python "$script" > /dev/null
+          done
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/sensitivity_spectrum.py
+          python examples/nullspace_equivalence.py
+          python examples/record_length_sweep.py
+          python examples/profile_likelihood.py
+          python examples/crb_vs_empirical.py
+          python examples/attribution_map.py
+          python examples/learned_confidence.py
+      - name: The tree must be clean of caches and absolute paths
+        run: python validation/validate_cli.py
+      - name: Every script from every working directory
+        run: python validation/probe_working_directories.py

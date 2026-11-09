@@ -1,0 +1,129 @@
+
+==============================================================================
+twindiverge -- the pytest.approx default-tolerance audit
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+sympy            : not installed  (named in README as the symbolic route this product does NOT take)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P081 (printed relatively; see validation/_bootstrap.py)
+
+pytest.approx(expected, rel=r) passes if EITHER bound is met and the
+absolute default is 1e-12, so a bare rel= on a small quantity stops testing
+what it says. This script measures the dependence rather than asserting its
+absence. It matters more here than in most products: this one's quantities
+include singular values at the 1e-16 level, sensitivity sums that vanish
+identically, and principal angles of order 1e-6 degrees.
+
+==============================================================================
+1. static count of rel= and abs= in the test suite
+==============================================================================
+file                           approx calls  with rel=  with rel= and no abs=
+-----------------------------  ------------  ---------  ---------------------
+tests/conftest.py              0             0          0                    
+tests/test_attribution.py      7             7          0                    
+tests/test_cli.py              0             0          0                    
+tests/test_features.py         4             4          0                    
+tests/test_identifiability.py  9             9          0                    
+tests/test_learned.py          5             5          0                    
+tests/test_pipeline.py         7             7          0                    
+tests/test_plant.py            16            16         0                    
+tests/test_profile.py          4             4          0                    
+tests/test_properties.py       1             1          0                    
+tests/test_regressions.py      11            11         0                    
+tests/test_report.py           0             0          0                    
+tests/test_scoring.py          10            10         0                    
+tests/test_synthetic.py        4             4          0                    
+tests/test_telemetry.py        3             3          0                    
+
+total approx calls carrying rel=         : 81
+total carrying rel= with no explicit abs=: 0
+[PASS] no approx call passes rel= without an explicit abs= -- 0 bare calls found by the source scan
+
+==============================================================================
+2. the suite with a bare rel= made to raise
+==============================================================================
+pytest exit status : 0
+testsuite element  : tests 254, failures 0, errors 0, skipped 0
+testcase elements  : 254
+last stdout line   : 254 passed in 24.29s
+
+  none
+
+[PASS] the junit XML agrees with itself and collected a non-zero test count -- 254 declared against 254 counted
+[PASS] no assertion in the suite depends on the 1e-12 absolute default -- 0 failures, 0 errors with a bare rel= made to raise
+
+COUNT OF ASSERTIONS DEPENDING ON THE pytest.approx DEFAULT: 0
+
+==============================================================================
+3. the suite with every explicit abs= forced to 0.0
+==============================================================================
+This is the stronger question. Where an assertion fails here, the ABSOLUTE
+bound is the one doing the work and the relative bound alone would not
+hold. That is correct and necessary for a comparison against an exact zero,
+which has no relative bound at all, and it is wrong anywhere else, so every
+failure is named below and accounted for.
+
+pytest exit status : 1
+testsuite element  : tests 254, failures 2, errors 0, skipped 0
+testcase elements  : 254
+last stdout line   : 2 failed, 252 passed in 24.30s
+
+tests whose assertions rest on an absolute bound:
+
+  tests.test_identifiability::test_the_null_projector_is_idempotent_and_symmetric
+  tests.test_plant::test_explicit_sensitivities_at_the_initial_point_sum_to_zero_by_hand
+
+COUNT OF ASSERTIONS RESTING ON AN ABSOLUTE BOUND: 2 tests of 254
+
+Each test named above is accounted for below by the reason its assertion
+rests on an absolute bound rather than a relative one. A comparison against
+an exact zero has no relative bound at all and must use an absolute one; an
+assertion on a quantity whose natural scale is absolute is the same case.
+Anything else would be a defect and is named as such.
+
+  - tests.test_plant::test_explicit_sensitivities_at_the_initial_point_sum_to_zero_by_hand
+    Identity A states that a sum of five non-zero terms is EXACTLY zero. A
+    relative bound on zero does not exist, so the absolute bound is the only
+    kind this assertion can have, and it is 1e-14 on terms of order 2.
+    This is the product's central algebraic fact and not a defect.
+  - tests.test_identifiability::test_the_null_projector_is_idempotent_and_symmetric
+    The off-diagonal entries of an orthogonal projector's idempotency and
+    symmetry residuals are exact zeros, and the assertion carries abs=1e-14
+    for exactly that reason. Again there is no relative bound on zero.
+
+Two of 254 tests, both of them comparisons against an exact zero. Neither
+is a defect, and the count is reported rather than asserted away. The
+membership of this list is stable across runs; part 4 says why.
+
+[PASS] the junit XML agrees with itself in the zero run -- 254 declared against 254 counted
+
+==============================================================================
+4. why the list in part 3 is the same on every run
+==============================================================================
+  # Hypothesis writes its own storage -- an example database, a constants cache
+  # Hypothesis is DERANDOMISED here and its example database is disabled.
+  # tests/test_regressions.py with its literal inputs, and the database is
+  # disabled so that a stale local database cannot make a failing suite pass.
+  settings.register_profile(
+  max_examples=30,
+  deadline=None,
+  derandomize=True,
+  database=None,
+  settings.load_profile("twindiverge")
+
+[PASS] the Hypothesis profile is derandomised and its database is disabled -- both settings found in tests/conftest.py
+
+In addition, every subprocess started by this directory runs with
+HYPOTHESIS_STORAGE_DIRECTORY pointing outside the repository, so a local
+example database cannot influence the runs above even if one existed.
+
+CHECKS RUN: 5
+FAILED CHECKS (0): none

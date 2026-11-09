@@ -1,0 +1,55 @@
+
+==============================================================================
+twindiverge -- every example, run as a subprocess
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+sympy            : not installed  (named in README as the symbolic route this product does NOT take)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P081 (printed relatively; see validation/_bootstrap.py)
+
+examples declared : 7
+Each PNG is deleted before its example runs, so a stale figure cannot make
+a broken example pass.
+[PASS] examples/sensitivity_spectrum.py -- exit 0, figure 130341 bytes
+[PASS] examples/nullspace_equivalence.py -- exit 0, figure 119107 bytes
+[PASS] examples/record_length_sweep.py -- exit 0, figure 104824 bytes
+[PASS] examples/profile_likelihood.py -- exit 0, figure 169249 bytes
+[PASS] examples/crb_vs_empirical.py -- exit 0, figure 114397 bytes
+[PASS] examples/attribution_map.py -- exit 0, figure 99564 bytes
+[PASS] examples/learned_confidence.py -- exit 0, figure 115569 bytes
+
+example                   exit  seconds  stdout lines  figure bytes  verdict
+------------------------  ----  -------  ------------  ------------  -------
+sensitivity_spectrum.py   0     2.8      6             130341        ok     
+nullspace_equivalence.py  0     0.8      7             119107        ok     
+record_length_sweep.py    0     0.9      10            104824        ok     
+profile_likelihood.py     0     4.3      11            169249        ok     
+crb_vs_empirical.py       0     8.7      15            114397        ok     
+attribution_map.py        0     1.2      11            99564         ok     
+learned_confidence.py     0     8.3      24            115569        ok     
+
+Elapsed times are UNSTABLE: two cores, and the scripts are run one at a
+time here but concurrently by probe_working_directories.py.
+
+figures in screenshots/, as a cold clone carries them:
+
+figure                                 bytes 
+-------------------------------------  ------
+screenshots/attribution_map.png        99564 
+screenshots/crb_vs_empirical.png       114397
+screenshots/learned_confidence.png     115569
+screenshots/nullspace_equivalence.png  119107
+screenshots/profile_likelihood.png     169249
+screenshots/record_length_sweep.png    104824
+screenshots/sensitivity_spectrum.png   130341
+
+CHECKS RUN: 7
+FAILED CHECKS (0): none

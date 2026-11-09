@@ -1,0 +1,181 @@
+
+==============================================================================
+twindiverge -- the Cramer-Rao bound against a measured spread
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+sympy            : not installed  (named in README as the symbolic route this product does NOT take)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P081 (printed relatively; see validation/_bootstrap.py)
+
+noise realisations per set : 20
+declared control sigma     : 4.0
+sampling allowance         : 0.648886 of the bound, from 4.0 / sqrt(2 * (20 - 1))
+
+The truth is the declared nominal parameter set, so the estimator is being
+asked to recover a known answer and its scatter is the whole measurement.
+
+==============================================================================
+rate_full: rank 4 of 5, condition number 1.577511e+04
+==============================================================================
+wall clock for 20 nonlinear fits : 10.329 s
+sampling term, as a fraction of the bound : 6.488857e-01
+conditioning term, worst fraction         : 3.502777e-12
+
+
+-- linear, equation (12): the efficient estimator of the linearised model: its spread should sit ON the bound
+
+direction    CRB           measured sd   sd / CRB  measured mean  mean / CRB  criterion     verdict
+-----------  ------------  ------------  --------  -------------  ----------  ------------  -------
+direction 1  4.677542e-06  5.658279e-06  1.209669  -1.874270e-06  -0.4007     1.642352e-06  ok     
+direction 2  2.276973e-05  2.307839e-05  1.013556  4.240281e-06   +0.1862     7.994778e-06  ok     
+direction 3  0.001224      0.001227      1.002398  0.000101       +0.0829     0.000430      ok     
+direction 4  0.073789      0.076860      1.041620  -0.011461      -0.1553     0.025908      ok     
+
+[PASS] rate_full, linear, equation (12): the bound lies below the measured spread everywhere -- 0 violations in 4 directions; ratios from 1.002398 to 1.209669
+quantity                                   value        
+-----------------------------------------  -------------
+least eigenvalue of covariance difference  -1.171462e-09
+greatest eigenvalue                        0.000463     
+largest CRB variance                       0.005445     
+sampling tolerance on an eigenvalue        0.007066     
+
+[PASS] rate_full, linear, equation (12): the empirical covariance dominates the CRB covariance -- least eigenvalue -1.171462e-09 against a sampling tolerance of -7.066074e-03
+
+-- nonlinear, profile.fit: the global optimiser of the real model: biased on this problem, so the bound is necessary but not tight
+
+direction    CRB           measured sd  sd / CRB   measured mean  mean / CRB  criterion     verdict
+-----------  ------------  -----------  ---------  -------------  ----------  ------------  -------
+direction 1  4.677542e-06  0.000267     57.008044  0.000185       +39.4997    1.642352e-06  ok     
+direction 2  2.276973e-05  0.000739     32.475967  -0.000510      -22.3870    7.994778e-06  ok     
+direction 3  0.001224      0.002476     2.023376   -0.001151      -0.9408     0.000430      ok     
+direction 4  0.073789      0.076971     1.043121   -0.009961      -0.1350     0.025908      ok     
+
+[PASS] rate_full, nonlinear, profile.fit: the bound lies below the measured spread everywhere -- 0 violations in 4 directions; ratios from 1.043121 to 57.008044
+quantity                                   value        
+-----------------------------------------  -------------
+least eigenvalue of covariance difference  -2.581019e-08
+greatest eigenvalue                        0.000480     
+largest CRB variance                       0.005445     
+sampling tolerance on an eigenvalue        0.007066     
+
+[PASS] rate_full, nonlinear, profile.fit: the empirical covariance dominates the CRB covariance -- least eigenvalue -2.581019e-08 against a sampling tolerance of -7.066074e-03
+
+negative controls, both anchored on the BOUND and not on any output: the
+deviations are rescaled so that their standard deviation is a declared
+multiple of the bound itself.
+
+direction    CRB           sd rescaled to 0.25 x CRB  sd / CRB  criterion     fires
+-----------  ------------  -------------------------  --------  ------------  -----
+direction 1  4.677542e-06  1.169385e-06               0.250000  1.642352e-06  yes  
+direction 2  2.276973e-05  5.692432e-06               0.250000  7.994778e-06  yes  
+direction 3  0.001224      0.000306                   0.250000  0.000430      yes  
+direction 4  0.073789      0.018447                   0.250000  0.025908      yes  
+
+[PASS] control: rate_full: a spread at 0.25 times the bound (must fire) -- FIRED; 4 of 4 directions violated the criterion, all expected
+[PASS] rate_full: the low control fires in EVERY direction, not merely one -- 4 of 4
+direction    CRB           sd rescaled to 2.00 x CRB  sd / CRB  criterion     fires
+-----------  ------------  -------------------------  --------  ------------  -----
+direction 1  4.677542e-06  9.355083e-06               2.000000  1.642352e-06  no   
+direction 2  2.276973e-05  4.553946e-05               2.000000  7.994778e-06  no   
+direction 3  0.001224      0.002448                   2.000000  0.000430      no   
+direction 4  0.073789      0.147577                   2.000000  0.025908      no   
+
+[PASS] control: rate_full: a spread at 2.00 times the bound (must NOT fire) -- did not fire; 0 of 4 directions violated the criterion, none expected
+
+==============================================================================
+rate_torque_full: rank 5 of 5, condition number 1.623256e+04
+==============================================================================
+wall clock for 20 nonlinear fits : 9.751 s
+sampling term, as a fraction of the bound : 6.488857e-01
+conditioning term, worst fraction         : 3.604353e-12
+
+
+-- linear, equation (12): the efficient estimator of the linearised model: its spread should sit ON the bound
+
+direction    CRB           measured sd   sd / CRB  measured mean  mean / CRB  criterion     verdict
+-----------  ------------  ------------  --------  -------------  ----------  ------------  -------
+direction 1  4.677179e-06  5.669745e-06  1.212215  -1.856958e-06  -0.3970     1.642224e-06  ok     
+direction 2  2.276271e-05  2.320043e-05  1.019230  4.106362e-06   +0.1804     7.992313e-06  ok     
+direction 3  0.000711      0.000530      0.745312  -0.000216      -0.3030     0.000250      ok     
+direction 4  0.001276      0.001311      1.027326  0.000173       +0.1356     0.000448      ok     
+direction 5  0.075923      0.080840      1.064775  0.011154       +0.1469     0.026658      ok     
+
+[PASS] rate_torque_full, linear, equation (12): the bound lies below the measured spread everywhere -- 0 violations in 5 directions; ratios from 0.745312 to 1.212215
+quantity                                   value        
+-----------------------------------------  -------------
+least eigenvalue of covariance difference  -2.968097e-07
+greatest eigenvalue                        0.000771     
+largest CRB variance                       0.005764     
+sampling tolerance on an eigenvalue        0.007481     
+
+[PASS] rate_torque_full, linear, equation (12): the empirical covariance dominates the CRB covariance -- least eigenvalue -2.968097e-07 against a sampling tolerance of -7.480666e-03
+
+-- nonlinear, profile.fit: the global optimiser of the real model: biased on this problem, so the bound is necessary but not tight
+
+direction    CRB           measured sd  sd / CRB   measured mean  mean / CRB  criterion     verdict
+-----------  ------------  -----------  ---------  -------------  ----------  ------------  -------
+direction 1  4.677179e-06  0.000262     56.066860  0.000189       +40.5140    1.642224e-06  ok     
+direction 2  2.276271e-05  0.000728     31.997781  -0.000523      -22.9546    7.992313e-06  ok     
+direction 3  0.000711      0.000808     1.136645   0.000234       +0.3286     0.000250      ok     
+direction 4  0.001276      0.002849     2.232883   -0.001369      -1.0732     0.000448      ok     
+direction 5  0.075923      0.081262     1.070333   0.009278       +0.1222     0.026658      ok     
+
+[PASS] rate_torque_full, nonlinear, profile.fit: the bound lies below the measured spread everywhere -- 0 violations in 5 directions; ratios from 1.070333 to 56.066860
+quantity                                   value        
+-----------------------------------------  -------------
+least eigenvalue of covariance difference  -2.923864e-07
+greatest eigenvalue                        0.000840     
+largest CRB variance                       0.005764     
+sampling tolerance on an eigenvalue        0.007481     
+
+[PASS] rate_torque_full, nonlinear, profile.fit: the empirical covariance dominates the CRB covariance -- least eigenvalue -2.923864e-07 against a sampling tolerance of -7.480666e-03
+
+negative controls, both anchored on the BOUND and not on any output: the
+deviations are rescaled so that their standard deviation is a declared
+multiple of the bound itself.
+
+direction    CRB           sd rescaled to 0.25 x CRB  sd / CRB  criterion     fires
+-----------  ------------  -------------------------  --------  ------------  -----
+direction 1  4.677179e-06  1.169295e-06               0.250000  1.642224e-06  yes  
+direction 2  2.276271e-05  5.690677e-06               0.250000  7.992313e-06  yes  
+direction 3  0.000711      0.000178                   0.250000  0.000250      yes  
+direction 4  0.001276      0.000319                   0.250000  0.000448      yes  
+direction 5  0.075923      0.018981                   0.250000  0.026658      yes  
+
+[PASS] control: rate_torque_full: a spread at 0.25 times the bound (must fire) -- FIRED; 5 of 5 directions violated the criterion, all expected
+[PASS] rate_torque_full: the low control fires in EVERY direction, not merely one -- 5 of 5
+direction    CRB           sd rescaled to 2.00 x CRB  sd / CRB  criterion     fires
+-----------  ------------  -------------------------  --------  ------------  -----
+direction 1  4.677179e-06  9.354358e-06               2.000000  1.642224e-06  no   
+direction 2  2.276271e-05  4.552542e-05               2.000000  7.992313e-06  no   
+direction 3  0.000711      0.001423                   2.000000  0.000250      no   
+direction 4  0.001276      0.002552                   2.000000  0.000448      no   
+direction 5  0.075923      0.151845                   2.000000  0.026658      no   
+
+[PASS] control: rate_torque_full: a spread at 2.00 times the bound (must NOT fire) -- did not fire; 0 of 5 directions violated the criterion, none expected
+
+==============================================================================
+what this check is, and what it is not
+==============================================================================
+It is the only check in this repository whose reference is not another
+computation of the sensitivity matrix. The bound comes from the Fisher
+information; the spread comes from an estimator that never sees it.
+
+It is NOT a check that the estimator is efficient. A spread far ABOVE the
+bound would pass this check and would mean the estimator is wasteful; the
+ratios are printed so a reader can see which it is. On this plant the
+ratios sit close to one, which is what a maximum-likelihood estimator on a
+nearly linear problem should do, and it is reported rather than asserted,
+because the Cramer-Rao inequality does not promise it.
+
+CHECKS RUN: 14
+CONTROLS: 4 declared, 2 fired
+FAILED CHECKS (0): none

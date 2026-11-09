@@ -1,0 +1,258 @@
+
+==============================================================================
+twindiverge -- every check, deliberately broken
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+sympy            : not installed  (named in README as the symbolic route this product does NOT take)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P081 (printed relatively; see validation/_bootstrap.py)
+
+declared control sigma : 4.0
+declared angle limit   : 1.0e-05 degrees
+declared rank cutoff   : 1.0e-10
+
+==============================================================================
+A. the null space against its derivation
+==============================================================================
+The truth is the DERIVED basis, which is algebra. Each control replaces it
+with a wrong subspace of the same dimension and measures the angle the
+check would see.
+
+[PASS] control: null-space agreement: the derivation itself (must NOT fire) -- did not fire; worst principal angle 0.000000e+00 degrees against a limit of 1.0e-05
+[PASS] control: null-space agreement: a single coordinate axis instead (must fire) -- FIRED; worst principal angle 6.343495e+01 degrees against a limit of 1.0e-05
+[PASS] control: null-space agreement: the scale direction with one sign flipped (must fire) -- FIRED; worst principal angle 5.313010e+01 degrees against a limit of 1.0e-05
+[PASS] control: null-space agreement: the best-determined identifiable direction (must fire) -- FIRED; worst principal angle 9.000000e+01 degrees against a limit of 1.0e-05
+
+injected subspace                           worst angle [deg]  fires
+------------------------------------------  -----------------  -----
+the derivation itself                       0.000000e+00       no   
+a single coordinate axis instead            6.343495e+01       yes  
+the scale direction with one sign flipped   5.313010e+01       yes  
+the best-determined identifiable direction  9.000000e+01       yes  
+
+==============================================================================
+B. identity A, equation (6)
+==============================================================================
+The truth is that the five rate sensitivities sum to zero. The control adds
+a column of ones scaled to a declared fraction of the largest sensitivity,
+which breaks the sum by exactly that fraction and nothing else.
+
+[PASS] control: identity A with a 0.0e+00 relative offset injected (must NOT fire) -- did not fire; relative residual 1.748608e-15 against a limit of 1.0e-11
+[PASS] control: identity A with a 1.0e-14 relative offset injected (must NOT fire) -- did not fire; relative residual 1.176716e-14 against a limit of 1.0e-11
+[PASS] control: identity A with a 1.0e-06 relative offset injected (must fire) -- FIRED; relative residual 1.000000e-06 against a limit of 1.0e-11
+[PASS] control: identity A with a 1.0e-02 relative offset injected (must fire) -- FIRED; relative residual 1.000000e-02 against a limit of 1.0e-11
+
+injected fraction  relative residual  fires
+-----------------  -----------------  -----
+0.0e+00            1.748608e-15       no   
+1.0e-14            1.176716e-14       no   
+1.0e-06            1.000000e-06       yes  
+1.0e-02            1.000000e-02       yes  
+
+The 1e-14 row is the control that must NOT fire: an injection below the
+check's own rounding floor is indistinguishable from no injection, and a
+check that fired on it would be reporting noise.
+
+==============================================================================
+C. the closed-form reference, equations (20) and (21)
+==============================================================================
+The truth is the closed form. The control perturbs the PARAMETERS the
+closed form is evaluated at, by a declared relative amount, so that the
+integrator and the reference are solving different problems.
+
+[PASS] control: closed form with the viscous coefficient moved by 0.0e+00 (must NOT fire) -- did not fire; worst relative difference 6.615096e-15 against a limit of 1.0e-13
+[PASS] control: closed form with the viscous coefficient moved by 1.0e-12 (must fire) -- FIRED; worst relative difference 1.995384e-13 against a limit of 1.0e-13
+[PASS] control: closed form with the viscous coefficient moved by 1.0e-06 (must fire) -- FIRED; worst relative difference 1.946973e-07 against a limit of 1.0e-13
+
+injected fraction on b  worst relative difference  fires
+----------------------  -------------------------  -----
+0.0e+00                 6.615096e-15               no   
+1.0e-12                 1.995384e-13               yes  
+1.0e-06                 1.946973e-07               yes  
+
+==============================================================================
+D. the detection test
+==============================================================================
+The truth is that a pure scale change produces no residual and an
+identifiable change produces one. Both directions are controlled.
+
+[PASS] control: detection with nothing moved (must NOT fire) -- did not fire; detection rate 0.000000 against a declared false-positive rate of 0.010000 plus 4.0 standard errors (0.072929)
+[PASS] control: detection with pure scale, 0.15 (must NOT fire) -- did not fire; detection rate 0.000000 against a declared false-positive rate of 0.010000 plus 4.0 standard errors (0.072929)
+[PASS] control: detection with pure scale, 1.00 (must NOT fire) -- did not fire; detection rate 0.000000 against a declared false-positive rate of 0.010000 plus 4.0 standard errors (0.072929)
+[PASS] control: detection with identifiable, 0.002 on J (must fire) -- FIRED; detection rate 1.000000 against a declared false-positive rate of 0.010000 plus 4.0 standard errors (0.072929)
+
+injected perturbation     detection rate  median chi2  fires
+------------------------  --------------  -----------  -----
+nothing moved             0.000000        1975.0118    no   
+pure scale, 0.15          0.000000        1975.0118    no   
+pure scale, 1.00          0.000000        1975.0118    no   
+identifiable, 0.002 on J  1.000000        49444.4258   yes  
+
+The 'pure scale, 1.00' row is the strongest form of the product's claim: a
+parameter set whose every member is multiplied by e = 2.718 produces
+telemetry the detection test cannot distinguish from no change at all.
+
+==============================================================================
+E. the pseudo-inverse diagonal, tested as if it were a bound
+==============================================================================
+The truth is the Cramer-Rao bound, which is INFINITE for every parameter on
+this set. The control takes the pseudo-inverse diagonal -- the number a
+naive implementation reports instead -- and tests it against the measured
+spread of repeated fits, exactly as validate_independent_bound.py tests the
+real bound. It must fail, because it is not a bound.
+
+parameter  pinv diagonal (claimed)  measured sd of the minimum-norm estimate  sd / claimed
+---------  -----------------------  ----------------------------------------  ------------
+J          9.083709e-03             9.479582e-03                              1.043581    
+k_t        9.051862e-03             9.440188e-03                              1.042900    
+T_c        3.604908e-03             3.896389e-03                              1.080857    
+b          4.348563e-02             4.540373e-02                              1.044109    
+c_d        5.811909e-02             6.062635e-02                              1.043140    
+
+The ratios are close to one, and that is the point: the pseudo-inverse
+diagonal is a CORRECT number about the WRONG quantity. It describes the
+scatter of the minimum-norm solution, which is one arbitrary member of an
+infinite family, and says nothing about the parameter.
+
+The control makes that concrete. Starting from the fitted offset, a multiple
+of the null direction is added. Every member of that family fits the data
+equally well -- the chi-square change is the measurement -- while the
+estimate of J moves by an arbitrary amount. No finite bound can cover a
+family of unbounded diameter, which is why equation (10)'s finiteness clause
+is not optional.
+
+multiple of the null direction  chi-square      change in chi-square  shift in log J  shift, in claimed standard errors
+------------------------------  --------------  --------------------  --------------  ---------------------------------
+0.0                             2082.977454466  0.000000e+00          0.000000        0.000                            
+1.0                             2082.977454466  5.820766e-11          0.447214        49.232                           
+10.0                            2082.977454466  4.893081e-10          4.472136        492.325                          
+100.0                           2082.977454466  1.855369e-10          44.721360       4923.249                         
+
+[PASS] control: the family of equally good fits is unbounded in the claimed error bar's units (must fire) -- FIRED; 3 of 3 non-zero multiples move log J by more than 4.0 claimed standard errors at an unchanged chi-square
+[PASS] the measured spread of the minimum-norm estimate matches the pinv diagonal -- ratios from 1.042900 to 1.080857, so the diagonal describes the minimum-norm solution correctly and the parameter not at all
+
+==============================================================================
+F. the confidence intervals of equation (13)
+==============================================================================
+The truth is the declared 95 per cent level. The control rescales each
+interval by a declared factor and measures the coverage, which must fall
+outside four standard errors of the nominal level.
+
+Coverage is MARGINAL, one direction at a time, because that is what a 95
+per cent interval on a single direction promises. A joint statement over
+four directions has a nominal level near 0.95 to the fourth power and
+comparing it against 0.95 would make the correct intervals look broken --
+which is how the first version of this control failed.
+
+[PASS] control: intervals rescaled by 1.00 (must NOT fire) -- did not fire; marginal coverages 0.962500, 0.967500, 0.952500, 0.940000 against a nominal 0.95; worst deviation 1.6059 standard errors of 0.010897
+[PASS] control: intervals rescaled by 0.25 (must fire) -- FIRED; marginal coverages 0.417500, 0.370000, 0.390000, 0.390000 against a nominal 0.95; worst deviation 53.2245 standard errors of 0.010897
+[PASS] control: intervals rescaled by 4.00 (must fire) -- FIRED; marginal coverages 1.000000, 1.000000, 1.000000, 1.000000 against a nominal 0.95; worst deviation 4.5883 standard errors of 0.010897
+
+interval width factor  marginal coverage per direction      worst sigmas from nominal  fires
+---------------------  -----------------------------------  -------------------------  -----
+1.00                   0.962500 0.967500 0.952500 0.940000  1.6059                     no   
+0.25                   0.417500 0.370000 0.390000 0.390000  53.2245                    yes  
+4.00                   1.000000 1.000000 1.000000 1.000000  4.5883                     yes  
+
+realisations : 400
+standard error of a coverage proportion : 0.010897
+
+The 4.00 row fires in the opposite direction: an interval four times too
+wide covers the truth more often than its nominal level, which is as much a
+defect as covering it less often, and a one-sided criterion would miss it.
+A coverage that saturates at 1.000000 is only 4.5883 standard errors from
+the nominal level, which is why this script uses 400 realisations and not
+200: at 200 the same saturated coverage is 3.2444 away and could not reach
+the declared 4.0.
+
+==============================================================================
+G. the flatness verdict of baseline 3
+==============================================================================
+The truth is that the reference set's profiles are flat and the two-channel
+set's are not. Both directions are controlled against the same criterion.
+
+[PASS] control: the log J profile on rate_full is curved (must NOT fire) -- did not fire; max delta chi2 3.967671e-10 against a flatness tolerance of 1.0e-03
+[PASS] control: the log J profile on rate_torque_full is curved (must fire) -- FIRED; max delta chi2 1.855831e+04 against a flatness tolerance of 1.0e-03
+
+set               max delta chi2  shape   fires
+----------------  --------------  ------  -----
+rate_full         3.967671e-10    FLAT    no   
+rate_torque_full  1.855831e+04    curved  yes  
+
+==============================================================================
+H. the learned classifier's accuracy
+==============================================================================
+The truth is the case labels. The control shuffles the TRAINING labels with
+a declared seed, which destroys the mapping the classifier is supposed to
+learn while leaving everything else -- features, hyperparameters, split --
+untouched. Accuracy must then fall to the five-class chance level.
+
+[PASS] control: learned accuracy with the real labels (must NOT fire) -- did not fire; accuracy 0.991667 against the chance level 0.200000 plus 4.0 standard errors (0.346059)
+[PASS] control: learned accuracy with labels shuffled, seed 424242 (must fire) -- FIRED; accuracy 0.216667 against the chance level 0.200000 plus 4.0 standard errors (0.346059)
+
+training labels               test accuracy  fires
+----------------------------  -------------  -----
+the real labels               0.991667       no   
+labels shuffled, seed 424242  0.216667       yes  
+
+==============================================================================
+I. the equivalence family
+==============================================================================
+The truth is that the family differs along the NULL direction. The control
+builds a partner along a direction that is NOT in the null space, which
+must then produce different telemetry.
+
+[PASS] control: a partner displaced along the scale direction (correct) (must NOT fire) -- did not fire; relative rate difference 3.195020e-16 against a limit of 1e-13
+[PASS] control: a partner displaced along the best identifiable direction (must fire) -- FIRED; relative rate difference 1.290093e-01 against a limit of 1e-13
+[PASS] control: a partner displaced along a single coordinate axis (must fire) -- FIRED; relative rate difference 3.457141e-02 against a limit of 1e-13
+
+displacement direction           relative difference  fires
+-------------------------------  -------------------  -----
+the scale direction (correct)    3.195020e-16         no   
+the best identifiable direction  1.290093e-01         yes  
+a single coordinate axis         3.457141e-02         yes  
+
+==============================================================================
+J. the refusal itself
+==============================================================================
+The truth is that a parameter with a null-space component has no finite
+bound. The control raises the declared null-component tolerance until the
+component -- which is exactly 1/sqrt(5) = 0.447214 -- falls below it, which
+makes the refusal disappear and the naive finite bound reappear.
+
+[PASS] control: a null-component tolerance of 1.0e-06 loses the refusal (must NOT fire) -- did not fire; the null component is 0.447214, so a tolerance of 1.0e-06 keeps the refusal; the declared tolerance is 1.0e-06 and the parameter is REFUSED
+[PASS] control: a null-component tolerance of 5.0e-01 loses the refusal (must fire) -- FIRED; the null component is 0.447214, so a tolerance of 5.0e-01 loses the refusal; the declared tolerance is 1.0e-06 and the parameter is REFUSED
+[PASS] control: a null-component tolerance of 1.0e+00 loses the refusal (must fire) -- FIRED; the null component is 0.447214, so a tolerance of 1.0e+00 loses the refusal; the declared tolerance is 1.0e-06 and the parameter is REFUSED
+
+null-component tolerance  measured component  verdict                 fires
+------------------------  ------------------  ----------------------  -----
+1.0e-06                   0.447214            REFUSED                 no   
+5.0e-01                   0.447214            a finite bound appears  yes  
+1.0e+00                   0.447214            a finite bound appears  yes  
+
+The declared tolerance is 1.0e-06 and the measured
+components are all 0.447214, so the verdict has 5.6505 decades of margin: there is
+no population of parameters between 'in the null space' and 'not in it' on
+this plant, because the null space is exactly the diagonal.
+
+==============================================================================
+summary
+==============================================================================
+controls declared : 29
+controls that fired : 17
+
+A control that does not fire when it must is a failure of the control and
+not a success of the product: it would mean the check it guards could not
+catch the violation it exists to catch.
+
+CHECKS RUN: 30
+CONTROLS: 29 declared, 17 fired
+FAILED CHECKS (0): none

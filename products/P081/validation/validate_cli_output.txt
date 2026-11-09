@@ -1,0 +1,129 @@
+
+==============================================================================
+twindiverge -- the command line, and the tree it must not pollute
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+sympy            : not installed  (named in README as the symbolic route this product does NOT take)
+torch            : not installed  (named in README as unavailable here)
+cpu cores        : 2
+repository root  : P081 (printed relatively; see validation/_bootstrap.py)
+
+Every subprocess below runs with HOME and MPLCONFIGDIR in a temporary
+directory outside the repository and PYTHONDONTWRITEBYTECODE=1.
+
+==============================================================================
+1. every subcommand, as a user runs it
+==============================================================================
+[PASS] python -m twindiverge --version -- exit 0
+[PASS] python -m twindiverge --help -- exit 0
+[PASS] python -m twindiverge telemetry -- exit 0
+[PASS] python -m twindiverge identify --telemetry rate_full -- exit 0
+[PASS] python -m twindiverge identify --telemetry rate_torque_full -- exit 0
+[PASS] python -m twindiverge identify --telemetry rate_torque_short -- exit 0
+[PASS] python -m twindiverge nullspace --telemetry rate_full -- exit 0
+[PASS] python -m twindiverge nullspace --telemetry rate_coast -- exit 0
+[PASS] python -m twindiverge nullspace --telemetry rate_torque_full -- exit 0
+[PASS] python -m twindiverge attribute --telemetry rate_full --seed 20000 --kind single -- exit 0
+[PASS] python -m twindiverge attribute --telemetry rate_full --seed 20000 --kind equivalent -- exit 0
+[PASS] python -m twindiverge attribute --telemetry rate_torque_full --seed 20000 -- exit 0
+[PASS] python -m twindiverge profile --telemetry rate_short --seed 20000 --points 5 -- exit 0
+[PASS] python -m twindiverge crb --telemetry rate_torque_short --realisations 5 -- exit 0
+[PASS] python -m twindiverge sweep -- exit 0
+[PASS] python -m twindiverge learned --telemetry rate_short --train-runs 40 --test-runs 10 --null-runs 10 -- exit 0
+
+command                                                     exit  stdout lines  verdict
+----------------------------------------------------------  ----  ------------  -------
+--version                                                   0     1             ok     
+--help                                                      0     23            ok     
+telemetry                                                   0     32            ok     
+identify --telemetry rate_full                              0     51            ok     
+identify --telemetry rate_torque_full                       0     46            ok     
+identify --telemetry rate_torque_short                      0     46            ok     
+nullspace --telemetry rate_full                             0     29            ok     
+nullspace --telemetry rate_coast                            0     32            ok     
+nullspace --telemetry rate_torque_full                      0     14            ok     
+attribute --telemetry rate_full --seed 20000 --kind single  0     100           ok     
+attribute --telemetry rate_full --seed 20000 --kind equiva  0     100           ok     
+attribute --telemetry rate_torque_full --seed 20000         0     91            ok     
+profile --telemetry rate_short --seed 20000 --points 5      0     33            ok     
+crb --telemetry rate_torque_short --realisations 5          0     24            ok     
+sweep                                                       0     20            ok     
+learned --telemetry rate_short --train-runs 40 --test-runs  0     81            ok     
+
+==============================================================================
+2. a bad argument must exit non-zero and say why
+==============================================================================
+[PASS] `identify --telemetry invented` exits non-zero with an actionable message -- exit 1; looked for 'unknown telemetry set'
+[PASS] `profile --points 4` exits non-zero with an actionable message -- exit 1; looked for '--points must be an odd integer'
+[PASS] `crb --realisations 2` exits non-zero with an actionable message -- exit 1; looked for '--realisations must be at least 4'
+[PASS] `learned --train-runs 4` exits non-zero with an actionable message -- exit 1; looked for '--train-runs must be at least 10'
+[PASS] `attribute --kind invented` exits non-zero with an actionable message -- exit 2; looked for 'invalid choice'
+[PASS] `invent` exits non-zero with an actionable message -- exit 2; looked for 'invalid choice'
+
+argv                           exit  last line of output                                                                     
+-----------------------------  ----  ----------------------------------------------------------------------------------------
+identify --telemetry invented  1     unknown telemetry set 'invented'; declared sets are rate_full, rate_torque_full, rate_sh
+profile --points 4             1     --points must be an odd integer of at least 3                                           
+crb --realisations 2           1     --realisations must be at least 4 for a standard deviation                              
+learned --train-runs 4         1     --train-runs must be at least 10 to fit five classes                                    
+attribute --kind invented      2     twindiverge attribute: error: argument --kind: invalid choice: 'invented' (choose from '
+invent                         2     twindiverge: error: argument command: invalid choice: 'invent' (choose from 'telemetry',
+
+==============================================================================
+3. this script pollutes nothing, and nothing polluting is tracked
+==============================================================================
+Two distinct claims, because they have two distinct owners.
+
+An earlier revision of this check, in another product of this mission,
+asserted that NO cache directory and no bytecode file existed anywhere in
+the tree at the moment it ran. That claim is not a product's to make and it
+is unsatisfiable under the release gate: the gate runs `ruff check src/
+tests/` with its working directory set to the product root as check 2,
+which writes `.ruff_cache` into the tree, and then re-executes the
+validation scripts as check 6. No change to the product could have passed.
+
+The two claims below are what this product can be held to, and both are
+stricter than the old one in the direction that matters: the old check said
+nothing at all about what is TRACKED, which is the only thing a reader with
+a cold clone ever sees.
+
+3a. this script adds no cache directory and no bytecode file
+  names treated as cache   : ['__pycache__', '.pytest_cache', '.ruff_cache', '.hypothesis', '.config'], plus every .pyc
+  present at entry         : 32 -- .ruff_cache, src/twindiverge/__pycache__, src/twindiverge/__pycache__/__init__.cpython-313.pyc, src/twindiverge/__pycache__/__main__.cpython-313.pyc, and 28 more
+    (inherited from whatever invoked this script; not this product's doing)
+  still present, inherited : 32 -- .ruff_cache, src/twindiverge/__pycache__, src/twindiverge/__pycache__/__init__.cpython-313.pyc, src/twindiverge/__pycache__/__main__.cpython-313.pyc, and 28 more
+  ADDED while this ran     : none
+[PASS] this script's own execution adds no cache directory or bytecode file -- 0 added
+
+3b. git tracks no cache directory, bytecode file or build artifact
+Authoritative, because .gitignore can be edited and a tracked file stays
+tracked regardless of it. A cold clone carries exactly what git tracks.
+  tracked files examined   : 0
+  offenders                : none
+  NOTE: zero files were examined, so this check is VACUOUS in this
+  environment and is recorded as such rather than as a pass.
+[PASS] git tracks no cache directory, bytecode file or build artifact -- 0 offenders in 0 tracked files -- VACUOUS: zero files examined
+
+==============================================================================
+4. no committed file carries an absolute path
+==============================================================================
+The patterns are assembled from os.sep, and this script's own output file is
+deleted before the scan so that the scanner cannot report itself.
+
+  text files scanned : 73
+  needles            : 4 directory prefixes assembled from os.sep -- home, Users, root, tmp
+    (named rather than printed as literals: this output file is committed,
+     and a committed file containing the literal pattern is exactly what a
+     repository-wide absolute-path scanner is looking for)
+  offenders          : none
+[PASS] no text file in the tree contains an absolute host path -- 0 offenders in 73 files
+
+CHECKS RUN: 25
+FAILED CHECKS (0): none
