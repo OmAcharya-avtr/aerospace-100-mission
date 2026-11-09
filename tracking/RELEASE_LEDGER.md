@@ -907,3 +907,120 @@ narrowed to the two claims the product owns — that running it adds no cache
 artifact, and that git tracks none — and the gate was NOT edited. Its ruff
 step wants the treatment its pytest step already has (`-p no:cacheprovider`);
 that is recorded as needing the owner.
+
+## 2026-11-09 — P081 TwinDiverge PUBLISHED
+
+Published count 88 -> **89 of 100**. Registered 90, Built 89, Published 89,
+measured by `scripts/quota_report.py` against the committed `products.yaml`.
+
+| Product | Package | Repository | Tests (junit XML) | Validation | Published SHA |
+|---|---|---|---:|---|---|
+| P081 TwinDiverge | `twindiverge` | https://github.com/OmAcharya-avtr/twindiverge | 254 | Level 3 | `1cdeb6b` |
+
+**Authorising verdict.** `python3 scripts/release_gate.py P081`:
+
+```
+P081  PASS       254 tests
+
+repository  PASS
+
+Total tests passing: 254
+VERDICT: PUSH ALLOWED
+```
+
+**The gate's shell exit status was captured directly: `0`.** The 2026-11-02
+entry recorded, as a caveat, that it had captured the printed verdict and not
+the status, and asked the next session to capture the status itself. Done: the
+gate ran as a background job writing `$?` to a file, and that file contains
+`0`. The printed text and the status are now both evidence, independently.
+
+Published under ADR-017 on that verdict alone. No row was written to
+`APPROVAL_LOG.md`, no product was set to `APPROVED`, `approved_for_publish`
+stays `false`, and no owner statement is quoted or implied — no human spoke in
+this session.
+
+**Test count is the coordinator's, not the build agent's.** Measured from the
+junit XML `testsuite` element — `tests=254 failures=0 errors=0 skipped=0` —
+with the `testcase` element count cross-checked at 254, from a run the
+coordinator performed. The gate's independent run returned 254 as well.
+
+**Authorship invariant holds.** `gh api contributors` returns exactly one
+login, `OmAcharya-avtr`, for `twindiverge` and for the monorepo.
+`git log --format='%ae %ce' | sort -u` over the entire monorepo history
+returns exactly one pair, verified on both the container clone and the Mac
+working copy.
+
+### The coordinator's re-measurement earned its place on this product
+
+The build agent reported **0 non-zero exits in 44 runs** from
+`probe_working_directories.py`. The coordinator's independent run found **1** —
+`validate_examples.py` from the repository root — and the gate runs every
+`validation/*.py`, so that one exit would have blocked P081.
+
+The cause was in the probe, not in the product's examples.
+`validate_examples.py` unlinks each shared `screenshots/*.png` and regenerates
+it, then asserts the figure exists and exceeds 10,000 bytes. The probe
+dispatched all 44 script-directory pairs into a two-worker pool, so two copies
+of that one script could overlap and one would delete a figure the other was
+about to measure. **The probe created the condition it tested** — sixth
+occurrence of that class in this mission, and the second in which the harness
+rather than the script is the polluter.
+
+It is also a case where three independent verifications would not have helped,
+because the failure is invisible to all of them: the script exits 0 run alone
+from the directory the probe blames, and two copies started by hand did not
+collide either. Only the probe's own four-runs-over-two-workers dispatch gives
+the few-millisecond window enough chances, at roughly 1 in 44.
+
+Fixed at cause: each script's four directory runs are grouped onto one worker
+and run serially, while different scripts still run two at a time, so the
+wall-clock cost is unchanged. Separately, the probe reported only the failing
+script's `stderr`, and these scripts report failed checks on `stdout` and exit
+1 with an empty `stderr`, so the one real failure it has ever caught printed no
+detail at all; it now falls back to `stdout`. Re-run **twice** from a clean
+tree per the build guide: 0 of 44 and 0 of 14 both times, with byte-identical
+per-directory status tables.
+
+### The P084 narrowing is confirmed empirically
+
+The gate left **32 cache artifacts** in P081's tree — `.ruff_cache` plus 31
+`__pycache__` entries and `.pyc` files — which is exactly the condition that
+made P084 ungateable on 2026-11-01. P081's `validate_cli.py` reported all 32
+as **inherited** and did not fail on them, and the gate returned PASS. The
+2026-11-02 narrowing of the self-check rule is therefore confirmed by a
+product that passed through the same mechanism rather than by argument.
+
+### Results published as measured, not tuned away
+
+The analytic path wins everywhere the two are comparable, and that is the
+product's headline finding rather than a disclosure buried in Limitations.
+Inside the unidentifiable subspace the learned classifier is **0.000000**
+accurate at a mean confidence of **0.993426**, confidently wrong on
+**0.991667** of cases, while the identifiability-gated analytic path scores
+**1.000000** by refusing on **1.000000** of them. On single-parameter faults
+the analytic estimators score 1.000000 against the classifier's 0.991667, and
+on the out-of-distribution `weak` population 0.941667 against 0.641667.
+
+Two further findings kept as found: the estimator the specification named as
+baseline 2 is **not** uniformly weaker than its sparse variant, with the
+variant losing 0.025000 and 0.016667 on two telemetry sets; and the six-class
+refusal ablation reaches 1.000000 on pure-scale faults but costs 0.316667
+accuracy on `weak`, because the refusal class absorbs small genuine faults.
+Nothing was retuned, and the classifier has no selectable threshold — its
+label is the argmax of its own probability vector, asserted by a regression
+test.
+
+### Carried forward, found after the verdict and deliberately NOT fixed
+
+The quoted compute-cost ratio is a ratio of two wall-clock means and is
+**unstable across runs**: 1.956294 at build, 2.215809 in the coordinator's
+re-measurement, 2.259191 in the gate's run. README, VALIDATION.md, MODEL_CARD
+and REQUIREMENTS quote the build figure to six decimals as though it were
+stable. Every accuracy, confidence, Brier, margin, rank and figure-byte number
+was byte-identical across all three runs; only timings moved.
+
+This was found AFTER the gate verdict and was not fixed, following the
+2026-11-02 precedent on P083's approx-audit membership: editing a product after
+its verdict publishes an artifact the gate never saw. The honest repair is to
+quote the ratio with its observed range rather than to six decimals, and it
+belongs to the next session.

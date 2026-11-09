@@ -1,5 +1,58 @@
 # Mission Status
 
+> ## Reconciliation — 2026-11-09 (authoritative; supersedes the blocks below)
+>
+> Figures measured this session: registry totals from `scripts/quota_report.py`
+> run against `products.yaml` after the publication edit; test counts from
+> junit XML in runs this session performed; contributor counts from `gh api`
+> against each live repository.
+>
+> - **The mission stands at 89 of 100 published.** `quota_report.py` measured
+>   this session: Registered 90/100, Built 89/100, **Published 89/100**.
+>   Remaining gap: flagship 3, medium 3, compact 5, AI 7, L1 0, L2 5, L3 1,
+>   **L4 5**.
+>
+> - **One product published tonight.** P081 TwinDiverge (`twindiverge`,
+>   254 tests, Level 3, flagship, AI-enabled). Authorising verdict:
+>   `release_gate.py P081` returned `P081 PASS 254 tests`, `repository PASS`,
+>   `Total tests passing: 254`, `VERDICT: PUSH ALLOWED`, **with the shell exit
+>   status captured directly as `0`** — which closes the caveat the
+>   2026-11-02 session recorded and handed forward. Published under ADR-017 on
+>   that verdict alone: no `APPROVAL_LOG.md` row, no product set to
+>   `APPROVED`, `approved_for_publish` stays `false`, no owner statement quoted
+>   or implied. No human spoke in this session.
+>
+> - **Six nights left no record.** The previous nightly report is 2026-11-02
+>   and monorepo HEAD was still that session's last commit, `c257682`, when
+>   this session started. 2026-11-03 through 2026-11-08 produced no commit of
+>   any kind. This session cannot tell from inside the repository whether those
+>   runs fired and failed or did not fire. **This needs the owner.**
+>
+> - **The coordinator's re-measurement paid for itself again.** The build agent
+>   reported 0 non-zero exits in 44 working-directory probe runs; the
+>   independent run found 1, and the gate runs every `validation/*.py`, so that
+>   exit would have blocked the product. The cause was the probe running one
+>   script concurrently with itself, where that script unlinks and regenerates
+>   shared PNGs — **the probe created the condition it tested**, the sixth
+>   occurrence of that class and the second in which the harness rather than
+>   the script is the polluter. Fixed at cause and re-verified twice from a
+>   clean tree.
+>
+> - **The 2026-11-02 self-check narrowing is confirmed empirically.** The gate
+>   left 32 cache artifacts in P081's tree — the exact condition that made P084
+>   ungateable — and P081's self-check reported all 32 as inherited, did not
+>   fail, and the gate returned PASS.
+>
+> - **Validation L4 remains 0 of 5, the twelfth consecutive batch.** It is
+>   arithmetically required to close the quota: 5 of the 11 remaining slots are
+>   L4. **This needs the owner:** the Jetson Orin Nano powered on and
+>   reachable, its hostname or IP, and passwordless SSH from the Mac. Nothing
+>   was relabelled on simulated numbers.
+>
+> - **One registered product remains unbuilt:** P082 SiteDiverse, flagship,
+>   Level 3. P091–P100 are not registered. The task prompt text remains stale
+>   by roughly sixty-seven products and still needs the owner.
+
 > ## Reconciliation — 2026-11-02 (authoritative; supersedes the blocks below)
 >
 > Figures measured this session: registry totals from `scripts/quota_report.py`
