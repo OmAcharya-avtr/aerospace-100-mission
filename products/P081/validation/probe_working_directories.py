@@ -115,13 +115,48 @@ def run_one(
         check=False,
         env=environment,
     )
+    detail = completed.stderr.strip()[-300:]
+    if not detail:
+        # These scripts report their own failed checks on STDOUT and exit 1
+        # with an empty stderr. Reporting only stderr printed nothing at all
+        # for the one real failure this probe has ever caught, which cost a
+        # diagnosis. Fall back to stdout rather than to silence.
+        detail = completed.stdout.strip()[-300:]
     return (
         label,
         directory_label,
         int(completed.returncode),
         time.perf_counter() - started,
-        completed.stderr.strip()[-300:],
+        detail,
     )
+
+
+def run_script_everywhere(
+    label: str,
+    script: Path,
+    directories: tuple[tuple[str, Path], ...],
+    environment: dict[str, str],
+) -> list[tuple[str, str, int, float, str]]:
+    """Run one script from every directory, SERIALLY. Different scripts still
+    run two at a time.
+
+    A script must never overlap with another copy of ITSELF.
+    ``validate_examples.py`` unlinks each shared ``screenshots/*.png`` and
+    regenerates it, so a concurrent second copy observes a deleted or
+    half-written figure and reports a defect that does not exist. Measured
+    2026-11-09 before this change: 1 non-zero exit in 44 runs,
+    ``validate_examples.py`` from the repository root, not reproducible by
+    running that script alone from that directory.
+
+    This is the probe creating the condition it tests, which the build guide
+    names as the class a check must not belong to. Grouping by script removes
+    the self-overlap and keeps the wall-clock cost, because the same 44 runs
+    are still spread over the same two workers.
+    """
+    return [
+        run_one(label, script, directory_label, directory, environment)
+        for directory_label, directory in directories
+    ]
 
 
 def probe(
@@ -133,14 +168,15 @@ def probe(
 ) -> int:
     """Run every script from every directory and tabulate the exit statuses."""
     out.rule(title)
-    jobs = [
-        (label, script, directory_label, directory, environment)
-        for label, script in scripts
-        for directory_label, directory in directories
-    ]
-    jobs.sort(key=lambda job: -COST.get(Path(job[1]).name, 5.0))
+    groups = sorted(scripts, key=lambda item: -COST.get(Path(item[1]).name, 5.0))
     with ThreadPoolExecutor(max_workers=2) as pool:
-        results = list(pool.map(lambda job: run_one(*job), jobs))
+        grouped = list(pool.map(
+            lambda item: run_script_everywhere(
+                item[0], item[1], directories, environment
+            ),
+            groups,
+        ))
+    results = [entry for group in grouped for entry in group]
 
     by_script: dict[str, dict[str, tuple[int, float, str]]] = {}
     for label, directory_label, status, elapsed, stderr in results:
@@ -162,7 +198,7 @@ def probe(
         rows.append(row)
     out(format_table(["script", *labels, "verdict"], rows))
     out("")
-    out(f"non-zero exit statuses : {failures} of {len(jobs)}")
+    out(f"non-zero exit statuses : {failures} of {len(results)}")
     for label, _ in scripts:
         for directory_label in labels:
             status, _, stderr = by_script[label][directory_label]

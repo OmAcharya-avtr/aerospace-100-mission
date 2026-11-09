@@ -273,9 +273,10 @@ the scan.
 
 **R9.3** Running a validation script shall add no cache directory and no
 bytecode file to the tree, and git shall track none.
-*Evidence:* `validate_cli.py` part 3 — **none added**. The `git ls-files` claim
-examined **0 files** in the environment these numbers were measured in and is
-recorded as **vacuous** there, not as a pass; release-gate check 9 enforces it
+*Evidence:* `validate_cli.py` part 3 — **none added**, and `git ls-files`
+examines **81 tracked files with 0 offenders**. The build measured this claim
+against an uncommitted tree, where it examined 0 files and was recorded as
+vacuous; committing the product made it real. Release-gate check 9 enforces it
 independently.
 
 **R9.4** Test counts shall be taken from junit XML and cross-checked.
@@ -346,8 +347,8 @@ others are bounded at a single measured version because the build environment is
 a shared pre-pinned interpreter this product may not modify. A pin below a
 future security release is a real cost, not a free safety measure.
 
-**L10.8** The `git ls-files` hygiene check is vacuous in the environment these
-numbers were measured in.
+**L10.8** The `git ls-files` hygiene check was vacuous at build time, against
+an uncommitted tree, and is not any more: 81 files examined, 0 offenders.
 
 **L10.9** The learned component's confidence is a model output and knows nothing
 about the rank of the sensitivity matrix. Measuring what that costs is the

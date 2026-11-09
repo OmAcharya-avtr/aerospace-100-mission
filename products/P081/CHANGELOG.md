@@ -183,6 +183,23 @@ First release. Status: TESTING. Validation level 3, research grade.
   because the right-hand side is a polynomial and carries no cancellation — with
   the central difference reported beside it against its measured floor.
 
+### Found after hand-back, by the coordinating session
+
+- **`probe_working_directories.py` created the failure it reported.** It
+  dispatched all 44 script-directory pairs into a two-worker pool, so two
+  copies of the same script could overlap. `validate_examples.py` unlinks each
+  shared `screenshots/*.png` and regenerates it, so two copies race: one
+  deletes a figure the other is about to measure. Measured 1 non-zero exit in
+  44 runs — `validate_examples.py` from the repository root — not reproducible
+  running that script alone from that directory, where it exits 0. Each
+  script's four directory runs are now grouped onto one worker and run
+  serially, while different scripts still run two at a time, so the wall-clock
+  cost is unchanged. The probe also reported only `stderr`, where these
+  scripts report failed checks on `stdout`, so the one real failure it ever
+  caught printed no detail; it now falls back to `stdout`. Re-run twice from a
+  clean tree: 0 of 44 and 0 of 14 both times, with byte-identical status
+  tables. Recorded in VALIDATION.md section 10.1.
+
 ### Known limitations at 0.1.0
 
 Listed in full in `README.md` under Limitations and in
@@ -195,5 +212,6 @@ second order and at an 8 per cent perturbation exceeds its own statistical
 interval in the two best-determined directions; the sparsity assumption behind
 equation (15) is not testable from the telemetry; both ends of every dependency
 range were run for `ruff` only; and the `git ls-files` hygiene check examined 0
-files in the environment these numbers were measured in and is recorded as
-vacuous there.
+files at build time, against an uncommitted tree, where it was recorded as
+vacuous rather than as a pass. That last one is now resolved: committing the
+product made the check real and it examines 81 files with 0 offenders.

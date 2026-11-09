@@ -430,10 +430,11 @@ quoted from the CLI in README.md is searched for in the actual output.
 - No text file in the tree contains an absolute host path: **0 offenders in 73
   files scanned**, with the patterns assembled from `os.sep` and the script's
   own output deleted before the scan.
-- `git ls-files` examined **0 files** in the environment this was run in,
-  because the product was not yet committed. **That check is therefore VACUOUS
-  here and is recorded as vacuous rather than as a pass.** Release-gate check 9
-  enforces the same claim independently against the committed tree.
+- `git ls-files` examines **81 tracked files and finds 0 offenders**. This
+  line is a CORRECTION: when the build measured it the product was not yet
+  committed, so the check examined 0 files and was recorded here as vacuous.
+  Committing the product turned a vacuous check into a real one, and it passes.
+  Release-gate check 9 enforces the same claim independently.
 
 ## 10. Working directories — `probe_working_directories.py`
 
@@ -447,8 +448,51 @@ release gate uses — and every example run from the repository root and
 | 11 validation scripts from 4 directories | 44 | **0** |
 | 7 examples from 2 directories | 14 | **0** |
 
-Total wall clock **436.1 s** on 2 cores with two workers, dispatching the
-longest jobs first.
+Total wall clock **449.4 s** and **442.6 s** on two consecutive runs, on 2
+cores with two workers, dispatching the longest scripts first.
+
+### 10.1 The probe used to create the failure it reported
+
+The 0 above is the figure AFTER a defect in the probe itself was fixed, and the
+defect is recorded rather than quietly removed.
+
+As first built, the probe dispatched all 44 script-directory pairs into a
+two-worker pool, so two copies of the SAME script could run at once.
+`validate_examples.py` unlinks each shared `screenshots/*.png` and regenerates
+it, then asserts the figure exists and exceeds 10,000 bytes. Two overlapping
+copies therefore race on the same files: one deletes a figure the other is
+about to measure.
+
+Measured on 2026-11-09 by the coordinating session, not by the build: **1
+non-zero exit in 44 runs** — `validate_examples.py` from the repository root —
+which is **not reproducible by running that script alone from that
+directory**, where it exits 0. Running two copies concurrently by hand did not
+reproduce it either, because the collision window is the few milliseconds
+between one copy's `unlink` and the other's `stat`; the probe's four runs over
+two workers simply gave it more chances than a single pair does.
+
+Two things were wrong, and both were fixed:
+
+1. **The probe ran a script concurrently with itself.** Each script's four
+   directory runs are now grouped onto one worker and executed serially, while
+   different scripts still run two at a time. The same 44 runs are spread over
+   the same two workers, so the wall-clock cost is unchanged (436.1 s before,
+   449.4 s and 442.6 s after — the difference is noise on two cores).
+2. **The probe discarded the evidence.** It reported only the failing script's
+   `stderr`, and these scripts report their own failed checks on `stdout` and
+   exit 1 with an empty `stderr`. The one real failure it has ever caught
+   therefore printed no detail at all. It now falls back to `stdout`.
+
+This is the **sixth** occurrence in this mission of the class the build guide
+names: *a check whose own execution can create the condition it tests is not a
+check.* It is also the second occurrence of the sub-class where the harness,
+not the script, is the polluter — the first being release-gate check 2 writing
+`.ruff_cache` before check 6 reads the tree, which cost P084 a night.
+
+Per the build guide, the fixed probe was run **twice** from a clean tree: both
+runs returned 0 of 44 and 0 of 14, and their per-directory status tables are
+byte-identical. A single clean run would have been weak evidence, because the
+failure it replaced was intermittent at roughly 1 in 44.
 
 ## 11. Examples — `validate_examples.py`
 
@@ -485,8 +529,10 @@ Nothing in the committed output files is a FAIL. Four things are nevertheless
 weaker than a reader might assume, and are stated here rather than left to be
 discovered:
 
-1. **The `git ls-files` hygiene check examined 0 files** in the environment
-   these numbers were measured in, and is recorded as vacuous (section 9).
+1. **The `git ls-files` hygiene check was vacuous at build time and is not
+   any more** — it examined 0 files while the product was uncommitted and now
+   examines 81 with 0 offenders (section 9). Listed here because the earlier
+   drafts of this document claimed the weaker thing.
 2. **Three of five profiles on the `rate_torque_short` set are truncated by the
    declared inner box** of 0.5 log-parameter units, so no interval is quoted for
    them. The box exists because an unconstrained Gauss-Newton step on a problem

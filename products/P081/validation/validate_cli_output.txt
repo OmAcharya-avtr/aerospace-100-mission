@@ -96,20 +96,18 @@ a cold clone ever sees.
 
 3a. this script adds no cache directory and no bytecode file
   names treated as cache   : ['__pycache__', '.pytest_cache', '.ruff_cache', '.hypothesis', '.config'], plus every .pyc
-  present at entry         : 32 -- .ruff_cache, src/twindiverge/__pycache__, src/twindiverge/__pycache__/__init__.cpython-313.pyc, src/twindiverge/__pycache__/__main__.cpython-313.pyc, and 28 more
+  present at entry         : none
     (inherited from whatever invoked this script; not this product's doing)
-  still present, inherited : 32 -- .ruff_cache, src/twindiverge/__pycache__, src/twindiverge/__pycache__/__init__.cpython-313.pyc, src/twindiverge/__pycache__/__main__.cpython-313.pyc, and 28 more
+  still present, inherited : none
   ADDED while this ran     : none
 [PASS] this script's own execution adds no cache directory or bytecode file -- 0 added
 
 3b. git tracks no cache directory, bytecode file or build artifact
 Authoritative, because .gitignore can be edited and a tracked file stays
 tracked regardless of it. A cold clone carries exactly what git tracks.
-  tracked files examined   : 0
+  tracked files examined   : 81
   offenders                : none
-  NOTE: zero files were examined, so this check is VACUOUS in this
-  environment and is recorded as such rather than as a pass.
-[PASS] git tracks no cache directory, bytecode file or build artifact -- 0 offenders in 0 tracked files -- VACUOUS: zero files examined
+[PASS] git tracks no cache directory, bytecode file or build artifact -- 0 offenders in 81 tracked files
 
 ==============================================================================
 4. no committed file carries an absolute path

@@ -414,9 +414,11 @@ Level 3. Full detail, including the checks that are weaker than they look, is in
 - **The analytic path's accuracy on single-parameter faults is 0.000000** on
   every rate-only set, because it refuses. That is the honest answer to an
   ill-posed question and it is tabulated at zero rather than omitted.
-- **The `git ls-files` hygiene check examined 0 files** in the environment these
-  numbers were measured in, because the product was not yet committed. It is
-  recorded as vacuous, not as a pass.
+- **The `git ls-files` hygiene check is no longer vacuous, and that is a
+  correction to an earlier draft of this file.** When the build measured it the
+  product was uncommitted, so the check examined 0 files and was recorded as
+  vacuous. It now examines **81 tracked files and finds 0 offenders**.
+  Release-gate check 9 enforces the same claim independently.
 - **Three of five profiles on `rate_torque_short` are truncated by the declared
   inner box** of 0.5 log-parameter units and no interval is quoted for them. The
   box exists because an unconstrained Gauss-Newton step on a problem of
