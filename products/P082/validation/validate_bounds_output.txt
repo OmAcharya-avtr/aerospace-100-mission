@@ -1,0 +1,166 @@
+
+==============================================================================
+sitediverse -- bounds from mathematics the implementation does not use
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+torch            : not installed  (named in README as unavailable here)
+statsmodels      : not installed  (named in the README alternatives table)
+copulas          : not installed  (named in the README alternatives table)
+cpu cores        : 2
+repository root  : P082 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the Frechet-Hoeffding bounds of equation (17)
+==============================================================================
+max(0, sum q_i - (n - 1))  <=  P_joint  <=  min_i q_i
+
+Both ends are ATTAINED, by comonotone and countermonotone arrangements, so
+neither can be tightened without an assumption. The independence product
+lies strictly inside them for n >= 2, and the width of the interval is the
+entire content of the site-diversity problem: independence is one point in
+it and the record picks another.
+
+network        route          value     bounds                inside  violation
+-------------  -------------  --------  --------------------  ------  ------------
+near-pair      P_independent  0.077335  [0.000000, 0.272603]  yes     0.000000e+00
+               P_conditional  0.087600  [0.000000, 0.272603]  yes     0.000000e+00
+               P_measured     0.171447  [0.000000, 0.272603]  yes     0.000000e+00
+far-pair       P_independent  0.121586  [0.000000, 0.272603]  yes     0.000000e+00
+               P_conditional  0.114316  [0.000000, 0.272603]  yes     0.000000e+00
+               P_measured     0.116139  [0.000000, 0.272603]  yes     0.000000e+00
+mixed-trio     P_independent  0.029901  [0.000000, 0.272603]  yes     0.000000e+00
+               P_conditional  0.029270  [0.000000, 0.272603]  yes     0.000000e+00
+               P_measured     0.062457  [0.000000, 0.272603]  yes     0.000000e+00
+cluster        P_independent  0.007256  [0.000000, 0.272603]  yes     0.000000e+00
+               P_conditional  0.013123  [0.000000, 0.272603]  yes     0.000000e+00
+               P_measured     0.103125  [0.000000, 0.272603]  yes     0.000000e+00
+two-groups     P_independent  0.000866  [0.000000, 0.272603]  yes     0.000000e+00
+               P_conditional  0.002160  [0.000000, 0.272603]  yes     0.000000e+00
+               P_measured     0.019906  [0.000000, 0.272603]  yes     0.000000e+00
+one-per-group  P_independent  0.007408  [0.000000, 0.272603]  yes     0.000000e+00
+               P_conditional  0.007436  [0.000000, 0.272603]  yes     0.000000e+00
+               P_measured     0.007149  [0.000000, 0.272603]  yes     0.000000e+00
+
+  routes checked           : 18
+  violations               : 0
+[PASS] every route lies inside the distribution-free bounds on every network -- 0 violations in 18 comparisons
+
+The informativeness of each side is reported, because a check against a
+bound that admits everything is not a check. The lower bound is identically
+zero whenever the union bound is vacuous, which on cloud rates near 0.3 it
+usually is, and that is stated rather than counted as a pass.
+
+network        n  lower     upper     width     lower informative  upper informative
+-------------  -  --------  --------  --------  -----------------  -----------------
+near-pair      2  0.000000  0.272603  0.272603  no                 yes
+far-pair       2  0.000000  0.272603  0.272603  no                 yes
+mixed-trio     3  0.000000  0.272603  0.272603  no                 yes
+cluster        4  0.000000  0.272603  0.272603  no                 yes
+two-groups     6  0.000000  0.272603  0.272603  no                 yes
+one-per-group  5  0.000000  0.272603  0.272603  no                 yes
+
+==============================================================================
+2. equation (17) over all 190 pairs
+==============================================================================
+  pairs                    : 190
+  comparisons              : 380
+  violations               : 0
+  pairs with an informative lower bound : 8
+  condition number range   : 1.253739e+00 to 3.496567e+02
+  infinite condition numbers            : 0
+[PASS] no pair violates the distribution-free bounds by either route -- 0 violations in 380 comparisons
+[PASS] the lower bound bites on at least one pair, so the check is not vacuous everywhere -- 8 of 190 pairs have a strictly informative lower bound
+
+==============================================================================
+3. the Bonferroni bracket of equation (18)
+==============================================================================
+For n = 2 inclusion-exclusion is exact:
+
+    P(both cloudy) = 1 - P(i clear) - P(j clear) + P(both clear)
+
+The right-hand side is computed entirely from CLEAR-rate statistics and the
+left-hand side by counting cloudy epochs, so the two are different
+computations of the same number. This is the sharpest independent-route
+check in this package.
+
+  pairs                    : 190
+  worst identity residual  : 2.220446e-16
+  median identity residual : 5.551115e-17
+[PASS] the n = 2 inclusion-exclusion identity closes over all 190 pairs -- worst residual 2.220446e-16 against a tolerance of 1e-14
+
+For n > 2 it is a bound and not an identity, and on cloud rates of order
+0.3 it is usually vacuous: the sum of the clear rates exceeds 1 and the
+lower bound 1 - sum u_i falls below zero. Reported rather than hidden.
+
+network        n  bracket                pair clear sum  P_measured  inside  verdict
+-------------  -  ---------------------  --------------  ----------  ------  -----------
+near-pair      2  [-0.443707, 0.171447]  0.6152          0.171447    yes     informative
+far-pair       2  [-0.281378, 0.116139]  0.3975          0.116139    yes     informative
+mixed-trio     3  [-1.057063, 0.433519]  1.4906          0.062457    yes     informative
+cluster        4  [-1.830736, 1.726070]  3.5568          0.103125    yes     VACUOUS
+two-groups     6  [-3.139983, 4.620890]  7.7609          0.019906    yes     VACUOUS
+one-per-group  5  [-2.084760, 1.719692]  3.8045          0.007149    yes     VACUOUS
+
+  violations               : 0
+  vacuous brackets         : 3 of 6
+[PASS] the bracket contains the measured joint rate on every network -- 0 violations in 6 networks
+[PASS] the bracket is reported as vacuous where it is, rather than as a pass -- 3 of 6 networks have a bracket leaving the unit interval; the CLI prints the flag
+
+==============================================================================
+4. the slack of equation (19) follows the conditioning
+==============================================================================
+The absolute slack is c eps (sum|q_i| + |f(q)|), set by the magnitude of the
+SUMMANDS and never by the result. The relative slack is therefore kappa
+times machine epsilon and diverges exactly where the expression cancels.
+
+This product's FIRST version of equation (19) returned
+c eps kappa |f(q)|, which cancels to c eps sum|q_i|: it looked conditioned
+and was independent of f(q) altogether. Measured then: a well-conditioned
+bound of 0.9 got a slack of 2.700e-14 and an ill-conditioned bound of 1e-07
+got 1.421e-14 -- the ill-conditioned case got the SMALLER slack. The table
+below is the current form over eight decades of cancellation.
+
+  SLACK_FACTOR             : 64.0
+  machine epsilon          : 2.220446e-16
+
+lower bound f(q)  absolute slack  condition number  relative slack  informative
+----------------  --------------  ----------------  --------------  -----------
+1e-01             1.705303e-14    1.100000e+01      1.705303e-13    yes
+1e-02             1.449507e-14    1.010000e+02      1.449507e-12    yes
+1e-04             1.421370e-14    1.000100e+04      1.421370e-10    yes
+1e-06             1.421088e-14    1.000001e+06      1.421088e-08    yes
+1e-08             1.421085e-14    1.000000e+08      1.421085e-06    yes
+1e-12             1.421085e-14    1.000000e+12      1.421085e-02    yes
+1e-17             1.421085e-14    1.000000e+17      1.421085e+03    NO
+
+  absolute slack range     : 1.421e-14 to 1.705e-14
+  relative slack range     : 1.705e-13 to 1.421e+03
+  relative slack grows by  : a factor of 8.333e+15 over sixteen decades of cancellation
+
+Two statements, and they are the two halves of equation (19). The ABSOLUTE
+slack is nearly constant across the table -- it changes only through the
+|f(q)| term, which is why the largest and smallest differ by less than a
+factor of two. The RELATIVE slack is proportional to 1 / f(q) and therefore
+grows exactly as the bound cancels, decade for decade. Neither statement is
+true of a slack floored at an absolute constant, which is the defect class
+this check belongs to.
+
+  (relative slack) x f(q)  : 1.421085e-14 to 1.705303e-14
+
+[PASS] the relative slack rises monotonically as the bound expression cancels -- from 1.705e-13 to 1.421e+03 over sixteen decades
+[PASS] the relative slack is proportional to 1 / f(q), decade for decade -- every consecutive pair's ratio matches the ratio of their f(q) values to within 25 per cent, which is the spread of the absolute slack itself (1.2000): the |f(q)| term in equation (19) makes the absolute slack 20 per cent larger at f(q) = 0.1 than at f(q) = 0
+[PASS] the absolute slack is nearly constant, which is what makes it conditioned rather than relative -- absolute slack varies by a factor of 1.200000 across the table
+[PASS] a bound below its own slack is reported as uninformative, not as a pass -- the lower bound at a cancellation of 1e-17 is flagged uninformative
+[PASS] control: the first, wrong form of equation (19) gave the ill-conditioned case the SMALLER slack (must fire) -- FIRED; reconstructed: the wrong form is monotone in sum|q| alone, so a conditioned bound of 1e-07 on marginals near 0.5 got less slack than a well-conditioned bound of 0.9 on marginals near 0.95
+
+CHECKS RUN: 11
+CONTROLS: 1 declared, 1 fired
+FAILED CHECKS (0): none

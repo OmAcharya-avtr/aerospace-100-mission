@@ -1,0 +1,87 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q --junit-xml=junit.xml
+      - name: Test count from junit XML, never from stdout
+        run: |
+          python - <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse("junit.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          declared = int(suite.get("tests", "0"))
+          counted = len(suite.findall(".//testcase"))
+          print(f"declared {declared}, counted {counted}")
+          if declared == 0 or declared != counted:
+              sys.exit("junit.xml does not agree with itself, or no test ran")
+          PY
+      - name: CLI
+        run: |
+          python -m sitediverse --version
+          python -m sitediverse sites
+          python -m sitediverse record --record short
+          python -m sitediverse climatology --record short
+          python -m sitediverse overstate --record short --replicates 100
+          python -m sitediverse bounds --record short --network near-pair
+          python -m sitediverse bounds --record short --network two-groups
+          python -m sitediverse correlate --record short
+          python -m sitediverse learned --record short
+          python -m sitediverse network --record short --network near-pair
+      - name: Validation scripts
+        run: |
+          python validation/validate_geometry.py
+          python validation/validate_field.py
+          python validation/validate_climatology.py
+          python validation/validate_copula.py
+          python validation/validate_bounds.py
+          python validation/validate_empirical.py
+          python validation/validate_overstatement.py
+          python validation/validate_correlation.py
+          python validation/validate_learned_model.py
+          python validation/validate_negative_controls.py
+          python validation/validate_approx_audit.py
+          python validation/worked_example.py
+      - name: Validation scripts from the gate's working directory
+        run: |
+          cd validation
+          for script in validate_geometry.py validate_field.py validate_bounds.py validate_overstatement.py worked_example.py; do
+            python "$script" > /dev/null
+          done
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/overstatement_by_separation.py
+          python examples/network_availability.py
+          python examples/decomposition.py
+          python examples/record_structure.py
+          python examples/correlation_models.py
+          python examples/holdout_scores.py
+          python examples/learned_interval.py
+      - name: The examples, and the tree that must stay clean
+        run: |
+          python validation/validate_examples.py
+          python validation/validate_cli.py
+      - name: Every script from every working directory
+        run: python validation/probe_working_directories.py

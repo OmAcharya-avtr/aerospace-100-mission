@@ -1,0 +1,212 @@
+
+==============================================================================
+sitediverse -- negative controls, every one anchored on a true value
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+torch            : not installed  (named in README as unavailable here)
+statsmodels      : not installed  (named in the README alternatives table)
+copulas          : not installed  (named in the README alternatives table)
+cpu cores        : 2
+repository root  : P082 (printed relatively; see validation/_bootstrap.py)
+
+declared control sigma       : 4.0
+
+Four, not two: a control whose criterion is a 95 per cent interval fires
+once in twenty by construction, and a predecessor in this mission corrected
+such a control rather than changing the seed until it passed. No control's
+criterion here is a seed, and every offset is a multiple of the check's own
+criterion rather than a chosen constant.
+
+==============================================================================
+controls 1 to 6: the bounds of equations (17) and (18)
+==============================================================================
+Anchored on the bounds themselves, which are closed-form functions of the
+marginals. The offset is twice the slack plus a tenth of the bound's own
+width, so a violation is guaranteed by construction.
+
+  network                  : cluster, marginals 0.272603, 0.283690, 0.296104, 0.316866
+  Frechet bounds           : [0.000000, 0.272603]
+  slack, equation (19)     : 4.263256e-14
+  offset applied           : 2.726027e-02
+
+[PASS] control: a value above the Frechet upper bound is detected (must fire) -- FIRED; probe 0.299863 against an upper bound of 0.272603
+[PASS] control: a value below the Frechet lower bound is detected (must fire) -- FIRED; probe -0.027260 against a lower bound of 0.000000
+[PASS] control: a value inside the Frechet bounds is NOT flagged (must NOT fire) -- did not fire; probe 0.136301, the midpoint of the bounds
+
+A pair whose marginals sum above one has an INFORMATIVE lower bound, so the
+lower-bound control is run again on one of those: on a network whose lower
+bound has clipped to zero the control below the bound is a control against
+a negative probability and is weaker than it looks.
+
+  pair                     : S43-S54, marginals 0.475557, 0.527312
+  lower bound              : 0.002868 (informative)
+
+[PASS] control: a value below an INFORMATIVE Frechet lower bound is detected (must fire) -- FIRED; probe -0.044401 against a lower bound of 0.002868, slack 1.429237e-14
+[PASS] control: the measured joint rate of that pair is NOT flagged (must NOT fire) -- did not fire; measured 0.250771
+
+And the n = 2 Bonferroni identity, which is exact. The clear-rate matrix is
+perturbed by a hundred times the measured residual, which is anchored on
+the identity's own closure and not on any output.
+
+  identity residual        : 1.110223e-16
+  perturbation applied     : 2.682177e-12
+[PASS] control: a corrupted pair clear rate breaks the n = 2 inclusion-exclusion identity (must fire) -- FIRED; corrupted residual 2.682077e-12 against the true residual 1.110223e-16
+
+==============================================================================
+controls 7 to 11: the copula of equations (8) to (11)
+==============================================================================
+Anchored on SciPy's independent implementation and on the exact quadrature.
+The perturbation in rho is chosen so that the resulting change in the
+orthant probability exceeds the check's tolerance by a known factor,
+computed from the derivative of equation (9), which is the density.
+
+  h = k                    : -1.5
+  rho                      : 0.6
+  d Phi_2 / d rho          : 4.875329e-02
+  tolerance                : 1.000000e-14
+  perturbation in rho      : 2.051144e-12
+
+[PASS] control: a perturbed correlation makes the copula disagree with SciPy (must fire) -- FIRED; disagreement 1.000068e-13 against a tolerance of 1.000000e-14
+[PASS] control: the unperturbed correlation does NOT make it disagree (must NOT fire) -- did not fire; disagreement 1.040834e-17
+
+The Monte Carlo of equation (10) against the exact pair quadrature. The
+perturbation in rho is scaled so that the induced change in the orthant
+probability is eight Monte Carlo standard errors, which is twice the
+declared four-sigma criterion.
+
+  true rho                 : 0.626392
+  exact joint              : 0.164987
+  Monte Carlo standard err : 5.852777e-04
+  d joint / d rho          : 0.154692
+  rho offset for 8 sigma   : 3.026806e-02
+
+[PASS] control: a Monte Carlo run at a perturbed correlation misses the exact quadrature (must fire) -- FIRED; 6.2878 sigma against a criterion of 4.0
+[PASS] control: the Monte Carlo at the TRUE correlation does NOT miss it (must NOT fire) -- did not fire; 1.8996 sigma
+
+And the inversion of equation (11) must flag a target the copula cannot
+reach. Anchored on the attainable range itself: the target is the Frechet
+upper bound, which the copula approaches only as rho tends to one.
+
+[PASS] control: an unattainable target joint rate is flagged at the bracket end (must fire) -- FIRED; target 0.272603, the Frechet upper bound of the pair
+
+==============================================================================
+controls 12 to 16: the generator checks of validate_field.py
+==============================================================================
+Anchored on the generator's declared constants. Every offset is a multiple
+of the check's own standard error, computed from the record length and the
+declared persistence, so a violation is guaranteed.
+
+  effective sample size    : 3802.8
+  station standard error   : 7.201711e-03 to 8.107826e-03
+  honest worst deviation   : 1.4054 sigma
+  offset applied           : 8.0 sigma
+
+[PASS] control: a marginal rate offset by 8 sigma fails the declared 4-sigma check (must fire) -- FIRED; 8.9837 sigma against a criterion of 4.0
+[PASS] control: the unperturbed marginal rate does NOT fail it (must NOT fire) -- did not fire; 1.4054 sigma
+
+The spatial correlation check, anchored on the WRONG regime's declared
+matrix. This is not an offset applied to an output: it is the true matrix of
+a different regime, which is a correct matrix for the wrong data.
+
+  regime 0 epochs          : 5840
+  correlation standard err : 3.243238e-02
+  against regime 0's matrix: 2.1433 sigma
+  against regime 2's matrix: 5.5914 sigma
+
+[PASS] control: regime 0's latent field does not match regime 2's declared matrix (must fire) -- FIRED; 5.5914 sigma against a criterion of 4.0; the regimes differ by a factor of 2.23 in L_along
+[PASS] control: regime 0's latent field DOES match regime 0's declared matrix (must NOT fire) -- did not fire; 2.1433 sigma
+
+The decomposition of equation (16), which is exact. A perturbation of one
+term by a hundred times the identity's own residual must open it.
+
+  honest residual          : 0.000000e+00
+  perturbation applied     : 1.000000e-12
+[PASS] control: a perturbed co-modulation term opens the exact decomposition (must fire) -- FIRED; perturbed residual 1.000006e-12 against a tolerance of 1e-15
+
+==============================================================================
+controls 17 to 22: the fitted models
+==============================================================================
+A correctly specified fit on noiseless data must recover its own
+parameters, and a fit on data generated by a DIFFERENT law must not. Both
+are anchored on declared parameters.
+
+  declared rho_0, L        : 0.92, 480.0 km
+  fitted rho_0, L          : 0.920000, 480.0000 km
+  residual rms             : 6.660456e-11
+[PASS] control: a correctly specified noiseless fit does NOT fail its own parameters (must NOT fire) -- did not fire; relative error in L 6.367869e-10
+
+  a GAUSSIAN correlation law, fitted by the exponential form:
+    fitted rho_0, L        : 1.000000, 416.4573 km
+    worst function error   : 0.155468
+[PASS] control: an exponential fit to a GAUSSIAN correlation law leaves a visible function error (must fire) -- FIRED; worst function error 0.155468 against a tolerance of 0.02; the exponential form cannot represent a Gaussian decay and the mis-specification is visible in the residual
+
+The correlation matrix projection of equation (26), anchored on a matrix
+constructed to be indefinite: a three-station cycle with two strong positive
+correlations and one strong negative one, which no Gaussian field has.
+
+  least eigenvalue, indefinite : -9.000000e-01
+  Frobenius shift              : 1.102270e+00
+  least eigenvalue, generator  : 2.985671e-01
+[PASS] control: an indefinite pair matrix is detected and projected, and the projection is reported (must fire) -- FIRED; least eigenvalue -9.000000e-01, Frobenius shift 1.102270e+00
+[PASS] control: the generator's own matrix is NOT projected (must NOT fire) -- did not fire; least eigenvalue 2.985671e-01
+
+The learned comparison of equation (41), anchored on the TRUE joint
+unavailability. A model whose prediction is the true value plus an offset of
+twice the reference half-width must produce a margin the paired bootstrap
+interval excludes.
+
+  measured joint rate      : 0.103125
+  bootstrap half-width     : 0.008799
+  offset applied           : 0.017598
+[PASS] control: a model offset by twice the bootstrap half-width is outside the interval (must fire) -- FIRED; probe 0.120723 against an interval of [0.094218, 0.111816]
+[PASS] control: a model offset by a TENTH of the half-width is NOT outside it (must NOT fire) -- did not fire; probe 0.104005
+
+==============================================================================
+controls 23 to 26: the headline overstatement
+==============================================================================
+Anchored on a record generated with NO spatial correlation at all. On such
+a record the independence assumption is TRUE, so the overstatement must
+vanish -- and a check that reports an overstatement there is reporting
+something other than correlation.
+
+  A record with no spatial correlation, no seasonal or diurnal modulation
+  and no persistence. Everything the independence assumption assumes is
+  true of it by construction.
+
+record                 P_naive   P_measured  ratio    difference  difference / bootstrap sd
+---------------------  --------  ----------  -------  ----------  -------------------------
+uncorrelated control   0.006124  0.006336    1.0345   +0.000211   +0.2098
+anisotropic reference  0.007256  0.103125    14.2124  +0.095869   +20.8149
+
+[PASS] control: the overstatement VANISHES on a record with no spatial correlation (must NOT fire) -- did not fire; difference +0.000211 is 0.2098 bootstrap standard errors, against a criterion of 4.0
+[PASS] control: the overstatement is PRESENT on the correlated reference record (must fire) -- FIRED; difference +0.095869 is 20.8149 bootstrap standard errors
+
+And the co-modulation term of equation (16) must vanish on a record with no
+seasonal or diurnal modulation, because that is exactly what it measures.
+
+  control co-modulation    : -1.263258e-05
+  reference co-modulation  : +5.867388e-03
+[PASS] control: the co-modulation term vanishes with no seasonal or diurnal modulation (must NOT fire) -- did not fire; -1.263258e-05 against a tolerance of 1e-04; the control record's marginals are constant in time so the epoch-wise product is the long-term product
+[PASS] control: the co-modulation term is non-zero on the modulated reference record (must fire) -- FIRED; +5.867388e-03
+
+==============================================================================
+summary
+==============================================================================
+  controls declared        : 26
+  controls that fired      : 15
+  controls that must fire  : 15 fired of the declared must-fire set; see each line above
+
+A control that does not fire is a failure of the CONTROL, not a success of
+the product. Both directions are declared and both are asserted.
+
+CHECKS RUN: 26
+CONTROLS: 26 declared, 15 fired
+FAILED CHECKS (0): none

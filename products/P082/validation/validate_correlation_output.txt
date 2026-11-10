@@ -1,0 +1,225 @@
+
+==============================================================================
+sitediverse -- baseline 2, validated before anything is benchmarked
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+torch            : not installed  (named in README as unavailable here)
+statsmodels      : not installed  (named in the README alternatives table)
+copulas          : not installed  (named in the README alternatives table)
+cpu cores        : 2
+repository root  : P082 (printed relatively; see validation/_bootstrap.py)
+
+Both declared records are used. On the ISOTROPIC control the generator's
+correlation IS an exponential in great-circle separation, so equation (23)
+is CORRECTLY SPECIFIED there and its error is a pure sampling error. On the
+ANISOTROPIC reference it is mis-specified, and the difference between the
+two is what the learned component of this package has to work with.
+
+==============================================================================
+1. the implied correlation of equation (11) against the truth [isotropic]
+==============================================================================
+This bounds what ANY correlation model can achieve on this record: a model
+cannot predict the implied correlation better than the implied correlation
+estimates the truth. The rows of the table are one station pair in one
+seasonal regime of one time half.
+
+  rows                     : 1520
+  epochs per row           : 2920 to 2920
+  rows at the bracket end  : 0
+  true correlation range   : 0.000000 to 0.800316
+  implied correlation range: -0.257290 to 0.868879
+  worst |implied - true|   : 0.259576
+  rms  |implied - true|    : 0.076051
+  mean  implied - true     : -0.001245
+
+separation km  rows  mean true  mean implied  rms error  mean error
+-------------  ----  ---------  ------------  ---------  ----------
+0 to 200       168   0.707246   0.706824      0.060708   -0.000422
+200 to 400     72    0.578295   0.580581      0.078472   +0.002286
+400 to 1600    88    0.047641   0.032937      0.077664   -0.014704
+1600 to 8000   1192  0.003945   0.003364      0.077709   -0.000581
+
+[PASS] [isotropic] the implied correlation recovers the generator's to an rms of 0.1 -- rms error 0.076051
+[PASS] [isotropic] the implied correlation is not systematically biased -- mean error -0.001245 against an rms of 0.076051
+
+==============================================================================
+2. the fitted parameters against the fitted FUNCTION [isotropic]
+==============================================================================
+  training rows            : 420
+  both fits               : 0.013 s
+
+Baseline 2 as specified, equation (23): one pooled two-parameter exponential.
+
+  rho_0                    : 1.000000  (declared nugget 0.95)
+  L                        : 410.3506 km
+  residual rms             : 0.068729
+  parameters on a bound    : nugget
+
+The strengthened baseline, equation (24): one model per declared regime.
+
+regime  fitted rho_0  fitted L km  residual rms  true L_along  true L_cross  geometric mean  fitted / geometric  on a bound
+------  ------------  -----------  ------------  ------------  ------------  --------------  ------------------  ----------
+0       0.934535      592.91       0.064034      536.19        536.19        536.19          1.1058              none
+1       1.000000      370.27       0.072525      495.98        495.98        495.98          0.7465              nugget
+2       0.953996      512.50       0.064068      461.30        461.30        461.30          1.1110              none
+3       1.000000      384.04       0.069282      492.95        492.95        492.95          0.7791              nugget
+
+Equation (25): the pair (rho_0, L) is weakly identified, so the figure of
+merit is the correlation FUNCTION at the separations that exist and not
+either parameter. Both errors are measured below and the difference between
+them is the whole content of equation (25).
+
+model                      worst function error  rms function error  mean function error
+-------------------------  --------------------  ------------------  -------------------
+pooled, equation (23)      0.056775              0.011345            0.005690
+per regime, equation (24)  0.069411              0.014631            0.007401
+
+  worst relative error in L            : 0.253461
+  rms error in the implied correlation : 0.014631
+
+The parameter error is a RELATIVE error on a length of several hundred
+kilometres and the function error is an ABSOLUTE error on a correlation in
+[0, 1], so they are not directly comparable and are not compared. What is
+reported is that the function is recovered to a few hundredths of a
+correlation while L itself moves by tens of per cent, which is why this
+product quotes the function error as its primary figure for a correlation
+model and the parameters beside it.
+
+[PASS] [isotropic] the fitted correlation function is within 0.15 rms of the truth -- rms function error 0.014631
+
+==============================================================================
+3. the specified baseline against the strengthened one [isotropic]
+==============================================================================
+Both are reported everywhere, because the build rule of this mission is
+that where a named baseline measures weakly the strongest honest baseline is
+used and the named one is reported beside it. The cells are the split of
+equation (29).
+
+cell            rows  pooled MAE vs implied  per-regime MAE vs implied  pooled MAE vs TRUTH  per-regime MAE vs TRUTH
+--------------  ----  ---------------------  -------------------------  -------------------  -----------------------
+train           420   0.055301               0.054554                   0.004683             0.006001
+held-out SITES  340   0.061684               0.061602                   0.006934             0.009130
+held-out TIME   420   0.058912               0.060272                   0.004683             0.006001
+
+  stronger on TRAIN        : per regime, equation (24)
+  margin on TRAIN          : 0.000747
+
+The two baselines are nearly indistinguishable on this record, and that is
+the honest finding: the per-regime fit has four times the parameters and
+buys a margin of less than a thousandth of a correlation. The selection is
+made on the TRAIN cell, which is the only cell the models were allowed to
+see, and the margin is small enough that the choice barely matters -- which
+is reported rather than presented as a tuned improvement.
+
+[PASS] [isotropic] the strengthened baseline is not WORSE than the specified one on the training cell -- per-regime MAE 0.054554 against pooled 0.055301
+[PASS] [isotropic] the two baselines differ by less than 0.01 in correlation MAE, so the specified one is not under strength -- margin 0.000747
+
+==============================================================================
+1. the implied correlation of equation (11) against the truth [anisotropic]
+==============================================================================
+This bounds what ANY correlation model can achieve on this record: a model
+cannot predict the implied correlation better than the implied correlation
+estimates the truth. The rows of the table are one station pair in one
+seasonal regime of one time half.
+
+  rows                     : 1520
+  epochs per row           : 2920 to 2920
+  rows at the bracket end  : 0
+  true correlation range   : 0.000000 to 0.842377
+  implied correlation range: -0.201706 to 0.918159
+  worst |implied - true|   : 0.242559
+  rms  |implied - true|    : 0.073751
+  mean  implied - true     : +0.000356
+
+separation km  rows  mean true  mean implied  rms error  mean error
+-------------  ----  ---------  ------------  ---------  ----------
+0 to 200       168   0.649628   0.646176      0.063403   -0.003452
+200 to 400     72    0.609032   0.609293      0.068494   +0.000261
+400 to 1600    88    0.010843   0.012337      0.081879   +0.001494
+1600 to 8000   1192  0.006417   0.007232      0.074773   +0.000815
+
+[PASS] [anisotropic] the implied correlation recovers the generator's to an rms of 0.1 -- rms error 0.073751
+[PASS] [anisotropic] the implied correlation is not systematically biased -- mean error +0.000356 against an rms of 0.073751
+
+==============================================================================
+2. the fitted parameters against the fitted FUNCTION [anisotropic]
+==============================================================================
+  training rows            : 420
+  both fits               : 0.013 s
+
+Baseline 2 as specified, equation (23): one pooled two-parameter exponential.
+
+  rho_0                    : 1.000000  (declared nugget 0.95)
+  L                        : 258.1787 km
+  residual rms             : 0.071970
+  parameters on a bound    : nugget
+
+The strengthened baseline, equation (24): one model per declared regime.
+
+regime  fitted rho_0  fitted L km  residual rms  true L_along  true L_cross  geometric mean  fitted / geometric  on a bound
+------  ------------  -----------  ------------  ------------  ------------  --------------  ------------------  ----------
+0       1.000000      229.57       0.064203      1250.00       230.00        536.19          0.4281              nugget
+1       1.000000      288.55       0.080789      820.00        300.00        495.98          0.5818              nugget
+2       1.000000      288.22       0.073557      560.00        380.00        461.30          0.6248              nugget
+3       1.000000      233.17       0.062985      900.00        270.00        492.95          0.4730              nugget
+
+Equation (25): the pair (rho_0, L) is weakly identified, so the figure of
+merit is the correlation FUNCTION at the separations that exist and not
+either parameter. Both errors are measured below and the difference between
+them is the whole content of equation (25).
+
+model                      worst function error  rms function error  mean function error
+-------------------------  --------------------  ------------------  -------------------
+pooled, equation (23)      0.345499              0.065444            0.026053
+per regime, equation (24)  0.388392              0.065972            0.025188
+
+  worst relative error in L            : 0.571854
+  rms error in the implied correlation : 0.065972
+
+The parameter error is a RELATIVE error on a length of several hundred
+kilometres and the function error is an ABSOLUTE error on a correlation in
+[0, 1], so they are not directly comparable and are not compared. What is
+reported is that the function is recovered to a few hundredths of a
+correlation while L itself moves by tens of per cent, which is why this
+product quotes the function error as its primary figure for a correlation
+model and the parameters beside it.
+
+[PASS] [anisotropic] the fitted correlation function is within 0.15 rms of the truth -- rms function error 0.065972
+
+==============================================================================
+3. the specified baseline against the strengthened one [anisotropic]
+==============================================================================
+Both are reported everywhere, because the build rule of this mission is
+that where a named baseline measures weakly the strongest honest baseline is
+used and the named one is reported beside it. The cells are the split of
+equation (29).
+
+cell            rows  pooled MAE vs implied  per-regime MAE vs implied  pooled MAE vs TRUTH  per-regime MAE vs TRUTH
+--------------  ----  ---------------------  -------------------------  -------------------  -----------------------
+train           420   0.058410               0.057737                   0.012107             0.010578
+held-out SITES  340   0.082873               0.082943                   0.043280             0.043236
+held-out TIME   420   0.064716               0.064237                   0.012107             0.010578
+
+  stronger on TRAIN        : per regime, equation (24)
+  margin on TRAIN          : 0.000674
+
+The two baselines are nearly indistinguishable on this record, and that is
+the honest finding: the per-regime fit has four times the parameters and
+buys a margin of less than a thousandth of a correlation. The selection is
+made on the TRAIN cell, which is the only cell the models were allowed to
+see, and the margin is small enough that the choice barely matters -- which
+is reported rather than presented as a tuned improvement.
+
+[PASS] [anisotropic] the strengthened baseline is not WORSE than the specified one on the training cell -- per-regime MAE 0.057737 against pooled 0.058410
+[PASS] [anisotropic] the two baselines differ by less than 0.01 in correlation MAE, so the specified one is not under strength -- margin 0.000674
+
+CHECKS RUN: 10
+FAILED CHECKS (0): none

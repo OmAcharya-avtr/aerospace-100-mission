@@ -1,0 +1,157 @@
+
+==============================================================================
+sitediverse -- one four-station network, end to end
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+torch            : not installed  (named in README as unavailable here)
+statsmodels      : not installed  (named in the README alternatives table)
+copulas          : not installed  (named in the README alternatives table)
+cpu cores        : 2
+repository root  : P082 (printed relatively; see validation/_bootstrap.py)
+
+THE RECORD IS SYNTHETIC. Nothing below is a measurement of the atmosphere
+and nothing below transfers to a real network. See DATASET_CARD.md.
+
+==============================================================================
+step 1. the network, as geometry
+==============================================================================
+  stations                 : S11, S12, S13, S14
+pair     separation km  midpoint azimuth deg
+-------  -------------  --------------------
+S11-S12  106.2          308.9
+S11-S13  127.8          196.9
+S11-S14  161.2          76.0
+S12-S13  194.6          166.3
+S12-S14  239.9          96.7
+S13-S14  252.6          50.3
+
+  baselines                : 6
+  longest baseline         : 252.6 km
+
+Every baseline is under 300 km. This is the configuration a diversity
+trade study reaches for when the sites have to share a backhaul or a
+maintenance crew, and it is the configuration the independence
+assumption is most wrong about.
+
+==============================================================================
+step 2. the marginal climatology, estimated from the record
+==============================================================================
+  record                   : 23360 epochs, 8 declared years at 3 h
+
+station  cloud rate  n_eff   sd            declared truth  sigma
+-------  ----------  ------  ------------  --------------  ------
+S11      0.272603    7456.7  5.156754e-03  0.270284        +0.450
+S12      0.283690    7127.9  5.339389e-03  0.284566        -0.164
+S13      0.296104    7486.0  5.276562e-03  0.298811        -0.513
+S14      0.316866    7362.8  5.422120e-03  0.313023        +0.709
+
+The effective sample size is far below the epoch count because cloud
+cover persists: equation (13) divides by (1 + phi) / (1 - phi) and the
+naive binomial standard error understates by a factor of about 2.5.
+
+==============================================================================
+step 3. baseline 1: the independence assumption
+==============================================================================
+  P_independent            : 0.007256 +/- 0.000264
+  A_independent            : 0.992744
+  nines claimed            : 2.1393
+
+That is the number a diversity trade study would carry forward. The
+rest of this script is about how wrong it is.
+
+==============================================================================
+step 4. the bounds any answer must satisfy
+==============================================================================
+  Frechet-Hoeffding        : [0.000000, 0.272603]
+  width                    : 0.272603
+  lower bound informative  : no
+  slack, equation (19)     : 4.263256e-14
+  Bonferroni bracket       : [-1.830736, 1.726070]
+  Bonferroni vacuous       : yes
+
+The independence product sits inside the Frechet bounds, and so does
+every other answer in this script. The bounds are wide -- their width
+is the entire site-diversity problem -- but they are derived from the
+marginals alone and would catch any answer that is simply wrong. The
+Bonferroni bracket is vacuous at four stations and says so.
+
+==============================================================================
+step 5. baseline 3: what the record actually shows
+==============================================================================
+  P_measured               : 0.103125 +/- 0.004592
+  95% interval             : [0.093492, 0.111479]
+  block length             : 64 epochs = 8.0 days
+  A_measured               : 0.896875
+  nines measured           : 0.9866
+
+==============================================================================
+step 6. THE HEADLINE
+==============================================================================
+  P_independent            : 0.007256 +/- 0.000264
+  P_measured               : 0.103125 +/- 0.004592
+
+  overstatement factor     : 14.2124
+  difference               : +0.095869
+  availability deficit     : 0.095869
+  nines lost               : +1.1527
+  climatology share        : 0.002289
+
+The independence assumption assigns this network 2.1393 nines of availability and the record shows 0.9866.
+The climatology share says the discrepancy is not the record being short: it is 20.9 bootstrap standard errors.
+
+The exact decomposition of equation (16) splits it:
+
+term           value      what it is
+-------------  ---------  --------------------------------------------
+co-modulation  +0.005867  what assuming a STATIONARY climatology costs
+correlation    +0.090002  what assuming spatial INDEPENDENCE costs
+total          +0.095869  their sum, exactly
+residual       0.00e+00   rounding; the identity has no cross term
+
+==============================================================================
+step 7. baseline 2: the copula, at the generator's own correlation
+==============================================================================
+This step exists only because the record is synthetic: it uses the
+GENERATOR's correlation matrix, which no real record offers. It is a
+consistency check on the copula machinery and NOT a prediction.
+
+  Monte Carlo, equation (10): 0.097620 +/- 0.000469 over 400000 draws
+  against P_measured        : 1.1990 bootstrap standard errors
+  matrix projection needed  : no
+  least eigenvalue          : 1.966088e-01
+
+The copula at the TRUE correlation reproduces the record's joint rate
+to within the record's own sampling uncertainty. That is the machinery
+working; it says nothing about a model that has to ESTIMATE the
+correlation, which is what the rest of this package does and what
+validate_learned_model.py measures.
+
+==============================================================================
+step 8. what this network's figure should be reported as
+==============================================================================
+
+  independence, equation (14)        0.007256 +/- 0.000264  (source: analytic-propagation)
+  measured, equation (20)            0.103125 +/- 0.004592  (source: block-bootstrap)
+
+Every availability figure this package reports carries the record's own
+sampling uncertainty beside it, and a figure whose uncertainty was not
+computed says so rather than carrying a zero, because a zero reads as
+certainty.
+
+[PASS] the measured joint unavailability exceeds the independence product by more than four bootstrap standard errors -- difference +0.095869 is 20.8797 standard errors
+[PASS] every route lies inside the distribution-free bounds -- four routes against [0.000000, 0.272603]
+[PASS] the copula at the generator's correlation agrees with the record -- 1.1990 bootstrap standard errors
+[PASS] the decomposition of equation (16) closes to rounding -- residual 0.000000e+00
+
+  whole worked example      : 0.369 s
+
+CHECKS RUN: 4
+FAILED CHECKS (0): none

@@ -1,0 +1,175 @@
+
+==============================================================================
+sitediverse -- the synthetic generator against its own ground truth
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+torch            : not installed  (named in README as unavailable here)
+statsmodels      : not installed  (named in the README alternatives table)
+copulas          : not installed  (named in the README alternatives table)
+cpu cores        : 2
+repository root  : P082 (printed relatively; see validation/_bootstrap.py)
+
+THE RECORD IS SYNTHETIC. The point of this script is that the generator's
+own constants are available to be scored against, which is the one thing a
+synthetic record buys and a real one cannot. A generator that reproduces its
+own constants has demonstrated CONSISTENCY and not skill, and nothing here
+transfers to a real cloud field. See DATASET_CARD.md.
+
+==============================================================================
+1. the declared generator constants: the GROUND TRUTH
+==============================================================================
+  seed                     : 20260002
+  years                    : 8
+  epochs                   : 23360 at 3 h
+  stations                 : 20
+  nugget rho_0             : 0.95
+  persistence phi          : 0.72
+  integral time scale      : 6.1429 epochs = 18.43 h
+  diurnal amplitude        : 0.17 probit units
+
+regime  L_along km  L_cross km  anisotropy ratio  geometric mean km
+------  ----------  ----------  ----------------  -----------------
+0       1250.00     230.00      5.4348            536.19
+1       820.00      300.00      2.7333            495.98
+2       560.00      380.00      1.4737            461.30
+3       900.00      270.00      3.3333            492.95
+
+The isotropic CONTROL record replaces each regime's two lengths by their
+geometric mean, so the correlation ellipse keeps its area and the field
+becomes isotropic. Against that record an isotropic two-parameter model is
+CORRECTLY SPECIFIED, which is what makes it the control.
+
+  epochs per regime        : [5840, 5840, 5840, 5840]
+[PASS] the four declared regimes hold a quarter of the record each -- counts [5840, 5840, 5840, 5840]
+
+==============================================================================
+2. the observed cloud rate against the declared marginal of equation (6)
+==============================================================================
+The marginal cloud probability of equation (6) is EXACTLY Phi of the
+threshold, by construction. The criterion below is the declared four
+standard errors at the record's EFFECTIVE sample size, which is
+epochs (1 - phi) / (1 + phi) and not epochs.
+
+station  observed  declared  difference  sd            sigma
+-------  --------  --------  ----------  ------------  ------
+S11      0.272603  0.270284  +0.002319   7.201711e-03  +0.322
+S12      0.283690  0.284566  -0.000876   7.316864e-03  -0.120
+S13      0.296104  0.298811  -0.002707   7.422748e-03  -0.365
+S14      0.316866  0.313023  +0.003843   7.519832e-03  +0.511
+S21      0.324743  0.323806  +0.000938   7.587990e-03  +0.124
+S22      0.331464  0.338201  -0.006737   7.671836e-03  -0.878
+S23      0.351413  0.352582  -0.001170   7.747674e-03  -0.151
+S24      0.372731  0.366951  +0.005781   7.815763e-03  +0.740
+S31      0.386644  0.385146  +0.001498   7.891279e-03  +0.190
+S32      0.393878  0.399053  -0.005174   7.941127e-03  -0.652
+S33      0.417423  0.412942  +0.004481   7.984245e-03  +0.561
+S34      0.427654  0.426817  +0.000838   8.020773e-03  +0.104
+S41      0.446019  0.439232  +0.006787   8.047989e-03  +0.843
+S42      0.460188  0.453417  +0.006771   8.072829e-03  +0.839
+S43      0.475557  0.467598  +0.007959   8.091051e-03  +0.984
+S44      0.483091  0.481775  +0.001316   8.102706e-03  +0.162
+S51      0.485231  0.495930  -0.010699   8.107826e-03  -1.320
+S52      0.499529  0.510176  -0.010647   8.106415e-03  -1.313
+S53      0.519949  0.524423  -0.004474   8.098416e-03  -0.553
+S54      0.527312  0.538672  -0.011361   8.083806e-03  -1.405
+
+  latent persistence phi   : 0.72
+  effective sample size    : 3802.8 of 23360 epochs
+  worst deviation          : 1.4054 sigma
+  mean deviation           : -0.0688 sigma
+[PASS] every station's observed cloud rate is within the declared sigma of its declared marginal -- worst deviation 1.4054 sigma against a criterion of 4.0
+
+==============================================================================
+3. the latent spatial correlation against equation (4)
+==============================================================================
+Measured within each regime, because the correlation matrix differs between
+them. The criterion is four standard errors of a correlation estimated from
+the EFFECTIVE sample size of one regime, which is 1 / sqrt(n_eff).
+
+regime  epochs  n_eff  worst |measured - true|  sd            sigma
+------  ------  -----  -----------------------  ------------  ------
+0       5840    950.7  6.951224e-02             3.243238e-02  2.1433
+1       5840    950.7  8.064094e-02             3.243238e-02  2.4864
+2       5840    950.7  6.951719e-02             3.243238e-02  2.1435
+3       5840    950.7  4.931664e-02             3.243238e-02  1.5206
+
+  worst deviation over all regimes : 2.4864 sigma
+[PASS] the latent field's spatial correlation matches equation (4) in every regime -- worst deviation 2.4864 sigma against a criterion of 4.0
+
+==============================================================================
+4. the latent persistence of equation (5), and the indicator's
+==============================================================================
+  declared phi             : 0.72
+  latent lag-1, range      : 0.709152 to 0.723603
+  latent lag-1, mean       : 0.718069
+  indicator lag-1, range   : 0.505911 to 0.542289
+  indicator lag-1, mean    : 0.521608
+
+Thresholding destroys correlation: the binary indicator's lag-one is below
+the latent field's at every station. Equation (13) uses the INDICATOR's
+value, which inflates fewer standard errors than the latent value would, so
+the choice is conservative in the direction that matters. The gap is
+reported rather than asserted away.
+
+[PASS] the latent lag-one autocorrelation recovers the declared persistence -- mean 0.718069 against a declared 0.72
+[PASS] the indicator's lag-one is below the latent field's at every station -- worst gap 0.210596
+
+And the latent field is marginally standard normal, by construction.
+
+  worst |mean|             : 0.030826
+  worst |sd - 1|           : 0.028592
+[PASS] the latent field is marginally standard normal to the record's own sampling precision -- mean within 0.05 of zero and sd within 0.05 of one at every station
+
+==============================================================================
+5. the strict threshold comparison of equation (6)
+==============================================================================
+The cloud indicator is a strict comparison of two rounded quantities. Two
+builds that agree on the latent field and the threshold to within one unit
+in the last place can still disagree on the indicator wherever the two sit
+within an ulp of each other, and the number of such epochs grows with the
+record. No test or check in this product asserts bit-exact equality of a
+cloud indicator.
+
+Measured below: a perturbation delta applied to the latent field flips
+exactly those indicators whose margin |z - threshold| is inside delta, and
+the cloud RATE moves by far less than the indicator count suggests.
+
+delta  indicators flipped  fraction      rate change   worst flipped margin
+-----  ------------------  ------------  ------------  --------------------
+1e-16  0                   0.000000e+00  0.000000e+00  0.000000e+00
+1e-12  0                   0.000000e+00  0.000000e+00  0.000000e+00
+1e-08  0                   0.000000e+00  0.000000e+00  0.000000e+00
+1e-04  15                  3.210616e-05  3.210616e-05  9.104811e-05
+
+  record size              : 467200 indicators
+  base cloud rate          : 0.403604
+  smallest |margin|        : 4.165301e-06
+[PASS] every flipped indicator had a margin inside the perturbation that flipped it -- worst excess 0.000000e+00; an indicator outside delta cannot flip
+[PASS] control: a perturbation of 1e-04 does flip indicators, so the sensitivity is real (must fire) -- FIRED; 15 indicators flipped at delta = 1e-04
+
+==============================================================================
+6. determinism
+==============================================================================
+Two calls with the same spec return the same record within one build of
+numpy, which is what makes every figure in this repository reproducible by
+a reader. The claim that does NOT follow, and is not made anywhere, is that
+the INDICATOR is reproducible across builds: see part 5.
+
+  generation time          : 0.013 s for 5840 epochs
+  latent arrays identical  : True
+  indicators identical     : True
+[PASS] the record is a deterministic function of its declared seed, in this build -- both arrays bit-identical across two calls in one process
+  isotropic record differs on 0.4415 of indicators
+[PASS] control: a different declared spec gives a substantially different record (must fire) -- FIRED; 0.4415 of indicators differ
+
+CHECKS RUN: 10
+CONTROLS: 2 declared, 2 fired
+FAILED CHECKS (0): none

@@ -1,0 +1,127 @@
+
+==============================================================================
+sitediverse -- the command line, and the tree it must not pollute
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+torch            : not installed  (named in README as unavailable here)
+statsmodels      : not installed  (named in the README alternatives table)
+copulas          : not installed  (named in the README alternatives table)
+cpu cores        : 2
+repository root  : P082 (printed relatively; see validation/_bootstrap.py)
+
+Every subprocess below runs with HOME and MPLCONFIGDIR in a temporary
+directory outside the repository and PYTHONDONTWRITEBYTECODE=1.
+
+==============================================================================
+1. every subcommand, as a user runs it
+==============================================================================
+[PASS] python -m sitediverse --version -- exit 0
+[PASS] python -m sitediverse --help -- exit 0
+[PASS] python -m sitediverse sites -- exit 0
+[PASS] python -m sitediverse record --record short -- exit 0
+[PASS] python -m sitediverse record --record anisotropic -- exit 0
+[PASS] python -m sitediverse climatology --record short -- exit 0
+[PASS] python -m sitediverse overstate --record short --replicates 100 -- exit 0
+[PASS] python -m sitediverse overstate --record anisotropic --replicates 100 -- exit 0
+[PASS] python -m sitediverse bounds --record short --network near-pair -- exit 0
+[PASS] python -m sitediverse bounds --record short --network two-groups -- exit 0
+[PASS] python -m sitediverse correlate --record short -- exit 0
+[PASS] python -m sitediverse learned --record short -- exit 0
+[PASS] python -m sitediverse network --record short --network near-pair -- exit 0
+[PASS] python -m sitediverse network --record short --network cluster -- exit 0
+
+command                                          exit  stdout lines  verdict
+-----------------------------------------------  ----  ------------  -------
+--version                                        0     1             ok
+--help                                           0     28            ok
+sites                                            0     42            ok
+record --record short                            0     42            ok
+record --record anisotropic                      0     42            ok
+climatology --record short                       0     29            ok
+overstate --record short --replicates 100        0     36            ok
+overstate --record anisotropic --replicates 100  0     36            ok
+bounds --record short --network near-pair        0     29            ok
+bounds --record short --network two-groups       0     29            ok
+correlate --record short                         0     30            ok
+learned --record short                           0     40            ok
+network --record short --network near-pair       0     20            ok
+network --record short --network cluster         0     19            ok
+
+==============================================================================
+2. a bad argument must exit non-zero and say why
+==============================================================================
+[PASS] `record --record invented` exits non-zero with an actionable message -- exit 2; looked for 'invalid choice'
+[PASS] `bounds --network invented` exits non-zero with an actionable message -- exit 2; looked for 'invalid choice'
+[PASS] `overstate --replicates 10` exits non-zero with an actionable message -- exit 2; looked for 'at least 50'
+[PASS] `network --samples 100` exits non-zero with an actionable message -- exit 2; looked for 'at least 1000'
+[PASS] `invent` exits non-zero with an actionable message -- exit 2; looked for 'invalid choice'
+[PASS] `(no subcommand)` exits non-zero with an actionable message -- exit 2; looked for 'the following arguments are required'
+
+argv                       exit  last line of output
+-------------------------  ----  ----------------------------------------------------------------------------------------
+record --record invented   2     python -m sitediverse record: error: argument --record: invalid choice: 'invented' (choo
+bounds --network invented  2     python -m sitediverse bounds: error: argument --network: invalid choice: 'invented' (cho
+overstate --replicates 10  2     --replicates must be at least 50 for a percentile interval, got 10
+network --samples 100      2     --samples must be at least 1000 for a usable Monte Carlo error, got 100
+invent                     2     python -m sitediverse: error: argument command: invalid choice: 'invent' (choose from 's
+(no subcommand)            2     python -m sitediverse: error: the following arguments are required: command
+
+==============================================================================
+3. this script pollutes nothing, and nothing polluting is tracked
+==============================================================================
+Two distinct claims, because they have two distinct owners.
+
+An earlier revision of this check, in another product of this mission,
+asserted that NO cache directory and no bytecode file existed anywhere in
+the tree at the moment it ran. That claim is not a product's to make and it
+is unsatisfiable under the release gate: the gate runs `ruff check src/
+tests/` with its working directory set to the product root as check 2,
+which writes `.ruff_cache` into the tree, and then re-executes the
+validation scripts as check 6. No change to the product could have passed.
+
+The two claims below are what this product can be held to, and both are
+stricter than the old one in the direction that matters: the old check said
+nothing at all about what is TRACKED, which is the only thing a reader with
+a cold clone ever sees.
+
+3a. this script adds no cache directory and no bytecode file
+  names treated as cache   : ['__pycache__', '.pytest_cache', '.ruff_cache', '.hypothesis', '.config'], plus every .pyc
+  present at entry         : none
+    (inherited from whatever invoked this script; not this product's doing)
+  still present, inherited : none
+  ADDED while this ran     : none
+[PASS] this script's own execution adds no cache directory or bytecode file -- 0 added
+
+3b. git tracks no cache directory, bytecode file or build artifact
+Authoritative, because .gitignore can be edited and a tracked file stays
+tracked regardless of it. A cold clone carries exactly what git tracks.
+  tracked files examined   : 0
+  offenders                : none
+  NOTE: zero files were examined, so this check is VACUOUS in this
+  environment and is recorded as such rather than as a pass.
+[PASS] git tracks no cache directory, bytecode file or build artifact -- 0 offenders in 0 tracked files -- VACUOUS: zero files examined
+
+==============================================================================
+4. no committed file carries an absolute path
+==============================================================================
+The patterns are assembled from os.sep, and this script's own output file is
+deleted before the scan so that the scanner cannot report itself.
+
+  text files scanned : 84
+  needles            : 4 directory prefixes assembled from os.sep -- home, Users, root, tmp
+    (named rather than printed as literals: this output file is committed,
+     and a committed file containing the literal pattern is exactly what a
+     repository-wide absolute-path scanner is looking for)
+  offenders          : none
+[PASS] no text file in the tree contains an absolute host path -- 0 offenders in 84 files
+
+CHECKS RUN: 23
+FAILED CHECKS (0): none

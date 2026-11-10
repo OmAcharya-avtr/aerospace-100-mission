@@ -1,0 +1,149 @@
+
+==============================================================================
+sitediverse -- the empirical reference and its bootstrap
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+torch            : not installed  (named in README as unavailable here)
+statsmodels      : not installed  (named in the README alternatives table)
+copulas          : not installed  (named in the README alternatives table)
+cpu cores        : 2
+repository root  : P082 (printed relatively; see validation/_bootstrap.py)
+
+record                       : anisotropic, 23360 epochs
+declared persistence phi     : 0.72
+
+==============================================================================
+1. the block bootstrap against the iid bootstrap
+==============================================================================
+The latent field of equation (5) has an integral time scale of
+6.1429 epochs = 18.43 hours, so resampling
+epochs independently understates the variance of equation (20). Both are
+computed; the iid interval is the one a careless analysis would quote.
+
+network        P_measured  iid sd        block sd      block / iid  block 95% interval    relative half-width
+-------------  ----------  ------------  ------------  -----------  --------------------  -------------------
+near-pair      0.171447    2.628227e-03  6.170808e-03  2.3479       [0.158766, 0.183434]  0.0719
+far-pair       0.116139    2.210762e-03  4.037037e-03  1.8261       [0.108473, 0.124188]  0.0677
+mixed-trio     0.062457    1.607198e-03  2.629685e-03  1.6362       [0.057234, 0.067684]  0.0837
+cluster        0.103125    2.035008e-03  4.464320e-03  2.1938       [0.094477, 0.111815]  0.0841
+two-groups     0.019906    9.459388e-04  1.620272e-03  1.7129       [0.017037, 0.023376]  0.1592
+one-per-group  0.007149    5.580153e-04  7.249832e-04  1.2992       [0.005779, 0.008563]  0.1947
+
+  block length             : 64 epochs = 8.0 days = 10.42 integral time scales
+  replicates               : 400
+  block / iid              : 1.2992 to 2.3479
+  expected sqrt((1+phi)/(1-phi)) for the LATENT field : 2.4785
+
+The measured inflation is below the latent field's AR(1) figure because the
+thresholded indicator is less persistent than the field, which
+validate_climatology.py measures directly. Both numbers are reported.
+
+[PASS] the block bootstrap interval is wider than the iid one on every network -- inflation 1.2992 to 2.3479
+
+The inflation is smallest on the far-separated networks, and that is a real
+effect rather than noise. Their joint-cloudy series is sparse -- the
+one-per-group network is jointly cloudy on 0.7 per cent of epochs -- and a
+sparse indicator carries less serial dependence than a dense one, because
+the runs of consecutive joint-cloudy epochs the persistence produces are
+rarer. The inflation is therefore a function of the network as well as of
+the field, and it is quoted per network.
+
+[PASS] the inflation exceeds 1.5 on every network whose joint rate is above 0.05 -- 4 such networks, inflation 1.6362 to 2.3479
+
+==============================================================================
+2. the interval width against the block length
+==============================================================================
+A block bootstrap is consistent as L grows and L / T shrinks. A bootstrap
+whose answer depends on its block length is reporting the block length, so
+the dependence is measured rather than assumed away.
+
+block epochs  days   time scales  L / T         standard error  95% interval
+------------  -----  -----------  ------------  --------------  --------------------
+1             0.12   0.16         4.280822e-05  1.972045e-03    [0.099143, 0.106636]
+4             0.50   0.65         1.712329e-04  2.784387e-03    [0.097208, 0.108610]
+16            2.00   2.60         6.849315e-04  3.604243e-03    [0.096016, 0.110363]
+32            4.00   5.21         1.369863e-03  3.919196e-03    [0.095119, 0.111008]
+64            8.00   10.42        2.739726e-03  4.571567e-03    [0.094521, 0.111176]
+128           16.00  20.84        5.479452e-03  5.260579e-03    [0.092074, 0.113197]
+256           32.00  41.67        1.095890e-02  6.395614e-03    [0.090353, 0.114127]
+512           64.00  83.35        2.191781e-02  7.800017e-03    [0.085360, 0.114137]
+
+  network                  : cluster (4 stations)
+  standard error at L = 1  : 1.972045e-03
+  standard error at L = 64 : 4.571567e-03
+  standard error at L = 512: 7.800017e-03
+  ratio, L = 512 to L = 64 : 1.7062
+
+THE WIDTH DOES NOT PLATEAU, AND THIS IS A REPORTED NEGATIVE RESULT.
+
+The standard error rises monotonically from 1.97e-03 at a block of one
+epoch to 7.80e-03 at 512 epochs, a factor of 3.96, with no sign of settling
+by 64 days. The reason is in the generator and not in the bootstrap: the
+record carries a SEASONAL cycle as well as synoptic persistence, so the
+joint-cloudy indicator is correlated at lags of months and no block short
+enough to satisfy L / T -> 0 captures all of it. A seasonally
+non-stationary series has no block length at which a block bootstrap is
+exactly right.
+
+The consequences, stated rather than left for a reader to find:
+
+  - Every bootstrap interval this product quotes at a block of 64 epochs is
+    a LOWER BOUND on the record's sampling uncertainty. A 512-epoch block
+    gives a standard error 1.71 times larger on this network.
+  - That direction is the safe one for this product's headline conclusion.
+    The conclusion is that the learned model's margin falls INSIDE the
+    bootstrap interval on the empirical reference; widening the interval can
+    only strengthen it, never reverse it. The check below confirms that the
+    conclusion survives the widest block measured.
+  - It does NOT affect the headline overstatement figures themselves, which
+    are differences of point estimates and carry their uncertainty beside
+    them rather than inside them.
+
+[PASS] the interval width rises monotonically with the block length and does NOT plateau, which is reported rather than hidden -- standard error 1.972045e-03 at L = 1 to 7.800017e-03 at L = 512, a factor of 3.9553, monotone at every step
+[PASS] the declared block of 64 epochs is above the synoptic time scale and keeps L / T small -- 64 epochs = 8.0 days = 10.42 integral time scales, L / T = 0.002740
+[PASS] control: the widest block measured would widen the interval, which is why the declared one is called a lower bound (must fire) -- FIRED; a 512-epoch block gives 7.800017e-03 against 4.571567e-03 at the declared 64, a factor of 1.7062
+
+==============================================================================
+3. equation (22): the interval on a difference must be paired
+==============================================================================
+The quantity that decides this product's headline comparison is a
+DIFFERENCE of two models' errors against the same reference. Resampling the
+record changes the reference and therefore moves both errors together, so
+the interval on the difference must come from paired replicates. Treating
+the two as independent widens it and would hide a real difference.
+
+network        difference     paired sd     unpaired sd   unpaired / paired  paired 95% interval    contains 0
+-------------  -------------  ------------  ------------  -----------------  ---------------------  ----------
+near-pair      +1.026721e-03  1.630577e-03  5.970764e-03  3.6617             [-0.002000, 0.002000]  yes
+far-pair       +1.161592e-03  1.513843e-03  4.170007e-03  2.7546             [-0.002000, 0.002000]  yes
+mixed-trio     +1.597825e-03  1.046701e-03  2.882601e-03  2.7540             [-0.002000, 0.002000]  yes
+cluster        +1.191199e-03  1.491627e-03  4.840739e-03  3.2453             [-0.002000, 0.002000]  yes
+two-groups     +1.872997e-03  4.960080e-04  1.922241e-03  3.8754             [0.000345, 0.002000]   no
+one-per-group  +1.997372e-03  5.256849e-05  9.600083e-04  18.2620            [0.002000, 0.002000]   no
+
+  unpaired / paired        : 2.7540 to 18.2620
+
+[PASS] the paired interval is narrower than the unpaired one on every network -- the unpaired standard deviation exceeds the paired one by a factor of 2.7540 to 18.2620
+[PASS] two identical replicate series give a difference interval of exactly zero -- a degenerate case, checked so that the pairing is not silently a no-op
+[PASS] control: an unpaired interval on this difference would have been wider enough to change a verdict (must fire) -- FIRED; worst widening factor 18.2620; equation (41)'s margins are of the same order as their own intervals, so a factor of this size is the difference between a verdict and no verdict
+
+==============================================================================
+4. the compute budget
+==============================================================================
+  networks                 : 6
+  replicates each          : 400
+  total                    : 0.215 s
+  mean per network         : 35.8 ms
+[PASS] the whole bootstrap is well inside the declared three-minute budget -- 0.215 s for 6 networks at 400 replicates
+
+CHECKS RUN: 9
+CONTROLS: 2 declared, 2 fired
+FAILED CHECKS (0): none

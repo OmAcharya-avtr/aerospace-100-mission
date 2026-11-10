@@ -1,0 +1,50 @@
+
+==============================================================================
+sitediverse -- every example, as a subprocess, with its figure
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+torch            : not installed  (named in README as unavailable here)
+statsmodels      : not installed  (named in the README alternatives table)
+copulas          : not installed  (named in the README alternatives table)
+cpu cores        : 2
+repository root  : P082 (printed relatively; see validation/_bootstrap.py)
+
+Every subprocess runs with HOME and MPLCONFIGDIR in a temporary directory
+outside the repository and PYTHONDONTWRITEBYTECODE=1, so no example can
+pollute the tree it is being measured in.
+[PASS] examples/overstatement_by_separation.py -- exit 0
+[PASS] examples/network_availability.py -- exit 0
+[PASS] examples/correlation_models.py -- exit 0
+[PASS] examples/holdout_scores.py -- exit 0
+[PASS] examples/decomposition.py -- exit 0
+[PASS] examples/learned_interval.py -- exit 0
+[PASS] examples/record_structure.py -- exit 0
+
+example                         exit  seconds  figure                                       size KiB  verdict
+------------------------------  ----  -------  -------------------------------------------  --------  -------
+overstatement_by_separation.py  0     2.5      screenshots/overstatement_by_separation.png  102.0     ok
+network_availability.py         0     2.1      screenshots/network_availability.png         91.6      ok
+correlation_models.py           0     7.7      screenshots/correlation_models.png           136.7     ok
+holdout_scores.py               0     14.3     screenshots/holdout_scores.png               67.2      ok
+decomposition.py                0     2.1      screenshots/decomposition.png                83.5      ok
+learned_interval.py             0     8.0      screenshots/learned_interval.png             121.7     ok
+record_structure.py             0     1.7      screenshots/record_structure.png             210.8     ok
+
+  examples                 : 7
+  total wall clock         : 38.4 s
+[PASS] every example finishes inside the release gate's per-script limit -- slowest 14.3 s against a limit of 600 s
+[PASS] every figure is larger than 20 KiB, so no axis came out empty -- smallest 67.2 KiB
+
+Every figure embedded in README.md is produced by the example of the same
+name, so a figure can never drift from the code that made it.
+
+CHECKS RUN: 9
+FAILED CHECKS (0): none

@@ -1,0 +1,118 @@
+
+==============================================================================
+sitediverse -- geometry: separation, azimuth and the axis decomposition
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+torch            : not installed  (named in README as unavailable here)
+statsmodels      : not installed  (named in the README alternatives table)
+copulas          : not installed  (named in the README alternatives table)
+cpu cores        : 2
+repository root  : P082 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. equation (1) against closed forms
+==============================================================================
+case                              measured km   closed form km  relative
+--------------------------------  ------------  --------------  ------------
+pole to equator on a meridian     10007.557221  10007.557221    0.000000e+00
+ninety degrees along the equator  10007.557221  10007.557221    0.000000e+00
+antipodes                         20015.114252  20015.114442    9.486374e-09
+one degree of latitude            111.195080    111.195080      1.405812e-15
+
+[PASS] equation (1) reproduces every closed form away from the antipodal limit -- worst relative difference 1.405812e-15 against a tolerance of 1e-13
+
+The antipodal case is the exception and it is a property of the haversine
+form, not a defect. As the inner quantity approaches 1 the derivative of
+arcsin(sqrt(a)) diverges, so a relative perturbation eps in a becomes one of
+order sqrt(eps) in the angle. The declared network's largest separation is
+7299.5 km, well
+inside half the circumference, so the regime is never entered in practice.
+
+  antipodal relative error : 9.486374e-09
+  sqrt(machine epsilon)    : 1.490116e-08
+  ratio                    : 0.636620
+[PASS] the antipodal error is of the order the analysis predicts and no worse -- 9.486374e-09 against 10 sqrt(eps) = 1.490116e-07
+
+==============================================================================
+2. equation (1) against the spherical law of cosines
+==============================================================================
+  random coordinate pairs  : 4000
+  worst absolute difference: 7.925394e-11 km
+  worst relative difference: 1.215762e-12
+[PASS] equation (1) agrees with an independently derived spherical form -- worst absolute difference 7.925394e-11 km against a tolerance of 1e-5 km
+
+==============================================================================
+3. equation (3): the identity, and the symmetry defect it fixed
+==============================================================================
+  pairs                    : 190
+  worst relative residual  : 4.111564e-16
+[PASS] d_along^2 + d_cross^2 == d^2 to relative rounding over every pair -- worst relative residual 4.111564e-16 against 1e-14
+
+The symmetry of equation (3) was a real defect in this product's first
+draft, found by its own property test. Built on the INITIAL bearing the two
+matrices were asymmetric, so a pair's decomposition depended on which
+station had the lower index. Both routes are measured below.
+
+azimuth used                  worst asymmetry km  verdict
+----------------------------  ------------------  ----------
+initial bearing (the defect)  2896.6625           ASYMMETRIC
+arc midpoint (current)        7.929657e-12        symmetric
+
+[PASS] the current decomposition is symmetric in the pair -- worst asymmetry 7.929657e-12 km against a tolerance of 1e-8 km
+[PASS] the initial-bearing form really was asymmetric, so the fix was needed -- worst asymmetry 2896.6625 km on the initial-bearing form
+[PASS] the midpoint azimuth from i to j and from j to i differ by 180 degrees -- worst deviation 2.472689e-12 degrees
+
+==============================================================================
+4. equation (3) at the axis and at its normal
+==============================================================================
+separation km  along on axis   cross on axis  along normal  cross normal
+-------------  --------------  -------------  ------------  --------------
+100.0          100.000000000   0.000000e+00   6.123234e-15  100.000000000
+1000.0         1000.000000000  0.000000e+00   6.123234e-14  1000.000000000
+7000.0         7000.000000000  0.000000e+00   4.286264e-13  7000.000000000
+
+[PASS] a baseline on the axis is entirely along it, and normal to it entirely across -- worst absolute deviation 4.286264e-13 km
+
+==============================================================================
+5. the declared synthetic network
+==============================================================================
+DECLARED SYNTHETIC COORDINATES. Not the coordinates of any real optical
+ground station, and no station's climatology is used anywhere in this
+package. See DATASET_CARD.md.
+
+  stations                 : 20 in 5 declared groups of 4
+  pairs                    : 190
+  separation range km      : 91.9 to 7299.5
+  median separation km     : 4011.1
+  pairs under 300 km       : 30
+  pairs over 1500 km       : 156
+  along range km           : 29.1 to 7298.4
+  cross range km           : 4.9 to 3918.8
+
+pair     separation km  midpoint azimuth deg  along km  cross km
+-------  -------------  --------------------  --------  --------
+S51-S52  91.9           316.5                 29.1      87.2
+S21-S22  99.2           312.3                 38.3      91.5
+S11-S12  106.2          308.9                 46.7      95.4
+S31-S32  109.2          307.7                 50.1      97.0
+S41-S42  115.2          305.4                 56.9      100.1
+S51-S53  125.6          193.2                 77.6      98.8
+S51-S54  126.0          72.0                  125.0     15.3
+S21-S23  126.7          195.1                 81.7      96.9
+S11-S13  127.8          196.9                 85.3      95.2
+S31-S33  128.3          197.6                 86.8      94.5
+
+[PASS] the network spans separations from under 100 km to over 7000 km -- 91.9 km to 7299.5 km
+[PASS] the near pairs point in a range of directions, so anisotropy is observable -- along-axis component of the near pairs spans 238.3 km
+[PASS] no pair of the network is near antipodal, so no midpoint azimuth is nan -- 0 nan entries in the along matrix
+
+CHECKS RUN: 11
+FAILED CHECKS (0): none

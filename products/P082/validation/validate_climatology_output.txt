@@ -1,0 +1,164 @@
+
+==============================================================================
+sitediverse -- the marginal climatology estimator
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+ruff             : 0.17.4
+torch            : not installed  (named in README as unavailable here)
+statsmodels      : not installed  (named in the README alternatives table)
+copulas          : not installed  (named in the README alternatives table)
+cpu cores        : 2
+repository root  : P082 (printed relatively; see validation/_bootstrap.py)
+
+Everything estimated here is estimated FROM THE RECORD. The generator's
+true thresholds are read by this script and by no function in the package;
+an estimator that used them would make every downstream comparison
+meaningless, and tests/test_properties.py checks that structurally by
+rerunning the whole study on a record whose ground-truth arrays are zeroed.
+
+==============================================================================
+1. the cell estimator of equation (12) against its own ground truth
+==============================================================================
+  season cells             : 12
+  hour cells               : 8
+  cells                    : 96
+  shrinkage pseudo-count   : 4.0
+
+  epochs per cell          : 240 to 248
+
+Cells are not equal in size: a declared year is 2920 epochs and 96 does not
+divide it, so a season cell spans 30.42 days and the integer boundary falls
+at a different hour each time. The estimator divides each cell's total by
+that cell's OWN occupancy, so the imbalance is carried correctly.
+
+  epochs per cell, nominal : 243.33
+  effective per cell       : 39.61
+  one cell's standard error: 0.079443 at a rate near 0.5
+
+  worst |estimated - true| : 1.325454e-01
+  rms  |estimated - true|  : 3.440026e-02
+  mean  estimated - true   : -5.658761e-04
+  worst in units of the cell standard error : 1.6684
+
+The worst figure is over 1920 cell-station combinations, so a four-sigma
+criterion on it is a Bonferroni-corrected 3.7 sigma and is expected to
+hold. Both the worst and the mean are reported: the mean is the bias the
+shrinkage introduces and it is three orders of magnitude smaller.
+
+[PASS] the estimated cell rate is within the declared sigma of the generator's -- worst deviation 1.6684 sigma against a criterion of 4.0
+[PASS] the estimator's aggregate bias is far below one cell's standard error -- mean error -5.658761e-04 against a cell standard error of 0.079443
+
+And the long-term rate, which is what the independence baseline of equation
+(14) uses.
+
+station  estimated  true      sd, equation (13)  sigma
+-------  ---------  --------  -----------------  ------
+S11      0.272603   0.270284  5.156754e-03       +0.450
+S12      0.283690   0.284566  5.339389e-03       -0.164
+S13      0.296104   0.298811  5.276562e-03       -0.513
+S14      0.316866   0.313023  5.422120e-03       +0.709
+S21      0.324743   0.323806  5.462641e-03       +0.172
+S22      0.331464   0.338201  5.377017e-03       -1.253
+S23      0.351413   0.352582  5.567116e-03       -0.210
+S24      0.372731   0.366951  5.617004e-03       +1.029
+S31      0.386644   0.385146  5.667804e-03       +0.264
+S32      0.393878   0.399053  5.868293e-03       -0.882
+S33      0.417423   0.412942  5.794212e-03       +0.773
+S34      0.427654   0.426817  5.836407e-03       +0.144
+S41      0.446019   0.439232  5.783221e-03       +1.174
+S42      0.460188   0.453417  5.819908e-03       +1.163
+S43      0.475557   0.467598  5.844627e-03       +1.362
+S44      0.483091   0.481775  5.915316e-03       +0.222
+S51      0.485231   0.495930  5.792618e-03       -1.847
+S52      0.499529   0.510176  5.782923e-03       -1.841
+S53      0.519949   0.524423  5.841043e-03       -0.766
+S54      0.527312   0.538672  5.744150e-03       -1.978
+
+[PASS] every station's long-term rate is within the declared sigma of the truth -- worst deviation 1.9778 sigma
+
+==============================================================================
+2. the shrinkage of equation (12): what it buys and what it costs
+==============================================================================
+The shrinkage exists for one reason: a cell whose observed frequency is
+exactly 0 or 1 has a probit threshold of minus or plus infinity, which
+propagates an infinity into equation (8). It is a BIAS toward the station's
+long-term rate, and its size is measured here rather than assumed negligible.
+
+shrinkage nu  worst error   rms error     mean error  note
+------------  ------------  ------------  ----------  ----
+0.0           1.346139e-01  3.466526e-02  -5.657e-04  ok
+0.5           1.343517e-01  3.462675e-02  -5.657e-04  ok
+1.0           1.340906e-01  3.458980e-02  -5.657e-04  ok
+4.0           1.325454e-01  3.440026e-02  -5.659e-04  ok
+16.0          1.272495e-01  3.414137e-02  -5.663e-04  ok
+64.0          1.253047e-01  3.803916e-02  -5.675e-04  ok
+
+On THIS record no cell reaches 0 or 1 even at nu = 0, because the record is
+eight years long and the declared marginals never leave (0.25, 0.56). The
+shrinkage is therefore insurance rather than a necessity here, and the
+control below constructs the case it is insurance against.
+
+[PASS] control: with no shrinkage an all-clear cell raises instead of returning an infinity (must fire) -- FIRED; a record constructed to be clear in exactly one season-by-hour cell; the estimator raises with an actionable message rather than propagating -inf into equation (8)
+[PASS] the declared shrinkage handles that record and keeps every rate inside (0, 1) -- cell rate range 3.091824e-02 to 0.999668, all thresholds finite
+[PASS] the declared shrinkage's bias is not the largest contributor to the error -- see the table above: the rms error is flat in nu from 0 to 64 on this record, so the bias the shrinkage introduces is below the estimator's own sampling error
+
+==============================================================================
+3. the effective sample size of equation (13), against a bootstrap
+==============================================================================
+Equation (13) assumes an AR(1) and uses the estimated lag-one
+autocorrelation of the INDICATOR. The block bootstrap assumes nothing
+beyond stationarity and a block long enough to carry the dependence, so it
+is the independent route. The naive binomial standard error is reported
+beside both, because it is what a careless analysis quotes.
+
+station  lag-1 indicator  n_eff      naive binomial sd  equation (13) sd  block bootstrap sd  (13) / bootstrap  bootstrap / naive
+-------  ---------------  ---------  -----------------  ----------------  ------------------  ----------------  -----------------
+S11      0.5161              7456.7  2.913497e-03       5.156754e-03      7.318561e-03        0.7046            2.5120
+S12      0.5324              7127.9  2.949417e-03       5.339389e-03      7.320483e-03        0.7294            2.4820
+S13      0.5146              7486.0  2.987034e-03       5.276562e-03      7.749473e-03        0.6809            2.5944
+S14      0.5207              7362.8  3.044069e-03       5.422120e-03      7.384158e-03        0.7343            2.4258
+S21      0.5214              7348.6  3.063854e-03       5.462641e-03      6.991090e-03        0.7814            2.2818
+S22      0.5059              7664.4  3.079954e-03       5.377017e-03      6.946496e-03        0.7741            2.2554
+S23      0.5211              7354.0  3.123608e-03       5.567116e-03      6.972958e-03        0.7984            2.2323
+S24      0.5183              7410.4  3.163649e-03       5.617004e-03      7.101116e-03        0.7910            2.2446
+S31      0.5197              7382.3  3.186218e-03       5.667804e-03      8.226534e-03        0.6890            2.5819
+S32      0.5423              6932.6  3.196867e-03       5.868293e-03      8.953716e-03        0.6554            2.8008
+S33      0.5266              7243.4  3.226476e-03       5.794212e-03      9.014254e-03        0.6428            2.7938
+S34      0.5295              7185.6  3.236974e-03       5.836407e-03      8.434222e-03        0.6920            2.6056
+S41      0.5195              7387.7  3.252278e-03       5.783221e-03      8.065122e-03        0.7171            2.4798
+S42      0.5221              7334.1  3.261013e-03       5.819908e-03      8.046084e-03        0.7233            2.4674
+S43      0.5238              7301.1  3.267488e-03       5.844627e-03      7.654071e-03        0.7636            2.3425
+S44      0.5320              7136.5  3.269528e-03       5.915316e-03      8.128224e-03        0.7278            2.4861
+S51      0.5167              7444.1  3.269972e-03       5.792618e-03      8.113654e-03        0.7139            2.4813
+S52      0.5151              7475.6  3.271398e-03       5.782923e-03      8.168884e-03        0.7079            2.4971
+S53      0.5230              7315.9  3.268795e-03       5.841043e-03      8.170351e-03        0.7149            2.4995
+S54      0.5113              7554.2  3.266515e-03       5.744150e-03      7.899723e-03        0.7271            2.4184
+
+  bootstrap replicates     : 400, block 64 epochs
+  bootstrap time           : 0.499 s
+  equation (13) / bootstrap: 0.6428 to 0.7984
+  bootstrap / naive        : 2.2323 to 2.8008
+
+Equation (13) comes out BELOW the bootstrap on every station. It assumes an
+AR(1) and the indicator series is not one: thresholding a persistent
+Gaussian gives a process with a longer tail in its autocorrelation than its
+lag-one implies, so the AR(1) correction understates the inflation. The
+bootstrap figure is the one this product quotes for an empirical joint rate;
+equation (13) is quoted for a MARGINAL rate, where it is the conservative
+choice in the direction the naive form fails, and the ratio is reported
+rather than hidden.
+
+[PASS] the bootstrap standard error exceeds the naive binomial one at every station -- inflation factor 2.2323 to 2.8008 against the naive binomial form
+[PASS] equation (13) is the same order as the bootstrap, within a factor of two -- ratio 0.6428 to 0.7984
+[PASS] control: equation (13) does NOT agree with the bootstrap to 5 per cent, and the difference is reported rather than claimed away (must fire) -- FIRED; 20 of 20 stations differ by more than 5 per cent; the AR(1) assumption is an approximation and this is its size
+
+CHECKS RUN: 9
+CONTROLS: 2 declared, 2 fired
+FAILED CHECKS (0): none
