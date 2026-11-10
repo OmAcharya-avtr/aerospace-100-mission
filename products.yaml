@@ -1383,14 +1383,14 @@ products:
     summary: "Optical ground-station site diversity availability computed under MEASURED spatial correlation, against the independence assumption that overstates it, with the overstatement as the headline output. Baseline 1 the naive product-of-marginals under full independence, implemented deliberately as the thing being refuted because it is what the practice does; baseline 2 Gaussian-copula and fitted exponential correlation-length models over site separation giving joint unavailability in closed form; baseline 3 ground truth direct empirical joint availability from the concurrent climatology record with bootstrap confidence intervals. Learned spatio-temporal cloud-field correlation model scored on held-out SITES and held-out TIME reported separately because a model can pass one and fail the other, with the expected result that the fitted correlation-length model is competitive and any learned margin is smaller than the bootstrap interval on the empirical reference. Climatology-uncertainty share propagated from the record's own sampling uncertainty and reported beside every availability figure."
     ai_enabled: true
     validation_level: 3
-    status: NOT STARTED
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/sitediverse
     local_path: products/P082
     approved_for_publish: false
-    published: false
+    published: true
     package: sitediverse
-    pypi_name_check: "sitediverse FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls"
+    pypi_name_check: "sitediverse FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls. RE-PROBED 2026-11-10 by the coordinator against https://pypi.org/pypi/sitediverse/json: HTTP 404, still free. The eight alternatives named in the README were verified the same way the same day and all returned HTTP 200 with the versions quoted."
   - id: P083
     name: HilVerdict
     batch: 9
@@ -1519,3 +1519,168 @@ products:
     published: true
     package: tlecheck
     pypi_name_check: "tlecheck FREE, probed with pip index versions against the live index on 2026-10-28; probe validated against numpy (2.5.4) / sgp4 (2.27) TAKEN and beamtwin FREE controls"
+  - id: P091
+    name: ThermalBudget
+    batch: 10
+    class: flagship
+    category: hardware-in-the-loop
+    summary: "Sustained on-board throughput of an autonomy or GNC pipeline AFTER the board reaches thermal equilibrium, against the short-burst figure a datasheet or a cold benchmark reports, with the gap between them as the headline output. Baseline 1 the cold-burst benchmark, implemented deliberately as the thing being refuted because it is what a bench measurement produces; baseline 2 a first-order thermal RC network fitted to the measured die-temperature rise giving the throttled steady-state clock in closed form; baseline 3 ground truth directly measured sustained throughput and die temperature from a soak run on the board, with the run-to-run spread reported as a bootstrap interval. Learned thermal-state predictor mapping a short warm-up trace to the eventual steady state, scored on held-out DUTY CYCLES and held-out AMBIENT conditions separately because a model can pass one and fail the other, with the expected result that the RC model is competitive and any learned margin is smaller than the run-to-run interval. WHAT IT DOES THAT EXISTING TOOLS DO NOT: thermal benchmarking tools report temperature and clock traces; none of them converts the throttled steady state into a sustained mission throughput with an interval attached, and none reports the cold-burst overstatement as its headline."
+    ai_enabled: true
+    validation_level: 4
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P091
+    approved_for_publish: false
+    published: false
+    package: thermalbudget
+    pypi_name_check: "thermalbudget FREE, probed against https://pypi.org/pypi/thermalbudget/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"
+    hardware_note: "HARDWARE-BLOCKED. Needs the Jetson Orin Nano powered on and reachable with passwordless SSH from the Mac. Thermal soak, die temperature and sustained clock cannot be simulated; nothing here may be labelled Level 4 in the product's own README until the timing and resource figures are measured on the board itself."
+  - id: P092
+    name: DeadlineRisk
+    batch: 10
+    class: flagship
+    category: autonomous-aerospace-systems
+    summary: "Deadline-miss probability for a hard-real-time autonomy loop running on the real board under co-resident contention, against the mean-plus-margin rule that understates the tail, with the understatement as the headline output. Baseline 1 mean execution time plus a fixed sigma margin, implemented deliberately as the thing being refuted because it is what the practice does; baseline 2 an extreme-value fit, generalised Pareto over the measured peaks-over-threshold tail, giving the miss probability in closed form with a declared threshold-choice diagnostic; baseline 3 ground truth the directly counted miss rate over a long measured run with a bootstrap confidence interval that accounts for serial dependence between consecutive deadlines. Learned contention-aware predictor mapping co-resident workload descriptors to a miss probability, scored on held-out WORKLOAD MIXES and held-out TIME separately, with the expected result that the EVT fit is competitive and any learned margin is smaller than the bootstrap interval on the counted reference. WHAT IT DOES THAT EXISTING TOOLS DO NOT: WCET analysers bound a single task on an idle processor and real-time tracers report observed maxima; neither produces a miss PROBABILITY with an interval under a named contention mix, which is the number a mission actually needs."
+    ai_enabled: true
+    validation_level: 4
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P092
+    approved_for_publish: false
+    published: false
+    package: deadlinerisk
+    pypi_name_check: "deadlinerisk FREE, probed against https://pypi.org/pypi/deadlinerisk/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"
+    hardware_note: "HARDWARE-BLOCKED. Needs the Jetson Orin Nano. Execution-time tails under contention are a property of the silicon, the scheduler and the memory system; a simulated tail is not evidence. Nothing here may be labelled Level 4 until measured on the board."
+  - id: P093
+    name: PowerEnvelope
+    batch: 10
+    class: medium
+    category: hardware-in-the-loop
+    summary: "Energy per USEFUL DECISION for an on-board autonomy pipeline, measured on the board under duty cycling, against the energy-per-inference figure that flatters it by ignoring rejected and low-confidence outputs. Baseline 1 energy per inference at the nominal power rail, the thing being refuted; baseline 2 an analytic duty-cycle energy model with measured idle, ramp and active components and the rail efficiency curve applied; baseline 3 ground truth measured rail energy integrated over a run, with the between-run spread reported as an interval. Learned power predictor from workload descriptors, with an uncertainty output, scored on held-out DUTY CYCLES and held-out WORKLOADS separately. Expected result: the analytic model is competitive. WHAT IT DOES THAT EXISTING TOOLS DO NOT: power profilers report watts over time; none of them divides by the number of decisions a mission could actually act on, which is where the duty-cycle and confidence-rejection costs appear."
+    ai_enabled: true
+    validation_level: 4
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P093
+    approved_for_publish: false
+    published: false
+    package: powerenvelope
+    pypi_name_check: "powerenvelope FREE, probed against https://pypi.org/pypi/powerenvelope/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"
+    hardware_note: "HARDWARE-BLOCKED. Needs the Jetson Orin Nano and a rail power measurement. Energy figures cannot be simulated. Nothing here may be labelled Level 4 until measured on the board."
+  - id: P094
+    name: HilTimingDiff
+    batch: 10
+    class: medium
+    category: testing
+    summary: "Differential timing conformance between the SIMULATION-mode and HARDWARE-mode execution of one pipeline, reporting where the simulation's timing assumptions diverge from the board and by how much, with the divergence as the headline output. Baseline 1 the simulation's own declared timing model, the thing being refuted; baseline 2 a per-stage analytic scaling of simulated to measured time fitted on a training subset of stages; baseline 3 ground truth per-stage measured time on the board with a bootstrap interval. No learned component: the product's value is the paired per-stage comparison and the ordering of divergences, and a model fitted to the same measurements it would be scored against would add nothing honest. WHAT IT DOES THAT EXISTING TOOLS DO NOT: HIL frameworks run a pipeline in both modes but compare OUTPUTS; this compares the timing itself, stage by stage, and names which simulated stage is least trustworthy as a schedulability input."
+    ai_enabled: false
+    validation_level: 4
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P094
+    approved_for_publish: false
+    published: false
+    package: hiltimingdiff
+    pypi_name_check: "hiltimingdiff FREE, probed against https://pypi.org/pypi/hiltimingdiff/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"
+    hardware_note: "HARDWARE-BLOCKED on its hardware half. The simulation half, the harness and the paired comparison are buildable in the cloud; the measured half needs the Jetson Orin Nano. Nothing here may be labelled Level 4 until the hardware half is measured on the board."
+  - id: P095
+    name: BoardProbe
+    batch: 10
+    class: compact
+    category: hardware-in-the-loop
+    summary: "The hardware abstraction layer the other four Level 4 products sit on: a uniform interface over the board's clock, die-temperature, rail-power and performance-counter sources, with a DECLARED simulation mode that returns recorded traces rather than live readings, a dry-run mode that exercises every code path without touching the board, documented deployment and recovery procedures, and the benchmark harness itself. Every reading carries its source (live, recorded or simulated) in the returned value, so a figure derived from simulated readings cannot be mistaken for a measurement; a validation check asserts that no simulated reading can reach a result labelled as measured. No learned component and no physics claim of its own. WHAT IT DOES THAT EXISTING TOOLS DO NOT: board support packages and telemetry libraries expose the sensors; none of them tags provenance through to the result, which is precisely the discipline a hardware-measured validation level needs in order to mean anything."
+    ai_enabled: false
+    validation_level: 4
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P095
+    approved_for_publish: false
+    published: false
+    package: boardprobe
+    pypi_name_check: "boardprobe FREE, probed against https://pypi.org/pypi/boardprobe/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"
+    hardware_note: "PARTLY BUILDABLE IN THE CLOUD and the right place to start. The HAL, the simulation and dry-run modes, the provenance tagging, the deployment and recovery procedures and the benchmark harness need no board. Only the live-reading path and the measured timing and resource figures need the Jetson Orin Nano, and nothing may be labelled Level 4 until those come from the board."
+  - id: P096
+    name: HandoverLoss
+    batch: 10
+    class: medium
+    category: optical-link-engineering
+    summary: "End-to-end data loss across a ground-station handover in an optical network, attributed separately to acquisition time, buffer drain and protocol restart, with the headline output being WHICH of the three dominates rather than the total. Baseline 1 the assumption that acquisition time is the whole story, implemented deliberately as the thing being refuted because it is what a link budget implies; baseline 2 an analytic fluid buffer-drain and restart model giving the loss in closed form from the declared handover sequence; baseline 3 ground truth direct accounting over a simulated handover trace with bootstrap confidence intervals. Learned predictor of handover loss from pre-handover state, with an uncertainty output, scored on held-out STATION PAIRS and held-out TIME separately. WHAT IT DOES THAT EXISTING TOOLS DO NOT: network simulators measure total loss across a handover; none of them decomposes it into the three mechanisms with an interval on each, which is what tells an operator whether to buy faster acquisition or more buffer."
+    ai_enabled: true
+    validation_level: 2
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P096
+    approved_for_publish: false
+    published: false
+    package: handoverloss
+    pypi_name_check: "handoverloss FREE, probed against https://pypi.org/pypi/handoverloss/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"
+  - id: P097
+    name: FlakeRank
+    batch: 10
+    class: compact
+    category: testing
+    summary: "Ranks intermittently failing tests by the COST of their intermittency, expected wasted re-run time, rather than by flake rate, with the headline output being how far the two rankings disagree. Baseline 1 ranking by flake rate, implemented deliberately as the thing being refuted because it is what every CI dashboard does and it systematically underweights a rare failure in a slow test; baseline 2 an analytic expected-rerun-cost model from the measured per-test failure probability and runtime, with the geometric re-run count in closed form; baseline 3 ground truth directly accumulated wasted time over a long recorded run history with bootstrap confidence intervals. Learned intermittency predictor over test features, with a confidence output, scored on held-out TESTS and held-out TIME separately. Motivated by a failure this mission actually shipped: a 1-in-44 intermittent self-inflicted failure in a validation probe that any number of agreeing serial verifications was blind to. WHAT IT DOES THAT EXISTING TOOLS DO NOT: flaky-test detectors report a rate and a first-seen date; none of them puts a cost interval on the rate, so none of them can say which flake is worth fixing first."
+    ai_enabled: true
+    validation_level: 2
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P097
+    approved_for_publish: false
+    published: false
+    package: flakerank
+    pypi_name_check: "flakerank FREE, probed against https://pypi.org/pypi/flakerank/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"
+  - id: P098
+    name: EvidenceStale
+    batch: 10
+    class: compact
+    category: aerospace-assurance
+    summary: "Measures how much of an assurance case rests on evidence whose SUBJECT has changed since the evidence was produced, with the stale fraction as the headline output. Baseline 1 comparing evidence and artifact timestamps directly, implemented deliberately as the thing being refuted because it misses a change that reaches the artifact through a dependency and false-positives on a touched but unchanged file; baseline 2 content-hash comparison over the DEPENDENCY CLOSURE of each artifact, giving staleness exactly; baseline 3 ground truth a replayed change history in which each item's true staleness is known by construction, with bootstrap intervals on the aggregate fraction. Learned staleness-risk model over graph features, with a confidence output, scored on held-out ARTIFACTS and held-out TIME separately; the expected result is that the closure comparison is exact and the learned model cannot beat it, which is reported as the finding. WHAT IT DOES THAT EXISTING TOOLS DO NOT: traceability tools check that a link EXISTS between a claim and its evidence; this checks whether the link is still TRUE, which is the question an audit actually asks."
+    ai_enabled: true
+    validation_level: 2
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P098
+    approved_for_publish: false
+    published: false
+    package: evidencestale
+    pypi_name_check: "evidencestale FREE, probed against https://pypi.org/pypi/evidencestale/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"
+  - id: P099
+    name: PassYield
+    batch: 10
+    class: compact
+    category: space-operations
+    summary: "Realised data yield of a scheduled ground-station contact against the nominal duration the scheduler assumed, decomposed into acquisition, re-sync and idle time, with the nominal-versus-realised shortfall as the headline output. Baseline 1 nominal duration times nominal rate, implemented deliberately as the thing being refuted because it is what a contact schedule books; baseline 2 an analytic yield model with measured acquisition and re-sync distributions convolved over the pass geometry; baseline 3 ground truth directly accounted yield from a per-pass record with bootstrap confidence intervals. Learned per-pass yield predictor from pre-pass state and geometry, with an uncertainty output, scored on held-out STATIONS and held-out TIME separately. WHAT IT DOES THAT EXISTING TOOLS DO NOT: schedulers optimise against nominal contact windows and operations tools report delivered volume after the fact; neither feeds the measured shortfall back as a distribution the scheduler could book against."
+    ai_enabled: true
+    validation_level: 2
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P099
+    approved_for_publish: false
+    published: false
+    package: passyield
+    pypi_name_check: "passyield FREE, probed against https://pypi.org/pypi/passyield/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"
+  - id: P100
+    name: SeedAudit
+    batch: 10
+    class: compact
+    category: testing
+    summary: "Audits a repository's own reproducibility claims: finds every committed number that moves when only the random seed changes, every script that claims determinism and is not, and every check whose own execution can create the condition it tests, with the count of claimed-reproducible numbers that actually move as the headline output. Baseline 1 running each script twice and diffing, implemented deliberately as the thing being refuted because a 1-in-44 intermittent failure survives any small number of agreeing runs; baseline 2 a seed-sweep and repeat-count design with the detection probability for a given intermittency rate stated in closed form, so a clean audit carries a quantified upper bound on what it could have missed rather than an implied zero; baseline 3 ground truth a corpus with deliberately injected non-determinism of known rate, against which the audit's detection power is measured with bootstrap intervals. No learned component: a model would add a second thing to trust in a tool whose only value is being trustworthy. WHAT IT DOES THAT EXISTING TOOLS DO NOT: reproducibility checkers compare build outputs byte for byte; none of them states the detection power of its own sampling, which is the difference between finding no non-determinism and there being none. Motivated directly by six occurrences of the self-polluting-check class in this mission's own history."
+    ai_enabled: false
+    validation_level: 2
+    status: NOT STARTED
+    license: Apache-2.0
+    repository: null
+    local_path: products/P100
+    approved_for_publish: false
+    published: false
+    package: seedaudit
+    pypi_name_check: "seedaudit FREE, probed against https://pypi.org/pypi/seedaudit/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"

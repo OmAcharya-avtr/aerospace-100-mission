@@ -1,5 +1,80 @@
 # Mission Status
 
+> ## Reconciliation — 2026-11-10 (authoritative; supersedes the blocks below)
+>
+> Figures measured this session: registry totals from `scripts/quota_report.py`
+> run against `products.yaml` after the publication and registration edits;
+> test counts from junit XML in runs this session performed; contributor counts
+> from `gh api` against the live repository.
+>
+> - **The mission stands at 90 of 100 published, and the registry is COMPLETE.**
+>   `quota_report.py` measured this session: **Registered 100/100**, Built
+>   90/100, **Published 90/100**. Remaining gap: flagship 2, medium 3, compact
+>   5, AI 6, L1 0, L2 5, L3 **0**, **L4 5**.
+>
+> - **One product published tonight.** P082 SiteDiverse (`sitediverse`, 433
+>   tests, Level 3, flagship, AI-enabled) — the last registered-but-unbuilt
+>   product. Authorising verdict: `release_gate.py P082` returned `P082 PASS
+>   433 tests`, `repository PASS`, `Total tests passing: 433`, `VERDICT: PUSH
+>   ALLOWED`, **with the shell exit status captured directly as `0`**.
+>   Published under ADR-017 on that verdict alone: no `APPROVAL_LOG.md` row, no
+>   product set to `APPROVED`, `approved_for_publish` stays `false`, no owner
+>   statement quoted or implied. No human spoke in this session.
+>
+> - **P091–P100 are registered, so the registry closes at 100 of 100.** The ten
+>   slots close every remaining quota exactly: flagship 2, medium 3, compact 5;
+>   L2 5, L4 5; and seven of the ten are AI-enabled against a remaining AI gap
+>   of six. Every package name was probed against the live PyPI index on
+>   2026-11-10 and all ten returned HTTP 404, with numpy and sgp4 as TAKEN
+>   controls returning 200.
+>
+> - **L3 is now complete at 25 of 25, and that creates an arithmetic conflict in
+>   the task prompt.** The prompt says to label hardware-dependent products
+>   `Level 3, hardware-pending` and never Level 4. With L3 full, doing so would
+>   overshoot L3 by five and leave L4 permanently at 0 of 5. The five slots are
+>   therefore registered with `validation_level: 4` plus an explicit
+>   `hardware_note`, and the prompt's real prohibition — that no **product** may
+>   be labelled Level 4 in its own README on simulated numbers — is preserved
+>   verbatim in each note. A slot's target level is not a claim about a built
+>   artifact. **This needs the owner's ratification.**
+>
+> - **Validation L4 remains 0 of 5, the thirteenth consecutive batch.** All five
+>   remaining slots require it. **This needs the owner:** the Jetson Orin Nano
+>   powered on and reachable, its hostname or IP, and passwordless SSH from the
+>   Mac. Nothing was relabelled on simulated numbers. **P095 BoardProbe is the
+>   right place to start** and is partly buildable without the board.
+>
+> - **The finding of this session is a negative one about the learned model, and
+>   it is published as found.** Scored against the generator's own correlation
+>   rather than the noisy empirical target, the learned model is *closer to the
+>   target and further from the truth* than either baseline (0.063107 against
+>   0.043280 and 0.043236) — it is fitting estimation noise in a target whose
+>   own rms error is 0.073751. Only a synthetic record with a known ground truth
+>   can expose this. Every learned margin is inside the bootstrap half-width on
+>   the empirical reference, on every cell of both records, which is the
+>   specification's expected result, and the baseline beats the learned model
+>   outright on held-out TIME.
+>
+> - **A claim that committing the product falsified, for the second session
+>   running.** The build measured the `git ls-files` hygiene check against an
+>   uncommitted tree (0 files, recorded as VACUOUS); committing made it real at
+>   92 tracked files, 0 offenders. Both documents were corrected and each
+>   correction is marked as a correction. This is now a reproducible property of
+>   the build order, not an incident: a build agent cannot measure a
+>   tracked-file check, because the coordinator holds all commits. **This needs
+>   the owner** only to choose the fix.
+>
+> - **The 2026-11-02 self-check narrowing is confirmed a third time, with a new
+>   polluter.** The coordinating session's own `ruff` and `pytest` runs left 37
+>   cache artifacts in P082's tree; the self-check reported all 37 as inherited,
+>   did not fail, and the gate returned PASS. Three independent polluters have
+>   now been observed — the script's own interpreter, the release gate, and the
+>   coordinating session.
+>
+> - **Six nights still have no record.** 2026-11-03 through 2026-11-08 produced
+>   no commit of any kind. 2026-11-09 and 2026-11-10 both did, so the schedule
+>   is firing now. **This still needs the owner.**
+
 > ## Reconciliation — 2026-11-09 (authoritative; supersedes the blocks below)
 >
 > Figures measured this session: registry totals from `scripts/quota_report.py`

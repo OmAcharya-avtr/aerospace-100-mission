@@ -1024,3 +1024,169 @@ This was found AFTER the gate verdict and was not fixed, following the
 its verdict publishes an artifact the gate never saw. The honest repair is to
 quote the ratio with its observed range rather than to six decimals, and it
 belongs to the next session.
+
+## 2026-11-10 — P082 SiteDiverse PUBLISHED. The registry closes at 100 of 100.
+
+| field | value |
+|---|---|
+| product | P082 SiteDiverse, flagship, AI-enabled, Level 3 |
+| repository | https://github.com/OmAcharya-avtr/sitediverse |
+| head commit | `d0f8fb4` |
+| files | 92 tracked |
+| tests | 433 passing, 0 failures, 0 errors, 0 skipped |
+| licence | Apache-2.0 |
+| visibility | public |
+| contributors | `OmAcharya-avtr` — one line, one name |
+| published count | 89 → **90 of 100** |
+
+### Gate
+
+`python3 scripts/release_gate.py P082` returned:
+
+```
+Release gate — 1 product(s)
+
+P082  PASS       433 tests
+
+repository  PASS
+
+Total tests passing: 433
+VERDICT: PUSH ALLOWED
+```
+
+**The shell exit status was captured directly as `0`**, by running the gate as
+a background job writing `$?` to a file, so the printed verdict and the status
+are independent evidence. The gate needed roughly fifteen minutes, which again
+exceeds the Bash tool's ten-minute foreground cap.
+
+No check was skipped, no threshold loosened, the gate was not edited, and
+nothing from a blocked product was pushed. Published under **ADR-017** on that
+verdict alone. Per **ADR-016**: no `APPROVAL_LOG.md` row was written, the
+product was not set to `APPROVED`, `approved_for_publish` stays `false`, and no
+owner statement is quoted or implied. **No human spoke in this session.**
+
+### The registry is now complete
+
+P091–P100 are registered, so `quota_report.py` reads **Registered 100/100**,
+Built 90/100, Published 90/100. The ten new slots close every remaining quota
+exactly: flagship 2, medium 3, compact 5; L2 5, L4 5; and seven of the ten are
+AI-enabled against a remaining AI gap of six.
+
+**Five of the ten are Level 4 and none of them can be built without the Jetson
+Orin Nano.** P095 BoardProbe is the right place to start and is partly
+buildable in the cloud: the hardware abstraction layer, the declared
+simulation and dry-run modes, the provenance tagging, the deployment and
+recovery procedures and the benchmark harness need no board. Only the live
+reading path and the measured timing and resource figures need the hardware.
+
+### An arithmetic conflict in the task prompt, recorded rather than resolved
+
+The prompt instructs that hardware-dependent products be labelled
+`Level 3, hardware-pending` and **never** Level 4 until measured on the board.
+As of this session that instruction is arithmetically impossible: publishing
+P082 brought **L3 to 25 of 25**, its target. Labelling the five hardware
+products L3 would overshoot L3 by five and leave L4 permanently at 0 of 5, so
+the quota could never close.
+
+The resolution taken, which needs the owner's ratification: the five slots are
+registered in `products.yaml` with `validation_level: 4`, because that is the
+slot's target, together with an explicit `hardware_note` recording that the
+slot is hardware-blocked. The prompt's actual prohibition — that no **product**
+may be labelled Level 4 in its own README on simulated numbers — is preserved
+verbatim inside each of those notes. A registry slot's target level is not a
+claim about a built artifact; a README's badge is. Nothing has been relabelled
+on simulated numbers and nothing will be.
+
+### Results published as measured, not tuned away
+
+The expected finding was confirmed on every cell of both records: **every
+learned margin is smaller than the bootstrap half-width on the empirical
+reference.** On held-out TIME the fitted correlation-length baseline *beats*
+the learned model on both records (margins -0.003168 and -0.003330 isotropic,
+-0.003459 anisotropic). On the correctly-specified record the held-out-SITES
+margin is not distinguishable from zero.
+
+The sharpest result is a negative one for the learned model and is published as
+found: scored against the generator's own correlation rather than the noisy
+empirical target, held-out SITES of the anisotropic record gives exponential
+0.043280, per-regime 0.043236, learned **0.063107**. The learned model is
+closer to the target and **further from the truth** — it is fitting the
+estimation noise in a target whose own rms error is 0.073751. Only a synthetic
+record with a known ground truth can expose this, and it is the strongest
+argument in the product for the synthetic record.
+
+Its uncertainty output is **badly under-covered out of sample**: nominal 0.80,
+measured 0.8000 / 0.6147 / 0.4643 on train / held-out SITES / held-out TIME. A
+negative control asserts that the under-coverage fires. 102 of 1520 quantile
+crossings are counted, not repaired.
+
+Two further weak results are reported rather than hidden. The block bootstrap
+**does not plateau**: the standard error rises monotonically by a factor of
+3.9553 from a 1-epoch block to a 512-epoch block, so every interval quoted at
+the declared 64 epochs is a **lower bound** — a direction that only strengthens
+"the margin is inside the interval". And held-out TIME **is not a test of
+temporal extrapolation**, because no feature encodes the time half, so a
+held-out-TIME row receives the same prediction as its training twin and only
+the target differs. That is stated in the model card, the README and the
+validation output so the result cannot be overstated.
+
+### Measured by the coordinator, not taken from the build agent
+
+Every figure above was re-measured independently; none of the build agent's
+self-reported numbers was entered anywhere.
+
+- junit XML `testsuite`: `tests=433 failures=0 errors=0 skipped=0`,
+  cross-checked against an independent count of `testcase` elements, also
+  **433**. The gate's own run returned 433 as well.
+- All **17** scripts under `validation/` exit 0 run with `cwd=validation/`,
+  which is the gate's working directory, re-run by the coordinator rather than
+  taken from the agent's table.
+- The working-directory probe, run independently by the coordinator: **0
+  non-zero exits in 70 runs**, and again **0 of 70** on a second run from a
+  clean tree. This is the first session since the class was identified in which
+  the coordinator's independent probe run *agreed* with the agent's.
+- Ruff clean under **both** installed versions, 0.16.9 on PATH and 0.17.4 as a
+  module, over `src/ tests/ examples/ validation/`.
+- The `pytest.approx` audit: **0 of 433** assertions depend on the hidden
+  1e-12 absolute default; 90 of 90 `rel=` calls carry an explicit `abs=`. Ten
+  assertions rest on an absolute bound by design, each named and accounted for.
+- Negative controls: **26 declared, 15 fired**; 15 of 15 must-fire controls
+  fired and 11 of 11 must-not-fire controls did not. 0 control checks failed.
+- All **15** validation scripts report `FAILED CHECKS (0): none`.
+- Every one of the eight packages in the README's alternatives table was
+  re-verified by the coordinator against `https://pypi.org/pypi/<name>/json` on
+  2026-11-10: all eight returned HTTP 200 at the versions quoted, and
+  `sitediverse` itself returned **404**, still free.
+
+### A claim that committing the product falsified, for the second session running
+
+Exactly as with P081 on 2026-11-09, the build measured `validate_cli.py`'s
+`git ls-files` hygiene check against an **uncommitted** tree, where it examined
+**0 files**, and recorded it honestly as **VACUOUS**. Committing the product
+made the check real: **92 tracked files examined, 0 offenders.** README.md and
+`validation/VALIDATION.md` were corrected and each correction is **marked as a
+correction** rather than overwritten, so the weaker earlier claim stays
+legible.
+
+This is now a reproducible property of the build order rather than an incident,
+and it is cheap to fix at cause: a build agent cannot measure a tracked-file
+check because the coordinator holds all commits. The honest options are to have
+the agent report the check as structurally unmeasurable, or to have the
+coordinator re-run it after committing, as it did here twice. **This needs the
+owner** only to choose between them.
+
+### The self-check narrowing is confirmed a third time, with a new polluter
+
+The 2026-11-02 narrowing — a self-check asserts what the product owns, not that
+no cache artifact exists — was confirmed again, and this time **the polluter was
+the coordinating session itself**, not the release gate. The coordinator's own
+`ruff` and `pytest` runs left **37** cache artifacts in P082's tree
+(`.ruff_cache` plus 36 `__pycache__` entries and `.pyc` files) before
+`validate_cli.py` ran. The self-check reported all 37 as **inherited**, did not
+fail on them, and separately confirmed that git tracks none. The gate then
+returned PASS.
+
+Three independent polluters have now been observed — the script's own
+interpreter, the release gate, and the coordinating session — which is the
+argument for the narrowing in its general form rather than for a list of
+exceptions.
