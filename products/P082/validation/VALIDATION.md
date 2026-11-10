@@ -426,9 +426,21 @@ output file.
   measure the uncertainty in the models' fitted parameters, which would require
   refitting inside every replicate.
 - **The `git ls-files` hygiene check in `validate_cli.py` examined 0 files when
-  this build measured it**, because the product was uncommitted, and it is
+  this build measured it**, because the product was uncommitted, and it was
   recorded in the output as **VACUOUS** rather than as a pass. Release-gate
   check 9 enforces the same claim independently.
+  **Corrected after commit (2026-11-10):** the coordinator committed the product
+  and re-ran the script independently; the check examined **92 tracked files and
+  found 0 offenders**, so it is now real rather than vacuous. The earlier,
+  weaker claim is kept above rather than overwritten.
+- **The coordinator's own re-measurement left 37 cache artifacts in the tree**
+  — `.ruff_cache` plus 36 `__pycache__` entries and `.pyc` files, written by the
+  coordinator's `ruff` and `pytest` runs before `validate_cli.py` was invoked.
+  The self-check reported all 37 as **inherited**, did not fail on them, and
+  separately confirmed that git tracks none. This is the third empirical
+  confirmation of the 2026-11-02 narrowing of the self-check rule, and the first
+  in which the polluter is the coordinating session rather than the release
+  gate.
 - **The baselines beat the learned model on half the hold-out cells.** That is
   research evidence. It is not removed, softened or retuned away.
 - **Dependency ranges were run at both ends for `ruff` only.** See README.md

@@ -418,7 +418,11 @@ Level 3. Full detail, including every check that is weak or vacuous, is in
 - **Equation (13) disagrees with a block bootstrap on 20 of 20 stations** by
   more than 5 per cent. A negative control asserts the disagreement is detected.
 - **The `git ls-files` hygiene check examined 0 files** when this build measured
-  it, because the product was uncommitted, and is recorded as VACUOUS.
+  it, because the product was uncommitted, and was recorded as VACUOUS.
+  **Corrected after commit (2026-11-10):** committing the product made the check
+  real and the coordinator's independent re-run measured **92 tracked files
+  examined, 0 offenders**. The weaker claim above is left legible rather than
+  overwritten, because it is what the build could honestly measure at the time.
 - **This product's first version of the bound slack was wrong** — it looked
   conditioned and was an absolute constant in disguise. It is pinned in
   `tests/test_regressions.py` and reconstructed by a negative control.
