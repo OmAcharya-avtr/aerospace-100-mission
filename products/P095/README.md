@@ -51,8 +51,8 @@ worthless, which is a different and worse thing.
   live path and is measured in
   `validation/validate_backends_output.txt`.
 - **A benchmark harness that characterises its own overhead.** The in-bracket
-  overhead sits inside an independently measured sandwich — **2.740 ≤ 4.348 ≤
-  7.685 µs**, both bounds held on **7 of 7** trials — and the perturbation
+  overhead sits inside an independently measured sandwich — **2.193 ≤ 3.470 ≤
+  6.017 µs**, both bounds held on **7 of 7** trials — and the perturbation
   curve says plainly that **below a few microseconds this harness is not an
   instrument**.
 - **A dry-run mode whose claim is a measurement.** **16 named code paths
@@ -82,7 +82,7 @@ worthless, which is a different and worse thing.
   Nano; every declared path is unverified. `docs/DEPLOYMENT.md` is the
   procedure for finding out what is wrong with it.
 - Anyone benchmarking something that costs a few microseconds. The harness
-  perturbs a 2.3 µs payload by a median factor of 3.33 on the build host, and
+  perturbs a 1.9 µs payload by a median factor of 3.515 on the build host, and
   says so rather than reporting the number.
 - Anyone who wants a security boundary. The tamper seal detects mutation,
   mislabelling and forged documents. Code in the same process can import
@@ -320,11 +320,11 @@ without the board, which is the correct answer.
 
 ![the harness overhead](screenshots/harness_overhead.png)
 
-Notice the right panel's median crossing the 10-per-cent line between 67 µs
-(1.123) and 141 µs (1.056). Below that the harness is measuring itself as much
+Notice the right panel's median crossing the 10-per-cent line between 37 µs
+(1.208) and 75 µs (1.066). Below that the harness is measuring itself as much
 as the payload, and the figure to quote is the perturbation, not the duration.
 Notice also the min-to-max band straddling 1.0 at the right-hand end: above
-about 140 µs on this shared two-core host the perturbation is comparable with
+about 150 µs on this shared two-core host the perturbation is comparable with
 the run-to-run noise, and the band is the honest statement of that.
 
 ![the label matrix](screenshots/label_matrix.png)
@@ -336,7 +336,7 @@ refused outright on this host because the board is absent.
 ## Validation evidence
 
 Level 3, hardware-pending. Full evidence, with raw output beside every script,
-in [`validation/VALIDATION.md`](validation/VALIDATION.md). **122 named checks,
+in [`validation/VALIDATION.md`](validation/VALIDATION.md). **121 named checks,
 0 failures.** Highlights, including the two that went against the product:
 
 | check | reference | result | tolerance |
@@ -347,7 +347,7 @@ in [`validation/VALIDATION.md`](validation/VALIDATION.md). **122 named checks,
 | the propagation counted by **inclusion and exclusion** | `3ⁿ − 2ⁿ`, `2ⁿ − 1`, `1`, summing to `3ⁿ` | **9840 assignments for n = 1..8, 0 mismatches** | exact integer arithmetic |
 | **the adversarial check** | 15 routes: direct, aggregated, diluted, second-order, replayed, document-claims-live, round-tripped, mutated, subclassed, `dataclasses.replace`, overriding backend, sealed-subclass, rebound class attribute, empty fold, forged certificate | **15 attempted, 15 refused, 0 succeeded** | — |
 | **two routes that SUCCEEDED and were closed by a design change** | `dataclasses.replace(reading, provenance=LIVE)` and rebinding `SimulatedSource.backend_provenance` | both now refused; the attacks are documented in full | — |
-| the harness overhead sandwich | `Reading cost ≤ in-bracket overhead ≤ clock pair cost`, both bounds independently measured | median **2.740 ≤ 4.348 ≤ 7.685 µs**; **7/7** and **7/7** trials | zero slack, structural inequalities |
+| the harness overhead sandwich | `Reading cost ≤ in-bracket overhead ≤ clock pair cost`, both bounds independently measured | median **2.193 ≤ 3.470 ≤ 6.017 µs**; **7/7** and **7/7** trials | zero slack, structural inequalities |
 | the simulated backend's reproducibility | two instances at seed 770095 | **14 of 14 channels bit-identical** | bit-exact |
 | the live backend with no board attached | the real filesystem root | **13 of 13 channels refused, 0 served**, every refusal actionable | — |
 | channels verified on hardware | the shipped table | **0 of 14**, asserted | — |
@@ -357,7 +357,7 @@ in [`validation/VALIDATION.md`](validation/VALIDATION.md). **122 named checks,
 | `pytest.approx` hidden default | the suite with the default forced off, and again with every `abs` forced to 0.0 | **0 of 291** depend on it; **0 of 291** rest on an absolute bound | — |
 | tests, from junit XML | `testsuite` element against a count of `testcase` elements | **291 declared, 291 counted**, 0 failures, 0 errors, 0 skipped | — |
 | working directories | `/`, `/tmp`, the product root, `validation/` and `examples/` | **48 runs, 0 non-zero exits** | — |
-| git tracks no cache or build artifact | — | **STRUCTURALLY UNMEASURABLE** by a build agent on an uncommitted tree; reported as such, not passed | — |
+| git tracks no cache or build artifact | `git ls-files` over the committed tree | **78 tracked files examined, 0 offenders** — measured after committing; see Corrections | — |
 
 ## Benchmark results
 
@@ -369,32 +369,32 @@ From `validation/validate_harness_output.txt`.
 
 | quantity | µs on the build host |
 | --- | --- |
-| one sealed `Reading` | 2.652 |
-| one clock read, measured independently | 4.035 |
-| overhead inside the timed bracket | 4.337 |
-| `reference_payload(2000)`, sampling off | 73.040 |
-| `reference_payload(2000)`, sampling on | 79.678 |
+| one sealed `Reading` | 2.143 |
+| one clock read, measured independently | 2.971 |
+| overhead inside the timed bracket | 3.416 |
+| `reference_payload(2000)`, sampling off | 59.291 |
+| `reference_payload(2000)`, sampling on | 64.510 |
 
 A 200-repeat timing-only benchmark of `reference_payload(2000)`: mean
-**80.522 µs**, sd **7.431 µs**, median **78.275 µs**, against a clock
-resolution at this host's uptime of **4.547e-13 s** — the median duration is
-**1.721e+08** times the resolution floor.
+**64.375 µs**, sd **4.390 µs**, median **63.056 µs**, against a clock
+resolution at this host's uptime of **9.095e-13 s** — the median duration is
+**6.933e+07** times the resolution floor.
 
 The perturbation ratio is **noisy, and that is reported rather than hidden**:
 single trials on this host have come back below 1.0, which is not a negative
 overhead but a statement that the perturbation is at the level of the
-measurement noise for a 70 µs payload. `examples/harness_overhead.py` measures
+measurement noise for a 60 µs payload. `examples/harness_overhead.py` measures
 the whole curve over five trials per point, and it is the figure to read. The
 median ratio, against the median payload cost without sampling:
 
-| payload without sampling [µs] | 2.28 | 4.51 | 9.29 | 19.75 | 38.41 | 67.38 | 141.42 | 255.46 |
+| payload without sampling [µs] | 1.88 | 3.69 | 8.96 | 18.07 | 36.58 | 74.65 | 152.55 | 300.16 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| perturbation, median of 5 | 3.330 | 2.153 | 1.610 | 1.252 | 1.165 | 1.123 | 1.056 | 1.037 |
-| min over 5 | 3.001 | 1.736 | 1.549 | 1.211 | 0.864 | 1.054 | 0.957 | 0.922 |
-| max over 5 | 4.044 | 2.769 | 2.304 | 1.360 | 1.251 | 1.152 | 1.083 | 1.082 |
+| perturbation, median of 5 | 3.515 | 2.332 | 1.545 | 1.303 | 1.208 | 1.066 | 1.011 | 1.037 |
+| min over 5 | 3.405 | 2.264 | 1.448 | 1.131 | 1.034 | 1.043 | 0.962 | 0.982 |
+| max over 5 | 3.670 | 2.413 | 1.604 | 1.408 | 1.281 | 1.124 | 1.088 | 1.085 |
 
-The min row at 38 µs reads 0.864 and at 255 µs reads 0.922, and the max at
-9 µs reads 2.304 against a median of 1.610. Those are not perturbations; they
+The min row at 153 µs reads 0.962 and at 300 µs reads 0.982, and the max at
+1.9 µs reads 3.670 against a median of 3.515. Those are not perturbations; they
 are a shared two-core host descheduling the measuring process, and they are
 left in rather than trimmed because they are the reason the median and the
 band are reported instead of a single trial.
@@ -526,7 +526,7 @@ on a board.
 - **The harness overhead figures are x86_64 figures and will not transfer.**
   They must be re-characterised on the board. And the harness is not an
   instrument below a few microseconds of payload: the measured perturbation is
-  a median factor of 3.33 at a 2.3 µs payload, over five trials.
+  a median factor of 3.515 at a 1.9 µs payload, over five trials.
 - **The committed trace fixtures contain no board data.** Both were
   synthesised in a container by `synthesise_trace` at declared seeds, and both
   say so in their own `origin` field, which is printed in every report built
@@ -558,12 +558,14 @@ on a board.
   value. `ruff` is the exception, measured clean at both 0.16.9 and 0.17.4. The
   tension is real: a pin below a future security release is a cost, not a free
   safety measure.
-- **The tracked-file self-check is structurally unmeasurable by a build
-  agent.** This product's tree is uncommitted while it is built — the mission's
-  coordinator holds every commit — so `git ls-files` returns nothing and the
-  check is reported as unmeasurable rather than passed on an empty set. What is
-  measured instead is `git check-ignore -v --no-index` against every shipped
-  fixture.
+- **The tracked-file self-check cannot be measured by the build agent, and was
+  measured afterwards by the coordinator.** The tree is uncommitted while the
+  product is built — the mission's coordinator holds every commit — so
+  `git ls-files` returns nothing there and the check reported itself as
+  structurally unmeasurable rather than passing on an empty set. Measured after
+  committing: **78 tracked files examined, 0 offenders.** The build agent also
+  measures `git check-ignore -v --no-index` against every shipped fixture,
+  which is a different claim and remains useful. See Corrections.
 - **Four source classes are declared and no more.** No GPU channels, no memory
   bandwidth, no per-core load, no fan, no power mode. `jetson-stats` has all of
   those.
@@ -602,6 +604,42 @@ ruff check src/ tests/ examples/ validation/
 Seeds are in `validation/_bootstrap.py`. Every script writes its raw output
 beside itself as `validation/<script-name>_output.txt`, and every number above
 names the file it came from.
+
+## Corrections made after the build
+
+Every figure below was changed after the build agent handed the product over,
+by the coordinating session re-running the scripts over the committed tree.
+The earlier values are kept here rather than overwritten, because what they
+show about the measurement is the point.
+
+**1. The microsecond timing figures were requoted, and they are not stable.**
+The harness costs, the sandwich bounds, the 200-repeat benchmark and the
+perturbation curve were all requoted from a fresh run. Three independent runs
+of the in-bracket overhead on this host returned **4.348**, **3.470** and
+**4.546 µs** — a spread of **31 per cent** on the same code and the same
+machine. The sandwich bounds moved with it (2.740/7.685 µs to 2.193/6.017 µs),
+and so did the benchmark mean (80.522 to 64.375 µs).
+
+The verdicts did not move. Both sandwich bounds held on **7 of 7** trials in
+both runs, and the structural inequality the check exists to test — a
+`Reading` costs less than the bracket overhead, which costs less than a clock
+pair — held every time. What moved is only the sample.
+
+So read every microsecond figure in this repository as one sample of a noisy
+quantity on a shared two-core container, not as a property of the code. The
+hit rate over trials is the claim; the median is an illustration. This is a
+second reason, beyond the architecture mismatch, that these figures must be
+re-characterised on the board before they mean anything.
+
+**2. The tracked-file check is now measured, and it passes.** The build agent
+reported it as structurally unmeasurable, correctly: its tree is uncommitted
+while it works, so `git ls-files` returns nothing and a check over nothing
+would report a vacuous PASS. The coordinator re-ran it after committing:
+**78 tracked files examined, 0 offenders.**
+
+**3. The named-check count is 121, not 122.** One check fewer, for the reason
+in correction 2: in the measurable branch the two fixture-`.gitignore`
+sub-checks are replaced by the single real tracked-file check.
 
 ## Safety
 

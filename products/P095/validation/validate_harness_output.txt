@@ -52,24 +52,24 @@ reference_payload(2000): benchmark result
   MEASURED OFF-TARGET on unidentified x86_64 Linux (x86_64 Linux, via platform.machine() fallback; no device-tree model node); the declared target is 'NVIDIA Jetson Orin Nano' and this is 'unidentified x86_64 Linux'
   rests on 400 readings from live:filesystem-root; hardware measurement on the declared target: NO
 
-timing (200 repeats, 5 warm-up, clock resolution 4.547e-13 s)
+timing (200 repeats, 5 warm-up, clock resolution 9.095e-13 s)
 statistic  value        unit     provenance  weakest channel
 ---------  -----------  -------  ----------  ---------------
 repeats    200          repeats  live        monotonic_clock
-mean       8.05225e-05  s        live        monotonic_clock
-sd         7.43063e-06  s        live        monotonic_clock
-min        7.2744e-05   s        live        monotonic_clock
-median     7.8275e-05   s        live        monotonic_clock
-p95        9.81447e-05  s        live        monotonic_clock
-max        0.000117919  s        live        monotonic_clock
+mean       6.43747e-05  s        live        monotonic_clock
+sd         4.39017e-06  s        live        monotonic_clock
+min        6.0086e-05   s        live        monotonic_clock
+median     6.3056e-05   s        live        monotonic_clock
+p95        7.50362e-05  s        live        monotonic_clock
+max        8.7219e-05   s        live        monotonic_clock
 
   repeats                       : 200
-  mean duration        [us]     : 80.522
-  sd                   [us]     : 7.431
-  median               [us]     : 78.275
-  clock resolution at uptime [s]: 4.547e-13
-  median duration / resolution  : 1.721e+08
-[PASS] the reported durations are many orders of magnitude above the clock's resolution at this uptime -- 1.721e+08 times the floor
+  mean duration        [us]     : 64.375
+  sd                   [us]     : 4.390
+  median               [us]     : 63.056
+  clock resolution at uptime [s]: 9.095e-13
+  median duration / resolution  : 6.933e+07
+[PASS] the reported durations are many orders of magnitude above the clock's resolution at this uptime -- 6.933e+07 times the floor
 [PASS] every per-repeat duration is non-negative -- 200 repeats
 
 ==============================================================================
@@ -82,16 +82,16 @@ harness overhead characterisation
 per-repeat cost over 400 repeats, microseconds
 quantity                         us
 -------------------------------  ------
-null payload, sampling on        4.376
-null payload, sampling off       0.038
-overhead inside the bracket      4.337
-one clock read (independent)     4.035
-one sealed Reading               2.652
-reference payload, sampling off  73.040
-reference payload, sampling on   79.678
+null payload, sampling on        3.447
+null payload, sampling off       0.031
+overhead inside the bracket      3.416
+one clock read (independent)     2.971
+one sealed Reading               2.143
+reference payload, sampling off  59.291
+reference payload, sampling on   64.510
 
-perturbation of the reference payload : 1.0909 x
-clock resolution at this uptime       : 4.547e-13 s
+perturbation of the reference payload : 1.0880 x
+clock resolution at this uptime       : 9.095e-13 s
 
 The perturbation ratio is the reference payload's per-repeat cost with
 sampling divided by its cost without. It is NOISY: on a shared two-core
@@ -101,7 +101,7 @@ of the measurement noise. validation/validate_independent_bound_output.txt
 reports it over several trials for that reason, and this single figure
 should be read with that in mind.
 
-[PASS] the in-bracket overhead is positive and smaller than the reference payload's own cost -- 4.337 us against 73.040 us
+[PASS] the in-bracket overhead is positive and smaller than the reference payload's own cost -- 3.416 us against 59.291 us
 [PASS] the overhead characterisation is labelled MEASURED OFF-TARGET, never a bare MEASURED -- MEASURED OFF-TARGET on unidentified x86_64 Linux (x86_64 Lin
 
 ==============================================================================
@@ -120,7 +120,7 @@ uptime [s]  resolution [s]
 1e+08       1.490e-08
 1e+09       1.192e-07
 
-  this host's uptime magnitude : 4.547e-13 s per ulp
+  this host's uptime magnitude : 9.095e-13 s per ulp
 [PASS] the resolution grows monotonically with uptime -- 6 magnitudes
 
 CHECKS RUN: 10

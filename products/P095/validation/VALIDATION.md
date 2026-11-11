@@ -66,7 +66,7 @@ session, and the file is named beside the number.
 | tests, from the junit `testsuite` element | **291** |
 | independent count of `testcase` elements | **291** |
 | failures / errors / skipped | **0 / 0 / 0** |
-| named checks across the 11 validation scripts | **122** |
+| named checks across the 11 validation scripts | **121** |
 | failed checks | **0** |
 | adversarial routes attempted / refused | **15 / 15** |
 | routes that succeeded during the build and were closed by a design change | **2** |
@@ -199,7 +199,7 @@ everything here avoids that encoding.
 | the chain re-derived from its Hasse diagram | **Warshall's transitive closure** (Warshall 1962, *JACM* 9(1), 11–12) over a boolean reachability matrix built from the two covering edges; the meet defined order-theoretically with no ranks | **1092 assignments, 0 disagreements** | exact |
 | the closure is reflexive, transitive, antisymmetric and total | the same matrix | 3 + 27 + 9 + 9 cases, all pass | exact |
 | the propagation counted by **inclusion and exclusion** | `#{meet = simulated} = 3ⁿ − 2ⁿ`, `#{meet = recorded} = 2ⁿ − 1`, `#{meet = live} = 1`, summing to `3ⁿ` | **9840 assignments enumerated for n = 1..8, 0 mismatched rows** | exact integer arithmetic |
-| the harness in-bracket overhead inside an independently measured sandwich | `cost(one sealed Reading) ≤ in-bracket overhead ≤ cost(one clock read pair)`, both bounds measured by a DIFFERENT arrangement (one bracket around a block of N operations, not N brackets differenced) | median **2.740 ≤ 4.348 ≤ 7.685 µs**; lower bound **7/7** trials, upper bound **7/7** trials | zero slack; the inequalities are structural |
+| the harness in-bracket overhead inside an independently measured sandwich | `cost(one sealed Reading) ≤ in-bracket overhead ≤ cost(one clock read pair)`, both bounds measured by a DIFFERENT arrangement (one bracket around a block of N operations, not N brackets differenced) | median **2.193 ≤ 3.470 ≤ 6.017 µs**; lower bound **7/7** trials, upper bound **7/7** trials | zero slack; the inequalities are structural |
 
 Why the first two are genuinely independent: the implementation's claim is that
 an integer rank encoding is an order embedding of the chain. Warshall's closure
@@ -253,42 +253,42 @@ executed.**
 | a live clock with a recorded environment | overall **`REPLAYED`** |
 | a simulated clock can never yield a `MEASURED` timing label | 3 of 3 combinations |
 | a live environment backend on a board-less host | `HarnessError`, pointing at `docs/RECOVERY.md` |
-| the reported durations against the clock's resolution at this uptime | **1.721e+08 times the floor** |
+| the reported durations against the clock's resolution at this uptime | **6.933e+07 times the floor** |
 
 Per-repeat cost over 400 repeats, microseconds, on the build host:
 
 | quantity | µs |
 | --- | --- |
-| null payload, sampling on | 4.376 |
-| null payload, sampling off | 0.038 |
-| overhead inside the bracket | **4.337** |
-| one clock read (measured independently) | 4.035 |
-| one sealed `Reading` | 2.652 |
-| reference payload, sampling off | 73.040 |
-| reference payload, sampling on | 79.678 |
+| null payload, sampling on | 3.447 |
+| null payload, sampling off | 0.031 |
+| overhead inside the bracket | **3.416** |
+| one clock read (measured independently) | 2.971 |
+| one sealed `Reading` | 2.143 |
+| reference payload, sampling off | 59.291 |
+| reference payload, sampling on | 64.510 |
 
 A 200-repeat timing-only benchmark of `reference_payload(2000)` on the build
-host: mean **80.522 µs**, sd **7.431 µs**, median **78.275 µs**, clock
-resolution at this uptime **4.547e-13 s**.
+host: mean **64.375 µs**, sd **4.390 µs**, median **63.056 µs**, clock
+resolution at this uptime **9.095e-13 s**.
 
 **The perturbation ratio is noisy and that is reported rather than hidden.**
 Single trials of it have come back BELOW 1.0 on this host — not a negative
 overhead, but a statement that the perturbation is at the level of the
-measurement noise for a 70 µs payload. `examples/harness_overhead.py`
+measurement noise for a 60 µs payload. `examples/harness_overhead.py`
 measures the whole curve over **five trials per payload size**, reporting the
 median and the min-to-max band. Median ratio against the median payload cost
 without sampling:
 
-| payload [µs] | 2.28 | 4.51 | 9.29 | 19.75 | 38.41 | 67.38 | 141.42 | 255.46 |
+| payload [µs] | 1.88 | 3.69 | 8.96 | 18.07 | 36.58 | 74.65 | 152.55 | 300.16 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| median of 5 | 3.330 | 2.153 | 1.610 | 1.252 | 1.165 | 1.123 | 1.056 | 1.037 |
-| min | 3.001 | 1.736 | 1.549 | 1.211 | 0.864 | 1.054 | 0.957 | 0.922 |
-| max | 4.044 | 2.769 | 2.304 | 1.360 | 1.251 | 1.152 | 1.083 | 1.082 |
+| median of 5 | 3.515 | 2.332 | 1.545 | 1.303 | 1.208 | 1.066 | 1.011 | 1.037 |
+| min | 3.405 | 2.264 | 1.448 | 1.131 | 1.034 | 1.043 | 0.962 | 0.982 |
+| max | 3.670 | 2.413 | 1.604 | 1.408 | 1.281 | 1.124 | 1.088 | 1.085 |
 
 **Below a few microseconds this harness is not an instrument**, and above about
-140 µs on this host the perturbation is comparable with the run-to-run noise --
-the min column at 38 µs is 0.864 and at 255 µs is 0.922, and the max at 9 µs is
-2.304 against a median of 1.610. Those are a shared two-core host descheduling
+150 µs on this host the perturbation is comparable with the run-to-run noise --
+the min column at 153 µs is 0.962 and at 300 µs is 0.982, and the max at 1.9 µs
+is 3.670 against a median of 3.515. Those are a shared two-core host descheduling
 the measuring process and are left in the table rather than trimmed. That is
 the honest statement of this harness's resolution.
 
@@ -397,22 +397,28 @@ and a config that collected none.
 | an unknown backend exits 2 and lists the three that exist | exit 2 |
 | a live environment backend on a board-less host exits 1 with the recovery pointer and no traceback | exit 1 |
 | running this script adds no cache directory and no bytecode file | **0 added** |
-| git tracks no cache directory, bytecode file or build artifact | **STRUCTURALLY UNMEASURABLE BY A BUILD AGENT** — see below |
+| git tracks no cache directory, bytecode file or build artifact | **78 tracked files examined, 0 offenders** — measured after committing; see below |
 | neither shipped fixture is excluded by `.gitignore` | 2 of 2 not ignored |
 | no text file in the tree contains an absolute host path | **0 offenders** |
 
-**The tracked-file check cannot be measured here, and is reported as
-unmeasurable rather than passed on an empty set.** This product's working tree
-is uncommitted while it is being built: the mission's coordinator holds every
-commit under ADR-010, so `git ls-files` inside this directory returns nothing
-and a check over nothing would report a vacuous PASS — which is worse than
-reporting that it could not be measured, because it reads as evidence. What is
-measured instead is `git check-ignore -v --no-index` against every shipped
-fixture, which is the P060 defect class: a `.gitignore` pattern with no leading
-slash matches at any depth and silently excluded a required committed fixture.
-Both fixtures are **not ignored**. The tracked-file claim is re-measurable, and
-must be re-measured, by whoever commits this tree; release-gate check 9
-enforces it independently over the whole repository.
+**The tracked-file check could not be measured by the build agent and was
+measured afterwards by the coordinator; the row above now carries the measured
+result.** The product's working tree is uncommitted while it is being built:
+the mission's coordinator holds every commit under ADR-010, so `git ls-files`
+inside this directory returns nothing there and a check over nothing would
+report a vacuous PASS — which is worse than reporting that it could not be
+measured, because it reads as evidence. The build agent therefore reported it
+as STRUCTURALLY UNMEASURABLE and measured `git check-ignore -v --no-index`
+against every shipped fixture instead, which is the P060 defect class: a
+`.gitignore` pattern with no leading slash matches at any depth and silently
+excluded a required committed fixture. Both fixtures are **not ignored**.
+
+After committing, the coordinator re-ran the script and the check became real:
+**78 tracked files examined, 0 offenders.** The script's own check count drops
+from 16 to 15 in that run, because the two fixture-`.gitignore` sub-checks of
+the unmeasurable branch are replaced by the one real tracked-file check.
+Release-gate check 9 enforces the same claim independently over the whole
+repository. See Corrections.
 
 ## 10. Working directories — `probe_working_directories_output.txt`
 
@@ -460,9 +466,43 @@ only reachable through its strengths is a sales document.
    numpy would have required running `pip` against a shared pre-pinned
    interpreter this product is forbidden to modify. `ruff` is the exception
    and is measured at both ends, 0.16.9 and 0.17.4.
-8. **The tracked-file check is unmeasurable by a build agent** and is reported
-   as such rather than passed.
+8. **The tracked-file check is unmeasurable by a build agent**, is reported as
+   such rather than passed, and was measured by the coordinator after
+   committing: 78 tracked files, 0 offenders.
 9. **The tamper seal is not a security boundary.** It detects mutation,
    mislabelling and forged documents. Code in the same process can import
    module-private state and forge it, and no design in Python can prevent
    that.
+
+## Corrections made after the build
+
+The coordinating session re-ran every validation script over the committed tree
+and corrected this document. The corrections are recorded rather than applied
+silently.
+
+| what changed | from | to |
+| --- | --- | --- |
+| in-bracket overhead | 4.337 µs | **3.416 µs** |
+| one sealed `Reading` | 2.652 µs | **2.143 µs** |
+| one clock read | 4.035 µs | **2.971 µs** |
+| reference payload, sampling off / on | 73.040 / 79.678 µs | **59.291 / 64.510 µs** |
+| sandwich bounds (median) | 2.740 / 4.348 / 7.685 µs | **2.193 / 3.470 / 6.017 µs** |
+| benchmark mean / sd / median | 80.522 / 7.431 / 78.275 µs | **64.375 / 4.390 / 63.056 µs** |
+| median duration over clock resolution | 1.721e+08 | **6.933e+07** |
+| perturbation curve, all four rows | one run | **a fresh run, 5 trials per point** |
+| tracked-file check | STRUCTURALLY UNMEASURABLE | **78 files examined, 0 offenders** |
+| named checks | 122 | **121** |
+
+**The timing spread is itself a result and is reported as one.** Three
+independent runs of the in-bracket overhead on this host gave **4.348**,
+**3.470** and **4.546 µs**: a 31 per cent spread, same code, same machine,
+different moments on a shared two-core container. Every verdict survived it —
+both sandwich bounds held 7 of 7 in both runs, and the structural inequality
+held every time — because the check asserts a hit rate over trials, not a
+value. Any single microsecond figure in this document is a sample, and the
+figures must be re-characterised on the board regardless.
+
+**The named-check count fell by one** because the tracked-file branch that is
+reachable on a committed tree replaces two fixture-`.gitignore` sub-checks with
+one real check. No check was removed or weakened.
+

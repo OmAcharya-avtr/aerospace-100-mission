@@ -119,6 +119,8 @@ hardware-pending.** Research grade.
   and two for the examples, 0 non-zero exits.**
 - **The tracked-file self-check is structurally unmeasurable by a build
   agent** and is reported as unmeasurable rather than passed on an empty set.
+  The coordinator re-ran it after committing, where it is real: **78 tracked
+  files examined, 0 offenders.**
 
 ### Defects found during the build and pinned as regressions
 

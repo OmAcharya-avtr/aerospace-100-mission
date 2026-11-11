@@ -188,7 +188,7 @@ def benchmark(
     platform: PlatformAttestation | None = None,
     clock_channel: str = "monotonic_clock",
 ) -> BenchmarkResult:
-    """Run ``payload`` under sampling and return certified timing and resource figures.
+    """Run ``payload`` under sampling; return timing and resource figures with a certificate.
 
     Parameters
     ----------

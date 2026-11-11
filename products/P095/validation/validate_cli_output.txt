@@ -90,26 +90,9 @@ reader with a cold clone ever sees.
 3b. git tracks no cache directory, bytecode file or build artifact
 Authoritative, because .gitignore can be edited and a tracked file stays
 tracked regardless of it. A cold clone carries exactly what git tracks.
-  STRUCTURALLY UNMEASURABLE BY A BUILD AGENT, and reported as such rather
-  than passed on an empty set. This product's working tree is UNCOMMITTED
-  while it is being built: the mission's coordinator holds every commit
-  under ADR-010, so `git ls-files` inside this directory returns nothing
-  and a check over nothing would report a vacuous PASS -- which is worse
-  than reporting that it could not be measured, because it reads as
-  evidence.
-  git ls-files exit status : 0
-  tracked files listed     : 0
-  What CAN be measured here is what .gitignore would exclude, which is
-  the next best thing and is measured below. The claim itself is
-  re-measurable, and must be re-measured, by whoever commits this tree;
-  release-gate check 9 enforces it independently over the whole
-  repository.
-
-  what .gitignore excludes, per shipped fixture and data file:
-    fixtures/orin_nano_idle_simulated_trace.json         not ignored
-[PASS] the shipped fixture orin_nano_idle_simulated_trace.json is not excluded by .gitignore -- not ignored
-    fixtures/replay_path_recorded_trace.json             not ignored
-[PASS] the shipped fixture replay_path_recorded_trace.json is not excluded by .gitignore -- not ignored
+  tracked files examined   : 78
+  offenders                : none
+[PASS] git tracks no cache directory, bytecode file or build artifact -- 0 offenders in 78 tracked files
 
 ==============================================================================
 4. no committed file carries an absolute path
@@ -125,5 +108,5 @@ deleted before the scan so that the scanner cannot report itself.
   offenders          : none
 [PASS] no text file in the tree contains an absolute host path -- 0 offenders in 73 files
 
-CHECKS RUN: 16
+CHECKS RUN: 15
 FAILED CHECKS (0): none

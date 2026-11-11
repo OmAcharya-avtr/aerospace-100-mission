@@ -98,7 +98,7 @@ Nano, which was not reachable when this was built.
 | R-8.7 | Negative controls anchored on true values, each verified to fire or stay silent. | 21 controls; `validation/validate_negative_controls_output.txt` | MET |
 | R-8.8 | Test count taken from junit XML and cross-checked against `testcase` elements. | 291 declared, 291 counted; `validation/validate_approx_audit_output.txt` | MET |
 | R-8.9 | Running a validation script adds no cache directory or bytecode file. | `validation/validate_cli_output.txt` §3a | MET |
-| R-8.10 | Git tracks no cache directory, bytecode file or build artifact. | — | **NOT MEASURABLE HERE**: the tree is uncommitted while a build agent works; reported as unmeasurable in `validation/validate_cli_output.txt` §3b and re-measured by whoever commits. |
+| R-8.10 | Git tracks no cache directory, bytecode file or build artifact. | `git ls-files` | **MET**, measured after committing: 78 tracked files examined, 0 offenders, in `validation/validate_cli_output.txt` §3b. Not measurable by the build agent itself, whose tree is uncommitted. |
 | R-8.11 | No committed file contains an absolute host path. | 0 offenders in the files scanned; `validation/validate_cli_output.txt` §4 | MET |
 | R-8.12 | Ruff-clean under both installed ruff versions. | 0.16.9 and 0.17.4, both clean over `src/ tests/ examples/ validation/` | MET |
 
