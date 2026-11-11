@@ -1,0 +1,124 @@
+
+==============================================================================
+boardprobe -- the dry run, and the evidence that it stayed dry
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README; no number here is compared against it)
+psutil           : 7.2.2  (named in README; no number here is compared against it)
+machine          : x86_64 Linux  (the DECLARED TARGET is aarch64; every figure here is from this machine)
+cpu cores        : 2
+repository root  : P095 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the walk, with the repository root watched
+==============================================================================
+#   code path exercised
+--  --------------------------------------------------
+1   construct all three sealed backends
+2   simulated backend over 13 board channels
+3   recorded backend over 10 trace channels
+4   live backend refusal on every board channel
+5   the live backend's perf adapter refusal
+6   summarise() over a simulated channel
+7   rail_power() derivation across two channels
+8   derive() a second-order figure from statistics
+9   meet over every pair in the lattice
+10  meet_all refuses an empty collection
+11  certify grants the label the provenance admits
+12  certify refuses MEASURED on simulated inputs
+13  certify refuses a tampered reading
+14  combine() across attributions of mixed provenance
+15  render readings, statistics and the trace document
+16  Trace.from_mapping round trip in memory
+
+code paths exercised                        : 16
+device accesses against the real root       : 0
+attempts against a root asserted not to exist: 13
+files under the watched tree, before        : 78
+files under the watched tree, after         : 78
+files added                                 : none
+watched directory                           : P095
+absent root used for the refusal leg        : no-such-root-for-the-dry-run
+
+[PASS] the dry run makes no device access against the real filesystem root -- 0 accesses
+[PASS] the dry run adds no file to the watched tree -- 0 added
+[PASS] the dry run reports itself side-effect free
+[PASS] every code path name is distinct, so the count is a count and not a repetition -- 16 paths
+
+==============================================================================
+2. the live refusal leg, counted separately and not hidden
+==============================================================================
+The one part of the walk that calls into the device funnel is the live
+backend's refusal path. It runs inside a NESTED ledger window against a
+root the dry run first asserts does not exist, and its attempts are
+reported in their own count. Folding them into the main ledger would
+make the main count non-zero for accesses that provably cannot reach a
+device; omitting them would be a self-reporting scanner. Both numbers
+are printed.
+
+kind             locator attempted (relative)
+---------------  -----------------------------------------------------------
+sysfs-read       sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq
+sysfs-read       sys/devices/virtual/thermal/thermal_zone0/temp
+sysfs-read       sys/devices/virtual/thermal/thermal_zone1/temp
+sysfs-read       sys/devices/virtual/thermal/thermal_zone2/temp
+sysfs-read       sys/devices/virtual/thermal/thermal_zone5/temp
+sysfs-read       sys/devices/virtual/thermal/thermal_zone8/temp
+sysfs-read       sys/bus/i2c/drivers/ina3221/1-0040/hwmon/hwmon*/in1_input
+sysfs-read       sys/bus/i2c/drivers/ina3221/1-0040/hwmon/hwmon*/curr1_input
+sysfs-read       sys/bus/i2c/drivers/ina3221/1-0040/hwmon/hwmon*/in2_input
+sysfs-read       sys/bus/i2c/drivers/ina3221/1-0040/hwmon/hwmon*/curr2_input
+perf-event-open  0:0
+perf-event-open  0:1
+perf-event-open  0:3
+
+[PASS] the refusal leg attempts exactly one access per board channel -- 13 of 13
+[PASS] every attempted locator is relative -- 13 locators
+
+==============================================================================
+3. the labels the walk was granted and refused
+==============================================================================
+granted
+--------------------------------
+SYNTHETIC for simulated inputs
+SYNTHETIC for the replayed trace
+
+refused
+--------------------------------------
+meet_all([]) refused
+MEASURED on simulated inputs refused
+a tampered reading refused by its seal
+
+[PASS] the walk exercises the choke point in both directions -- 2 granted, 3 refused
+
+==============================================================================
+4. the same walk over the recorded fixture
+==============================================================================
+  labels granted : SYNTHETIC for simulated inputs; REPLAYED for the replayed trace
+  side-effect free : yes
+[PASS] replaying the recorded fixture in the walk yields a REPLAYED label -- SYNTHETIC for simulated inputs; REPLAYED for the replayed trace
+
+==============================================================================
+5. run twice from the same tree, and compare
+==============================================================================
+A check whose own execution can create the condition it tests is not a
+check. This mission has shipped that defect five times, so the walk is
+run again and the two runs are compared.
+
+quantity              run 1  run 2  agree
+--------------------  -----  -----  -----
+code paths            16     16     yes
+device accesses       0      0      yes
+absent-root attempts  13     13     yes
+files added           0      0      yes
+files in tree         78     78     yes
+
+[PASS] the second run agrees with the first on every reported quantity -- paths, accesses, attempts, files added and file count all equal
+
+CHECKS RUN: 9
+FAILED CHECKS (0): none

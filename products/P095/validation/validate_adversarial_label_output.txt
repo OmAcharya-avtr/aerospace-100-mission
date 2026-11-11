@@ -1,0 +1,167 @@
+
+==============================================================================
+boardprobe -- every route from a simulated reading to a measured label
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README; no number here is compared against it)
+psutil           : 7.2.2  (named in README; no number here is compared against it)
+machine          : x86_64 Linux  (the DECLARED TARGET is aarch64; every figure here is from this machine)
+cpu cores        : 2
+repository root  : P095 (printed relatively; see validation/_bootstrap.py)
+
+The question: can a reading that is not live reach a figure labelled
+MEASURED, by any route the public API exposes? Each route below either
+raises -- which is a refusal and a pass -- or returns, which is a defect.
+
+TWO ROUTES SUCCEEDED when this check was first written and the DESIGN was
+changed in response. Both are listed in their own section at the end with
+what the successful attack was.
+
+idle fixture    : 240 samples, content simulated; replaying it stamps simulated
+replay fixture  : 60 samples, content recorded; replaying it stamps recorded
+
+==============================================================================
+1-4. the labelling itself
+==============================================================================
+[PASS] route  1: label a wholly simulated reading set MEASURED, directly -- REFUSED -- LabelViolation: 'direct' cannot be labelled MEASURED: its inputs are simulated, which may only be labelled SYNTHETIC. MEASURED requires 
+[PASS] route  2: aggregate first, then label the statistic MEASURED -- REFUSED -- LabelViolation: 'aggregated' cannot be labelled MEASURED: its inputs are simulated, which may only be labelled SYNTHETIC. MEASURED requi
+[PASS] route  3: dilute: 999 live readings and one simulated one -- REFUSED -- LabelViolation: 'diluted' cannot be labelled MEASURED: its inputs are simulated, which may only be labelled SYNTHETIC. MEASURED requires
+[PASS] route  4: derive a second-order figure from a live and a simulated statistic -- REFUSED -- LabelViolation: 'second order' cannot be labelled MEASURED: its inputs are simulated, which may only be labelled SYNTHETIC. MEASURED req
+
+==============================================================================
+5-7. replay
+==============================================================================
+[PASS] route  5: replay a trace and label the replay MEASURED -- REFUSED -- LabelViolation: 'replay' cannot be labelled MEASURED: its inputs are recorded, which may only be labelled REPLAYED. MEASURED requires ev
+[PASS] route  6: edit a trace document to declare live content, then replay it -- REFUSED -- TraceError: content_provenance 'live' is not allowed in a trace: replaying a file is not a live reading, so a document may declare o
+[PASS] route  7: serialise a simulated reading, edit it to live, deserialise it -- REFUSED -- LabelViolation: 'round trip' cannot be labelled MEASURED: its inputs are simulated, which may only be labelled SYNTHETIC. MEASURED requi
+
+==============================================================================
+8-10. the value object
+==============================================================================
+[PASS] route  8: rewrite provenance with object.__setattr__, past the frozen guard -- REFUSED -- TamperError: reading on channel 'die_temp_cpu' from source 'simulated:seed=770095' fails its seal: at least one field has been modifi
+[PASS] route  9: a Reading subclass overriding the seal check and the token -- REFUSED -- TamperError: a derivation accepts boardprobe.readings.Reading and nothing else; got __main__.Liar. A subclass is refused deliberately
+[PASS] route 10: dataclasses.replace(reading, provenance=LIVE) -- FOUND TO WORK -- REFUSED -- TypeError: InitVar 'mint' must be specified with replace()
+
+==============================================================================
+11-13. the backend
+==============================================================================
+[PASS] route 11: a Source subclass overriding read() to stamp LIVE -- REFUSED -- TypeError: Overriding may not define read: provenance is stamped by boardprobe.sources.Source.read and a backend that could overrid
+[PASS] route 12: subclass LiveSource and serve it trace values -- REFUSED -- TypeError: TraceAsLive may not subclass LiveSource: the three backends are sealed once boardprobe.sources has finished importing. S
+[PASS] route 13: rebind SimulatedSource.backend_provenance to LIVE -- REFUSED -- RuntimeError: SimulatedSource.backend_provenance has been rebound from 'simulated' to 'live'. A backend's provenance is fixed when boa
+
+==============================================================================
+14-15. the lattice and the certificate
+==============================================================================
+[PASS] route 14: exploit the lattice identity: meet of an empty set is LIVE -- REFUSED -- ProvenanceError: provenance cannot be established from an empty collection of readings: the meet of nothing is the lattice identity (live
+[PASS] route 15: construct a Certificate directly, bypassing certify() -- REFUSED -- TypeError: boardprobe.Certificate cannot be constructed directly; it is produced only by boardprobe.certify(), which is the single 
+
+==============================================================================
+the positive control: the choke point does grant a label
+==============================================================================
+A check that only ever observes refusals cannot distinguish a working
+invariant from a function that raises unconditionally. These three must
+SUCCEED, and a failure here is as much a defect as a successful attack.
+
+[PASS] the simulated label is GRANTED by the choke point -- SYNTHETIC
+[PASS] the recorded label is GRANTED by the choke point -- REPLAYED
+[PASS] the live label is GRANTED by the choke point -- MEASURED
+
+provenance  label granted  hardware measurement  headline (truncated)
+----------  -------------  --------------------  ----------------------------------------------
+simulated   SYNTHETIC      NO                    SYNTHETIC (simulated over 8 readings on 1 chan
+recorded    REPLAYED       NO                    REPLAYED (recorded over 5 readings on 5 channe
+live        MEASURED       NO                    MEASURED OFF-TARGET on unidentified x86_64 Lin
+
+The MEASURED row is granted on a LIVE clock reading, and its headline
+says MEASURED OFF-TARGET, because the platform attestation does not match
+the declared NVIDIA Jetson Orin Nano. A bare MEASURED is unreachable on
+this host by construction and not by discipline.
+
+==============================================================================
+the two routes that SUCCEEDED, and what was changed
+==============================================================================
+Route 10, dataclasses.replace. Found on 2026-11-11. The exact attack:
+
+    laundered = dataclasses.replace(simulated_reading, provenance=LIVE)
+    certify('figure', attribute([laundered]), Label.MEASURED, platform)
+
+`dataclasses.replace` is public API on every dataclass. It re-ran the
+Reading's __post_init__, which RECOMPUTED THE SEAL, so the laundered
+reading was validly sealed, carried the simulated reading's own channel
+and value, and claimed LIVE. The choke point granted MEASURED. One line,
+no private state touched. The seal did not help, because the seal was
+recomputed by the very mechanism being abused.
+
+THE FIX WAS TO THE DESIGN. A Reading's first field is now a
+dataclasses.InitVar holding a module-private minting token, so
+`dataclasses.replace` and `copy.replace` both raise and the single
+minting entry point is boardprobe.readings.mint(), whose only in-package
+callers are Source.read() and from_mapping(). The route is pinned as a
+regression test in tests/test_readings.py.
+
+Route 13, rebinding the class attribute. Found the same day. Provenance
+was read from `type(self).backend_provenance`, which is an ordinary class
+attribute and can be assigned to. THE FIX: the three backends' declared
+provenances are captured in a module-private registry when
+boardprobe.sources finishes importing, and the property compares the
+class attribute against the registry on every read.
+
+==============================================================================
+what is NOT closed, named rather than omitted
+==============================================================================
+Three things, and none of them is a route from an EXISTING simulated
+reading to a measured label, which is what this check is about.
+
+  a. boardprobe.readings.mint() lets its caller choose a provenance. A
+     caller who passes LIVE for a generated number has made a false
+     statement at the source. No type system can prevent that; a
+     hardware abstraction layer is a program that believes the kernel.
+     What changed is that the false statement is now made in ONE named
+     function, is attributable to a source_id that travels with the
+     reading, and cannot be made by accident or by a refactor.
+  b. A PlatformAttestation can be constructed by hand with
+     matches_target=True. That is a false claim about WHICH machine, not
+     about provenance, and every certificate records the attestation's
+     own `source` string so the claim is legible in the output.
+  c. Code running in this process can reach into module-private state
+     (boardprobe.readings._KEY, boardprobe.sources._SEALED and
+     _DECLARED) and defeat all of the above. This is true of every
+     Python program and is stated rather than papered over.
+
+==============================================================================
+summary
+==============================================================================
+route  verdict  refused by
+-----  -------  ------------------------------------------------------------------------------------
+1      REFUSED  LabelViolation: 'direct' cannot be labelled MEASURED: its inputs are simulated, whic
+2      REFUSED  LabelViolation: 'aggregated' cannot be labelled MEASURED: its inputs are simulated,
+3      REFUSED  LabelViolation: 'diluted' cannot be labelled MEASURED: its inputs are simulated, whi
+4      REFUSED  LabelViolation: 'second order' cannot be labelled MEASURED: its inputs are simulated
+5      REFUSED  LabelViolation: 'replay' cannot be labelled MEASURED: its inputs are recorded, which
+6      REFUSED  TraceError: content_provenance 'live' is not allowed in a trace: replaying a file is
+7      REFUSED  LabelViolation: 'round trip' cannot be labelled MEASURED: its inputs are simulated,
+8      REFUSED  TamperError: reading on channel 'die_temp_cpu' from source 'simulated:seed=770095' f
+9      REFUSED  TamperError: a derivation accepts boardprobe.readings.Reading and nothing else; got
+10     REFUSED  TypeError: InitVar 'mint' must be specified with replace()
+11     REFUSED  TypeError: Overriding may not define read: provenance is stamped by boardprobe.sourc
+12     REFUSED  TypeError: TraceAsLive may not subclass LiveSource: the three backends are sealed on
+13     REFUSED  RuntimeError: SimulatedSource.backend_provenance has been rebound from 'simulated' t
+14     REFUSED  ProvenanceError: provenance cannot be established from an empty collection of readin
+15     REFUSED  TypeError: boardprobe.Certificate cannot be constructed directly; it is produced onl
+
+routes attempted : 15
+routes refused   : 15
+routes succeeded : 0 
+positive controls: 3 labels granted (synthetic, replayed, measured)
+routes found to succeed during the build and then closed by a design
+change: 2 (route 10, dataclasses.replace; route 13, class-attribute
+rebinding)
+[PASS] no route the public API exposes gets a non-live reading a MEASURED label -- 15 of 15 refused
+
+CHECKS RUN: 19
+FAILED CHECKS (0): none

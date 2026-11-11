@@ -1,0 +1,111 @@
+
+==============================================================================
+boardprobe -- three checks against mathematics the code does not use
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README; no number here is compared against it)
+psutil           : 7.2.2  (named in README; no number here is compared against it)
+machine          : x86_64 Linux  (the DECLARED TARGET is aarch64; every figure here is from this machine)
+cpu cores        : 2
+repository root  : P095 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the chain re-derived from its Hasse diagram by Warshall's algorithm
+==============================================================================
+Warshall 1962, JACM 9(1), 11-12. The input is the COVERING relation
+only -- two edges -- and the meet is then defined order-theoretically.
+No integer rank appears anywhere in this check.
+
+covering edges supplied : [('simulated', 'recorded'), ('recorded', 'live')]
+
+a <= b ?   simulated  recorded  live
+---------  ---------  --------  ----
+simulated  yes        yes       yes
+recorded   no         yes       yes
+live       no         no        yes
+
+[PASS] the closure is reflexive -- 3 elements
+[PASS] the closure is transitive -- 27 triples
+[PASS] the closure is antisymmetric, so it is a partial order -- 9 pairs
+[PASS] the closure is a TOTAL order, so the structure is a chain -- 9 pairs comparable
+
+length  assignments  disagreements
+------  -----------  -------------
+1       3            0
+2       9            0
+3       27           0
+4       81           0
+5       243          0
+6       729          0
+
+[PASS] the order-theoretic meet agrees with meet_all on every assignment -- 1092 assignments, 0 disagreements
+
+==============================================================================
+2. the propagation counted by inclusion and exclusion
+==============================================================================
+For n readings over three provenances, the closed forms are
+
+    #{meet = simulated} = 3^n - 2^n     (at least one simulated)
+    #{meet = recorded}  = 2^n - 1       (none simulated, one recorded)
+    #{meet = live}      = 1             (all live)
+
+summing to 3^n. Exact integer arithmetic; no tolerance.
+
+n  simulated obs/exp  recorded obs/exp  live obs/exp  3^n   verdict
+-  -----------------  ----------------  ------------  ----  -------
+1  1 / 1              1 / 1             1 / 1         3     ok
+2  5 / 5              3 / 3             1 / 1         9     ok
+3  19 / 19            7 / 7             1 / 1         27    ok
+4  65 / 65            15 / 15           1 / 1         81    ok
+5  211 / 211          31 / 31           1 / 1         243   ok
+6  665 / 665          63 / 63           1 / 1         729   ok
+7  2059 / 2059        127 / 127         1 / 1         2187  ok
+8  6305 / 6305        255 / 255         1 / 1         6561  ok
+
+assignments enumerated : 9840
+[PASS] the enumerated propagation matches the inclusion-exclusion closed form for n = 1..8 -- 9840 assignments, 0 mismatched rows
+
+==============================================================================
+3. the harness overhead sandwich, from independently measured bounds
+==============================================================================
+    cost(one sealed Reading)  <=  in-bracket overhead  <=  cost(one clock pair)
+
+The left bound holds because exactly one Reading is constructed inside
+each timed bracket. The right bound holds because the overhead inside a
+bracket cannot exceed the cost of the pair of reads that delimits it.
+Both bounds are measured by a DIFFERENT arrangement from the quantity
+they bound: one bracket around a block of N operations, rather than N
+brackets differenced. Wall-clock on a shared two-core host, so the hit
+rate over several trials is reported rather than one trial asserted.
+
+EVERY NUMBER IN THIS SECTION IS A PROPERTY OF THE BUILD HOST, NOT OF AN
+NVIDIA JETSON ORIN NANO. The declared target was not reachable.
+
+trial  Reading us  in-bracket us  clock pair us  lower  upper  perturbation
+-----  ----------  -------------  -------------  -----  -----  ------------
+0      3.285       4.459          7.442          ok     ok     1.1077
+1      2.491       4.188          7.467          ok     ok     1.0966
+2      2.577       4.220          7.450          ok     ok     1.0269
+3      2.501       6.196          7.685          ok     ok     1.1511
+4      3.329       4.320          7.792          ok     ok     1.0805
+5      2.740       4.363          7.715          ok     ok     1.0924
+6      2.869       4.348          8.064          ok     ok     1.0086
+
+trials                        : 7 at 400 repeats each
+median cost of one Reading    : 2.740 us
+median in-bracket overhead    : 4.348 us
+median cost of one clock pair : 7.685 us
+lower bound hit rate          : 7/7
+upper bound hit rate          : 7/7
+
+[PASS] the median in-bracket overhead lies inside the independently measured sandwich -- 2.740 <= 4.348 <= 7.685 us
+[PASS] the upper bound holds on a majority of trials -- 7/7
+[PASS] the lower bound holds on a majority of trials -- 7/7
+
+CHECKS RUN: 9
+FAILED CHECKS (0): none

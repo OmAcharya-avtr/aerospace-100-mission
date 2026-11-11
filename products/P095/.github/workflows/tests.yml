@@ -1,0 +1,85 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q --junit-xml=junit.xml
+      - name: Test count from junit XML, never from stdout
+        run: |
+          python - <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse("junit.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          declared = int(suite.get("tests", "0"))
+          counted = len(suite.findall(".//testcase"))
+          print(f"declared {declared}, counted {counted}")
+          if declared == 0 or declared != counted:
+              sys.exit("junit.xml does not agree with itself, or no test ran")
+          PY
+      - name: The shipped fixtures must not be gitignored
+        run: |
+          for fixture in fixtures/*.json; do
+            if git check-ignore -v "$fixture"; then
+              echo "FAIL: $fixture is excluded by .gitignore"
+              exit 1
+            fi
+          done
+      - name: CLI
+        run: |
+          python -m boardprobe --version
+          python -m boardprobe channels --references
+          python -m boardprobe provenance
+          python -m boardprobe attest
+          python -m boardprobe sample --backend simulated --seed 3
+          python -m boardprobe sample --backend recorded
+          python -m boardprobe sample --backend live
+          python -m boardprobe replay --samples 6
+          python -m boardprobe benchmark --repeats 24 --overhead-repeats 60
+          python -m boardprobe dry-run
+      - name: Validation scripts
+        run: |
+          python validation/validate_provenance_lattice.py
+          python validation/validate_adversarial_label.py
+          python validation/validate_independent_bound.py
+          python validation/validate_backends.py
+          python validation/validate_harness.py
+          python validation/validate_dry_run.py
+          python validation/validate_negative_controls.py
+          python validation/validate_approx_audit.py
+          python validation/worked_example.py
+      - name: Validation scripts from the gate's working directory
+        run: |
+          cd validation
+          for script in validate_*.py worked_example.py; do
+            python "$script" > /dev/null
+          done
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/provenance_lattice.py
+          python examples/backend_comparison.py
+          python examples/harness_overhead.py
+          python examples/label_matrix.py
+      - name: The tree must be clean of caches and absolute paths
+        run: python validation/validate_cli.py

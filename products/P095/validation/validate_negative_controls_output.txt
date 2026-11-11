@@ -1,0 +1,96 @@
+
+==============================================================================
+boardprobe -- negative controls, anchored on true values
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README; no number here is compared against it)
+psutil           : 7.2.2  (named in README; no number here is compared against it)
+machine          : x86_64 Linux  (the DECLARED TARGET is aarch64; every figure here is from this machine)
+cpu cores        : 2
+repository root  : P095 (printed relatively; see validation/_bootstrap.py)
+
+declared plausibility window  low  high
+----------------------------  ---  ----
+die temperature [degC]        -40  125
+rail power [W]                0    60
+
+THOSE WINDOWS ARE DECLARED HERE AND ARE NOT QUOTED FROM ANY DATASHEET.
+No NVIDIA document was read against hardware for this build. They are
+deliberately wide: they catch the factor-of-1000 scaling class of error
+and nothing subtler, which is exactly what they are for.
+
+==============================================================================
+A. must FIRE: the label refusals
+==============================================================================
+[PASS] control: a wholly simulated reading set labelled MEASURED (must fire) -- FIRED; true provenance is simulated, declared by SimulatedSource
+[PASS] control: a replayed reading set labelled MEASURED (must fire) -- FIRED; true provenance is recorded, declared by RecordedSource
+[PASS] control: five live readings and one simulated one labelled MEASURED (must fire) -- FIRED; the meet of the true provenances is simulated
+[PASS] control: a simulated reading set labelled REPLAYED (must fire) -- FIRED; simulated admits SYNTHETIC only
+[PASS] control: a live reading set labelled SYNTHETIC (must fire) -- FIRED; the label must follow the provenance in BOTH directions
+
+==============================================================================
+B. must FIRE: the integrity refusals
+==============================================================================
+[PASS] control: provenance rewritten past the frozen guard with object.__setattr__ (must fire) -- FIRED; the seal is recomputed and compared
+[PASS] control: dataclasses.replace(reading, provenance=LIVE) (must fire) -- FIRED; the minting token; this route SUCCEEDED before the design was changed
+[PASS] control: an aggregate over an empty reading set (must fire) -- FIRED; the lattice identity is live and is refused
+[PASS] control: a trace document edited to declare live content (must fire) -- FIRED; a replay is not a live reading
+
+==============================================================================
+C. must FIRE: the scaling controls, anchored on a known raw integer
+==============================================================================
+This script writes the raw integers itself, so the correct value is known
+by hand before anything reads it. 48123 millidegrees Celsius is 48.123
+degrees Celsius; 4870 millivolts is 4.870 volts; 4860 milliamperes is
+4.860 amperes, giving 23.6682 watts.
+
+  correctly scaled die temperature : 48.123000 degC
+  with the millidegree scale dropped: 48123.000000 degC
+  ratio to the true value           : 1000.0
+[PASS] control: the millidegree scale dropped from the thermal channel (must fire) -- FIRED; 48123.0 degC against a window of (-40.0, 125.0)
+
+  correctly scaled rail power      : 23.668200 W
+  with millivolts labelled as volts: 23668.200000 W
+  ratio to the true value          : 1000.0
+[PASS] control: millivolts labelled as volts in the rail-power derivation (must fire) -- FIRED; 23668.2 W against a window of (0.0, 60.0)
+[PASS] control: a trace recording kelvin where the board table declares degrees Celsius (must fire) -- FIRED; a unit mismatch is a wrong number
+[PASS] control: a clock channel whose values decrease during a benchmark (must fire) -- FIRED; a monotonic clock that decreases means the channel is not monotonic
+
+==============================================================================
+D. must NOT fire: the same checks on correct input
+==============================================================================
+A control that fires on correct input is as wrong as one that fails to
+fire on corrupt input, and would quietly invalidate every result above.
+
+[PASS] control: a wholly live reading set labelled MEASURED (must NOT fire) -- did not fire; live admits MEASURED; the headline says OFF-TARGET, which is a separate fact
+[PASS] control: a replayed reading set labelled REPLAYED (must NOT fire) -- did not fire; recorded admits REPLAYED
+[PASS] control: a simulated reading set labelled SYNTHETIC (must NOT fire) -- did not fire; simulated admits SYNTHETIC
+[PASS] control: an untouched reading passed to attribute() (must NOT fire) -- did not fire; the seal agrees with the fields
+[PASS] control: the correctly scaled die temperature against the declared window (must NOT fire) -- did not fire; 48.123 degC, inside (-40.0, 125.0)
+[PASS] control: the correctly scaled rail power against the declared window (must NOT fire) -- did not fire; 23.6682 W, inside (0.0, 60.0)
+[PASS] control: a clock channel whose values increase during a benchmark (must NOT fire) -- did not fire; a monotonic clock that increases is fine
+[PASS] control: a trace document declaring recorded content (must NOT fire) -- did not fire; recorded and simulated are the two provenances a document may declare
+
+==============================================================================
+summary
+==============================================================================
+controls declared              : 21
+controls that fired            : 13
+must-fire, fired               : 13 of 13
+must-NOT-fire, stayed silent   : 8 of 8
+
+No control's criterion was weakened and no seed was changed to make a
+control behave. The declared windows are stated at the top of this output
+and are wider than any operating range, so a control that fires against
+one of them is firing on a factor-of-1000 error and not on a borderline
+reading.
+[PASS] every control behaved as declared -- 13/13 fired, 8/8 silent
+
+CHECKS RUN: 22
+CONTROLS: 21 declared, 13 fired; must-fire 13/13, must-NOT-fire silent 8/8
+FAILED CHECKS (0): none

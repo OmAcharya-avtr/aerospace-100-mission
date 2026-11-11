@@ -1,0 +1,180 @@
+
+==============================================================================
+boardprobe -- the three backends, and the declared channel table
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README; no number here is compared against it)
+psutil           : 7.2.2  (named in README; no number here is compared against it)
+machine          : x86_64 Linux  (the DECLARED TARGET is aarch64; every figure here is from this machine)
+cpu cores        : 2
+repository root  : P095 (printed relatively; see validation/_bootstrap.py)
+
+==============================================================================
+1. the declared channel table
+==============================================================================
+channel                  kind                 unit    access           scale  raw unit   verified on hw
+-----------------------  -------------------  ------  ---------------  -----  ---------  --------------
+monotonic_clock          clock                s       clock_gettime    1e-09  ns         NO
+cpu0_frequency           clock                Hz      sysfs-integer    1000   kHz        NO
+die_temp_cpu             die-temperature      degC    sysfs-integer    0.001  millidegC  NO
+die_temp_gpu             die-temperature      degC    sysfs-integer    0.001  millidegC  NO
+die_temp_cv0             die-temperature      degC    sysfs-integer    0.001  millidegC  NO
+die_temp_soc0            die-temperature      degC    sysfs-integer    0.001  millidegC  NO
+die_temp_junction        die-temperature      degC    sysfs-integer    0.001  millidegC  NO
+rail_vdd_in_voltage      rail-power           V       sysfs-integer    0.001  mV         NO
+rail_vdd_in_current      rail-power           A       sysfs-integer    0.001  mA         NO
+rail_cpu_gpu_cv_voltage  rail-power           V       sysfs-integer    0.001  mV         NO
+rail_cpu_gpu_cv_current  rail-power           A       sysfs-integer    0.001  mA         NO
+perf_cpu_cycles          performance-counter  events  perf_event_open  1      events     NO
+perf_instructions        performance-counter  events  perf_event_open  1      events     NO
+perf_cache_misses        performance-counter  events  perf_event_open  1      events     NO
+
+board model                   : NVIDIA Jetson Orin Nano Developer Kit
+channels declared             : 14
+channels verified on hardware : 0
+
+EVERY LOCATOR, RAW UNIT AND SCALE IN THAT TABLE IS DECLARED FROM
+DOCUMENTATION AND IS UNVERIFIED ON HARDWARE. No NVIDIA Jetson Orin Nano
+was reachable from the build environment; not one of those files was
+opened and not one of those counters was read. The verified column reads
+NO on every row, and the check below asserts that it does, so that the
+day a reading is actually taken the flag has to be flipped deliberately.
+
+[PASS] no channel in the shipped table claims to be verified on hardware -- 0 of 14
+[PASS] every channel cites a reference and a relative locator -- 14 channels
+[PASS] all four source classes the specification names are declared -- clock, die-temperature, performance-counter, rail-power
+
+the reference behind every channel
+channel                  reference
+-----------------------  ------------------------------------------------------------------------------------------------------------------------
+monotonic_clock          clock_gettime(2), CLOCK_MONOTONIC_RAW: raw hardware-based time not subject to NTP or adjtime(3) adjustment
+cpu0_frequency           Linux kernel Documentation/admin-guide/pm/cpufreq.rst (scaling_cur_freq in kHz); on Jetson this is the rate the governor
+die_temp_cpu             Linux kernel ABI Documentation/driver-api/thermal/sysfs-api.rst (temp in millidegrees Celsius); zone names from the NVID
+die_temp_gpu             Linux kernel ABI Documentation/driver-api/thermal/sysfs-api.rst (temp in millidegrees Celsius); zone names from the NVID
+die_temp_cv0             Linux kernel ABI Documentation/driver-api/thermal/sysfs-api.rst (temp in millidegrees Celsius); zone names from the NVID
+die_temp_soc0            Linux kernel ABI Documentation/driver-api/thermal/sysfs-api.rst (temp in millidegrees Celsius); zone names from the NVID
+die_temp_junction        Linux kernel ABI Documentation/driver-api/thermal/sysfs-api.rst (temp in millidegrees Celsius); zone names from the NVID
+rail_vdd_in_voltage      Linux kernel Documentation/hwmon/ina3221.rst (in<i>_input millivolts, curr<i>_input milliamperes, in<i>_label); rail nam
+rail_vdd_in_current      Linux kernel Documentation/hwmon/ina3221.rst (in<i>_input millivolts, curr<i>_input milliamperes, in<i>_label); rail nam
+rail_cpu_gpu_cv_voltage  Linux kernel Documentation/hwmon/ina3221.rst (in<i>_input millivolts, curr<i>_input milliamperes, in<i>_label); rail nam
+rail_cpu_gpu_cv_current  Linux kernel Documentation/hwmon/ina3221.rst (in<i>_input millivolts, curr<i>_input milliamperes, in<i>_label); rail nam
+perf_cpu_cycles          perf_event_open(2) with PERF_TYPE_HARDWARE and the generalised configs of linux/perf_event.h; mapped to Arm PMUv3 events
+perf_instructions        perf_event_open(2) with PERF_TYPE_HARDWARE and the generalised configs of linux/perf_event.h; mapped to Arm PMUv3 events
+perf_cache_misses        perf_event_open(2) with PERF_TYPE_HARDWARE and the generalised configs of linux/perf_event.h; mapped to Arm PMUv3 events
+
+==============================================================================
+2. the simulated backend is bit-reproducible at one seed
+==============================================================================
+Exact float equality is correct HERE and nowhere else in this repository:
+the claim is bit-reproducibility of a pseudo-random stream, not the value
+of a physical quantity.
+
+channel                  run 1          run 2          identical
+-----------------------  -------------  -------------  ---------
+monotonic_clock          1              1              yes
+cpu0_frequency           0              0              yes
+die_temp_cpu             41.7163067501  41.7163067501  yes
+die_temp_gpu             41.627667108   41.627667108   yes
+die_temp_cv0             41.7197727615  41.7197727615  yes
+die_temp_soc0            42.3382653526  42.3382653526  yes
+die_temp_junction        41.8241578907  41.8241578907  yes
+rail_vdd_in_voltage      4.86277927323  4.86277927323  yes
+rail_vdd_in_current      4.81478860077  4.81478860077  yes
+rail_cpu_gpu_cv_voltage  4.90371454413  4.90371454413  yes
+rail_cpu_gpu_cv_current  4.82089900873  4.82089900873  yes
+perf_cpu_cycles          250657120.162  250657120.162  yes
+perf_instructions        249780175.236  249780175.236  yes
+perf_cache_misses        249870759.343  249870759.343  yes
+
+[PASS] all 14 channels reproduce bit for bit at seed 770095 -- 14 of 14
+[PASS] reading a subset gives the same values as reading every channel -- one generator per channel, so a value cannot depend on what else was read
+[PASS] every simulated reading is stamped simulated -- 14 channels
+
+==============================================================================
+3. the recorded backend replays the document, and meets its provenance
+==============================================================================
+[PASS] the idle trace replays as simulated = meet(recorded, simulated) -- simulated
+[PASS] every first sample of the idle trace replays with its own value and unit -- 10 of 10
+[PASS] the replay path trace replays as recorded = meet(recorded, recorded) -- recorded
+[PASS] every first sample of the replay path trace replays with its own value and unit -- 5 of 5
+
+trace        file                                          samples  channels  content    replay stamp  first samples matched
+-----------  --------------------------------------------  -------  --------  ---------  ------------  ---------------------
+idle         fixtures/orin_nano_idle_simulated_trace.json  240      10        simulated  simulated     10/10
+replay path  fixtures/replay_path_recorded_trace.json      60       5         recorded   recorded      5/5
+
+The idle fixture declares SIMULATED content, so replaying it yields
+SIMULATED readings: meet(recorded, simulated) = simulated. That is the
+lattice doing real work rather than decorating a log line. Both fixtures'
+origin fields say, in the file, that their numbers were synthesised in a
+container and are not measurements of anything.
+
+==============================================================================
+4. the live backend refuses every board channel, cleanly
+==============================================================================
+Measured against the real filesystem root of the build host. The declared
+target was not reachable, which is why this is the testable half of the
+live path.
+
+channel                  first line of the refusal
+-----------------------  --------------------------------------------------------------------------------------------------------
+cpu0_frequency           cannot read the declared sysfs node 'sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq' relative to t
+die_temp_cpu             cannot read the declared sysfs node 'sys/devices/virtual/thermal/thermal_zone0/temp' relative to the fil
+die_temp_gpu             cannot read the declared sysfs node 'sys/devices/virtual/thermal/thermal_zone1/temp' relative to the fil
+die_temp_cv0             cannot read the declared sysfs node 'sys/devices/virtual/thermal/thermal_zone2/temp' relative to the fil
+die_temp_soc0            cannot read the declared sysfs node 'sys/devices/virtual/thermal/thermal_zone5/temp' relative to the fil
+die_temp_junction        cannot read the declared sysfs node 'sys/devices/virtual/thermal/thermal_zone8/temp' relative to the fil
+rail_vdd_in_voltage      no path matches the declared locator 'sys/bus/i2c/drivers/ina3221/1-0040/hwmon/hwmon*/in1_input' under t
+rail_vdd_in_current      no path matches the declared locator 'sys/bus/i2c/drivers/ina3221/1-0040/hwmon/hwmon*/curr1_input' under
+rail_cpu_gpu_cv_voltage  no path matches the declared locator 'sys/bus/i2c/drivers/ina3221/1-0040/hwmon/hwmon*/in2_input' under t
+rail_cpu_gpu_cv_current  no path matches the declared locator 'sys/bus/i2c/drivers/ina3221/1-0040/hwmon/hwmon*/curr2_input' under
+perf_cpu_cycles          perf_event_open(type=0, config=0) failed with errno 2 (No such file or directory) on x86_64. ENOENT mean
+perf_instructions        perf_event_open(type=0, config=1) failed with errno 2 (No such file or directory) on x86_64. ENOENT mean
+perf_cache_misses        perf_event_open(type=0, config=3) failed with errno 2 (No such file or directory) on x86_64. ENOENT mean
+
+board channels probed : 13
+served                : 0
+refused               : 13
+[PASS] every board channel is refused on a host without the board -- 13 of 13
+[PASS] every refusal says what a reader should check -- 13 of 13
+[PASS] no refusal message quotes an absolute host path -- 0 offenders; needles named, not printed: home, Users, root
+
+==============================================================================
+5. the live backend serves the monotonic clock, and that is not the board
+==============================================================================
+  provenance : live
+  unit       : s
+  monotonic  : True
+  detail     : live:CLOCK_MONOTONIC_RAW
+[PASS] the monotonic clock is served and stamped live -- 3974.368994 s
+[PASS] two consecutive clock readings do not go backwards -- 18.499 us apart
+
+A live reading of this host's clock is a live reading of a real clock and
+is NOT a reading of a Jetson Orin Nano. That distinction is the platform
+attestation's job, not the lattice's, and it is why every MEASURED
+certificate in this repository reads MEASURED OFF-TARGET.
+
+==============================================================================
+6. the perf_event_open adapter, and its clean failure here
+==============================================================================
+Written from perf_event_open(2) and linux/perf_event.h. UNVERIFIED on the
+declared target: the syscall number on aarch64 is 241 and has never been
+executed; 298 on x86_64 is the one that was.
+
+  sizeof(struct perf_event_attr) as declared : 136 bytes
+  the failure on this host                   : perf_event_open(type=0, config=0) failed with errno 2 (No such file or directory) on x86_64. ENOENT means the kernel has no PMU driver bound, which is
+[PASS] the perf adapter fails with the C errno and what to check -- errno and the paranoid hint both present
+
+==============================================================================
+7. the three backends are sealed
+==============================================================================
+  sealed classes : ['LiveSource', 'RecordedSource', 'SimulatedSource']
+[PASS] no sealed backend can be subclassed -- 3 of 3 refused at class creation
+
+CHECKS RUN: 17
+FAILED CHECKS (0): none

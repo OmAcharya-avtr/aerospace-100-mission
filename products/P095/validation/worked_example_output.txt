@@ -1,0 +1,144 @@
+
+==============================================================================
+boardprobe -- one campaign, three backends, three labels
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README; no number here is compared against it)
+psutil           : 7.2.2  (named in README; no number here is compared against it)
+machine          : x86_64 Linux  (the DECLARED TARGET is aarch64; every figure here is from this machine)
+cpu cores        : 2
+repository root  : P095 (printed relatively; see validation/_bootstrap.py)
+
+samples per campaign : 15
+seed                 : 770095
+idle trace           : fixtures/orin_nano_idle_simulated_trace.json
+replay trace         : fixtures/replay_path_recorded_trace.json
+
+==============================================================================
+the same campaign, over each backend in turn
+==============================================================================
+Nothing changes between the three but the backend. The label at the end
+is not a choice made by the caller; it falls out of the lattice.
+
+--- simulated backend
+backend provenance : simulated
+source id          : simulated:seed=770095
+
+channel       value    unit  provenance  detail
+------------  -------  ----  ----------  ----------------------------
+die_temp_cpu  41.7163  degC  simulated   simulated:seed=770095,step=1
+die_temp_cpu  42.5601  degC  simulated   simulated:seed=770095,step=2
+die_temp_cpu  43.4688  degC  simulated   simulated:seed=770095,step=3
+
+statistic            value    unit      provenance  weakest channel
+-------------------  -------  --------  ----------  ------------------------------------------------------
+count                15       readings  simulated   die_temp_cpu
+mean                 45.2565  degC      simulated   die_temp_cpu
+sd                   1.99077  degC      simulated   die_temp_cpu
+min                  41.7163  degC      simulated   die_temp_cpu
+median               45.5367  degC      simulated   die_temp_cpu
+p95                  47.8439  degC      simulated   die_temp_cpu
+max                  47.9219  degC      simulated   die_temp_cpu
+rail_vdd_in_power    23.4133  W         simulated   rail_vdd_in_voltage, rail_vdd_in_current
+headroom to 85 degC  39.7435  degC      simulated   die_temp_cpu, rail_vdd_in_voltage, rail_vdd_in_current
+
+simulated backend: die temperature over 15 samples
+  SYNTHETIC (simulated over 15 readings on 1 channels; weakest channel(s): die_temp_cpu)
+  rests on 15 readings from simulated:seed=770095; hardware measurement on the declared target: NO
+
+--- recorded backend, recorded content
+backend provenance : recorded
+source id          : recorded:recorded
+
+channel       value    unit  provenance  detail
+------------  -------  ----  ----------  ------------------------
+die_temp_cpu  41.6338  degC  recorded    recorded:die_temp_cpu[1]
+die_temp_cpu  42.4644  degC  recorded    recorded:die_temp_cpu[2]
+die_temp_cpu  43.3944  degC  recorded    recorded:die_temp_cpu[3]
+
+statistic            value    unit      provenance  weakest channel
+-------------------  -------  --------  ----------  ------------------------------------------------------
+count                15       readings  recorded    die_temp_cpu
+mean                 44.2673  degC      recorded    die_temp_cpu
+sd                   1.75036  degC      recorded    die_temp_cpu
+min                  41.6338  degC      recorded    die_temp_cpu
+median               44.3827  degC      recorded    die_temp_cpu
+p95                  46.257   degC      recorded    die_temp_cpu
+max                  46.2583  degC      recorded    die_temp_cpu
+rail_vdd_in_power    22.4561  W         recorded    rail_vdd_in_voltage, rail_vdd_in_current
+headroom to 85 degC  40.7327  degC      recorded    die_temp_cpu, rail_vdd_in_voltage, rail_vdd_in_current
+
+recorded backend, recorded content: die temperature over 15 samples
+  REPLAYED (recorded over 15 readings on 1 channels; weakest channel(s): die_temp_cpu)
+  rests on 15 readings from recorded:recorded; hardware measurement on the declared target: NO
+
+--- recorded backend, simulated content
+backend provenance : simulated
+source id          : recorded:simulated
+
+channel       value    unit  provenance  detail
+------------  -------  ----  ----------  ------------------------
+die_temp_cpu  43.0176  degC  simulated   recorded:die_temp_cpu[1]
+die_temp_cpu  43.1071  degC  simulated   recorded:die_temp_cpu[2]
+die_temp_cpu  43.4804  degC  simulated   recorded:die_temp_cpu[3]
+
+statistic            value    unit      provenance  weakest channel
+-------------------  -------  --------  ----------  ------------------------------------------------------
+count                15       readings  simulated   die_temp_cpu
+mean                 45.3817  degC      simulated   die_temp_cpu
+sd                   1.8548   degC      simulated   die_temp_cpu
+min                  42.75    degC      simulated   die_temp_cpu
+median               45.0665  degC      simulated   die_temp_cpu
+p95                  47.7596  degC      simulated   die_temp_cpu
+max                  47.9149  degC      simulated   die_temp_cpu
+rail_vdd_in_power    22.9686  W         simulated   rail_vdd_in_voltage, rail_vdd_in_current
+headroom to 85 degC  39.6183  degC      simulated   die_temp_cpu, rail_vdd_in_voltage, rail_vdd_in_current
+
+recorded backend, simulated content: die temperature over 15 samples
+  SYNTHETIC (simulated over 15 readings on 1 channels; weakest channel(s): die_temp_cpu)
+  rests on 15 readings from recorded:simulated; hardware measurement on the declared target: NO
+
+==============================================================================
+the live backend, on a host without the board
+==============================================================================
+DeviceUnreachableError: cannot read the declared sysfs node 'sys/devices/virtual/thermal/thermal_zone0/temp' relative to the filesystem root: No such file or directory. The board is not reachable from this host, or the driver that creates this node is not bound. See docs/RECOVERY.md, 'board unreachable mid-run'.
+
+live backend: the monotonic clock
+  MEASURED OFF-TARGET on unidentified x86_64 Linux (x86_64 Linux, via platform.machine() fallback; no device-tree model node); the declared target is 'NVIDIA Jetson Orin Nano' and this is 'unidentified x86_64 Linux'
+  rests on 2 readings from live:filesystem-root; hardware measurement on the declared target: NO
+
+==============================================================================
+what a MEASURED label costs: the refusal, in full
+==============================================================================
+The same simulated campaign, asserted to be MEASURED. This is the
+message a user sees, and it is the only output of this product that
+anyone will ever need to read twice.
+
+'a figure from two live readings and one simulated one' cannot be labelled MEASURED: its inputs are simulated, which may only be labelled SYNTHETIC. MEASURED requires every contributing reading to be live. Offending channel(s) at simulated: die_temp_cpu (from source(s) simulated:seed=770095). Re-run the affected channel(s) against a live source, or label the figure SYNTHETIC.
+
+[PASS] the refusal names the offending channel and the label that would be correct -- printed above in full
+
+==============================================================================
+summary
+==============================================================================
+campaign                             label on the aggregate  provenance of the derived headroom
+-----------------------------------  ----------------------  ----------------------------------
+simulated backend                    SYNTHETIC               simulated
+recorded backend, recorded content   REPLAYED                recorded
+recorded backend, simulated content  SYNTHETIC               simulated
+live backend, clock only             MEASURED                live
+
+Not one of those labels is a hardware measurement of the declared
+NVIDIA Jetson Orin Nano. The live row is MEASURED, and its headline reads
+MEASURED OFF-TARGET with both model strings, because the platform
+attestation on this host does not match the target.
+
+[PASS] the three backends produce three different labels with no other change -- MEASURED, REPLAYED, SYNTHETIC
+
+CHECKS RUN: 2
+FAILED CHECKS (0): none

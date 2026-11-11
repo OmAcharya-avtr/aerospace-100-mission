@@ -1,0 +1,35 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  boardprobe: a hardware abstraction layer whose readings carry their
+  provenance through to the result
+version: 0.1.0
+date-released: 2026-11-11
+license: Apache-2.0
+abstract: >-
+  A uniform interface over an NVIDIA Jetson Orin Nano's monotonic clock,
+  die-temperature, rail-power and performance-counter sources, behind three
+  backends -- live, recorded and simulated -- in which the provenance of every
+  reading is carried in the value and propagated through every derivation as a
+  lattice meet, so that a figure derived from simulated or recorded data cannot
+  be labelled a measurement. Labelling passes through a single enforced choke
+  point; an adversarial check attacks that invariant from fifteen directions
+  and reports the outcome of each. Validation level 3, hardware-pending: the
+  board was not reachable from the environment this package was built in, every
+  declared sysfs path and counter name is unverified on hardware, and no figure
+  in the repository was measured on the board. Research-grade; not
+  flight-qualified, not certified and not approved for operational aerospace
+  use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - hardware-in-the-loop
+  - hardware-abstraction-layer
+  - provenance
+  - data-provenance
+  - lattice
+  - jetson-orin-nano
+  - benchmark-harness
+  - sysfs
+  - perf-event-open
+repository-code: "https://github.com/OmAcharya-avtr/boardprobe"

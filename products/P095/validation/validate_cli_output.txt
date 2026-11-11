@@ -1,0 +1,129 @@
+
+==============================================================================
+boardprobe -- the command line, and the tree it must not pollute
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README; no number here is compared against it)
+psutil           : 7.2.2  (named in README; no number here is compared against it)
+machine          : x86_64 Linux  (the DECLARED TARGET is aarch64; every figure here is from this machine)
+cpu cores        : 2
+repository root  : P095 (printed relatively; see validation/_bootstrap.py)
+
+Every subprocess below runs with HOME and MPLCONFIGDIR in a temporary
+directory outside the repository and PYTHONDONTWRITEBYTECODE=1.
+
+==============================================================================
+1. every subcommand, as a user runs it
+==============================================================================
+[PASS] python -m boardprobe --version -- exit 0
+[PASS] python -m boardprobe channels -- exit 0
+[PASS] python -m boardprobe provenance -- exit 0
+[PASS] python -m boardprobe attest -- exit 0
+[PASS] python -m boardprobe sample --backend simulated --seed 3 -- exit 0
+[PASS] python -m boardprobe sample --backend live -- exit 0
+[PASS] python -m boardprobe replay --samples 6 -- exit 0
+[PASS] python -m boardprobe benchmark --repeats 24 --overhead-repeats 60 -- exit 0
+[PASS] python -m boardprobe benchmark --repeats 24 --environment none --overhead-repeats 60 -- exit 0
+[PASS] python -m boardprobe dry-run -- exit 0
+
+command                                               exit  stdout lines  verdict
+----------------------------------------------------  ----  ------------  -------
+--version                                             0     1             ok
+channels                                              0     25            ok
+provenance                                            0     35            ok
+attest                                                0     10            ok
+sample --backend simulated --seed 3                   0     23            ok
+sample --backend live                                 0     27            ok
+replay --samples 6                                    0     19            ok
+benchmark --repeats 24 --overhead-repeats 60          0     46            ok
+benchmark --repeats 24 --environment none --overhead  0     37            ok
+dry-run                                               0     30            ok
+
+==============================================================================
+2. a bad argument must exit non-zero and say why
+==============================================================================
+  exit status 2
+  stderr      python -m boardprobe sample: error: argument --backend: invalid choice: 'psychic' (choose from 'simu
+[PASS] an unknown backend exits 2 and lists the three that exist -- exit 2
+
+And the board-absent benchmark, which must exit 1 rather than traceback:
+  exit status 1
+  stderr      the benchmark could not run: the environment backend 'live:filesystem-root' could serve none of the 5 requested channels, so no resource fig
+[PASS] a live environment backend on a board-less host exits 1 with the recovery pointer and no traceback -- exit 1
+
+==============================================================================
+3. this script pollutes nothing, and nothing polluting is tracked
+==============================================================================
+Two distinct claims, because they have two distinct owners.
+
+An earlier revision of this script asserted that NO cache directory and no
+bytecode file existed anywhere in the tree at the moment it ran. That claim
+is not this product's to make, and it is unsatisfiable under the release
+gate: the gate runs `ruff check src/ tests/` with its working directory set
+to the product root as check 2, which writes `.ruff_cache` into the tree,
+and then re-executes this script as check 6, which failed on the directory
+the gate itself had just created. No change to this product could have
+passed. Measured 2026-11-02 by running the two steps in the gate's own
+order. The gate already prevents the identical pytest side effect with
+`-p no:cacheprovider`; the ruff case is the same omission and is reported
+to the owner rather than patched here, because this product does not edit
+the gate that judges it.
+
+The two claims below are what this product can be held to, and both are
+stricter than the old one in the direction that matters: the old check
+said nothing at all about what is TRACKED, which is the only thing a
+reader with a cold clone ever sees.
+
+3a. this script adds no cache directory and no bytecode file
+  names treated as cache   : ['__pycache__', '.pytest_cache', '.ruff_cache', '.hypothesis', '.config'], plus every .pyc
+  present at entry         : none
+    (inherited from whatever invoked this script; not this product's doing)
+  still present, inherited : none
+  ADDED while this ran     : none
+[PASS] this script's own execution adds no cache directory or bytecode file -- 0 added
+
+3b. git tracks no cache directory, bytecode file or build artifact
+Authoritative, because .gitignore can be edited and a tracked file stays
+tracked regardless of it. A cold clone carries exactly what git tracks.
+  STRUCTURALLY UNMEASURABLE BY A BUILD AGENT, and reported as such rather
+  than passed on an empty set. This product's working tree is UNCOMMITTED
+  while it is being built: the mission's coordinator holds every commit
+  under ADR-010, so `git ls-files` inside this directory returns nothing
+  and a check over nothing would report a vacuous PASS -- which is worse
+  than reporting that it could not be measured, because it reads as
+  evidence.
+  git ls-files exit status : 0
+  tracked files listed     : 0
+  What CAN be measured here is what .gitignore would exclude, which is
+  the next best thing and is measured below. The claim itself is
+  re-measurable, and must be re-measured, by whoever commits this tree;
+  release-gate check 9 enforces it independently over the whole
+  repository.
+
+  what .gitignore excludes, per shipped fixture and data file:
+    fixtures/orin_nano_idle_simulated_trace.json         not ignored
+[PASS] the shipped fixture orin_nano_idle_simulated_trace.json is not excluded by .gitignore -- not ignored
+    fixtures/replay_path_recorded_trace.json             not ignored
+[PASS] the shipped fixture replay_path_recorded_trace.json is not excluded by .gitignore -- not ignored
+
+==============================================================================
+4. no committed file carries an absolute path
+==============================================================================
+The patterns are assembled from os.sep, and this script's own output file is
+deleted before the scan so that the scanner cannot report itself.
+
+  text files scanned : 73
+  needles            : 4 directory prefixes assembled from os.sep -- home, Users, root, tmp
+    (named rather than printed as literals: this output file is committed,
+     and a committed file containing the literal pattern is exactly what a
+     repository-wide absolute-path scanner is looking for)
+  offenders          : none
+[PASS] no text file in the tree contains an absolute host path -- 0 offenders in 73 files
+
+CHECKS RUN: 16
+FAILED CHECKS (0): none

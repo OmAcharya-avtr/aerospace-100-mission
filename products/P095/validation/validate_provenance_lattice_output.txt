@@ -1,0 +1,96 @@
+
+==============================================================================
+boardprobe -- the provenance lattice, every case enumerated
+==============================================================================
+python           : 3.13.18
+numpy            : 2.5.3
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README; no number here is compared against it)
+psutil           : 7.2.2  (named in README; no number here is compared against it)
+machine          : x86_64 Linux  (the DECLARED TARGET is aarch64; every figure here is from this machine)
+cpu cores        : 2
+repository root  : P095 (printed relatively; see validation/_bootstrap.py)
+
+Reference for the axioms: B. A. Davey and H. A. Priestley, Introduction
+to Lattices and Order, 2nd edition, Cambridge University Press 2002,
+chapter 2, definitions 2.1-2.8. Nothing here is novel mathematics; what
+is engineering is that this package refuses to let a figure escape
+without it.
+
+==============================================================================
+1. the lattice, as the README prints it
+==============================================================================
+meet       simulated  recorded   live
+---------  ---------  ---------  ---------
+simulated  simulated  simulated  simulated
+recorded   simulated  recorded   recorded
+live       simulated  recorded   live
+
+provenance  label      what a reader may conclude
+----------  ---------  -------------------------------------------------------
+live        MEASURED   a device responded; the platform line says which device
+recorded    REPLAYED   a device responded once, earlier, elsewhere
+simulated   SYNTHETIC  nothing was measured; a generator produced the number
+
+chain, weakest first : ['simulated', 'recorded', 'live']
+ranks                : [0, 1, 2]
+identity of meet     : live
+absorbing element    : simulated
+
+==============================================================================
+2. the semilattice laws, over all 9 pairs and all 27 triples
+==============================================================================
+pairs enumerated   : 9
+triples enumerated : 27
+
+[PASS] meet is commutative over all 9 pairs -- 9 pairs
+[PASS] meet is associative over all 27 triples -- 27 triples
+[PASS] meet is idempotent over all 3 elements -- 3 elements
+[PASS] live is the identity of meet -- 3 elements, both sides
+[PASS] simulated absorbs -- 3 elements
+[PASS] meet is monotone in each argument over all 27 triples -- every triple with a <= b
+[PASS] meet is the greatest lower bound over all 9 pairs -- lower bound, and greatest among them
+[PASS] the absorption laws relate meet and join over all 9 pairs -- both laws
+[PASS] the lattice is distributive over all 27 triples -- both distributive laws
+
+==============================================================================
+3. meet_all over every multiset up to length 6
+==============================================================================
+length  assignments checked  3^length
+------  -------------------  --------
+1       3                    3
+2       9                    9
+3       27                   27
+4       81                   81
+5       243                  243
+6       729                  729
+
+[PASS] meet_all is the weakest element present, order-independent and duplication-invariant -- 1092 assignments, 0 disagreements
+
+==============================================================================
+4. the empty fold is refused, not taken as the identity
+==============================================================================
+The meet of an empty collection is the monoid identity, which here is
+the STRONGEST element in the lattice. Returning it would let a figure
+with no inputs at all be labelled a measurement, so it raises.
+
+  ProvenanceError: provenance cannot be established from an empty collection of readings: the meet of nothing is the lattice iden
+[PASS] meet_all([]) raises rather than returning the identity
+
+==============================================================================
+5. only one provenance admits the MEASURED label
+==============================================================================
+provenance  label      may be called MEASURED
+----------  ---------  ----------------------
+live        MEASURED   yes
+recorded    REPLAYED   no
+simulated   SYNTHETIC  no
+
+[PASS] exactly one lattice element maps to MEASURED, and it is live -- ['live']
+[PASS] label_for is a total function on the lattice -- 3 elements, 3 labels
+
+CHECKS RUN: 13
+FAILED CHECKS (0): none
