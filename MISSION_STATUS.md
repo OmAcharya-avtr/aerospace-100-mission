@@ -1,6 +1,86 @@
 # Mission Status
 
-> ## Reconciliation — 2026-11-10 (authoritative; supersedes the blocks below)
+> ## Reconciliation — 2026-11-11 (authoritative; supersedes the blocks below)
+>
+> Figures measured this session: registry totals from `scripts/quota_report.py`
+> run against `products.yaml` after the publication edit; test counts from
+> junit XML in runs this session performed; contributor counts from `gh api`
+> against the live repository. No figure in this block was taken from the
+> build agent's self-report.
+>
+> - **The mission stands at 91 of 100 published.** `quota_report.py` measured
+>   this session: **Registered 100/100**, Built 91/100, **Published 91/100**.
+>   Remaining gap: flagship 2, medium 3, compact 4, AI 6, L1 0, L2 5, L3 0,
+>   L4 4.
+>
+> - **READ THE L4 LINE CORRECTLY.** `quota_report.py` now prints `L4 built 1 of
+>   5`. **That is a count of target slots occupied, not of achieved hardware
+>   validation.** The achieved L4 count is **0 of 5** and stays 0 until
+>   measured timing and resource figures come from an NVIDIA Jetson Orin Nano.
+>   P095 carries `validation_level: 4` as its slot target and the new field
+>   `validation_level_achieved: 3`; its README, badge and VALIDATION.md all say
+>   `Level 3, hardware-pending`, and no figure in it was measured on the board.
+>   The script counts `validation_level`, so it cannot see the distinction.
+>   **NEEDS THE OWNER** — see the note in the P095 registry entry for the
+>   one-line change this session deliberately did not make.
+>
+> - **One product published tonight.** P095 BoardProbe (`boardprobe`, 291
+>   tests, compact, no AI, labelled Level 3 hardware-pending) — the first of
+>   the ten final slots and the hardware abstraction layer the other four L4
+>   products sit on. Authorising verdict: `release_gate.py P095` returned
+>   `P095 PASS 291 tests`, `repository PASS`, `Total tests passing: 291`,
+>   `VERDICT: PUSH ALLOWED`, **with the shell exit status captured directly as
+>   `0`** by running the gate as a background job writing `$?` to a file.
+>   Published under ADR-017 on that verdict alone: no `APPROVAL_LOG.md` row, no
+>   product set to `APPROVED`, `approved_for_publish` stays `false`, no owner
+>   statement quoted or implied. No human spoke in this session.
+>   Repository `https://github.com/OmAcharya-avtr/boardprobe`, remote SHA
+>   `9ae6bec`, contributors `OmAcharya-avtr` — one line, one name.
+>
+> - **THE FINDING OF THIS SESSION: two laundering routes worked before they
+>   were closed.** The product's adversarial check tried fifteen routes to get
+>   a simulated reading into a result labelled measured. Thirteen were refused
+>   by the first design. Two were not. The important one is
+>   `dataclasses.replace(reading, provenance=LIVE)` — public API on every
+>   dataclass. It re-ran `__post_init__`, which **recomputed the tamper seal**,
+>   so the laundered reading was *validly sealed*, carried the simulated
+>   reading's own value, claimed LIVE, and was certified MEASURED. One line, no
+>   private state touched. **A seal recomputed by the mechanism being abused is
+>   not a seal.** The second: rebinding `SimulatedSource.backend_provenance`, an
+>   ordinary class attribute. Both closed by changing the design, not the check,
+>   and both pinned as named regression tests with literal inputs.
+>
+> - **THE TIMING FIGURES MOVE BY 31 PER CENT RUN TO RUN, AND THAT IS PUBLISHED
+>   AS THE RESULT.** Three independent runs of the harness in-bracket overhead
+>   on this host returned 4.348, 3.470 and 4.546 µs — same code, same machine,
+>   different moments on a shared two-core container. Every verdict survived:
+>   both sandwich bounds held 7 of 7 in both runs and the structural inequality
+>   held every time, because the check asserts a hit rate over trials rather
+>   than a value. The coordinator requoted every microsecond figure from a
+>   fresh run and recorded the spread in a Corrections section in both
+>   README.md and VALIDATION.md, with the earlier values kept beside the new
+>   ones. Any single microsecond figure in that product is a sample.
+>
+> - **A VACUOUS CLAIM MADE REAL BY COMMITTING, FOR THE THIRD CONSECUTIVE
+>   SESSION.** The build agent reported `validate_cli.py`'s tracked-file check
+>   as STRUCTURALLY UNMEASURABLE, which was the correct call: its tree is
+>   uncommitted, `git ls-files` returns nothing, and a check over nothing
+>   reports a vacuous PASS. After committing, the coordinator re-ran it: **78
+>   tracked files examined, 0 offenders.** Three consecutive sessions makes this
+>   a property of the build order, not an incident.
+>
+> - **A FOURTH POLLUTER OF THE PRODUCT TREE, AND IT IS THE ONE THE BUILD GUIDE
+>   PREDICTED.** The coordinator's own `pytest` run left a `.hypothesis/`
+>   directory of 16 files in P095's tree. The build guide's 2026-11-02
+>   narrowing says in as many words that "check 1's pytest run can leave
+>   `.hypothesis` the same way"; this is the first observed instance of that
+>   named mechanism. The release gate then left `.hypothesis`, `.ruff_cache`
+>   and two `__pycache__` directories of its own. None of it was ever tracked.
+>   Observed polluters now number four: the script's own interpreter, the
+>   release gate, the coordinating session's ruff, and the coordinating
+>   session's pytest.
+>
+> ## Reconciliation — 2026-11-10 (superseded by the block above)
 >
 > Figures measured this session: registry totals from `scripts/quota_report.py`
 > run against `products.yaml` after the publication and registration edits;

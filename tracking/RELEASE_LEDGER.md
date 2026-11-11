@@ -1190,3 +1190,101 @@ Three independent polluters have now been observed — the script's own
 interpreter, the release gate, and the coordinating session — which is the
 argument for the narrowing in its general form rather than for a list of
 exceptions.
+
+## 2026-11-11 — P095 BoardProbe published
+
+Authorising verdict, ADR-017, no owner statement quoted or implied:
+
+```
+Release gate — 1 product(s)
+
+P095  PASS       291 tests
+
+repository  PASS
+
+Total tests passing: 291
+VERDICT: PUSH ALLOWED
+```
+
+The shell exit status was captured directly as `0`, by running the gate as a
+background job writing `$?` to a file, so the printed verdict and the exit
+status are independent evidence. The gate needed roughly four minutes. No check
+was skipped, no threshold loosened, the gate was not edited, and nothing from a
+blocked product was pushed.
+
+| product | package | repository | remote SHA | tests | level claimed | contributors |
+| --- | --- | --- | --- | --- | --- | --- |
+| P095 BoardProbe | `boardprobe` | https://github.com/OmAcharya-avtr/boardprobe | `9ae6bec` | 291 | **Level 3, hardware-pending** | `OmAcharya-avtr` (one line, one name) |
+
+Monorepo commits this session: `2440854` (Rule Zero stub), `41f5641` (P095
+source, pushed before gating), `1588f35` (the coordinator's marked
+corrections), plus the publication commit carrying this ledger entry.
+
+### The level claimed is not the level in the registry, deliberately
+
+The registry records `validation_level: 4` for P095 because 4 is the slot's
+target. The product is labelled **Level 3, hardware-pending** in its README,
+its badge, its `VALIDATION.md` and `boardprobe.VALIDATION_LEVEL`. **No figure
+in the repository was measured on an NVIDIA Jetson Orin Nano**, every declared
+sysfs path and counter name is unverified on hardware, `verified_on_hardware`
+is `False` on all fourteen channels and a check asserts that it is.
+
+`scripts/quota_report.py` counts `validation_level`, so with P095 published it
+prints `L4 built 1 of 5`. **That line counts target slots occupied, not
+achieved hardware validation. The achieved L4 count is 0 of 5.** A new
+`validation_level_achieved: 3` field records the distinction in the registry;
+the script cannot see it. This session did not change the script, because
+editing the mission's measurement of record unattended is the class of act the
+mission forbids. It needs the owner.
+
+### Two laundering routes worked before they were closed
+
+The product exists to make it structurally impossible for a simulated reading
+to reach a figure labelled measured. Its adversarial check tried fifteen routes.
+Thirteen were refused by the first design. Two were not, and both are recorded
+rather than quietly fixed:
+
+1. **`dataclasses.replace(reading, provenance=LIVE)`** — public API on every
+   dataclass. It re-ran `__post_init__`, which **recomputed the tamper seal**,
+   so the laundered reading was *validly sealed*, carried the simulated
+   reading's own channel and value, claimed `LIVE`, and `certify()` granted it
+   `MEASURED`. One line, no private state touched. The general statement worth
+   keeping: **a seal recomputed by the mechanism being abused is not a seal.**
+   Closed by making the first field an `InitVar` holding a module-private
+   minting token, so `dataclasses.replace` and `copy.replace` both raise.
+2. **Rebinding `SimulatedSource.backend_provenance`**, an ordinary class
+   attribute read through `type(self)`. Closed by capturing the three backends'
+   declared provenances in a module-private registry at import.
+
+Both are pinned as named regression tests with literal inputs. Three residual
+holes are stated in the product rather than omitted: `mint()` lets its caller
+choose a provenance (a false claim at the source, which no type system can
+stop, now narrowed to one named auditable function); a `PlatformAttestation`
+can be hand-built; and same-process code can reach module-private state. The
+guarantee is that a provenance once claimed cannot be strengthened, laundered
+through a derivation, or lost — not that a false claim cannot be made.
+
+### A microsecond figure on this host is a sample, not a property
+
+Three independent runs of the in-bracket overhead returned **4.348**, **3.470**
+and **4.546 µs** — a **31 per cent** spread on identical code and the same
+machine. Every verdict survived it, because the sandwich check asserts a hit
+rate over trials rather than a value: both bounds held **7 of 7** in both runs.
+The coordinator requoted every microsecond figure from a fresh run and recorded
+the spread, with the earlier values kept, in a Corrections section in both
+`README.md` and `validation/VALIDATION.md`. The named-check count fell from 122
+to 121 in the same pass, because the tracked-file branch reachable on a
+committed tree replaces two fixture-`.gitignore` sub-checks with one real check.
+No check was removed or weakened.
+
+### A fourth polluter, and it is the one the build guide predicted
+
+The coordinator's own `pytest` run left a `.hypothesis/` directory of 16 files
+in the product tree before `validate_cli.py` ran. The 2026-11-02 narrowing says
+in as many words that "check 1's pytest run can leave `.hypothesis` the same
+way"; this is the first observed instance of that named mechanism. The release
+gate then left `.hypothesis`, `.ruff_cache` and two `__pycache__` directories
+of its own. Git tracked none of it, and the self-check reported all of it as
+inherited and did not fail. Four polluters are now on the record: the script's
+own interpreter, the release gate, the coordinating session's `ruff`, and the
+coordinating session's `pytest`.
