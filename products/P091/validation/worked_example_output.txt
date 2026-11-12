@@ -3,7 +3,7 @@
 WORKED EXAMPLE -- the README's first run, in both declared regimes
 ==============================================================================
 thermalbudget 0.1.0
-VALIDATION_LEVEL = Level 3, hardware-measurement PENDING at build time; Level 4 not claimed here
+VALIDATION_LEVEL = Level 4, measured on the target board; scope: one power mode (MAXN_SUPER), one uninstrumented ambient, CPU-only payload, soaks no longer than 720 s
 INPUT ORIGIN: SYNTHETIC fixtures. Not a measurement of any board. The measured
 figures are in validate_measured_campaign_output.txt, which refuses to run
 without the campaign's traces.
@@ -19,7 +19,7 @@ ruff             : 0.17.4
 jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
 analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
 repository root  : P091 (printed relatively; see validation/_bootstrap.py)
-resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
+resamples        : 20000
 
 ==============================================================================
 REGIME no_throttle
@@ -31,13 +31,13 @@ README BLOCK
 equilibrium  soak_1.00_r1  EQUILIBRATED
              slope +0.000208 degC/s over the final 120 s
              criterion 0.005 degC/s, 120 finite samples
-baseline 1   burst       28858.08 [28472.12, 29238.39] iters/s
+baseline 1   burst       28858.08 [28457.96, 29222.43] iters/s
 baseline 2   predicted   28853.89 iters/s   [clock relation DEGENERATE: reduces to baseline 1]
              tau rise       90.03 s      tau cooldown 184.19 s      ratio 2.046
-baseline 3   sustained   28946.00 [28809.81, 29074.32] iters/s over 3 equilibrated run(s)
-             steady die   67.8617 [67.7922, 67.9796] degC
-HEADLINE     sustained/burst 1.003046 [0.989359, 1.017211]
-             overstatement   -0.304 per cent [-1.692, +1.076] per cent
+baseline 3   sustained   28946.00 [28813.17, 29077.68] iters/s over 3 equilibrated run(s)
+             steady die   67.8617 [67.7927, 67.9796] degC
+HEADLINE     sustained/burst 1.003046 [0.989798, 1.017793]
+             overstatement   -0.304 per cent [-1.748, +1.031] per cent
              verdict         INDISTINGUISHABLE
              origin          SYNTHETIC
 ------------------------------------------------------------------------------
@@ -54,13 +54,13 @@ README BLOCK
 equilibrium  soak_1.00_r1  EQUILIBRATED
              slope +0.000208 degC/s over the final 120 s
              criterion 0.005 degC/s, 120 finite samples
-baseline 1   burst       28858.08 [28472.12, 29238.39] iters/s
+baseline 1   burst       28858.08 [28457.96, 29222.43] iters/s
 baseline 2   predicted   22250.58 iters/s   [clock 1332542 kHz at 68.00 degC]
              tau rise       90.03 s      tau cooldown 184.19 s      ratio 2.046
-baseline 3   sustained   22007.64 [21920.05, 22098.13] iters/s over 3 equilibrated run(s)
-             steady die   67.8617 [67.7922, 67.9796] degC
-HEADLINE     sustained/burst 0.762616 [0.752314, 0.773255]
-             overstatement   +31.128 per cent [+29.323, +32.923] per cent
+baseline 3   sustained   22007.64 [21920.06, 22098.41] iters/s over 3 equilibrated run(s)
+             steady die   67.8617 [67.7927, 67.9796] degC
+HEADLINE     sustained/burst 0.762616 [0.752627, 0.773716]
+             overstatement   +31.128 per cent [+29.246, +32.868] per cent
              verdict         OVERSTATES
              origin          SYNTHETIC
 ------------------------------------------------------------------------------

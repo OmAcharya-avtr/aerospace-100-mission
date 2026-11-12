@@ -18,7 +18,7 @@ ruff             : 0.17.4
 jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
 analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
 repository root  : P091 (printed relatively; see validation/_bootstrap.py)
-resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
+resamples        : 20000
 
 trace directory  : data/traces/
 board (manifest) : NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
@@ -129,7 +129,7 @@ threshold ladder for the duty-1.0 soaks, so the criterion is visible:
 ==============================================================================
 4  baseline 1 -- cold-burst extrapolation, the thing being tested
 ==============================================================================
-  burst throughput  26160.398 [25487.164, 26931.270] iters/s (95 per cent, 2000 resamples, 4 distinct run-level draws)
+  burst throughput  26160.398 [25478.165, 26923.403] iters/s (95 per cent, 20000 resamples, 4 distinct run-level draws)
   independent check Student-t over per-run means 26160.398 [25112.498, 27208.299] iters/s
     burst_1.00_a     26077.927 iters/s
     burst_1.00_b     26242.870 iters/s
@@ -171,13 +171,13 @@ threshold ladder for the duty-1.0 soaks, so the criterion is visible:
 ==============================================================================
   included runs : ['soak_1.00_r1', 'soak_1.00_r2', 'soak_1.00_r3']
   EXCLUDED      : none
-  sustained     25741.404 [25592.670, 25876.463] iters/s, half-width 141.896, standard error 73.321, bias -2.899
-  steady die    56.7085 [56.4807, 56.9973] degC, half-width 0.2583
+  sustained     25741.404 [25593.028, 25885.792] iters/s, half-width 146.382, standard error 75.178, bias -1.252
+  steady die    56.7085 [56.4813, 56.9959] degC, half-width 0.2573
   independent check Student-t 25741.404 [25553.428, 25929.380] iters/s
   within-run intervals, the other level of the spread:
-    soak_1.00_r1     25798.451 [25571.798, 26023.293] iters/s over n=115 equilibrium samples, half-width 225.747
-    soak_1.00_r2     25655.564 [25428.635, 25866.347] iters/s over n=115 equilibrium samples, half-width 218.856
-    soak_1.00_r3     25770.197 [25540.906, 26001.911] iters/s over n=115 equilibrium samples, half-width 230.502
+    soak_1.00_r1     25798.451 [25576.736, 26030.450] iters/s over n=115 equilibrium samples, half-width 226.857
+    soak_1.00_r2     25655.564 [25432.082, 25875.387] iters/s over n=115 equilibrium samples, half-width 221.653
+    soak_1.00_r3     25770.197 [25549.192, 26000.499] iters/s over n=115 equilibrium samples, half-width 225.654
   run-level granularity: 27 distinct multisets over 3 runs. The interval is granular and is not a substitute for more runs.
 
 ==============================================================================
@@ -185,12 +185,12 @@ threshold ladder for the duty-1.0 soaks, so the criterion is visible:
 ==============================================================================
   burst      26160.398 iters/s
   sustained  25741.404 iters/s
-  sustained as a fraction of burst  0.983984 [0.955303, 1.010774]
-  cold-burst overstatement          +1.6277 per cent [-1.0659, +4.6788] per cent
+  sustained as a fraction of burst  0.983984 [0.955584, 1.010990]
+  cold-burst overstatement          +1.6277 per cent [-1.0870, +4.6481] per cent
   VERDICT: INDISTINGUISHABLE
-  On the measured board with the declared payload, sustained throughput is statistically indistinguishable from burst throughput: the cold-burst overstatement is +1.628 per cent with a 95 per cent interval [-1.066, +4.679] per cent, which contains zero.
+  On the measured board with the declared payload, sustained throughput is statistically indistinguishable from burst throughput: the cold-burst overstatement is +1.628 per cent with a 95 per cent interval [-1.087, +4.648] per cent, which contains zero.
   The interval is a two-level bootstrap: runs resampled with replacement, then samples within each drawn run. Both sides resampled independently, because a burst run and a soak run are separate executions and nothing pairs them.
-[PASS] the headline interval is finite and ordered -- [-0.010659, 0.016277, 0.046788]
+[PASS] the headline interval is finite and ordered -- [-0.010870, 0.016277, 0.046481]
 [PASS] baseline 3 included at least two equilibrated runs -- 3 run(s): ['soak_1.00_r1', 'soak_1.00_r2', 'soak_1.00_r3']
 
 ==============================================================================
@@ -198,10 +198,10 @@ threshold ladder for the duty-1.0 soaks, so the criterion is visible:
 ==============================================================================
   baseline 1 error +418.994 iters/s (+1.6277 per cent of ground truth)
   baseline 2 error +418.994 iters/s (+1.6277 per cent of ground truth)
-  ground-truth half-width 141.896 iters/s; an error smaller than that is inside the run-to-run noise of the quantity being predicted
-  baseline 1: |error| / half-width = 2.953 -> OUTSIDE the interval
-  baseline 2: |error| / half-width = 2.953 -> OUTSIDE the interval
-  predicted steady die 56.649 degC against measured 56.7085 degC, error -0.0597 degC against a measured half-width of 0.2583 degC
+  ground-truth half-width 146.382 iters/s; an error smaller than that is inside the run-to-run noise of the quantity being predicted
+  baseline 1: |error| / half-width = 2.862 -> OUTSIDE the interval
+  baseline 2: |error| / half-width = 2.862 -> OUTSIDE the interval
+  predicted steady die 56.649 degC against measured 56.7085 degC, error -0.0597 degC against a measured half-width of 0.2573 degC
 
 ==============================================================================
 8b  an independent bound on the MEASURED asymptote
@@ -220,7 +220,7 @@ threshold ladder for the duty-1.0 soaks, so the criterion is visible:
   WHAT THESE TWO FINDINGS MEAN, stated rather than left to the reader:
   The single-exponential fit UNDER-predicts the steady-state die temperature of this board. Both independent bounds say the true asymptote is above 56.765 degC, and the corroborating evidence is in the fit's own residuals: lag-1 autocorrelation +0.732 and rms residual 0.2100 degC over 8.09 tau. Residuals that autocorrelated are the signature of a SECOND, SLOWER time constant that the single exponential cannot represent, which is exactly what a die, a heat spreader and a fan-cooled heatsink should produce. The measured final-window slope is still +0.000353 degC/s at the end of a 720 s soak: the die had not finished rising, it had only slowed to within the declared equilibrium criterion.
   This is a measured property of the board and of the first-order model, not a defect in the implementation, and it is NOT reported as a failed check. What would be a defect is a disagreement larger than the fit's own residual scale, and that is the check above.
-  Consequence for the product: baseline 2's steady-state die prediction 56.649 degC is -0.0597 degC against the measured 56.7085 degC, which is inside the run-to-run half-width 0.2583 degC. The model is good enough for the use it is put to here and is biased low in a known direction; a longer soak would widen that bias.
+  Consequence for the product: baseline 2's steady-state die prediction 56.649 degC is -0.0597 degC against the measured 56.7085 degC, which is inside the run-to-run half-width 0.2573 degC. The model is good enough for the use it is put to here and is biased low in a known direction; a longer soak would widen that bias.
 
 ==============================================================================
 9  what is NOT measured here, by name

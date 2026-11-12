@@ -15,7 +15,7 @@ ruff             : 0.17.4
 jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
 analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
 repository root  : P091 (printed relatively; see validation/_bootstrap.py)
-resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
+resamples        : 20000
 
 ==============================================================================
 1  labelling
@@ -38,10 +38,10 @@ resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
 ==============================================================================
 3  the headline verdict rule, attacked from both directions
 ==============================================================================
-  pinned-clock fixture: overstatement -0.3037 per cent [-1.6920, +1.0756] per cent, verdict INDISTINGUISHABLE
+  pinned-clock fixture: overstatement -0.3037 per cent [-1.7481, +1.0308] per cent, verdict INDISTINGUISHABLE
 [PASS] control: an interval containing zero is reported INDISTINGUISHABLE, not as a small gap (must fire) -- FIRED; the zero-gap outcome is a first-class verdict
 [PASS] control: an injected 30 per cent sustained shortfall is detected as a gap (must fire) -- FIRED; overstatement +42.423 per cent against the injected +42.857 per cent
-[PASS] the detected gap matches the injected one to within the interval -- |0.42423 - 0.42857| = 0.00434 <= 0.01977
+[PASS] the detected gap matches the injected one to within the interval -- |0.42423 - 0.42857| = 0.00434 <= 0.01985
 [PASS] control: an injected sustained EXCESS is reported as an understatement, not clamped (must fire) -- FIRED; overstatement -23.311 per cent
 [PASS] control: a zero-throughput side refuses rather than dividing (must fire) -- FIRED; 
 

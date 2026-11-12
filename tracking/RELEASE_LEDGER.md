@@ -1288,3 +1288,132 @@ of its own. Git tracked none of it, and the self-check reported all of it as
 inherited and did not fail. Four polluters are now on the record: the script's
 own interpreter, the release gate, the coordinating session's `ruff`, and the
 coordinating session's `pytest`.
+
+---
+
+## 2026-11-12 — P091 ThermalBudget, the first hardware-measured product
+
+| Field | Value |
+|---|---|
+| Product | P091 ThermalBudget, flagship, hardware-in-the-loop |
+| Package | `thermalbudget` |
+| Repository | https://github.com/OmAcharya-avtr/thermalbudget |
+| Remote SHA | `550aaa96bebc140bdd56425f64aac351b0f4f1fd` |
+| Files on the remote | 98 blobs, matching `git ls-files` locally |
+| Contributors | `OmAcharya-avtr` — one line, one name |
+| Commit author on the remote | `145807881+OmAcharya-avtr@users.noreply.github.com`, resolving to login `OmAcharya-avtr` |
+| Tests | 221, counted from junit XML and cross-checked against the `testcase` element count, both 221, 0 failures, 0 errors, 0 skipped |
+| Validation level | 4 achieved, with scope. The first Level 4 in this mission. |
+| Authorising verdict | `python3 scripts/release_gate.py P091` → `P091 PASS 221 tests`, `repository PASS`, `Total tests passing: 221`, `VERDICT: PUSH ALLOWED`, **shell exit status captured directly as `0`** by running the gate as a background job writing `$?` to a file |
+| Authority | ADR-017 on the gate verdict alone. No `APPROVAL_LOG.md` row, no product set to `APPROVED`, `approved_for_publish` stays `false`, no owner statement quoted or implied. No human spoke in this session. |
+
+### The hardware blocker cleared after fourteen batches
+
+The Jetson Orin Nano became reachable from the Mac for the first time on
+2026-11-12, by passwordless SSH to the `~/.ssh/config` host named `jetson`.
+`orin.local` and `jetson.local` do not resolve; that hostname is the working
+route and is recorded here so no future session has to rediscover it. The board
+identifies itself as an **NVIDIA Jetson Orin Nano Engineering Reference
+Developer Kit Super**, aarch64, JetPack R36.4.7, kernel 5.15.148-tegra, 6
+cores, 7619 MB, governor `schedutil`, `cpuinfo_max_freq` 1728000 kHz, power
+mode `MAXN_SUPER`, 349 G free. `tegrastats` runs without sudo. Six of nine
+thermal zones are readable and `tj-thermal` is the junction temperature.
+
+**`sudo` on the board requires a password.** `sudo -n true` returns
+`sudo: a password is required`, so `nvpmodel` and `jetson_clocks` are out of
+reach for an unattended run and the board can only be characterised at its
+as-found power mode. That limit was recorded in the specification before the
+campaign ran, not discovered in the report.
+
+### The headline is a negative result and it is published as the result
+
+A 17-run campaign of 4992 one-second samples: idle floor, two cold bursts,
+three duty-1.0 soaks, three partial-duty soaks and eight cooldown traces.
+
+**This board did not thermally throttle.** Across the three duty-1.0 soaks,
+**0 of 9654 per-core clock samples** sat below 1728000 kHz while the die rose
+**10.94 degC**, from 46.34 to 57.28. The clock did not move once.
+
+Consequently the cold-burst figure does **not** overstate sustained throughput
+here: burst 26160.398 iters/s against sustained 25741.404
+[25593.028, 25885.792], steady die 56.7085 [56.4813, 56.9959] degC,
+**overstatement +1.6277 per cent with a 95 per cent interval of
+[-1.0870, +4.6481] which contains zero. Verdict INDISTINGUISHABLE.** Baseline
+2 reduces to baseline 1, because its clock-to-throughput chain has no thermal
+signal to act on — a measured property of this board under this payload, not
+an implementation defect.
+
+### Three findings a reviewer should not have to dig for
+
+**1. The clock-versus-temperature relation is confounded.** A pooled fit over
+all runs returns about +46000 kHz/degC, which reads like a measurement of the
+clock falling as the die warms. It is not. Duty cycle drives both the clock,
+through the governor responding to load, and the die temperature, through
+dissipated power, so a pooled fit crosses a common cause. Decomposed:
+within-duty slopes are **exactly zero at duty 1.00** (clock constant,
+n=1644), **-41.6** at 0.75, **+5293.3** at 0.50 and **+28201.2** kHz/degC at
+0.25, against a pooled **+46110.5**. The pooled figure is generated entirely
+between duty groups. Stated in five places in the product and pinned by
+`validation/validate_clock_confound.py`.
+
+**2. The first-order model is inadequate for this board, and two independent
+bounds say so.** The fitted asymptote 56.765 degC sits 0.233 degC *below* the
+final-window mean, where a monotone first-order rise approaches from below, and
+falls 0.038 degC outside a local-slope bracket of [56.803, 57.117] built from
+the cooldown traces. Residual autocorrelation +0.732 over 8.09 time constants.
+There is a second, slower time constant, and the die was still rising at
++0.000353 degC/s when the 720 s soak ended. Reported as findings rather than
+failed checks: on the board the bound tests whether the physics is first order
+and the answer is no. The check that *is* run, and passes, is that the
+disagreement stays inside the fit's own residual scale, 0.0378 against 0.2100
+degC.
+
+**3. The learned model lost by 17.13 times the run-to-run interval and was not
+retuned.** Held-out duty cycle: ridge MAE 4.9205 degC against the RC model's
+0.5120 degC on the same warm-up window, margin -4.4084 degC against a
+bootstrap half-width of 0.2573. Verdict BASELINE_BETTER. The failure mode is
+the predicted one — no extrapolation past the training duty cycles — and duty
+1.00 is where it breaks. Two-sigma coverage 0.6111 against a calibrated 0.95,
+so the uncertainty output ships documented as unusable rather than quietly. At
+duty 0.50 the ridge *beat* the RC model by +0.2558 degC, one split of four,
+reported because the rule cuts both ways.
+
+### A model wrote a confident claim about data it had never seen
+
+The build agent ran before the traces existed and correctly refused to report
+any measured figure — which is why this product is publishable at all. But its
+prose asserted properties of the measured traces anyway. The coordinator found
+one and the agent then found eight more, including two of the coordinator's
+own:
+
+- `baselines.py` said the measured cold-burst trace's first row carries
+  `iters_cum = 0`. The measured value is **19468**. The 2 s skip is correct;
+  the stated evidence was invented.
+- The coordinator's replacement said the first-sample deficit is "consistently
+  near 25 per cent" across "all six load runs". There are **eight** non-zero-duty
+  runs and the deficit ranges **4.16 to 26.64 per cent**. Replaced with the
+  measured eight-row table.
+- The coordinator's hand-off said the GPU sat at 306 MHz "and GR3D 0 per cent
+  for the entire campaign". **GR3D is not in the trace schema and was never
+  sampled**; the devfreq floor held in 4954 of 4975 samples with 21 transient
+  samples at 1020 MHz. "CPU-only" therefore rests on a devfreq floor, not on an
+  engine-utilisation measurement, and every scope statement was corrected.
+- Five more in `clock_throughput.py`, `tests/conftest.py`,
+  `tests/fixtures/synthetic_trace.py`, `tests/test_trace.py` and
+  `validate_loader_contract.py`, each asserting from the five sample rows in
+  the specification what only the full traces could establish.
+
+All are recorded with the superseded claim stated, dated, in the product's
+`validation/VALIDATION.md` and `CHANGELOG.md`. **The general lesson: a build
+agent with no data will still write sentences about the data, and the only
+thing that catches them is re-reading its prose against the measurement.**
+
+### Scope, which is part of the result
+
+One power mode. One uninstrumented ambient, so held-out ambient stays
+STRUCTURALLY UNMEASURABLE. A CPU-only payload. Soaks no longer than 720 s. One
+board with its own heatsink and fan. The board was shared throughout and
+foreign CPU use was sampled every second, pooling to 17.05 per cent over 4975
+samples with per-run means between 14.93 and 20.62 — measured contamination,
+not assumed absence. **Nothing here supports a general statement about Orin
+Nano thermal behaviour.**

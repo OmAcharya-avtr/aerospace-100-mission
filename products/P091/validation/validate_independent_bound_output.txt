@@ -15,7 +15,7 @@ ruff             : 0.17.4
 jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
 analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
 repository root  : P091 (printed relatively; see validation/_bootstrap.py)
-resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
+resamples        : 20000
 
 ==============================================================================
 1  monotonicity: the asymptote is above the final-window MEAN
@@ -51,7 +51,7 @@ resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
 ==============================================================================
 4  normal theory against resampling, on the same quantity
 ==============================================================================
-  bootstrap : 28945.997 [28809.806, 29074.320] iters/s, half-width 132.257
+  bootstrap : 28945.997 [28813.169, 29077.682] iters/s, half-width 132.256
   Student-t : 28945.997 [28722.918, 29169.075] iters/s, half-width 223.078  (2 degrees of freedom, multiplier 4.3027)
 [PASS] both routes give the same point estimate to within rounding -- difference +0.000e+00 iters/s
 [PASS] the two intervals overlap -- a percentile bootstrap and a normal-theory interval that did not overlap would mean one of them is wrong
@@ -63,7 +63,7 @@ resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
 5  convexity: a mean of means cannot leave the range of the means
 ==============================================================================
 [PASS] the sustained point estimate lies within the range of the per-run means -- 28945.997 in [28850.376, 29028.546] iters/s
-[PASS] every bootstrap draw is a convex combination, so the interval is inside the range of the pooled samples -- [28809.806, 29074.320] inside the pooled sample range
+[PASS] every bootstrap draw is a convex combination, so the interval is inside the range of the pooled samples -- [28813.169, 29077.682] inside the pooled sample range
 
 
 CHECKS RUN: 16

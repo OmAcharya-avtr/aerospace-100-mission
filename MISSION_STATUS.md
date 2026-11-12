@@ -1,6 +1,121 @@
 # Mission Status
 
-> ## Reconciliation — 2026-11-11 (authoritative; supersedes the blocks below)
+> ## Reconciliation — 2026-11-12 (authoritative; supersedes the blocks below)
+>
+> Figures measured this session: registry totals from `scripts/quota_report.py`
+> run against `products.yaml` after the publication edit; test counts from
+> junit XML; contributor counts from `gh api` against the live repository;
+> every hardware figure from the campaign's own traces, re-analysed by the
+> coordinator independently of the build agent. No figure in this block was
+> taken from the agent's self-report.
+>
+> - **THE JETSON ORIN NANO IS REACHABLE AND ACHIEVED LEVEL 4 IS NO LONGER
+>   ZERO.** The board became reachable from the Mac for the first time on
+>   2026-11-12, by passwordless SSH to the `~/.ssh/config` host named `jetson`
+>   (`orin.local` and `jetson.local` do not resolve). It identifies itself as an
+>   **NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super**,
+>   aarch64, JetPack R36.4.7, kernel 5.15.148-tegra, 6 cores, 7619 MB, governor
+>   `schedutil`, `cpuinfo_max_freq` 1728000 kHz, power mode `MAXN_SUPER`.
+>   Fourteen consecutive batches had been blocked on this.
+>
+> - **The mission stands at 92 of 100 published.** `quota_report.py` measured
+>   this session: Registered 100/100, Built 92/100, Published 92/100. Remaining
+>   gap: flagship 1, medium 3, compact 4, AI 5, L1 0, L2 5, L3 0, L4 3.
+>
+> - **READ THE L4 LINE CORRECTLY, AND THE READING HAS CHANGED.**
+>   `quota_report.py` prints `L4 built 2 of 5`. **ACHIEVED Level 4 is now 1 of
+>   5 — P091 only.** P095 still carries `validation_level: 4` as a slot target
+>   with `validation_level_achieved: 3`. P091 carries
+>   `validation_level_achieved: 4` and is the real one. The script counts
+>   `validation_level`, so it cannot see the distinction, and it was again NOT
+>   edited. **NEEDS THE OWNER** — this is the same one-line decision recorded
+>   against P095 on 2026-11-11, now with a genuine Level 4 on the other side of
+>   it.
+>
+> - **One product published tonight.** P091 ThermalBudget (`thermalbudget`, 221
+>   tests, flagship, AI-enabled, **Level 4 achieved with scope**) at
+>   `https://github.com/OmAcharya-avtr/thermalbudget`, remote SHA `550aaa9`,
+>   98 blobs, contributors `OmAcharya-avtr` — one line, one name. Authorising
+>   verdict: `release_gate.py P091` returned `P091 PASS 221 tests`,
+>   `repository PASS`, `VERDICT: PUSH ALLOWED`, **with the shell exit status
+>   captured directly as `0`**. Published under ADR-017 on that verdict alone:
+>   no `APPROVAL_LOG.md` row, no product set to `APPROVED`,
+>   `approved_for_publish` stays `false`, no owner statement quoted or implied.
+>   No human spoke in this session.
+>
+> - **THE FINDING OF THIS SESSION: THE BOARD DOES NOT THROTTLE, AND THAT IS THE
+>   PRODUCT'S HEADLINE.** Across three duty-1.0 soaks, **0 of 9654 per-core
+>   clock samples** sat below 1728000 kHz while the die rose **10.94 degC**,
+>   from 46.34 to 57.28. So the cold-burst figure does not overstate sustained
+>   throughput on this board under this payload: overstatement **+1.6277 per
+>   cent, 95 per cent interval [-1.0870, +4.6481]**, which contains zero,
+>   verdict **INDISTINGUISHABLE**. The product was built to report the gap
+>   whatever its value, including zero, and it reported zero. Baseline 2 reduces
+>   to baseline 1 because there is no thermal signal for its clock-to-throughput
+>   chain to act on.
+>
+> - **THE CLOCK-VERSUS-TEMPERATURE RELATION IS CONFOUNDED AND THE PRODUCT SAYS
+>   SO IN FIVE PLACES.** A pooled fit returns about +46000 kHz/degC, which reads
+>   like the clock falling as the die warms. Duty cycle drives both the clock,
+>   via the governor, and the die temperature, via dissipated power. Decomposed,
+>   within-duty slopes are **exactly zero at duty 1.00**, -41.6 at 0.75,
+>   +5293.3 at 0.50 and +28201.2 kHz/degC at 0.25, against a pooled +46110.5.
+>   The pooled number is generated entirely between duty groups.
+>
+> - **THE FIRST-ORDER MODEL IS INADEQUATE FOR THIS BOARD.** The fitted asymptote
+>   56.765 degC sits 0.233 degC *below* the final-window mean, where a monotone
+>   first-order rise approaches from below, and falls 0.038 degC outside a
+>   local-slope bracket [56.803, 57.117] from the cooldown traces. Residual
+>   autocorrelation +0.732 over 8.09 time constants; the die was still rising at
+>   +0.000353 degC/s at 720 s. Reported as findings, not failed checks, because
+>   on the board the bound tests the physics rather than the estimator.
+>
+> - **THE LEARNED MODEL LOST BY 17.13 TIMES THE RUN-TO-RUN INTERVAL AND WAS NOT
+>   RETUNED.** Ridge MAE 4.9205 degC against the RC model's 0.5120 on the same
+>   warm-up window; margin -4.4084 against a half-width of 0.2573. Verdict
+>   BASELINE_BETTER, published in README, VALIDATION.md and MODEL_CARD.md.
+>   Two-sigma coverage 0.6111 against a calibrated 0.95, so the uncertainty
+>   output ships documented as unusable. At duty 0.50 the ridge beat the RC
+>   model by +0.2558 degC, one split of four, reported because the rule cuts
+>   both ways.
+>
+> - **A MODEL WROTE CONFIDENT CLAIMS ABOUT DATA IT HAD NEVER SEEN, NINE OF
+>   THEM, AND TWO WERE THE COORDINATOR'S.** The build agent ran before the
+>   traces existed and correctly refused to report any measured figure — which
+>   is why this product is publishable. Its prose asserted properties of the
+>   traces anyway: `baselines.py` claimed the first row carries `iters_cum = 0`
+>   when the measured value is 19468. The coordinator's replacement then said
+>   the deficit is "near 25 per cent" across "six load runs" when there are
+>   eight and the range is 4.16 to 26.64. The coordinator's own hand-off claimed
+>   "GR3D 0 per cent for the entire campaign" when **GR3D is not in the schema
+>   and was never sampled**, so "CPU-only" rests on a devfreq floor rather than
+>   a utilisation measurement. Five more sat in `clock_throughput.py`, two test
+>   files and `validate_loader_contract.py`. All corrected with the superseded
+>   claim stated and dated. **The lesson: an agent with no data still writes
+>   sentences about the data, and only re-reading its prose against the
+>   measurement catches them.**
+>
+> - **SCOPE IS PART OF THE RESULT.** One power mode, because the board has no
+>   passwordless sudo (`sudo -n true` → `sudo: a password is required`), so
+>   `nvpmodel` and `jetson_clocks` are unreachable unattended. One ambient,
+>   never instrumented or varied, so held-out ambient stays **STRUCTURALLY
+>   UNMEASURABLE**. A CPU-only payload. Soaks no longer than 720 s against a
+>   measured die time constant of 88.85 s, so this is
+>   sustained-over-twelve-minutes and the enclosure's time constant is longer
+>   than anything measured. One board with its own heatsink and fan. The board
+>   was shared throughout: foreign CPU pooled to 17.05 per cent over 4975
+>   samples, per-run means 14.93 to 20.62 — measured contamination, not assumed
+>   absence. **Nothing here supports a general statement about Orin Nano
+>   thermal behaviour.**
+>
+> - **The attribution trailer was refused for the ELEVENTH time** and never
+>   written once: zero trailer lines on every commit this session created, and
+>   `git log --format='%ae %ce' | sort -u` over the whole history still returns
+>   exactly one pair. The six historical trailer-bearing commits found on
+>   2026-11-11 are untouched; removing them means rewriting published history on
+>   `main`, which is not a judgement an unattended session should make.
+
+> ## Reconciliation — 2026-11-11 (superseded by the 2026-11-12 block above)
 >
 > Figures measured this session: registry totals from `scripts/quota_report.py`
 > run against `products.yaml` after the publication edit; test counts from

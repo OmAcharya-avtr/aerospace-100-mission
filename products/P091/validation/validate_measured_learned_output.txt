@@ -15,7 +15,7 @@ ruff             : 0.17.4
 jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
 analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
 repository root  : P091 (printed relatively; see validation/_bootstrap.py)
-resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
+resamples        : 20000
 
 ==============================================================================
 1  the dataset, and why its row count overstates its information
@@ -33,7 +33,7 @@ resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
 ==============================================================================
 2  baseline 3's run-to-run interval -- the yardstick
 ==============================================================================
-  steady die temperature 56.7085 [56.4807, 56.9973] degC, half-width 0.2583 degC over 3 runs
+  steady die temperature 56.7085 [56.4813, 56.9959] degC, half-width 0.2573 degC over 3 runs
   A learned margin smaller than that half-width is inside the run-to-run noise of the quantity being predicted and is reported as not distinguishable.
 
 ==============================================================================
@@ -47,10 +47,10 @@ resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
       duty 0.5     n=6   learned 0.3496 degC   RC 0.6054 degC   margin +0.2558 degC
       duty 0.75    n=6   learned 0.9794 degC   RC 0.5116 degC   margin -0.4678 degC
       duty 1       n=18  learned 8.6022 degC   RC 0.6197 degC   margin -7.9825 degC
-    margin / run-to-run half-width = 17.0651
+    margin / run-to-run half-width = 17.1334
     VERDICT: BASELINE_BETTER
-    the RC baseline is better by 4.4084 degC mean absolute error, which is 17.065 times the run-to-run bootstrap half-width 0.2583 degC
-[PASS] the ridge verdict follows the declared rule -- ratio 17.0651, verdict BASELINE_BETTER
+    the RC baseline is better by 4.4084 degC mean absolute error, which is 17.133 times the run-to-run bootstrap half-width 0.2573 degC
+[PASS] the ridge verdict follows the declared rule -- ratio 17.1334, verdict BASELINE_BETTER
 
   model forest
     pooled over held-out rows: learned MAE 2.9492 degC, RC on the SAME warm-up window 0.5120 degC, margin -2.4372 degC
@@ -59,10 +59,10 @@ resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
       duty 0.5     n=6   learned 1.2995 degC   RC 0.6054 degC   margin -0.6941 degC
       duty 0.75    n=6   learned 0.8098 degC   RC 0.5116 degC   margin -0.2982 degC
       duty 1       n=18  learned 3.7458 degC   RC 0.6197 degC   margin -3.1260 degC
-    margin / run-to-run half-width = 9.4343
+    margin / run-to-run half-width = 9.4721
     VERDICT: BASELINE_BETTER
-    the RC baseline is better by 2.4372 degC mean absolute error, which is 9.434 times the run-to-run bootstrap half-width 0.2583 degC
-[PASS] the forest verdict follows the declared rule -- ratio 9.4343, verdict BASELINE_BETTER
+    the RC baseline is better by 2.4372 degC mean absolute error, which is 9.472 times the run-to-run bootstrap half-width 0.2573 degC
+[PASS] the forest verdict follows the declared rule -- ratio 9.4721, verdict BASELINE_BETTER
 
   per-row detail for the primary model, so every number above is traceable:
     duty 0.25    soak_0.25        window    60 s  truth  46.110 degC  learned  47.685 +/- 2.505 degC  RC  46.339 degC
