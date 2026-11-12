@@ -1,0 +1,71 @@
+
+==============================================================================
+INDEPENDENT BOUNDS -- four, each from mathematics the code does not use
+==============================================================================
+INPUT ORIGIN: SYNTHETIC. These are checks of the estimators.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P091 (printed relatively; see validation/_bootstrap.py)
+resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
+
+==============================================================================
+1  monotonicity: the asymptote is above the final-window MEAN
+==============================================================================
+  The bound is stated against the MEAN of the final window and not against the largest observed sample, and the reason was measured rather than reasoned: with per-sample noise the maximum observed sample is 68.0940 degC, which is +0.0954 degC relative to the fitted asymptote 67.9986 degC. A monotone rise approaches its asymptote from below, so the NOISELESS trend never exceeds it, but a noisy sample can and does. Averaging the window removes the noise and keeps the bound; using the maximum would make this check fail on correct data, which is what happened when it was first written.
+[PASS] the fitted asymptote exceeds the mean of the final window -- asymptote 67.9986 degC > final-window mean 67.9805 degC by +0.0181 degC
+[PASS] the asymptote is above the final-window mean by less than the fit's own residual scale times ten, so it is not an extrapolation off to infinity -- excess 0.0181 degC against rms residual 0.0399 degC
+[PASS] control: an asymptote placed BELOW the final-window mean is caught (must fire) -- FIRED; a corrupted asymptote of 66.9805 degC violates the bound
+[PASS] control: the correct asymptote is NOT flagged by the same bound (must NOT fire) -- did not fire; the monotonicity bound admits the fitted value
+
+==============================================================================
+2  the local-slope identity, with tau from the COOLDOWN traces
+==============================================================================
+  cooldown tau: 8 usable fits, 178.99 to 186.04 s
+  final-window slope +0.000208 +/- 0.000118 degC/s (4 sigma), last sample 68.0030 degC
+  bracket from T_inf = T + tau dT/dt : [67.9539, 68.1296] degC, width 0.1757 degC
+  the bracket's width is slope uncertainty times the cooldown tau spread, so the slack follows the CONDITIONING of this bound and not a constant
+[PASS] the least-squares asymptote lies inside the independent bracket -- asymptote 67.9986 degC in [67.9539, 68.1296] degC
+[PASS] control: an asymptote displaced beyond the bracket is caught (must fire) -- FIRED; a corrupted asymptote of 69.5257 degC is outside
+[PASS] control: the true asymptote is NOT flagged by the same bracket (must NOT fire) -- did not fire; the bracket admits the correct value
+
+==============================================================================
+3  three routes to tau, slack scaled by each route's conditioning
+==============================================================================
+  least squares   tau   90.008 s
+  log-differences tau   89.945 s +/- 2.217 s, conditioning 0.1939, n=109
+  area rule       tau   90.090 s, tail correction 1.0003
+[PASS] least squares and the log-difference route agree inside the differencing slack -- |89.945 - 90.008| = 0.063 s <= 10.586 s
+[PASS] least squares and the area rule agree inside the quadrature slack -- |90.090 - 90.008| = 0.083 s <= 1.801 s
+[PASS] control: a tau corrupted by a factor of two is caught by the log-difference bound (must fire) -- FIRED; 2 x tau = 180.015 s is outside the slack
+  NOTE: the fixtures are generated FROM the first-order form, so this section measures that the estimators recover parameters they were given. It is not evidence that a Jetson die is first-order; the residual autocorrelation of the MEASURED fit is the number that speaks to that, and it is in validate_measured_campaign_output.txt.
+
+==============================================================================
+4  normal theory against resampling, on the same quantity
+==============================================================================
+  bootstrap : 28945.997 [28809.806, 29074.320] iters/s, half-width 132.257
+  Student-t : 28945.997 [28722.918, 29169.075] iters/s, half-width 223.078  (2 degrees of freedom, multiplier 4.3027)
+[PASS] both routes give the same point estimate to within rounding -- difference +0.000e+00 iters/s
+[PASS] the two intervals overlap -- a percentile bootstrap and a normal-theory interval that did not overlap would mean one of them is wrong
+  the t interval is 1.687 times the bootstrap half-width. With three runs that ratio is expected to be well above one and is REPORTED rather than asserted to be near one: the t multiplier at 2 degrees of freedom is 4.3027.
+[PASS] the bootstrap point lies inside the independent t interval -- 28945.997 in [28722.918, 29169.075]
+[PASS] control: a point displaced by five interval widths is caught (must fire) -- FIRED; 31176.781 iters/s is outside
+
+==============================================================================
+5  convexity: a mean of means cannot leave the range of the means
+==============================================================================
+[PASS] the sustained point estimate lies within the range of the per-run means -- 28945.997 in [28850.376, 29028.546] iters/s
+[PASS] every bootstrap draw is a convex combination, so the interval is inside the range of the pooled samples -- [28809.806, 29074.320] inside the pooled sample range
+
+
+CHECKS RUN: 16
+CONTROLS: 6 declared, 4 fired; must-fire 4/4, must-NOT-fire silent 2/2
+FAILED CHECKS (0): none

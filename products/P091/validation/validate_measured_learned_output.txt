@@ -1,0 +1,121 @@
+
+==============================================================================
+MEASURED LEARNED PREDICTOR -- held-out duty cycle, against baseline 2
+==============================================================================
+INPUT ORIGIN: MEASURED on the board, at power mode MAXN_SUPER, one ambient.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P091 (printed relatively; see validation/_bootstrap.py)
+resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
+
+==============================================================================
+1  the dataset, and why its row count overstates its information
+==============================================================================
+  rows        36
+  runs        6 -- ['soak_0.25', 'soak_0.50', 'soak_0.75', 'soak_1.00_r1', 'soak_1.00_r2', 'soak_1.00_r3']
+  duties      [0.25, 0.5, 0.75, 1.0]
+  windows     [60.0, 75.0, 90.0, 105.0, 120.0, 150.0] s
+  features    11 -- ['window_s', 'achieved_duty_mean', 'die_first_c', 'die_last_c', 'die_mean_c', 'die_rise_c', 'die_slope_c_per_s', 'die_slope_second_half_c_per_s', 'die_slope_ratio', 'clock_mean_khz', 'clock_rel_range']
+  EXCLUDED    none
+  The 36 rows come from 6 runs at 6 warm-up window lengths each. Rows from one run are nested inside it and are strongly correlated, so the row count overstates the information. Every split here is grouped by RUN and the evaluation is grouped by DUTY; a random-row cross-validation score on this dataset would be meaningless and is not offered.
+  model       ridge, alpha 1 declared and not searched, 200 group-bootstrap fits for the uncertainty
+  alpha is declared rather than tuned because there is no honest held-out set to tune it on: tuning it against the test duty would make the held-out score meaningless.
+
+==============================================================================
+2  baseline 3's run-to-run interval -- the yardstick
+==============================================================================
+  steady die temperature 56.7085 [56.4807, 56.9973] degC, half-width 0.2583 degC over 3 runs
+  A learned margin smaller than that half-width is inside the run-to-run noise of the quantity being predicted and is reported as not distinguishable.
+
+==============================================================================
+3  held-out DUTY CYCLE -- measurable, and measured
+==============================================================================
+
+  model ridge
+    pooled over held-out rows: learned MAE 4.9205 degC, RC on the SAME warm-up window 0.5120 degC, margin -4.4084 degC
+    two-sigma coverage 0.6111 (a calibrated band covers ~0.95)
+      duty 0.25    n=6   learned 2.3870 degC   RC 0.0958 degC   margin -2.2912 degC
+      duty 0.5     n=6   learned 0.3496 degC   RC 0.6054 degC   margin +0.2558 degC
+      duty 0.75    n=6   learned 0.9794 degC   RC 0.5116 degC   margin -0.4678 degC
+      duty 1       n=18  learned 8.6022 degC   RC 0.6197 degC   margin -7.9825 degC
+    margin / run-to-run half-width = 17.0651
+    VERDICT: BASELINE_BETTER
+    the RC baseline is better by 4.4084 degC mean absolute error, which is 17.065 times the run-to-run bootstrap half-width 0.2583 degC
+[PASS] the ridge verdict follows the declared rule -- ratio 17.0651, verdict BASELINE_BETTER
+
+  model forest
+    pooled over held-out rows: learned MAE 2.9492 degC, RC on the SAME warm-up window 0.5120 degC, margin -2.4372 degC
+    two-sigma coverage 0.8333 (a calibrated band covers ~0.95)
+      duty 0.25    n=6   learned 4.3485 degC   RC 0.0958 degC   margin -4.2527 degC
+      duty 0.5     n=6   learned 1.2995 degC   RC 0.6054 degC   margin -0.6941 degC
+      duty 0.75    n=6   learned 0.8098 degC   RC 0.5116 degC   margin -0.2982 degC
+      duty 1       n=18  learned 3.7458 degC   RC 0.6197 degC   margin -3.1260 degC
+    margin / run-to-run half-width = 9.4343
+    VERDICT: BASELINE_BETTER
+    the RC baseline is better by 2.4372 degC mean absolute error, which is 9.434 times the run-to-run bootstrap half-width 0.2583 degC
+[PASS] the forest verdict follows the declared rule -- ratio 9.4343, verdict BASELINE_BETTER
+
+  per-row detail for the primary model, so every number above is traceable:
+    duty 0.25    soak_0.25        window    60 s  truth  46.110 degC  learned  47.685 +/- 2.505 degC  RC  46.339 degC
+    duty 0.25    soak_0.25        window    75 s  truth  46.110 degC  learned  50.803 +/- 2.066 degC  RC  46.131 degC
+    duty 0.25    soak_0.25        window    90 s  truth  46.110 degC  learned  47.479 +/- 2.561 degC  RC  46.198 degC
+    duty 0.25    soak_0.25        window   105 s  truth  46.110 degC  learned  47.134 +/- 2.649 degC  RC  46.191 degC
+    duty 0.25    soak_0.25        window   120 s  truth  46.110 degC  learned  46.891 +/- 2.716 degC  RC  46.215 degC
+    duty 0.25    soak_0.25        window   150 s  truth  46.110 degC  learned  50.987 +/- 2.058 degC  RC  46.160 degC
+    duty 0.5     soak_0.50        window    60 s  truth  49.985 degC  learned  50.178 +/- 1.907 degC  RC  49.623 degC
+    duty 0.5     soak_0.50        window    75 s  truth  49.985 degC  learned  50.436 +/- 1.831 degC  RC  51.830 degC
+    duty 0.5     soak_0.50        window    90 s  truth  49.985 degC  learned  50.370 +/- 1.862 degC  RC  50.111 degC
+    duty 0.5     soak_0.50        window   105 s  truth  49.985 degC  learned  50.272 +/- 1.894 degC  RC  49.500 degC
+    duty 0.5     soak_0.50        window   120 s  truth  49.985 degC  learned  50.354 +/- 1.863 degC  RC  50.435 degC
+    duty 0.5     soak_0.50        window   150 s  truth  49.985 degC  learned  50.399 +/- 1.852 degC  RC  50.350 degC
+    duty 0.75    soak_0.75        window    60 s  truth  54.063 degC  learned  54.906 +/- 0.697 degC  RC  52.426 degC
+    duty 0.75    soak_0.75        window    75 s  truth  54.063 degC  learned  55.039 +/- 0.676 degC  RC  53.509 degC
+    duty 0.75    soak_0.75        window    90 s  truth  54.063 degC  learned  55.100 +/- 0.668 degC  RC  54.131 degC
+    duty 0.75    soak_0.75        window   105 s  truth  54.063 degC  learned  55.200 +/- 0.655 degC  RC  54.510 degC
+    duty 0.75    soak_0.75        window   120 s  truth  54.063 degC  learned  55.019 +/- 0.681 degC  RC  54.240 degC
+    duty 0.75    soak_0.75        window   150 s  truth  54.063 degC  learned  54.990 +/- 0.688 degC  RC  54.250 degC
+    duty 1       soak_1.00_r1     window    60 s  truth  56.999 degC  learned  53.734 +/- 1.912 degC  RC  55.609 degC
+    duty 1       soak_1.00_r1     window    75 s  truth  56.999 degC  learned  53.719 +/- 1.911 degC  RC  56.312 degC
+    duty 1       soak_1.00_r1     window    90 s  truth  56.999 degC  learned  53.728 +/- 1.916 degC  RC  56.236 degC
+    duty 1       soak_1.00_r1     window   105 s  truth  56.999 degC  learned  53.730 +/- 1.920 degC  RC  56.250 degC
+    duty 1       soak_1.00_r1     window   120 s  truth  56.999 degC  learned  53.616 +/- 1.892 degC  RC  56.117 degC
+    duty 1       soak_1.00_r1     window   150 s  truth  56.999 degC  learned  53.619 +/- 1.897 degC  RC  56.334 degC
+    duty 1       soak_1.00_r2     window    60 s  truth  56.647 degC  learned  47.460 +/- 2.743 degC  RC  55.055 degC
+    duty 1       soak_1.00_r2     window    75 s  truth  56.647 degC  learned  47.472 +/- 2.754 degC  RC  55.657 degC
+    duty 1       soak_1.00_r2     window    90 s  truth  56.647 degC  learned  47.556 +/- 2.750 degC  RC  56.481 degC
+    duty 1       soak_1.00_r2     window   105 s  truth  56.647 degC  learned  47.594 +/- 2.754 degC  RC  56.453 degC
+    duty 1       soak_1.00_r2     window   120 s  truth  56.647 degC  learned  47.479 +/- 2.783 degC  RC  56.315 degC
+    duty 1       soak_1.00_r2     window   150 s  truth  56.647 degC  learned  47.435 +/- 2.805 degC  RC  56.402 degC
+    duty 1       soak_1.00_r3     window    60 s  truth  56.479 degC  learned  43.113 +/- 4.634 degC  RC  55.866 degC
+    duty 1       soak_1.00_r3     window    75 s  truth  56.479 degC  learned  43.190 +/- 4.624 degC  RC  56.894 degC
+    duty 1       soak_1.00_r3     window    90 s  truth  56.479 degC  learned  43.202 +/- 4.634 degC  RC  56.951 degC
+    duty 1       soak_1.00_r3     window   105 s  truth  56.479 degC  learned  43.146 +/- 4.658 degC  RC  56.982 degC
+    duty 1       soak_1.00_r3     window   120 s  truth  56.479 degC  learned  43.135 +/- 4.670 degC  RC  56.907 degC
+    duty 1       soak_1.00_r3     window   150 s  truth  56.479 degC  learned  42.985 +/- 4.722 degC  RC  56.551 degC
+
+==============================================================================
+4  held-out AMBIENT -- STRUCTURALLY UNMEASURABLE
+==============================================================================
+[STRUCTURALLY UNMEASURABLE] a held-out-AMBIENT score for the learned predictor
+           reason: STRUCTURALLY UNMEASURABLE: scoring on held-out ambient requires at least two ambients and the campaign has one. The duty-cycle split is a different axis and is not a substitute for it
+  The duty-cycle split above is NOT a substitute for this axis and is not reported as one. A model can pass a held-out duty cycle and fail a held-out ambient, which is why the two were asked for separately.
+  What the campaign does record is the idle floor of every run, 44.489 degC for idle_pre, so ambient DRIFT across the campaign is visible even though ambient itself was never varied or instrumented.
+
+==============================================================================
+5  the origin of every figure in this file
+==============================================================================
+[PASS] every score here derives from MEASURED traces -- dataset MEASURED, baseline 3 MEASURED
+
+
+CHECKS RUN: 3
+STRUCTURALLY UNMEASURABLE (1): a held-out-AMBIENT score for the learned predictor
+FAILED CHECKS (0): none

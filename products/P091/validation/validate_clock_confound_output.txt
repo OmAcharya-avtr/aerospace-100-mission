@@ -1,0 +1,63 @@
+
+==============================================================================
+CLOCK-VERSUS-DIE RELATION -- within duty against between duty
+==============================================================================
+INPUT ORIGIN: MEASURED on the board, at power mode MAXN_SUPER, one ambient.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P091 (printed relatively; see validation/_bootstrap.py)
+resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
+
+
+==============================================================================
+1  within each duty cycle
+==============================================================================
+  The slope that bears on thermal throttling. Duty is held fixed, so the
+  governor's load response is held fixed with it, and what remains is the
+  clock's response to temperature alone.
+
+  duty 1.00  n= 1644  die  46.34-- 57.28 degC  clock 1728000.0--1728000.0 kHz  slope EXACTLY ZERO, the clock is constant
+  duty 0.75  n=  468  die  46.25-- 54.41 degC  clock 1676800.0--1728000.0 kHz  slope -41.6 kHz/degC
+  duty 0.50  n=  468  die  46.03-- 50.38 degC  clock 1011200.0--1728000.0 kHz  slope +5293.3 kHz/degC
+  duty 0.25  n=  406  die  45.78-- 46.44 degC  clock  729600.0--1574400.0 kHz  slope +28201.2 kHz/degC
+
+
+==============================================================================
+2  pooled across duty cycles -- the confounded fit
+==============================================================================
+  pooled n=2986  slope +46110.5 kHz/degC
+  Duty cycle sets both the clock, through the governor, and the die
+  temperature, through dissipated power. This slope is a relation across
+  that common cause and is NOT a measurement of the clock's response to
+  temperature.
+
+
+==============================================================================
+3  the verdict
+==============================================================================
+  At duty 1.00 the die rose 10.94 degC over 1644 samples
+  and the mean CPU clock stayed at 1728000.0 kHz throughout.
+
+  Consequences, both of which the product states where the figures appear:
+  - This is the most direct evidence in the campaign that the board did not
+    thermally throttle under the declared payload at MAXN_SUPER.
+  - Baseline 2's clock-to-throughput chain therefore has no thermal signal
+    to act on, which is why baseline 2 reduces to baseline 1 rather than
+    improving on it. That reduction is a measured property of this board
+    under this payload, not a defect in the implementation.
+[PASS] at duty 1.00 the clock-vs-die slope is exactly zero over the measured rise -- n=1644, die rise 10.94 degC, clock 1728000.0--1728000.0 kHz
+[PASS] no duty group shows the clock falling as the die warms by more than the governor's smallest step -- duty 1.00 constant; duty 0.75 -41.6; duty 0.50 +5293.3; duty 0.25 +28201.2
+[PASS] the pooled slope exceeds every within-duty slope, confirming it is driven between groups rather than within them -- pooled +46110.5 kHz/degC against within-duty constant, -41.6, +5293.3, +28201.2
+
+
+CHECKS RUN: 3
+FAILED CHECKS (0): none

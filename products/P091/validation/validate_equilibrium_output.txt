@@ -1,0 +1,93 @@
+
+==============================================================================
+EQUILIBRIUM TEST -- tested, not assumed
+==============================================================================
+INPUT ORIGIN: SYNTHETIC. These are checks of the estimator. No number in this
+file is a measurement of any board.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P091 (printed relatively; see validation/_bootstrap.py)
+resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
+
+criterion: |fitted slope| <= 0.005 degC/s over the final 120 s, at least 30 finite samples
+
+==============================================================================
+1  known-answer fits
+==============================================================================
+[PASS] an exact line y = 1 + 2x recovers slope 2 and intercept 1 -- slope 2, intercept 1, rms residual 0
+[PASS] the hand-calculated case x=(0,1,2), y=(0,0,2) gives slope 1, intercept -1/3 -- slope 1, intercept -0.333333333333333, OLS stderr 0.577350 (hand value 0.577350)
+
+==============================================================================
+2  the AR(1) correction, and the size of it on real-shaped data
+==============================================================================
+  soak_1.00_r1   rho +0.1478  stderr OLS 1.017e-04  AR(1) 1.181e-04  inflation 1.161x
+  soak_0.50      rho +0.0517  stderr OLS 1.128e-04  AR(1) 1.188e-04  inflation 1.053x
+  idle_pre       rho -0.0964  stderr OLS 1.074e-04  AR(1) 9.749e-05  inflation 0.908x
+[PASS] the correction is applied and is reported beside the uncorrected value -- both standard errors travel with every verdict
+
+==============================================================================
+3  verdicts over the whole synthetic plan
+==============================================================================
+  burst_1.00_a     INSUFFICIENT_SAMPLES  slope        n/a degC/s  n=20   mean= 47.483 degC
+  burst_1.00_b     INSUFFICIENT_SAMPLES  slope        n/a degC/s  n=20   mean= 48.624 degC
+  cool_a           NOT_EQUILIBRATED      slope  -0.009243 degC/s  n=120  mean= 46.760 degC
+  cool_b           NOT_EQUILIBRATED      slope  -0.011530 degC/s  n=121  mean= 47.154 degC
+  cool_d25         NOT_EQUILIBRATED      slope  -0.016246 degC/s  n=120  mean= 48.048 degC
+  cool_d50         NOT_EQUILIBRATED      slope  -0.023687 degC/s  n=121  mean= 49.411 degC
+  cool_d75         NOT_EQUILIBRATED      slope  -0.035343 degC/s  n=121  mean= 51.608 degC
+  cool_r1          NOT_EQUILIBRATED      slope  -0.034207 degC/s  n=121  mean= 51.392 degC
+  cool_r2          NOT_EQUILIBRATED      slope  -0.034058 degC/s  n=120  mean= 51.356 degC
+  cool_r3          NOT_EQUILIBRATED      slope  -0.065373 degC/s  n=121  mean= 57.189 degC
+  idle_pre         EQUILIBRATED          slope  +0.000106 degC/s  n=120  mean= 44.999 degC
+  soak_0.25        EQUILIBRATED          slope  +0.000336 degC/s  n=121  mean= 50.733 degC
+  soak_0.50        EQUILIBRATED          slope  +0.000868 degC/s  n=120  mean= 56.433 degC
+  soak_0.75        EQUILIBRATED          slope  +0.001459 degC/s  n=121  mean= 62.102 degC
+  soak_1.00_r1     EQUILIBRATED          slope  +0.000208 degC/s  n=120  mean= 67.981 degC
+  soak_1.00_r2     EQUILIBRATED          slope  +0.002143 degC/s  n=120  mean= 67.793 degC
+  soak_1.00_r3     EQUILIBRATED          slope  +0.002058 degC/s  n=121  mean= 67.811 degC
+  status counts: {'INSUFFICIENT_SAMPLES': 2, 'NOT_EQUILIBRATED': 8, 'EQUILIBRATED': 7}
+[PASS] every duty-1.0 soak of the synthetic plan is equilibrated -- 3 of 3
+[PASS] no 20 s burst is reported equilibrated -- INSUFFICIENT_SAMPLES on both, which is explicitly not a pass
+[PASS] every cooldown fails the test, which is the correct answer for a decay -- 8 of 8
+
+==============================================================================
+4  negative controls, each anchored on an injected KNOWN drift
+==============================================================================
+  the anchor trace fits a slope of +0.000208 degC/s, well inside the 0.005 degC/s criterion
+[PASS] control: an injected drift of +0.0150 degC/s is caught (must fire) -- FIRED; fitted +0.015208 degC/s, status NOT_EQUILIBRATED
+[PASS] control: an injected drift of +0.0500 degC/s is caught (must fire) -- FIRED; fitted +0.050208 degC/s, status NOT_EQUILIBRATED
+[PASS] control: an injected drift of -0.0150 degC/s is caught (must fire) -- FIRED; fitted -0.014792 degC/s, status NOT_EQUILIBRATED
+[PASS] control: an injected drift of -0.0500 degC/s is caught (must fire) -- FIRED; fitted -0.049792 degC/s, status NOT_EQUILIBRATED
+[PASS] control: a drift of +0.00000 degC/s, inside the criterion, is NOT flagged (must NOT fire) -- did not fire; fitted +0.000208 degC/s, status EQUILIBRATED
+[PASS] control: a drift of +0.00050 degC/s, inside the criterion, is NOT flagged (must NOT fire) -- did not fire; fitted +0.000708 degC/s, status EQUILIBRATED
+[PASS] control: a window with fewer than 30 finite samples does not pass (must fire) -- FIRED; status INSUFFICIENT_SAMPLES over 9 samples
+
+==============================================================================
+5  the threshold is a criterion, so the ladder is reported
+==============================================================================
+  ladder: (0.001, 0.002, 0.005, 0.01, 0.02) degC/s
+  soak_0.25      0.001:EQUI  0.002:EQUI  0.005:EQUI  0.01:EQUI  0.02:EQUI
+  soak_0.75      0.001:NOT_  0.002:EQUI  0.005:EQUI  0.01:EQUI  0.02:EQUI
+  soak_1.00_r2   0.001:NOT_  0.002:NOT_  0.005:EQUI  0.01:EQUI  0.02:EQUI
+  cool_r1        0.001:NOT_  0.002:NOT_  0.005:NOT_  0.01:NOT_  0.02:NOT_
+[PASS] the verdict is monotone in the threshold across all 17 runs -- once a threshold admits a run, every looser threshold admits it too
+
+==============================================================================
+6  input validation
+==============================================================================
+[PASS] control: a non-positive window is refused (must fire) -- FIRED; 
+[PASS] control: a non-positive threshold is refused (must fire) -- FIRED; 
+
+
+CHECKS RUN: 16
+CONTROLS: 9 declared, 7 fired; must-fire 7/7, must-NOT-fire silent 2/2
+FAILED CHECKS (0): none

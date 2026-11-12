@@ -1,0 +1,33 @@
+
+==============================================================================
+PROPERTY HUNT -- the property suite at a deeper example count
+==============================================================================
+INPUT ORIGIN: generated inputs from Hypothesis strategies over this
+repository's own estimators. No number here is a measurement of any board.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P091 (printed relatively; see validation/_bootstrap.py)
+resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
+
+examples per property: 150
+example database: DISABLED, so no result here depends on a cache a fresh clone
+would not have. Counterexamples found during the build are pinned with their
+literal inputs in tests/test_regressions.py.
+
+deep run: 10 properties declared, 10 testcase elements counted, 0 failed, 0 errored, 1.6 s
+total generated cases attempted: about 1500 (10 properties x 150 examples)
+[PASS] the junit XML agrees with itself and the property suite is not empty -- declared 10, counted 10
+[PASS] no property is falsified at 150 examples each -- 0 failure(s), 0 error(s)
+
+
+CHECKS RUN: 2
+FAILED CHECKS (0): none

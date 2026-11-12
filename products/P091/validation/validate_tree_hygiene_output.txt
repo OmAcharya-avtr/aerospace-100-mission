@@ -1,0 +1,97 @@
+
+==============================================================================
+TREE HYGIENE -- what this product owns
+==============================================================================
+INPUT ORIGIN: this repository's own tree and git index.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P091 (printed relatively; see validation/_bootstrap.py)
+resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
+
+==============================================================================
+1  inherited artifacts, reported and NOT failed
+==============================================================================
+  inherited: .ruff_cache
+  inherited: src/thermalbudget/__pycache__
+  inherited: src/thermalbudget/__pycache__/__init__.cpython-313.pyc
+  inherited: src/thermalbudget/__pycache__/__main__.cpython-313.pyc
+  inherited: src/thermalbudget/__pycache__/baselines.cpython-313.pyc
+  inherited: src/thermalbudget/__pycache__/bootstrap.cpython-313.pyc
+  inherited: src/thermalbudget/__pycache__/clock_throughput.cpython-313.pyc
+  inherited: src/thermalbudget/__pycache__/equilibrium.cpython-313.pyc
+  inherited: src/thermalbudget/__pycache__/limits.cpython-313.pyc
+  inherited: src/thermalbudget/__pycache__/predictor.cpython-313.pyc
+  inherited: src/thermalbudget/__pycache__/provenance.cpython-313.pyc
+  inherited: src/thermalbudget/__pycache__/rc_model.cpython-313.pyc
+  inherited: src/thermalbudget/__pycache__/report.cpython-313.pyc
+  inherited: src/thermalbudget/__pycache__/schema.cpython-313.pyc
+  inherited: src/thermalbudget/__pycache__/trace.cpython-313.pyc
+  inherited: tests/__pycache__
+  inherited: tests/__pycache__/conftest.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_baselines.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_bootstrap.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_cli.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_clock_throughput.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_equilibrium.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_fixtures.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_integration.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_limits.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_predictor.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_properties.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_provenance.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_rc_model.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_regressions.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_report.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_schema.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_trace.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/fixtures/__pycache__
+  inherited: tests/fixtures/__pycache__/__init__.cpython-313.pyc
+  inherited: tests/fixtures/__pycache__/synthetic_trace.cpython-313.pyc
+  36 artifact-shaped entr(ies) were already in the tree when this script started. What a harness leaves in the tree before calling a script is not the script's doing, and release-gate check 2 writes .ruff_cache into the product root one check before check 6 runs this file.
+
+==============================================================================
+2  git tracks no artifact
+==============================================================================
+  git tracks 2 file(s) in the repository, 0 under products/P091/
+  NOTE: nothing under products/P091/ is tracked yet. This build does not commit, by instruction; the coordinator commits. The check below is therefore vacuous for this product's own files at the moment it runs, and the .gitignore coverage check in section 3 is the one that has content.
+[PASS] no artifact-shaped file is tracked under products/P091/ -- 0 offending path(s)
+
+==============================================================================
+3  .gitignore coverage, in both directions
+==============================================================================
+[PASS] every file this product must ship exists on disk -- 14 checked
+[PASS] no file this product must ship is excluded by .gitignore -- 14 checked, none ignored
+[PASS] every cache and build path is excluded by .gitignore -- 8 checked, all ignored
+[PASS] every scratch pattern in this product's own .gitignore is anchored or a suffix -- 35 lines checked
+[PASS] this product's .gitignore anchors junit.xml as /junit.xml -- a bare junit.xml would match at any depth
+  INHERITED FINDING, reported and not failed: tests/fixtures/junit.xml IS excluded, by .gitignore:58:**/junit.xml at the REPOSITORY root, not by this product's .gitignore. That pattern would swallow a nested junit.xml fixture in any product that shipped one. P091 ships none, so nothing of this product's is lost; the finding belongs to whoever owns the repository-level file.
+
+==============================================================================
+3b  the measured traces must reach a cold clone when they exist
+==============================================================================
+  data/traces/ holds 17 CSV file(s): ['burst_1.00_a.csv', 'burst_1.00_b.csv', 'cool_a.csv', 'cool_b.csv'] ...
+[PASS] no measured trace is excluded by .gitignore -- 17 checked, none ignored
+
+==============================================================================
+4  no absolute path in any file this product ships
+==============================================================================
+[PASS] no absolute path in any text file of this product -- 93 file(s) scanned
+
+==============================================================================
+5  this script added nothing
+==============================================================================
+[PASS] running this script added no cache directory and no bytecode file -- nothing added
+  Run this script twice in a row from a clean tree and the second run must agree with the first; a check whose own execution can create the condition it tests is not a check. probe_working_directories.py runs it four times over.
+
+
+CHECKS RUN: 9
+FAILED CHECKS (0): none

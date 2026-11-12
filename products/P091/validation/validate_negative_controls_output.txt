@@ -1,0 +1,90 @@
+
+==============================================================================
+NEGATIVE CONTROLS -- every rule attacked, every control asserted to fire
+==============================================================================
+INPUT ORIGIN: SYNTHETIC.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P091 (printed relatively; see validation/_bootstrap.py)
+resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
+
+==============================================================================
+1  labelling
+==============================================================================
+[PASS] control: a synthetic figure labelled measured (must fire) -- FIRED; 
+[PASS] control: a figure over zero inputs (must fire) -- FIRED; 
+[PASS] control: a figure over negative inputs (must fire) -- FIRED; 
+[PASS] control: a measured figure over real inputs (must NOT fire) -- did not fire; passes through unchanged
+
+==============================================================================
+2  an unequilibrated run is excluded and named
+==============================================================================
+[PASS] control: a 150 s loaded run is excluded from the sustained figure (must fire) -- FIRED; included ['soak_1.00_r1', 'soak_1.00_r2', 'soak_1.00_r3']
+[PASS] control: the exclusion is NAMED with its reason (must fire) -- FIRED; NOT_EQUILIBRATED: fitted slope +0.098372 degC/s over the final 120 s EXCEEDS the declared 
+[PASS] control: the equilibrated run soak_1.00_r1 is NOT excluded (must NOT fire) -- did not fire; included in the sustained figure
+[PASS] control: the equilibrated run soak_1.00_r2 is NOT excluded (must NOT fire) -- did not fire; included in the sustained figure
+[PASS] control: the equilibrated run soak_1.00_r3 is NOT excluded (must NOT fire) -- did not fire; included in the sustained figure
+[PASS] control: a campaign with no equilibrated run refuses rather than averaging anyway (must fire) -- FIRED; 
+
+==============================================================================
+3  the headline verdict rule, attacked from both directions
+==============================================================================
+  pinned-clock fixture: overstatement -0.3037 per cent [-1.6920, +1.0756] per cent, verdict INDISTINGUISHABLE
+[PASS] control: an interval containing zero is reported INDISTINGUISHABLE, not as a small gap (must fire) -- FIRED; the zero-gap outcome is a first-class verdict
+[PASS] control: an injected 30 per cent sustained shortfall is detected as a gap (must fire) -- FIRED; overstatement +42.423 per cent against the injected +42.857 per cent
+[PASS] the detected gap matches the injected one to within the interval -- |0.42423 - 0.42857| = 0.00434 <= 0.01977
+[PASS] control: an injected sustained EXCESS is reported as an understatement, not clamped (must fire) -- FIRED; overstatement -23.311 per cent
+[PASS] control: a zero-throughput side refuses rather than dividing (must fire) -- FIRED; 
+
+==============================================================================
+4  a clock channel that does not move yields no relation
+==============================================================================
+[PASS] control: a pinned clock gives a DEGENERATE relation, not a fitted slope (must fire) -- FIRED; the mean CPU clock varies by 0.0000 per cent of its maximum over 45.23--68.09 degC, at or below the declared i
+[PASS] control: a rolling-off clock is NOT reported degenerate (must NOT fire) -- did not fire; fitted slope -25098.3 kHz/degC
+[PASS] control: an unidentifiable exponent returns nan, NOT the assumed 1.0 (must fire) -- FIRED; returning the assumed value from a measurement function would make an assumption indistinguishable from a measurement
+[PASS] control: baseline 2 reduces to baseline 1 when the relation is degenerate, and says so (must fire) -- FIRED; predicted 28853.89 iters/s against baseline 1's 28858.08 iters/s
+
+==============================================================================
+5  the learned-margin rule, attacked from both directions
+==============================================================================
+  ridge pooled MAE 1.4669 degC against RC 0.1280 degC on the same warm-up windows, margin -1.3389 degC
+[PASS] control: ANY margin inside a wide run-to-run interval is NOT DISTINGUISHABLE (must fire) -- FIRED; ratio 0.001339 of the half-width
+[PASS] control: a margin far outside the interval is attributed to the side that won (must fire) -- FIRED; BASELINE_BETTER, ratio 1338936.7
+[PASS] control: a large POSITIVE margin outside the interval is named in the right direction (must fire) -- FIRED; LEARNED_BETTER
+[PASS] control: a large NEGATIVE margin outside the interval is named in the right direction (must fire) -- FIRED; BASELINE_BETTER
+[PASS] control: a small positive margin inside the interval is NOT reported as a win (must NOT fire) -- did not fire; NOT_DISTINGUISHABLE, ratio 0.500
+[PASS] control: a small negative margin inside the interval is NOT reported as a win (must NOT fire) -- did not fire; NOT_DISTINGUISHABLE, ratio 0.500
+
+==============================================================================
+6  every unmeasured claim is refused by name
+==============================================================================
+[PASS] control: claim 'power_mode_other' (must fire) -- FIRED; 
+[PASS] control: claim 'ambient_other' (must fire) -- FIRED; 
+[PASS] control: claim 'held_out_ambient' (must fire) -- FIRED; 
+[PASS] control: claim 'other_hardware' (must fire) -- FIRED; 
+[PASS] control: claim 'other_payload' (must fire) -- FIRED; 
+[PASS] control: claim 'no_fan' (must fire) -- FIRED; 
+[PASS] control: claim 'long_duration' (must fire) -- FIRED; 
+[PASS] control: claim 'flight' (must fire) -- FIRED; 
+[PASS] control: a figure at power mode 10W (must fire) -- FIRED; 
+[PASS] control: a figure at power mode 15W (must fire) -- FIRED; 
+[PASS] control: a figure at power mode 25W (must fire) -- FIRED; 
+[PASS] control: a figure at power mode MAXN (must fire) -- FIRED; 
+[PASS] control: a figure at the measured mode MAXN_SUPER (must NOT fire) -- did not fire; labelled MEASURED
+[PASS] control: a figure at an ambient of 18 degC (must fire) -- FIRED; 
+[PASS] control: a figure at an ambient of 22.5 degC (must fire) -- FIRED; 
+[PASS] control: a figure at an ambient of 35 degC (must fire) -- FIRED; 
+
+
+CHECKS RUN: 41
+CONTROLS: 40 declared, 32 fired; must-fire 32/32, must-NOT-fire silent 8/8
+FAILED CHECKS (0): none

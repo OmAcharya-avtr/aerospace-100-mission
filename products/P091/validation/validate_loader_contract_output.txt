@@ -1,0 +1,88 @@
+
+==============================================================================
+LOADER CONTRACT -- schema, sentinel, inferred scale, carried origin
+==============================================================================
+INPUT ORIGIN: SYNTHETIC fixtures and hand-built rows, plus the five real rows
+quoted verbatim in docs/SPEC.md. Five rows are a SHAPE contract, not a thermal
+measurement, and nothing here is a figure about the board.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P091 (printed relatively; see validation/_bootstrap.py)
+resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
+
+==============================================================================
+1  the binding header
+==============================================================================
+[PASS] the schema header is 20 columns wide -- 20 columns: 7 fixed + 6 zones + 6 cores + gpu_hz
+[PASS] the die-temperature channel is temp_tj-thermal -- temp_tj-thermal
+[PASS] the three unreadable zones are absent from the header -- cv0/cv1/cv2-thermal return no bytes on the measured board (declared limit 4)
+[PASS] control: a present cv0-thermal column is rejected by name (must fire) -- FIRED; 
+
+==============================================================================
+2  the five real rows load and convert
+==============================================================================
+[PASS] five rows loaded -- n_rows=5
+[PASS] the temperature scale was inferred as milli-degrees -- divisor=1000
+[PASS] 45875 milli-degC converts to 45.875 degC -- first die sample 45.875000 degC
+[PASS] all six cores are at cpuinfo_max_freq throughout these five rows -- 1728000 kHz on every core of all FIVE of these rows. The claim for the whole run is a separate measurement and is in validate_measured_campaign_output.txt
+    NOTE: the first row carries iters_cum=0 with iters_per_s=19447.34, because the six workers flush their counters into shared memory every 0.25 s and the first one-second sample is taken while they are still starting. That is why baseline 1 drops the first 2 s of every run.
+
+==============================================================================
+3  the missing sentinel is not a value
+==============================================================================
+[PASS] a -1 die reading becomes nan -- not -0.001 degC, which is what dividing the sentinel by 1000 would give
+[PASS] the missing count is carried on the trace -- missing[temp_tj-thermal]=1
+    the mean over finite samples is 47.171500 degC; treating the sentinel as a value gives 37.737000 degC, an error of +9.434500 degC on five rows. On a 120-sample window one sentinel would shift the mean by about 0.3931 degC and would bias a fitted slope.
+[PASS] control: treating the sentinel as a value changes the mean (must fire) -- FIRED; difference +9.4345 degC
+
+==============================================================================
+4  the temperature scale is inferred, and refuses when it cannot be
+==============================================================================
+[PASS] degree-scale samples are recognised -- a file already converted to degrees loads correctly
+[PASS] control: all samples missing refuses rather than guessing (must fire) -- FIRED; 
+[PASS] control: a scale in neither band refuses rather than guessing (must fire) -- FIRED; 
+
+==============================================================================
+5  damaged files are refused, each by what is wrong with it
+==============================================================================
+[PASS] control: empty file is refused naming 'no header row' (must fire) -- FIRED; 
+[PASS] control: header with no data rows is refused naming 'no data rows' (must fire) -- FIRED; 
+[PASS] control: ragged row is refused naming 'field count' (must fire) -- FIRED; 
+[PASS] control: negative value in a non-sentinel column is refused naming 'iters_per_s' (must fire) -- FIRED; 
+
+==============================================================================
+6  an absent or empty input set refuses; it never returns a verdict
+==============================================================================
+[PASS] control: an absent directory refuses (must fire) -- FIRED; 
+[PASS] control: an empty directory refuses (must fire) -- FIRED; 
+[PASS] control: a required run absent is refused BY NAME (must fire) -- FIRED; 
+
+==============================================================================
+7  the origin lattice, exhaustively over its four assignments
+==============================================================================
+[PASS] meet is the minimum over all 4 assignments of the 2-element lattice -- MEASURED is the identity, SYNTHETIC is absorbing
+[PASS] the meet of an empty input set is the identity, which is why require_measured takes a count -- an empty set would otherwise be labelled a measurement
+[PASS] control: a figure over zero inputs is refused (must fire) -- FIRED; 
+[PASS] control: a synthetic figure cannot be labelled measured (must fire) -- FIRED; 
+[PASS] control: a measured figure over real inputs is NOT refused (must NOT fire) -- did not fire; require_measured returns the origin unchanged
+
+==============================================================================
+8  a synthetic campaign never matches the declared board
+==============================================================================
+[PASS] every synthetic trace carries Origin.SYNTHETIC -- 17 runs loaded
+[PASS] control: the synthetic manifest does not match the declared board (must fire) -- FIRED; manifest model: SYNTHETIC fixture written by tests/fixtures/synthetic_trace....
+[PASS] the synthetic header is identical to the binding schema -- schema-identical by construction, so the measured path is exercised
+
+
+CHECKS RUN: 29
+CONTROLS: 15 declared, 14 fired; must-fire 14/14, must-NOT-fire silent 1/1
+FAILED CHECKS (0): none

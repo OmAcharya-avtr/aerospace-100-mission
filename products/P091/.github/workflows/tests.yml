@@ -1,0 +1,91 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q -p no:cacheprovider --junit-xml=junit.xml
+      - name: Test count from junit XML, never from stdout
+        run: |
+          python - <<'PY'
+          import sys, xml.etree.ElementTree as ET
+          root = ET.parse("junit.xml").getroot()
+          suite = root if root.tag == "testsuite" else root.find("testsuite")
+          declared = int(suite.get("tests", "0"))
+          counted = len(suite.findall(".//testcase"))
+          print(f"declared {declared}, counted {counted}")
+          if declared == 0 or declared != counted:
+              sys.exit("junit.xml does not agree with itself, or no test ran")
+          PY
+      - name: Nothing this product ships may be gitignored
+        run: |
+          for path in pyproject.toml README.md LICENSE CHANGELOG.md MODEL_CARD.md \
+                      DATASET_CARD.md CITATION.cff docs/SPEC.md data/campaign.py \
+                      tests/fixtures/synthetic_trace.py validation/VALIDATION.md; do
+            if git check-ignore -v "$path"; then
+              echo "FAIL: $path is excluded by .gitignore"
+              exit 1
+            fi
+          done
+      - name: CLI
+        run: |
+          python -m thermalbudget --version
+          python -m thermalbudget schema
+          python -m thermalbudget limits
+          python -m thermalbudget validation-level
+      - name: Validation scripts that need no measured data
+        run: |
+          python validation/validate_loader_contract.py
+          python validation/validate_equilibrium.py
+          python validation/validate_independent_bound.py
+          python validation/validate_negative_controls.py
+          python validation/validate_approx_audit.py
+          python validation/validate_property_hunt.py
+          python validation/worked_example.py
+      - name: Clock-confound decomposition, which requires the measured traces
+        run: |
+          set +e
+          python validation/validate_clock_confound.py
+          echo "validate_clock_confound exit $?"
+      - name: Validation scripts that REQUIRE the measured traces
+        # These exit non-zero when data/traces/ is empty, by design: they compute
+        # measured figures and have no synthetic fallback. The step is tolerant
+        # here and reports the state, because a clone without the campaign's
+        # traces cannot produce a measured figure and must not pretend to.
+        run: |
+          set +e
+          python validation/validate_measured_campaign.py
+          echo "validate_measured_campaign exit $?"
+          python validation/validate_measured_learned.py
+          echo "validate_measured_learned exit $?"
+      - name: Every script must behave the same from any working directory
+        run: python validation/probe_working_directories.py
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          python examples/thermal_rise.py
+          python examples/overstatement.py
+          python examples/clock_relation.py
+          python examples/learned_vs_rc.py
+      - name: The tree must stay clean and carry no absolute path
+        run: python validation/validate_tree_hygiene.py

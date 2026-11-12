@@ -1,0 +1,35 @@
+
+==============================================================================
+APPROX AUDIT -- assertions resting on the hidden 1e-12 absolute default
+==============================================================================
+INPUT ORIGIN: this repository's own test suite.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P091 (printed relatively; see validation/_bootstrap.py)
+resamples        : 2000  [THERMALBUDGET_FAST=1: reduced, path probe only]
+
+static scan of tests/: 51 approx() call sites pass rel=
+  of those, 51 also pass an explicit abs=
+  of those, 0 pass rel= alone
+[PASS] every rel= call site in the suite also passes an explicit abs= -- 0 bare rel= site(s) found by static scan
+
+re-running the whole suite with abs=0.0 substituted into every bare rel= call
+
+audited run: 221 tests declared, 221 testcase elements counted, 0 failed, 0 errored
+[PASS] the junit XML agrees with itself and the suite is not empty -- declared 221, counted 221
+[PASS] no test depends on the hidden absolute default -- 0 failure(s) and 0 error(s) with abs=0.0 forced
+call sites exercised with a bare rel= at run time: 0
+[PASS] the audit itself ran, so the count is measured rather than assumed -- pytest exit 0
+
+
+CHECKS RUN: 4
+FAILED CHECKS (0): none

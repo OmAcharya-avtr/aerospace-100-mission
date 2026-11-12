@@ -1,0 +1,58 @@
+
+==============================================================================
+WORKING-DIRECTORY PROBE -- same exit status from four directories
+==============================================================================
+INPUT ORIGIN: this repository's own scripts.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.4
+jetson-stats     : not installed  (named in README as an alternative; no number here is compared against it)
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P091 (printed relatively; see validation/_bootstrap.py)
+resamples        : 20000
+
+directories probed: filesystem root, system temporary directory, product root, validation/
+THERMALBUDGET_FAST=1 is set, so resample counts are reduced; the question is
+whether each script RUNS from each directory.
+
+validation scripts probed: 11
+example scripts probed   : 4
+
+==============================================================================
+validation/
+==============================================================================
+[PASS] validation/validate_approx_audit.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_clock_confound.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_equilibrium.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_independent_bound.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_loader_contract.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_measured_campaign.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_measured_learned.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_negative_controls.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_property_hunt.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_tree_hygiene.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/worked_example.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+
+==============================================================================
+examples/
+==============================================================================
+[PASS] examples/clock_relation.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] examples/learned_vs_rc.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] examples/overstatement.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] examples/thermal_rise.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+
+==============================================================================
+summary
+==============================================================================
+  every probed script agreed with itself across all four directories
+  A disagreement here means a bare relative path reached a loader, which is the defect class that blocked three products of this mission in one batch.
+
+
+CHECKS RUN: 15
+FAILED CHECKS (0): none

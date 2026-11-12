@@ -1,0 +1,50 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: >-
+  thermalbudget: sustained on-board throughput after thermal equilibrium,
+  against the cold-burst figure, with the gap as the headline
+version: 0.1.0
+date-released: 2026-11-12
+license: Apache-2.0
+abstract: >-
+  Sustained throughput of a GNC-representative workload on an NVIDIA Jetson
+  Orin Nano Engineering Reference Developer Kit Super after the board reaches
+  thermal equilibrium, against the short-burst figure a datasheet or a cold
+  bench benchmark reports, with the cold-burst overstatement and its bootstrap
+  interval as the headline output. Three baselines in build order: cold-burst
+  extrapolation implemented as the thing being tested; a first-order thermal RC
+  network whose time constant is estimated independently from the rise and from
+  the cooldown and reported both ways; and directly measured ground truth with a
+  two-level bootstrap interval over runs and within runs. Equilibrium is tested
+  by the slope of a linear fit over a declared final window and a run that fails
+  is reported not-equilibrated rather than averaged. A learned steady-state
+  predictor with an uncertainty output is scored on held-out duty cycles against
+  the RC baseline given the same warm-up window, and a margin inside the
+  run-to-run interval is reported as not distinguishable from the baseline. The
+  held-out-ambient axis is structurally unmeasurable in this campaign and is
+  reported as such. Measured result: on this board, at power mode MAXN_SUPER,
+  in one ambient, under a CPU-only payload and over soaks of at most 720
+  seconds, the cold-burst overstatement is +1.6277 per cent with a 95 per cent
+  interval of [-1.0870, +4.6481], which contains zero, so sustained throughput
+  is statistically indistinguishable from burst throughput. The board did not
+  throttle: none of 9654 per-core clock samples across the three duty-1.0 soaks
+  fell below the 1728000 kHz maximum over a 10.94 degree Celsius die rise, so
+  the thermal RC baseline reduces to the cold-burst baseline. The learned
+  predictor lost to the RC baseline by 17.13 run-to-run bootstrap half-widths
+  and its uncertainty output is badly calibrated; both findings are published
+  as found. The achieved validation level is set by the mission coordinator
+  from the evidence in validation/VALIDATION.md and is not claimed by the
+  package. Research-grade; not flight-qualified, not certified and not approved
+  for operational aerospace use.
+authors:
+  - name: "OPTIMA Organisation"
+keywords:
+  - thermal-throttling
+  - sustained-throughput
+  - hardware-in-the-loop
+  - jetson-orin-nano
+  - thermal-rc-network
+  - bootstrap-confidence-interval
+  - benchmarking
+  - edge-ai
+repository-code: "https://github.com/OmAcharya-avtr/thermalbudget"
