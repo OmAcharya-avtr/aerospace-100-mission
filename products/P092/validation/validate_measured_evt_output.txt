@@ -16,16 +16,113 @@ joblib           : 1.6.0
 ruff             : 0.17.5
 analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
 repository root  : P092 (printed relatively; see validation/_bootstrap.py)
-resamples        : 200  [DEADLINERISK_FAST=1: reduced, path probe only]
+resamples        : 4000
 
 MEASUREMENT MODEL. Period T, implicit deadline D = T. Job i is released at t0 + i*T and its response time is end - release. A job whose response exceeds D is a MISS. If a job finishes after later releases have already passed, those releases never execute: they are DROPPED, and each dropped release is also a miss. Every executed row carries dropped_before, so releases = sum(1 + dropped_before) and misses = sum(missed + dropped_before) are both reconstructible from the committed traces.
 
 ==============================================================================
-REFUSED -- no measured campaign
+1  the declared candidate grid
 ==============================================================================
-  MEASURED TRACES ABSENT. Expected CSV traces and manifest.json under data/traces/, by name: jobs_gt_long.csv, jobs_mix_c0.csv, jobs_mix_c1.csv, jobs_mix_c2.csv, jobs_mix_c3.csv, jobs_mix_c4.csv, jobs_mix_c5.csv, jobs_mix_c6.csv, jobs_mix_mem2.csv, jobs_mix_c2mem1.csv, manifest.json, CAMPAIGN_COMPLETE. Nothing was substituted: this check computes MEASURED figures and there is no synthetic fallback. Re-run once the hardware campaign has written its traces into that directory.
-[FAIL] the MEASURED campaign is on disk and complete -- nothing was reported and nothing was substituted
+  candidate quantiles     : [0.8, 0.81, 0.82, 0.83, 0.84, 0.85, 0.86, 0.87, 0.88, 0.89, 0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99]
+  minimum exceedances     : 30
+  response samples on gt_long: 59584
+
+==============================================================================
+2  THE THRESHOLD-STABILITY DIAGNOSTIC, measured
+==============================================================================
+  admissible candidates   : 20 of 20
+
+   quantile        u_ms   n_exc          xi     beta_ms   mod_beta_ms     P(resp>D)  endpoint<D
+     0.8000    6.203497   11917    0.702151    0.293911     -4.061882  7.456582e-03       False
+     0.8100    6.214932   11321    0.672047    0.318161     -3.858567  7.231021e-03       False
+     0.8200    6.227755   10725    0.639904    0.345720     -3.639445  7.006345e-03       False
+     0.8300    6.243693   10130    0.614859    0.372100     -3.466892  6.846124e-03       False
+     0.8400    6.263055    9534    0.594814    0.397903     -3.327452  6.727478e-03       False
+     0.8500    6.286152    8938    0.579162    0.423283     -3.217419  6.643699e-03       False
+     0.8600    6.316198    8342    0.579442    0.440256     -3.219614  6.643327e-03       False
+     0.8700    6.350469    7746    0.584825    0.456083     -3.257831  6.669836e-03       False
+     0.8800    6.381359    7150    0.554779    0.499400     -3.040842  6.548731e-03       False
+     0.8900    6.416833    6555    0.516735    0.554282     -2.761521  6.421977e-03       False
+     0.9000    6.461211    5959    0.482439    0.613165     -2.503973  6.338538e-03       False
+     0.9100    6.516276    5363    0.446811    0.681083     -2.230461  6.282064e-03       False
+     0.9200    6.592049    4767    0.428946    0.738074     -2.089558  6.271536e-03       False
+     0.9300    6.692790    4171    0.425392    0.785530     -2.061527  6.269616e-03       False
+     0.9400    6.811966    3575    0.409611    0.859089     -1.931168  6.283079e-03       False
+     0.9500    6.973821    2980    0.407706    0.928037     -1.915235  6.284937e-03       False
+     0.9600    7.162667    2384    0.344617    1.115592     -1.352783  6.441625e-03       False
+     0.9700    7.438347    1788    0.242682    1.441850     -0.363304  6.850259e-03       False
+     0.9800    8.079824    1192    0.255666    1.547885     -0.517855  6.810846e-03       False
+     0.9900    9.258931     596    0.296210    1.751233     -0.991355  6.713889e-03       False
+
+  declared choice rule:
+    Among candidate thresholds at sample quantiles 0.80..0.99 leaving at least 30 exceedances, take the one minimising the standard deviation of the GPD shape estimate over the forward window of 5 consecutive candidates starting there
+    ties and short windows go to the lowest threshold, which keeps the exceedance count highest. The rule is a stability-window rule in the sense of Coles 2001 section 4.3.1 and is applied by code, not by eye.
+
+   quantile   forward-window shape sd
+     0.8000                  0.038602
+     0.8100                  0.032965
+     0.8200                  0.023167
+     0.8300                  0.013379
+     0.8400                  0.013192  <- chosen
+     0.8500                  0.025361
+     0.8600                  0.038914
+     0.8700                  0.049292
+     0.8800                  0.045779
+     0.8900                  0.034809
+     0.9000                  0.024889
+     0.9100                  0.014274
+     0.9200                  0.030492
+     0.9300                  0.067577
+     0.9400                  0.071720
+     0.9500                  0.060691
+     0.9600                  0.039784
+     0.9700                  0.022798
+     0.9800                  0.020272
+     0.9900    inf (window too short)
+
+  chosen threshold u      : 6.263055 ms (quantile 0.8400)
+  exceedances at u        : 9534
+  exceedance rate zeta    : 1.600094e-01
+  GPD shape xi            : 0.594814
+  GPD scale beta          : 0.397903 ms
+  modified scale beta*    : -3.327452 ms
+  GPD P(resp > D)         : 6.727478e-03
+  endpoint below D        : False
+[PASS] the chosen candidate minimises the declared forward-window shape spread -- the choice is made by code, not by eye
+[PASS] the chosen threshold leaves at least the declared minimum exceedances -- 9534 >= 30
+[PASS] the modified scale is beta - xi*u at every candidate -- Coles 2001 eq. 4.10
+
+==============================================================================
+3  the three baselines side by side, on the ground-truth run
+==============================================================================
+  baseline                                          P(miss)                        interval
+  1 mean-plus-margin (Gaussian)                8.897912e-08  none -- the rule gives a point
+  2 GPD peaks-over-threshold                   6.727478e-03              none reported here
+  3 counted rate over all releases             1.359977e-02        [1.2199e-02, 1.5016e-02]
+
+  k with mean + k*sd = D  : 5.221001
+  counted misses          : 816 of 60001 releases
+  dropped releases        : 417  (each one a miss by the measurement model)
+
+  baseline 1 (mean-plus-margin): OUTSIDE the counted rate's 95% moving-block interval
+  baseline 2 (GPD): OUTSIDE the counted rate's 95% moving-block interval
+  A baseline inside the counted rate's interval is not distinguishable from the ground truth by this campaign. A baseline outside it is wrong by more than the campaign's own sampling variability, in the direction shown.
+
+==============================================================================
+4  the same comparison on every mix
+==============================================================================
+  run           releases        counted        gauss_P          gpd_P        k  n_adm
+  gt_long          60001   1.359977e-02   8.897912e-08   6.727478e-03    5.221     20
+  mix_c0           15001   1.333244e-04   4.457871e-69   9.515956e-05   17.527     20
+  mix_c1           15001   3.999733e-04   5.279235e-23   3.648369e-05    9.806     20
+  mix_c2           15001   1.333244e-04   1.411300e-91   7.954718e-06   20.261     20
+  mix_c2mem1       15001   7.999467e-04   9.015874e-91   8.247439e-05   20.170     20
+  mix_c3           15001   2.533164e-03   8.749451e-35   2.531523e-03   12.247     20
+  mix_c4           15001   1.586561e-02   2.469598e-06   7.826897e-03    4.567     20
+  mix_c5           15001   1.135258e-01   9.099267e-02   6.286643e-02    1.335     20
+  mix_c6           15001   3.825745e-01   2.507859e-01   1.800099e-01    0.672     20
+  mix_mem2         15001   0.000000e+00  7.939543e-165   7.678624e-09   27.336     20
 
 
-CHECKS RUN: 1
-FAILED CHECKS (1): the MEASURED campaign is on disk and complete
+CHECKS RUN: 3
+FAILED CHECKS (0): none

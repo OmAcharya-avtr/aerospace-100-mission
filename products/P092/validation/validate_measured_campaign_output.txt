@@ -16,16 +16,179 @@ joblib           : 1.6.0
 ruff             : 0.17.5
 analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
 repository root  : P092 (printed relatively; see validation/_bootstrap.py)
-resamples        : 200  [DEADLINERISK_FAST=1: reduced, path probe only]
+resamples        : 4000
 
 MEASUREMENT MODEL. Period T, implicit deadline D = T. Job i is released at t0 + i*T and its response time is end - release. A job whose response exceeds D is a MISS. If a job finishes after later releases have already passed, those releases never execute: they are DROPPED, and each dropped release is also a miss. Every executed row carries dropped_before, so releases = sum(1 + dropped_before) and misses = sum(missed + dropped_before) are both reconstructible from the committed traces.
 
 ==============================================================================
-REFUSED -- no measured campaign
+1  campaign identity
 ==============================================================================
-  MEASURED TRACES ABSENT. Expected CSV traces and manifest.json under data/traces/, by name: jobs_gt_long.csv, jobs_mix_c0.csv, jobs_mix_c1.csv, jobs_mix_c2.csv, jobs_mix_c3.csv, jobs_mix_c4.csv, jobs_mix_c5.csv, jobs_mix_c6.csv, jobs_mix_mem2.csv, jobs_mix_c2mem1.csv, manifest.json, CAMPAIGN_COMPLETE. Nothing was substituted: this check computes MEASURED figures and there is no synthetic fallback. Re-run once the hardware campaign has written its traces into that directory.
-[FAIL] the MEASURED campaign is on disk and complete -- nothing was reported and nothing was substituted
+  INPUT ORIGIN: measured -- 10 run(s) from data/traces/
+  board            : NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+  kernel/uname     : Linux Project2025 5.15.148-tegra #1 SMP PREEMPT Thu Sep 18 15:08:33 PDT 2025 aarch64
+  cores            : 6
+  governor         : schedutil
+  cpuinfo_max_freq : 1728000 kHz
+  sudo -n true     : exit 1
+  period T         : 10.000 ms
+  deadline D       : 10.000 ms (implicit, D = T)
+  payload_w        : 20000
+  gt_level         : 4
+  gt_reason        : probe miss rate closest to the declared target 0.05 inside [0.002, 0.3]
+  manifest complete: True
+  runs loaded      : gt_long, mix_c0, mix_c1, mix_c2, mix_c2mem1, mix_c3, mix_c4, mix_c5, mix_c6, mix_mem2
+
+==============================================================================
+2  the declared ground-truth-level rule and the probe table it read
+==============================================================================
+  declared target miss rate : 0.05
+  declared usable band      : [0.002, 0.3]
+  chosen level              : 4
+  reason                    : probe miss rate closest to the declared target 0.05 inside [0.002, 0.3]
+
+   n_cpu  releases   misses     miss_rate  median_exec_ms
+       0      1501        2      0.001332          7.2964
+       1      1501        0      0.000000          7.2961
+       2      1501        0      0.000000          7.2961
+       3      1501        0      0.000000          6.0364
+       4      1501       49      0.032645          6.0315
+       5      1501      143      0.095270          6.1470
+       6      1501      528      0.351765          6.0228
+
+  calibration history, including the attempts that missed:
+   attempt         w  median_exec_ms   frac_of_D
+         0     20000          7.3152      0.7315
+
+==============================================================================
+3  deadline accounting, every run
+==============================================================================
+  run             rows   drops  releases  misses  counted_rate  exec_only_rate
+  gt_long        59584     417     60001     816  1.359977e-02    6.696429e-03
+  mix_c0         15000       1     15001       2  1.333244e-04    6.666667e-05
+  mix_c1         14998       3     15001       6  3.999733e-04    2.000267e-04
+  mix_c2         15000       1     15001       2  1.333244e-04    6.666667e-05
+  mix_c2mem1     14995       6     15001      12  7.999467e-04    4.001334e-04
+  mix_c3         14982      19     15001      38  2.533164e-03    1.268188e-03
+  mix_c4         14880     121     15001     238  1.586561e-02    7.862903e-03
+  mix_c5         14106     895     15001    1703  1.135258e-01    5.728059e-02
+  mix_c6         12116    2885     15001    5739  3.825745e-01    2.355563e-01
+  mix_mem2       15001       0     15001       0  0.000000e+00    0.000000e+00
+[PASS] gt_long: releases = sum(1 + dropped_before) -- 60001
+[PASS] gt_long: misses = sum(missed + dropped_before) -- 816
+[PASS] mix_c0: releases = sum(1 + dropped_before) -- 15001
+[PASS] mix_c0: misses = sum(missed + dropped_before) -- 2
+[PASS] mix_c1: releases = sum(1 + dropped_before) -- 15001
+[PASS] mix_c1: misses = sum(missed + dropped_before) -- 6
+[PASS] mix_c2: releases = sum(1 + dropped_before) -- 15001
+[PASS] mix_c2: misses = sum(missed + dropped_before) -- 2
+[PASS] mix_c2mem1: releases = sum(1 + dropped_before) -- 15001
+[PASS] mix_c2mem1: misses = sum(missed + dropped_before) -- 12
+[PASS] mix_c3: releases = sum(1 + dropped_before) -- 15001
+[PASS] mix_c3: misses = sum(missed + dropped_before) -- 38
+[PASS] mix_c4: releases = sum(1 + dropped_before) -- 15001
+[PASS] mix_c4: misses = sum(missed + dropped_before) -- 238
+[PASS] mix_c5: releases = sum(1 + dropped_before) -- 15001
+[PASS] mix_c5: misses = sum(missed + dropped_before) -- 1703
+[PASS] mix_c6: releases = sum(1 + dropped_before) -- 15001
+[PASS] mix_c6: misses = sum(missed + dropped_before) -- 5739
+[PASS] mix_mem2: releases = sum(1 + dropped_before) -- 15001
+[PASS] mix_mem2: misses = sum(missed + dropped_before) -- 0
+
+==============================================================================
+4  baseline 1 -- the mean-plus-margin rule on gt_long
+==============================================================================
+  samples (executed jobs) : 59584
+  mean response           : 6.277342 ms
+  sd response             : 0.713016 ms
+  k with mean + k*sd = D  : 5.221001
+  Gaussian P(resp > D)    : 8.897912e-08
+  The rule is computed from the response times of the EXECUTED jobs, because a dropped release has no response time. It is compared below against the counted rate over ALL releases, which is the comparison the practice makes.
+
+==============================================================================
+5  baseline 3 -- the counted rate on gt_long, with its block selection
+==============================================================================
+  releases in the indicator : 60001
+  misses in the indicator   : 816
+  white-noise band 2/sqrt(n): 8.164898e-03
+  autocorrelation, lags 0..5: 1.000000, 0.547771, 0.116663, 0.089330, 0.061997, 0.064482
+  cut-off lag L             : 60
+  integrated tau            : 6.276304
+  block length (releases)   : 7
+
+  declared rule: Let rho(k) be the sample autocorrelation of the per-release miss indicator and let the white-noise band be 2/sqrt(n). Let L be the smallest lag >= 1 with rho(L) below that band, or the largest lag examined if there is none. The integrated autocorrelation time is tau = 1 + 2*sum(rho(1..L-1)), and the block length is ceil(tau), clipped below at 1 and above at n//20 so that at least twenty blocks span the series. Lags are examined up to min(n-1, 500).
+
+  counted miss rate         : 1.359977e-02
+  95% moving-block interval : [1.219938e-02, 1.501642e-02]
+  resamples / seed          : 4000 / 920092
+[PASS] the counted rate lies inside its own bootstrap interval -- 1.219938e-02 <= 1.359977e-02 <= 1.501642e-02
+[PASS] the indicator sums to the reconstructed miss count -- 816 vs 816
+
+==============================================================================
+6  THE HEADLINE
+==============================================================================
+  counted miss rate        : 1.359977e-02
+  mean-plus-margin P       : 8.897912e-08
+  UNDERSTATEMENT FACTOR    : 1.528423e+05
+  95% moving-block interval: [3.635383e+04, 9.160321e+05]
+  block length (releases)  : 7
+  block length (rows)      : 7
+  non-finite replicates    : 0 of 4000
+  interval contains 1      : False
+
+  VERDICT: the interval EXCLUDES 1 from above. The rule UNDERSTATES the counted miss rate by the factor above on this board, under this payload, at this period and this contention level.
+[PASS] the point factor lies inside its own bootstrap interval -- 3.635383e+04 <= 1.528423e+05 <= 9.160321e+05
+[PASS] no bootstrap replicate was non-finite -- 0 of 4000 replicates had a mean-plus-margin probability of exactly zero
+
+==============================================================================
+7  MEASURED foreign CPU occupancy -- the board was shared
+==============================================================================
+  Per-second foreign occupancy from /proc/stat jiffy deltas, as a percentage of total CPU capacity. This is measured contamination; nothing here assumes an idle board.
+
+  run           samples   mean_%  median_%    p95_%    max_%  our_task_%  stress_%
+  gt_long           602    2.172     1.846    3.685   21.644      10.059    66.801
+  mix_c0            152    5.400     4.950    8.725   15.132      11.964     0.000
+  mix_c1            152    3.619     3.314    5.436   16.167      11.909    16.305
+  mix_c2            152    2.265     2.008    4.760    8.347       9.999    33.450
+  mix_c2mem1        152    1.993     1.843    3.333    7.370      10.013    50.171
+  mix_c3            152    2.076     1.839    3.760   13.973      10.031    50.132
+  mix_c4            152    2.077     1.843    3.665   17.138       9.956    66.764
+  mix_c5            152    2.204     1.839    5.915    9.548       9.665    82.996
+  mix_c6            152    2.122     1.995    3.497    5.648       8.063    89.402
+  mix_mem2          152    2.318     2.174    3.993    7.438      10.017    33.382
+
+  worst single-second foreign occupancy across the campaign: 21.644 %
+  The campaign cannot attribute any part of the measured miss rate to foreign load rather than to the declared stressors, because the foreign load was not controlled. The figures above are the contamination, reported.
+
+==============================================================================
+8  thermal and clock state, measured
+==============================================================================
+  run           tj_mean_C  tj_max_C  clk_mean_kHz  clk_min_kHz  load1_mean
+  gt_long           53.15     54.00     1728000.0      1728000       4.794
+  mix_c0            48.34     50.69     1008000.0       729600       2.034
+  mix_c1            48.31     48.84     1561768.4       729600       1.618
+  mix_c2            49.85     50.41     1728000.0      1728000       2.384
+  mix_c2mem1        53.99     55.44     1728000.0      1728000       3.489
+  mix_c3            51.00     51.56     1728000.0      1728000       3.275
+  mix_c4            52.58     53.28     1728000.0      1728000       4.355
+  mix_c5            54.08     54.59     1728000.0      1728000       5.306
+  mix_c6            54.77     55.06     1728000.0      1728000       6.540
+  mix_mem2          54.96     55.88     1728000.0      1728000       4.067
+
+==============================================================================
+9  scope, which is part of the result
+==============================================================================
+  - one power mode, MAXN_SUPER. `sudo -n true` returns non-zero on this board, so nvpmodel and jetson_clocks are unreachable unattended and every figure here is a MAXN_SUPER figure.
+  - one ambient, never instrumented or varied. Held-out ambient is STRUCTURALLY UNMEASURABLE from this campaign.
+  - one CPython CPU-only payload. Nothing here supports a statement about a compiled payload, a GPU payload, or a different period.
+  - one period and one implicit deadline.
+  - one board, with its own heatsink and fan.
+  - the board was SHARED throughout; section 7 reports the measured foreign occupancy rather than assuming absence.
+[STRUCTURALLY UNMEASURABLE] held-out ambient temperature
+           reason: the campaign ran at one uninstrumented ambient. There is no second ambient to hold out, so this is not a check that failed; it is a check that cannot exist in this campaign.
+[STRUCTURALLY UNMEASURABLE] a second power mode
+           reason: `sudo -n true` returns non-zero on this board, so nvpmodel cannot be driven unattended. Every figure is a MAXN_SUPER figure and no comparison across power modes was possible.
 
 
-CHECKS RUN: 1
-FAILED CHECKS (1): the MEASURED campaign is on disk and complete
+CHECKS RUN: 24
+STRUCTURALLY UNMEASURABLE (2): held-out ambient temperature, a second power mode
+FAILED CHECKS (0): none

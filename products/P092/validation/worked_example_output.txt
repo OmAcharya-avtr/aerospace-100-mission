@@ -16,14 +16,55 @@ joblib           : 1.6.0
 ruff             : 0.17.5
 analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
 repository root  : P092 (printed relatively; see validation/_bootstrap.py)
-resamples        : 200  [DEADLINERISK_FAST=1: reduced, path probe only]
+resamples        : 4000
 
 ==============================================================================
-REFUSED -- no measured campaign
+the example, line by line
 ==============================================================================
-  MEASURED TRACES ABSENT. Expected CSV traces and manifest.json under data/traces/, by name: jobs_gt_long.csv, jobs_mix_c0.csv, jobs_mix_c1.csv, jobs_mix_c2.csv, jobs_mix_c3.csv, jobs_mix_c4.csv, jobs_mix_c5.csv, jobs_mix_c6.csv, jobs_mix_mem2.csv, jobs_mix_c2mem1.csv, manifest.json, CAMPAIGN_COMPLETE. Nothing was substituted: this check computes MEASURED figures and there is no synthetic fallback. Re-run once the hardware campaign has written its traces into that directory.
-[FAIL] the MEASURED campaign is on disk and complete -- the README's worked example uses measured data and nothing was substituted
+
+    from deadlinerisk import (
+        account, choose_threshold, counted_rate_interval,
+        mean_plus_margin, threshold_stability, understatement_factor,
+    )
+    from deadlinerisk.provenance import Origin
+    from deadlinerisk.trace import load_campaign
+
+    campaign = load_campaign("data/traces", origin=Origin.MEASURED)
+    jobs = campaign.jobs["gt_long"]
+    totals = account(jobs)
+    margin = mean_plus_margin(jobs.response_s, jobs.deadline_s)
+    counted = counted_rate_interval(jobs, resamples=4000, seed=920092)
+    headline = understatement_factor(jobs, resamples=4000, seed=920092)
+    evt = choose_threshold(
+        threshold_stability(jobs.response_s, jobs.deadline_s)
+    )
 
 
-CHECKS RUN: 1
-FAILED CHECKS (1): the MEASURED campaign is on disk and complete
+==============================================================================
+printed output
+==============================================================================
+period T                 10.000 ms
+deadline D (implicit)    10.000 ms
+executed rows            59584
+dropped releases         417
+releases                 60001
+misses                   816
+counted miss rate        1.359977e-02
+mean response            6.277342 ms
+sd response              0.713016 ms
+k with mean + k*sd = D   5.221001
+mean-plus-margin P       8.897912e-08
+block length (releases)  7
+counted 95% interval     [1.219938e-02, 1.501642e-02]
+EVT threshold u          6.263055 ms
+EVT shape xi             0.594814
+EVT P(resp > D)          6.727478e-03
+understatement factor    1.528423e+05
+factor 95% interval      [3.635383e+04, 9.160321e+05]
+interval contains 1      False
+[PASS] the factor lies inside its own interval -- [3.635383e+04, 9.160321e+05]
+[PASS] the counted rate lies inside its own interval -- [1.219938e-02, 1.501642e-02]
+
+
+CHECKS RUN: 2
+FAILED CHECKS (0): none

@@ -6,7 +6,9 @@ project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.1.0] - 2026-11-13
 
-First release. Validation level: Level 3, hardware-pending.
+First release. Validation level: Level 4, measured on hardware, with the scope
+recorded as part of the result: one power mode, one uninstrumented ambient, one
+CPython CPU-only payload, one period, one shared board.
 
 ### Added
 
@@ -43,10 +45,18 @@ First release. Validation level: Level 3, hardware-pending.
   `sys.dont_write_bytecode = True` first, each runnable from any working
   directory, with its raw output committed beside it.
 - `examples/` -- runnable scripts writing PNGs into `screenshots/`.
-- The measurement script, verbatim as specified for the board, at
-  `data/campaign.py`, and the `data/traces/` directory it writes into. **No
-  campaign trace is present in this release:** `data/traces/` is empty, every
-  measured figure in `README.md`, `MODEL_CARD.md`, `DATASET_CARD.md` and
-  `validation/VALIDATION.md` is marked `MEASURED_PENDING`, and the measured
-  validation scripts and all four examples refuse with a non-zero exit rather
-  than substituting the committed synthetic generator.
+- The measurement script, verbatim as it ran on the board, at
+  `data/campaign.py`, and the campaign it wrote, committed whole in
+  `data/traces/`: 10 runs, 190 662 executed jobs over 195 010 releases, a 1 Hz
+  contention monitor beside each run, `manifest.json` carrying the calibration
+  history and the pre-declared probe table, and the `CAMPAIGN_COMPLETE` marker.
+  The library, the tests and the prose were built before any trace existed, with
+  every measured figure marked `MEASURED_PENDING`; the measured validation
+  scripts and all four examples exited non-zero until the traces landed, rather
+  than substituting the committed synthetic generator, and the tokens were then
+  replaced from those scripts' output.
+- `validation/validate_descriptor_leak.py`, added after the first measured
+  scoring showed that the learned predictor's dominant descriptor is the task's
+  own CPU occupancy, which the specification does not license. It refits the
+  same forest with the same seed and the same splits on two narrower descriptor
+  sets and reports what the restriction costs.

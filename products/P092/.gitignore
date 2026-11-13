@@ -36,3 +36,9 @@ __pycache__/
 !/data/traces/*.csv
 !/data/traces/manifest.json
 !/data/traces/CAMPAIGN_COMPLETE
+# The campaign's own log is evidence: it carries the warm-up, the calibration
+# history, the probe table and the per-run completion lines in the order they
+# happened. The MISSION repository's root .gitignore has a bare `*.log`, which
+# matches at any depth and silently excluded it; this negation, being in a
+# deeper .gitignore, takes precedence for that file.
+!/data/traces/campaign.log

@@ -43,16 +43,20 @@ from pathlib import Path
 
 PERIOD_S = 0.010
 DEADLINE_S = PERIOD_S          # implicit deadline
-TARGET_FRAC = 0.45             # calibrate nominal exec to this fraction of D
+TARGET_FRAC = 0.75             # calibrate SUSTAINED exec to this fraction of D
+SUSTAIN_CAL_S = 30.0           # length of each sustained calibration attempt
+SUSTAIN_CAL_SKIP = 1.0 / 3.0   # fraction of each attempt discarded as ramp
+SUSTAIN_CAL_ATTEMPTS = 3
 CAL_W0 = 20000                 # starting payload size for calibration
 CAL_JOBS = 120                 # jobs used per calibration measurement
 PROBE_S = 15.0                 # per-level probe duration when choosing gt level
-GT_TARGET_RATE = 0.02          # miss rate we would like the long run to sit at
-GT_RATE_LO, GT_RATE_HI = 0.0005, 0.25
+GT_TARGET_RATE = 0.05          # miss rate we would like the long run to sit at
+GT_RATE_LO, GT_RATE_HI = 0.002, 0.30
 GT_DURATION_S = 600.0
 MIX_DURATION_S = 150.0
 SETTLE_S = 8.0
 TJ_ZONE = 8                    # thermal_zone8 == tj-thermal on this board
+WARMUP_S = 20.0                # ramp the governor before calibrating
 NCORE = 6
 
 
@@ -149,10 +153,11 @@ def clocks_khz() -> list[int]:
 def monitor(out_csv: Path, task_pid: int, stress_pids: list[int],
             duration: float) -> None:
     hz = os.sysconf("SC_CLK_TCK")
-    rows = ["t_s,total_busy_j,task_busy_j,stress_busy_j,foreign_busy_j,"
-            "foreign_pct,task_pct,stress_pct,"
-            + ",".join(f"clk{c}_khz" for c in range(NCORE))
-            + ",clk_mean_khz,clk_min_khz,tj_mdegC,load1\n"]
+    fh_out = open(out_csv, "w", buffering=1)
+    fh_out.write("t_s,total_busy_j,task_busy_j,stress_busy_j,foreign_busy_j,"
+                 "foreign_pct,task_pct,stress_pct,"
+                 + ",".join(f"clk{c}_khz" for c in range(NCORE))
+                 + ",clk_mean_khz,clk_min_khz,tj_mdegC,load1\n")
     t_tot, t_idle = cpu_jiffies()
     t_task = proc_jiffies(task_pid)
     t_str = sum(proc_jiffies(p) for p in stress_pids)
@@ -177,7 +182,7 @@ def monitor(out_csv: Path, task_pid: int, stress_pids: list[int],
         good = [c for c in clk if c > 0]
         tj = read_text(f"/sys/class/thermal/thermal_zone{TJ_ZONE}/temp")
         load1 = (read_text("/proc/loadavg").split() or ["-1"])[0]
-        rows.append(
+        fh_out.write(
             f"{time.perf_counter()-t0:.3f},{d_busy},{d_task},{d_str},{d_for},"
             f"{100.0*d_for/cap:.4f},{100.0*d_task/cap:.4f},"
             f"{100.0*d_str/cap:.4f},"
@@ -186,7 +191,7 @@ def monitor(out_csv: Path, task_pid: int, stress_pids: list[int],
             f"{min(good) if good else -1},"
             f"{tj if tj else -1},{load1}\n")
         _ = hz
-    out_csv.write_text("".join(rows))
+    fh_out.close()
 
 
 # -------------------------------------------------------------- the RT loop ---
@@ -234,7 +239,65 @@ def median(v):
 
 
 # ----------------------------------------------------------------- campaign ---
-def calibrate(log) -> int:
+def warm_governor(seconds: float, log) -> dict:
+    """Ramp schedutil to its ceiling before calibrating.
+
+    Campaign 1 (2026-11-12 23:14 board time) calibrated on a board whose clock
+    had not ramped: the payload was sized to 0.4499 of the deadline at
+    calibration and the sustained median execution time across the mixes then
+    came out near 0.19 of the deadline, so the task loaded one core to about
+    19 per cent and deadline misses were driven only by rare scheduling
+    latency rather than by contention. Warming first is what makes the
+    calibration target mean what it says.
+    """
+    before = clocks_khz()
+    procs = start_stressors(NCORE, 0)
+    t = time.perf_counter()
+    while time.perf_counter() - t < seconds:
+        payload(5000, 1)
+    stop_stressors(procs)
+    after = clocks_khz()
+    info = {"seconds": seconds, "clk_before_khz": before,
+            "clk_after_khz": after}
+    log(f"WARM {json.dumps(info)}")
+    return info
+
+
+def calibrate_sustained(w: int, log):
+    """Size the payload against the SUSTAINED median, not a 1.2 s probe.
+
+    Campaign 1 (board time 2026-11-12 23:14) and campaign 2 (02:59) both sized
+    the payload from a 1.2 s probe taken immediately after the board went idle,
+    so the probe ran on a clock the schedutil governor had already begun to
+    drop. Campaign 1 calibrated to 0.4499 of the deadline and then measured a
+    sustained median of 0.1915 to 0.1940 of the deadline across its ten runs --
+    a factor of 2.3 -- which left the task loading one core to about 19 per
+    cent, six of ten runs with zero deadline misses, and a miss-rate curve that
+    was not monotone in the contention level. A tail product needs the task to
+    sit near its deadline, so the payload is now sized against a 30 s run with
+    the first third discarded as governor ramp, which is the same condition the
+    measured runs are taken under.
+    """
+    history = []
+    for attempt in range(SUSTAIN_CAL_ATTEMPTS):
+        _, _, _, execs = rt_loop(w, SUSTAIN_CAL_S, record=False)
+        tail = execs[int(len(execs) * SUSTAIN_CAL_SKIP):]
+        med = median(tail)
+        history.append({"attempt": attempt, "w": w,
+                        "sustained_median_exec_s": med,
+                        "frac_of_deadline": med / DEADLINE_S,
+                        "jobs": len(execs), "jobs_used": len(tail)})
+        log(f"SCAL w={w} sustained_median={med*1e3:.4f} ms "
+            f"frac={med/DEADLINE_S:.4f} jobs_used={len(tail)}")
+        target = TARGET_FRAC * DEADLINE_S
+        if abs(med - target) / target < 0.05:
+            break
+        scale = max(0.2, min(5.0, target / med))
+        w = max(200, int(w * scale))
+    return w, history
+
+
+def calibrate(log):
     w = CAL_W0
     history = []
     for attempt in range(6):
@@ -261,7 +324,8 @@ def run_one(name: str, w: int, n_cpu: int, n_mem: int, duration: float,
     mon_csv = out / f"mon_{name}.csv"
     mon = subprocess.Popen(
         [sys.executable, os.path.abspath(__file__), "--monitor",
-         "--mon-out", str(mon_csv), "--task-pid", str(os.getpid()),
+         "--out", str(out), "--mon-out", str(mon_csv),
+         "--task-pid", str(os.getpid()),
          "--stress-pids", ",".join(str(p.pid) for p in procs) or "0",
          "--mon-duration", str(duration + 2.0)],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -332,8 +396,11 @@ def main() -> int:
     }
     log(f"ENV {json.dumps(env)}")
 
+    warm = warm_governor(WARMUP_S, log)
     w, cal_hist = calibrate(log)
-    log(f"CALIBRATED w={w}")
+    log(f"QUICK CALIBRATED w={w}")
+    w, scal_hist = calibrate_sustained(w, log)
+    log(f"SUSTAINED CALIBRATED w={w}")
 
     probes = []
     for lvl in range(0, NCORE + 1):
@@ -375,7 +442,8 @@ def main() -> int:
         (out / "manifest.json").write_text(json.dumps(
             {"campaign": "P092 DeadlineRisk", "env": env,
              "period_s": PERIOD_S, "deadline_s": DEADLINE_S,
-             "payload_w": w, "calibration": cal_hist,
+             "payload_w": w, "warmup": warm, "calibration": cal_hist,
+             "sustained_calibration": scal_hist,
              "target_frac_of_deadline": TARGET_FRAC,
              "probes": probes, "gt_level": gt_level, "gt_reason": gt_reason,
              "gt_rate_band": [GT_RATE_LO, GT_RATE_HI],
@@ -385,7 +453,8 @@ def main() -> int:
     (out / "manifest.json").write_text(json.dumps(
         {"campaign": "P092 DeadlineRisk", "env": env,
          "period_s": PERIOD_S, "deadline_s": DEADLINE_S,
-         "payload_w": w, "calibration": cal_hist,
+         "payload_w": w, "warmup": warm, "calibration": cal_hist,
+             "sustained_calibration": scal_hist,
          "target_frac_of_deadline": TARGET_FRAC,
          "probes": probes, "gt_level": gt_level, "gt_reason": gt_reason,
          "gt_rate_band": [GT_RATE_LO, GT_RATE_HI],

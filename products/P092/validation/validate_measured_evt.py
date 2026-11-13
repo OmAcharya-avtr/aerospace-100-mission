@@ -165,18 +165,22 @@ def main() -> int:
     margin = mean_plus_margin(jobs.response_s, jobs.deadline_s)
     interval = counted_rate_interval(jobs, _bootstrap.RESAMPLES, _bootstrap.SEED_ANALYSIS)
     gpd_probability = choose_threshold(fits).chosen.probability if fits else float("nan")
-    out(f"  {'baseline':<42}{'P(miss)':>14}{'interval':>30}")
+    # Column widths carry a space of their own: a value exactly as wide as its
+    # field prints with no padding and runs into its neighbour. Measured on this
+    # campaign, 'none -- the rule gives a point' is 30 characters and
+    # 7.939543e-165 is 13, and both collided in the first committed output.
+    out(f"  {'baseline':<42}{'P(miss)':>15}{'interval':>32}")
     out(
-        f"  {'1 mean-plus-margin (Gaussian)':<42}{margin.probability:>14.6e}"
-        f"{'none -- the rule gives a point':>30}"
+        f"  {'1 mean-plus-margin (Gaussian)':<42}{margin.probability:>15.6e}"
+        f"{'none -- the rule gives a point':>32}"
     )
     out(
-        f"  {'2 GPD peaks-over-threshold':<42}{gpd_probability:>14.6e}"
-        f"{'none reported here':>30}"
+        f"  {'2 GPD peaks-over-threshold':<42}{gpd_probability:>15.6e}"
+        f"{'none reported here':>32}"
     )
     out(
-        f"  {'3 counted rate over all releases':<42}{interval.rate:>14.6e}"
-        f"{f'[{interval.low:.4e}, {interval.high:.4e}]':>30}"
+        f"  {'3 counted rate over all releases':<42}{interval.rate:>15.6e}"
+        f"{f'[{interval.low:.4e}, {interval.high:.4e}]':>32}"
     )
     out("")
     out(f"  k with mean + k*sd = D  : {margin.k_to_deadline:.6f}")
@@ -206,7 +210,7 @@ def main() -> int:
 
     out.rule("4  the same comparison on every mix")
     out(
-        f"  {'run':<12}{'releases':>10}{'counted':>13}{'gauss_P':>13}{'gpd_P':>13}"
+        f"  {'run':<12}{'releases':>10}{'counted':>15}{'gauss_P':>15}{'gpd_P':>15}"
         f"{'k':>9}{'n_adm':>7}"
     )
     for name in sorted(campaign.jobs):
@@ -216,8 +220,8 @@ def main() -> int:
         mix_fits = threshold_stability(mix.response_s, mix.deadline_s)
         mix_gpd = choose_threshold(mix_fits).chosen.probability if mix_fits else float("nan")
         out(
-            f"  {name:<12}{mix_totals.releases:>10}{mix_totals.miss_rate:>13.6e}"
-            f"{mix_margin.probability:>13.6e}{mix_gpd:>13.6e}"
+            f"  {name:<12}{mix_totals.releases:>10}{mix_totals.miss_rate:>15.6e}"
+            f"{mix_margin.probability:>15.6e}{mix_gpd:>15.6e}"
             f"{mix_margin.k_to_deadline:>9.3f}{len(mix_fits):>7}"
         )
 

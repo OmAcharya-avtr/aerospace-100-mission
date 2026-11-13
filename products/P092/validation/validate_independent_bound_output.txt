@@ -16,7 +16,7 @@ joblib           : 1.6.0
 ruff             : 0.17.5
 analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
 repository root  : P092 (printed relatively; see validation/_bootstrap.py)
-resamples        : 200  [DEADLINERISK_FAST=1: reduced, path probe only]
+resamples        : 4000
 
 ==============================================================================
 0  the bounds, and why each slack is what it is
@@ -117,12 +117,71 @@ SYNTHETIC: Bonferroni bracket on the consecutive-pair miss rate
 ==============================================================================
 4  MEASURED campaign
 ==============================================================================
-  MEASURED CAMPAIGN NOT AVAILABLE. The refusal text follows verbatim:
-    MEASURED TRACES ABSENT. Expected CSV traces and manifest.json under data/traces/, by name: jobs_gt_long.csv, jobs_mix_c0.csv, jobs_mix_c1.csv, jobs_mix_c2.csv, jobs_mix_c3.csv, jobs_mix_c4.csv, jobs_mix_c5.csv, jobs_mix_c6.csv, jobs_mix_mem2.csv, jobs_mix_c2mem1.csv, manifest.json, CAMPAIGN_COMPLETE. Nothing was substituted: this check computes MEASURED figures and there is no synthetic fallback. Re-run once the hardware campaign has written its traces into that directory.
-[STRUCTURALLY UNMEASURABLE] independent bounds on the MEASURED campaign
-           reason: the measured traces were not on disk, or the campaign had not written CAMPAIGN_COMPLETE, when this script ran. Nothing was checked and nothing was substituted.
+
+==============================================================================
+MEASURED: Markov and Cantelli
+==============================================================================
+INPUT ORIGIN: measured -- 10 run(s) from data/traces/
+
+  run           counted_exec       markov    m_slack      gauss_P     cantelli    c_slack
+  gt_long       6.696429e-03 6.277342e-01   5.58e-16 8.897912e-08 3.538714e-02   2.75e-16
+  mix_c0        6.666667e-05 7.399317e-01   6.57e-16 4.457871e-69 3.244693e-03   3.86e-17
+  mix_c1        2.000267e-04 7.369651e-01   6.55e-16 5.279235e-23 1.029155e-02   1.21e-16
+  mix_c2        6.666667e-05 6.149575e-01   5.46e-16 1.411300e-91 2.430008e-03   1.81e-17
+  mix_c2mem1    4.001334e-04 6.159433e-01   5.47e-16 9.015874e-91 2.452054e-03   1.83e-17
+  mix_c3        1.268188e-03 6.188647e-01   5.50e-16 8.749451e-35 6.623330e-03   5.00e-17
+  mix_c4        7.862903e-03 6.345457e-01   5.64e-16 2.469598e-06 4.574414e-02   3.63e-16
+  mix_c5        5.728059e-02 7.081008e-01   6.29e-16 9.099267e-02 3.595394e-01   3.74e-15
+  mix_c6        2.355563e-01 7.870738e-01   6.99e-16 2.507859e-01 6.888907e-01   1.03e-14
+  mix_mem2      0.000000e+00 6.155173e-01   5.47e-167.939543e-165 1.336447e-03   9.98e-18
+
+[PASS] MEASURED/gt_long: counted executed-job miss rate <= Markov bound -- 6.696429e-03 <= 6.277342e-01
+[PASS] MEASURED/gt_long: Gaussian mean-plus-margin tail <= Cantelli bound -- 8.897912e-08 <= 3.538714e-02 (slack 2.75e-16, not load-bearing)
+[PASS] MEASURED/mix_c0: counted executed-job miss rate <= Markov bound -- 6.666667e-05 <= 7.399317e-01
+[PASS] MEASURED/mix_c0: Gaussian mean-plus-margin tail <= Cantelli bound -- 4.457871e-69 <= 3.244693e-03 (slack 3.86e-17, not load-bearing)
+[PASS] MEASURED/mix_c1: counted executed-job miss rate <= Markov bound -- 2.000267e-04 <= 7.369651e-01
+[PASS] MEASURED/mix_c1: Gaussian mean-plus-margin tail <= Cantelli bound -- 5.279235e-23 <= 1.029155e-02 (slack 1.21e-16, not load-bearing)
+[PASS] MEASURED/mix_c2: counted executed-job miss rate <= Markov bound -- 6.666667e-05 <= 6.149575e-01
+[PASS] MEASURED/mix_c2: Gaussian mean-plus-margin tail <= Cantelli bound -- 1.411300e-91 <= 2.430008e-03 (slack 1.81e-17, not load-bearing)
+[PASS] MEASURED/mix_c2mem1: counted executed-job miss rate <= Markov bound -- 4.001334e-04 <= 6.159433e-01
+[PASS] MEASURED/mix_c2mem1: Gaussian mean-plus-margin tail <= Cantelli bound -- 9.015874e-91 <= 2.452054e-03 (slack 1.83e-17, not load-bearing)
+[PASS] MEASURED/mix_c3: counted executed-job miss rate <= Markov bound -- 1.268188e-03 <= 6.188647e-01
+[PASS] MEASURED/mix_c3: Gaussian mean-plus-margin tail <= Cantelli bound -- 8.749451e-35 <= 6.623330e-03 (slack 5.00e-17, not load-bearing)
+[PASS] MEASURED/mix_c4: counted executed-job miss rate <= Markov bound -- 7.862903e-03 <= 6.345457e-01
+[PASS] MEASURED/mix_c4: Gaussian mean-plus-margin tail <= Cantelli bound -- 2.469598e-06 <= 4.574414e-02 (slack 3.63e-16, not load-bearing)
+[PASS] MEASURED/mix_c5: counted executed-job miss rate <= Markov bound -- 5.728059e-02 <= 7.081008e-01
+[PASS] MEASURED/mix_c5: Gaussian mean-plus-margin tail <= Cantelli bound -- 9.099267e-02 <= 3.595394e-01 (slack 3.74e-15, not load-bearing)
+[PASS] MEASURED/mix_c6: counted executed-job miss rate <= Markov bound -- 2.355563e-01 <= 7.870738e-01
+[PASS] MEASURED/mix_c6: Gaussian mean-plus-margin tail <= Cantelli bound -- 2.507859e-01 <= 6.888907e-01 (slack 1.03e-14, not load-bearing)
+[PASS] MEASURED/mix_mem2: counted executed-job miss rate <= Markov bound -- 0.000000e+00 <= 6.155173e-01
+[PASS] MEASURED/mix_mem2: Gaussian mean-plus-margin tail <= Cantelli bound -- 7.939543e-165 <= 1.336447e-03 (slack 9.98e-18, not load-bearing)
+
+==============================================================================
+MEASURED: Bonferroni bracket on the consecutive-pair miss rate
+==============================================================================
+  run              pairs      p_first     p_second        lower     observed        upper      slack
+  gt_long          60000 1.360000e-02 1.360000e-02 1.360000e-02 1.966667e-02 2.720000e-02   2.42e-17
+  mix_c0           15000 1.333333e-04 1.333333e-04 1.333333e-04 2.000000e-04 2.666667e-04   2.37e-19
+  mix_c1           15000 4.000000e-04 4.000000e-04 4.000000e-04 6.000000e-04 8.000000e-04   7.11e-19
+  mix_c2           15000 1.333333e-04 1.333333e-04 1.333333e-04 2.000000e-04 2.666667e-04   2.37e-19
+  mix_c2mem1       15000 8.000000e-04 8.000000e-04 8.000000e-04 1.133333e-03 1.600000e-03   1.42e-18
+  mix_c3           15000 2.533333e-03 2.466667e-03 2.533333e-03 3.733333e-03 5.000000e-03   4.44e-18
+  mix_c4           15000 1.586667e-02 1.580000e-02 1.586667e-02 2.326667e-02 3.166667e-02   2.81e-17
+  mix_c5           15000 1.135333e-01 1.135333e-01 1.135333e-01 1.573333e-01 2.270667e-01   2.02e-16
+  mix_c6           15000 3.826000e-01 3.825333e-01 3.826000e-01 5.703333e-01 7.651333e-01   6.80e-16
+  mix_mem2         15000 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00   0.00e+00
+
+[PASS] MEASURED/gt_long: pair miss rate inside the Bonferroni bracket -- [1.360000e-02, 2.720000e-02] contains 1.966667e-02
+[PASS] MEASURED/mix_c0: pair miss rate inside the Bonferroni bracket -- [1.333333e-04, 2.666667e-04] contains 2.000000e-04
+[PASS] MEASURED/mix_c1: pair miss rate inside the Bonferroni bracket -- [4.000000e-04, 8.000000e-04] contains 6.000000e-04
+[PASS] MEASURED/mix_c2: pair miss rate inside the Bonferroni bracket -- [1.333333e-04, 2.666667e-04] contains 2.000000e-04
+[PASS] MEASURED/mix_c2mem1: pair miss rate inside the Bonferroni bracket -- [8.000000e-04, 1.600000e-03] contains 1.133333e-03
+[PASS] MEASURED/mix_c3: pair miss rate inside the Bonferroni bracket -- [2.533333e-03, 5.000000e-03] contains 3.733333e-03
+[PASS] MEASURED/mix_c4: pair miss rate inside the Bonferroni bracket -- [1.586667e-02, 3.166667e-02] contains 2.326667e-02
+[PASS] MEASURED/mix_c5: pair miss rate inside the Bonferroni bracket -- [1.135333e-01, 2.270667e-01] contains 1.573333e-01
+[PASS] MEASURED/mix_c6: pair miss rate inside the Bonferroni bracket -- [3.826000e-01, 7.651333e-01] contains 5.703333e-01
+[PASS] MEASURED/mix_mem2: pair miss rate inside the Bonferroni bracket -- [0.000000e+00, 0.000000e+00] contains 0.000000e+00
 
 
-CHECKS RUN: 40
-STRUCTURALLY UNMEASURABLE (1): independent bounds on the MEASURED campaign
+CHECKS RUN: 70
 FAILED CHECKS (0): none

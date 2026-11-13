@@ -1,12 +1,13 @@
 # Dataset card — deadlinerisk hardware campaign
 
-Validation level: **Level 3, hardware-pending.**
+Validation level: **Level 4, measured on hardware.** Level 4 here is **not** a claim of generality: one power mode (`MAXN_SUPER`), one uninstrumented ambient, one CPython CPU-only payload, one period, one shared board. See Limitations.
 
 > **No trace of this dataset is present in this repository.** `data/traces/` is
-> empty. This card describes the dataset the committed campaign script
-> `data/campaign.py` produces and that every loader, validation script and
-> example here is written against; it does not describe files that exist. Every
-> figure that would come from the data is marked `MEASURED_PENDING`. Nothing was
+> present. This card describes the dataset the committed campaign script
+> `data/campaign.py` produced and that every loader, validation script and
+> example here reads: 10 runs, 190 662 executed jobs over 195 010 releases, with
+> a 1 Hz contention monitor beside each run. It was written before the campaign
+> ran, with every measured figure marked `MEASURED_PENDING`. Nothing was
 > substituted from the committed synthetic generator.
 
 ## What it is
@@ -49,7 +50,34 @@ is reported in the validation evidence.
 | `mix_mem2` | 150 s | 2 memory stressors |
 | `mix_c2mem1` | 150 s | 2 CPU + 1 memory stressors |
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `validation/validate_measured_campaign.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+**Measured totals, per run:**
+
+| run | releases | misses | miss rate | median exec (ms) | p99.9 response (ms) |
+|---|---:|---:|---:|---:|---:|
+| `gt_long` | 60001 | 816 | 1.359977e-02 | 6.0527 | 16.2285 |
+| `mix_c0` | 15001 | 2 | 1.333244e-04 | 7.3275 | 8.6010 |
+| `mix_c1` | 15001 | 6 | 3.999733e-04 | 7.3287 | 8.5640 |
+| `mix_c2` | 15001 | 2 | 1.333244e-04 | 6.0438 | 7.4279 |
+| `mix_c3` | 15001 | 38 | 2.533164e-03 | 6.0733 | 10.3871 |
+| `mix_c4` | 15001 | 238 | 1.586561e-02 | 6.0671 | 17.2965 |
+| `mix_c5` | 15001 | 1703 | 1.135258e-01 | 6.1882 | 28.5229 |
+| `mix_c6` | 15001 | 5739 | 3.825745e-01 | 6.0534 | 21.9098 |
+| `mix_mem2` | 15001 | 0 | 0.000000e+00 | 6.0511 | 7.2608 |
+| `mix_c2mem1` | 15001 | 12 | 7.999467e-04 | 6.0502 | 7.8595 |
+
+The curve is monotone in the CPU stressor count from `mix_c2` upward and is
+**not** monotone below it: `mix_c1` has a higher rate than `mix_c2`, and `mix_c0`
+and `mix_c1` have the longest median execution times in the campaign, 7.33 ms
+against about 6.05 ms elsewhere, because the `schedutil` governor drops the clock
+when there is little load — mean core clock 1008.0 MHz on `mix_c0` and 1561.8 MHz
+on `mix_c1` against 1728.0 MHz on every loaded run. Two memory-bandwidth
+stressors produced zero misses in 15 001 releases.
+
+Measured contamination, because the board was shared: foreign CPU occupancy
+pooled over all 1970 monitor samples has mean 2.5210 per cent, minimum 0.1681
+and maximum 21.6443. The campaign cannot attribute any part of a miss rate to
+foreign load rather than to the declared stressors, because the foreign load was
+not controlled.
 
 ## How the campaign was parameterised, and why that is auditable
 
@@ -64,7 +92,33 @@ MEASURED_PENDING — the hardware campaign had not written any file into `data/t
   are all in `manifest.json`, so the choice is auditable and demonstrably was
   not made after seeing the long run.
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `validation/validate_measured_campaign.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+**The declared rule chose contention level 4.** The measured probe table it
+read, 15 s per level:
+
+| CPU stressors | releases | misses | miss rate | median exec (ms) |
+|---:|---:|---:|---:|---:|
+| 0 | 1501 | 2 | 0.001332 | 7.2964 |
+| 1 | 1501 | 0 | 0.000000 | 7.2961 |
+| 2 | 1501 | 0 | 0.000000 | 7.2961 |
+| 3 | 1501 | 0 | 0.000000 | 6.0364 |
+| 4 | 1501 | 49 | 0.032645 | 6.0315 |
+| 5 | 1501 | 143 | 0.095270 | 6.1470 |
+| 6 | 1501 | 528 | 0.351765 | 6.0228 |
+
+Level 4 is the admissible level whose probe rate is closest to the declared
+target of 0.05 inside the declared band [0.002, 0.30]. The target, the band, the
+fallback and the whole probe table are in `manifest.json`, written before the
+600 s run, so the choice is auditable and demonstrably was not made after seeing
+that run.
+
+The payload was sized by a **sustained** calibration against the governor-ramped
+clock: `payload_w` 20000, sustained median execution 7.315178 ms over 1998 jobs
+of a 30 s attempt with the first third discarded as ramp, which is 0.7315 of the
+deadline. Two earlier campaigns on the same night calibrated against a 1.2 s
+probe taken as the board went idle, sized the payload to 0.4499 of the deadline,
+and then measured a sustained 0.19 — a factor of 2.3 out. That is why the
+calibration is sustained, and why the whole calibration history, including the
+attempts that missed, is in `manifest.json`.
 
 ## Stressors
 

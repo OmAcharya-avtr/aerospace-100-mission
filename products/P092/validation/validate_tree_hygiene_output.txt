@@ -31,7 +31,6 @@ resamples        : 4000
   inherited: src/deadlinerisk/__pycache__/bootstrap.cpython-313.pyc
   inherited: src/deadlinerisk/__pycache__/bounds.cpython-313.pyc
   inherited: src/deadlinerisk/__pycache__/predictor.cpython-313.pyc
-  inherited: src/deadlinerisk/__pycache__/probe.cpython-313.pyc
   inherited: src/deadlinerisk/__pycache__/provenance.cpython-313.pyc
   inherited: src/deadlinerisk/__pycache__/report.cpython-313.pyc
   inherited: src/deadlinerisk/__pycache__/schema.cpython-313.pyc
@@ -59,13 +58,13 @@ resamples        : 4000
   inherited: tests/fixtures/__pycache__
   inherited: tests/fixtures/__pycache__/__init__.cpython-313.pyc
   inherited: tests/fixtures/__pycache__/synthetic_trace.cpython-313.pyc
-  38 artifact-shaped entr(ies) were already in the tree when this script started. What a harness leaves in the tree before calling a script is not the script's doing, and release-gate check 2 writes .ruff_cache into the product root one check before check 6 runs this file.
+  37 artifact-shaped entr(ies) were already in the tree when this script started. What a harness leaves in the tree before calling a script is not the script's doing, and release-gate check 2 writes .ruff_cache into the product root one check before check 6 runs this file.
 
 ==============================================================================
 2  git tracks no artifact
 ==============================================================================
-  git tracks 78 file(s) under this product tree
-[FAIL] no artifact-shaped file is tracked under this product tree -- 1 offending path(s): ['products/P092/src/deadlinerisk/__pycache__/probe.cpython-313.pyc']
+  git tracks 106 file(s) under this product tree
+[PASS] no artifact-shaped file is tracked under this product tree -- 0 offending path(s)
 
 ==============================================================================
 3  .gitignore coverage, in both directions
@@ -73,22 +72,22 @@ resamples        : 4000
 [PASS] every file this product must ship exists on disk -- 15 checked
 [PASS] no file this product must ship is excluded by .gitignore -- 15 checked, none ignored
 [PASS] every cache and build path is excluded by .gitignore -- 8 checked, all ignored
-[PASS] every scratch pattern in this product's own .gitignore is anchored or a suffix -- 38 lines checked
+[PASS] every scratch pattern in this product's own .gitignore is anchored or a suffix -- 44 lines checked
 [PASS] this product's .gitignore anchors junit.xml as /junit.xml -- a bare junit.xml would match at any depth
   INHERITED FINDING, reported and not failed: tests/fixtures/junit.xml IS excluded, by .gitignore:58:**/junit.xml at the REPOSITORY root, not by this product's .gitignore. That pattern would swallow a nested junit.xml fixture in any product that shipped one. P092 ships none, so nothing of this product's is lost; the finding belongs to whoever owns the repository-level file.
 
 ==============================================================================
 3b  the measured traces must reach a cold clone when they exist
 ==============================================================================
-  data/traces/ holds 0 CSV file(s)
-  data/traces/CAMPAIGN_COMPLETE present: False
-[STRUCTURALLY UNMEASURABLE] no measured trace is excluded by .gitignore
-           reason: data/traces/ holds no CSV at the time this script ran, so there is nothing to check. This is not a pass: it means the campaign's traces were not on disk. Re-run this script once they are.
+  data/traces/ holds 20 CSV file(s): ['jobs_gt_long.csv', 'jobs_mix_c0.csv', 'jobs_mix_c1.csv', 'jobs_mix_c2.csv'] ...
+  data/traces/CAMPAIGN_COMPLETE present: True
+[PASS] the campaign completion marker is not excluded by .gitignore -- CAMPAIGN_COMPLETE is a tracked zero-byte file and part of the evidence
+[PASS] no measured trace is excluded by .gitignore -- 20 checked, none ignored
 
 ==============================================================================
 4  no absolute path in any file this product ships
 ==============================================================================
-[PASS] no absolute path in any text file of this product -- 76 file(s) scanned
+[PASS] no absolute path in any text file of this product -- 101 file(s) scanned
 
 ==============================================================================
 5  this script added nothing
@@ -97,6 +96,5 @@ resamples        : 4000
   Run this script twice in a row from a clean tree and the second run must agree with the first; a check whose own execution can create the condition it tests is not a check. probe_working_directories.py runs it four times over.
 
 
-CHECKS RUN: 8
-STRUCTURALLY UNMEASURABLE (1): no measured trace is excluded by .gitignore
-FAILED CHECKS (1): no artifact-shaped file is tracked under this product tree
+CHECKS RUN: 10
+FAILED CHECKS (0): none

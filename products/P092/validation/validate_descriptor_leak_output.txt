@@ -1,0 +1,57 @@
+
+==============================================================================
+DESCRIPTOR LEAK -- what the forecast costs when the task's own occupancy is removed
+==============================================================================
+INPUT ORIGIN: the MEASURED hardware campaign only. No synthetic fallback.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+joblib           : 1.6.0
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P092 (printed relatively; see validation/_bootstrap.py)
+resamples        : 4000
+
+  windows                   : 195
+  descriptors available     : n_cpu_stress, n_mem_stress, n_workers, foreign_pct, task_pct, stress_pct, load1, clk_mean_khz, clk_min_khz, tj_degC
+
+
+==============================================================================
+1  held-out workload mixes, grouped by run
+==============================================================================
+  descriptor set                                           MAE        RMSE        bias
+  full (as scored in validate_measured_learned.py)    0.025022    0.065346   -0.015675
+  no_task_pct                                         0.029559    0.075790   -0.015780
+  operator_only                                       0.028411    0.074227   -0.016453
+  constant rate (for reference)                       0.071455    0.112982   +0.003364
+
+
+==============================================================================
+2  held-out time, the later portion of every run
+==============================================================================
+  descriptor set                                           MAE        RMSE        bias
+  full (as scored in validate_measured_learned.py)    0.007330    0.017055   +0.003146
+  no_task_pct                                         0.009319    0.019655   +0.005368
+  operator_only                                       0.009249    0.019842   +0.005254
+
+
+==============================================================================
+3  what the restriction costs
+==============================================================================
+  no_task_pct: grouped MAE 0.029559 against 0.025022 full (1.1813x), time MAE 0.009319 against 0.007330 full (1.2714x)
+  operator_only: grouped MAE 0.028411 against 0.025022 full (1.1354x), time MAE 0.009249 against 0.007330 full (1.2619x)
+
+  The restricted sets are the ones the specification actually licenses. Where a restricted set is worse, the full-set figure is an upper bound on what an operator could achieve without running the task, and the honest forecasting claim is the restricted one.
+
+[PASS] every descriptor set produced a finite score on both splits -- 3 sets x 2 splits
+[PASS] the operator_only set excludes both task-dependent descriptors -- task_pct and load1 removed
+
+
+CHECKS RUN: 2
+FAILED CHECKS (0): none

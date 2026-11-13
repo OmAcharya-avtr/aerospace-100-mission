@@ -22,7 +22,7 @@ directories probed: filesystem root, system temporary directory, product root, v
 DEADLINERISK_FAST=1 is set, so resample counts are reduced; the question is
 whether each script RUNS from each directory.
 
-validation scripts probed: 11
+validation scripts probed: 12
 example scripts probed   : 4
 
 ==============================================================================
@@ -30,31 +30,24 @@ validation/
 ==============================================================================
 [PASS] validation/validate_approx_audit.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
 [PASS] validation/validate_cli.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_descriptor_leak.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
 [PASS] validation/validate_independent_bound.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
 [PASS] validation/validate_loader_contract.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
-[PASS] validation/validate_measured_campaign.py gives the same exit status from all four -- filesystem root=1, system temporary directory=1, product root=1, validation/=1
-      NOTE: the agreed status is 1, not 0. That is path-independent REFUSAL, not success. The script's own output file says why.
-[PASS] validation/validate_measured_evt.py gives the same exit status from all four -- filesystem root=1, system temporary directory=1, product root=1, validation/=1
-      NOTE: the agreed status is 1, not 0. That is path-independent REFUSAL, not success. The script's own output file says why.
-[PASS] validation/validate_measured_learned.py gives the same exit status from all four -- filesystem root=1, system temporary directory=1, product root=1, validation/=1
-      NOTE: the agreed status is 1, not 0. That is path-independent REFUSAL, not success. The script's own output file says why.
+[PASS] validation/validate_measured_campaign.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_measured_evt.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_measured_learned.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
 [PASS] validation/validate_negative_controls.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
 [PASS] validation/validate_property_hunt.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
 [PASS] validation/validate_tree_hygiene.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
-[PASS] validation/worked_example.py gives the same exit status from all four -- filesystem root=1, system temporary directory=1, product root=1, validation/=1
-      NOTE: the agreed status is 1, not 0. That is path-independent REFUSAL, not success. The script's own output file says why.
+[PASS] validation/worked_example.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
 
 ==============================================================================
 examples/
 ==============================================================================
-[PASS] examples/contention_descriptors.py gives the same exit status from all four -- filesystem root=1, system temporary directory=1, product root=1, validation/=1
-      NOTE: the agreed status is 1, not 0. That is path-independent REFUSAL, not success. The script's own output file says why.
-[PASS] examples/evt_threshold_stability.py gives the same exit status from all four -- filesystem root=1, system temporary directory=1, product root=1, validation/=1
-      NOTE: the agreed status is 1, not 0. That is path-independent REFUSAL, not success. The script's own output file says why.
-[PASS] examples/headline_understatement.py gives the same exit status from all four -- filesystem root=1, system temporary directory=1, product root=1, validation/=1
-      NOTE: the agreed status is 1, not 0. That is path-independent REFUSAL, not success. The script's own output file says why.
-[PASS] examples/learned_vs_classical.py gives the same exit status from all four -- filesystem root=1, system temporary directory=1, product root=1, validation/=1
-      NOTE: the agreed status is 1, not 0. That is path-independent REFUSAL, not success. The script's own output file says why.
+[PASS] examples/contention_descriptors.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] examples/evt_threshold_stability.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] examples/headline_understatement.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] examples/learned_vs_classical.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
 
 ==============================================================================
 summary
@@ -63,5 +56,5 @@ summary
   A disagreement here means a bare relative path reached a loader, which is the defect class that blocked three products of this mission in one batch.
 
 
-CHECKS RUN: 15
+CHECKS RUN: 16
 FAILED CHECKS (0): none

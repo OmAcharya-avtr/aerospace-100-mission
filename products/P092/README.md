@@ -7,18 +7,20 @@ How far the mean-plus-margin rule is wrong about a measured deadline-miss rate.
 ![tests](https://img.shields.io/badge/tests-219%20passing-brightgreen)
 ![python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
 ![licence](https://img.shields.io/badge/licence-Apache--2.0-lightgrey)
-![validation](https://img.shields.io/badge/validation-Level%203%2C%20hardware--pending-yellow)
+![validation](https://img.shields.io/badge/validation-Level%204%2C%20measured%20on%20hardware-brightgreen)
 ![status](https://img.shields.io/badge/status-TESTING-orange)
 
-> **Validation level: Level 3, hardware-pending.** This product is written
-> against a hardware campaign on an NVIDIA Jetson Orin Nano Engineering Reference
-> Developer Kit Super, specified in `docs/SPEC.md` and implemented by
-> `data/campaign.py`. **No trace from that campaign is in this repository:**
-> `data/traces/` is empty, and every figure that would come from it is marked
-> `MEASURED_PENDING` with the script that fills it. The mission coordinator
-> decides the validation level at Phase 9 against the measured evidence; this
-> repository does not claim a level above 3 and claims no measured figure at all
-> until the traces land.
+> **Validation level: Level 4, measured on hardware, with the scope below.**
+> Every figure in this document comes from a campaign run on an NVIDIA Jetson
+> Orin Nano Engineering Reference Developer Kit Super (aarch64, JetPack R36.4.7,
+> kernel 5.15.148-tegra, 6 cores, governor `schedutil`, `cpuinfo_max_freq`
+> 1728000 kHz, power mode `MAXN_SUPER`), specified in `docs/SPEC.md`, executed by
+> `data/campaign.py`, and committed whole in `data/traces/` — 10 runs, 190 662
+> executed jobs over 195 010 releases, with the per-second contention monitor
+> beside each one. **Level 4 here is not a claim of generality**; it is the
+> mission's criterion that the timing and resource figures come from the board
+> rather than from a model of one. They do. The scope below is part of the
+> result.
 >
 > **The campaign's scope will be part of the result, and is stated now so that no
 > reader mistakes a later figure for a general one.** One power mode,
@@ -29,17 +31,37 @@ How far the mean-plus-margin rule is wrong about a measured deadline-miss rate.
 > reported rather than assumed absent.** Nothing this campaign can produce will
 > support a general statement about deadline misses on Orin Nano.
 
-> **No measured campaign is present in this repository yet.** Every slot in this
-> README that would hold a measured figure carries the literal token
-> `MEASURED_PENDING` and names the script that fills it. `data/traces/` was empty
-> for the whole of this build, so the measured validation scripts and all four
-> examples refuse with a non-zero exit rather than substituting the committed
-> synthetic generator. Grep for `MEASURED_PENDING` to find every slot. Nothing
-> below that is not so marked depends on the campaign.
+> **How this document was written, because it matters for how far you should
+> trust it.** The library, the tests and this prose were built before any trace
+> existed. Every slot that would hold a measured figure carried the literal token
+> `MEASURED_PENDING` and named the script that fills it, and the measured
+> validation scripts and all four examples exited non-zero rather than fall back
+> to the committed synthetic generator. The tokens were then replaced, one at a
+> time, with the output of those scripts run against the campaign. No number here
+> was written from an expectation of what the board would do.
 
 ## The headline, measured
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `validation/validate_measured_campaign.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+**On the ground-truth run the mean-plus-margin rule understates the measured
+deadline-miss rate by a factor of 1.528423e+05, with a 95 per cent moving-block
+interval of [3.635383e+04, 9.160321e+05]. The interval excludes 1, so the
+understatement is larger than this campaign's own sampling variability.**
+
+The rule is not being strawmanned. On this run it corresponds to a margin of
+**k = 5.221001 standard deviations** to the deadline — a margin a practitioner
+would call comfortable — and a Gaussian with the measured mean (6.277342 ms) and
+the measured standard deviation (0.713016 ms) puts `P(response > D)` at
+**8.897912e-08**, about one miss in eleven million releases. The board delivered
+**816 misses in 60 001 releases**, which is **1.359977e-02**, about one in 74.
+
+The extreme-value fit, on exactly the same data, gives **6.727478e-03** — low by
+a factor of 2.02, not by a factor of 150 000. Both baselines sit outside the
+counted rate's interval and the product says so; the difference between them is
+five orders of magnitude.
+
+Measured by `validation/validate_measured_campaign.py` and
+`validation/validate_measured_evt.py`; reproduced independently from the raw CSVs
+by the mission coordinator before publication.
 
 ## The problem
 
@@ -56,23 +78,41 @@ many small independent effects.
 
 - **Reports the factor by which the mean-plus-margin rule understates the
   counted miss rate**, with a 95 per cent moving-block bootstrap interval, on a
-  600 s measured run. MEASURED_PENDING (`validation/validate_measured_campaign.py`)
+  600 s measured run. Measured: **1.528423e+05**, interval
+  **[3.635383e+04, 9.160321e+05]**, which excludes 1
+  (`validation/validate_measured_campaign.py`).
 - **Counts a dropped release as a miss.** A job that overruns its period
   prevents later releases from ever executing, and the deadline says nothing
   about whether something ran, only about whether it finished in time. The
   measured difference between the all-release rate and the executed-only rate on
-  the ground-truth run is MEASURED_PENDING (`validation/validate_measured_campaign.py`).
+  the ground-truth run is a factor of **2.030899**: 816 misses in 60 001
+  releases against 399 in the 59 584 executed, because **417 releases — 51.10 per
+  cent of all misses on that run — were never executed at all.** Counting only
+  what ran halves the answer (`validation/validate_measured_campaign.py`).
 - **Selects the bootstrap block length from the measured autocorrelation of the
   miss indicator** by a rule stated in code, and reports the selection: the
   cut-off lag, the integrated autocorrelation time and the resulting block
-  length. MEASURED_PENDING (`validation/validate_measured_campaign.py`)
+  length. Measured on the ground-truth run: lag-1 autocorrelation **0.547771**,
+  cut-off lag **60**, integrated autocorrelation time **6.276304**, block length
+  **7** releases. An i.i.d. bootstrap on the same series returns an interval
+  **1.44 times narrower**, which is precisely the overstatement of precision the
+  block resample exists to avoid (`validation/validate_measured_campaign.py`).
 - **Ships the extreme-value threshold-choice diagnostic as a deliverable**, not
   as an optional extra: the GPD shape and modified scale over 20 candidate
   thresholds, with the chosen threshold produced by a declared stability-window
-  rule applied in code. MEASURED_PENDING (`validation/validate_measured_evt.py`)
+  rule applied in code. Measured: the rule chose quantile **0.8400**,
+  **u = 6.263055 ms**, **9534 exceedances**, shape **xi = 0.594814** — positive,
+  so the tail is heavy and the Gaussian rule is not merely mis-scaled but the
+  wrong family (`validation/validate_measured_evt.py`).
 - **Scores a learned contention-aware predictor against two baselines on two
   held-out splits** — held-out workload mixes grouped by run, and held-out time
-  in every run — and publishes whichever wins. MEASURED_PENDING (`validation/validate_measured_learned.py`)
+  in every run — and publishes whichever wins. **The learned forest won both
+  splits**, against the pre-registered expectation written in `docs/SPEC.md` that
+  the classical predictors would be competitive: MAE **0.025022** against
+  **0.043799** for speed scaling on held-out mixes, and **0.007330** against
+  **0.040879** on held-out time. The expectation is recorded as refuted, with the
+  mechanism, under "Validation evidence"
+  (`validation/validate_measured_learned.py`).
 
 ## Measurement model, stated once
 
@@ -186,13 +226,59 @@ earlier product of this mission shipped with a recorded 251 passing tests and a
 config that collected none. See "Reproducing every number" for the two-line
 cross-check.
 
-Expected output of the first example:
+Expected output of the first example, as it actually printed:
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `examples/headline_understatement.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+```
+period T                 10.000 ms
+deadline D               10.000 ms
+gt_long releases         60001
+gt_long misses           816
+gt_long dropped          417
+counted miss rate        1.359977e-02
+k with mean + k*sd = D   5.221001
+mean-plus-margin P       8.897912e-08
+GPD P at chosen u        6.727478e-03
+understatement factor    1.528423e+05
+95% interval             [3.723606e+04, 9.007137e+05]
+interval contains 1      False
+figure written to        screenshots/headline_understatement.png
+```
+
+The interval printed here is **not** the one in the headline above
+([3.635383e+04, 9.160321e+05]). Both are 95 per cent moving-block intervals on
+the same data and the same block length; they differ because the example and the
+validation script seed the resampler differently, and a bootstrap interval is a
+random variable. The point estimate, which is not, is identical to all seven
+digits in both. Neither interval comes near 1.
 
 ## A worked example
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `validation/worked_example.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+`python3 validation/worked_example.py` loads the committed campaign, reconstructs
+the accounting, and prints the whole chain. Its real output:
+
+```
+period T                 10.000 ms
+deadline D (implicit)    10.000 ms
+executed rows            59584
+dropped releases         417
+releases                 60001
+misses                   816
+counted miss rate        1.359977e-02
+mean response            6.277342 ms
+sd response              0.713016 ms
+k with mean + k*sd = D   5.221001
+mean-plus-margin P       8.897912e-08
+block length (releases)  7
+counted 95% interval     [1.219938e-02, 1.501642e-02]
+EVT threshold u          6.263055 ms
+EVT shape xi             0.594814
+EVT P(resp > D)          6.727478e-03
+understatement factor    1.528423e+05
+factor 95% interval      [3.635383e+04, 9.160321e+05]
+interval contains 1      False
+[PASS] the factor lies inside its own interval -- [3.635383e+04, 9.160321e+05]
+[PASS] the counted rate lies inside its own interval -- [1.219938e-02, 1.501642e-02]
+```
 
 ## Architecture
 
@@ -242,33 +328,106 @@ flowchart TD
 
 ## Screenshots
 
-**The four PNGs referenced below do not exist in this repository yet.** Each is
-produced by running the example named under it, and every example refuses with a
-non-zero exit while `data/traces/` is empty, because an example that fell back to
-the committed synthetic generator would publish a figure that looks like a
-measurement and is not one. The image links resolve as soon as the examples are
-run against a complete campaign.
+Each PNG below was produced by running the example named under it against the
+committed campaign. Every example still refuses with a non-zero exit when
+`data/traces/` is absent or incomplete, rather than falling back to the committed
+synthetic generator: an example that did would publish a figure that looks like a
+measurement and is not one.
 
 ![the headline](screenshots/headline_understatement.png)
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `examples/headline_understatement.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+**The whole product in one figure.** Left: the measured empirical survival
+function of the response time over 59 584 executed jobs, with the Gaussian
+mean-plus-margin tail and the fitted GPD tail on the same axes. At the deadline
+the measured curve and the GPD are within a factor of two of each other; the
+Gaussian is below both by five orders of magnitude. At the largest response
+the campaign recorded, 26.4507 ms, that Gaussian is 28.2930 standard
+deviations out and assigns 2.109012e-176 to an event that happened once in
+ten minutes. Right: the understatement factor per run on a log
+scale, with the bootstrap interval on the ground-truth run. The factor reaches
+roughly 10^87 on `mix_c2` and `mix_c2mem1`, where a 20-sigma margin meets a
+counted rate of one in 7500. `mix_mem2` has no bar because it recorded zero
+misses, so its factor is zero and has no logarithm.
 
 ![threshold stability](screenshots/evt_threshold_stability.png)
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `examples/evt_threshold_stability.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+**The threshold diagnostic, which is a deliverable here and not an appendix.**
+20 of 20 candidate quantiles from 0.80 to 0.99 were admissible, leaving between
+596 and 11 917 exceedances; the shape estimate ranges over 0.242682 to 0.702151
+across them, so the choice is not cosmetic. The declared stability-window rule —
+minimise the standard deviation of the shape over the next five candidates —
+selected quantile 0.8400, `u = 6.263055 ms`, 9534 exceedances, `xi = 0.594814`,
+`beta = 0.397903 ms`, modified scale `-3.327452 ms`. Read the modified-scale
+panel before trusting the fit: it is **not** flat across the candidate range,
+which says the GPD limit is not fully reached at the lower thresholds and is the
+honest reason the EVT probability is low by a factor of about two rather than
+exact.
 
 ![learned against classical](screenshots/learned_vs_classical.png)
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `examples/learned_vs_classical.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+**The forecasting comparison, in which the pre-registered expectation lost.**
+195 windows over 10 runs; held-out mixes grouped by run, and a 132/63 train/test
+split on time. Learned forest MAE 0.025022 against 0.043799 for speed scaling
+and 0.071455 for a constant rate on held-out mixes; 0.007330 against 0.040879
+and 0.061431 on held-out time. The speed-scaling bias is -0.043749 and
+-0.040822, always negative, and the mechanism is visible in the figure: with six
+cores the classical model's available fraction `min(1, m/(n+1))` is exactly 1
+for every stressor count up to five, so it predicts no slowdown and therefore
+essentially no misses, while the board measured 0.113526 at five stressors.
 
 ![measured contention descriptors](screenshots/contention_descriptors.png)
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `examples/contention_descriptors.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+**The measured contamination, reported because the board was shared.** Foreign
+CPU occupancy averaged 2.172 per cent on the ground-truth run and 2.521 per cent
+pooled over all 1970 monitor samples, with a worst single second of 21.644 per
+cent. Two runs are worth reading twice: `mix_c0` and `mix_c1` have the **highest**
+foreign load (5.400 and 3.619 per cent) and the **lowest** mean clock (1008.0 and
+1561.8 MHz against 1728.0 elsewhere), because with little load the `schedutil`
+governor drops the frequency. Their median execution time is therefore the
+longest in the campaign at 7.33 ms, and their miss rates are still among the
+lowest. Slow and safe are not opposites here: frequency scaling and contention
+are different mechanisms and the campaign separates them.
 
 ## Validation evidence
 
-The measured half of the evidence table is
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `validation/validate_measured_campaign.py, validate_measured_evt.py and validate_measured_learned.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+The measured half of the evidence table:
+
+| What was checked | Against what | Measured | Verdict |
+|---|---|---|---|
+| Release and miss accounting | `releases = sum(1 + dropped_before)` and `misses = sum(missed + dropped_before)`, on all 10 runs | 195 010 releases, 8556 misses reconstructed exactly | PASS, 20 of 20 |
+| Counted rate inside its own interval | moving-block bootstrap, block 7, 2000 resamples | 1.359977e-02 in [1.219938e-02, 1.501642e-02] | PASS |
+| Understatement factor inside its own interval | moving-block bootstrap on the factor | 1.528423e+05 in [3.635383e+04, 9.160321e+05] | PASS |
+| No degenerate bootstrap replicate | 4000 replicates on the factor | 0 with a Gaussian probability of exactly zero | PASS |
+| Threshold chosen by code, not by eye | the declared stability-window rule | quantile 0.8400 minimises the forward-window shape spread at 0.013192 | PASS |
+| Modified scale is `beta - xi*u` | Coles 2001 eq. 4.10, at all 20 candidates | identity holds | PASS |
+| Learned fit inside the compute budget | 180 s budget, 2 cores | 0.202 s | PASS |
+| Reported sigma strictly positive | every held-out window | minimum 3.013e-04 | PASS |
+| Held-out ambient temperature | — | never instrumented or varied | STRUCTURALLY UNMEASURABLE |
+| Held-out board | — | one board was available | STRUCTURALLY UNMEASURABLE |
+| Held-out payload and period | — | one payload, one period | STRUCTURALLY UNMEASURABLE |
+
+**Three results that did not go the way the specification expected, published
+because the rule cuts both ways.**
+
+1. **The pre-registered expectation about the learned model is refuted.**
+   `docs/SPEC.md` was written before the campaign and says the classical
+   predictors would be competitive and that any learned margin would be smaller
+   than the bootstrap interval on the counted reference. The learned forest won
+   both splits, by 0.018776 MAE on held-out mixes and 0.033550 on held-out time,
+   against a counted-rate bootstrap half-width of 1.4085e-03 — margins of 13.3
+   and 23.8 half-widths. The expectation is recorded as wrong rather than
+   quietly dropped, and the mechanism is named above: the classical
+   speed-scaling model is structurally blind to misses below core saturation on
+   a six-core part.
+2. **EVT is competitive on the tail-model task and is still outside the
+   interval.** 6.727478e-03 against a counted 1.359977e-02 is low by a factor of
+   2.02, which is excellent beside 1.5e+05 and is still wrong by more than this
+   campaign's own sampling variability. Both baselines are reported as outside.
+   Being much better than the thing being refuted is not the same as being right.
+3. **`mix_mem2` recorded zero misses in 15 001 releases.** Two memory-bandwidth
+   stressors produced no measurable deadline risk for this payload, so its
+   understatement factor is exactly zero and the campaign says the memory
+   mechanism did not bite here rather than reporting a small number.
 
 The half that does not depend on the campaign has been measured and is in `validation/VALIDATION.md`: the suite (219 tests, 0 failures, 0 errors, 0 skipped, from the junit XML `testsuite` element, cross-checked against 219 `testcase` elements); the `pytest.approx` audit (69 `rel=` sites, all with an explicit `abs=`, and 0 assertions depending on the hidden absolute default, measured by re-running the whole suite with it forced to zero); the three independent bounds; the four negative controls (3 of 3 must-fire controls fired, 1 of 1 must-not-fire control stayed silent); the Hypothesis hunt and the one counterexample it found, now pinned; tree hygiene; and path independence across four working directories.
 
@@ -418,6 +577,35 @@ The half that does not depend on the campaign has been measured and is in `valid
     other than zero or one. No sensitivity analysis over window length is
     reported.
 
+16. **The learned predictor's dominant descriptor is one the specification does
+    not license.** `task_pct`, the task's own measured CPU occupancy, carries
+    importance 0.654312 in the full-data fit, and an operator can only observe
+    it by already running the task. `validation/validate_descriptor_leak.py`
+    refits without it, and without `load1`, at a cost of 1.1354x on held-out
+    mixes and 1.2619x on held-out time. The headline forecasting figure is
+    therefore an upper bound; the restricted figure, grouped MAE 0.028411, is
+    the one an operator could achieve.
+
+17. **Three campaigns ran on this board and only the third is published.** The
+    first wrote every job trace and not one monitor file, because the monitor
+    subprocess was launched without an argument its own `argparse` declares
+    required; it exited 2 each time with its stderr discarded, and the campaign
+    reported success. The first also calibrated the payload against a 1.2 s
+    probe taken as the board went idle, so it ran at 0.19 of the deadline rather
+    than the intended 0.45 and six of its ten runs recorded zero misses. The
+    second was killed for the same calibration defect and left five orphaned
+    stressor processes running at about 97 per cent each, found and killed by
+    PID before the third started. `validation/VALIDATION.md` records all three.
+    **A campaign that completes is not a campaign that measured**, and both
+    defects produced a clean exit status and a plausible set of files.
+
+18. **The miss-rate curve is not monotone below two stressors.** `mix_c1`
+    measured a higher rate than `mix_c2`, and `mix_c0` and `mix_c1` have the
+    longest median execution times in the campaign because the governor drops
+    the clock when there is little load. Frequency scaling and contention are
+    different mechanisms and this campaign does not separate their contributions
+    at low contention; it only shows that they do not act in the same direction.
+
 ## Reproducing every number
 
 ```bash
@@ -465,14 +653,16 @@ python -m deadlinerisk --traces data/traces learned
 Declared seeds: analysis `920092`, fixtures `920092`, negative controls `5150`.
 Bootstrap resamples for every reported interval: `4000`.
 
-The hardware campaign itself is `data/campaign.py`, committed verbatim as
-specified for the board. Re-running it requires that board; it is not
-reproducible from this repository alone, which is why its traces are meant to be
-committed under `data/traces/`. **That directory is empty in this revision**, so
-every command above that reads it exits non-zero: 1 for the validation scripts
-and the examples, 3 for the CLI. Both are their declared contract for absent
-traces, not a defect, and `validation/probe_working_directories.py` confirms each
-refusal is identical from all four working directories.
+The hardware campaign itself is `data/campaign.py`, committed byte-identical to
+the file that ran on the board. Re-running it requires that board, so the
+campaign is not reproducible from this repository alone; **every trace it
+produced is committed under `data/traces/`**, which is what makes the analysis
+above reproducible without one. Remove or truncate that directory and every
+command here exits non-zero by its declared contract — 1 for the validation
+scripts and the examples, 3 for the CLI — rather than falling back to the
+committed synthetic generator, and
+`validation/probe_working_directories.py` confirms each refusal is identical
+from all four working directories.
 
 ## Hardware requirements
 

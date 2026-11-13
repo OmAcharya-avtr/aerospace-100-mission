@@ -1,6 +1,98 @@
 # Mission Status
 
-> ## Reconciliation — 2026-11-12 (authoritative; supersedes the blocks below)
+> ## Reconciliation — 2026-11-13 (authoritative; supersedes the blocks below)
+>
+> Figures measured this session: registry totals from `scripts/quota_report.py`
+> run against `products.yaml` after the publication edit; test counts from junit
+> XML; contributor counts from `gh api` against the live repository; every
+> hardware figure reproduced by the coordinator from the raw CSVs with code
+> written separately from the product's. No figure in this block was taken from
+> the build agent's self-report.
+>
+> - **THE MISSION STANDS AT 93 OF 100 PUBLISHED, AND THE FLAGSHIP QUOTA IS
+>   CLOSED AT 20 OF 20.** `quota_report.py` measured this session: Registered
+>   100/100, Built 93/100, Published 93/100. Remaining gap: flagship 0, medium 3,
+>   compact 4, AI 4, L1 0, L2 5, L3 0, L4 2.
+>
+> - **ACHIEVED LEVEL 4 IS NOW 2 OF 5.** P092 carries `validation_level: 4` and
+>   `validation_level_achieved: 4`, set against the mission's own criterion with
+>   its scope recorded as part of the result. `quota_report.py` prints `L4 built
+>   3 of 5` because it counts `validation_level`, and P095 still occupies a slot
+>   it has not achieved. **The counting ambiguity is unchanged and the script was
+>   again NOT edited — NEEDS THE OWNER**, now for the third consecutive session.
+>
+> - **One product published tonight.** P092 DeadlineRisk (`deadlinerisk`, 219
+>   tests, flagship, AI-enabled, Level 4 achieved with scope) at
+>   `https://github.com/OmAcharya-avtr/deadlinerisk`. Authorising verdict:
+>   `release_gate.py P092` returned `P092 PASS 219 tests`, `repository PASS`,
+>   `VERDICT: PUSH ALLOWED`, **with the shell exit status captured directly as
+>   `0`**. Published under ADR-017 on that verdict alone: no `APPROVAL_LOG.md`
+>   row, no product set to `APPROVED`, `approved_for_publish` stays `false`, no
+>   owner statement quoted or implied. No human spoke in this session.
+>
+> - **THE FINDING OF THIS SESSION: THE MEAN-PLUS-MARGIN RULE IS WRONG BY FIVE
+>   ORDERS OF MAGNITUDE, AND IT IS WORST WHERE IT LOOKS SAFEST.** On the
+>   ground-truth run a margin of **k = 5.221001 standard deviations** predicts
+>   **8.897912e-08** against a counted **1.359977e-02** — an understatement
+>   factor of **1.528423e+05**, interval [3.635383e+04, 9.160321e+05], excluding
+>   1. The same comparison across the ten mixes shows the pattern: at `mix_c2` a
+>   20.261-sigma margin predicts 1.411300e-91 against a counted 1.333244e-04,
+>   while at `mix_c5` and `mix_c6`, where the margin is under 1.4 sigma, the rule
+>   is within a factor of 1.53. **The Gaussian rule is not useless; it is useless
+>   in the regime anyone would ship.** The EVT fit on the same data is low by
+>   2.0215, which is competitive, and is still reported as outside the interval.
+>
+> - **MORE THAN HALF THE MISSES WERE RELEASES THAT NEVER RAN.** 417 of 816,
+>   51.10 per cent, were dropped because a previous job overran its period.
+>   Counting only executed jobs gives 6.696429e-03 and halves the answer. A tool
+>   that reports the executed-only rate is wrong by a factor of 2.030899 on this
+>   campaign and will not say so.
+>
+> - **THE PRE-REGISTERED EXPECTATION WAS REFUTED AND IS PUBLISHED AS REFUTED.**
+>   `docs/SPEC.md` was written before the campaign and said the classical
+>   predictor would be competitive on the forecasting task. The learned forest
+>   won both splits by 13.3 and 23.8 bootstrap half-widths. The mechanism is
+>   named: on six cores the classical available fraction `min(1, m/(n+1))` is
+>   exactly 1 up to five stressors, so it predicts no misses where the board
+>   measured 0.113526. **Three qualifications are published against the model**:
+>   speed scaling still wins 5 of the 10 held-out runs, all low-contention; the
+>   forest's dominant descriptor is the task's own CPU occupancy, which the
+>   specification does not license, and removing it costs 1.1354x and 1.2619x;
+>   and the grouped bias is negative, so on an unseen mix it under-predicts risk.
+>
+> - **THREE CAMPAIGNS RAN ON THE BOARD AND TWO WERE DISCARDED, WHICH IS THE
+>   OPERATIONAL LESSON.** Campaign 1 ran 36 minutes to completion and wrote all
+>   ten job traces and **not one monitor file**: the monitor subprocess was
+>   launched without the `--out` argument its own `argparse` declares required,
+>   exited 2 every time with stderr sent to `DEVNULL`, and the campaign reported
+>   success. It also calibrated the payload from a 1.2 s probe taken as the board
+>   went idle, so it ran at 0.19 of the deadline instead of 0.45 and six of its
+>   ten runs recorded zero misses. Campaign 2 was killed for the same defect and
+>   left five orphaned stressors at ~97 per cent each, found and killed by PID.
+>   **A campaign that completes is not a campaign that measured.**
+>
+> - **THE COORDINATOR FAILED THE SAME WAY AS LAST SESSION, AND WORSE.** The
+>   2026-11-12 `next_action` said to copy each trace into the product tree as its
+>   run completes. The traces were never copied at all while the build agent ran:
+>   it polled an empty directory from 04:48 to 07:51 UTC, roughly three hours, and
+>   handed back a complete product with 33 `MEASURED_PENDING` tokens and no
+>   measured figure. **It invented none**, which is the only reason the night was
+>   recoverable. The whole measured half was then produced by the coordinator.
+>
+> - **A CHECK THAT COULD NOT FAIL WAS FOUND AND FIXED.**
+>   `validation/validate_tree_hygiene.py` section 2 filtered `git ls-files`
+>   output for a `products/P092/` prefix that the command never emits when run
+>   from the product root, so the tracked-artifact check was vacuous before and
+>   after the coordinator commits. Rewritten to `--full-name` and verified in
+>   both directions: 77 tracked files PASS, a planted tracked `.pyc` FAILS. This
+>   is the sixth occurrence of the self-defeating-check class in this mission.
+>
+> - **The attribution trailer was refused for the TWELFTH time** and never
+>   written once: zero trailer lines on every commit this session created, and
+>   `git log --format='%ae %ce' | sort -u` over the whole history still returns
+>   exactly one pair. The six historical trailer-bearing commits are untouched.
+
+> ## Reconciliation — 2026-11-12 (superseded by the 2026-11-13 block above)
 >
 > Figures measured this session: registry totals from `scripts/quota_report.py`
 > run against `products.yaml` after the publication edit; test counts from

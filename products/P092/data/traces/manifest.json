@@ -1,0 +1,257 @@
+{
+  "campaign": "P092 DeadlineRisk",
+  "env": {
+    "model": "NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super",
+    "uname": "Linux Project2025 5.15.148-tegra #1 SMP PREEMPT Thu Sep 18 15:08:33 PDT 2025 aarch64",
+    "nproc": 6,
+    "nv_tegra_release": "# R36 (release), REVISION: 4.7, GCID: 42132812, BOARD: generic, EABI: aarch64, DATE: Thu Sep 18 22:54:44 UTC 2025\n# KERNEL_VARIANT: oot\nTARGET_USERSPACE_LIB_DIR=nvidia\nTARGET_USERSPACE_LIB_DIR_PATH=usr/lib/aarch64-linux-gnu/nvidia",
+    "python": "3.10.12",
+    "clk_max_khz": "1728000",
+    "governor": "schedutil",
+    "loadavg_at_start": "3.39 1.75 0.90 5/1050 680397",
+    "tj_zone": 8,
+    "sudo_n_true": 1
+  },
+  "period_s": 0.01,
+  "deadline_s": 0.01,
+  "payload_w": 20000,
+  "warmup": {
+    "seconds": 20.0,
+    "clk_before_khz": [
+      1728000,
+      1728000,
+      1728000,
+      1728000,
+      1728000,
+      1728000
+    ],
+    "clk_after_khz": [
+      1728000,
+      1728000,
+      1728000,
+      1728000,
+      1728000,
+      1728000
+    ]
+  },
+  "calibration": [
+    {
+      "attempt": 0,
+      "w": 20000,
+      "median_exec_s": 0.007315160997677594,
+      "frac_of_deadline": 0.7315160997677594
+    }
+  ],
+  "sustained_calibration": [
+    {
+      "attempt": 0,
+      "w": 20000,
+      "sustained_median_exec_s": 0.007315177994314581,
+      "frac_of_deadline": 0.7315177994314581,
+      "jobs": 2997,
+      "jobs_used": 1998
+    }
+  ],
+  "target_frac_of_deadline": 0.75,
+  "probes": [
+    {
+      "n_cpu_stress": 0,
+      "releases": 1501,
+      "misses": 2,
+      "miss_rate": 0.0013324450366422385,
+      "median_exec_s": 0.00729639549535932
+    },
+    {
+      "n_cpu_stress": 1,
+      "releases": 1501,
+      "misses": 0,
+      "miss_rate": 0.0,
+      "median_exec_s": 0.007296060008229688
+    },
+    {
+      "n_cpu_stress": 2,
+      "releases": 1501,
+      "misses": 0,
+      "miss_rate": 0.0,
+      "median_exec_s": 0.007296094001503661
+    },
+    {
+      "n_cpu_stress": 3,
+      "releases": 1501,
+      "misses": 0,
+      "miss_rate": 0.0,
+      "median_exec_s": 0.0060364140081219375
+    },
+    {
+      "n_cpu_stress": 4,
+      "releases": 1501,
+      "misses": 49,
+      "miss_rate": 0.03264490339773484,
+      "median_exec_s": 0.006031518001691438
+    },
+    {
+      "n_cpu_stress": 5,
+      "releases": 1501,
+      "misses": 143,
+      "miss_rate": 0.09526982011992005,
+      "median_exec_s": 0.0061470090004149824
+    },
+    {
+      "n_cpu_stress": 6,
+      "releases": 1501,
+      "misses": 528,
+      "miss_rate": 0.351765489673551,
+      "median_exec_s": 0.006022815010510385
+    }
+  ],
+  "gt_level": 4,
+  "gt_reason": "probe miss rate closest to the declared target 0.05 inside [0.002, 0.3]",
+  "gt_rate_band": [
+    0.002,
+    0.3
+  ],
+  "gt_target_rate": 0.05,
+  "runs": [
+    {
+      "run": "gt_long",
+      "n_cpu_stress": 4,
+      "n_mem_stress": 0,
+      "duration_s": 600.0,
+      "payload_w": 20000,
+      "executed_jobs": 59584,
+      "releases": 60001,
+      "misses": 816,
+      "miss_rate": 0.013599773337111048,
+      "median_exec_s": 0.006052712997188792,
+      "wall_start_unix": 1794557121.3215866,
+      "wall_end_unix": 1794557721.3353648
+    },
+    {
+      "run": "mix_c0",
+      "n_cpu_stress": 0,
+      "n_mem_stress": 0,
+      "duration_s": 150.0,
+      "payload_w": 20000,
+      "executed_jobs": 15000,
+      "releases": 15001,
+      "misses": 2,
+      "miss_rate": 0.00013332444503699753,
+      "median_exec_s": 0.007327504994464107,
+      "wall_start_unix": 1794557731.4917653,
+      "wall_end_unix": 1794557881.5072536
+    },
+    {
+      "run": "mix_c1",
+      "n_cpu_stress": 1,
+      "n_mem_stress": 0,
+      "duration_s": 150.0,
+      "payload_w": 20000,
+      "executed_jobs": 14998,
+      "releases": 15001,
+      "misses": 6,
+      "miss_rate": 0.0003999733351109926,
+      "median_exec_s": 0.0073286900005768985,
+      "wall_start_unix": 1794557891.6493723,
+      "wall_end_unix": 1794558041.662855
+    },
+    {
+      "run": "mix_c2",
+      "n_cpu_stress": 2,
+      "n_mem_stress": 0,
+      "duration_s": 150.0,
+      "payload_w": 20000,
+      "executed_jobs": 15000,
+      "releases": 15001,
+      "misses": 2,
+      "miss_rate": 0.00013332444503699753,
+      "median_exec_s": 0.006043759000021964,
+      "wall_start_unix": 1794558051.7639916,
+      "wall_end_unix": 1794558201.7769635
+    },
+    {
+      "run": "mix_c3",
+      "n_cpu_stress": 3,
+      "n_mem_stress": 0,
+      "duration_s": 150.0,
+      "payload_w": 20000,
+      "executed_jobs": 14982,
+      "releases": 15001,
+      "misses": 38,
+      "miss_rate": 0.0025331644557029533,
+      "median_exec_s": 0.006073328506317921,
+      "wall_start_unix": 1794558211.8836977,
+      "wall_end_unix": 1794558361.8977706
+    },
+    {
+      "run": "mix_c4",
+      "n_cpu_stress": 4,
+      "n_mem_stress": 0,
+      "duration_s": 150.0,
+      "payload_w": 20000,
+      "executed_jobs": 14880,
+      "releases": 15001,
+      "misses": 238,
+      "miss_rate": 0.015865608959402706,
+      "median_exec_s": 0.006067104499379639,
+      "wall_start_unix": 1794558371.9973316,
+      "wall_end_unix": 1794558522.0095477
+    },
+    {
+      "run": "mix_c5",
+      "n_cpu_stress": 5,
+      "n_mem_stress": 0,
+      "duration_s": 150.0,
+      "payload_w": 20000,
+      "executed_jobs": 14106,
+      "releases": 15001,
+      "misses": 1703,
+      "miss_rate": 0.1135257649490034,
+      "median_exec_s": 0.006188180501339957,
+      "wall_start_unix": 1794558532.1663036,
+      "wall_end_unix": 1794558682.1789477
+    },
+    {
+      "run": "mix_c6",
+      "n_cpu_stress": 6,
+      "n_mem_stress": 0,
+      "duration_s": 150.0,
+      "payload_w": 20000,
+      "executed_jobs": 12116,
+      "releases": 15001,
+      "misses": 5739,
+      "miss_rate": 0.3825744950336644,
+      "median_exec_s": 0.006053357501514256,
+      "wall_start_unix": 1794558692.392714,
+      "wall_end_unix": 1794558842.4049666
+    },
+    {
+      "run": "mix_mem2",
+      "n_cpu_stress": 0,
+      "n_mem_stress": 2,
+      "duration_s": 150.0,
+      "payload_w": 20000,
+      "executed_jobs": 15001,
+      "releases": 15001,
+      "misses": 0,
+      "miss_rate": 0.0,
+      "median_exec_s": 0.006051085991202854,
+      "wall_start_unix": 1794558852.6137497,
+      "wall_end_unix": 1794559002.6259723
+    },
+    {
+      "run": "mix_c2mem1",
+      "n_cpu_stress": 2,
+      "n_mem_stress": 1,
+      "duration_s": 150.0,
+      "payload_w": 20000,
+      "executed_jobs": 14995,
+      "releases": 15001,
+      "misses": 12,
+      "miss_rate": 0.0007999466702219852,
+      "median_exec_s": 0.006050241005141288,
+      "wall_start_unix": 1794559012.7851887,
+      "wall_end_unix": 1794559162.7974687
+    }
+  ],
+  "complete": true
+}

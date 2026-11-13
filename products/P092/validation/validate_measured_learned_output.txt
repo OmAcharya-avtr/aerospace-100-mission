@@ -16,16 +16,142 @@ joblib           : 1.6.0
 ruff             : 0.17.5
 analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
 repository root  : P092 (printed relatively; see validation/_bootstrap.py)
-resamples        : 200  [DEADLINERISK_FAST=1: reduced, path probe only]
+resamples        : 4000
 
 MEASUREMENT MODEL. Period T, implicit deadline D = T. Job i is released at t0 + i*T and its response time is end - release. A job whose response exceeds D is a MISS. If a job finishes after later releases have already passed, those releases never execute: they are DROPPED, and each dropped release is also a miss. Every executed row carries dropped_before, so releases = sum(1 + dropped_before) and misses = sum(missed + dropped_before) are both reconstructible from the committed traces.
 
 ==============================================================================
-REFUSED -- no measured campaign
+1  the dataset
 ==============================================================================
-  MEASURED TRACES ABSENT. Expected CSV traces and manifest.json under data/traces/, by name: jobs_gt_long.csv, jobs_mix_c0.csv, jobs_mix_c1.csv, jobs_mix_c2.csv, jobs_mix_c3.csv, jobs_mix_c4.csv, jobs_mix_c5.csv, jobs_mix_c6.csv, jobs_mix_mem2.csv, jobs_mix_c2mem1.csv, manifest.json, CAMPAIGN_COMPLETE. Nothing was substituted: this check computes MEASURED figures and there is no synthetic fallback. Re-run once the hardware campaign has written its traces into that directory.
-[FAIL] the MEASURED campaign is on disk and complete -- nothing was reported and nothing was substituted
+  window length             : 10.0 s
+  minimum releases a window : 100
+  windows kept              : 195
+  windows discarded         : 0
+  descriptors (10) : n_cpu_stress, n_mem_stress, n_workers, foreign_pct, task_pct, stress_pct, load1, clk_mean_khz, clk_min_khz, tj_degC
+
+  run           windows    rate_mean     rate_min     rate_max
+  gt_long            60 1.359970e-02 0.000000e+00 6.000000e-02
+  mix_c0             15 1.333333e-04 0.000000e+00 2.000000e-03
+  mix_c1             15 4.000000e-04 0.000000e+00 2.000000e-03
+  mix_c2             15 1.333333e-04 0.000000e+00 2.000000e-03
+  mix_c2mem1         15 8.000000e-04 0.000000e+00 1.000000e-02
+  mix_c3             15 2.533333e-03 0.000000e+00 6.000000e-03
+  mix_c4             15 1.586667e-02 0.000000e+00 4.200000e-02
+  mix_c5             15 1.135333e-01 5.200000e-02 2.340000e-01
+  mix_c6             15 3.826011e-01 2.920000e-01 4.120000e-01
+  mix_mem2           15 0.000000e+00 0.000000e+00 0.000000e+00
+[PASS] the dataset has at least twenty windows -- 195 windows
+[PASS] every window target is a rate in [0, 1] -- [0.000000e+00, 4.120000e-01]
+
+==============================================================================
+2  the model, and the compute budget it was measured at
+==============================================================================
+  estimator                 : RandomForestRegressor
+  n_estimators              : 300
+  max_depth                 : 6
+  random_state              : 920092
+  n_jobs                    : 1 (two cores available; the forest is small)
+  one full fit              : 0.186 s wall clock
+[PASS] a single fit finishes well inside the three-minute budget -- 0.186 s against a 180 s budget
+
+  impurity-based feature importances of the full-data fit:
+    task_pct          0.654312
+    stress_pct        0.112127
+    n_workers         0.100929
+    n_cpu_stress      0.073079
+    load1             0.053685
+    foreign_pct       0.004466
+    tj_degC           0.001401
+    n_mem_stress      0.000001
+    clk_min_khz       0.000000
+    clk_mean_khz      0.000000
+  An importance is a statement about THIS forest on THIS dataset. It is not a causal claim and the descriptors are strongly collinear on this campaign: the stressor count, the stressor occupancy and the load average all move together by construction.
+
+  speed-scaling idle run    : mix_c0
+  board cores m             : 6
+  idle exec samples         : 15000
+  idle median exec          : 7.327505 ms
+
+==============================================================================
+3  HELD-OUT WORKLOAD MIXES -- leave one run out
+==============================================================================
+  held-out runs             : 10
+  total fit time            : 1.896 s wall clock
+
+  held-out run  windows   learned_MAE  constant_MAE  speedscale_MAE        winner
+  gt_long            60      0.010289      0.043823        0.013535       learned
+  mix_c0             15      0.000832      0.047389        0.000191    speedscale
+  mix_c1             15      0.000463      0.047100        0.000440    speedscale
+  mix_c2             15      0.002745      0.047389        0.000191    speedscale
+  mix_c2mem1         15      0.002017      0.046667        0.000849    speedscale
+  mix_c3             15      0.002356      0.044789        0.002493       learned
+  mix_c4             15      0.007924      0.030344        0.015809       learned
+  mix_c5             15      0.034353      0.075461        0.113467       learned
+  mix_c6             15      0.227703      0.366951        0.381734       learned
+  mix_mem2           15      0.005742      0.047533        0.000067    speedscale
+
+  predictor                              n         MAE        RMSE        bias   cover
+  ------------------------------------------------------------------------------------
+  learned forest (grouped)             195    0.025022    0.065346   -0.015675   0.728
+  constant rate (grouped)              195    0.071455    0.112982   +0.003364     n/a
+  speed scaling (grouped)              195    0.043799    0.112132   -0.043749     n/a
+
+==============================================================================
+4  HELD-OUT TIME -- the later portion of every run
+==============================================================================
+  holdout fraction          : 0.3
+  training windows          : 132
+  test windows              : 63
+  fit time                  : 0.171 s wall clock
+
+  predictor                              n         MAE        RMSE        bias   cover
+  ------------------------------------------------------------------------------------
+  learned forest (time)                 63    0.007330    0.017055   +0.003146   0.762
+  constant rate (time)                  63    0.061431    0.096236   +0.004320     n/a
+  speed scaling (time)                  63    0.040879    0.104257   -0.040822     n/a
+
+==============================================================================
+5  the uncertainty output, checked rather than asserted
+==============================================================================
+  The learned predictor reports a per-window standard deviation: the spread across the forest's trees, combined in quadrature with the binomial noise of the window's own counted rate. The coverage column above is the fraction of held-out windows whose true rate lies within one reported sigma. For a well-calibrated Gaussian-like uncertainty that figure would be near 0.68; a much lower figure means the reported sigma is too small and a much higher one means it is too large.
+
+  grouped-split coverage    : 0.7282
+  time-split coverage       : 0.7619
+  mean reported sigma, grouped: 0.020622
+  mean model-only sigma, time : 0.006675
+  mean target-noise sigma, time: 0.003531
+[PASS] the reported sigma is strictly positive on every held-out window -- minimum 3.013e-04
+
+==============================================================================
+6  THE VERDICT -- published whichever way it falls
+==============================================================================
+  held-out workload mixes:
+    learned forest (grouped)           MAE 0.025022  RMSE 0.065346
+    constant rate (grouped)            MAE 0.071455  RMSE 0.112982
+    speed scaling (grouped)            MAE 0.043799  RMSE 0.112132
+    lowest MAE: learned forest (grouped)
+    the learned predictor wins this split by 0.018776 MAE over the best baseline
+
+  held-out time:
+    learned forest (time)              MAE 0.007330  RMSE 0.017055
+    constant rate (time)               MAE 0.061431  RMSE 0.096236
+    speed scaling (time)               MAE 0.040879  RMSE 0.104257
+    lowest MAE: learned forest (time)
+    the learned predictor wins this split by 0.033550 MAE over the best baseline
+
+  Neither outcome is retuned away. Across two days of this mission eight of thirteen products measured a baseline matching or beating the learned component and every one was published.
+
+==============================================================================
+7  what this split structure CANNOT measure
+==============================================================================
+[STRUCTURALLY UNMEASURABLE] held-out ambient temperature
+           reason: one uninstrumented ambient was measured, so there is no second ambient to hold out. A model that generalises across mixes and across time on this campaign has been shown nothing about generalising across ambient.
+[STRUCTURALLY UNMEASURABLE] held-out board
+           reason: one board was measured. Nothing here supports a statement about a second Orin Nano, let alone about Orin Nano in general.
+[STRUCTURALLY UNMEASURABLE] held-out payload and period
+           reason: one CPython CPU-only payload at one period. The descriptors do not include anything that varies with payload or period, because neither varied.
 
 
-CHECKS RUN: 1
-FAILED CHECKS (1): the MEASURED campaign is on disk and complete
+CHECKS RUN: 4
+STRUCTURALLY UNMEASURABLE (3): held-out ambient temperature, held-out board, held-out payload and period
+FAILED CHECKS (0): none

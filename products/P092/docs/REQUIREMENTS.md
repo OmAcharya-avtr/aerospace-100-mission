@@ -4,7 +4,7 @@ Requirements are numbered and each names the artifact that satisfies it and the
 artifact that demonstrates it. A requirement with no demonstrating artifact is
 listed as unsatisfied rather than omitted.
 
-Validation level: **Level 3, hardware-pending.** The coordinator decides the
+Validation level: **Level 4, measured on hardware.** Level 4 here is **not** a claim of generality: one power mode (`MAXN_SUPER`), one uninstrumented ambient, one CPython CPU-only payload, one period, one shared board. See Limitations. The coordinator decided the
 level at Phase 9 against the measured evidence. This document does not claim a
 level.
 

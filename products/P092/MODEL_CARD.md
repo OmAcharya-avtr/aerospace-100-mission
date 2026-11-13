@@ -1,14 +1,15 @@
 # Model card — deadlinerisk contention-aware miss-rate predictor
 
-Validation level: **Level 3, hardware-pending.** The mission coordinator decides
+Validation level: **Level 4, measured on hardware.** Level 4 here is **not** a claim of generality: one power mode (`MAXN_SUPER`), one uninstrumented ambient, one CPython CPU-only payload, one period, one shared board. See Limitations. The mission coordinator decided
 the level at Phase 9 against the measured evidence.
 
 **This model is not certified for operational flight use.**
 
-> **No measured campaign is present in this repository, so this model has not
-> been fitted to any measured data and no metric in this card is a measured
-> number.** `data/traces/` is empty. Every results slot carries the literal token
-> `MEASURED_PENDING` and names the script that fills it. The architecture,
+> **Every metric in this card was measured on the committed hardware campaign in
+> `data/traces/`.** The card was written before the campaign, with every results
+> slot carrying the literal token `MEASURED_PENDING` and the name of the script
+> that fills it; the tokens were replaced from those scripts' output. The
+> architecture,
 > baselines, split strategy, uncertainty definition and failure cases below are
 > design decisions fixed before the data, and `tests/` exercises all of them
 > against the committed deterministic synthetic generator, whose figures measure
@@ -94,7 +95,19 @@ the window of the release that was dropped. A window with fewer than 100
 releases or with no monitor sample is discarded and the discard count is
 reported.
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `validation/validate_measured_learned.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+**195 windows over 10 runs, 0 discarded.** Ten descriptors: `n_cpu_stress`,
+`n_mem_stress`, `n_workers`, `foreign_pct`, `task_pct`, `stress_pct`, `load1`,
+`clk_mean_khz`, `clk_min_khz`, `tj_degC`. Window targets span 0.000000e+00 to
+4.120000e-01. Per-run window counts: `gt_long` 60, every mix 15.
+
+**A descriptor in that list does not belong there, and the product says so rather
+than quietly scoring on it.** The specification requires descriptors an operator
+could observe *without running the task*. `task_pct` is the task's own measured
+CPU occupancy, and `load1` includes the task in its run queue. Both are in the
+scored set, and `task_pct` is the dominant feature of the full-data fit at an
+importance of 0.654312. `validation/validate_descriptor_leak.py` refits the same
+forest with the same seed and the same splits on two narrower descriptor sets and
+reports what the restriction costs; the figures are under Results.
 
 ## Training procedure
 
@@ -102,7 +115,12 @@ One fit per split. No hyperparameter search, no early stopping, no feature
 selection, and no retuning after seeing a score — the mission's build guide
 forbids retuning to make the model win, and the numbers below were not retuned.
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `validation/validate_measured_learned.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+`RandomForestRegressor`, `n_estimators` 300, `max_depth` 6, `random_state`
+920092, `n_jobs` 1. One full fit takes **0.202 s** of wall clock on the two-core
+analysis container against a declared 180 s budget; the ten grouped splits
+together take 1.887 s and the time split 0.155 s. No hyperparameter was searched,
+nothing was selected on a test score, and nothing was retuned after a score was
+seen.
 
 ## Metrics and test-split strategy
 
@@ -122,7 +140,52 @@ that report an uncertainty.
 
 ## Results
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `validation/validate_measured_learned.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+**Held-out workload mixes (grouped by run, 195 windows):**
+
+| predictor | MAE | RMSE | bias | 1-sigma coverage |
+|---|---:|---:|---:|---:|
+| learned forest | 0.025022 | 0.065346 | -0.015675 | 0.728 |
+| speed scaling (classical) | 0.043799 | 0.112132 | -0.043749 | n/a |
+| constant rate | 0.071455 | 0.112982 | +0.003364 | n/a |
+
+**Held-out time (132 training windows, 63 test):**
+
+| predictor | MAE | RMSE | bias | 1-sigma coverage |
+|---|---:|---:|---:|---:|
+| learned forest | 0.007330 | 0.017055 | +0.003146 | 0.762 |
+| speed scaling (classical) | 0.040879 | 0.104257 | -0.040822 | n/a |
+| constant rate | 0.061431 | 0.096236 | +0.004320 | n/a |
+
+**The forest wins both aggregates, and the pre-registered expectation in
+`docs/SPEC.md` that the classical predictor would be competitive is refuted.**
+The margins are 0.018776 and 0.033550 MAE, which are 13.3 and 23.8 times the
+counted rate's own bootstrap half-width of 1.4085e-03.
+
+**The aggregate is not the whole story, and the per-run table is published
+because it is less flattering. Speed scaling wins 5 of the 10 held-out runs** —
+`mix_c0`, `mix_c1`, `mix_c2`, `mix_c2mem1` and `mix_mem2`, every one a
+low-contention run where the right answer is nearly zero and the classical model
+says nearly zero for a structural reason. The forest wins the other five,
+including every run with a rate above 0.002, and wins the aggregate because the
+aggregate is dominated by the runs with large rates. On a six-core part the
+classical available fraction `min(1, m/(n+1))` is exactly 1 for every stressor
+count up to five, so speed scaling predicts no slowdown and therefore no misses,
+where the board measured 0.113526 at five stressors.
+
+**The descriptor-leak sensitivity, from
+`validation/validate_descriptor_leak.py`:**
+
+| descriptor set | grouped MAE | time MAE |
+|---|---:|---:|
+| full, as scored above | 0.025022 | 0.007330 |
+| without `task_pct` | 0.029559 | 0.009319 |
+| operator-observable only (also without `load1`) | 0.028411 | 0.009249 |
+
+Removing the task's own occupancy costs a factor of 1.1354 on held-out mixes and
+1.2619 on held-out time. **The restricted figure is the one an operator could
+actually achieve, and it still beats speed scaling at 0.043799 and the constant
+rate at 0.071455.** The conclusion survives the restriction; the full-set figure
+is an upper bound and is labelled as one.
 
 ## Uncertainty output
 
@@ -141,7 +204,13 @@ the predictive uncertainty**: it does not include model misspecification. Its
 calibration is reported as a measured coverage figure — the fraction of held-out
 windows whose true rate lies within one reported sigma — rather than assumed.
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `validation/validate_measured_learned.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+Measured 1-sigma coverage is **0.7282** on the grouped split and **0.7619** on
+the time split, against about 0.68 for a well-calibrated Gaussian-like sigma, so
+the reported uncertainty is mildly conservative rather than optimistic. The
+minimum reported sigma over all held-out windows is 3.013e-04 and no window
+received a sigma of zero. This is an honest-but-wide uncertainty and not a
+calibrated one: 195 windows from a single campaign cannot establish calibration,
+and the figure is reported as measured coverage rather than as a guarantee.
 
 ## Failure cases
 
@@ -166,7 +235,13 @@ MEASURED_PENDING — the hardware campaign had not written any file into `data/t
    them varied. A model that generalises across mixes and across time on this
    campaign has been shown nothing about generalising across any of those.
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `validation/validate_measured_learned.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+The measured failure modes, from the per-run table. The forest's worst held-out
+run is `mix_c6` at MAE 0.227703 against a true rate of 0.382601 — the
+highest-contention mix, the extreme of the training range, and the one the model
+has to extrapolate to. Its grouped bias is -0.015675, negative, so on an unseen
+mix it **under**-predicts risk on average, which is the dangerous direction for
+this application and is stated here for that reason. On the five low-contention
+runs it is beaten by a one-line classical formula.
 
 ## Reproducibility
 
@@ -192,7 +267,11 @@ contract, and the fit takes under a second.
 
 ## Compute
 
-MEASURED_PENDING — the hardware campaign had not written any file into `data/traces/` when this document was generated, so there is no measured number to put here and none was invented. This slot is filled by `validation/validate_measured_learned.py`, which refuses with a non-zero exit until `data/traces/CAMPAIGN_COMPLETE` exists.
+Two cores, about 7 GiB of RAM, no GPU and no accelerator. One full fit 0.202 s;
+the ten grouped splits 1.887 s; the time split 0.155 s; the descriptor-leak
+sensitivity three fits per split. The whole learned half of this product is under
+five seconds of CPU. Training is not where the cost of this work sits — the
+38-minute hardware campaign is.
 
 Budget: the mission's build guide allows three minutes for any training or Monte
 Carlo run on two cores. The dataset and model are sized for that, and

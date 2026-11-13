@@ -1417,3 +1417,122 @@ foreign CPU use was sampled every second, pooling to 17.05 per cent over 4975
 samples with per-run means between 14.93 and 20.62 — measured contamination,
 not assumed absence. **Nothing here supports a general statement about Orin
 Nano thermal behaviour.**
+
+---
+
+## P092 DeadlineRisk — `deadlinerisk` — published 2026-11-13
+
+**Repository** https://github.com/OmAcharya-avtr/deadlinerisk ·
+**Class** flagship — **the twentieth, which closes the flagship quota at 20 of
+20** · **Category** autonomous-aerospace-systems · **AI** yes ·
+**Validation level 4, achieved, with the scope below** — the second in this
+mission after P091.
+
+**Authorising verdict.** `python3 scripts/release_gate.py P092` printed
+`P092  PASS       219 tests`, `repository  PASS`, `Total tests passing: 219`,
+`VERDICT: PUSH ALLOWED`, and **the shell exit status was captured directly as
+`0`** by running the gate as a background job writing `$?` to a file, so the
+printed verdict and the status are independent evidence. Published under
+ADR-017 on that verdict alone: no `APPROVAL_LOG.md` row, no product set to
+`APPROVED`, `approved_for_publish` stays `false`, no owner statement quoted or
+implied. **No human spoke in this session.**
+
+### The headline
+
+**The mean-plus-margin rule understates the measured deadline-miss rate by a
+factor of 1.528423e+05**, 95 per cent moving-block interval
+[3.635383e+04, 9.160321e+05], which **excludes 1**.
+
+The rule is not strawmanned. On the ground-truth run it corresponds to a margin
+of **k = 5.221001 standard deviations** to the deadline, and a Gaussian with the
+measured mean 6.277342 ms and standard deviation 0.713016 ms puts
+`P(response > D)` at **8.897912e-08** — one miss in eleven million releases. The
+board delivered **816 misses in 60 001 releases**, **1.359977e-02**, one in 74.
+
+The extreme-value fit on the same data gives **6.727478e-03**, low by a factor
+of **2.0215**. So EVT is competitive on the tail-model task and the Gaussian
+rule is not, and the product reports both as outside the counted rate's interval
+rather than calling EVT correct.
+
+### What the campaign measured
+
+10 runs, **190 662 executed jobs over 195 010 releases**, board time
+2026-11-13 03:02–03:39, committed whole under `products/P092/data/traces/`
+with a 1 Hz contention monitor beside every run.
+
+- **417 of the 816 misses — 51.10 per cent — were releases that never executed
+  at all.** Counting only what ran gives 6.696429e-03 and halves the answer
+  (ratio 2.030899).
+- **The miss indicator is serially dependent**: lag-1 autocorrelation 0.547771,
+  integrated autocorrelation time 6.276304, block length 7. An i.i.d. bootstrap
+  on the same series returns an interval **1.44 times narrower** — precision it
+  would have invented.
+- **The tail is heavy at every candidate threshold.** The declared
+  stability-window rule chose quantile 0.8400, `u = 6.263055 ms`, 9534
+  exceedances, shape `xi = 0.594814`. The Gaussian is not mis-scaled; it is the
+  wrong family.
+- **The Gaussian rule is worst where a practitioner would trust it most.** At
+  `mix_c2` a 20.261-sigma margin predicts 1.411300e-91 against a counted
+  1.333244e-04. At `mix_c5` and `mix_c6`, where the margin is under 1.4 sigma,
+  it is within a factor of 1.25 and 1.53.
+
+### The pre-registered expectation was refuted, and is published as refuted
+
+`docs/SPEC.md`, written before the campaign, said the classical predictor would
+be competitive on the forecasting task and that any learned margin would be
+smaller than the counted reference's bootstrap interval. **It was not.** The
+learned forest won both splits: MAE 0.025022 against 0.043799 for speed scaling
+on held-out mixes, and 0.007330 against 0.040879 on held-out time — margins of
+13.3 and 23.8 bootstrap half-widths. The mechanism is named rather than left
+mysterious: on a six-core part the classical available fraction `min(1, m/(n+1))`
+is exactly 1 for every stressor count up to five, so speed scaling predicts no
+misses where the board measured 0.113526.
+
+**Three qualifications, all against the learned model, all published.**
+Speed scaling still wins **5 of the 10 held-out runs**, every one of them a
+low-contention run. The forest's dominant descriptor is `task_pct` at importance
+0.654312 — the task's own CPU occupancy, which the specification does not
+license because an operator cannot observe it without running the task;
+`validation/validate_descriptor_leak.py` refits without it at a cost of 1.1354x
+and 1.2619x, and the restricted figure still beats both baselines. The grouped
+bias is -0.015675, so on an unseen mix the forest under-predicts risk, which is
+the dangerous direction.
+
+### Three campaigns ran and two were discarded
+
+**Campaign 1** completed in 36 minutes and wrote all ten job traces and **not
+one monitor file**: the monitor subprocess was launched without the `--out`
+argument its own `argparse` declares required, so every one exited 2 with its
+stderr sent to `DEVNULL` while the campaign reported success. It also calibrated
+the payload from a 1.2 s probe taken as the board went idle, reaching 0.4499 of
+the deadline at calibration and a sustained 0.19 in the runs — six of its ten
+runs recorded zero misses. **Campaign 2** was killed for the same calibration
+defect and left five orphaned stressors running at about 97 per cent each, found
+and killed by PID before campaign 3 started. **Campaign 3** is the published one:
+monitor fixed, payload sized by a sustained 30 s calibration with the first third
+discarded, reaching 0.7315 of the deadline.
+
+**A campaign that completes is not a campaign that measured.** Both defects
+produced a clean exit status, a full log and a plausible set of files.
+
+### Scope, which is part of the result
+
+One power mode, `MAXN_SUPER`, because `sudo -n true` returns non-zero on the
+board and `nvpmodel` and `jetson_clocks` are unreachable unattended. One
+ambient, never instrumented or varied, so held-out ambient stays STRUCTURALLY
+UNMEASURABLE. One CPython CPU-only payload at one period of 10 ms with an
+implicit deadline. One board with its own heatsink and fan. The board was shared
+throughout and foreign CPU occupancy was sampled every second, pooling to
+**2.5210 per cent over 1970 samples** with a worst single second of 21.6443 —
+measured contamination, not assumed absence. The core clock sat at 1728000 kHz
+in every loaded run and the die stayed between 48.31 and 55.88 degC, so nothing
+here is a throttling result. **Nothing in this product supports a general
+statement about deadline misses on Orin Nano.**
+
+### Security
+
+`bandit -r products/P092 -x '*/tests/*'`: **0 HIGH, 0 MEDIUM, 18 LOW** over 5914
+lines. `detect-secrets` over the product tree: **0 findings**. `pip-audit`
+against the declared and measured versions: **no known vulnerabilities**. No
+absolute private path in any tracked file; no tracked build artifact. No
+unresolved critical finding, so publication was not blocked on security.

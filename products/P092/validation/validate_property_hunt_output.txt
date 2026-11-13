@@ -16,10 +16,10 @@ joblib           : 1.6.0
 ruff             : 0.17.5
 analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
 repository root  : P092 (printed relatively; see validation/_bootstrap.py)
-resamples        : 200  [DEADLINERISK_FAST=1: reduced, path probe only]
+resamples        : 4000
 
-examples per property : 150
-seeds                 : [1]
+examples per property : 1200
+seeds                 : [1, 777]
   The committed suite runs 200 to 400 examples per property. This hunt raises the count in a COPY outside the repository, because a @settings decorator overrides any Hypothesis profile and the repository's tests are not edited.
 
 properties whose example count was raised: 12
@@ -28,9 +28,16 @@ properties whose example count was raised: 12
 ==============================================================================
 seed 1
 ==============================================================================
-[PASS] no property falsified at 150 examples, seed 1 -- exit 0
+[PASS] no property falsified at 1200 examples, seed 1 -- exit 0
     ............                                                             [100%]
-    12 passed in 1.55s
+    12 passed in 12.13s
+
+==============================================================================
+seed 777
+==============================================================================
+[PASS] no property falsified at 1200 examples, seed 777 -- exit 0
+    ............                                                             [100%]
+    12 passed in 11.86s
 
 ==============================================================================
 pinned counterexamples in the committed suite
@@ -43,5 +50,5 @@ pinned counterexamples in the committed suite
 [PASS] the counterexample this hunt found is pinned as a named literal test -- 5 pinned regression test(s)
 
 
-CHECKS RUN: 3
+CHECKS RUN: 4
 FAILED CHECKS (0): none
