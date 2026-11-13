@@ -1529,6 +1529,30 @@ in every loaded run and the die stayed between 48.31 and 55.88 degC, so nothing
 here is a throttling result. **Nothing in this product supports a general
 statement about deadline misses on Orin Nano.**
 
+### Published, and verified after the push
+
+- Remote SHA `aa0b76de8ed7b8ad07c6817be22ac27d72719b30`.
+- **106 blobs on the remote, matching `git ls-files` locally.**
+- `gh api repos/OmAcharya-avtr/deadlinerisk/contributors --jq '.[].login'` →
+  **`OmAcharya-avtr`, one line, one name.**
+- Every commit author email on the remote:
+  `145807881+OmAcharya-avtr@users.noreply.github.com`, one address, which
+  resolves to login `OmAcharya-avtr`. Zero attribution trailers.
+
+**One defect found in the publication path itself.**
+`scripts/build_product_repo.py` writes its own `.gitignore` into the generated
+repository, replacing the product's. That standard file carries a bare `*.log`,
+which matches at any depth, so `data/traces/campaign.log` — the campaign's own
+record of its warm-up, calibration, probe table and per-run completions — was
+present on disk and **untracked** in the generated repository, even though the
+product's own `.gitignore` negates it in the monorepo. Caught by counting
+`git ls-files data/traces` (22) against `ls data/traces` (23) before creating the
+remote. Fixed for this product by appending the negation to the generated file.
+**Not fixed in `build_product_repo.py`, because that script is shared by all 93
+published products and changing it unattended is not a judgement this session
+should make.** Any future product shipping a `.log` has the same problem and
+will not be told.
+
 ### Security
 
 `bandit -r products/P092 -x '*/tests/*'`: **0 HIGH, 0 MEDIUM, 18 LOW** over 5914
