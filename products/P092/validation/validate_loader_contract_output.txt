@@ -1,0 +1,148 @@
+
+==============================================================================
+LOADER CONTRACT -- schema, validation and the measurement model
+==============================================================================
+INPUT ORIGIN: SYNTHETIC generator, plus the MEASURED campaign when present.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+joblib           : 1.6.0
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P092 (printed relatively; see validation/_bootstrap.py)
+resamples        : 200  [DEADLINERISK_FAST=1: reduced, path probe only]
+
+MEASUREMENT MODEL. Period T, implicit deadline D = T. Job i is released at t0 + i*T and its response time is end - release. A job whose response exceeds D is a MISS. If a job finishes after later releases have already passed, those releases never execute: they are DROPPED, and each dropped release is also a miss. Every executed row carries dropped_before, so releases = sum(1 + dropped_before) and misses = sum(missed + dropped_before) are both reconstructible from the committed traces.
+
+==============================================================================
+1  declared schema
+==============================================================================
+  jobs columns    : ['job_index', 'release_s', 'start_delay_s', 'end_s', 'exec_s', 'response_s', 'missed', 'dropped_before']
+  monitor columns : 18 columns, t_s .. load1
+[PASS] the jobs schema has eight columns -- 8
+[PASS] the monitor schema has eighteen columns -- 18
+
+==============================================================================
+2  rejections -- every one exercised, with the message it produced
+==============================================================================
+[PASS] wrong header raises SchemaError -- got SchemaError
+        message: jobs CSV header does not match the declared schema. missing=['job_index', 'release_s', 'start_delay_s', 'end_s
+[PASS] reordered header raises SchemaError -- got SchemaError
+        message: jobs CSV header has the right names in the wrong order. got=['release_s', 'job_index', 'start_delay_s', 'end_s
+[PASS] empty file raises TraceDataAbsentError -- got TraceDataAbsentError
+        message: trace file jobs_probe.csv is empty
+[PASS] short row raises ValueError -- got ValueError
+        message: jobs_probe.csv line 2: 4 field(s), expected 8
+[PASS] non-increasing job_index raises ValueError -- got ValueError
+        message: jobs_probe.csv: job_index must be strictly increasing; it is not at row 1 (values 0 then 0)
+[PASS] missed flag of 2 raises ValueError -- got ValueError
+        message: jobs_probe.csv: missed must be 0 or 1, found [2]
+[PASS] negative dropped_before raises ValueError -- got ValueError
+        message: jobs_probe.csv: dropped_before has a negative value
+[PASS] the probe directory is outside the repository, so no probe path is reported -- probe files are written to a temporary directory and their names are not printed
+[PASS] zero period is rejected
+[PASS] deadline beyond the period is rejected
+[PASS] the declared header is accepted
+
+==============================================================================
+3  SYNTHETIC campaign identities
+==============================================================================
+
+==============================================================================
+identities on the SYNTHETIC campaign
+==============================================================================
+INPUT ORIGIN: synthetic -- 10 run(s) from synthetic/
+  period T  : 10.000 ms
+  deadline D: 10.000 ms
+
+  run             rows   drops  releases  misses         rate    exec_rate
+  gt_long         5978      23      6001      40 6.665556e-03 2.843760e-03
+  mix_c0          1999       2      2001       4 1.999000e-03 1.000500e-03
+  mix_c1          1999       2      2001       4 1.999000e-03 1.000500e-03
+  mix_c2          1990      11      2001      17 8.495752e-03 3.015075e-03
+  mix_c2mem1      2000       1      2001       2 9.995002e-04 5.000000e-04
+  mix_c3          1996       5      2001      10 4.997501e-03 2.505010e-03
+  mix_c4          1989      12      2001      16 7.996002e-03 2.011061e-03
+  mix_c5          1986      15      2001      28 1.399300e-02 6.545821e-03
+  mix_c6          1951      50      2001      92 4.597701e-02 2.152742e-02
+  mix_mem2        1996       5      2001      10 4.997501e-03 2.505010e-03
+
+[PASS] SYNTHETIC/gt_long: releases = sum(1 + dropped_before) -- 6001
+[PASS] SYNTHETIC/gt_long: misses = sum(missed + dropped_before) -- 40
+[PASS] SYNTHETIC/gt_long: indicator length equals the release count -- 6001 vs 6001
+[PASS] SYNTHETIC/gt_long: indicator sum equals the miss count -- 40 vs 40
+[PASS] SYNTHETIC/gt_long: response_s agrees with end_s - release_s -- worst |difference| 5.000e-07 s against the CSV's own 1 us rounding of end_s
+[PASS] SYNTHETIC/gt_long: missed flag agrees with response > D away from the rounding of D -- 0 row(s) excluded as unresolved
+[PASS] SYNTHETIC/mix_c0: releases = sum(1 + dropped_before) -- 2001
+[PASS] SYNTHETIC/mix_c0: misses = sum(missed + dropped_before) -- 4
+[PASS] SYNTHETIC/mix_c0: indicator length equals the release count -- 2001 vs 2001
+[PASS] SYNTHETIC/mix_c0: indicator sum equals the miss count -- 4 vs 4
+[PASS] SYNTHETIC/mix_c0: response_s agrees with end_s - release_s -- worst |difference| 4.990e-07 s against the CSV's own 1 us rounding of end_s
+[PASS] SYNTHETIC/mix_c0: missed flag agrees with response > D away from the rounding of D -- 0 row(s) excluded as unresolved
+[PASS] SYNTHETIC/mix_c1: releases = sum(1 + dropped_before) -- 2001
+[PASS] SYNTHETIC/mix_c1: misses = sum(missed + dropped_before) -- 4
+[PASS] SYNTHETIC/mix_c1: indicator length equals the release count -- 2001 vs 2001
+[PASS] SYNTHETIC/mix_c1: indicator sum equals the miss count -- 4 vs 4
+[PASS] SYNTHETIC/mix_c1: response_s agrees with end_s - release_s -- worst |difference| 5.000e-07 s against the CSV's own 1 us rounding of end_s
+[PASS] SYNTHETIC/mix_c1: missed flag agrees with response > D away from the rounding of D -- 0 row(s) excluded as unresolved
+[PASS] SYNTHETIC/mix_c2: releases = sum(1 + dropped_before) -- 2001
+[PASS] SYNTHETIC/mix_c2: misses = sum(missed + dropped_before) -- 17
+[PASS] SYNTHETIC/mix_c2: indicator length equals the release count -- 2001 vs 2001
+[PASS] SYNTHETIC/mix_c2: indicator sum equals the miss count -- 17 vs 17
+[PASS] SYNTHETIC/mix_c2: response_s agrees with end_s - release_s -- worst |difference| 4.990e-07 s against the CSV's own 1 us rounding of end_s
+[PASS] SYNTHETIC/mix_c2: missed flag agrees with response > D away from the rounding of D -- 0 row(s) excluded as unresolved
+[PASS] SYNTHETIC/mix_c2mem1: releases = sum(1 + dropped_before) -- 2001
+[PASS] SYNTHETIC/mix_c2mem1: misses = sum(missed + dropped_before) -- 2
+[PASS] SYNTHETIC/mix_c2mem1: indicator length equals the release count -- 2001 vs 2001
+[PASS] SYNTHETIC/mix_c2mem1: indicator sum equals the miss count -- 2 vs 2
+[PASS] SYNTHETIC/mix_c2mem1: response_s agrees with end_s - release_s -- worst |difference| 5.000e-07 s against the CSV's own 1 us rounding of end_s
+[PASS] SYNTHETIC/mix_c2mem1: missed flag agrees with response > D away from the rounding of D -- 0 row(s) excluded as unresolved
+[PASS] SYNTHETIC/mix_c3: releases = sum(1 + dropped_before) -- 2001
+[PASS] SYNTHETIC/mix_c3: misses = sum(missed + dropped_before) -- 10
+[PASS] SYNTHETIC/mix_c3: indicator length equals the release count -- 2001 vs 2001
+[PASS] SYNTHETIC/mix_c3: indicator sum equals the miss count -- 10 vs 10
+[PASS] SYNTHETIC/mix_c3: response_s agrees with end_s - release_s -- worst |difference| 5.000e-07 s against the CSV's own 1 us rounding of end_s
+[PASS] SYNTHETIC/mix_c3: missed flag agrees with response > D away from the rounding of D -- 0 row(s) excluded as unresolved
+[PASS] SYNTHETIC/mix_c4: releases = sum(1 + dropped_before) -- 2001
+[PASS] SYNTHETIC/mix_c4: misses = sum(missed + dropped_before) -- 16
+[PASS] SYNTHETIC/mix_c4: indicator length equals the release count -- 2001 vs 2001
+[PASS] SYNTHETIC/mix_c4: indicator sum equals the miss count -- 16 vs 16
+[PASS] SYNTHETIC/mix_c4: response_s agrees with end_s - release_s -- worst |difference| 5.000e-07 s against the CSV's own 1 us rounding of end_s
+[PASS] SYNTHETIC/mix_c4: missed flag agrees with response > D away from the rounding of D -- 0 row(s) excluded as unresolved
+[PASS] SYNTHETIC/mix_c5: releases = sum(1 + dropped_before) -- 2001
+[PASS] SYNTHETIC/mix_c5: misses = sum(missed + dropped_before) -- 28
+[PASS] SYNTHETIC/mix_c5: indicator length equals the release count -- 2001 vs 2001
+[PASS] SYNTHETIC/mix_c5: indicator sum equals the miss count -- 28 vs 28
+[PASS] SYNTHETIC/mix_c5: response_s agrees with end_s - release_s -- worst |difference| 5.000e-07 s against the CSV's own 1 us rounding of end_s
+[PASS] SYNTHETIC/mix_c5: missed flag agrees with response > D away from the rounding of D -- 0 row(s) excluded as unresolved
+[PASS] SYNTHETIC/mix_c6: releases = sum(1 + dropped_before) -- 2001
+[PASS] SYNTHETIC/mix_c6: misses = sum(missed + dropped_before) -- 92
+[PASS] SYNTHETIC/mix_c6: indicator length equals the release count -- 2001 vs 2001
+[PASS] SYNTHETIC/mix_c6: indicator sum equals the miss count -- 92 vs 92
+[PASS] SYNTHETIC/mix_c6: response_s agrees with end_s - release_s -- worst |difference| 5.000e-07 s against the CSV's own 1 us rounding of end_s
+[PASS] SYNTHETIC/mix_c6: missed flag agrees with response > D away from the rounding of D -- 0 row(s) excluded as unresolved
+[PASS] SYNTHETIC/mix_mem2: releases = sum(1 + dropped_before) -- 2001
+[PASS] SYNTHETIC/mix_mem2: misses = sum(missed + dropped_before) -- 10
+[PASS] SYNTHETIC/mix_mem2: indicator length equals the release count -- 2001 vs 2001
+[PASS] SYNTHETIC/mix_mem2: indicator sum equals the miss count -- 10 vs 10
+[PASS] SYNTHETIC/mix_mem2: response_s agrees with end_s - release_s -- worst |difference| 5.000e-07 s against the CSV's own 1 us rounding of end_s
+[PASS] SYNTHETIC/mix_mem2: missed flag agrees with response > D away from the rounding of D -- 0 row(s) excluded as unresolved
+
+==============================================================================
+4  MEASURED campaign identities
+==============================================================================
+  MEASURED CAMPAIGN NOT AVAILABLE. The refusal text follows verbatim:
+    MEASURED TRACES ABSENT. Expected CSV traces and manifest.json under data/traces/, by name: jobs_gt_long.csv, jobs_mix_c0.csv, jobs_mix_c1.csv, jobs_mix_c2.csv, jobs_mix_c3.csv, jobs_mix_c4.csv, jobs_mix_c5.csv, jobs_mix_c6.csv, jobs_mix_mem2.csv, jobs_mix_c2mem1.csv, manifest.json, CAMPAIGN_COMPLETE. Nothing was substituted: this check computes MEASURED figures and there is no synthetic fallback. Re-run once the hardware campaign has written its traces into that directory.
+[STRUCTURALLY UNMEASURABLE] measurement-model identities on the MEASURED campaign
+           reason: the measured traces were not on disk, or the campaign had not written CAMPAIGN_COMPLETE, when this script ran. This is not a pass: nothing was checked and nothing was substituted.
+
+
+CHECKS RUN: 73
+STRUCTURALLY UNMEASURABLE (1): measurement-model identities on the MEASURED campaign
+FAILED CHECKS (0): none

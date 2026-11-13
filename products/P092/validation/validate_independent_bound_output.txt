@@ -1,0 +1,128 @@
+
+==============================================================================
+INDEPENDENT BOUNDS -- mathematics the estimators do not use
+==============================================================================
+INPUT ORIGIN: SYNTHETIC generator, plus the MEASURED campaign when present.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+joblib           : 1.6.0
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P092 (printed relatively; see validation/_bootstrap.py)
+resamples        : 200  [DEADLINERISK_FAST=1: reduced, path probe only]
+
+==============================================================================
+0  the bounds, and why each slack is what it is
+==============================================================================
+  Markov slack      : 4*eps*bound. The bound is a quotient of two positive quantities, so its relative condition number is 1 in each argument and the only amplification is the division. The slack vanishes with the bound.
+  Cantelli slack    : 8*eps*((|D|+|mean|)/|D-mean|)*bound. The ill-conditioned step is the subtraction D - mean; the slack is its relative condition number times the bound's own magnitude. No floor.
+  Bonferroni slack  : 4*eps*max(upper, observed, lower). Every quantity is a sum of 0/1 over a common denominator, so each carries one rounding of the division. The slack is zero on an all-zero indicator.
+  double-precision eps: 2.220446e-16
+
+==============================================================================
+1  the two function-level inequalities, independent of any data
+==============================================================================
+[PASS] norm.sf(0.25) <= 1/(1 + 0.25^2) -- 4.012937e-01 <= 9.411765e-01
+[PASS] norm.sf(0.5) <= 1/(1 + 0.5^2) -- 3.085375e-01 <= 8.000000e-01
+[PASS] norm.sf(1.0) <= 1/(1 + 1.0^2) -- 1.586553e-01 <= 5.000000e-01
+[PASS] norm.sf(2.0) <= 1/(1 + 2.0^2) -- 2.275013e-02 <= 2.000000e-01
+[PASS] norm.sf(3.0) <= 1/(1 + 3.0^2) -- 1.349898e-03 <= 1.000000e-01
+[PASS] norm.sf(4.0) <= 1/(1 + 4.0^2) -- 3.167124e-05 <= 5.882353e-02
+[PASS] norm.sf(5.0) <= 1/(1 + 5.0^2) -- 2.866516e-07 <= 3.846154e-02
+[PASS] norm.sf(8.0) <= 1/(1 + 8.0^2) -- 6.220961e-16 <= 1.538462e-02
+[PASS] norm.sf(12.0) <= 1/(1 + 12.0^2) -- 1.776482e-33 <= 6.896552e-03
+
+==============================================================================
+2  the slack is NOT doing the work -- a floor would be vacuous
+==============================================================================
+  sd = 1e-14, D - mean = 1: bound 1.000000e-28, slack 1.776357e-43
+[PASS] a 1e-28 bound gets a slack far below it, so a narrow comparison stays narrow -- slack/bound = 1.776e-15
+  An absolute floor of 1.8e-15, which an earlier product of this mission used, would exceed this bound by thirteen orders of magnitude and admit anything.
+
+==============================================================================
+3  SYNTHETIC campaign
+==============================================================================
+
+==============================================================================
+SYNTHETIC: Markov and Cantelli
+==============================================================================
+INPUT ORIGIN: synthetic -- 10 run(s) from synthetic/
+
+  run           counted_exec       markov    m_slack      gauss_P     cantelli    c_slack
+  gt_long       2.843760e-03 7.083699e-01   6.29e-16 2.592819e-03 1.134619e-01   1.18e-15
+  mix_c0        1.000500e-03 4.526561e-01   4.02e-16 2.915231e-30 7.674596e-03   3.62e-17
+  mix_c1        1.000500e-03 5.160097e-01   4.58e-16 5.395315e-20 1.198199e-02   6.67e-17
+  mix_c2        3.015075e-03 5.843309e-01   5.19e-16 1.575924e-03 1.029080e-01   6.97e-16
+  mix_c2mem1    5.000000e-04 6.982227e-01   6.20e-16 8.692956e-07 4.190375e-02   4.19e-16
+  mix_c3        2.505010e-03 6.445798e-01   5.73e-16 2.393517e-08 3.246630e-02   2.67e-16
+  mix_c4        2.011061e-03 7.105639e-01   6.31e-16 5.552692e-02 2.825529e-01   2.97e-15
+  mix_c5        6.545821e-03 7.716304e-01   6.85e-16 1.182087e-02 1.633794e-01   2.25e-15
+  mix_c6        2.152742e-02 8.393571e-01   7.45e-16 2.351448e-01 6.573346e-01   1.34e-14
+  mix_mem2      2.505010e-03 6.892970e-01   6.12e-16 6.101859e-06 4.967428e-02   4.80e-16
+
+[PASS] SYNTHETIC/gt_long: counted executed-job miss rate <= Markov bound -- 2.843760e-03 <= 7.083699e-01
+[PASS] SYNTHETIC/gt_long: Gaussian mean-plus-margin tail <= Cantelli bound -- 2.592819e-03 <= 1.134619e-01 (slack 1.18e-15, not load-bearing)
+[PASS] SYNTHETIC/mix_c0: counted executed-job miss rate <= Markov bound -- 1.000500e-03 <= 4.526561e-01
+[PASS] SYNTHETIC/mix_c0: Gaussian mean-plus-margin tail <= Cantelli bound -- 2.915231e-30 <= 7.674596e-03 (slack 3.62e-17, not load-bearing)
+[PASS] SYNTHETIC/mix_c1: counted executed-job miss rate <= Markov bound -- 1.000500e-03 <= 5.160097e-01
+[PASS] SYNTHETIC/mix_c1: Gaussian mean-plus-margin tail <= Cantelli bound -- 5.395315e-20 <= 1.198199e-02 (slack 6.67e-17, not load-bearing)
+[PASS] SYNTHETIC/mix_c2: counted executed-job miss rate <= Markov bound -- 3.015075e-03 <= 5.843309e-01
+[PASS] SYNTHETIC/mix_c2: Gaussian mean-plus-margin tail <= Cantelli bound -- 1.575924e-03 <= 1.029080e-01 (slack 6.97e-16, not load-bearing)
+[PASS] SYNTHETIC/mix_c2mem1: counted executed-job miss rate <= Markov bound -- 5.000000e-04 <= 6.982227e-01
+[PASS] SYNTHETIC/mix_c2mem1: Gaussian mean-plus-margin tail <= Cantelli bound -- 8.692956e-07 <= 4.190375e-02 (slack 4.19e-16, not load-bearing)
+[PASS] SYNTHETIC/mix_c3: counted executed-job miss rate <= Markov bound -- 2.505010e-03 <= 6.445798e-01
+[PASS] SYNTHETIC/mix_c3: Gaussian mean-plus-margin tail <= Cantelli bound -- 2.393517e-08 <= 3.246630e-02 (slack 2.67e-16, not load-bearing)
+[PASS] SYNTHETIC/mix_c4: counted executed-job miss rate <= Markov bound -- 2.011061e-03 <= 7.105639e-01
+[PASS] SYNTHETIC/mix_c4: Gaussian mean-plus-margin tail <= Cantelli bound -- 5.552692e-02 <= 2.825529e-01 (slack 2.97e-15, not load-bearing)
+[PASS] SYNTHETIC/mix_c5: counted executed-job miss rate <= Markov bound -- 6.545821e-03 <= 7.716304e-01
+[PASS] SYNTHETIC/mix_c5: Gaussian mean-plus-margin tail <= Cantelli bound -- 1.182087e-02 <= 1.633794e-01 (slack 2.25e-15, not load-bearing)
+[PASS] SYNTHETIC/mix_c6: counted executed-job miss rate <= Markov bound -- 2.152742e-02 <= 8.393571e-01
+[PASS] SYNTHETIC/mix_c6: Gaussian mean-plus-margin tail <= Cantelli bound -- 2.351448e-01 <= 6.573346e-01 (slack 1.34e-14, not load-bearing)
+[PASS] SYNTHETIC/mix_mem2: counted executed-job miss rate <= Markov bound -- 2.505010e-03 <= 6.892970e-01
+[PASS] SYNTHETIC/mix_mem2: Gaussian mean-plus-margin tail <= Cantelli bound -- 6.101859e-06 <= 4.967428e-02 (slack 4.80e-16, not load-bearing)
+
+==============================================================================
+SYNTHETIC: Bonferroni bracket on the consecutive-pair miss rate
+==============================================================================
+  run              pairs      p_first     p_second        lower     observed        upper      slack
+  gt_long           6000 6.666667e-03 6.666667e-03 6.666667e-03 9.500000e-03 1.333333e-02   1.18e-17
+  mix_c0            2000 2.000000e-03 2.000000e-03 2.000000e-03 3.000000e-03 4.000000e-03   3.55e-18
+  mix_c1            2000 2.000000e-03 2.000000e-03 2.000000e-03 3.000000e-03 4.000000e-03   3.55e-18
+  mix_c2            2000 8.500000e-03 8.500000e-03 8.500000e-03 1.150000e-02 1.700000e-02   1.51e-17
+  mix_c2mem1        2000 1.000000e-03 1.000000e-03 1.000000e-03 1.500000e-03 2.000000e-03   1.78e-18
+  mix_c3            2000 5.000000e-03 5.000000e-03 5.000000e-03 7.500000e-03 1.000000e-02   8.88e-18
+  mix_c4            2000 8.000000e-03 8.000000e-03 8.000000e-03 1.000000e-02 1.600000e-02   1.42e-17
+  mix_c5            2000 1.400000e-02 1.400000e-02 1.400000e-02 2.050000e-02 2.800000e-02   2.49e-17
+  mix_c6            2000 4.600000e-02 4.600000e-02 4.600000e-02 6.700000e-02 9.200000e-02   8.17e-17
+  mix_mem2          2000 5.000000e-03 5.000000e-03 5.000000e-03 7.500000e-03 1.000000e-02   8.88e-18
+
+[PASS] SYNTHETIC/gt_long: pair miss rate inside the Bonferroni bracket -- [6.666667e-03, 1.333333e-02] contains 9.500000e-03
+[PASS] SYNTHETIC/mix_c0: pair miss rate inside the Bonferroni bracket -- [2.000000e-03, 4.000000e-03] contains 3.000000e-03
+[PASS] SYNTHETIC/mix_c1: pair miss rate inside the Bonferroni bracket -- [2.000000e-03, 4.000000e-03] contains 3.000000e-03
+[PASS] SYNTHETIC/mix_c2: pair miss rate inside the Bonferroni bracket -- [8.500000e-03, 1.700000e-02] contains 1.150000e-02
+[PASS] SYNTHETIC/mix_c2mem1: pair miss rate inside the Bonferroni bracket -- [1.000000e-03, 2.000000e-03] contains 1.500000e-03
+[PASS] SYNTHETIC/mix_c3: pair miss rate inside the Bonferroni bracket -- [5.000000e-03, 1.000000e-02] contains 7.500000e-03
+[PASS] SYNTHETIC/mix_c4: pair miss rate inside the Bonferroni bracket -- [8.000000e-03, 1.600000e-02] contains 1.000000e-02
+[PASS] SYNTHETIC/mix_c5: pair miss rate inside the Bonferroni bracket -- [1.400000e-02, 2.800000e-02] contains 2.050000e-02
+[PASS] SYNTHETIC/mix_c6: pair miss rate inside the Bonferroni bracket -- [4.600000e-02, 9.200000e-02] contains 6.700000e-02
+[PASS] SYNTHETIC/mix_mem2: pair miss rate inside the Bonferroni bracket -- [5.000000e-03, 1.000000e-02] contains 7.500000e-03
+
+==============================================================================
+4  MEASURED campaign
+==============================================================================
+  MEASURED CAMPAIGN NOT AVAILABLE. The refusal text follows verbatim:
+    MEASURED TRACES ABSENT. Expected CSV traces and manifest.json under data/traces/, by name: jobs_gt_long.csv, jobs_mix_c0.csv, jobs_mix_c1.csv, jobs_mix_c2.csv, jobs_mix_c3.csv, jobs_mix_c4.csv, jobs_mix_c5.csv, jobs_mix_c6.csv, jobs_mix_mem2.csv, jobs_mix_c2mem1.csv, manifest.json, CAMPAIGN_COMPLETE. Nothing was substituted: this check computes MEASURED figures and there is no synthetic fallback. Re-run once the hardware campaign has written its traces into that directory.
+[STRUCTURALLY UNMEASURABLE] independent bounds on the MEASURED campaign
+           reason: the measured traces were not on disk, or the campaign had not written CAMPAIGN_COMPLETE, when this script ran. Nothing was checked and nothing was substituted.
+
+
+CHECKS RUN: 40
+STRUCTURALLY UNMEASURABLE (1): independent bounds on the MEASURED campaign
+FAILED CHECKS (0): none

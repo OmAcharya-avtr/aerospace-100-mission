@@ -1,0 +1,29 @@
+
+==============================================================================
+WORKED EXAMPLE -- the code block in README.md, executed
+==============================================================================
+INPUT ORIGIN: the MEASURED hardware campaign only.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+joblib           : 1.6.0
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P092 (printed relatively; see validation/_bootstrap.py)
+resamples        : 200  [DEADLINERISK_FAST=1: reduced, path probe only]
+
+==============================================================================
+REFUSED -- no measured campaign
+==============================================================================
+  MEASURED TRACES ABSENT. Expected CSV traces and manifest.json under data/traces/, by name: jobs_gt_long.csv, jobs_mix_c0.csv, jobs_mix_c1.csv, jobs_mix_c2.csv, jobs_mix_c3.csv, jobs_mix_c4.csv, jobs_mix_c5.csv, jobs_mix_c6.csv, jobs_mix_mem2.csv, jobs_mix_c2mem1.csv, manifest.json, CAMPAIGN_COMPLETE. Nothing was substituted: this check computes MEASURED figures and there is no synthetic fallback. Re-run once the hardware campaign has written its traces into that directory.
+[FAIL] the MEASURED campaign is on disk and complete -- the README's worked example uses measured data and nothing was substituted
+
+
+CHECKS RUN: 1
+FAILED CHECKS (1): the MEASURED campaign is on disk and complete

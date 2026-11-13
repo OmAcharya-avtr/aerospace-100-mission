@@ -1,0 +1,31 @@
+
+==============================================================================
+MEASURED EVT -- peaks over threshold, with the stability diagnostic
+==============================================================================
+INPUT ORIGIN: the MEASURED hardware campaign only. No synthetic fallback.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+joblib           : 1.6.0
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P092 (printed relatively; see validation/_bootstrap.py)
+resamples        : 200  [DEADLINERISK_FAST=1: reduced, path probe only]
+
+MEASUREMENT MODEL. Period T, implicit deadline D = T. Job i is released at t0 + i*T and its response time is end - release. A job whose response exceeds D is a MISS. If a job finishes after later releases have already passed, those releases never execute: they are DROPPED, and each dropped release is also a miss. Every executed row carries dropped_before, so releases = sum(1 + dropped_before) and misses = sum(missed + dropped_before) are both reconstructible from the committed traces.
+
+==============================================================================
+REFUSED -- no measured campaign
+==============================================================================
+  MEASURED TRACES ABSENT. Expected CSV traces and manifest.json under data/traces/, by name: jobs_gt_long.csv, jobs_mix_c0.csv, jobs_mix_c1.csv, jobs_mix_c2.csv, jobs_mix_c3.csv, jobs_mix_c4.csv, jobs_mix_c5.csv, jobs_mix_c6.csv, jobs_mix_mem2.csv, jobs_mix_c2mem1.csv, manifest.json, CAMPAIGN_COMPLETE. Nothing was substituted: this check computes MEASURED figures and there is no synthetic fallback. Re-run once the hardware campaign has written its traces into that directory.
+[FAIL] the MEASURED campaign is on disk and complete -- nothing was reported and nothing was substituted
+
+
+CHECKS RUN: 1
+FAILED CHECKS (1): the MEASURED campaign is on disk and complete

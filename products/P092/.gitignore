@@ -1,0 +1,38 @@
+# Scratch-file patterns are ANCHORED with a leading slash. A pattern with no
+# slash matches at ANY depth: a bare junit.xml in a product .gitignore silently
+# excluded a required committed fixture in P060 of this mission, and a cold
+# clone then failed with 17 failures and 9 errors while every local check
+# passed. validation/validate_tree_hygiene.py checks both directions with
+# `git check-ignore`: that nothing this product must ship is excluded, and that
+# every cache and build path is.
+__pycache__/
+*.py[cod]
+*.egg-info/
+/build/
+/dist/
+/.venv/
+/venv/
+/.pytest_cache/
+/.hypothesis/
+/.ruff_cache/
+/.coverage
+/htmlcov/
+/junit.xml
+/.config/
+# Model checkpoints. This product ships no serialised model: the learned
+# predictor is a random forest refitted from the committed traces in under a
+# second, and a pickled estimator would bind the repository to one
+# scikit-learn build whose unpickling is not part of that library's public API.
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.joblib
+# The MEASURED traces are NOT ignored. data/traces/*.csv, manifest.json and the
+# campaign's own markers are the product's evidence and must reach a cold clone.
+# They are listed as negations so that a future broad pattern cannot swallow
+# them silently.
+!/data/traces/
+!/data/traces/*.csv
+!/data/traces/manifest.json
+!/data/traces/CAMPAIGN_COMPLETE

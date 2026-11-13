@@ -1,0 +1,62 @@
+
+==============================================================================
+NEGATIVE CONTROLS -- anchored on the true value, verified to fire
+==============================================================================
+INPUT ORIGIN: SYNTHETIC generator only. No measured data is read.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+joblib           : 1.6.0
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P092 (printed relatively; see validation/_bootstrap.py)
+resamples        : 200  [DEADLINERISK_FAST=1: reduced, path probe only]
+
+declared understatement criterion : factor >= 3.0
+declared overstatement criterion  : factor <= 0.333333
+declared drop-inflation criterion : ratio  >= 1.5
+declared control seed             : 5150
+
+==============================================================================
+1  the three distributional controls
+==============================================================================
+  control                              exec_misses  releases    exec_rate      gauss_P      factor
+  A right-skewed lognormal response            193    300001 6.437453e-04 1.369365e-04      4.7011
+  B Gaussian response                          217     12001 1.841480e-02 1.910790e-02      0.9637
+  D Pareto-spiked response                     223     12001 1.949130e-02 4.071915e-01      0.0479
+
+[PASS] control: A right-skewed lognormal response (must fire) -- FIRED; factor 4.7011 against the criterion 3.0; 193 measured executed misses in 300001 releases, so the counting standard error on the numerator is about 7.2 per cent and the criterion is cleared by 5.03 counting standard errors
+[PASS] control: B Gaussian response (must NOT fire) -- did not fire; factor 0.9637 stayed below the criterion 3.0 on a Gaussian response; 217 measured executed misses in 12001 releases
+[PASS] B Gaussian response: factor inside the two-sided adequacy band -- 0.3333 <= 0.9637 <= 3.0
+[PASS] control: D Pareto-spiked response (must fire) -- FIRED; factor 0.0479 against the criterion 0.333333; 223 measured executed misses in 12001 releases
+
+==============================================================================
+2  control C -- the drop accounting on its own
+==============================================================================
+  executed rows      : 11784
+  dropped releases   : 217
+  executed-only rate : 1.841480e-02
+  all-release rate   : 3.616365e-02
+  ratio              : 1.963836
+[PASS] control C has dropped releases to detect -- 217 dropped
+[PASS] control: C dropped-release accounting (must fire) -- FIRED; ratio 1.963836 against the criterion 1.5 with 217 dropped releases
+
+==============================================================================
+3  the control inventory
+==============================================================================
+  A right-skewed lognormal response  must FIRE  (understatement)
+  B Gaussian response                must NOT fire
+  C dropped-release accounting       must FIRE  (inflation)
+  D Pareto-spiked response           must FIRE  (overstatement)
+  A control that does not fire is a failure of the CONTROL, not a success of the product: it would mean the check it guards could not catch the violation it exists to catch.
+
+
+CHECKS RUN: 6
+CONTROLS: 4 declared, 3 fired; must-fire 3/3, must-NOT-fire silent 1/1
+FAILED CHECKS (0): none

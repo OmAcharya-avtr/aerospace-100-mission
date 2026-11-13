@@ -1,0 +1,39 @@
+
+==============================================================================
+pytest.approx AUDIT -- assertions depending on the default abs=1e-12
+==============================================================================
+INPUT ORIGIN: this repository's own test suite. No measured data is read.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+joblib           : 1.6.0
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P092 (printed relatively; see validation/_bootstrap.py)
+resamples        : 200  [DEADLINERISK_FAST=1: reduced, path probe only]
+
+==============================================================================
+1  static scan of the test sources
+==============================================================================
+  files scanned                         : 16
+  rel= sites with an explicit abs=      : 69
+  rel= sites WITHOUT an explicit abs=   : 0
+[PASS] every rel= call site in tests/ carries an explicit abs= -- 0 bare site(s)
+
+==============================================================================
+2  dynamic audit -- the suite re-run with the default forced off
+==============================================================================
+  suite exit status with the plugin loaded: 0
+[PASS] the whole suite still passes with pytest.approx's absolute default forced to 0 -- a failure here is an assertion that was only passing because of the default
+  call sites recorded as bare rel=      : 0
+[PASS] no assertion in this suite depends on the pytest.approx absolute default -- 0 dependent assertion(s)
+
+
+CHECKS RUN: 3
+FAILED CHECKS (0): none

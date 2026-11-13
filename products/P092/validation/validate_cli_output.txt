@@ -1,0 +1,109 @@
+
+==============================================================================
+COMMAND LINE -- every subcommand, in a subprocess that cannot pollute
+==============================================================================
+INPUT ORIGIN: the MEASURED campaign when present; a SYNTHETIC campaign in a
+temporary directory for the paths that do not need measured data.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+pandas           : 3.0.5
+joblib           : 1.6.0
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES were measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P092 (printed relatively; see validation/_bootstrap.py)
+resamples        : 200  [DEADLINERISK_FAST=1: reduced, path probe only]
+
+==============================================================================
+1  absent traces -- exit 3, which is part of the contract
+==============================================================================
+[PASS] manifest on an absent directory: exit 3 -- got 3
+      TRACES ABSENT: campaign directory nothing/ does not exist. Nothing was substituted: a measured figure has no synthetic fallback.
+
+==============================================================================
+2  a usage error -- exit 2
+==============================================================================
+[PASS] no subcommand: exit 2 -- got 2
+
+==============================================================================
+3  every subcommand on a SYNTHETIC campaign
+==============================================================================
+  $ python -m deadlinerisk --traces <synthetic> --origin synthetic manifest
+[PASS] SYNTHETIC manifest: exit 0 -- got 0
+      INPUT ORIGIN: synthetic -- 10 run(s) from deadlinerisk-cli-synthetic-9c_fxgns/
+      board            : synthetic fixture; no board was measured
+      kernel/uname     : synthetic
+      cores            : 6
+      governor         : synthetic
+      cpuinfo_max_freq : 1728000 kHz
+      ... 24 line(s) of output in total
+  $ python -m deadlinerisk --traces <synthetic> --origin synthetic account
+[PASS] SYNTHETIC account, all runs: exit 0 -- got 0
+      run                     : gt_long
+      executed rows           : 5978
+      dropped releases        : 23
+      releases = sum(1+drop)  : 6001
+      misses   = sum(m+drop)  : 40
+      counted miss rate       : 6.665556e-03
+      ... 79 line(s) of output in total
+  $ python -m deadlinerisk --traces <synthetic> --origin synthetic account --run gt_long
+[PASS] SYNTHETIC account, one run: exit 0 -- got 0
+      run                     : gt_long
+      executed rows           : 5978
+      dropped releases        : 23
+      releases = sum(1+drop)  : 6001
+      misses   = sum(m+drop)  : 40
+      counted miss rate       : 6.665556e-03
+      ... 7 line(s) of output in total
+  $ python -m deadlinerisk --traces <synthetic> --origin synthetic headline --run gt_long --resamples 200
+[PASS] SYNTHETIC headline: exit 0 -- got 0
+      mean response           : 7.083699 ms
+      sd response             : 1.043299 ms
+      k with mean + k*sd = D  : 2.795270
+      Gaussian P(resp > D)    : 2.592819e-03
+      samples (executed jobs) : 5978
+      counted miss rate       : 6.665556e-03
+      ... 24 line(s) of output in total
+  $ python -m deadlinerisk --traces <synthetic> --origin synthetic evt --run gt_long
+[PASS] SYNTHETIC evt: exit 0 -- got 0
+      admissible candidate thresholds: 20
+         quantile        u_ms   n_exc          xi     beta_ms   mod_beta_ms     P(resp>D)
+           0.7999    7.576154    1196    0.232670    0.372534     -1.390210  3.806722e-03
+           0.8100    7.601756    1136    0.242306    0.367016     -1.474932  3.782222e-03
+           0.8200    7.629608    1076    0.254845    0.359222     -1.585144  3.751719e-03
+           0.8299    7.654225    1017    0.261720    0.357596     -1.645664  3.734707e-03
+      ... 34 line(s) of output in total
+  $ python -m deadlinerisk --traces <synthetic> --origin synthetic learned
+[PASS] SYNTHETIC learned: exit 0 -- got 0
+      windows extracted       : 24
+      window length           : 10.0 s
+      windows discarded       : 0
+      descriptors             : n_cpu_stress, n_mem_stress, n_workers, foreign_pct, task_pct, stress_pct, load1, clk_mean_khz, clk_min_khz, tj_degC
+      held-out workload mixes (leave-one-run-out)
+        held-out runs scored  : 10 (gt_long, mix_c0, mix_c1, mix_c2, mix_c2mem1, mix_c3, mix_c4, mix_c5, mix_c6, mix_mem2)
+      ... 20 line(s) of output in total
+  $ python -m deadlinerisk --traces <synthetic> --origin synthetic headline --run nope
+[PASS] SYNTHETIC unknown run: exit 3 -- got 3
+      TRACES ABSENT: run 'nope' is not in deadlinerisk-cli-synthetic-9c_fxgns/; runs present: gt_long, mix_c0, mix_c1, mix_c2, mix_c2mem1, mix_c3, mix_c4, mix_c5, mix_c6, mix_mem2
+
+==============================================================================
+4  every subcommand on the MEASURED campaign
+==============================================================================
+[STRUCTURALLY UNMEASURABLE] the CLI against the MEASURED campaign
+           reason: data/traces/ held no jobs_*.csv when this script ran. The CLI's absent-traces contract is checked in section 1 instead; this is not a pass.
+
+==============================================================================
+5  this script added nothing of its own
+==============================================================================
+[PASS] running this script added no cache directory and no bytecode file -- nothing added
+  inherited at entry, reported and NOT failed: ['.hypothesis', '.ruff_cache', 'src/deadlinerisk/__pycache__', 'src/deadlinerisk/__pycache__/__init__.cpython-313.pyc', 'src/deadlinerisk/__pycache__/__main__.cpython-313.pyc', 'src/deadlinerisk/__pycache__/accounting.cpython-313.pyc', 'src/deadlinerisk/__pycache__/baselines.cpython-313.pyc', 'src/deadlinerisk/__pycache__/bootstrap.cpython-313.pyc', 'src/deadlinerisk/__pycache__/bounds.cpython-313.pyc', 'src/deadlinerisk/__pycache__/predictor.cpython-313.pyc', 'src/deadlinerisk/__pycache__/provenance.cpython-313.pyc', 'src/deadlinerisk/__pycache__/report.cpython-313.pyc', 'src/deadlinerisk/__pycache__/schema.cpython-313.pyc', 'src/deadlinerisk/__pycache__/speed_scaling.cpython-313.pyc', 'src/deadlinerisk/__pycache__/trace.cpython-313.pyc', 'src/deadlinerisk/__pycache__/windows.cpython-313.pyc', 'tests/__pycache__', 'tests/__pycache__/conftest.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_accounting.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_baselines.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_bootstrap.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_bounds.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_cli.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_fixtures.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_integration.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_negative_controls.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_predictor.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_properties.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_regressions.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_report.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_schema.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_speed_scaling.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_trace.cpython-313-pytest-9.1.1.pyc', 'tests/__pycache__/test_windows.cpython-313-pytest-9.1.1.pyc', 'tests/fixtures/__pycache__', 'tests/fixtures/__pycache__/__init__.cpython-313.pyc', 'tests/fixtures/__pycache__/synthetic_trace.cpython-313.pyc']
+
+
+CHECKS RUN: 10
+STRUCTURALLY UNMEASURABLE (1): the CLI against the MEASURED campaign
+FAILED CHECKS (0): none
