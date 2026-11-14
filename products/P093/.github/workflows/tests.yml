@@ -1,0 +1,35 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+      - name: Lint
+        run: python -m ruff check src/ tests/ examples/ validation/
+      - name: Test
+        run: python -m pytest tests/ -q --junit-xml=junit.xml
+      # Every validation script is executed. The three validate_measured_*.py
+      # scripts exit 1 until the hardware campaign's traces are committed under
+      # data/traces/, so this step is EXPECTED TO FAIL until then. That is the
+      # designed behaviour: a check that needs measured data and cannot find it
+      # refuses rather than falling back to the synthetic generator. The step is
+      # not made tolerant of the failure, because a green badge over an absent
+      # measurement is exactly what this product exists to make impossible.
+      - name: Validation scripts
+        run: |
+          for script in validation/*.py; do
+            case "$(basename "$script")" in _*) continue;; esac
+            python "$script"
+          done

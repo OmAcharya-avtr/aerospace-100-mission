@@ -1,0 +1,44 @@
+INPUT ORIGIN: MEASURED hardware campaign from data/traces/
+
+INPUT ORIGIN: measured -- 20 cell(s) from data/traces/
+
+THE MEASURED BACKGROUND FLOOR
+  floor cell                : floor
+  mean power                : 4264.428 mW
+  sample sd                 : 123.957 mW
+  min / max                 : 4113.408 / 5716.480 mW
+  samples / duration        : 1540 / 76.950 s
+  current quantum as power  : 39.883 mW
+  foreign CPU busy fraction : 0.123514 (measured, not assumed absent)
+  die temperature           : 48.640 degC
+  THIS IS A BACKGROUND FLOOR ON A SHARED MACHINE, not an idle floor. The board
+  had logged-in users, a desktop browser and a load average above 1 at campaign
+  time. The contamination is the number above, not a caveat.
+
+THE THREE BASELINES, per grid cell
+
+  cell          duty  E/inf meas   E/inf nom    analytic       truth        F
+  ---------------------------------------------------------------------------
+  w48_d010      0.10     7.55211     7.59124    211.3510    218.9314   28.989
+  w48_d025      0.25     7.83191     7.88959     82.8625     86.5180   11.047
+  w48_d050      0.50     8.36636     8.45321     43.8783     46.4039    5.546
+  w48_d075      0.75     8.69736     8.80590     31.4135     32.9334    3.787
+  w48_d100      1.00     9.13259     9.26551     26.0448     26.3220    2.882
+  w64_d010      0.10    13.49270    13.56209    370.9712    382.2933   28.333
+  w64_d025      0.25    14.37800    14.49270    149.7839    157.8601   10.979
+  w64_d050      0.50    13.60888    13.74938     75.8815     76.2898    5.606
+  w64_d075      0.75    13.74541    13.91958     51.8964     52.6462    3.830
+  w64_d100      1.00    14.50899    14.73392     42.1652     42.5949    2.936
+  w96_d010      0.10    26.31185    26.38150    810.5918    721.8265   27.434
+  w96_d025      0.25    28.07850    28.24941    323.2043    302.5128   10.774
+  w96_d050      0.50    29.86476    30.15386    162.0133    159.5293    5.342
+  w96_d075      0.75    31.22372    31.60679    113.6991    115.4851    3.699
+  w96_d100      1.00    32.79829    33.32362     91.5593     92.4957    2.820
+
+All five columns are in mJ except F, which is dimensionless. The analytic
+column is Baseline 2 and the truth column is Baseline 3; the two are different
+quantities only in that one is modelled from measured components and the other
+is the integral divided by the counted accepted decisions.
+
+figure written to screenshots/duty_cycle_sweep.png
+raw output written to examples/duty_cycle_sweep_output.txt

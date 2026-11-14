@@ -1,0 +1,107 @@
+
+==============================================================================
+CLI -- every subcommand and every declared exit status
+==============================================================================
+INPUT ORIGIN: SYNTHETIC via --simulate, plus the CLI's refusal path.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES are measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P093 (printed relatively; see validation/_bootstrap.py)
+hunt examples    : 600
+
+==============================================================================
+1  python -m powerenvelope --help
+==============================================================================
+[PASS] --help exits 0 -- status 0
+[PASS] --help names the program and the headline -- 25 line(s) of help
+    usage: python -m powerenvelope [-h] [--traces TRACES] [--simulate]
+                                   [--simulate-cycles SIMULATE_CYCLES]
+                                   {manifest,headline,report,learned} ...
+    
+    Energy per useful decision from a measured duty-cycled autonomy pipeline. The
+    headline is the factor by which energy per inference understates it,
+
+==============================================================================
+2  every subcommand under --simulate
+==============================================================================
+[PASS] --simulate manifest exits 0 -- status 0, 45 line(s)
+[PASS] --simulate manifest labels its output SYNTHETIC before any number -- the banner is the first thing printed
+[PASS] --simulate headline exits 0 -- status 0, 45 line(s)
+[PASS] --simulate headline labels its output SYNTHETIC before any number -- the banner is the first thing printed
+[PASS] --simulate report exits 0 -- status 0, 205 line(s)
+[PASS] --simulate report labels its output SYNTHETIC before any number -- the banner is the first thing printed
+[PASS] --simulate learned exits 0 -- status 0, 53 line(s)
+[PASS] --simulate learned labels its output SYNTHETIC before any number -- the banner is the first thing printed
+
+==============================================================================
+3  the headline subcommand prints the decomposition in both variants
+==============================================================================
+    variant of energy per inference   : measured-active
+    HEADLINE understatement factor F  : 5.755481
+      rejection factor 1/a            : 3.278689
+      duty-cycle factor E_tot/E_act   : 1.755422
+      rail-voltage factor P_m/P_q     : 1.000000
+      residual factor                 : 1.000000
+      accounting factor T_act/(N*L)   : 1.000000
+    variant of energy per inference   : nominal-rail
+    HEADLINE understatement factor F  : 5.856777
+      rejection factor 1/a            : 3.278689
+      duty-cycle factor E_tot/E_act   : 1.755422
+      rail-voltage factor P_m/P_q     : 1.017600
+      residual factor                 : 1.000000
+      accounting factor T_act/(N*L)   : 1.000000
+[PASS] both Baseline-1 variants are reported -- measured-active and nominal-rail
+[PASS] the residual and the closure error are reported, not just the three factors -- the decomposition is checked rather than claimed
+
+==============================================================================
+4  the report subcommand prints every baseline
+==============================================================================
+[PASS] report includes: measured background floor
+[PASS] report includes: baseline 1, energy per inference
+[PASS] report includes: baseline 2, the analytic duty-cycle model
+[PASS] report includes: measured rail-accounting ratio against load
+[PASS] report includes: baseline 3, ground truth
+[PASS] report includes: between-run spread
+[PASS] report includes: permissive-gate control
+[PASS] report includes: the learned predictor's dataset
+[PASS] report says the rail ratio is not a converter efficiency
+[PASS] report says the floor is a background floor on a shared machine
+
+==============================================================================
+5  the refusal path: absent traces exit 3 and do not fall back
+==============================================================================
+[PASS] an absent campaign directory exits 3 -- status 3
+[PASS] the refusal names the marker it looked for -- TRACES ABSENT: data/traces_absent_probe/CAMPAIGN_COMPLETE is absent, and the campaign writes that ma
+[PASS] control: the refusal falls back to the synthetic generator (must NOT fire) -- did not fire; stdout carries no synthetic banner and no figures
+[PASS] a campaign without the completion marker exits 3 -- status 3
+
+==============================================================================
+6  a corrupted header exits 2
+==============================================================================
+[PASS] a corrupted header exits 2 with an input error -- status 2
+
+==============================================================================
+7  the console entry point in pyproject.toml
+==============================================================================
+  declared scripts: {'powerenvelope': 'powerenvelope.__main__:main'}
+[PASS] a powerenvelope console script is declared -- it resolves to the same function python -m runs
+
+==============================================================================
+8  the subprocess environment did not pollute this tree
+==============================================================================
+  .config present in the tree: False
+  .ruff_cache present in the tree: True
+  __pycache__ present in the tree: False
+  Presence here is reported and not failed: what a harness leaves in the tree before calling a script is not the script's doing. validate_tree_hygiene.py asserts what this product owns, which is that running a script ADDS nothing and that git tracks nothing of the kind.
+
+
+CHECKS RUN: 28
+CONTROLS: 1 declared, 0 fired; must-fire 0/0, must-NOT-fire silent 1/1
+FAILED CHECKS (0): none

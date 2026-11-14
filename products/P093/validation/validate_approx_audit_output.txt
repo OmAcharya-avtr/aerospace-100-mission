@@ -1,0 +1,40 @@
+
+==============================================================================
+APPROX AUDIT -- assertions depending on the hidden absolute default
+==============================================================================
+INPUT ORIGIN: this repository's own test suite.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES are measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P093 (printed relatively; see validation/_bootstrap.py)
+hunt examples    : 600
+
+==============================================================================
+1  the suite, re-run with the absolute default forced off
+==============================================================================
+  ........................................................................ [ 80%]
+  ....................................................................     [100%]
+  356 passed in 41.01s
+[PASS] the suite passes with pytest.approx's absolute default forced to 0.0 -- pytest exit status 0
+
+==============================================================================
+2  the count of call sites that passed rel= without abs=
+==============================================================================
+  call sites recorded: 0
+[PASS] no assertion in this suite depends on the hidden absolute default -- 0 bare rel= call site(s)
+
+==============================================================================
+3  what the audit cannot tell you
+==============================================================================
+  It counts call sites that omitted abs=, and it re-runs the suite with the default forced off. It cannot tell you whether an explicit abs= is the RIGHT value: an abs= chosen large enough to pass is the same defect with the paperwork filed. Where a relative bound is the one meant, this product passes abs=0.0, which is checkable by reading the call.
+
+
+CHECKS RUN: 2
+FAILED CHECKS (0): none

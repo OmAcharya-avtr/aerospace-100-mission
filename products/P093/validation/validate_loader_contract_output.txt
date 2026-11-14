@@ -1,0 +1,89 @@
+
+==============================================================================
+LOADER CONTRACT -- what is accepted, and every way it refuses
+==============================================================================
+INPUT ORIGIN: SYNTHETIC, from src/powerenvelope/synthetic.py. Not a measurement.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES are measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P093 (printed relatively; see validation/_bootstrap.py)
+hunt examples    : 600
+
+MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221 as bus voltage (mV) times shunt current (mA); P(t) = V(t)*I(t). Energy over a window is the TRAPEZOIDAL integral of P(t) over the sampler's CLOCK_MONOTONIC timestamps. A cycle is 2.0 s: the pipeline runs back-to-back inferences for duty*2.0 s and sleeps the rest; a run is 38 cycles. An inference is one pass over one frame, one row of the decisions CSV. A USEFUL DECISION is an inference that passes the gate -- a candidate exists, its box does not touch the border, its area is within the declared bounds, and its score is at least tau -- so the acceptance rate is counted from the committed CSV and never asserted. ENERGY PER USEFUL DECISION is the integral of P(t) over the WHOLE run, sleep windows included, divided by the number of accepted decisions in that run.
+
+==============================================================================
+1  a complete synthetic campaign loads
+==============================================================================
+  cells loaded: 20
+[PASS] every planned cell is present -- 20 of 20
+[PASS] the floor cell has no decisions trace -- it ran no pipeline, so it has no useful decisions
+[PASS] every pipeline cell has all three traces -- 19 pipeline cell(s)
+[PASS] the completion marker is detected -- CAMPAIGN_COMPLETE present
+
+==============================================================================
+2  the power column is the product of the two columns it must be
+==============================================================================
+[PASS] vdd_in_mw equals vdd_in_mv * vdd_in_ma / 1000 within the %.3f rounding -- largest residual 0.000e+00 mW over 20 cell(s)
+
+==============================================================================
+3  the acceptance rate is reconstructed by counting
+==============================================================================
+  reject reasons: {'accept': 307, 'area_out': 40, 'border': 56, 'low_score': 557, 'no_candidate': 40}
+[PASS] the reason histogram sums to the inference count -- 1000 == 1000
+[PASS] accepted equals the count of rows whose reason is 'accept' -- 307 == 307
+[PASS] the rate is the quotient of the two counted numbers -- a = 0.307000
+
+==============================================================================
+4  every malformed header is refused
+==============================================================================
+[PASS] control: power: a renamed column (must fire) -- FIRED; power CSV header does not match the declared schema. missing=['vdd_in_mw'] unexpected=['renamed']. Expected ex
+[PASS] control: power: a missing column (must fire) -- FIRED; power CSV power_w64_d050.csv line 2 has 8 fields, header has 7. The campaign writes a fixed-width row; a ragge
+[PASS] control: power: an extra column (must fire) -- FIRED; power CSV power_w64_d050.csv line 2 has 8 fields, header has 9. The campaign writes a fixed-width row; a ragge
+[PASS] control: power: the right names reordered (must fire) -- FIRED; power CSV header has the right names in the wrong order. got=['vdd_in_mv', 't_mono', 'vdd_in_ma', 'cpu_gpu_cv_
+[PASS] control: monitor: a renamed column (must fire) -- FIRED; monitor CSV header does not match the declared schema. missing=['clk5_khz'] unexpected=['renamed']. Expected e
+[PASS] control: monitor: a missing column (must fire) -- FIRED; monitor CSV monitor_w64_d050.csv line 2 has 10 fields, header has 9. The campaign writes a fixed-width row; a 
+[PASS] control: monitor: an extra column (must fire) -- FIRED; monitor CSV monitor_w64_d050.csv line 2 has 10 fields, header has 11. The campaign writes a fixed-width row; a
+[PASS] control: monitor: the right names reordered (must fire) -- FIRED; monitor CSV header has the right names in the wrong order. got=['cpu_busy_fraction', 't_mono', 'tj_c', 'load1'
+[PASS] control: decisions: a renamed column (must fire) -- FIRED; decisions CSV header does not match the declared schema. missing=['reject_reason'] unexpected=['renamed']. Exp
+[PASS] control: decisions: a missing column (must fire) -- FIRED; decisions CSV decisions_w64_d050.csv line 2 has 10 fields, header has 9. The campaign writes a fixed-width row
+[PASS] control: decisions: an extra column (must fire) -- FIRED; decisions CSV decisions_w64_d050.csv line 2 has 10 fields, header has 11. The campaign writes a fixed-width ro
+[PASS] control: decisions: the right names reordered (must fire) -- FIRED; decisions CSV header has the right names in the wrong order. got=['t_end', 't_start', 'cycle', 'frame_idx', 's
+
+==============================================================================
+5  every structural corruption is refused
+==============================================================================
+[PASS] control: a non-numeric power field (must fire) -- FIRED; power CSV power_w64_d050.csv has a non-numeric field: could not convert string to float: 'nope'
+[PASS] control: a decreasing timestamp (must fire) -- FIRED; power CSV power_w64_d050.csv has a decreasing t_mono at row 5. CLOCK_MONOTONIC does not go backwards, so the f
+[PASS] control: an accepted value of 2 (must fire) -- FIRED; decisions CSV decisions_w64_d050.csv has an accepted value that is not 0 or 1. A useful decision is a counted 
+[PASS] control: an undeclared reject reason (must fire) -- FIRED; decisions CSV carries reject_reason='exploded', which data/campaign.py cannot write. Declared set: ['accept', 
+[PASS] control: a power column that is not V*I/1000 (must fire) -- FIRED; power CSV power_w64_d050.csv row 5: vdd_in_mw=np.float64(2524.648) but vdd_in_mv * vdd_in_ma / 1000 = np.float
+[PASS] control: accepted disagreeing with its reason (must fire) -- FIRED; decisions CSV decisions_w64_d050.csv row 12: accepted=0 disagrees with reject_reason='accept'. The gate writes
+[PASS] control: an inverted inference interval (must fire) -- FIRED; decisions CSV decisions_w64_d050.csv row 2 has t_end < t_start, so the inference interval is negative.
+[PASS] control: a ragged row (must fire) -- FIRED; power CSV power_w64_d050.csv line 4 has 9 fields, header has 8. The campaign writes a fixed-width row; a ragge
+[PASS] control: a file with a header and no rows (must fire) -- FIRED; power CSV power_w64_d050.csv has a header and no data rows
+
+==============================================================================
+6  an absent directory, manifest, run record or cell is refused by name
+==============================================================================
+[PASS] control: an absent directory (must fire) -- FIRED; campaign directory not-there/ does not exist. Expected manifest.json, campaign.log, and power_<cell>.csv, moni
+[PASS] control: an absent manifest (must fire) -- FIRED; nomanifest/manifest.json is absent. CSV files present: ['decisions_w48_d010.csv', 'decisions_w48_d025.csv', 'd
+[PASS] control: a manifest with no run record for a cell (must fire) -- FIRED; norecord/manifest.json has no run record for cell 'w48_d050', so its declared duty, frame dimension and tau ar
+[PASS] control: a required cell that is absent (must fire) -- FIRED; cells absent from good/: ['w64_d999']. Cells present: ['floor', 'w48_d010', 'w48_d025', 'w48_d050', 'w48_d075'
+
+==============================================================================
+7  a complete campaign must NOT be refused
+==============================================================================
+[PASS] control: the unmodified synthetic campaign (must NOT fire) -- did not fire; did not raise
+[PASS] a directory without the marker is flagged incomplete -- the campaign writes CAMPAIGN_COMPLETE last of all
+
+
+CHECKS RUN: 35
+CONTROLS: 26 declared, 25 fired; must-fire 25/25, must-NOT-fire silent 1/1
+FAILED CHECKS (0): none

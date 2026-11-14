@@ -1,0 +1,138 @@
+
+==============================================================================
+DESCRIPTOR RESTRICTION -- what each narrower set costs
+==============================================================================
+INPUT ORIGIN: SYNTHETIC. The measured version is validate_measured_learned.py.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES are measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P093 (printed relatively; see validation/_bootstrap.py)
+hunt examples    : 600
+
+==============================================================================
+1  the dataset
+==============================================================================
+  windows                       : 38
+  window length                 : 8.0 s
+  descriptors (10)              : duty, cycle_s, frame_dim, tau, cores_available, env_tj_c, env_load1, env_clk_mean_khz, env_foreign_busy, env_foreign_imputed
+  target                        : window mean ACTIVE rail power, mW
+  target range                  : 2530.432 to 2574.528 mW
+  windows dropped               : 1
+  foreign occupancy imputed in  : 12 window(s) from the floor cell's 0.080000
+  A window whose duty leaves no pipeline-free second has no per-window foreign
+  occupancy to measure. The imputation is flagged in the design matrix as
+  env_foreign_imputed and is reported in MODEL_CARD.md as an imputation.
+
+==============================================================================
+2  the licence check is enforced in code, not by convention
+==============================================================================
+  powerenvelope.predictor.assert_descriptors_licensed is called by ActivePowerPredictor.fit, so an unlicensed column cannot reach the estimator. validate_negative_controls.py asserts that it fires on each excluded class.
+
+==============================================================================
+3  the same estimator, the same splits, four descriptor sets
+==============================================================================
+
+  descriptor set: licensed (all ten)  (10 column(s))
+  columns: duty, cycle_s, frame_dim, tau, cores_available, env_tj_c, env_load1, env_clk_mean_khz, env_foreign_busy, env_foreign_imputed
+  predictor / split                               n     MAE_mW    RMSE_mW    bias_mW   cover
+  ------------------------------------------------------------------------------------------
+  duty: duty=0.10                                 6    30.5619    30.5619   -30.5619   0.000
+  duty: duty=0.25                                 6    30.2566    30.2569    30.2566   0.000
+  duty: duty=0.50                                14     8.4348     8.6036     8.4348   0.000
+  duty: duty=0.75                                 6     5.2859     5.3322     5.2859   0.000
+  duty: duty=1.00                                 6     8.4800     8.4800    -8.4800   0.000
+  frame_dim: frame_dim=48                        10     0.2499     0.3606    -0.0916   1.000
+  frame_dim: frame_dim=64                        18     0.2192     0.2587     0.0810   1.000
+  frame_dim: frame_dim=96                        10     0.1679     0.2801    -0.1102   1.000
+
+  descriptor set: no_load1  (9 column(s))
+  columns: duty, cycle_s, frame_dim, tau, cores_available, env_tj_c, env_clk_mean_khz, env_foreign_busy, env_foreign_imputed
+  predictor / split                               n     MAE_mW    RMSE_mW    bias_mW   cover
+  ------------------------------------------------------------------------------------------
+  duty: duty=0.10                                 6    30.5619    30.5619   -30.5619   0.000
+  duty: duty=0.25                                 6    30.1888    30.1895    30.1888   0.000
+  duty: duty=0.50                                14     7.8856     8.1973     7.8856   0.500
+  duty: duty=0.75                                 6     5.8031     5.8484     5.8031   0.000
+  duty: duty=1.00                                 6     8.4725     8.4725    -8.4725   0.000
+  frame_dim: frame_dim=48                        10     0.2731     0.3753    -0.0684   1.000
+  frame_dim: frame_dim=64                        18     0.1881     0.2419     0.0499   1.000
+  frame_dim: frame_dim=96                        10     0.1730     0.2810    -0.1052   1.000
+
+  descriptor set: no_foreign  (7 column(s))
+  columns: duty, cycle_s, frame_dim, tau, cores_available, env_tj_c, env_clk_mean_khz
+  predictor / split                               n     MAE_mW    RMSE_mW    bias_mW   cover
+  ------------------------------------------------------------------------------------------
+  duty: duty=0.10                                 6    30.5619    30.5619   -30.5619   0.000
+  duty: duty=0.25                                 6    30.1888    30.1895    30.1888   0.000
+  duty: duty=0.50                                14     6.8312     7.5864     6.8312   0.500
+  duty: duty=0.75                                 6     4.4944     4.6250     4.4944   0.000
+  duty: duty=1.00                                 6     8.4800     8.4800    -8.4800   0.000
+  frame_dim: frame_dim=48                        10     0.2555     0.3618    -0.0859   1.000
+  frame_dim: frame_dim=64                        18     0.2123     0.2549     0.0741   1.000
+  frame_dim: frame_dim=96                        10     0.1685     0.2801    -0.1097   1.000
+
+  descriptor set: configuration only  (5 column(s))
+  columns: duty, cycle_s, frame_dim, tau, cores_available
+  predictor / split                               n     MAE_mW    RMSE_mW    bias_mW   cover
+  ------------------------------------------------------------------------------------------
+  duty: duty=0.10                                 6    30.5619    30.5619   -30.5619   0.000
+  duty: duty=0.25                                 6    30.3923    30.3923    30.3923   0.000
+  duty: duty=0.50                                14    10.1308    10.1308    10.1308   0.000
+  duty: duty=0.75                                 6     3.4033     3.4033     3.4033   0.000
+  duty: duty=1.00                                 6     8.4725     8.4725    -8.4725   0.000
+  frame_dim: frame_dim=48                        10     0.2702     0.3745    -0.0712   1.000
+  frame_dim: frame_dim=64                        18     0.2186     0.2571     0.0804   1.000
+  frame_dim: frame_dim=96                        10     0.1685     0.2801    -0.1097   1.000
+
+==============================================================================
+4  the baselines on the same splits, for scale
+==============================================================================
+  predictor / split                               n     MAE_mW    RMSE_mW    bias_mW   cover
+  ------------------------------------------------------------------------------------------
+  analytic duty-cycle / duty=0.10                 6    20.0364    20.0364   -20.0364   0.000
+  constant (null) / duty=0.10                     6    38.4780    38.4780   -38.4780   0.000
+  analytic duty-cycle / duty=0.25                 6    26.5590    26.5590    26.5590   1.000
+  constant (null) / duty=0.25                     6     2.2260     2.2260    -2.2260   1.000
+  analytic duty-cycle / duty=0.50                14    49.4815    49.4815    49.4815   1.000
+  constant (null) / duty=0.50                    14    13.1440    13.1440    13.1440   1.000
+  analytic duty-cycle / duty=0.75                 6    47.2680    47.2680    47.2680   0.000
+  constant (null) / duty=0.75                     6    13.8860    13.8860    13.8860   1.000
+  analytic duty-cycle / duty=1.00                 6    39.8241    39.8241    39.8241   1.000
+  constant (null) / duty=1.00                     6     3.8160     3.8160     3.8160   1.000
+  analytic duty-cycle / frame_dim=48             10    27.8534    30.6673    26.2964   1.000
+  constant (null) / frame_dim=48                 10    11.3390    16.0626    -3.0043   0.800
+  analytic duty-cycle / frame_dim=64             18    37.7271    39.8618    37.7271   1.000
+  constant (null) / frame_dim=64                 18    11.3820    13.6918     4.6734   0.889
+  analytic duty-cycle / frame_dim=96             10    27.8534    30.6673    26.2964   1.000
+  constant (null) / frame_dim=96                 10    11.3390    16.0626    -3.0043   0.800
+
+==============================================================================
+5  the cost of each restriction
+==============================================================================
+  descriptor set            cols   mean MAE mW   vs licensed   cover
+  ----------------------------------------------------------------
+  licensed (all ten)          10       10.4570       +0.0000   0.375
+  no_load1                     9       10.4433       -0.0138   0.438
+  no_foreign                   7       10.1491       -0.3079   0.438
+  configuration only           5       10.4523       -0.0048   0.375
+
+  analytic duty-cycle model, mean MAE : 34.5754 mW
+  constant null model, mean MAE       : 13.2012 mW
+
+==============================================================================
+6  what is asserted
+==============================================================================
+[PASS] every descriptor set scores on both groupings without error -- 4 set(s) x 8 split(s)
+[PASS] removing descriptors never improves the mean error by more than noise -- a narrower set that beat the wider one would mean the wider one is overfitting the extra columns, which would itself be the finding
+  NOTE: the number that matters is the MEASURED one. On the synthetic campaign the environment descriptors are deterministic functions of the duty, so the restriction cost measured here is a property of the generator and not of any board. The measured comparison is validate_measured_learned.py section 5, which scores the learned predictor and three classical ones on the decision-level target rather than on the power alone.
+
+
+CHECKS RUN: 2
+FAILED CHECKS (0): none

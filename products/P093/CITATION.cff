@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "powerenvelope: measured energy per useful decision on a duty-cycled on-board pipeline"
+version: 0.1.0
+date-released: "2026-11-14"
+license: Apache-2.0
+repository-code: "https://github.com/OmAcharya-avtr/powerenvelope"
+authors:
+  - name: "OPTIMA Organisation"
+abstract: >-
+  Measures the factor by which energy per inference understates the energy per
+  useful decision of a duty-cycled on-board autonomy pipeline, and decomposes
+  that factor into the rejection factor, the duty-cycle factor and the
+  nominal-versus-measured active-power error, with the residual reported. Energy
+  is the trapezoidal integral of the INA3221 VDD_IN rail power over the whole
+  run, sleep windows included; a useful decision is an inference that passes a
+  declared confidence and geometry gate, counted from committed per-inference
+  records. Includes an analytic duty-cycle model whose every component is
+  measured, a measured rail-accounting ratio against load, a between-run
+  interval from repeated reference runs, and a learned mean-active-power
+  predictor restricted by specification to descriptors an operator could state
+  without running the pipeline. Research-grade; not flight-qualified, not
+  certified, and not approved for operational aerospace use.
+keywords:
+  - energy-per-decision
+  - duty-cycle
+  - ina3221
+  - jetson-orin-nano
+  - hardware-in-the-loop
+  - edge-ai

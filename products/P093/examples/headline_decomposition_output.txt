@@ -1,0 +1,72 @@
+INPUT ORIGIN: MEASURED hardware campaign from data/traces/
+
+MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221 as bus voltage (mV) times shunt current (mA); P(t) = V(t)*I(t). Energy over a window is the TRAPEZOIDAL integral of P(t) over the sampler's CLOCK_MONOTONIC timestamps. A cycle is 2.0 s: the pipeline runs back-to-back inferences for duty*2.0 s and sleeps the rest; a run is 38 cycles. An inference is one pass over one frame, one row of the decisions CSV. A USEFUL DECISION is an inference that passes the gate -- a candidate exists, its box does not touch the border, its area is within the declared bounds, and its score is at least tau -- so the acceptance rate is counted from the committed CSV and never asserted. ENERGY PER USEFUL DECISION is the integral of P(t) over the WHOLE run, sleep windows included, divided by the number of accepted decisions in that run.
+
+INPUT ORIGIN: measured -- 20 cell(s) from data/traces/
+
+THE REFERENCE CELL, both variants of energy per inference
+
+  cell                              : w64_d050
+  variant of energy per inference   : measured-active
+  inferences counted                : 12896
+  useful decisions counted          : 4449
+  acceptance rate a                 : 0.344991
+  whole-run energy E_total          : 339413.174917 mJ
+  active-window energy E_active     : 175561.127539 mJ
+  active duration T_act             : 38.002672 s
+  mean inference latency L          : 0.002945833 s
+  energy per inference (baseline 1) : 13.608877384 mJ
+  energy per useful decision        : 76.289767 mJ
+  HEADLINE understatement factor F  : 5.605882
+    rejection factor 1/a            : 2.898629
+    duty-cycle factor E_tot/E_act   : 1.933305
+    rail-voltage factor P_m/P_q     : 1.000000
+    residual factor                 : 1.000348
+    accounting factor T_act/(N*L)   : 1.000348
+    closure error of the above      : 0.000e+00
+
+  cell                              : w64_d050
+  variant of energy per inference   : nominal-rail
+  inferences counted                : 12896
+  useful decisions counted          : 4449
+  acceptance rate a                 : 0.344991
+  whole-run energy E_total          : 339413.174917 mJ
+  active-window energy E_active     : 175561.127539 mJ
+  active duration T_act             : 38.002672 s
+  mean inference latency L          : 0.002945833 s
+  energy per inference (baseline 1) : 13.749383228 mJ
+  energy per useful decision        : 76.289767 mJ
+  HEADLINE understatement factor F  : 5.548596
+    rejection factor 1/a            : 2.898629
+    duty-cycle factor E_tot/E_act   : 1.933305
+    rail-voltage factor P_m/P_q     : 0.989781
+    residual factor                 : 1.000348
+    accounting factor T_act/(N*L)   : 1.000348
+    closure error of the above      : -2.220e-16
+
+EVERY GRID CELL, measured-active variant
+
+  cell          duty       a         F      1/a  E_tot/E_act  residual    closure
+  -------------------------------------------------------------------------------
+  w48_d010      0.10  0.3392   28.9894   2.9482       9.8248    1.0008   0.00e+00
+  w48_d025      0.25  0.3483   11.0469   2.8707       3.8454    1.0007   2.22e-16
+  w48_d050      0.50  0.3508    5.5465   2.8505       1.9445    1.0006   0.00e+00
+  w48_d075      0.75  0.3509    3.7866   2.8499       1.3279    1.0006  -2.22e-16
+  w48_d100      1.00  0.3509    2.8822   2.8502       1.0106    1.0006   0.00e+00
+  w64_d010      0.10  0.3446   28.3333   2.9022       9.7586    1.0004  -2.22e-16
+  w64_d025      0.25  0.3499   10.9793   2.8583       3.8397    1.0004  -2.22e-16
+  w64_d050      0.50  0.3450    5.6059   2.8986       1.9333    1.0003   0.00e+00
+  w64_d075      0.75  0.3459    3.8301   2.8914       1.3242    1.0003  -2.22e-16
+  w64_d100      1.00  0.3442    2.9358   2.9052       1.0102    1.0003   2.22e-16
+  w96_d010      0.10  0.3508   27.4335   2.8510       9.6199    1.0003   2.22e-16
+  w96_d025      0.25  0.3524   10.7738   2.8375       3.7961    1.0002   2.22e-16
+  w96_d050      0.50  0.3601    5.3417   2.7769       1.9233    1.0002   0.00e+00
+  w96_d075      0.75  0.3579    3.6986   2.7944       1.3234    1.0002   2.22e-16
+  w96_d100      1.00  0.3582    2.8201   2.7914       1.0101    1.0002   2.22e-16
+
+The three named factors multiply to F together with the residual, which is
+T_act/(N*L) computed independently. The closure column is the floating-point
+residual of that identity and nothing else.
+
+figure written to screenshots/headline_decomposition.png
+raw output written to examples/headline_decomposition_output.txt

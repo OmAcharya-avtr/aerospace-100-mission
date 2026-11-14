@@ -1,0 +1,143 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "powerenvelope"
+version = "0.1.0"
+description = "The measured factor by which energy per inference understates energy per useful decision on a duty-cycled on-board autonomy pipeline."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "energy-per-inference",
+    "energy-per-decision",
+    "duty-cycle",
+    "ina3221",
+    "jetson-orin-nano",
+    "hardware-in-the-loop",
+    "edge-ai",
+    "power-measurement",
+    "on-board-autonomy",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: System :: Benchmark",
+    "Topic :: System :: Hardware",
+]
+
+# Every range is bounded on BOTH sides, at the version every number in this
+# repository was measured against. A floor with no ceiling is not a dependency
+# specification: five of the first fifty products of this mission were found
+# broken or silently wrong for a new install because pip resolved a release
+# published after the product was measured, and one of the five passed its whole
+# suite while its validation numbers moved.
+#
+# WHAT EACH DEPENDENCY IS USED FOR, so a bound can be argued with rather than
+# taken on trust.
+#
+# numpy -- every array; `numpy.trapezoid` for every energy integral, which is
+# the single operation every reported number rests on; `numpy.polyfit` for the
+# rail-accounting fit; `numpy.interp` for the window-clipping interpolation that
+# makes the energy over a partition sum to the energy over the span; and
+# `numpy.random.default_rng` (PCG64) for the synthetic generator's optional
+# perturbations. The ceiling is numerical and not merely an API bound:
+# `tests/test_synthetic.py` asserts that a regenerated synthetic campaign is
+# byte-identical at a fixed seed, and `tests/test_regressions.py` pins the
+# decomposition figures those traces produce.
+#
+# scipy -- `scipy.stats.t.ppf` for the Student-t critical value of the
+# between-run interval, and nothing else. That value appears in a published
+# interval, so the bound is numerical.
+#
+# scikit-learn -- `RandomForestRegressor` in the learned predictor. Bounded to
+# the minor version because the across-tree spread this product reports as its
+# uncertainty output depends on the forest's `random_state` draw order, which is
+# not part of that library's public API contract.
+#
+# BOTH ENDS OF EVERY RANGE WERE RUN, on 2026-11-14, in an isolated virtual
+# environment outside this product tree. The build guide asks for the suite AND
+# the committed validation output to be compared at both ends, because a suite
+# that passes while its numbers move is the dangerous case.
+#
+#   floor   : numpy 2.5.0, scipy 1.18.0, scikit-learn 1.9.0, pytest 9.1.0,
+#             hypothesis 6.170.0  -- 356 passed
+#   ceiling : numpy 2.5.4, scipy 1.18.1, scikit-learn 1.9.1, pytest 9.1.1,
+#             hypothesis 6.170.15 -- 356 passed
+#   measured: numpy 2.5.3, scipy 1.18.1, scikit-learn 1.9.1, pytest 9.1.1,
+#             hypothesis 6.170.15, matplotlib 3.11.2
+#
+# 2.5.4, 1.18.1 and 1.9.1 are the highest releases below the declared ceilings,
+# checked against the PyPI JSON API on 2026-11-14, so the ceiling end is the
+# real top of each range and not an arbitrary point inside it. Every committed
+# validation output was regenerated at both ends and diffed against the pinned
+# version: all of them are byte-identical apart from the forest's measured fit
+# TIME, which is a wall-clock reading and varies between runs on the same
+# interpreter. No reported figure moves across either range.
+#
+# matplotlib is not in that sweep: it draws the screenshots and is not involved
+# in any reported number, and it was measured at 3.11.2 only.
+#
+# The ruff range is measured at both ends from the two installations present
+# here, 0.16.9 on the path and 0.17.5 as a Python module, and
+# `ruff check src/ tests/ examples/ validation/` is clean under both.
+#
+# A pin below a future security release is a real cost, not a free safety
+# measure: this product cannot take such a release without a port. The tension
+# is recorded in README.md under Limitations rather than resolved by removing
+# the ceiling.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scipy>=1.18,<1.19",
+    "scikit-learn>=1.9,<1.10",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=9.1,<9.2", "hypothesis>=6.170,<6.171", "ruff>=0.16,<0.18"]
+examples = ["matplotlib>=3.11,<3.12"]
+dev = [
+    "pytest>=9.1,<9.2",
+    "hypothesis>=6.170,<6.171",
+    "ruff>=0.16,<0.18",
+    "matplotlib>=3.11,<3.12",
+]
+
+[project.scripts]
+powerenvelope = "powerenvelope.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/powerenvelope"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]
+addopts = "-ra -p no:cacheprovider"
+
+[tool.ruff]
+line-length = 100
+# data/campaign.py is the measurement program AS IT RAN ON THE BOARD, byte for
+# byte, and it is identical to scripts/p093_campaign.py in the mission
+# repository. It is excluded from linting rather than reformatted, because
+# editing it would make the committed copy differ from the program that produced
+# every measured number here. The ruff scope used everywhere in this product is
+# `src/ tests/ examples/ validation/`, and the exclusion is recorded in
+# README.md under Limitations.
+extend-exclude = ["data/campaign.py"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["powerenvelope"]
+known-local-folder = ["_bootstrap", "_common", "fixtures"]

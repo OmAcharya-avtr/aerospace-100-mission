@@ -1,0 +1,192 @@
+
+==============================================================================
+MEASURED LEARNED PREDICTOR -- against both baselines, on both splits
+==============================================================================
+INPUT ORIGIN: the MEASURED hardware campaign only. No synthetic fallback.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES are measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P093 (printed relatively; see validation/_bootstrap.py)
+hunt examples    : 600
+
+MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221 as bus voltage (mV) times shunt current (mA); P(t) = V(t)*I(t). Energy over a window is the TRAPEZOIDAL integral of P(t) over the sampler's CLOCK_MONOTONIC timestamps. A cycle is 2.0 s: the pipeline runs back-to-back inferences for duty*2.0 s and sleeps the rest; a run is 38 cycles. An inference is one pass over one frame, one row of the decisions CSV. A USEFUL DECISION is an inference that passes the gate -- a candidate exists, its box does not touch the border, its area is within the declared bounds, and its score is at least tau -- so the acceptance rate is counted from the committed CSV and never asserted. ENERGY PER USEFUL DECISION is the integral of P(t) over the WHOLE run, sleep windows included, divided by the number of accepted decisions in that run.
+
+PRE-REGISTERED EXPECTATION (SPEC.md, written before the campaign ran): the analytic duty-cycle model is competitive, and the learned predictor's error will not be smaller than the analytic model's by more than the between-run interval's half-width.
+
+==============================================================================
+1  campaign identity
+==============================================================================
+  INPUT ORIGIN: measured -- 20 cell(s) from data/traces/
+  synthetic manifest flag  : False
+  kernel/uname             : Linux Project2025 5.15.148-tegra #1 SMP PREEMPT Thu Sep 18 15:08:33 PDT 2025 aarch64
+  cores (affinity)         : 6
+  governor                 : schedutil
+  cpuinfo_max_freq         : 1728000 kHz
+  loadavg at start         : [2.32421875, 1.69482421875, 1.27734375]
+  INA3221 update_interval  : 1
+  INA3221 samples averaged : 512
+  cycle_s                  : 2.0
+  cycles per run           : 38
+  sampler period           : 0.05 s
+  gate constants           : grad_thr=90 area_ref=6.0 area_min=2 area_max=60
+  tau rule                 : tau_strict = quantile(probe_scores, 0.65); tau_permissive = quantile(probe_scores, 0.05); declared before the campaign ran
+  campaign complete marker : True
+  cells loaded             : floor, w48_d010, w48_d025, w48_d050, w48_d075, w48_d100, w64_d010, w64_d025, w64_d050, w64_d050_permissive, w64_d050_rep2, w64_d050_rep3, w64_d050_rep4, w64_d075, w64_d100, w96_d010, w96_d025, w96_d050, w96_d075, w96_d100
+
+==============================================================================
+2  the dataset
+==============================================================================
+  windows                       : 171
+  window length                 : 8.0 s
+  descriptors (10)              : duty, cycle_s, frame_dim, tau, cores_available, env_tj_c, env_load1, env_clk_mean_khz, env_foreign_busy, env_foreign_imputed
+  target                        : window mean ACTIVE rail power, mW
+  target range                  : 3825.102 to 5654.263 mW
+  windows dropped               : 1
+  foreign occupancy imputed in  : 117 window(s) from the floor cell's 0.123514
+  A window whose duty leaves no pipeline-free second has no per-window foreign
+  occupancy to measure. The imputation is flagged in the design matrix as
+  env_foreign_imputed and is reported in MODEL_CARD.md as an imputation.
+
+  descriptor                         min          mean           max
+  ------------------------------------------------------------------
+  duty                               0.1      0.515789             1
+  cycle_s                              2             2             2
+  frame_dim                           48       68.2105            96
+  tau                            139.875        154.33       157.833
+  cores_available                      6             6             6
+  env_tj_c                        46.968       47.8807         49.25
+  env_load1                         0.82       1.23971          1.78
+  env_clk_mean_khz                729600   1.10956e+06     1.728e+06
+  env_foreign_busy             0.0641478      0.117669       0.17242
+  env_foreign_imputed                  0      0.684211             1
+
+  dropped windows and why:
+    floor: no pipeline: the background floor cell has no target
+
+==============================================================================
+3  where foreign occupancy was separable, per cell
+==============================================================================
+  cell                     duty  monitor rows  pipeline-free
+  ------------------------------------------------------------
+  floor                    0.00            77             77
+  w48_d010                 0.10            77             39
+  w48_d025                 0.25            77             39
+  w48_d050                 0.50            77              1
+  w48_d075                 0.75            77              1
+  w48_d100                 1.00            77              0
+  w64_d010                 0.10            77             39
+  w64_d025                 0.25            77             39
+  w64_d050                 0.50            77              1
+  w64_d050_permissive      0.50            77              1
+  w64_d050_rep2            0.50            77              1
+  w64_d050_rep3            0.50            77              1
+  w64_d050_rep4            0.50            77              1
+  w64_d075                 0.75            77              1
+  w64_d100                 1.00            77              0
+  w96_d010                 0.10            77             39
+  w96_d025                 0.25            77             39
+  w96_d050                 0.50            77              1
+  w96_d075                 0.75            77              1
+  w96_d100                 1.00            77              0
+
+  A monitor sample reports the occupancy of the preceding second. A sample is pipeline-free only when no inference interval overlaps that whole second. With a 2.0 s cycle the sleep window is 2*(1-duty) seconds long, so a pipeline-free second is possible in principle at duty 0.50 and below -- but at duty 0.50 the sleep window is exactly 1.0 s and the monitor's own 1 s interval has an arbitrary phase against the cycle, so in practice the two never align. Measured on this campaign, occupancy was separable only at duty 0.10, 0.25, 0.50, 0.75.
+  117 of 171 windows therefore carry an IMPUTED foreign occupancy, taken from the floor cell's measured 0.123514 and flagged in the design matrix as env_foreign_imputed. MODEL_CARD.md records it as an imputation. It is not a per-window measurement and it is not presented as one.
+
+==============================================================================
+4  the estimators, declared
+==============================================================================
+  learned  : random forest, 300 trees, max_depth 6, random_state 930093, n_jobs 1
+  classical: constant grid mean; ordinary least squares in duty and frame
+             dimension; and the analytic duty inversion the specification names.
+  Each is fitted on TRAINING CELLS ONLY and predicts P_active for the held-out
+  cells. Everything else Baseline 2 needs is held at its measured value.
+
+==============================================================================
+5  the substitution: energy per useful decision, relative to ground truth
+==============================================================================
+
+  held-out duty, leave-one-group-out
+  predictor                                cells  mean rel err      max  mean |dP|/P
+  ----------------------------------------------------------------------------------
+  measured P_active (ceiling)                 19      0.031192 0.122973     0.000000
+  classical: constant grid mean               19      0.067395 0.186735     0.072327
+  classical: linear in duty and dimension     19      0.051096 0.126676     0.045768
+  classical: analytic duty inversion          19      0.076195 0.230375     0.077094
+  learned: random forest                      19      0.052985 0.141209     0.058614
+
+  held-out frame_dim, leave-one-group-out
+  predictor                                cells  mean rel err      max  mean |dP|/P
+  ----------------------------------------------------------------------------------
+  measured P_active (ceiling)                 19      0.031192 0.122973     0.000000
+  classical: constant grid mean               19      0.065313 0.195876     0.074441
+  classical: linear in duty and dimension     19      0.076285 0.188346     0.096436
+  classical: analytic duty inversion          19      0.080497 0.273748     0.114138
+  learned: random forest                      19      0.069153 0.142101     0.080160
+
+  between-run interval half-width, relative: 0.029916 (2.2198 mJ on a mean of 74.2009 mJ per useful decision). Every error above is judged against this.
+  'mean |dP|/P' is the predictor's own relative error on the active power, reported beside the decision-level error so a reader can see how much of the latter is the analytic form and how much is the prediction.
+
+==============================================================================
+6  descriptor importances, summed over the splits and normalised
+==============================================================================
+  duty                        0.2814
+  frame_dim                   0.2178
+  env_foreign_busy            0.1663
+  env_tj_c                    0.1487
+  tau                         0.0675
+  env_load1                   0.0544
+  env_foreign_imputed         0.0529
+  env_clk_mean_khz            0.0111
+  cycle_s                     0.0000
+  cores_available             0.0000
+
+  Every descriptor above is in the licensed set, which powerenvelope.predictor.assert_descriptors_licensed enforces inside fit(). The pipeline's own measured power, its measured latency, its CPU occupancy, its realised inference count and its realised acceptance rate cannot appear here: a fit that was offered one of them raises DescriptorLeakError.
+
+==============================================================================
+7  THE PRE-REGISTERED EXPECTATION, evaluated
+==============================================================================
+  From SPEC.md, written before the campaign ran: the analytic duty-cycle model is competitive, and the learned predictor's error will not be smaller than the analytic model's by more than the between-run interval's half-width.
+
+  held-out duty
+    ceiling, measured P_active        : 0.031192
+    strongest classical (linear in duty and dimension): 0.051096
+    weakest classical   (analytic duty inversion     ): 0.076195
+    learned random forest             : 0.052985
+    margin (classical - learned)      : -0.001889
+    between-run half-width            : 0.029916
+    VERDICT: NOT REFUTED -- the learned predictor does not beat the strongest classical predictor by more than the interval half-width.
+
+  held-out frame_dim
+    ceiling, measured P_active        : 0.031192
+    strongest classical (constant grid mean          ): 0.065313
+    weakest classical   (analytic duty inversion     ): 0.080497
+    learned random forest             : 0.069153
+    margin (classical - learned)      : -0.003840
+    between-run half-width            : 0.029916
+    VERDICT: NOT REFUTED -- the learned predictor does not beat the strongest classical predictor by more than the interval half-width.
+
+  OVERALL VERDICT: the pre-registered expectation is NOT REFUTED on both splits.
+  The classical predictors are competitive and the learned random forest does not beat the strongest of them on either split; on this campaign it is slightly WORSE than the best classical predictor on both, by a margin well inside the measurement's own noise floor. That is the finding. It is published as it stands, the learned component stays in the product reported as beaten, and nothing was retuned.
+  The specification names the analytic duty-inversion predictor as the comparator. On this campaign it is the weakest of the three classical predictors on both splits, so the strongest classical predictor is used as the comparator and the specified one is reported beside it, per the build guide.
+[PASS] the pre-registered comparison was computed and reported in whichever direction it fell -- refuted on 0 of 2 split(s)
+[PASS] every predictor beats doing nothing about the analytic form on held-out duty -- the ceiling is at least as good as every classical predictor, as it must be: it is the same model with the power it needs known exactly
+[PASS] every predictor beats doing nothing about the analytic form on held-out frame_dim -- the ceiling is at least as good as every classical predictor, as it must be: it is the same model with the power it needs known exactly
+[PASS] the forest fit is inside the three-minute compute budget -- 2.00 s over 8 split(s) on 2 core(s)
+
+==============================================================================
+8  the uncertainty output, checked rather than asserted
+==============================================================================
+  per-sample quantiser sd at the measured quantum: 11.458 mW
+  mean one-sigma coverage over the 8 splits      : 0.2455
+  Coverage is the fraction of test windows whose true mean active power lies within one reported sigma. It is printed whatever it is. A value far below 0.68 means the reported sigma is too small, which is expected here: the across-tree spread is a LOWER bound on the predictive uncertainty and includes neither the run-to-run variation nor the campaign's load drift. The between-run interval measures the first of those separately.
+
+
+CHECKS RUN: 4
+FAILED CHECKS (0): none

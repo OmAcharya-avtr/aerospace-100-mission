@@ -1,0 +1,226 @@
+
+==============================================================================
+BASELINES vs a SYNTHETIC closed form
+==============================================================================
+INPUT ORIGIN: SYNTHETIC, from src/powerenvelope/synthetic.py. Not a measurement.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES are measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P093 (printed relatively; see validation/_bootstrap.py)
+hunt examples    : 600
+
+MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221 as bus voltage (mV) times shunt current (mA); P(t) = V(t)*I(t). Energy over a window is the TRAPEZOIDAL integral of P(t) over the sampler's CLOCK_MONOTONIC timestamps. A cycle is 2.0 s: the pipeline runs back-to-back inferences for duty*2.0 s and sleeps the rest; a run is 38 cycles. An inference is one pass over one frame, one row of the decisions CSV. A USEFUL DECISION is an inference that passes the gate -- a candidate exists, its box does not touch the border, its area is within the declared bounds, and its score is at least tau -- so the acceptance rate is counted from the committed CSV and never asserted. ENERGY PER USEFUL DECISION is the integral of P(t) over the WHOLE run, sleep windows included, divided by the number of accepted decisions in that run.
+
+closed-form relative tolerance: 1e-09
+The power column is written with %.3f, exactly as data/campaign.py writes it, so the exact closed form and the file cannot agree better than about 1e-11 relative.
+
+==============================================================================
+1  the declared synthetic model, for reference
+==============================================================================
+  floor power            : 1913.088000 mW
+  active excess          : 610.560000 mW
+  ramp excess            : 203.520000 mW
+  ramp duration          : 0.150 s (the product's settling window)
+  cycles per run         : 10
+  These are generator constants. They are not measurements of anything.
+
+==============================================================================
+2  whole-run energy against the closed form
+==============================================================================
+[PASS] E_total(w48_d010) matches the closed form -- 39672.153600 vs 39672.153600 mJ, relative error 5.435e-13
+[PASS] E_total(w48_d025) matches the closed form -- 41503.833600 vs 41503.833600 mJ, relative error 9.115e-14
+[PASS] E_total(w48_d050) matches the closed form -- 44556.633600 vs 44556.633600 mJ, relative error 8.527e-14
+[PASS] E_total(w48_d075) matches the closed form -- 47609.433600 vs 47609.433600 mJ, relative error 7.960e-14
+[PASS] E_total(w48_d100) matches the closed form -- 50646.969600 vs 50646.969600 mJ, relative error 9.226e-14
+[PASS] E_total(w64_d010) matches the closed form -- 39672.153600 vs 39672.153600 mJ, relative error 5.435e-13
+[PASS] E_total(w64_d025) matches the closed form -- 41503.833600 vs 41503.833600 mJ, relative error 9.115e-14
+[PASS] E_total(w64_d050) matches the closed form -- 44556.633600 vs 44556.633600 mJ, relative error 8.527e-14
+[PASS] E_total(w64_d075) matches the closed form -- 47609.433600 vs 47609.433600 mJ, relative error 7.960e-14
+[PASS] E_total(w64_d100) matches the closed form -- 50646.969600 vs 50646.969600 mJ, relative error 9.226e-14
+[PASS] E_total(w96_d010) matches the closed form -- 39672.153600 vs 39672.153600 mJ, relative error 5.435e-13
+[PASS] E_total(w96_d025) matches the closed form -- 41503.833600 vs 41503.833600 mJ, relative error 9.115e-14
+[PASS] E_total(w96_d050) matches the closed form -- 44556.633600 vs 44556.633600 mJ, relative error 8.527e-14
+[PASS] E_total(w96_d075) matches the closed form -- 47609.433600 vs 47609.433600 mJ, relative error 7.960e-14
+[PASS] E_total(w96_d100) matches the closed form -- 50646.969600 vs 50646.969600 mJ, relative error 9.226e-14
+
+==============================================================================
+3  active-window energy against the closed form
+==============================================================================
+[PASS] E_active(w64_d010) matches the per-cycle closed form -- 5149.056000 vs 5149.056000 mJ, relative error 1.599e-11
+[PASS] E_active(w64_d025) matches the per-cycle closed form -- 12720.000000 vs 12720.000000 mJ, relative error 6.983e-13
+[PASS] E_active(w64_d050) matches the per-cycle closed form -- 25338.240000 vs 25338.240000 mJ, relative error 3.505e-13
+[PASS] E_active(w64_d075) matches the per-cycle closed form -- 37956.480000 vs 37956.480000 mJ, relative error 2.338e-13
+[PASS] at duty 1.00 the active energy is the whole-run energy -- 50646.969600 vs 50646.969600 mJ
+
+==============================================================================
+4  baseline 1, energy per inference
+==============================================================================
+  variant                       : measured-active
+  mean active power (time-wtd)  : 2533.824 mW
+  mean active power (sample)    : 2523.648 mW
+  mean inference latency        : 0.010000000 s
+  ENERGY PER INFERENCE          : 25.338240000 mJ
+  inferences                    : 1000
+  active duration               : 10.000000 s
+  interstitial samples / gaps   : 0 / 0 (widest inter-inference gap 0.000000 s)
+  sleep-window samples in span  : 171
+
+  variant                       : nominal-rail
+  mean active power (time-wtd)  : 2490.000 mW
+  mean active power (sample)    : 2480.000 mW
+  mean inference latency        : 0.010000000 s
+  ENERGY PER INFERENCE          : 24.900000000 mJ
+  inferences                    : 1000
+  active duration               : 10.000000 s
+  interstitial samples / gaps   : 0 / 0 (widest inter-inference gap 0.000000 s)
+  sleep-window samples in span  : 171
+
+[PASS] the mean active power is the closed-form active energy over the active duration -- 2533.824000 vs 2533.824000 mW
+[PASS] the nominal-rail variant is below the measured variant by exactly the voltage ratio -- ratio 1.017600000 vs 1.017600000
+[PASS] the inference count is the closed-form count -- 1000
+
+==============================================================================
+5  baseline 2, the analytic duty-cycle model
+==============================================================================
+  floor cell                : floor
+  mean power                : 1913.088 mW
+  sample sd                 : 0.000 mW
+  min / max                 : 1913.088 / 1913.088 mW
+  samples / duration        : 400 / 19.950 s
+  current quantum as power  : 40.704 mW
+  foreign CPU busy fraction : 0.080000 (measured, not assumed absent)
+  die temperature           : 45.025 degC
+  THIS IS A BACKGROUND FLOOR ON A SHARED MACHINE, not an idle floor. The board
+  had logged-in users, a desktop browser and a load average above 1 at campaign
+  time. The contamination is the number above, not a caveat.
+
+[PASS] the measured floor equals the generator's declared floor -- 1913.088000 vs 1913.088000 mW
+  cell                          : w64_d050
+  duty / cycle                  : 0.50 / 2.0 s
+  t_active / t_sleep            : 1.000 / 1.000 s
+  P_floor (measured)            : 1913.088 mW
+  P_active (measured steady)    : 2505.690 mW
+  E_ramp per wake (measured)    : 28.133647 mJ over 10 wake(s)
+  E_ramp charged per cycle      : 28.133647 mJ (per WAKE, scaled by wakes/cycles)
+  E_sleep / E_active            : 1913.088000 / 2505.690353 mJ
+  E_cycle (three-term)          : 4446.912000 mJ
+  E_cycle (two-term identity)   : 4446.912000 mJ (relative residual -2.220e-16)
+  inferences per cycle (counted): 100.0000
+  acceptance rate (counted)     : 0.307000
+  ENERGY PER USEFUL DECISION    : 144.850554 mJ
+
+[PASS] the three components sum to the cycle energy -- 1913.0880 + 28.1336 + 2505.6904 = 4446.9120 mJ
+[PASS] the measured ramp excess is within 15 per cent of the declared excess energy -- 28.133647 vs 30.528000 mJ over 10 wake(s); the difference is the trapezoid straddling the step at the window edge and the steady level being estimated from the samples after it
+[PASS] the ramp is reported as NOT separable at duty 0.10 rather than estimated -- the 0.2 s active phase is shorter than three settling windows
+[PASS] the analytic model is within 10 per cent of ground truth on all 15 grid cells -- largest relative gap 0.0025
+
+==============================================================================
+6  the measured rail-accounting ratio against load
+==============================================================================
+  cells in the fit              : 20
+  load range                    : 1913.088 to 2538.695 mW
+  ratio range                   : 0.102870 to 0.105100
+  slope                         : 3.578929e-06 per mW
+  intercept (EXTRAPOLATED)      : 0.096089
+  R^2                           : 0.994185
+  largest absolute residual     : 0.000075
+  This is a RAIL-ACCOUNTING RATIO, not a converter efficiency. It is the share of
+  the measured input-rail energy that the two instrumented downstream channels
+  account for. It omits every rail the INA3221 does not instrument and it includes
+  the regulators' own losses on the paths it does see. It is not a datasheet curve
+  and nothing here should be read as one.
+
+[PASS] the fit covers every cell of the campaign -- 20 cell(s)
+[PASS] the ratio is between 0 and 1 on every cell -- range 0.102870 to 0.105100
+
+==============================================================================
+7  baseline 3, ground truth, and the between-run interval
+==============================================================================
+  cell                          : w64_d050
+  E_total (whole run)           : 44556.633600 mJ
+  duration / mean power         : 19.950 s / 2233.415 mW
+  inferences / accepted         : 1000 / 307
+  acceptance rate (counted)     : 0.307000
+  reject reasons                : accept=307, area_out=40, border=56, low_score=557, no_candidate=40
+  ENERGY PER USEFUL DECISION    : 145.135614 mJ
+  energy per inference, whole   : 44.556634 mJ
+  current quantum as power      : 40.704 mW (40 mW at the 5 V nominal)
+
+[PASS] the ground-truth numerator is the closed-form whole-run energy -- 44556.633600 vs 44556.633600 mJ
+[PASS] the ground-truth denominator is the closed-form accepted count -- 307 == 307
+  repeats                       : w64_d050, w64_d050_rep2, w64_d050_rep3, w64_d050_rep4
+  values                        : 145.1356, 145.1356, 145.1356, 145.1356 mJ per useful decision
+  mean                          : 145.135614 mJ
+  sample sd (ddof=1)            : 0.000000 mJ
+  range                         : 0.000000 mJ
+  t critical (95%, n=4)    : 3.1824
+  HALF-WIDTH                    : 0.000000 mJ
+  interval                      : [145.135614, 145.135614] mJ
+  A within-run bootstrap over samples would be WRONG here: the INA3221 averages
+  512 conversions in hardware, so neighbouring samples are not independent, and
+  the quantity whose uncertainty matters is run-to-run, not sample-to-sample.
+
+[PASS] the interval is taken over four repeats of the reference cell -- cells w64_d050, w64_d050_rep2, w64_d050_rep3, w64_d050_rep4
+[PASS] the four byte-identical synthetic repeats give a spread of exactly zero -- this is the correct answer for this input and it is not worked around; the jittered fixture in tests/conftest.py exercises a positive spread
+
+==============================================================================
+8  the headline, on synthetic data, with its closure residual
+==============================================================================
+  cell                              : w64_d050
+  variant of energy per inference   : measured-active
+  inferences counted                : 1000
+  useful decisions counted          : 307
+  acceptance rate a                 : 0.307000
+  whole-run energy E_total          : 44556.633600 mJ
+  active-window energy E_active     : 25338.240000 mJ
+  active duration T_act             : 10.000000 s
+  mean inference latency L          : 0.010000000 s
+  energy per inference (baseline 1) : 25.338240000 mJ
+  energy per useful decision        : 145.135614 mJ
+  HEADLINE understatement factor F  : 5.727928
+    rejection factor 1/a            : 3.257329
+    duty-cycle factor E_tot/E_act   : 1.758474
+    rail-voltage factor P_m/P_q     : 1.000000
+    residual factor                 : 1.000000
+    accounting factor T_act/(N*L)   : 1.000000
+    closure error of the above      : -1.110e-16
+[PASS] the four factors multiply to F (measured-active) -- product 5.727927998641 vs F 5.727927998641
+[PASS] the residual equals T_act/(N*L), computed independently (measured-active) -- residual 1.000000000000 vs accounting 1.000000000000, closure error -1.110e-16
+
+  cell                              : w64_d050
+  variant of energy per inference   : nominal-rail
+  inferences counted                : 1000
+  useful decisions counted          : 307
+  acceptance rate a                 : 0.307000
+  whole-run energy E_total          : 44556.633600 mJ
+  active-window energy E_active     : 25338.240000 mJ
+  active duration T_act             : 10.000000 s
+  mean inference latency L          : 0.010000000 s
+  energy per inference (baseline 1) : 24.900000000 mJ
+  energy per useful decision        : 145.135614 mJ
+  HEADLINE understatement factor F  : 5.828740
+    rejection factor 1/a            : 3.257329
+    duty-cycle factor E_tot/E_act   : 1.758474
+    rail-voltage factor P_m/P_q     : 1.017600
+    residual factor                 : 1.000000
+    accounting factor T_act/(N*L)   : 1.000000
+    closure error of the above      : -1.110e-16
+[PASS] the four factors multiply to F (nominal-rail) -- product 5.828739531417 vs F 5.828739531417
+[PASS] the residual equals T_act/(N*L), computed independently (nominal-rail) -- residual 1.000000000000 vs accounting 1.000000000000, closure error -1.110e-16
+
+
+==============================================================================
+9  what this script does NOT establish
+==============================================================================
+  Nothing here is a measurement. The agreement above says the integrator, the window derivation and the decomposition compute what their docstrings say, on a trace whose truth is known. It says nothing about any board. The measured figures are in validate_measured_headline.py, validate_measured_baselines.py and validate_measured_learned.py, which read data/traces/ and refuse, exiting non-zero, if it is absent or incomplete.
+
+
+CHECKS RUN: 38
+FAILED CHECKS (0): none

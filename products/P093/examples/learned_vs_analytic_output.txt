@@ -1,0 +1,50 @@
+INPUT ORIGIN: MEASURED hardware campaign from data/traces/
+
+INPUT ORIGIN: measured -- 20 cell(s) from data/traces/
+
+  windows                       : 171
+  window length                 : 8.0 s
+  descriptors (10)              : duty, cycle_s, frame_dim, tau, cores_available, env_tj_c, env_load1, env_clk_mean_khz, env_foreign_busy, env_foreign_imputed
+  target                        : window mean ACTIVE rail power, mW
+  target range                  : 3825.102 to 5654.263 mW
+  windows dropped               : 1
+  foreign occupancy imputed in  : 117 window(s) from the floor cell's 0.123514
+  A window whose duty leaves no pipeline-free second has no per-window foreign
+  occupancy to measure. The imputation is flagged in the design matrix as
+  env_foreign_imputed and is reported in MODEL_CARD.md as an imputation.
+
+ENERGY PER USEFUL DECISION, relative error against measured ground truth
+Only P_active is predicted; the floor, the inference count and the acceptance
+rate are held at their measured values.
+
+  held-out duty
+    predictor                       mean rel err       max
+    ------------------------------------------------------
+    measured (ceiling)                  0.031192  0.122973
+    classical: constant                 0.067395  0.186735
+    classical: linear                   0.051096  0.126676
+    classical: duty inversion           0.076195  0.230375
+    learned: forest                     0.052985  0.141209
+
+  held-out frame_dim
+    predictor                       mean rel err       max
+    ------------------------------------------------------
+    measured (ceiling)                  0.031192  0.122973
+    classical: constant                 0.065313  0.195876
+    classical: linear                   0.076285  0.188346
+    classical: duty inversion           0.080497  0.273748
+    learned: forest                     0.069153  0.142101
+
+between-run interval half-width, relative: 0.029916
+
+THE PRE-REGISTERED COMPARISON (SPEC.md, written before the campaign ran)
+  held-out duty: strongest classical is classical: linear at 0.051096; learned 0.052985; margin -0.001889 against a half-width of 0.029916
+    VERDICT: NOT REFUTED, the classical predictor is competitive.
+  held-out frame_dim: strongest classical is classical: constant at 0.065313; learned 0.069153; margin -0.003840 against a half-width of 0.029916
+    VERDICT: NOT REFUTED, the classical predictor is competitive.
+
+Whichever way it falls, that is the finding. The learned component stays in the
+product and is reported as beaten where it is beaten.
+
+figure written to screenshots/learned_vs_analytic.png
+raw output written to examples/learned_vs_analytic_output.txt

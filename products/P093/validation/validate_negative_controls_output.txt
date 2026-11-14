@@ -1,0 +1,98 @@
+
+==============================================================================
+NEGATIVE CONTROLS -- anchored on the true value, verified to fire
+==============================================================================
+INPUT ORIGIN: SYNTHETIC arithmetic, plus the measured-data REFUSAL path.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+analysis machine : x86_64 Linux, 2 cores  (the TRACES are measured on aarch64 ON THE BOARD; the arithmetic over them runs here)
+repository root  : P093 (printed relatively; see validation/_bootstrap.py)
+hunt examples    : 600
+
+==============================================================================
+1  the energy integral against two independent brackets
+==============================================================================
+  true whole-run energy: 44556.633600 mJ
+  Riemann bracket: [44536.281600, 44576.985600] mJ, width 4.070400e+01, slack 1.579012e-08
+[PASS] control: the true energy is inside the Riemann bracket (must NOT fire) -- did not fire; excess 0.000e+00 mJ
+[PASS] control: an energy offset by the Riemann bracket's own width leaves it (must fire) -- FIRED; offset 4.070404e+01 mJ, injected 44597.337645 mJ
+[PASS] control: the same offset downwards leaves the Riemann bracket (must fire) -- FIRED; injected 44515.929555 mJ
+  mean-value bracket: [38166.105600, 54407.001600] mJ, width 1.624090e+04, slack 4.111072e-11
+[PASS] control: the true energy is inside the mean-value bracket (must NOT fire) -- did not fire; excess 0.000e+00 mJ
+[PASS] control: an energy offset by the mean-value bracket's own width leaves it (must fire) -- FIRED; offset 1.624090e+04 mJ, injected 60797.529645 mJ
+[PASS] control: the same offset downwards leaves the mean-value bracket (must fire) -- FIRED; injected 28315.737555 mJ
+
+==============================================================================
+2  the duty-cycle factor against a bound from the sleep window's power
+==============================================================================
+  measured floor minimum: 1913.088000 mW over 9.950 s asleep
+  lower bound: 1.751244980; true factor: 1.758473896
+[PASS] control: the true duty-cycle factor satisfies the bound (must NOT fire) -- did not fire; margin 7.228916e-03
+[PASS] control: a duty-cycle factor below the bound is rejected (must fire) -- FIRED; injected 1.751244978 against a bound of 1.751244980
+
+==============================================================================
+3  the headline factor against a bound from extreme values alone
+==============================================================================
+  lower bound: 4.558558992; measured factor: 5.727927999
+  bound source: extreme values of the measured power and latency; no quadrature
+[PASS] control: the measured headline factor satisfies the independent bound (must NOT fire) -- did not fire; margin 1.169369
+[PASS] control: a headline factor below the independent bound is rejected (must fire) -- FIRED; injected 4.558558988
+
+==============================================================================
+4  the decomposition's own closure
+==============================================================================
+  F = 5.727927998641; product of four factors = 5.727927998641
+[PASS] control: the undamaged decomposition closes (must NOT fire) -- did not fire; closure error 0.000e+00
+[PASS] control: a decomposition with one factor perturbed by 1e-6 does not close (must fire) -- FIRED; closure error 1.000e-06 against a 1e-12 tolerance
+
+==============================================================================
+5  the permissive-gate control: the rejection half of the headline
+==============================================================================
+  strict: a = 0.307000, 1/a = 3.257329, F = 5.727928
+  permissive: a = 0.829000, 1/a = 1.206273, F = 2.121199
+[PASS] control: the permissive gate nearly removes the rejection factor (must fire) -- FIRED; ratio 2.7003
+[PASS] control: the permissive gate leaves the duty-cycle factor alone (must NOT fire) -- did not fire; 1.758474 vs 1.758474; the duty-cycle factor is a property of the duty, not of the gate
+[PASS] control: at duty 1.00 the duty-cycle factor is 1 (must NOT fire) -- did not fire; 1.000000000000; there is no sleep window to charge
+
+==============================================================================
+6  the descriptor licence check
+==============================================================================
+[PASS] control: the licensed descriptor set passes (must NOT fire) -- did not fire; 10 descriptor(s)
+[PASS] control: an unlicensed descriptor 'vdd_in_mw' is refused (must fire) -- FIRED; DescriptorLeakError
+[PASS] control: an unlicensed descriptor 'mean_latency_s' is refused (must fire) -- FIRED; DescriptorLeakError
+[PASS] control: an unlicensed descriptor 'cpu_busy_fraction' is refused (must fire) -- FIRED; DescriptorLeakError
+[PASS] control: an unlicensed descriptor 'inferences' is refused (must fire) -- FIRED; DescriptorLeakError
+[PASS] control: an unlicensed descriptor 'acceptance_rate' is refused (must fire) -- FIRED; DescriptorLeakError
+[PASS] control: an unlicensed descriptor 'moon_phase' is refused (must fire) -- FIRED; DescriptorLeakError
+
+==============================================================================
+7  the MEASURED-data refusal path
+==============================================================================
+[PASS] control: an empty directory is refused rather than substituted (must fire) -- FIRED; require_measured_campaign raises TraceDataAbsentError
+[PASS] control: a directory that declares itself synthetic is refused as measured (must fire) -- FIRED; the manifest's synthetic flag is read and honoured
+
+==============================================================================
+8  the control on the control: a slack with an absolute floor is vacuous
+==============================================================================
+  A bound-check slack must follow the CONDITIONING of its own expression. A slack floored at an absolute constant makes a narrow bracket admit anything, which is the failure this product's slack rule exists to avoid.
+  bracket width 4.500e-23; wrong slack 1.800e-15; right slack 2.442e-38
+[PASS] control: the conditioning-based slack rejects an intruder 1e7 times the bracket width (must fire) -- FIRED; 1e-16 is outside the correctly widened bracket
+[PASS] control: the absolute-floor slack ADMITS that intruder, which is why it is not used (must fire) -- FIRED; this control fires on the WRONG form, demonstrating it is vacuous
+
+==============================================================================
+summary
+==============================================================================
+  controls declared 26; must-fire 18/18; must-NOT-fire silent 8/8
+  A control that did not fire in its declared direction is reported as a FAILED check above and is not removed.
+
+
+CHECKS RUN: 26
+CONTROLS: 26 declared, 18 fired; must-fire 18/18, must-NOT-fire silent 8/8
+FAILED CHECKS (0): none
