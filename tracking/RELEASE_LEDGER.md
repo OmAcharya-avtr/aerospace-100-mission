@@ -1693,3 +1693,37 @@ vulnerabilities**. **0 absolute paths** across 207 tracked text files, **0**
 tracked build artifacts, `junit.xml` correctly untracked, all 125 trace files
 tracked against 125 on disk. No unresolved critical finding, so publication was
 not blocked on security.
+
+### Published, and verified after the push
+
+- Repository `https://github.com/OmAcharya-avtr/powerenvelope`, commit
+  **`9edd441c22e96bb4e1b8eae830f57e92b4a10c75`**; `git ls-remote origin main`
+  returns the same SHA as the local `HEAD`.
+- **210 blobs on the remote**, matching `git ls-files` locally.
+- `gh api repos/OmAcharya-avtr/powerenvelope/contributors --jq '.[].login'` →
+  **`OmAcharya-avtr`. One line, one name.**
+- Every commit author email on the remote is
+  `145807881+OmAcharya-avtr@users.noreply.github.com`, which resolves to login
+  `OmAcharya-avtr`. Author and committer agree. **Zero attribution trailers**
+  on the remote.
+- Created with `gh` and pushed with the Keychain credential helper, because the
+  `gh` token lacks `workflow` scope and the repository ships
+  `.github/workflows/tests.yml`.
+
+### The `build_product_repo.py` .gitignore defect recurred exactly as recorded
+
+`scripts/build_product_repo.py` writes its own `.gitignore` into the generated
+repository, replacing the product's. That standard file carries a bare `*.log`,
+which matches at any depth, so **`data/traces/campaign.log` was present on disk
+and untracked in the generated repository** — 124 tracked against 125 on
+disk — even though the product's own `.gitignore` negates it in the monorepo.
+
+Caught **before the remote existed**, by the count the 2026-11-13 session
+recorded as the way to catch it. Fixed for this product by appending an anchored
+negation to the generated file and amending the unpublished commit; the count is
+now 125 against 125 and `git status --ignored` reports nothing excluded.
+
+**Not fixed in `build_product_repo.py`, because that script is shared by all 94
+published products and changing it unattended is not a judgement this session
+should make.** This is the second product in two sessions to hit it. **NEEDS THE
+OWNER.**
