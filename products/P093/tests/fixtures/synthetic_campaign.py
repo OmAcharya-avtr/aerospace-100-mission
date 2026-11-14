@@ -15,13 +15,21 @@ For a cell of duty ``d`` and ``c`` cycles, with period ``h = 0.05`` s, 40 slots
 per 2.0 s cycle, ``m = 40 d`` active slots, ``r = min(3, m)`` ramp slots, floor
 power ``F``, active excess ``D`` and ramp excess ``A``:
 
+The generator BRACKETS the run: the sampler starts half a second before
+``t0_mono`` and stops half a second after ``t1_mono``, exactly as the campaign
+does, and the pipeline is off outside the run so those samples read the floor.
+``E_total`` is the integral over the RUN, ``[t0_mono, t1_mono]``, which is slots
+``0 .. N`` inclusive where ``N = 40 c``; the bracket samples are not in it. A
+fixture whose sampler span equalled its run could not catch code that
+integrated the span and called it the run, which is the defect the measured
+campaign exposed.
+
 .. code-block:: text
 
-    N        = 40 c                              samples written
-    sum P    = N F + (c m) D + (c r) A
+    N        = 40 c                              slots in the run
+    sum P    = (N + 1) F + (c m) D + (c r) A     over slots 0 .. N
     P_first  = F + D + A        (slot 0, active and ramping, when m > 0)
-    P_last   = F + D           when m = 40 (slot 39 active, not ramping)
-             = F               otherwise
+    P_last   = F               (slot N is the first instant after the run)
     E_total  = h (sum P - (P_first + P_last) / 2)
 
 and, for ``d < 1``, where each cycle's merged active window is
@@ -108,16 +116,33 @@ def active_slots(duty: float) -> int:
 
 
 def total_energy_mj(duty: float, cycles: int) -> float:
-    """Closed-form whole-run trapezoidal energy of a synthetic cell, mJ."""
+    """Closed-form energy over the RUN of a synthetic cell, mJ.
+
+    Over ``[t0_mono, t1_mono]``, which is slots 0 to N inclusive. The sampler's
+    bracketing samples on either side are deliberately NOT in it.
+    """
     h = SYNTHETIC_SAMPLE_PERIOD_S
     f, d, a = floor_mw(), active_excess_mw(), ramp_excess_mw()
     m = active_slots(duty)
     r = min(RAMP_SLOTS, m)
     n = cycles * SLOTS_PER_CYCLE
-    total = n * f + cycles * m * d + cycles * r * a
+    total = (n + 1) * f + cycles * m * d + cycles * r * a
     first = f + (d if m > 0 else 0.0) + (a if r > 0 else 0.0)
-    last = f + (d if m == SLOTS_PER_CYCLE else 0.0)
+    last = f  # slot N is the first instant after the run; the pipeline is off
     return h * (total - (first + last) / 2.0)
+
+
+def sleep_energy_mj(duty: float, cycles: int) -> float:
+    """Closed-form energy over the declared SLEEP phases, mJ, for ``duty < 1``.
+
+    The declared phases tile the run exactly, so this is the run's energy less
+    the active phases'. It is written as the difference on purpose: the two
+    closed forms above are derived independently, and their difference being
+    what the sleep integral returns is the partition identity.
+    """
+    if duty >= 1.0:
+        raise ValueError("a duty-1.00 cell has no sleep phase")
+    return total_energy_mj(duty, cycles) - active_energy_mj(duty, cycles)
 
 
 def active_energy_mj(duty: float, cycles: int) -> float:

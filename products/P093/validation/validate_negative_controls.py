@@ -152,8 +152,8 @@ def main() -> int:
     )
 
     out.rule("4  the decomposition's own closure")
-    product = result.product_of_named_factors() * result.residual_factor
-    out(f"  F = {result.factor:.12f}; product of four factors = {product:.12f}")
+    product = result.product_of_named_factors()
+    out(f"  F = {result.factor:.12f}; product of the three named factors = {product:.12f}")
     out.control(
         "the undamaged decomposition closes",
         abs(product / result.factor - 1.0) > 1e-12,
@@ -166,7 +166,6 @@ def main() -> int:
         result.rejection_factor * (1.0 + 1e-6)
         * result.duty_cycle_factor
         * result.rail_voltage_factor
-        * result.residual_factor
     )
     out.control(
         "a decomposition with one factor perturbed by 1e-6 does not close",

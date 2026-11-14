@@ -39,7 +39,7 @@ from powerenvelope.baselines import (  # noqa: E402
     ramp_energy,
 )
 from powerenvelope.decomposition import decompose  # noqa: E402
-from powerenvelope.energy import cell_energy  # noqa: E402
+from powerenvelope.energy import cell_energy, whole_run_energy  # noqa: E402
 from powerenvelope.report import (  # noqa: E402
     baseline1_lines,
     baseline2_lines,
@@ -85,7 +85,21 @@ def main() -> int:
     out(f"  cycles per run         : {cycles}")
     out("  These are generator constants. They are not measurements of anything.")
 
-    out.rule("2  whole-run energy against the closed form")
+    out.rule("2  RUN energy against the closed form, and the sampler's wider span")
+    reference_cell = campaign.require(_bootstrap.HEADLINE_CELL)
+    run_window = cell_energy(reference_cell)[0]
+    span = whole_run_energy(reference_cell.power)
+    out(f"  run    : {run_window.duration_s:.6f} s, {run_window.energy_mj:.6f} mJ")
+    out(f"  sampler: {span.duration_s:.6f} s, {span.energy_mj:.6f} mJ")
+    out.check(
+        "the sampler's span is wider than the run, as the campaign intends",
+        span.duration_s > run_window.duration_s,
+        f"{span.duration_s - run_window.duration_s:.3f} s wider; integrating the span "
+        "and calling it the run cost 1.1 per cent on the measured campaign before it "
+        "was found, and the generator now reproduces the bracketing so a test can "
+        "catch it",
+    )
+    out("")
     for dim in (48, 64, 96):
         for duty in (*CLOSED_FORM_DUTIES, 1.00):
             label = f"w{dim}_d{int(round(duty * 100)):03d}"
@@ -264,17 +278,26 @@ def main() -> int:
         result = decompose(cell, variant)
         for line in result.lines():
             out(f"  {line}")
-        product = result.product_of_named_factors() * result.residual_factor
+        product = result.product_of_named_factors()
         out.check(
-            f"the four factors multiply to F ({variant})",
+            f"the three named factors multiply to F exactly ({variant})",
             abs(product / result.factor - 1.0) <= 1e-12,
-            f"product {product:.12f} vs F {result.factor:.12f}",
+            f"product {product:.12f} vs F {result.factor:.12f}; there is no residual "
+            "term under the declared-phase partition",
         )
         out.check(
-            f"the residual equals T_act/(N*L), computed independently ({variant})",
-            abs(result.residual_factor / result.accounting_factor - 1.0) <= 1e-11,
-            f"residual {result.residual_factor:.12f} vs accounting "
-            f"{result.accounting_factor:.12f}, closure error {result.closure_error:.3e}",
+            f"the declared phases partition the run ({variant})",
+            abs(result.partition_residual) <= 1e-12,
+            f"partition residual {result.partition_residual:.3e}; the synthetic run "
+            "ends exactly on a cycle boundary, so it is zero here. The measured run "
+            "ends a few milliseconds later and tests/test_measured_campaign.py bounds "
+            "that tail.",
+        )
+        out.check(
+            f"the phase occupancy is 1 on the synthetic pipeline ({variant})",
+            abs(result.occupancy.occupancy - 1.0) <= 1e-9,
+            f"occupancy {result.occupancy.occupancy:.9f}; a DIAGNOSTIC, not a factor. "
+            "On the measured campaign it is 0.999723.",
         )
         out("")
 

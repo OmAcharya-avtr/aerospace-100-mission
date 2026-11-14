@@ -19,46 +19,46 @@ hunt examples    : 600
 ==============================================================================
 1  the energy integral against two independent brackets
 ==============================================================================
-  true whole-run energy: 44556.633600 mJ
-  Riemann bracket: [44536.281600, 44576.985600] mJ, width 4.070400e+01, slack 1.579012e-08
+  true whole-run energy: 46585.728000 mJ
+  Riemann bracket: [46585.728000, 46585.728000] mJ, width 2.961315e-08, slack 1.737810e-08
 [PASS] control: the true energy is inside the Riemann bracket (must NOT fire) -- did not fire; excess 0.000e+00 mJ
-[PASS] control: an energy offset by the Riemann bracket's own width leaves it (must fire) -- FIRED; offset 4.070404e+01 mJ, injected 44597.337645 mJ
-[PASS] control: the same offset downwards leaves the Riemann bracket (must fire) -- FIRED; injected 44515.929555 mJ
-  mean-value bracket: [38166.105600, 54407.001600] mJ, width 1.624090e+04, slack 4.111072e-11
+[PASS] control: an energy offset by the Riemann bracket's own width leaves it (must fire) -- FIRED; offset 4.665010e-05 mJ, injected 46585.728047 mJ
+[PASS] control: the same offset downwards leaves the Riemann bracket (must fire) -- FIRED; injected 46585.727953 mJ
+  mean-value bracket: [40174.848000, 57270.528000] mJ, width 1.709568e+04, slack 4.327444e-11
 [PASS] control: the true energy is inside the mean-value bracket (must NOT fire) -- did not fire; excess 0.000e+00 mJ
-[PASS] control: an energy offset by the mean-value bracket's own width leaves it (must fire) -- FIRED; offset 1.624090e+04 mJ, injected 60797.529645 mJ
-[PASS] control: the same offset downwards leaves the mean-value bracket (must fire) -- FIRED; injected 28315.737555 mJ
+[PASS] control: an energy offset by the mean-value bracket's own width leaves it (must fire) -- FIRED; offset 1.709568e+04 mJ, injected 63681.408047 mJ
+[PASS] control: the same offset downwards leaves the mean-value bracket (must fire) -- FIRED; injected 29490.047953 mJ
 
 ==============================================================================
 2  the duty-cycle factor against a bound from the sleep window's power
 ==============================================================================
-  measured floor minimum: 1913.088000 mW over 9.950 s asleep
-  lower bound: 1.751244980; true factor: 1.758473896
+  measured floor minimum: 1913.088000 mW over 10.000 s asleep
+  lower bound: 1.755020080; true factor: 1.762248996
 [PASS] control: the true duty-cycle factor satisfies the bound (must NOT fire) -- did not fire; margin 7.228916e-03
-[PASS] control: a duty-cycle factor below the bound is rejected (must fire) -- FIRED; injected 1.751244978 against a bound of 1.751244980
+[PASS] control: a duty-cycle factor below the bound is rejected (must fire) -- FIRED; injected 1.755020079 against a bound of 1.755020080
 
 ==============================================================================
 3  the headline factor against a bound from extreme values alone
 ==============================================================================
-  lower bound: 4.558558992; measured factor: 5.727927999
+  lower bound: 4.798483150; measured factor: 5.740224743
   bound source: extreme values of the measured power and latency; no quadrature
-[PASS] control: the measured headline factor satisfies the independent bound (must NOT fire) -- did not fire; margin 1.169369
-[PASS] control: a headline factor below the independent bound is rejected (must fire) -- FIRED; injected 4.558558988
+[PASS] control: the measured headline factor satisfies the independent bound (must NOT fire) -- did not fire; margin 0.941742
+[PASS] control: a headline factor below the independent bound is rejected (must fire) -- FIRED; injected 4.798483145
 
 ==============================================================================
 4  the decomposition's own closure
 ==============================================================================
-  F = 5.727927998641; product of four factors = 5.727927998641
+  F = 5.740224742621; product of the three named factors = 5.740224742621
 [PASS] control: the undamaged decomposition closes (must NOT fire) -- did not fire; closure error 0.000e+00
 [PASS] control: a decomposition with one factor perturbed by 1e-6 does not close (must fire) -- FIRED; closure error 1.000e-06 against a 1e-12 tolerance
 
 ==============================================================================
 5  the permissive-gate control: the rejection half of the headline
 ==============================================================================
-  strict: a = 0.307000, 1/a = 3.257329, F = 5.727928
-  permissive: a = 0.829000, 1/a = 1.206273, F = 2.121199
+  strict: a = 0.307000, 1/a = 3.257329, F = 5.740225
+  permissive: a = 0.829000, 1/a = 1.206273, F = 2.125753
 [PASS] control: the permissive gate nearly removes the rejection factor (must fire) -- FIRED; ratio 2.7003
-[PASS] control: the permissive gate leaves the duty-cycle factor alone (must NOT fire) -- did not fire; 1.758474 vs 1.758474; the duty-cycle factor is a property of the duty, not of the gate
+[PASS] control: the permissive gate leaves the duty-cycle factor alone (must NOT fire) -- did not fire; 1.762249 vs 1.762249; the duty-cycle factor is a property of the duty, not of the gate
 [PASS] control: at duty 1.00 the duty-cycle factor is 1 (must NOT fire) -- did not fire; 1.000000000000; there is no sleep window to charge
 
 ==============================================================================

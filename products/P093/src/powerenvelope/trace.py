@@ -30,11 +30,20 @@ Every rejection is recorded with its reason, so the acceptance rate is
 ``a = sum(accepted) / len(decisions)``.
 
 **Energy per useful decision** over a run is the trapezoidal integral of
-``P(t)`` across **the whole run, sleep windows included**, divided by the number
-of accepted decisions in that run. The sleep windows are charged to the
-decisions because an on-board pipeline that duty-cycles still draws the
-platform's background power while it sleeps, and the mission has no other
-purpose for that energy.
+``P(t)`` across **the run window ``[t0_mono, t1_mono]`` exactly, sleep windows
+included**, with ``P`` interpolated at both ends, divided by the number of
+accepted decisions in that run. The sleep windows are charged to the decisions
+because an on-board pipeline that duty-cycles still draws the platform's
+background power while it sleeps, and the mission has no other purpose for that
+energy.
+
+The sampler brackets the run deliberately -- it starts before ``t0_mono`` and
+stops after ``t1_mono`` -- so the sampler's span is **wider** than the run and
+integrating the span instead charges the lead-in and tail-out to the decisions.
+On the reference cell that mistake overstates the energy by 1.1041 per cent.
+``E_active`` and ``E_sleep`` partition the run window using the declared
+per-cycle phases, with ``P`` interpolated at every boundary, which is what makes
+the decomposition exact in three factors with no residual term.
 
 What the loader does and does not do
 ------------------------------------

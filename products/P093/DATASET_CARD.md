@@ -72,8 +72,10 @@ average above 1. So:
   this campaign, and `docs/REQUIREMENTS.md` lists that as out of scope rather
   than approximating it away.
 
-**Measured background floor power: 4264.428 mW** (sample sd 123.957 mW, minimum
-4113.408 mW, maximum 5716.480 mW, over 1540 samples and 76.950 s).
+**Measured background floor power: 4258.633 mW** (sample sd 94.938 mW, minimum
+4113.408 mW, maximum 4880.640 mW, over the 1522 samples and 76.076 s inside the
+run window `[t0_mono, t1_mono]`; the sampler's own span is wider on purpose and
+is not what is averaged).
 **Measured foreign occupancy on the floor run: 0.123514**, mean die temperature
 48.640 °C.
 
@@ -83,14 +85,14 @@ cycle is foreign work — over its 77 usable seconds gives
 
 | quantity | value |
 |---|---|
-| slope | 2013.347 mW per unit occupancy |
-| intercept at zero occupancy | 4015.319 mW (**extrapolated**; the lowest occupancy observed is 0.078859) |
-| Pearson r | 0.510626 (r² = 0.260739) |
-| implied foreign contribution at the mean occupancy | 248.676 mW = **5.832 per cent** of the measured floor |
+| seconds in the fit | 75 (a monitor second straddling `t0_mono` or `t1_mono` is dropped, not clipped) |
+| slope | 2034.282 mW per unit occupancy |
+| intercept at zero occupancy | 4005.181 mW (**extrapolated**; the lowest occupancy observed is 0.078859) |
+| Pearson r | 0.693158 (r² = 0.480468) |
+| implied foreign contribution at the mean occupancy | 250.914 mW = **5.895 per cent** of the measured floor |
 
-The correlation is **weak**, and that is part of the result: about three
-quarters of the floor's second-to-second variance is not explained by the
-occupancy counter. The published headline uses the measured floor mean and
+The correlation is **weak**, and that is part of the result: over half of the
+floor's second-to-second variance is not explained by the occupancy counter. The published headline uses the measured floor mean and
 `validation/validate_measured_baselines.py` section 4 publishes a three-row
 sensitivity table beside it.
 
@@ -171,7 +173,7 @@ measurement plus warm-up, calibration and settling.
 | **total accepted decisions** | **100,789** |
 | reject census | `accept` 100,789 · `low_score` 146,410 · `area_out` 21,226 · `no_candidate` **0** · `border` **0** |
 | pooled foreign-plus-own CPU occupancy over all cells | 0.161347 |
-| current quantum | 8 mA = 39.883 mW at the measured bus voltage |
+| current quantum | 8 mA = 39.883 mW at the floor cell's measured bus voltage, 39.692 mW at the reference cell's |
 | INA3221 hardware averaging | `samples = 512`, `update_interval = 1` |
 | files on disk | 125, 19 MB |
 
@@ -204,12 +206,29 @@ The plan ran `floor`, then the five frame-48 duties, then the five frame-64, the
 five frame-96, the three repeats and the permissive control: 20 sequential 76 s
 runs. **Frame dimension is therefore confounded with elapsed time and with a
 falling foreign load**, and the floor was measured at the highest foreign load
-of the campaign. `w96_d010` draws 3714.66 mW on average while running the
-pipeline, which is *below* the 4264.43 mW floor. This is a defect in the
+of the campaign. `w96_d010` draws 3716.75 mW on average while running the
+pipeline, which is *below* the 4258.63 mW floor. This is a defect in the
 campaign's design; it is published with the per-cell table in
 `validation/validate_measured_baselines.py` section 5 rather than corrected
 away, and it is the honest explanation for the analytic model's error being
 largest on the frame-96 cells.
+
+**The same defect falsifies one of the product's independent bounds, and the
+falsification is published rather than removed.** The bound
+`E_total ≥ E_active + floor_min · t_sleep` assumes a sleep window draws at
+least the minimum power ever seen on this floor run, 4113.408 mW. Because the
+floor ran first, at the heaviest foreign load of the whole campaign, that
+premise is **false on this dataset**: seven of the nineteen pipeline cells —
+`w64_d050_permissive`, `w64_d050_rep2`, `w64_d050_rep3`, `w64_d050_rep4`,
+`w96_d010`, `w96_d025`, `w96_d050` — have sleep-window minima between
+3480.0 mW and 3600.0 mW, below the floor run's minimum. The non-randomised run
+order is the cause. The seven cells are pinned as literals in
+`validation/validate_measured_headline.py`, which reports `FALSIFIED` as its
+finding; the bound's arithmetic is unchanged and no cell is excluded. The three
+duty-1.00 cells are not in the set because, with the declared sleep duration
+`cycles · (1 − duty) · cycle_s`, a duty-1.00 run has no sleep phase and the
+bound reduces to `factor ≥ 1`. No figure in this dataset card depends on the
+bound.
 
 ## How the run cells were produced, and what was declared beforehand
 

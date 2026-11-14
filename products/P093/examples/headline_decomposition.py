@@ -45,8 +45,8 @@ def main() -> int:
     out("EVERY GRID CELL, measured-active variant")
     out("")
     header = (
-        f"  {'cell':<12}{'duty':>6}{'a':>8}{'F':>10}{'1/a':>9}"
-        f"{'E_tot/E_act':>13}{'residual':>10}{'closure':>11}"
+        f"  {'cell':<12}{'duty':>6}{'a':>8}{'F':>10}{'N/A':>9}"
+        f"{'E_tot/E_act':>13}{'closure':>11}{'occupancy':>11}"
     )
     out(header)
     out("  " + "-" * (len(header) - 2))
@@ -57,20 +57,23 @@ def main() -> int:
         out(
             f"  {cell.label:<12}{cell.duty:>6.2f}{result.acceptance_rate:>8.4f}"
             f"{result.factor:>10.4f}{result.rejection_factor:>9.4f}"
-            f"{result.duty_cycle_factor:>13.4f}{result.residual_factor:>10.4f}"
-            f"{result.closure_error:>11.2e}"
+            f"{result.duty_cycle_factor:>13.4f}{result.closure_error:>11.2e}"
+            f"{result.occupancy.occupancy:>11.6f}"
         )
 
     out("")
-    out("The three named factors multiply to F together with the residual, which is")
-    out("T_act/(N*L) computed independently. The closure column is the floating-point")
-    out("residual of that identity and nothing else.")
+    out("The three named factors multiply to F exactly: E_use = E_total/A and")
+    out("E_inf = E_active/N are shares of the same two integrals over the run and its")
+    out("declared phases, so there is no residual term. The closure column is the")
+    out("floating-point residual of that identity and nothing else. The occupancy")
+    out("column is a DIAGNOSTIC: how much of the declared active phase the inferences")
+    out("actually filled.")
 
     handle, save = _common.figure(
         NAME,
         is_measured,
         "Energy per inference understates energy per useful decision by F, "
-        "decomposed by duty cycle",
+        "decomposed exactly into rejection and duty cycle",
     )
     axes = handle.subplots(1, 2)
     duties = sorted({cell.duty for cell in campaign.grid_cells()})
@@ -113,9 +116,9 @@ def main() -> int:
     )
     axes[1].bar(
         positions + width,
-        [result.residual_factor for result in reference],
+        [result.factor for result in reference],
         width,
-        label="residual T_act/(N*L)",
+        label="F (their product)",
     )
     axes[1].set_xticks(positions)
     axes[1].set_xticklabels(labels, rotation=30, ha="right", fontsize=8)

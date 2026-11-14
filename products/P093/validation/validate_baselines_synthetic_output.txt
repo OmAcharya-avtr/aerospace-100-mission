@@ -16,7 +16,7 @@ analysis machine : x86_64 Linux, 2 cores  (the TRACES are measured on aarch64 ON
 repository root  : P093 (printed relatively; see validation/_bootstrap.py)
 hunt examples    : 600
 
-MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221 as bus voltage (mV) times shunt current (mA); P(t) = V(t)*I(t). Energy over a window is the TRAPEZOIDAL integral of P(t) over the sampler's CLOCK_MONOTONIC timestamps. A cycle is 2.0 s: the pipeline runs back-to-back inferences for duty*2.0 s and sleeps the rest; a run is 38 cycles. An inference is one pass over one frame, one row of the decisions CSV. A USEFUL DECISION is an inference that passes the gate -- a candidate exists, its box does not touch the border, its area is within the declared bounds, and its score is at least tau -- so the acceptance rate is counted from the committed CSV and never asserted. ENERGY PER USEFUL DECISION is the integral of P(t) over the WHOLE run, sleep windows included, divided by the number of accepted decisions in that run.
+MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221 as bus voltage (mV) times shunt current (mA); P(t) = V(t)*I(t). Energy over a window is the TRAPEZOIDAL integral of P(t) over the sampler's CLOCK_MONOTONIC timestamps. A cycle is 2.0 s: the pipeline runs back-to-back inferences for duty*2.0 s and sleeps the rest; a run is 38 cycles. An inference is one pass over one frame, one row of the decisions CSV. A USEFUL DECISION is an inference that passes the gate -- a candidate exists, its box does not touch the border, its area is within the declared bounds, and its score is at least tau -- so the acceptance rate is counted from the committed CSV and never asserted. ENERGY PER USEFUL DECISION is the integral of P(t) over the RUN WINDOW [t0_mono, t1_mono] exactly, with P interpolated at both ends, sleep windows included, divided by the number of accepted decisions in that run. The sampler brackets the run on purpose, starting early and stopping late, so its span is WIDER than the run and is never what is integrated. E_active and E_sleep partition that same window using the declared per-cycle phases, with P interpolated at every boundary.
 
 closed-form relative tolerance: 1e-09
 The power column is written with %.3f, exactly as data/campaign.py writes it, so the exact closed form and the file cannot agree better than about 1e-11 relative.
@@ -32,23 +32,27 @@ The power column is written with %.3f, exactly as data/campaign.py writes it, so
   These are generator constants. They are not measurements of anything.
 
 ==============================================================================
-2  whole-run energy against the closed form
+2  RUN energy against the closed form, and the sampler's wider span
 ==============================================================================
-[PASS] E_total(w48_d010) matches the closed form -- 39672.153600 vs 39672.153600 mJ, relative error 5.435e-13
-[PASS] E_total(w48_d025) matches the closed form -- 41503.833600 vs 41503.833600 mJ, relative error 9.115e-14
-[PASS] E_total(w48_d050) matches the closed form -- 44556.633600 vs 44556.633600 mJ, relative error 8.527e-14
-[PASS] E_total(w48_d075) matches the closed form -- 47609.433600 vs 47609.433600 mJ, relative error 7.960e-14
-[PASS] E_total(w48_d100) matches the closed form -- 50646.969600 vs 50646.969600 mJ, relative error 9.226e-14
-[PASS] E_total(w64_d010) matches the closed form -- 39672.153600 vs 39672.153600 mJ, relative error 5.435e-13
-[PASS] E_total(w64_d025) matches the closed form -- 41503.833600 vs 41503.833600 mJ, relative error 9.115e-14
-[PASS] E_total(w64_d050) matches the closed form -- 44556.633600 vs 44556.633600 mJ, relative error 8.527e-14
-[PASS] E_total(w64_d075) matches the closed form -- 47609.433600 vs 47609.433600 mJ, relative error 7.960e-14
-[PASS] E_total(w64_d100) matches the closed form -- 50646.969600 vs 50646.969600 mJ, relative error 9.226e-14
-[PASS] E_total(w96_d010) matches the closed form -- 39672.153600 vs 39672.153600 mJ, relative error 5.435e-13
-[PASS] E_total(w96_d025) matches the closed form -- 41503.833600 vs 41503.833600 mJ, relative error 9.115e-14
-[PASS] E_total(w96_d050) matches the closed form -- 44556.633600 vs 44556.633600 mJ, relative error 8.527e-14
-[PASS] E_total(w96_d075) matches the closed form -- 47609.433600 vs 47609.433600 mJ, relative error 7.960e-14
-[PASS] E_total(w96_d100) matches the closed form -- 50646.969600 vs 50646.969600 mJ, relative error 9.226e-14
+  run    : 20.000000 s, 44652.288000 mJ
+  sampler: 21.000000 s, 46585.728000 mJ
+[PASS] the sampler's span is wider than the run, as the campaign intends -- 1.000 s wider; integrating the span and calling it the run cost 1.1 per cent on the measured campaign before it was found, and the generator now reproduces the bracketing so a test can catch it
+
+[PASS] E_total(w48_d010) matches the closed form -- 39767.808000 vs 39767.808000 mJ, relative error 4.020e-13
+[PASS] E_total(w48_d025) matches the closed form -- 41599.488000 vs 41599.488000 mJ, relative error 4.285e-14
+[PASS] E_total(w48_d050) matches the closed form -- 44652.288000 vs 44652.288000 mJ, relative error 3.975e-14
+[PASS] E_total(w48_d075) matches the closed form -- 47705.088000 vs 47705.088000 mJ, relative error 3.730e-14
+[PASS] E_total(w48_d100) matches the closed form -- 50757.888000 vs 50757.888000 mJ, relative error 3.508e-14
+[PASS] E_total(w64_d010) matches the closed form -- 39767.808000 vs 39767.808000 mJ, relative error 4.020e-13
+[PASS] E_total(w64_d025) matches the closed form -- 41599.488000 vs 41599.488000 mJ, relative error 4.285e-14
+[PASS] E_total(w64_d050) matches the closed form -- 44652.288000 vs 44652.288000 mJ, relative error 3.975e-14
+[PASS] E_total(w64_d075) matches the closed form -- 47705.088000 vs 47705.088000 mJ, relative error 3.730e-14
+[PASS] E_total(w64_d100) matches the closed form -- 50757.888000 vs 50757.888000 mJ, relative error 3.508e-14
+[PASS] E_total(w96_d010) matches the closed form -- 39767.808000 vs 39767.808000 mJ, relative error 4.020e-13
+[PASS] E_total(w96_d025) matches the closed form -- 41599.488000 vs 41599.488000 mJ, relative error 4.285e-14
+[PASS] E_total(w96_d050) matches the closed form -- 44652.288000 vs 44652.288000 mJ, relative error 3.975e-14
+[PASS] E_total(w96_d075) matches the closed form -- 47705.088000 vs 47705.088000 mJ, relative error 3.730e-14
+[PASS] E_total(w96_d100) matches the closed form -- 50757.888000 vs 50757.888000 mJ, relative error 3.508e-14
 
 ==============================================================================
 3  active-window energy against the closed form
@@ -57,7 +61,7 @@ The power column is written with %.3f, exactly as data/campaign.py writes it, so
 [PASS] E_active(w64_d025) matches the per-cycle closed form -- 12720.000000 vs 12720.000000 mJ, relative error 6.983e-13
 [PASS] E_active(w64_d050) matches the per-cycle closed form -- 25338.240000 vs 25338.240000 mJ, relative error 3.505e-13
 [PASS] E_active(w64_d075) matches the per-cycle closed form -- 37956.480000 vs 37956.480000 mJ, relative error 2.338e-13
-[PASS] at duty 1.00 the active energy is the whole-run energy -- 50646.969600 vs 50646.969600 mJ
+[PASS] at duty 1.00 the active energy is the whole-run energy -- 50757.888000 vs 50757.888000 mJ
 
 ==============================================================================
 4  baseline 1, energy per inference
@@ -66,21 +70,29 @@ The power column is written with %.3f, exactly as data/campaign.py writes it, so
   mean active power (time-wtd)  : 2533.824 mW
   mean active power (sample)    : 2523.648 mW
   mean inference latency        : 0.010000000 s
-  ENERGY PER INFERENCE          : 25.338240000 mJ
+  ENERGY PER INFERENCE E_act/N  : 25.338240000 mJ
+  spec-literal P_act * L        : 25.338240000 mJ (ratio 1.000000000)
   inferences                    : 1000
-  active duration               : 10.000000 s
-  interstitial samples / gaps   : 0 / 0 (widest inter-inference gap 0.000000 s)
-  sleep-window samples in span  : 171
+  declared active duration      : 10.000000 s
+  occupied by inferences        : 10.000000 s (occupancy 1.000000, shortfall 0.000 ms)
+  interstitial samples / gaps   : 0 / 0 (widest inter-inference gap 0.0000 ms)
+  The two energies per inference differ by the phase occupancy alone. The
+  decomposition uses E_act/N, because dividing the same integral the numerator
+  takes a share of is what makes it exact in its three named factors.
 
   variant                       : nominal-rail
   mean active power (time-wtd)  : 2490.000 mW
   mean active power (sample)    : 2480.000 mW
   mean inference latency        : 0.010000000 s
-  ENERGY PER INFERENCE          : 24.900000000 mJ
+  ENERGY PER INFERENCE E_act/N  : 24.900000000 mJ
+  spec-literal P_act * L        : 24.900000000 mJ (ratio 1.000000000)
   inferences                    : 1000
-  active duration               : 10.000000 s
-  interstitial samples / gaps   : 0 / 0 (widest inter-inference gap 0.000000 s)
-  sleep-window samples in span  : 171
+  declared active duration      : 10.000000 s
+  occupied by inferences        : 10.000000 s (occupancy 1.000000, shortfall 0.000 ms)
+  interstitial samples / gaps   : 0 / 0 (widest inter-inference gap 0.0000 ms)
+  The two energies per inference differ by the phase occupancy alone. The
+  decomposition uses E_act/N, because dividing the same integral the numerator
+  takes a share of is what makes it exact in its three named factors.
 
 [PASS] the mean active power is the closed-form active energy over the active duration -- 2533.824000 vs 2533.824000 mW
 [PASS] the nominal-rail variant is below the measured variant by exactly the voltage ratio -- ratio 1.017600000 vs 1.017600000
@@ -93,10 +105,10 @@ The power column is written with %.3f, exactly as data/campaign.py writes it, so
   mean power                : 1913.088 mW
   sample sd                 : 0.000 mW
   min / max                 : 1913.088 / 1913.088 mW
-  samples / duration        : 400 / 19.950 s
+  samples / duration        : 401 / 20.000 s
   current quantum as power  : 40.704 mW
   foreign CPU busy fraction : 0.080000 (measured, not assumed absent)
-  die temperature           : 45.025 degC
+  die temperature           : 45.050 degC
   THIS IS A BACKGROUND FLOOR ON A SHARED MACHINE, not an idle floor. The board
   had logged-in users, a desktop browser and a load average above 1 at campaign
   time. The contamination is the number above, not a caveat.
@@ -119,18 +131,18 @@ The power column is written with %.3f, exactly as data/campaign.py writes it, so
 [PASS] the three components sum to the cycle energy -- 1913.0880 + 28.1336 + 2505.6904 = 4446.9120 mJ
 [PASS] the measured ramp excess is within 15 per cent of the declared excess energy -- 28.133647 vs 30.528000 mJ over 10 wake(s); the difference is the trapezoid straddling the step at the window edge and the steady level being estimated from the samples after it
 [PASS] the ramp is reported as NOT separable at duty 0.10 rather than estimated -- the 0.2 s active phase is shorter than three settling windows
-[PASS] the analytic model is within 10 per cent of ground truth on all 15 grid cells -- largest relative gap 0.0025
+[PASS] the analytic model is within 10 per cent of ground truth on all 15 grid cells -- largest relative gap 0.0046
 
 ==============================================================================
 6  the measured rail-accounting ratio against load
 ==============================================================================
   cells in the fit              : 20
-  load range                    : 1913.088 to 2538.695 mW
-  ratio range                   : 0.102870 to 0.105100
-  slope                         : 3.578929e-06 per mW
-  intercept (EXTRAPOLATED)      : 0.096089
-  R^2                           : 0.994185
-  largest absolute residual     : 0.000075
+  load range                    : 1913.088 to 2537.894 mW
+  ratio range                   : 0.102870 to 0.105098
+  slope                         : 3.580230e-06 per mW
+  intercept (EXTRAPOLATED)      : 0.096086
+  R^2                           : 0.994190
+  largest absolute residual     : 0.000074
   This is a RAIL-ACCOUNTING RATIO, not a converter efficiency. It is the share of
   the measured input-rail energy that the two instrumented downstream channels
   account for. It omits every rail the INA3221 does not instrument and it includes
@@ -138,31 +150,31 @@ The power column is written with %.3f, exactly as data/campaign.py writes it, so
   and nothing here should be read as one.
 
 [PASS] the fit covers every cell of the campaign -- 20 cell(s)
-[PASS] the ratio is between 0 and 1 on every cell -- range 0.102870 to 0.105100
+[PASS] the ratio is between 0 and 1 on every cell -- range 0.102870 to 0.105098
 
 ==============================================================================
 7  baseline 3, ground truth, and the between-run interval
 ==============================================================================
   cell                          : w64_d050
-  E_total (whole run)           : 44556.633600 mJ
-  duration / mean power         : 19.950 s / 2233.415 mW
+  E_total (whole run)           : 44652.288000 mJ
+  duration / mean power         : 20.000 s / 2232.614 mW
   inferences / accepted         : 1000 / 307
   acceptance rate (counted)     : 0.307000
   reject reasons                : accept=307, area_out=40, border=56, low_score=557, no_candidate=40
-  ENERGY PER USEFUL DECISION    : 145.135614 mJ
-  energy per inference, whole   : 44.556634 mJ
+  ENERGY PER USEFUL DECISION    : 145.447192 mJ
+  energy per inference, whole   : 44.652288 mJ
   current quantum as power      : 40.704 mW (40 mW at the 5 V nominal)
 
-[PASS] the ground-truth numerator is the closed-form whole-run energy -- 44556.633600 vs 44556.633600 mJ
+[PASS] the ground-truth numerator is the closed-form whole-run energy -- 44652.288000 vs 44652.288000 mJ
 [PASS] the ground-truth denominator is the closed-form accepted count -- 307 == 307
   repeats                       : w64_d050, w64_d050_rep2, w64_d050_rep3, w64_d050_rep4
-  values                        : 145.1356, 145.1356, 145.1356, 145.1356 mJ per useful decision
-  mean                          : 145.135614 mJ
+  values                        : 145.4472, 145.4472, 145.4472, 145.4472 mJ per useful decision
+  mean                          : 145.447192 mJ
   sample sd (ddof=1)            : 0.000000 mJ
   range                         : 0.000000 mJ
   t critical (95%, n=4)    : 3.1824
   HALF-WIDTH                    : 0.000000 mJ
-  interval                      : [145.135614, 145.135614] mJ
+  interval                      : [145.447192, 145.447192] mJ
   A within-run bootstrap over samples would be WRONG here: the INA3221 averages
   512 conversions in hardware, so neighbouring samples are not independent, and
   the quantity whose uncertainty matters is run-to-run, not sample-to-sample.
@@ -178,42 +190,56 @@ The power column is written with %.3f, exactly as data/campaign.py writes it, so
   inferences counted                : 1000
   useful decisions counted          : 307
   acceptance rate a                 : 0.307000
-  whole-run energy E_total          : 44556.633600 mJ
-  active-window energy E_active     : 25338.240000 mJ
-  active duration T_act             : 10.000000 s
+  run energy E_total                : 44652.288000 mJ
+  declared-active energy E_active   : 25338.240000 mJ
+  declared-sleep energy E_sleep     : 19314.048000 mJ
+  partition residual                : +2.220e-16
+  active duration                   : 10.000000 s
   mean inference latency L          : 0.010000000 s
   energy per inference (baseline 1) : 25.338240000 mJ
-  energy per useful decision        : 145.135614 mJ
-  HEADLINE understatement factor F  : 5.727928
-    rejection factor 1/a            : 3.257329
-    duty-cycle factor E_tot/E_act   : 1.758474
-    rail-voltage factor P_m/P_q     : 1.000000
-    residual factor                 : 1.000000
-    accounting factor T_act/(N*L)   : 1.000000
-    closure error of the above      : -1.110e-16
-[PASS] the four factors multiply to F (measured-active) -- product 5.727927998641 vs F 5.727927998641
-[PASS] the residual equals T_act/(N*L), computed independently (measured-active) -- residual 1.000000000000 vs accounting 1.000000000000, closure error -1.110e-16
+    spec-literal P_act * L          : 25.338240000 mJ
+  energy per useful decision        : 145.447192 mJ
+  HEADLINE understatement factor F  : 5.740225
+    rejection factor N/A            : 3.257329
+    duty-cycle factor E_tot/E_act   : 1.762249
+    rail-voltage factor             : 1.000000
+    closure error of the three      : 0.000e+00
+  DIAGNOSTIC, not a factor:
+    declared active time            : 10.000000 s
+    occupied by inferences          : 10.000000 s (occupancy 1.000000)
+    spanned by merged intervals     : 10.000000 s
+    shortfall / overshoot           : 0.000 ms / 0.000 ms
+[PASS] the three named factors multiply to F exactly (measured-active) -- product 5.740224742621 vs F 5.740224742621; there is no residual term under the declared-phase partition
+[PASS] the declared phases partition the run (measured-active) -- partition residual 2.220e-16; the synthetic run ends exactly on a cycle boundary, so it is zero here. The measured run ends a few milliseconds later and tests/test_measured_campaign.py bounds that tail.
+[PASS] the phase occupancy is 1 on the synthetic pipeline (measured-active) -- occupancy 1.000000000; a DIAGNOSTIC, not a factor. On the measured campaign it is 0.999723.
 
   cell                              : w64_d050
   variant of energy per inference   : nominal-rail
   inferences counted                : 1000
   useful decisions counted          : 307
   acceptance rate a                 : 0.307000
-  whole-run energy E_total          : 44556.633600 mJ
-  active-window energy E_active     : 25338.240000 mJ
-  active duration T_act             : 10.000000 s
+  run energy E_total                : 44652.288000 mJ
+  declared-active energy E_active   : 25338.240000 mJ
+  declared-sleep energy E_sleep     : 19314.048000 mJ
+  partition residual                : +2.220e-16
+  active duration                   : 10.000000 s
   mean inference latency L          : 0.010000000 s
   energy per inference (baseline 1) : 24.900000000 mJ
-  energy per useful decision        : 145.135614 mJ
-  HEADLINE understatement factor F  : 5.828740
-    rejection factor 1/a            : 3.257329
-    duty-cycle factor E_tot/E_act   : 1.758474
-    rail-voltage factor P_m/P_q     : 1.017600
-    residual factor                 : 1.000000
-    accounting factor T_act/(N*L)   : 1.000000
-    closure error of the above      : -1.110e-16
-[PASS] the four factors multiply to F (nominal-rail) -- product 5.828739531417 vs F 5.828739531417
-[PASS] the residual equals T_act/(N*L), computed independently (nominal-rail) -- residual 1.000000000000 vs accounting 1.000000000000, closure error -1.110e-16
+    spec-literal P_act * L          : 24.900000000 mJ
+  energy per useful decision        : 145.447192 mJ
+  HEADLINE understatement factor F  : 5.841253
+    rejection factor N/A            : 3.257329
+    duty-cycle factor E_tot/E_act   : 1.762249
+    rail-voltage factor             : 1.017600
+    closure error of the three      : 0.000e+00
+  DIAGNOSTIC, not a factor:
+    declared active time            : 10.000000 s
+    occupied by inferences          : 10.000000 s (occupancy 1.000000)
+    spanned by merged intervals     : 10.000000 s
+    shortfall / overshoot           : 0.000 ms / 0.000 ms
+[PASS] the three named factors multiply to F exactly (nominal-rail) -- product 5.841252698091 vs F 5.841252698091; there is no residual term under the declared-phase partition
+[PASS] the declared phases partition the run (nominal-rail) -- partition residual 2.220e-16; the synthetic run ends exactly on a cycle boundary, so it is zero here. The measured run ends a few milliseconds later and tests/test_measured_campaign.py bounds that tail.
+[PASS] the phase occupancy is 1 on the synthetic pipeline (nominal-rail) -- occupancy 1.000000000; a DIAGNOSTIC, not a factor. On the measured campaign it is 0.999723.
 
 
 ==============================================================================
@@ -222,5 +248,5 @@ The power column is written with %.3f, exactly as data/campaign.py writes it, so
   Nothing here is a measurement. The agreement above says the integrator, the window derivation and the decomposition compute what their docstrings say, on a trace whose truth is known. It says nothing about any board. The measured figures are in validate_measured_headline.py, validate_measured_baselines.py and validate_measured_learned.py, which read data/traces/ and refuse, exiting non-zero, if it is absent or incomplete.
 
 
-CHECKS RUN: 38
+CHECKS RUN: 41
 FAILED CHECKS (0): none

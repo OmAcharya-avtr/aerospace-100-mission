@@ -23,14 +23,19 @@ from scipy import stats
 from .energy import (
     GAP_TOLERANCE_S,
     Interstitial,
+    PhaseOccupancy,
     WindowEnergy,
     active_windows,
     clip_series,
+    declared_active_energy,
+    declared_phases,
+    declared_sleep_energy,
     energy_over_windows,
     interstitial_samples,
-    sleep_energy,
+    merge_intervals,
+    phase_occupancy,
+    run_energy,
     trapezoid_energy_mj,
-    whole_run_energy,
 )
 from .trace import (
     FLOOR_CELL,
@@ -70,7 +75,7 @@ class EnergyPerInference:
     variant
         ``"measured-active"`` or ``"nominal-rail"``.
     mean_active_power_mw
-        Mean power over the run's active windows, mW. This is the
+        Mean power over the run's DECLARED active phases, mW. This is the
         TIME-WEIGHTED mean ``active energy / active duration``, which is the
         mean an energy integral implies; the arithmetic sample mean is reported
         beside it in :attr:`sample_mean_active_power_mw` so a reader can see
@@ -78,8 +83,22 @@ class EnergyPerInference:
     mean_latency_s
         Mean inference latency ``mean(t_end - t_start)``, seconds.
     energy_mj
-        ``mean_active_power_mw * mean_latency_s``, mJ per inference. No idle, no
-        ramp, no rejection: that is the point of it.
+        ``E_active / N``: the run's declared-active energy divided by the
+        inference count, mJ per inference. No idle, no ramp, no rejection: that
+        is the point of it. This is the quantity the decomposition divides by,
+        and dividing the SAME integral the numerator takes a share of is what
+        makes the decomposition exact in its named factors.
+    spec_literal_energy_mj
+        ``mean_active_power_mw * mean_latency_s``, which is the specification's
+        literal wording. It differs from :attr:`energy_mj` by the ratio of the
+        declared active duration to the summed inference latency -- the
+        pipeline's phase occupancy, reported in :attr:`occupancy` -- which on
+        the measured campaign is about 0.03 per cent. Both are reported; the
+        decomposition uses the first.
+    occupancy
+        How well the inferences filled the declared active phase. It used to be
+        a factor of the decomposition and is now what it always was: a
+        diagnostic.
     n_inferences
         Inferences counted in the run.
     active_duration_s
@@ -100,8 +119,10 @@ class EnergyPerInference:
     sample_mean_active_power_mw: float
     mean_latency_s: float
     energy_mj: float
+    spec_literal_energy_mj: float
     n_inferences: int
     active_duration_s: float
+    occupancy: PhaseOccupancy
     interstitial: Interstitial
     n_sleep_samples: int
 
@@ -131,8 +152,7 @@ def energy_per_inference(cell: Cell, variant: str = "measured-active") -> Energy
     if variant not in VARIANTS:
         raise ValueError(f"variant must be one of {sorted(VARIANTS)}, got {variant!r}")
     decisions = cell.require_decisions()
-    starts, ends = active_windows(decisions)
-    window = energy_over_windows(cell.power, starts, ends, column=VARIANTS[variant])
+    window = declared_active_energy(cell, column=VARIANTS[variant])
     if not np.isfinite(window.mean_power_mw):
         raise ValueError(
             f"cell {cell.label!r} has no measurable active duration, so a mean active "
@@ -144,9 +164,11 @@ def energy_per_inference(cell: Cell, variant: str = "measured-active") -> Energy
         mean_active_power_mw=window.mean_power_mw,
         sample_mean_active_power_mw=window.sample_mean_power_mw,
         mean_latency_s=latency,
-        energy_mj=window.mean_power_mw * latency,
+        energy_mj=window.energy_mj / decisions.inferences,
+        spec_literal_energy_mj=window.mean_power_mw * latency,
         n_inferences=decisions.inferences,
         active_duration_s=window.duration_s,
+        occupancy=phase_occupancy(cell),
         interstitial=interstitial_samples(cell),
         n_sleep_samples=window.n_between_windows,
     )
@@ -194,8 +216,9 @@ def floor_power(campaign: Campaign, cell_label: str = FLOOR_CELL) -> FloorPower:
             "The floor is the one run with the sampler and monitor running and the "
             "pipeline not running."
         )
-    whole = whole_run_energy(cell.power)
-    power = cell.power.vdd_in_mw
+    whole = run_energy(cell)
+    inside = (cell.power.t >= cell.t0_mono) & (cell.power.t <= cell.t1_mono)
+    power = cell.power.vdd_in_mw[inside]
     return FloorPower(
         cell=cell_label,
         mean_mw=whole.mean_power_mw,
@@ -204,7 +227,7 @@ def floor_power(campaign: Campaign, cell_label: str = FLOOR_CELL) -> FloorPower:
         max_mw=float(power.max()),
         n_samples=int(power.size),
         duration_s=whole.duration_s,
-        quantisation_mw=float(np.mean(cell.power.quantisation_floor_mw)),
+        quantisation_mw=float(np.mean(cell.power.quantisation_floor_mw[inside])),
         foreign_busy_mean=float(np.mean(cell.monitor.cpu_busy_fraction)),
         tj_mean_c=float(np.mean(cell.monitor.tj_c)),
     )
@@ -260,12 +283,16 @@ def ramp_energy(cell: Cell, window_s: float = RAMP_WINDOW_S) -> RampEnergy:
     """
     if window_s <= 0.0:
         raise ValueError(f"window_s must be positive, got {window_s}")
-    decisions = cell.require_decisions()
-    starts, ends = active_windows(decisions)
+    # The declared phases of consecutive cycles ABUT at duty 1.00, and a wake
+    # is a transition from sleep to active, not a cycle boundary. Merging them
+    # first makes the wake count 1 for a duty-1.00 run and one per cycle below
+    # it, which is what the per-wake charging in duty_cycle_model relies on.
+    (phase_lo, phase_hi), _sleep = declared_phases(cell)
+    starts, ends = merge_intervals(phase_lo, phase_hi, GAP_TOLERANCE_S)
     widths = ends - starts
-    separable = bool(np.all(widths >= RAMP_SEPARABLE_MIN_S)) and starts.size > 0
+    separable = bool(starts.size > 0 and np.all(widths >= RAMP_SEPARABLE_MIN_S))
     if not separable:
-        window = energy_over_windows(cell.power, starts, ends)
+        window = declared_active_energy(cell)
         return RampEnergy(
             separable=False,
             energy_mj=0.0,
@@ -465,18 +492,11 @@ def rail_accounting_curve(campaign: Campaign) -> RailAccounting:
     loads: list[float] = []
     ratios: list[float] = []
     for label, cell in sorted(campaign.cells.items()):
-        whole = whole_run_energy(cell.power)
-        downstream = energy_over_windows(
-            cell.power,
-            np.asarray([cell.power.t[0]]),
-            np.asarray([cell.power.t[-1]]),
-            column="cpu_gpu_cv_mw",
-        ).energy_mj + energy_over_windows(
-            cell.power,
-            np.asarray([cell.power.t[0]]),
-            np.asarray([cell.power.t[-1]]),
-            column="soc_mw",
-        ).energy_mj
+        whole = run_energy(cell)
+        downstream = (
+            run_energy(cell, column="cpu_gpu_cv_mw").energy_mj
+            + run_energy(cell, column="soc_mw").energy_mj
+        )
         if whole.energy_mj <= 0.0:
             continue
         labels.append(label)
@@ -542,7 +562,7 @@ def ground_truth(cell: Cell) -> GroundTruth:
         If the cell accepted no decision, naming its reject-reason histogram.
     """
     decisions = cell.require_decisions()
-    whole = whole_run_energy(cell.power)
+    whole = run_energy(cell)
     accepted = decisions.accepted_count
     if accepted == 0:
         raise ValueError(
@@ -652,15 +672,13 @@ def between_run_spread(
 
 
 def mean_active_power_mw(cell: Cell) -> float:
-    """Time-weighted mean rail power over the cell's active windows, mW.
+    """Time-weighted mean rail power over the cell's DECLARED active phases, mW.
 
     This is the quantity the window dataset of :mod:`powerenvelope.windows`
     targets and the quantity the two-term cycle-energy form consumes, so a
     predictor of it can be substituted straight into Baseline 2.
     """
-    decisions = cell.require_decisions()
-    starts, ends = active_windows(decisions)
-    return energy_over_windows(cell.power, starts, ends).mean_power_mw
+    return declared_active_energy(cell).mean_power_mw
 
 
 def two_term_cycle_energy_mj(
@@ -763,6 +781,11 @@ def floor_occupancy_regression(
     seconds: list[float] = []
     busy: list[float] = []
     for t, fraction in zip(monitor.t, monitor.cpu_busy_fraction, strict=True):
+        # Only seconds that lie wholly inside the RUN. A monitor sample whose
+        # covered second straddles t0_mono or t1_mono reports occupancy partly
+        # from outside the run, and the sampler brackets the run deliberately.
+        if t - monitor.sample_interval_s < cell.t0_mono or t > cell.t1_mono:
+            continue
         inside = (power.t > t - monitor.sample_interval_s) & (power.t <= t)
         if int(inside.sum()) >= 5:
             seconds.append(float(power.vdd_in_mw[inside].mean()))
@@ -872,7 +895,7 @@ def run_order_rows(campaign: Campaign) -> list[RunOrderRow]:
                 tj_mean_c=float(monitor.tj_c.mean()),
                 load1_mean=float(monitor.load1.mean()),
                 clk_mean_khz=float(np.nanmean(monitor.clk_mean_khz)),
-                mean_power_mw=whole_run_energy(cell.power).mean_power_mw,
+                mean_power_mw=run_energy(cell).mean_power_mw,
             )
         )
     return rows
@@ -885,15 +908,16 @@ def sleep_power_mw(cell: Cell) -> tuple[float, float]:
     rather than the floor run's. Returns ``(nan, nan)`` for a cell with no sleep
     window, which is every duty-1.00 cell.
     """
-    decisions = cell.require_decisions()
-    starts, ends = active_windows(decisions)
-    inactive = np.ones(cell.power.t.size, dtype=bool)
-    for low, high in zip(starts, ends, strict=True):
-        inactive &= ~((cell.power.t >= low) & (cell.power.t <= high))
-    if not inactive.any():
+    _active, (low, high) = declared_phases(cell)
+    if low.size == 0:
         return float("nan"), float("nan")
-    window = sleep_energy(cell)
-    return window.mean_power_mw, float(cell.power.vdd_in_mw[inactive].min())
+    inside = np.zeros(cell.power.t.size, dtype=bool)
+    for start, end in zip(low, high, strict=True):
+        inside |= (cell.power.t >= start) & (cell.power.t <= end)
+    if not inside.any():
+        return float("nan"), float("nan")
+    window = declared_sleep_energy(cell)
+    return window.mean_power_mw, float(cell.power.vdd_in_mw[inside].min())
 
 
 def active_window_summary(cell: Cell) -> WindowEnergy:

@@ -78,8 +78,14 @@ def test_imputed_value_is_the_floor_cells_own_occupancy(campaign):
     assert np.allclose(imputed, windows.floor_foreign_busy, rtol=0.0, atol=1e-12)
 
 
-def test_pipeline_free_mask_is_empty_at_full_duty(campaign):
-    assert not np.any(pipeline_free_monitor_mask(campaign.require("w64_d100")))
+def test_pipeline_free_mask_at_full_duty_finds_only_the_bracket(campaign):
+    # The declared phases cover the whole run at duty 1.00, so the only
+    # pipeline-free monitor second is the one the monitor records after the
+    # run ends -- the campaign brackets the run and so does the generator.
+    cell = campaign.require("w64_d100")
+    free = pipeline_free_monitor_mask(cell)
+    assert int(free.sum()) == 1
+    assert float(cell.monitor.t[free][0]) > cell.t1_mono
 
 
 def test_pipeline_free_mask_is_non_empty_at_low_duty(campaign):

@@ -16,10 +16,45 @@ rounding, not agreement with the true continuous integral: the INA3221 averages
 512 conversions in hardware, so the samples are already a low-pass view of the
 rail and no quadrature rule recovers what the averaging removed.
 
-Active windows
---------------
+The run, and why it is not the sampler's span
+---------------------------------------------
 
-An active window is derived, not declared: the inference intervals
+**A run is ``[t0_mono, t1_mono]``, the interval the orchestrator records in
+``manifest.json``: 38 cycles of 2.0 s beginning at ``t0_mono``.** The sampler's
+span is deliberately WIDER. The campaign starts the sampler about half a second
+before ``t0_mono`` and gives it ``duration + 1.0`` s, so that it brackets the
+run and no edge sample is missing. On the measured reference cell the sampler
+spans 76.950 s against a run of 76.001 s.
+
+Integrating the sampler's full span and calling the result the run's energy
+charges about 0.95 s of lead-in and tail-out to decisions that were not taken in
+it -- 1.1 per cent on this campaign. :func:`whole_run_energy` integrates the
+SAMPLER SPAN and is kept only as a diagnostic; :func:`run_energy` integrates the
+run and is what every reported figure uses.
+
+The declared phase partition
+----------------------------
+
+``E_active`` and ``E_sleep`` partition the run's cycles exactly. For cycle
+``c`` the **declared** active phase is
+``[t0 + c*CYCLE, t0 + c*CYCLE + duty*CYCLE]`` and the sleep phase is the rest of
+that cycle, with ``P`` linearly interpolated at every boundary. The two sum to
+the energy over ``[t0, t0 + cycles*CYCLE]``; the run may extend a few
+milliseconds past the last cycle, and that tail is the whole of the closure
+residual, which ``validate_measured_baselines.py`` reports per cell with its
+worst value named.
+
+Using the DECLARED phases rather than the merged inference intervals is what
+makes the decomposition exact: ``F = (N/A) * (E_total/E_active)`` with no
+residual term. How well the pipeline's inferences actually filled the declared
+phase is then a separate, reported diagnostic -- see :func:`phase_occupancy` --
+and not a factor quietly absorbing the difference.
+
+Active windows from the decisions
+---------------------------------
+
+An active window derived from the decisions is used for the diagnostic and for
+the interstitial count, never for a reported energy. The inference intervals
 ``[t_start, t_end]`` from ``decisions_<cell>.csv`` are merged and intersected
 with the sampler's timestamps. The two processes share ``CLOCK_MONOTONIC``,
 which is a system-wide clock, so comparing a timestamp taken in the sampler with
@@ -61,7 +96,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .trace import Cell, DecisionTrace, PowerTrace
+from .trace import CYCLE_S, Cell, DecisionTrace, PowerTrace
 
 #: Nominal rail sampler period, seconds, as the campaign declares it.
 SAMPLE_PERIOD_S = 0.05
@@ -377,12 +412,143 @@ def interstitial_samples(
     return Interstitial(n_samples=total, n_gaps=gaps, max_gap_s=widest)
 
 
-def whole_run_energy(power: PowerTrace, column: str = "vdd_in_mw") -> WindowEnergy:
-    """Integrate one power column over the whole sampled run, sleep included.
+def run_bounds(cell: Cell) -> tuple[float, float]:
+    """``(t0_mono, t1_mono)`` of the run, from the manifest's own record."""
+    return cell.t0_mono, cell.t1_mono
+
+
+def declared_phases(
+    cell: Cell, cycle_s: float = CYCLE_S
+) -> tuple[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]]:
+    """The declared active and sleep phases of every cycle of the run.
+
+    Returns ``((active_lo, active_hi), (sleep_lo, sleep_hi))``. The phases are
+    taken from the DECLARED cycle grid beginning at ``t0_mono``, not from the
+    decisions, so together they tile ``[t0, t0 + cycles*cycle_s]`` exactly with
+    no gap and no overlap. A duty of 0 gives no active phase and a duty of 1
+    gives no sleep phase.
+
+    Raises
+    ------
+    ValueError
+        On a non-positive cycle length or a duty outside ``[0, 1]``.
+    """
+    if cycle_s <= 0.0:
+        raise ValueError(f"cycle_s must be positive, got {cycle_s}")
+    if not 0.0 <= cell.duty <= 1.0:
+        raise ValueError(f"duty must be in [0, 1], got {cell.duty}")
+    start = cell.t0_mono
+    index = np.arange(cell.cycles, dtype=np.float64)
+    cycle_start = start + index * cycle_s
+    active_end = cycle_start + cell.duty * cycle_s
+    cycle_end = cycle_start + cycle_s
+    active = (cycle_start[active_end > cycle_start], active_end[active_end > cycle_start])
+    sleep = (active_end[cycle_end > active_end], cycle_end[cycle_end > active_end])
+    return active, sleep
+
+
+def run_energy(cell: Cell, column: str = "vdd_in_mw") -> WindowEnergy:
+    """Integrate one power column over the RUN, ``[t0_mono, t1_mono]``.
 
     This is the numerator of the energy per useful decision. The sleep windows
     are in it on purpose: see the measurement model in
-    :mod:`powerenvelope.trace`.
+    :mod:`powerenvelope.trace`. The sampler's wider bracketing span is NOT in
+    it: see this module's docstring.
+    """
+    low, high = run_bounds(cell)
+    return energy_over_windows(
+        cell.power, np.asarray([low]), np.asarray([high]), column=column
+    )
+
+
+def declared_active_energy(
+    cell: Cell, cycle_s: float = CYCLE_S, column: str = "vdd_in_mw"
+) -> WindowEnergy:
+    """Integrate one power column over the run's declared ACTIVE phases."""
+    (low, high), _sleep = declared_phases(cell, cycle_s)
+    return energy_over_windows(cell.power, low, high, column=column)
+
+
+def declared_sleep_energy(
+    cell: Cell, cycle_s: float = CYCLE_S, column: str = "vdd_in_mw"
+) -> WindowEnergy:
+    """Integrate one power column over the run's declared SLEEP phases."""
+    _active, (low, high) = declared_phases(cell, cycle_s)
+    return energy_over_windows(cell.power, low, high, column=column)
+
+
+@dataclass(frozen=True)
+class PhaseOccupancy:
+    """How well the pipeline's inferences filled the DECLARED active phase.
+
+    This used to be a factor of the decomposition, absorbing the difference
+    between the declared phase and whatever the loop actually did. Under the
+    declared-phase partition the decomposition is exact in its named factors and
+    this is what it always was: a diagnostic that the pipeline ran when it said
+    it would.
+
+    Attributes
+    ----------
+    declared_s
+        ``cycles * duty * cycle_s``: the active time the configuration declares.
+    occupied_s
+        ``sum(t_end - t_start)``: the time inferences actually occupied. It is
+        SHORTER than declared, because the loop checks the clock before starting
+        an inference and does not start one that would run past the boundary,
+        and because a few microseconds pass between consecutive inferences.
+    spanned_s
+        Summed span of the merged inference intervals, first ``t_start`` to last
+        ``t_end`` per cycle. It is LONGER than occupied by the inter-inference
+        gaps, and can exceed the declared time because the last inference of a
+        phase starts before the boundary and finishes after it.
+    occupancy
+        ``occupied_s / declared_s``.
+    overshoot_s
+        ``spanned_s - declared_s``: positive when the last inference straddles
+        the declared boundary.
+    shortfall_s
+        ``declared_s - occupied_s``: positive when the loop leaves the end of
+        the phase unfilled.
+    """
+
+    declared_s: float
+    occupied_s: float
+    spanned_s: float
+    occupancy: float
+    overshoot_s: float
+    shortfall_s: float
+
+
+def phase_occupancy(cell: Cell, cycle_s: float = CYCLE_S) -> PhaseOccupancy:
+    """Measure how the pipeline's inferences filled the declared active phase."""
+    decisions = cell.require_decisions()
+    declared = cell.cycles * cell.duty * cycle_s
+    occupied = float(np.sum(decisions.latency_s))
+    low, high = active_windows(decisions)
+    spanned = float(np.sum(high - low))
+    return PhaseOccupancy(
+        declared_s=declared,
+        occupied_s=occupied,
+        spanned_s=spanned,
+        occupancy=occupied / declared if declared else float("nan"),
+        overshoot_s=spanned - declared,
+        shortfall_s=declared - occupied,
+    )
+
+
+def whole_run_energy(power: PowerTrace, column: str = "vdd_in_mw") -> WindowEnergy:
+    """Integrate one power column over the SAMPLER'S SPAN. A diagnostic only.
+
+    **This is not the run.** The campaign starts the sampler about half a second
+    before ``t0_mono`` and gives it ``duration + 1.0`` s so that it brackets the
+    run; integrating all of it charges the lead-in and tail-out to decisions
+    that were not taken in them, which on the measured campaign is 1.1 per cent
+    of the energy. Use :func:`run_energy`, which takes ``[t0_mono, t1_mono]``
+    from the manifest.
+
+    It is kept because the difference between the two is worth reporting, and
+    because the rail-accounting ratio is a ratio of two integrals over the same
+    span and is insensitive to which span that is.
     """
     if power.t.size < 2:
         raise ValueError("a run with fewer than two rail samples has no measured energy")
@@ -392,40 +558,26 @@ def whole_run_energy(power: PowerTrace, column: str = "vdd_in_mw") -> WindowEner
 
 
 def cell_energy(cell: Cell, column: str = "vdd_in_mw") -> tuple[WindowEnergy, WindowEnergy]:
-    """``(whole run, active windows)`` energy for one cell.
+    """``(run, declared active phases)`` energy for one cell.
 
-    Raises
-    ------
-    TraceDataAbsentError
-        For the background floor cell, which has no inference intervals and
-        therefore no active windows.
+    Both integrals are over the run and its declared cycle grid, which is
+    definition C: see this module's docstring. The floor cell is allowed here --
+    it has a run and a zero-duty phase grid, so its active energy is zero over
+    no windows.
     """
-    decisions = cell.require_decisions()
-    starts, ends = active_windows(decisions)
-    return whole_run_energy(cell.power, column=column), energy_over_windows(
-        cell.power, starts, ends, column=column
-    )
+    return run_energy(cell, column=column), declared_active_energy(cell, column=column)
 
 
 def sleep_energy(cell: Cell, column: str = "vdd_in_mw") -> WindowEnergy:
-    """Energy in the complement of the active windows, within the sampled span.
+    """Energy in the run's declared SLEEP phases. The partner of :func:`cell_energy`.
 
-    The complement is taken against the sampler's own span and contains the
-    sleep windows together with any interstitial gap longer than
-    :data:`GAP_TOLERANCE_S`. Because :func:`clip_series` interpolates every
-    endpoint on the same piecewise-linear interpolant that the trapezoid rule
-    integrates, and because the active windows and this complement share those
-    endpoints, the active energy plus this energy equals the whole-run energy to
-    within floating rounding. That identity is a property test, not an
-    assumption: ``tests/test_properties.py`` checks it with Hypothesis.
+    Because :func:`clip_series` interpolates every endpoint on the same
+    piecewise-linear interpolant the trapezoid rule integrates, and because the
+    declared active and sleep phases share those endpoints and tile the cycles
+    exactly, the two energies sum to the energy over
+    ``[t0, t0 + cycles*cycle_s]``. The run may run a few milliseconds past the
+    last cycle, and that tail is the whole of the residual against
+    :func:`run_energy`. ``validate_measured_baselines.py`` reports it per cell
+    with its worst value named, and ``tests/test_energy.py`` bounds it.
     """
-    decisions = cell.require_decisions()
-    starts, ends = active_windows(decisions)
-    edges = [float(cell.power.t[0])]
-    for lo, hi in zip(starts, ends, strict=True):
-        edges.extend((float(lo), float(hi)))
-    edges.append(float(cell.power.t[-1]))
-    gap_lo = np.asarray(edges[0::2], dtype=np.float64)
-    gap_hi = np.asarray(edges[1::2], dtype=np.float64)
-    keep = gap_hi > gap_lo
-    return energy_over_windows(cell.power, gap_lo[keep], gap_hi[keep], column=column)
+    return declared_sleep_energy(cell, column=column)

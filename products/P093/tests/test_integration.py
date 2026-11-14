@@ -97,8 +97,9 @@ def test_headline_decomposes_for_every_pipeline_cell(whole):
     for cell in whole.pipeline_cells():
         for variant in ("measured-active", "nominal-rail"):
             result = decompose(cell, variant=variant)
-            product = result.product_of_named_factors() * result.residual_factor
-            assert product == pytest.approx(result.factor, rel=1e-12, abs=0.0)
+            assert result.product_of_named_factors() == pytest.approx(
+                result.factor, rel=1e-12, abs=0.0
+            )
             assert result.factor > 1.0
 
 

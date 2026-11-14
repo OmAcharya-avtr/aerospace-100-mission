@@ -5,57 +5,56 @@ The factor
 
 ``F = (energy per useful decision) / (energy per inference)``
 
-Both numbers are measured on the same run. The numerator is Baseline 3: the
-trapezoidal integral of the measured rail power over the whole run, sleep
-windows included, divided by the counted accepted decisions. The denominator is
-Baseline 1: the mean active rail power times the mean inference latency.
+Both numbers are measured on the same run, and both are shares of the same two
+integrals, which is what makes the decomposition exact:
+
+* the numerator is ``E_total / A`` -- the trapezoidal integral of the measured
+  rail power over the **run**, ``[t0_mono, t1_mono]``, sleep windows included,
+  divided by the counted accepted decisions;
+* the denominator is ``E_active / N`` -- the same integral restricted to the
+  run's **declared** active phases, divided by the counted inferences.
 
 ``F`` is reported whatever its value, including a value near 1, which would say
 the quoted unit is adequate for this pipeline on this board.
 
-The decomposition
------------------
-
-Write ``a`` for the counted acceptance rate, ``E_total`` for the whole-run
-energy, ``E_active`` for the energy restricted to the active windows, ``T_act``
-for the measured active duration, ``N`` for the inference count and ``L`` for
-the mean inference latency. With the mean active power defined as the
-time-weighted ``P_act = E_active / T_act``:
+The decomposition, which is exact
+---------------------------------
 
 .. code-block:: text
 
-    F = (E_total / (N*a)) / (P_act * L)
-      = (1/a)                  rejection factor
-      * (E_total / E_active)   duty-cycle factor
-      * (P_act / P_quoted)     nominal-versus-measured active-power error
-      * (T_act / (N * L))      within-active accounting factor
+    F = (E_total / A) / (E_active_quoted / N)
+      = (N / A)                          rejection factor, 1/a
+      * (E_total / E_active)             duty-cycle factor
+      * (E_active / E_active_quoted)     nominal-versus-measured rail error
 
-The first three are the factors the specification names. The fourth is the
-**residual** and it is reported as one, rather than the three being asserted to
-account for ``F``.
+Those are the three factors the specification names and there is **no residual
+term**. The product equals ``F`` identically in exact arithmetic;
+:attr:`Decomposition.closure_error` reports how far it is from ``F`` in floating
+point, which is a rounding residual and nothing else.
 
-What the residual is, and why it is not zero. ``N * L`` is the summed inference
-latency. ``T_act`` is the measured duration of the merged active windows. They
-differ by the time inside an active window that no inference occupied: the
-pipeline's own loop overhead between ``t_end`` of one inference and ``t_start``
-of the next, and the tail of each active phase after the last inference that
-fitted. So the residual is a measurable property of the pipeline's loop, it is
-computed here in closed form as ``T_act / (N * L)``, and
-:attr:`Decomposition.closure_error` reports how far the product of the four
-factors is from ``F``. That last number is a floating-point rounding residual
-and nothing else; if it is ever large, one of the four factors is not what this
-docstring says it is.
+This is a correction. An earlier version of this module integrated the
+**sampler's span** rather than the run, and partitioned the run by the merged
+inference intervals rather than by the declared phases. Both choices put a
+fourth, residual factor into the decomposition -- the ratio of the measured
+active span to the summed inference latency -- which quietly absorbed the
+difference between what the pipeline declared and what it did. Integrating the
+run and partitioning by the declared phases removes that term, and what it was
+measuring becomes a separate, reported diagnostic:
+:class:`powerenvelope.energy.PhaseOccupancy`, carried on
+:attr:`Decomposition.occupancy`, which says how much of the declared active
+phase the inferences actually occupied. On the measured campaign that is 0.9997
+of the declared time, a shortfall of 10.5 ms per 38-cycle run, because the loop
+checks the clock before starting an inference and does not start one that would
+run past the boundary.
 
 For the ``measured-active`` variant the third factor is exactly 1 by
-construction, because the quoted power IS the measured power. It is carried
-anyway so that the two variants are reported in the same shape.
+construction, because the quoted active energy IS the measured active energy.
+It is carried anyway so that the two variants are reported in the same shape.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-
-import numpy as np
 
 from .baselines import (
     VARIANTS,
@@ -64,13 +63,19 @@ from .baselines import (
     energy_per_inference,
     ground_truth,
 )
-from .energy import active_windows, energy_over_windows, whole_run_energy
+from .energy import (
+    PhaseOccupancy,
+    declared_active_energy,
+    declared_sleep_energy,
+    phase_occupancy,
+    run_energy,
+)
 from .trace import Cell
 
 
 @dataclass(frozen=True)
 class Decomposition:
-    """The headline factor and the four factors that account for it.
+    """The headline factor and the three factors that account for it exactly.
 
     Attributes
     ----------
@@ -78,22 +83,26 @@ class Decomposition:
         ``F``, dimensionless. Greater than 1 means energy per inference
         understates energy per useful decision by that factor.
     rejection_factor
-        ``1 / a``.
+        ``N / A``, which is ``1 / a``.
     duty_cycle_factor
-        ``E_total / E_active``.
+        ``E_total / E_active``, both over the run.
     rail_voltage_factor
-        ``P_act_measured / P_act_quoted``: 1 for the ``measured-active``
+        ``E_active_measured / E_active_quoted``: 1 for the ``measured-active``
         variant, and the nominal-versus-measured active-power error for the
         ``nominal-rail`` variant.
-    residual_factor
-        ``F`` divided by the product of the three named factors.
-    accounting_factor
-        ``T_act / (N * L)``, computed independently of ``F``. The residual
-        should equal this.
     closure_error
-        ``residual_factor / accounting_factor - 1``, dimensionless. A
-        floating-point rounding residual; it is reported so that the
-        decomposition is checked rather than claimed.
+        ``product of the three factors / F - 1``. A floating-point rounding
+        residual; it is reported so that the decomposition is checked rather
+        than claimed.
+    occupancy
+        The phase-occupancy diagnostic. NOT a factor of the decomposition: see
+        this module's docstring for why it used to be one and no longer is.
+    partition_residual
+        ``(E_active + E_sleep) / E_total - 1``. The declared active and sleep
+        phases tile the run's cycles exactly, but the run may extend a few
+        milliseconds past the last cycle, and that tail is the whole of this
+        residual. Reported per cell by
+        ``validation/validate_measured_baselines.py``.
     """
 
     cell: str
@@ -102,14 +111,15 @@ class Decomposition:
     rejection_factor: float
     duty_cycle_factor: float
     rail_voltage_factor: float
-    residual_factor: float
-    accounting_factor: float
     closure_error: float
+    occupancy: PhaseOccupancy
+    partition_residual: float
     energy_per_useful_decision_mj: float
     energy_per_inference_mj: float
     acceptance_rate: float
     total_energy_mj: float
     active_energy_mj: float
+    sleep_energy_mj: float
     active_duration_s: float
     mean_latency_s: float
     n_inferences: int
@@ -129,24 +139,32 @@ class Decomposition:
             f"inferences counted                : {self.n_inferences}",
             f"useful decisions counted          : {self.n_accepted}",
             f"acceptance rate a                 : {self.acceptance_rate:.6f}",
-            f"whole-run energy E_total          : {self.total_energy_mj:.6f} mJ",
-            f"active-window energy E_active     : {self.active_energy_mj:.6f} mJ",
-            f"active duration T_act             : {self.active_duration_s:.6f} s",
+            f"run energy E_total                : {self.total_energy_mj:.6f} mJ",
+            f"declared-active energy E_active   : {self.active_energy_mj:.6f} mJ",
+            f"declared-sleep energy E_sleep     : {self.sleep_energy_mj:.6f} mJ",
+            f"partition residual                : {self.partition_residual:+.3e}",
+            f"active duration                   : {self.active_duration_s:.6f} s",
             f"mean inference latency L          : {self.mean_latency_s:.9f} s",
             f"energy per inference (baseline 1) : {self.energy_per_inference_mj:.9f} mJ",
+            f"  spec-literal P_act * L          : {self.baseline1.spec_literal_energy_mj:.9f} mJ",
             f"energy per useful decision        : {self.energy_per_useful_decision_mj:.6f} mJ",
             f"HEADLINE understatement factor F  : {self.factor:.6f}",
-            f"  rejection factor 1/a            : {self.rejection_factor:.6f}",
+            f"  rejection factor N/A            : {self.rejection_factor:.6f}",
             f"  duty-cycle factor E_tot/E_act   : {self.duty_cycle_factor:.6f}",
-            f"  rail-voltage factor P_m/P_q     : {self.rail_voltage_factor:.6f}",
-            f"  residual factor                 : {self.residual_factor:.6f}",
-            f"  accounting factor T_act/(N*L)   : {self.accounting_factor:.6f}",
-            f"  closure error of the above      : {self.closure_error:.3e}",
+            f"  rail-voltage factor             : {self.rail_voltage_factor:.6f}",
+            f"  closure error of the three      : {self.closure_error:.3e}",
+            "DIAGNOSTIC, not a factor:",
+            f"  declared active time            : {self.occupancy.declared_s:.6f} s",
+            f"  occupied by inferences          : {self.occupancy.occupied_s:.6f} s "
+            f"(occupancy {self.occupancy.occupancy:.6f})",
+            f"  spanned by merged intervals     : {self.occupancy.spanned_s:.6f} s",
+            f"  shortfall / overshoot           : {self.occupancy.shortfall_s * 1e3:.3f} ms"
+            f" / {self.occupancy.overshoot_s * 1e3:.3f} ms",
         ]
 
 
 def decompose(cell: Cell, variant: str = "measured-active") -> Decomposition:
-    """The headline factor for one cell, with its four factors.
+    """The headline factor for one cell, with its three exact factors.
 
     Parameters
     ----------
@@ -168,17 +186,15 @@ def decompose(cell: Cell, variant: str = "measured-active") -> Decomposition:
     decisions = cell.require_decisions()
     truth = ground_truth(cell)
     baseline = energy_per_inference(cell, variant=variant)
-    starts, ends = active_windows(decisions)
-    active_measured = energy_over_windows(cell.power, starts, ends, column="vdd_in_mw")
-    whole = whole_run_energy(cell.power, column="vdd_in_mw")
+    active_measured = declared_active_energy(cell, column="vdd_in_mw")
+    active_quoted = declared_active_energy(cell, column=VARIANTS[variant])
+    sleep = declared_sleep_energy(cell)
+    whole = run_energy(cell, column="vdd_in_mw")
     factor = truth.energy_per_useful_decision_mj / baseline.energy_mj
-    rejection = 1.0 / truth.acceptance_rate
+    rejection = decisions.inferences / truth.accepted
     duty_cycle = whole.energy_mj / active_measured.energy_mj
-    rail_voltage = active_measured.mean_power_mw / baseline.mean_active_power_mw
-    named = rejection * duty_cycle * rail_voltage
-    residual = factor / named
-    latency_total = float(np.sum(decisions.latency_s))
-    accounting = active_measured.duration_s / latency_total
+    rail_voltage = active_measured.energy_mj / active_quoted.energy_mj
+    product = rejection * duty_cycle * rail_voltage
     return Decomposition(
         cell=cell.label,
         variant=variant,
@@ -186,14 +202,17 @@ def decompose(cell: Cell, variant: str = "measured-active") -> Decomposition:
         rejection_factor=rejection,
         duty_cycle_factor=duty_cycle,
         rail_voltage_factor=rail_voltage,
-        residual_factor=residual,
-        accounting_factor=accounting,
-        closure_error=residual / accounting - 1.0,
+        closure_error=product / factor - 1.0,
+        occupancy=phase_occupancy(cell),
+        partition_residual=(active_measured.energy_mj + sleep.energy_mj)
+        / whole.energy_mj
+        - 1.0,
         energy_per_useful_decision_mj=truth.energy_per_useful_decision_mj,
         energy_per_inference_mj=baseline.energy_mj,
         acceptance_rate=truth.acceptance_rate,
         total_energy_mj=whole.energy_mj,
         active_energy_mj=active_measured.energy_mj,
+        sleep_energy_mj=sleep.energy_mj,
         active_duration_s=active_measured.duration_s,
         mean_latency_s=baseline.mean_latency_s,
         n_inferences=truth.inferences,

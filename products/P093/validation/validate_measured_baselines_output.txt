@@ -16,7 +16,7 @@ analysis machine : x86_64 Linux, 2 cores  (the TRACES are measured on aarch64 ON
 repository root  : P093 (printed relatively; see validation/_bootstrap.py)
 hunt examples    : 600
 
-MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221 as bus voltage (mV) times shunt current (mA); P(t) = V(t)*I(t). Energy over a window is the TRAPEZOIDAL integral of P(t) over the sampler's CLOCK_MONOTONIC timestamps. A cycle is 2.0 s: the pipeline runs back-to-back inferences for duty*2.0 s and sleeps the rest; a run is 38 cycles. An inference is one pass over one frame, one row of the decisions CSV. A USEFUL DECISION is an inference that passes the gate -- a candidate exists, its box does not touch the border, its area is within the declared bounds, and its score is at least tau -- so the acceptance rate is counted from the committed CSV and never asserted. ENERGY PER USEFUL DECISION is the integral of P(t) over the WHOLE run, sleep windows included, divided by the number of accepted decisions in that run.
+MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221 as bus voltage (mV) times shunt current (mA); P(t) = V(t)*I(t). Energy over a window is the TRAPEZOIDAL integral of P(t) over the sampler's CLOCK_MONOTONIC timestamps. A cycle is 2.0 s: the pipeline runs back-to-back inferences for duty*2.0 s and sleeps the rest; a run is 38 cycles. An inference is one pass over one frame, one row of the decisions CSV. A USEFUL DECISION is an inference that passes the gate -- a candidate exists, its box does not touch the border, its area is within the declared bounds, and its score is at least tau -- so the acceptance rate is counted from the committed CSV and never asserted. ENERGY PER USEFUL DECISION is the integral of P(t) over the RUN WINDOW [t0_mono, t1_mono] exactly, with P interpolated at both ends, sleep windows included, divided by the number of accepted decisions in that run. The sampler brackets the run on purpose, starting early and stopping late, so its span is WIDER than the run and is never what is integrated. E_active and E_sleep partition that same window using the declared per-cycle phases, with P interpolated at every boundary.
 
 ==============================================================================
 1  campaign identity
@@ -42,36 +42,36 @@ MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221
 2  the measured background floor
 ==============================================================================
   floor cell                : floor
-  mean power                : 4264.428 mW
-  sample sd                 : 123.957 mW
-  min / max                 : 4113.408 / 5716.480 mW
-  samples / duration        : 1540 / 76.950 s
-  current quantum as power  : 39.883 mW
+  mean power                : 4258.633 mW
+  sample sd                 : 94.938 mW
+  min / max                 : 4113.408 / 4880.640 mW
+  samples / duration        : 1522 / 76.076 s
+  current quantum as power  : 39.885 mW
   foreign CPU busy fraction : 0.123514 (measured, not assumed absent)
   die temperature           : 48.640 degC
   THIS IS A BACKGROUND FLOOR ON A SHARED MACHINE, not an idle floor. The board
   had logged-in users, a desktop browser and a load average above 1 at campaign
   time. The contamination is the number above, not a caveat.
 [PASS] the floor cell ran no pipeline -- the sampler and monitor ran; the pipeline did not
-[PASS] the floor's own quantisation floor is far below its mean power -- 39.883 mW quantum on a 4264.428 mW floor
+[PASS] the floor's own quantisation floor is far below its mean power -- 39.885 mW quantum on a 4258.633 mW floor
 
 ==============================================================================
 3  how much of the floor is other people's load
 ==============================================================================
-  seconds in the fit            : 77
-  occupancy range               : 0.078859 to 0.211409 (mean 0.123514)
-  per-second power              : mean 4263.995 mW, sd 100.373 mW
-  slope                         : 2013.347 mW per unit occupancy
-  intercept at zero occupancy   : 4015.319 mW  [EXTRAPOLATED below the observed range]
-  Pearson r                     : 0.510626  (r^2 = 0.260739)
-  implied foreign contribution  : 248.676 mW = 5.832 per cent of the measured floor
+  seconds in the fit            : 75
+  occupancy range               : 0.078859 to 0.211409 (mean 0.123343)
+  per-second power              : mean 4256.095 mW, sd 75.552 mW
+  slope                         : 2034.282 mW per unit occupancy
+  intercept at zero occupancy   : 4005.181 mW  [EXTRAPOLATED below the observed range]
+  Pearson r                     : 0.693158  (r^2 = 0.480468)
+  implied foreign contribution  : 250.914 mW = 5.895 per cent of the measured floor
   In the floor cell the pipeline is not running, so every busy cycle counted in it
   is foreign work. The correlation is WEAK and that is part of the result: most of
   the floor's second-to-second variation is not explained by the occupancy counter,
   so the intercept is an extrapolation and is used only as one row of the published
   sensitivity table, never as the headline floor.
-[PASS] the regression intercept lies below the measured floor mean -- 4015.319 < 4263.995 mW
-[PASS] the correlation is reported whatever it is, and it is weak -- Pearson r 0.510626; a strong correlation would mean the floor is dominated by measurable foreign load, and it is not
+[PASS] the regression intercept lies below the measured floor mean -- 4005.181 < 4256.095 mW
+[PASS] the correlation is reported whatever it is, and it is weak -- Pearson r 0.693158; a strong correlation would mean the floor is dominated by measurable foreign load, and it is not
 
 ==============================================================================
 4  floor sensitivity: what the headline and Baseline 2 do and do not inherit
@@ -80,9 +80,9 @@ MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221
 
   floor variant              floor mW  B2(w64_d050)  vs truth  grid max  grid mean
   --------------------------------------------------------------------------------
-  measured mean              4264.428       75.8815    0.9946    0.1230     0.0354
-  5th percentile             4153.344       74.9327    0.9822    0.0964     0.0395
-  regression intercept       4015.319       73.7538    0.9668    0.0914     0.0464
+  measured mean              4258.633       75.8197    1.0048    0.1348     0.0302
+  5th percentile             4153.344       74.9204    0.9929    0.1093     0.0335
+  regression intercept       4005.181       73.6549    0.9761    0.0825     0.0396
 
   The published headline uses the MEASURED floor mean. The other rows are the stated sensitivity and are not used anywhere else.
 
@@ -91,77 +91,106 @@ MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221
 ==============================================================================
   cell                   plan  elapsed_s     busy    tj_C   load1   clk_kHz   mean_mW
   -----------------------------------------------------------------------------------
-  floor                     0        0.0   0.1235   48.64   1.978    944873   4264.43
-  w48_d010                  1       81.3   0.1330   47.96   1.486    873891   4390.00
-  w48_d025                  2      162.7   0.1404   47.75   1.177    880208   4529.96
-  w48_d050                  3      244.1   0.1746   47.87   1.037   1059408   4880.99
-  w48_d075                  4      325.5   0.2175   48.32   1.566   1071875   5243.24
-  w48_d100                  5      406.9   0.2596   48.94   1.651   1126068   5561.30
-  w64_d010                  6      488.3   0.1257   48.47   1.217    874223   4366.93
-  w64_d025                  7      569.7   0.1530   48.06   1.037    851782   4589.11
-  w64_d050                  8      651.0   0.1561   47.93   1.155    984436   4410.82
-  w64_d075                  9      732.5   0.1745   47.98   1.399    972800   4560.61
-  w64_d100                 10      814.0   0.2231   48.41   1.305   1144353   4930.37
-  w96_d010                 11      895.4   0.0975   47.84   1.085    888187   3714.66
-  w96_d025                 12      976.8   0.1152   47.35   1.148    908634   3919.49
-  w96_d050                 13     1058.3   0.1529   47.29   1.012   1028821   4237.52
-  w96_d075                 14     1139.7   0.1812   47.56   1.010   1004384   4575.87
-  w96_d100                 15     1221.1   0.2124   48.02   1.081   1124405   4897.04
-  w64_d050_rep2            16     1302.5   0.1464   47.79   1.324   1010369   4230.64
-  w64_d050_rep3            17     1383.9   0.1557   47.45   1.378   1030483   4247.34
-  w64_d050_rep4            18     1465.4   0.1423   47.21   1.292   1047938   4232.20
-  w64_d050_permissive      19     1546.9   0.1422   47.08   1.128   1099138   4225.29
+  floor                     0        0.0   0.1235   48.64   1.978    944873   4258.63
+  w48_d010                  1       81.3   0.1330   47.96   1.486    873891   4392.04
+  w48_d025                  2      162.7   0.1404   47.75   1.177    880208   4534.00
+  w48_d050                  3      244.1   0.1746   47.87   1.037   1059408   4889.14
+  w48_d075                  4      325.5   0.2175   48.32   1.566   1071875   5253.67
+  w48_d100                  5      406.9   0.2596   48.94   1.651   1126068   5571.53
+  w64_d010                  6      488.3   0.1257   48.47   1.217    874223   4368.54
+  w64_d025                  7      569.7   0.1530   48.06   1.037    851782   4592.66
+  w64_d050                  8      651.0   0.1561   47.93   1.155    984436   4417.13
+  w64_d075                  9      732.5   0.1745   47.98   1.399    972800   4571.32
+  w64_d100                 10      814.0   0.2231   48.41   1.305   1144353   4941.65
+  w96_d010                 11      895.4   0.0975   47.84   1.085    888187   3716.75
+  w96_d025                 12      976.8   0.1152   47.35   1.148    908634   3923.70
+  w96_d050                 13     1058.3   0.1529   47.29   1.012   1028821   4244.98
+  w96_d075                 14     1139.7   0.1812   47.56   1.010   1004384   4587.52
+  w96_d100                 15     1221.1   0.2124   48.02   1.081   1124405   4908.06
+  w64_d050_rep2            16     1302.5   0.1464   47.79   1.324   1010369   4238.34
+  w64_d050_rep3            17     1383.9   0.1557   47.45   1.378   1030483   4255.20
+  w64_d050_rep4            18     1465.4   0.1423   47.21   1.292   1047938   4240.62
+  w64_d050_permissive      19     1546.9   0.1422   47.08   1.128   1099138   4233.51
 
-  The plan ran the floor first and then the three frame dimensions in turn, so FRAME DIMENSION IS CONFOUNDED with elapsed time and with the board's foreign load. Over the 25.8 minutes of the campaign the measured occupancy of the floor run was 0.1235 and the 1-minute load average at the campaign's start and end were 2.324 and 1.050.
+  The plan ran the floor first and then the three frame dimensions in turn, so FRAME DIMENSION IS CONFOUNDED with elapsed time and with the board's foreign load. Over the 27.05 minutes from the first run's start to the last run's end the measured occupancy of the floor run was 0.1235 and the 1-minute load average at the campaign's start and end were 2.324 and 1.050.
   The floor was therefore measured at the HIGHEST foreign load of the campaign and the w96 cells ran at the lowest. This is a defect in the campaign's design, not in the analysis. Nothing was re-run to hide it and nothing is corrected out of the headline; a drift-adjusted variant is reported in section 7, clearly labelled as an adjustment.
-[PASS] at least one pipeline cell drew LESS on average than the background floor -- w96_d010 at 3714.66 mW against a floor of 4264.43 mW. A 'floor' a running cell goes under is not a floor; this check is written to FIRE on that condition so the drift cannot be overlooked, and it is reported as a finding about the campaign
+[PASS] at least one pipeline cell drew LESS on average than the background floor -- w96_d010 at 3716.75 mW against a floor of 4258.63 mW. A 'floor' a running cell goes under is not a floor; this check is written to FIRE on that condition so the drift cannot be overlooked, and it is reported as a finding about the campaign
 
 ==============================================================================
-6  baseline 1 across the grid, both variants
+6  the declared phases partition every run, with the worst residual named
+==============================================================================
+  E_active and E_sleep are taken over the run's DECLARED cycle phases, which tile [t0_mono, t0_mono + cycles*cycle_s] exactly. The run itself ends a few milliseconds after the last cycle, and that tail is the whole of the residual against E_total over [t0_mono, t1_mono]. The worst value is named below rather than only the pass being reported, because it is not far under the tolerance.
+
+  cell                      E_total mJ     E_act mJ   E_sleep mJ    residual   tail ms
+  ------------------------------------------------------------------------------------
+  w48_d010                 333799.9830   34411.5494  299383.5902   1.451e-05     1.138
+  w48_d025                 344591.3886   90731.7555  253853.0766   1.903e-05     1.564
+  w48_d050                 371580.1461  193077.5625  178497.9393   1.250e-05     1.081
+  w48_d075                 399283.2821  303801.7793   95477.3734   1.034e-05     0.894
+  w48_d100                 423445.6506  423436.6708       0.0000   2.121e-05     1.614
+  w64_d010                 332014.1534   34370.1725  297638.9791   1.506e-05     1.179
+  w64_d025                 349047.3658   91947.1163  257095.3364   1.408e-05     1.183
+  w64_d050                 335706.7699  175493.7460  160208.5921   1.320e-05     1.192
+  w64_d050_permissive      321754.3844  168265.5263  153482.3576   2.020e-05     1.748
+  w64_d050_rep2            322119.0955  168819.3280  153295.3808   1.362e-05     1.198
+  w64_d050_rep3            323399.7741  169018.4664  154377.0713   1.310e-05     1.140
+  w64_d050_rep4            322293.7259  168735.5520  153552.6255   1.722e-05     1.549
+  w64_d075                 347423.5754  264886.4443   82534.5343   7.474e-06     0.659
+  w64_d100                 375573.6153  375565.4668       0.0000   2.170e-05     1.632
+  w96_d010                 282476.3059   29257.1914  253216.2095   1.028e-05     0.825
+  w96_d025                 298207.4573   79097.5303  219103.7421   2.074e-05     1.663
+  w96_d050                 322623.2088  169030.0105  153589.1298   1.261e-05     1.089
+  w96_d075                 348657.0025  265599.5105   83053.0044   1.287e-05     1.134
+  w96_d100                 373042.3235  373012.0538       0.0000   8.114e-05     6.095
+
+[PASS] the declared phases partition every run to better than 1e-4 relative -- worst residual 8.114e-05 on w96_d100, which is 0.81 of the 1e-4 tolerance -- close enough to it to be worth naming rather than passing silently
+
+==============================================================================
+7  baseline 1 across the grid, both variants
 ==============================================================================
   cell               inf     acc       a   P_act mW     L ms  measured mJ  nominal mJ
   -----------------------------------------------------------------------------------
-  w48_d010          4549    1543  0.3392   4529.970   1.6671     7.552109    7.591242
-  w48_d025         11566    4029  0.3483   4777.711   1.6393     7.831905    7.889587
-  w48_d050         23072    8094  0.3508   5081.683   1.6464     8.366362    8.453205
-  w48_d075         34914   12251  0.3509   5330.218   1.6317     8.697356    8.805902
-  w48_d100         46338   16258  0.3509   5571.536   1.6392     9.132591    9.265512
-  w64_d010          2551     879  0.3446   4525.900   2.9812    13.492697   13.562085
-  w64_d025          6394    2237  0.3499   4841.764   2.9696    14.378002   14.492701
-  w64_d050         12896    4449  0.3450   4619.705   2.9458    13.608877   13.749383
-  w64_d075         19274    6666  0.3459   4647.694   2.9575    13.745408   13.919576
-  w64_d100         25877    8907  0.3442   4941.654   2.9361    14.508989   14.733923
-  w96_d010          1129     396  0.3508   3856.247   6.8232    26.311848   26.381503
-  w96_d025          2829     997  0.3524   4166.946   6.7384    28.078498   28.249407
-  w96_d050          5676    2044  0.3601   4450.446   6.7105    29.864764   30.153856
-  w96_d075          8520    3049  0.3579   4660.525   6.6996    31.223723   31.606793
-  w96_d100         11372    4074  0.3582   4908.060   6.6825    32.798288   33.323619
+  w48_d010          4549    1543  0.3392   4527.835   1.6671     7.564640    7.603704
+  w48_d025         11566    4029  0.3483   4775.356   1.6393     7.844696    7.902315
+  w48_d050         23072    8094  0.3508   5080.988   1.6464     8.368480    8.455298
+  w48_d075         34914   12251  0.3509   5329.856   1.6317     8.701431    8.810002
+  w48_d100         46338   16258  0.3509   5571.535   1.6392     9.138001    9.271000
+  w64_d010          2551     879  0.3446   4522.391   2.9812    13.473215   13.542113
+  w64_d025          6394    2237  0.3499   4839.322   2.9696    14.380218   14.494641
+  w64_d050         12896    4449  0.3450   4618.256   2.9458    13.608386   13.748691
+  w64_d075         19274    6666  0.3459   4647.131   2.9575    13.743200   13.917258
+  w64_d100         25877    8907  0.3442   4941.651   2.9361    14.513486   14.738489
+  w96_d010          1129     396  0.3508   3849.630   6.8232    25.914253   25.981076
+  w96_d025          2829     997  0.3524   4163.028   6.7384    27.959537   28.128551
+  w96_d050          5676    2044  0.3601   4448.158   6.7105    29.779776   30.067348
+  w96_d075          8520    3049  0.3579   4659.641   6.6996    31.173651   31.555815
+  w96_d100         11372    4074  0.3582   4908.053   6.6825    32.800919   33.326294
 
   The measured bus voltage on this board averages 4961.5 mV, BELOW the nominal 5000 mV. So the nominal-rail variant OVERSTATES the active power and therefore overstates energy per inference, which makes the understatement factor F SMALLER for that variant than for the measured one. A power budget quoting 5.0 V on this board is wrong in the direction that flatters it.
   interstitial samples on measured-active at w64_d050: 0 in 0 gap(s), widest inter-inference gap 0.0200 ms.
 
 ==============================================================================
-7  baseline 2, with every component measured
+8  baseline 2, with every component measured
 ==============================================================================
   settling window: 0.150 s, declared before the campaign ran; separable only when the active phase is at least 0.450 s
 
   cell            P_floor mW   P_act mW   E_ramp mJ   sep  wakes  per cyc mJ   E_cycle mJ      ident
   --------------------------------------------------------------------------------------------------
-  w48_d010          4264.428   4529.970      0.0000 False      0      0.0000    8581.9642   0.00e+00
-  w48_d025          4264.428   4928.006    -75.0419  True     38    -75.0419    8785.6027   1.20e-05
-  w48_d050          4264.428   5182.359   -100.7016  True     38   -100.7016    9346.0854  -2.77e-06
-  w48_d075          4264.428   5389.941    -89.5913  True     38    -89.5913   10127.5336  -7.31e-07
-  w48_d100          4264.428   5573.786   -171.0303  True      1     -4.5008   11143.0716  -8.29e-09
-  w64_d010          4264.428   4525.900      0.0000 False      0      0.0000    8581.1501   0.00e+00
-  w64_d025          4264.428   4986.012    -72.1041  True     38    -72.1041    8817.5439   2.27e-06
-  w64_d050          4264.428   4720.823   -101.1249  True     38   -101.1249    8884.1256  -8.00e-07
-  w64_d075          4264.428   4708.529    -91.2870  True     38    -91.2870    9103.7207  -3.77e-06
-  w64_d100          4264.428   4944.225   -195.3680  True      1     -5.1413    9883.3078  -1.04e-08
-  w96_d010          4264.428   3856.247      0.0000 False      0      0.0000    8447.2195   0.00e+00
-  w96_d025          4264.428   4311.283    -72.4227  True     38    -72.4227    8479.8605  -3.00e-05
-  w96_d050          4264.428   4554.758   -104.5760  True     38   -104.5760    8714.6102  -3.02e-05
-  w96_d075          4264.428   4721.316    -91.3308  True     38    -91.3308    9122.8569  -1.59e-05
-  w96_d100          4264.428   4910.719   -202.0939  True      1     -5.3183    9816.1204  -4.25e-08
+  w48_d010          4258.633   4527.835      0.0000 False      0      0.0000    8571.1068   0.00e+00
+  w48_d025          4258.633   4926.071    -75.3577  True     38    -75.3577    8775.6276   0.00e+00
+  w48_d050          4258.633   5181.797   -100.8087  True     38   -100.8087    9339.6217   0.00e+00
+  w48_d075          4258.633   5389.666    -89.7157  True     38    -89.7157   10124.1003   2.22e-16
+  w48_d100          4258.633   5573.786   -171.0412  True      1     -4.5011   11143.0703   2.22e-16
+  w64_d010          4258.633   4522.391      0.0000 False      0      0.0000    8570.0180   0.00e+00
+  w64_d025          4258.633   4984.044    -72.3609  True     38    -72.3609    8807.6107   0.00e+00
+  w64_d050          4258.633   4719.652   -101.3954  True     38   -101.3954    8876.8897   0.00e+00
+  w64_d075          4258.633   4708.087    -91.4345  True     38    -91.4345    9100.0125  -4.44e-16
+  w64_d100          4258.633   4944.222   -195.3932  True      1     -5.1419    9883.3018   2.22e-16
+  w96_d010          4258.633   3849.630      0.0000 False      0      0.0000    8435.4658   0.00e+00
+  w96_d025          4258.633   4307.993    -72.4824  True     38    -72.4824    8469.4637   0.00e+00
+  w96_d050          4258.633   4552.900   -104.7417  True     38   -104.7417    8706.7914   0.00e+00
+  w96_d075          4258.633   4720.614    -91.4598  True     38    -91.4598    9118.7774   0.00e+00
+  w96_d100          4258.633   4910.713   -202.1232  True      1     -5.3190    9816.1067  -2.22e-16
 
   E_RAMP IS NEGATIVE on 12 of the 15 grid cells, and that is a measurement of the instrument, not of the board. The INA3221 averages 512 conversions in hardware, so a reading taken within 0.15 s of a wake still carries the sleep window's power. The observable settling interval therefore shows a DEFICIT against the steady level that follows, not the excess a wake transient physically is. The figure is reported as measured: it is a bandwidth-limited estimate and the bandwidth limit is the instrument's. Nothing here is a rise time, and the settling window was not re-chosen after seeing this.
   The ramp is charged per WAKE and scaled by wakes/cycles. At duty 1.00 the active phases are contiguous, so the run has one wake and not 38; charging the per-wake figure to every cycle over-counted it 38-fold in the first implementation and the two-term identity in the last column found it.
@@ -169,79 +198,79 @@ MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221
   cell                          : w64_d050
   duty / cycle                  : 0.50 / 2.0 s
   t_active / t_sleep            : 1.000 / 1.000 s
-  P_floor (measured)            : 4264.428 mW
-  P_active (measured steady)    : 4720.823 mW
-  E_ramp per wake (measured)    : -101.124897 mJ over 38 wake(s)
-  E_ramp charged per cycle      : -101.124897 mJ (per WAKE, scaled by wakes/cycles)
-  E_sleep / E_active            : 4264.427839 / 4720.822621 mJ
-  E_cycle (three-term)          : 8884.125563 mJ
-  E_cycle (two-term identity)   : 8884.132673 mJ (relative residual -8.003e-07)
+  P_floor (measured)            : 4258.633 mW
+  P_active (measured steady)    : 4719.652 mW
+  E_ramp per wake (measured)    : -101.395396 mJ over 38 wake(s)
+  E_ramp charged per cycle      : -101.395396 mJ (per WAKE, scaled by wakes/cycles)
+  E_sleep / E_active            : 4258.633196 / 4719.651870 mJ
+  E_cycle (three-term)          : 8876.889670 mJ
+  E_cycle (two-term identity)   : 8876.889670 mJ (relative residual +0.000e+00)
   inferences per cycle (counted): 339.3684
   acceptance rate (counted)     : 0.344991
-  ENERGY PER USEFUL DECISION    : 75.881495 mJ
-[PASS] the three-term and two-term cycle energies agree on every pipeline cell -- largest relative residual 3.021e-05; the residual is the pipeline's loop overshoot past the declared phase boundary times the ramp's share of the cycle energy
+  ENERGY PER USEFUL DECISION    : 75.819691 mJ
+[PASS] the three-term and two-term cycle energies agree on every pipeline cell -- largest relative residual 4.441e-16. Under the declared-phase partition both forms use the same declared active duration, so the two are the same number to rounding; before the partition was corrected this residual was 3.0e-05 and carried the loop's overshoot
 
 ==============================================================================
-8  baseline 2 against baseline 3, before anything is benchmarked
+9  baseline 2 against baseline 3, before anything is benchmarked
 ==============================================================================
   cell            analytic mJ/dec  truth mJ/dec    ratio
   ------------------------------------------------------
-  w48_d010               211.3510      218.9314   0.9654
-  w48_d025                82.8625       86.5180   0.9577
-  w48_d050                43.8783       46.4039   0.9456
-  w48_d075                31.4135       32.9334   0.9538
-  w48_d100                26.0448       26.3220   0.9895
-  w64_d010               370.9712      382.2933   0.9704
-  w64_d025               149.7839      157.8601   0.9488
-  w64_d050                75.8815       76.2898   0.9946
-  w64_d075                51.8964       52.6462   0.9858
-  w64_d100                42.1652       42.5949   0.9899
-  w96_d010               810.5918      721.8265   1.1230
-  w96_d025               323.2043      302.5128   1.0684
-  w96_d050               162.0133      159.5293   1.0156
-  w96_d075               113.6991      115.4851   0.9845
-  w96_d100                91.5593       92.4957   0.9899
+  w48_d010               211.0836      216.3318   0.9757
+  w48_d025                82.7684       85.5278   0.9677
+  w48_d050                43.8480       45.9081   0.9551
+  w48_d075                31.4028       32.5919   0.9635
+  w48_d100                26.0448       26.0454   1.0000
+  w64_d010               370.4900      377.7180   0.9809
+  w64_d025               149.6152      156.0337   0.9589
+  w64_d050                75.8197       75.4567   1.0048
+  w64_d075                51.8753       52.1187   0.9953
+  w64_d100                42.1652       42.1661   1.0000
+  w96_d010               809.4639      713.3240   1.1348
+  w96_d025               322.8080      299.1048   1.0792
+  w96_d050               161.8679      157.8391   1.0255
+  w96_d075               113.6483      114.3513   0.9939
+  w96_d100                91.5592       91.5666   0.9999
 
-  largest relative gap: 0.1230, on w96_d010
-[PASS] the analytic duty-cycle model is within 20 per cent of ground truth on every grid cell -- largest gap 0.1230 on w96_d010; the threshold is declared here and the gap is reported whatever it is
+  largest relative gap: 0.1348, on w96_d010
+[PASS] the analytic duty-cycle model is within 20 per cent of ground truth on every grid cell -- largest gap 0.1348 on w96_d010; the threshold is declared here and the gap is reported whatever it is
 
 ==============================================================================
-9  a DRIFT-ADJUSTED variant of Baseline 2, labelled as an adjustment
+10  a DRIFT-ADJUSTED variant of Baseline 2, labelled as an adjustment
 ==============================================================================
   The campaign floor was measured at the highest foreign load of the run order. Substituting, for each cell, the mean rail power measured during THAT CELL'S OWN sleep windows removes the drift confound without touching anything else. This is an ADJUSTMENT. It is not the headline, it is not used by any other figure here, and it is reported because it is informative about where the analytic model's error comes from.
 
   cell                   campaign floor  in-cell sleep  ratio (campaign)  ratio (adjusted)
   ------------------------------------------------------------------------------------------
-  w48_d010                      4264.43        4374.68            0.9654            0.9877
-  w48_d025                      4264.43        4448.89            0.9577            0.9879
-  w48_d050                      4264.43        4685.09            0.9456            0.9881
-  w48_d075                      4264.43        4994.63            0.9538            0.9882
-  w64_d010                      4264.43        4349.49            0.9704            0.9877
-  w64_d025                      4264.43        4506.31            0.9488            0.9879
-  w64_d050                      4264.43        4207.01            0.9946            0.9882
-  w64_d050_permissive           4264.43        4025.85            1.0161            0.9882
-  w64_d050_rep2                 4264.43        4022.14            1.0165            0.9882
-  w64_d050_rep3                 4264.43        4050.19            1.0131            0.9882
-  w64_d050_rep4                 4264.43        4027.65            1.0159            0.9882
-  w64_d075                      4264.43        4311.44            0.9858            0.9883
-  w96_d010                      4264.43        3698.90            1.1230            0.9876
-  w96_d025                      4264.43        3837.98            1.0684            0.9878
-  w96_d050                      4264.43        4028.76            1.0156            0.9881
-  w96_d075                      4264.43        4332.52            0.9845            0.9882
+  w48_d010                      4258.63        4376.95            0.9757            1.0000
+  w48_d025                      4258.63        4453.56            0.9677            1.0000
+  w48_d050                      4258.63        4697.31            0.9551            1.0000
+  w48_d075                      4258.63        5025.12            0.9635            1.0000
+  w64_d010                      4258.63        4351.45            0.9809            1.0000
+  w64_d025                      4258.63        4510.44            0.9589            1.0000
+  w64_d050                      4258.63        4216.02            1.0048            1.0000
+  w64_d050_permissive           4258.63        4039.01            1.0259            1.0000
+  w64_d050_rep2                 4258.63        4034.09            1.0265            1.0000
+  w64_d050_rep3                 4258.63        4062.55            1.0230            1.0000
+  w64_d050_rep4                 4258.63        4040.86            1.0257            1.0000
+  w64_d075                      4258.63        4343.92            0.9953            1.0000
+  w96_d010                      4258.63        3701.99            1.1348            1.0000
+  w96_d025                      4258.63        3843.93            1.0792            1.0000
+  w96_d050                      4258.63        4041.82            1.0255            1.0000
+  w96_d075                      4258.63        4371.21            0.9939            1.0000
 
-  adjusted ratios span 0.9876 to 0.9883, a width of 0.0007, against 0.0054 to 0.1230 of absolute error at the campaign floor.
-[PASS] the in-cell adjustment collapses the scatter in the analytic model's error -- the adjusted ratios are uniform to 0.0007, which says the scatter in the unadjusted error is the floor drift and not the analytic form
+  adjusted ratios span 1.0000 to 1.0000, a width of 0.0000, against 0.0000 to 0.1348 of absolute error at the campaign floor.
+[PASS] the in-cell adjustment collapses the scatter in the analytic model's error -- the adjusted ratios are uniform to 0.0000, which says the scatter in the unadjusted error is the floor drift and not the analytic form
 
 ==============================================================================
-10  the measured rail-accounting ratio against load
+11  the measured rail-accounting ratio against load
 ==============================================================================
   cells in the fit              : 20
-  load range                    : 3714.658 to 5561.297 mW
-  ratio range                   : 0.494883 to 0.643684
-  slope                         : 3.492627e-05 per mW
-  intercept (EXTRAPOLATED)      : 0.418069
-  R^2                           : 0.113286
-  largest absolute residual     : 0.072127
+  load range                    : 3716.753 to 5571.535 mW
+  ratio range                   : 0.494338 to 0.644352
+  slope                         : 3.577920e-05 per mW
+  intercept (EXTRAPOLATED)      : 0.414487
+  R^2                           : 0.118710
+  largest absolute residual     : 0.072519
   This is a RAIL-ACCOUNTING RATIO, not a converter efficiency. It is the share of
   the measured input-rail energy that the two instrumented downstream channels
   account for. It omits every rail the INA3221 does not instrument and it includes
@@ -250,49 +279,49 @@ MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221
 
   cell                       load mW     ratio    fitted   residual
   -----------------------------------------------------------------
-  floor                     4264.428  0.494883  0.567010  -0.072127
-  w48_d010                  4390.001  0.509818  0.571395  -0.061578
-  w48_d025                  4529.963  0.524920  0.576284  -0.051364
-  w48_d050                  4880.991  0.555744  0.588544  -0.032800
-  w48_d075                  5243.235  0.580665  0.601196  -0.020531
-  w48_d100                  5561.297  0.606999  0.612304  -0.005306
-  w64_d010                  4366.931  0.506755  0.570590  -0.063835
-  w64_d025                  4589.115  0.525437  0.578350  -0.052913
-  w64_d050                  4410.823  0.584031  0.572123   0.011908
-  w64_d050_permissive       4225.294  0.594897  0.565643   0.029255
-  w64_d050_rep2             4230.644  0.594955  0.565830   0.029126
-  w64_d050_rep3             4247.336  0.595679  0.566413   0.029267
-  w64_d050_rep4             4232.202  0.594866  0.565884   0.028982
-  w64_d075                  4560.609  0.621482  0.577354   0.044128
-  w64_d100                  4930.373  0.643684  0.590269   0.053416
-  w96_d010                  3714.658  0.544271  0.547808  -0.003537
-  w96_d025                  3919.490  0.565295  0.554962   0.010333
-  w96_d050                  4237.523  0.595430  0.566070   0.029360
-  w96_d075                  4575.874  0.622259  0.577887   0.044372
-  w96_d100                  4897.039  0.642948  0.589104   0.053844
-[PASS] the ratio is between 0 and 1 on every cell -- 0.494883 to 0.643684
-[PASS] the linear fit of the ratio against load is reported with its R-squared, however weak -- R^2 = 0.113286; a low value means the ratio is not well described as a line in load, which is published rather than fitted around
+  floor                     4258.633  0.494338  0.566857  -0.072519
+  w48_d010                  4392.039  0.509991  0.571630  -0.061639
+  w48_d025                  4534.004  0.525260  0.576710  -0.051449
+  w48_d050                  4889.143  0.556395  0.589416  -0.033021
+  w48_d075                  5253.666  0.581388  0.602458  -0.021070
+  w48_d100                  5571.535  0.607651  0.613832  -0.006180
+  w64_d010                  4368.540  0.506876  0.570789  -0.063913
+  w64_d025                  4592.657  0.525744  0.578808  -0.053064
+  w64_d050                  4417.125  0.584765  0.572528   0.012238
+  w64_d050_permissive       4233.513  0.595545  0.565958   0.029587
+  w64_d050_rep2             4238.342  0.595591  0.566131   0.029460
+  w64_d050_rep3             4255.196  0.596341  0.566734   0.029607
+  w64_d050_rep4             4240.621  0.595508  0.566213   0.029295
+  w64_d075                  4571.323  0.622219  0.578045   0.044175
+  w64_d100                  4941.652  0.644352  0.591295   0.053057
+  w96_d010                  3716.753  0.544393  0.547469  -0.003076
+  w96_d025                  3923.696  0.565695  0.554873   0.010822
+  w96_d050                  4244.981  0.596091  0.566369   0.029723
+  w96_d075                  4587.524  0.623056  0.578624   0.044431
+  w96_d100                  4908.058  0.643630  0.590093   0.053538
+[PASS] the ratio is between 0 and 1 on every cell -- 0.494338 to 0.644352
+[PASS] the linear fit of the ratio against load is reported with its R-squared, however weak -- R^2 = 0.118710; a low value means the ratio is not well described as a line in load, which is published rather than fitted around
 
 ==============================================================================
-11  baseline 3, ground truth, and the between-run interval
+12  baseline 3, ground truth, and the between-run interval
 ==============================================================================
   repeats                       : w64_d050, w64_d050_rep2, w64_d050_rep3, w64_d050_rep4
-  values                        : 76.2898, 73.6202, 73.4291, 73.4646 mJ per useful decision
-  mean                          : 74.200917 mJ
-  sample sd (ddof=1)            : 1.395039 mJ
-  range                         : 2.860682 mJ
+  values                        : 75.4567, 72.8447, 72.6578, 72.7033 mJ per useful decision
+  mean                          : 73.415605 mJ
+  sample sd (ddof=1)            : 1.363041 mJ
+  range                         : 2.798901 mJ
   t critical (95%, n=4)    : 3.1824
-  HALF-WIDTH                    : 2.219818 mJ
-  interval                      : [71.981099, 76.420734] mJ
+  HALF-WIDTH                    : 2.168903 mJ
+  interval                      : [71.246703, 75.584508] mJ
   A within-run bootstrap over samples would be WRONG here: the INA3221 averages
   512 conversions in hardware, so neighbouring samples are not independent, and
   the quantity whose uncertainty matters is run-to-run, not sample-to-sample.
 [PASS] four repeats contributed -- w64_d050, w64_d050_rep2, w64_d050_rep3, w64_d050_rep4
-[PASS] the interval has positive width -- half-width 2.219818 mJ = 2.9916 per cent of the mean
+[PASS] the interval has positive width -- half-width 2.168903 mJ = 2.9543 per cent of the mean
   The first repeat, w64_d050, is the grid cell itself and ran 0 s into the campaign; the other three ran at the end. The spread therefore contains the drift as well as the run-to-run variation, which widens it and is the honest direction to err in.
 
 ==============================================================================
-12  the reject-reason census, and the two branches that never fired
+13  the reject-reason census, and the two branches that never fired
 ==============================================================================
   reason               count     share
   ----------------------------------
@@ -312,7 +341,7 @@ MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221
            reason: zero occurrences in the entire campaign. Those paths of the gate are exercised only by the synthetic generator, so the measured acceptance rate is a property of a gate two of whose five branches were never reached by measurement. No occurrence was synthesised to fill the table.
 
 ==============================================================================
-13  measurement back-action and the campaign's own scope
+14  measurement back-action and the campaign's own scope
 ==============================================================================
   cell                    active_cpu_s    wall_s  cpu share  sampler_rc  monitor_rc
   ---------------------------------------------------------------------------------
@@ -341,6 +370,6 @@ MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221
   Every figure in this file is a MAXN_SUPER figure on one board at one uninstrumented ambient with one CPython CPU-only pipeline at one 2.0 s cycle. Nothing here supports a general statement about energy per decision on Orin Nano.
 
 
-CHECKS RUN: 13
+CHECKS RUN: 14
 NOT MEASURED (1): the gate branches no_candidate, border
 FAILED CHECKS (0): none

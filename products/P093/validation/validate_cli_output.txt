@@ -33,9 +33,9 @@ hunt examples    : 600
 ==============================================================================
 [PASS] --simulate manifest exits 0 -- status 0, 45 line(s)
 [PASS] --simulate manifest labels its output SYNTHETIC before any number -- the banner is the first thing printed
-[PASS] --simulate headline exits 0 -- status 0, 45 line(s)
+[PASS] --simulate headline exits 0 -- status 0, 57 line(s)
 [PASS] --simulate headline labels its output SYNTHETIC before any number -- the banner is the first thing printed
-[PASS] --simulate report exits 0 -- status 0, 205 line(s)
+[PASS] --simulate report exits 0 -- status 0, 231 line(s)
 [PASS] --simulate report labels its output SYNTHETIC before any number -- the banner is the first thing printed
 [PASS] --simulate learned exits 0 -- status 0, 53 line(s)
 [PASS] --simulate learned labels its output SYNTHETIC before any number -- the banner is the first thing printed
@@ -44,21 +44,19 @@ hunt examples    : 600
 3  the headline subcommand prints the decomposition in both variants
 ==============================================================================
     variant of energy per inference   : measured-active
-    HEADLINE understatement factor F  : 5.755481
-      rejection factor 1/a            : 3.278689
-      duty-cycle factor E_tot/E_act   : 1.755422
-      rail-voltage factor P_m/P_q     : 1.000000
-      residual factor                 : 1.000000
-      accounting factor T_act/(N*L)   : 1.000000
+    HEADLINE understatement factor F  : 5.776110
+      rejection factor N/A            : 3.278689
+      duty-cycle factor E_tot/E_act   : 1.761714
+      rail-voltage factor             : 1.000000
+    DIAGNOSTIC, not a factor:
     variant of energy per inference   : nominal-rail
-    HEADLINE understatement factor F  : 5.856777
-      rejection factor 1/a            : 3.278689
-      duty-cycle factor E_tot/E_act   : 1.755422
-      rail-voltage factor P_m/P_q     : 1.017600
-      residual factor                 : 1.000000
-      accounting factor T_act/(N*L)   : 1.000000
+    HEADLINE understatement factor F  : 5.877769
+      rejection factor N/A            : 3.278689
+      duty-cycle factor E_tot/E_act   : 1.761714
+      rail-voltage factor             : 1.017600
+    DIAGNOSTIC, not a factor:
 [PASS] both Baseline-1 variants are reported -- measured-active and nominal-rail
-[PASS] the residual and the closure error are reported, not just the three factors -- the decomposition is checked rather than claimed
+[PASS] the partition residual, the closure error and the occupancy diagnostic are reported, not just the three factors -- the decomposition is checked rather than claimed, and the phase occupancy is shown as the diagnostic it is rather than as a fourth factor
 
 ==============================================================================
 4  the report subcommand prints every baseline

@@ -93,6 +93,16 @@ SYNTHETIC_RAMP_S = 0.15
 #: Sampler period of the synthetic model, seconds.
 SYNTHETIC_SAMPLE_PERIOD_S = 0.05
 
+#: How far the synthetic sampler brackets the run on each side, seconds. The
+#: real campaign spawns the sampler about half a second before ``t0_mono`` and
+#: gives it ``duration + 1.0`` s so that no edge sample is missing, and the
+#: generator must reproduce that: a fixture whose sampler span equals its run
+#: cannot catch code that integrates the span and calls it the run. An earlier
+#: version of this generator did not bracket, and that is exactly the defect
+#: the measured campaign then exposed -- a 1.1 per cent error in ``E_total``.
+SYNTHETIC_SAMPLER_LEAD_S = 0.5
+SYNTHETIC_SAMPLER_TAIL_S = 0.5
+
 #: Cycle length of the synthetic model, seconds. The same 2.0 s the campaign
 #: declares, because the loader refuses any other value.
 SYNTHETIC_CYCLE_S = 2.0
@@ -256,16 +266,22 @@ def _write_power(
     period = SYNTHETIC_SAMPLE_PERIOD_S
     per_cycle = int(round(cycle_s / period))
     n = cycles * per_cycle
+    lead = int(round(SYNTHETIC_SAMPLER_LEAD_S / period))
+    tail = int(round(SYNTHETIC_SAMPLER_TAIL_S / period))
     active_slots = int(round(_active_phase_s(duty, cycle_s) / period)) if has_pipeline else 0
     ramp_slots = int(round(SYNTHETIC_RAMP_S / period))
     lines: list[str] = []
-    for index in range(n):
+    for index in range(-lead, n + tail + 1):
         offset = index * period
         t = SYNTHETIC_T0 + offset
         if time_jitter_s:
             t += float(rng.uniform(-time_jitter_s, time_jitter_s))
         slot = index % per_cycle
         lsb = SYNTHETIC_I_FLOOR_LSB
+        # The pipeline runs only inside the run, [0, n). Before and after it,
+        # the sampler is recording the bracket and the rail reads the floor.
+        if not 0 <= index < n:
+            slot = active_slots
         if slot < active_slots:
             lsb += SYNTHETIC_I_ACTIVE_LSB
             if slot < ramp_slots:
@@ -281,7 +297,10 @@ def _write_power(
             f"{soc_ma:d},{power:.3f}\n"
         )
     _write_csv(path, POWER_COLUMNS, lines)
-    return SYNTHETIC_T0, SYNTHETIC_T0 + (n - 1) * period, n
+    # The RUN is [t0_mono, t1_mono] and ends on the last cycle boundary. The
+    # sampler's span is wider on both sides and is deliberately not returned
+    # as the run.
+    return SYNTHETIC_T0, SYNTHETIC_T0 + n * period, lead + n + tail + 1
 
 
 def _write_monitor(
@@ -298,7 +317,9 @@ def _write_monitor(
     in it reads exactly the foreign figure. That is what makes
     :func:`powerenvelope.windows.pipeline_free_monitor_mask` testable.
     """
-    seconds = int(round(cycles * cycle_s))
+    # One second past the run, because the real monitor brackets the run too
+    # and the floor-occupancy regression has to drop the straddling sample.
+    seconds = int(round(cycles * cycle_s)) + 1
     active = _active_phase_s(duty, cycle_s) if has_pipeline else 0.0
     lines: list[str] = []
     for index in range(1, seconds + 1):

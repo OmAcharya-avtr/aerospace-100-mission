@@ -271,8 +271,7 @@ def test_loader_rejects_every_decision_header_permutation_but_the_right_one(orde
 )
 def test_decomposition_factors_multiply_to_the_factor(campaign, label, variant):
     result = decompose(campaign.require(label), variant=variant)
-    product = result.product_of_named_factors() * result.residual_factor
-    assert product == pytest.approx(result.factor, rel=1e-12, abs=0.0)
-    assert result.residual_factor == pytest.approx(
-        result.accounting_factor, rel=1e-11, abs=0.0
+    assert result.product_of_named_factors() == pytest.approx(
+        result.factor, rel=1e-12, abs=0.0
     )
+    assert abs(result.closure_error) < 1e-12

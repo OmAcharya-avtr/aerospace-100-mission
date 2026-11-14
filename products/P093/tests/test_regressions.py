@@ -58,6 +58,22 @@ def test_time_shift_counterexample_t_zero_to_1e_minus_4_shift_2048():
 
 # ------------------------------------------------------------ pinned numbers
 
+#: The SYNTHETIC reference cell's figures under the declared-phase partition
+#: (definition C): the run is [t0_mono, t1_mono] and the active energy is over
+#: the declared phases, not the sampler's span and not the merged inference
+#: intervals. Every value is a synthetic figure and none is a measurement.
+PINNED = {
+    "total": 44652.288000001776,
+    "active": 25338.239999991125,
+    "e_inf": 25.338239999991124,
+    "e_use": 145.44719218241622,
+    "factor": 5.7402247426209225,
+    "duty": 1.762248995984623,
+    "rail": 1.0176000000000003,
+    "factor_nominal": 5.841252698091052,
+    "sampler_span": 46585.72800000178,
+}
+
 
 def test_pinned_synthetic_reference_cell_counts(reference_cell):
     truth = reference_cell.require_decisions()
@@ -74,31 +90,41 @@ def test_pinned_synthetic_reference_cell_counts(reference_cell):
 
 def test_pinned_synthetic_reference_cell_energies(reference_cell):
     result = decompose(reference_cell)
-    assert result.total_energy_mj == pytest.approx(44556.6336, rel=1e-9, abs=0.0)
-    assert result.active_energy_mj == pytest.approx(25338.24, rel=1e-9, abs=0.0)
     assert result.active_duration_s == pytest.approx(10.0, rel=1e-12, abs=0.0)
-    assert result.energy_per_inference_mj == pytest.approx(25.33824, rel=1e-9, abs=0.0)
-    assert result.energy_per_useful_decision_mj == pytest.approx(
-        145.13561433, rel=1e-8, abs=0.0
+    assert result.total_energy_mj == pytest.approx(PINNED["total"], rel=1e-9, abs=0.0)
+    assert result.active_energy_mj == pytest.approx(PINNED["active"], rel=1e-9, abs=0.0)
+    assert result.energy_per_inference_mj == pytest.approx(
+        PINNED["e_inf"], rel=1e-9, abs=0.0
     )
+    assert result.energy_per_useful_decision_mj == pytest.approx(
+        PINNED["e_use"], rel=1e-9, abs=0.0
+    )
+    # The sampler brackets the run, so the span integral is LARGER than the
+    # run integral. Pinned so that a regression back to integrating the span
+    # cannot pass: that confusion cost 1.1 per cent on the measured campaign.
+    from powerenvelope.energy import whole_run_energy
+
+    span = whole_run_energy(reference_cell.power).energy_mj
+    assert span > result.total_energy_mj
+    assert span == pytest.approx(PINNED["sampler_span"], rel=1e-9, abs=0.0)
 
 
 def test_pinned_synthetic_headline_factor_and_decomposition(reference_cell):
     result = decompose(reference_cell)
-    assert result.factor == pytest.approx(5.727927998641027, rel=1e-9, abs=0.0)
+    assert result.factor == pytest.approx(PINNED["factor"], rel=1e-9, abs=0.0)
     assert result.rejection_factor == pytest.approx(3.25732899, rel=1e-8, abs=0.0)
-    assert result.duty_cycle_factor == pytest.approx(
-        1.7584738955827954, rel=1e-9, abs=0.0
-    )
+    assert result.duty_cycle_factor == pytest.approx(PINNED["duty"], rel=1e-9, abs=0.0)
     assert result.rail_voltage_factor == pytest.approx(1.0, rel=0.0, abs=0.0)
-    assert result.accounting_factor == pytest.approx(1.0, rel=1e-9, abs=0.0)
+    assert result.occupancy.occupancy == pytest.approx(1.0, rel=1e-9, abs=0.0)
     assert abs(result.closure_error) < 1e-12
 
 
 def test_pinned_synthetic_nominal_variant(reference_cell):
     result = decompose(reference_cell, "nominal-rail")
-    assert result.rail_voltage_factor == pytest.approx(1.0176, rel=1e-9, abs=0.0)
-    assert result.factor == pytest.approx(5.828739531417111, rel=1e-9, abs=0.0)
+    assert result.rail_voltage_factor == pytest.approx(
+        PINNED["rail"], rel=1e-9, abs=0.0
+    )
+    assert result.factor == pytest.approx(PINNED["factor_nominal"], rel=1e-9, abs=0.0)
 
 
 def test_pinned_synthetic_permissive_control(campaign):

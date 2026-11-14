@@ -125,9 +125,13 @@ def main() -> int:
         "measured-active and nominal-rail",
     )
     out.check(
-        "the residual and the closure error are reported, not just the three factors",
-        "residual factor" in completed.stdout and "closure error" in completed.stdout,
-        "the decomposition is checked rather than claimed",
+        "the partition residual, the closure error and the occupancy diagnostic are "
+        "reported, not just the three factors",
+        "partition residual" in completed.stdout
+        and "closure error" in completed.stdout
+        and "DIAGNOSTIC, not a factor" in completed.stdout,
+        "the decomposition is checked rather than claimed, and the phase occupancy is "
+        "shown as the diagnostic it is rather than as a fourth factor",
     )
 
     out.rule("4  the report subcommand prints every baseline")

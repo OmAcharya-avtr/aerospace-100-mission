@@ -59,6 +59,7 @@ from powerenvelope.baselines import (  # noqa: E402
     run_order_rows,
     sleep_power_mw,
 )
+from powerenvelope.energy import cell_energy, sleep_energy  # noqa: E402
 from powerenvelope.report import (  # noqa: E402
     baseline2_lines,
     campaign_lines,
@@ -171,7 +172,9 @@ def report(out: _bootstrap.Tee, campaign) -> None:
     for line in run_order_lines(run_order_rows(campaign)):
         out(line)
     rows = run_order_rows(campaign)
-    first, last = rows[0], rows[-1]
+    first = rows[0]
+    origin = min(item.t0_mono for item in campaign.cells.values())
+    span_s = max(item.t1_mono for item in campaign.cells.values()) - origin
     environment = campaign.manifest.get("env", {})
     start_load = environment.get("loadavg_at_start")
     end_load = environment.get("loadavg_at_end")
@@ -185,8 +188,9 @@ def report(out: _bootstrap.Tee, campaign) -> None:
     out(
         f"  The plan ran the floor first and then the three frame dimensions in turn, so "
         f"FRAME DIMENSION IS CONFOUNDED with elapsed time and with the board's foreign "
-        f"load. Over the {last.elapsed_s / 60.0:.1f} minutes of the campaign the measured "
-        f"occupancy of the floor run was {first.busy_mean:.4f}{drift}."
+        f"load. Over the {span_s / 60.0:.2f} minutes from the first run's start to the "
+        f"last run's end the measured occupancy of the floor run was "
+        f"{first.busy_mean:.4f}{drift}."
     )
     out(
         "  The floor was therefore measured at the HIGHEST foreign load of the campaign "
@@ -205,7 +209,43 @@ def report(out: _bootstrap.Tee, campaign) -> None:
         "overlooked, and it is reported as a finding about the campaign",
     )
 
-    out.rule("6  baseline 1 across the grid, both variants")
+    out.rule("6  the declared phases partition every run, with the worst residual named")
+    out(
+        "  E_active and E_sleep are taken over the run's DECLARED cycle phases, which "
+        "tile [t0_mono, t0_mono + cycles*cycle_s] exactly. The run itself ends a few "
+        "milliseconds after the last cycle, and that tail is the whole of the residual "
+        "against E_total over [t0_mono, t1_mono]. The worst value is named below rather "
+        "than only the pass being reported, because it is not far under the tolerance."
+    )
+    out("")
+    out(f"  {'cell':<22}{'E_total mJ':>14}{'E_act mJ':>13}{'E_sleep mJ':>13}"
+        f"{'residual':>12}{'tail ms':>10}")
+    out("  " + "-" * 84)
+    worst_partition = 0.0
+    worst_partition_cell = ""
+    for item in campaign.pipeline_cells():
+        item_whole, item_active = cell_energy(item)
+        item_sleep = sleep_energy(item)
+        residual = abs(
+            item_active.energy_mj + item_sleep.energy_mj - item_whole.energy_mj
+        ) / item_whole.energy_mj
+        tail = (item.t1_mono - item.t0_mono) - item.cycles * campaign.cycle_s
+        if residual > worst_partition:
+            worst_partition, worst_partition_cell = residual, item.label
+        out(
+            f"  {item.label:<22}{item_whole.energy_mj:>14.4f}{item_active.energy_mj:>13.4f}"
+            f"{item_sleep.energy_mj:>13.4f}{residual:>12.3e}{tail * 1e3:>10.3f}"
+        )
+    out("")
+    out.check(
+        "the declared phases partition every run to better than 1e-4 relative",
+        worst_partition < 1e-4,
+        f"worst residual {worst_partition:.3e} on {worst_partition_cell}, which is "
+        f"{worst_partition / 1e-4:.2f} of the 1e-4 tolerance -- close enough to it to be "
+        "worth naming rather than passing silently",
+    )
+
+    out.rule("7  baseline 1 across the grid, both variants")
     out(
         f"  {'cell':<14}{'inf':>8}{'acc':>8}{'a':>8}"
         f"{'P_act mW':>11}{'L ms':>9}{'measured mJ':>13}{'nominal mJ':>12}"
@@ -237,7 +277,7 @@ def report(out: _bootstrap.Tee, campaign) -> None:
         f"inter-inference gap {sample.interstitial.max_gap_s * 1e3:.4f} ms."
     )
 
-    out.rule("7  baseline 2, with every component measured")
+    out.rule("8  baseline 2, with every component measured")
     out(
         f"  settling window: {RAMP_WINDOW_S:.3f} s, declared before the campaign ran; "
         f"separable only when the active phase is at least {RAMP_SEPARABLE_MIN_S:.3f} s"
@@ -287,12 +327,13 @@ def report(out: _bootstrap.Tee, campaign) -> None:
     out.check(
         "the three-term and two-term cycle energies agree on every pipeline cell",
         worst_identity < 1e-4,
-        f"largest relative residual {worst_identity:.3e}; the residual is the pipeline's "
-        "loop overshoot past the declared phase boundary times the ramp's share of the "
-        "cycle energy",
+        f"largest relative residual {worst_identity:.3e}. Under the declared-phase "
+        "partition both forms use the same declared active duration, so the two are "
+        "the same number to rounding; before the partition was corrected this residual "
+        "was 3.0e-05 and carried the loop's overshoot",
     )
 
-    out.rule("8  baseline 2 against baseline 3, before anything is benchmarked")
+    out.rule("9  baseline 2 against baseline 3, before anything is benchmarked")
     out(f"  {'cell':<14}{'analytic mJ/dec':>17}{'truth mJ/dec':>14}{'ratio':>9}")
     out("  " + "-" * 54)
     ratios = []
@@ -317,7 +358,7 @@ def report(out: _bootstrap.Tee, campaign) -> None:
         "the gap is reported whatever it is",
     )
 
-    out.rule("9  a DRIFT-ADJUSTED variant of Baseline 2, labelled as an adjustment")
+    out.rule("10  a DRIFT-ADJUSTED variant of Baseline 2, labelled as an adjustment")
     out(
         "  The campaign floor was measured at the highest foreign load of the run order. "
         "Substituting, for each cell, the mean rail power measured during THAT CELL'S OWN "
@@ -362,7 +403,7 @@ def report(out: _bootstrap.Tee, campaign) -> None:
         "scatter in the unadjusted error is the floor drift and not the analytic form",
     )
 
-    out.rule("10  the measured rail-accounting ratio against load")
+    out.rule("11  the measured rail-accounting ratio against load")
     rail = rail_accounting_curve(campaign)
     for line in rail_lines(rail):
         out(f"  {line}")
@@ -385,7 +426,7 @@ def report(out: _bootstrap.Tee, campaign) -> None:
         "as a line in load, which is published rather than fitted around",
     )
 
-    out.rule("11  baseline 3, ground truth, and the between-run interval")
+    out.rule("12  baseline 3, ground truth, and the between-run interval")
     spread = between_run_spread(campaign)
     for line in spread_lines(spread):
         out(f"  {line}")
@@ -407,7 +448,7 @@ def report(out: _bootstrap.Tee, campaign) -> None:
         "run-to-run variation, which widens it and is the honest direction to err in."
     )
 
-    out.rule("12  the reject-reason census, and the two branches that never fired")
+    out.rule("13  the reject-reason census, and the two branches that never fired")
     for line in census_lines(campaign):
         out(line)
     from powerenvelope.report import reject_census
@@ -429,7 +470,7 @@ def report(out: _bootstrap.Tee, campaign) -> None:
             "measurement. No occurrence was synthesised to fill the table.",
         )
 
-    out.rule("13  measurement back-action and the campaign's own scope")
+    out.rule("14  measurement back-action and the campaign's own scope")
     out(f"  {'cell':<22}{'active_cpu_s':>14}{'wall_s':>10}{'cpu share':>11}"
         f"{'sampler_rc':>12}{'monitor_rc':>12}")
     out("  " + "-" * 81)

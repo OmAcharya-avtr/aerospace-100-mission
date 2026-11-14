@@ -1560,3 +1560,136 @@ lines. `detect-secrets` over the product tree: **0 findings**. `pip-audit`
 against the declared and measured versions: **no known vulnerabilities**. No
 absolute private path in any tracked file; no tracked build artifact. No
 unresolved critical finding, so publication was not blocked on security.
+
+## P093 PowerEnvelope — `powerenvelope` — published 2026-11-14
+
+Repository: `https://github.com/OmAcharya-avtr/powerenvelope`
+Class medium · category hardware-in-the-loop · AI-enabled ·
+`validation_level: 4`, `validation_level_achieved: 4` with its scope ·
+**360 tests** from junit XML, 0 failures, 0 errors, 0 skipped.
+
+Authorising verdict: `python3 scripts/release_gate.py P093` returned
+`P093 PASS 360 tests`, `repository PASS`, `Total tests passing: 360`,
+`VERDICT: PUSH ALLOWED`, **with the shell exit status captured directly as `0`**
+by running the gate as a background job writing `$?` to a file, so the printed
+verdict and the exit status are independent evidence. Published under ADR-017 on
+that verdict alone. No `APPROVAL_LOG.md` row was written, no product was set to
+`APPROVED`, `approved_for_publish` stays `false`, and no owner statement was
+quoted or implied. **No human spoke in this session.**
+
+### The headline
+
+Energy per inference understates energy per useful decision by
+**F = 5.544866** at the reference cell (frame dimension 64, duty 0.50, strict
+gate), and by **28.597765** at duty 0.10. The factor decomposes **exactly** into
+two measured terms:
+
+| term | value |
+|---|---|
+| rejection factor `N/A` | 2.898629 |
+| duty-cycle factor `E_total/E_active` | 1.912927 |
+| product | 5.544866 |
+| closure error | **0.000e+00** |
+
+`E_inf = E_active/N` is 13.608386014 mJ; `E_use = E_total/A` is 75.456680 mJ.
+The nominal-5.0 V variant gives F = 5.488281 — *smaller*, because the measured
+bus voltage sits below 5000 mV, so substituting the nominal rail overstates
+active power. Across the 15-cell strict grid F runs **2.791586 to 28.597765**.
+At duty 1.00, with no sleep window at all, F is still 2.79–2.91; that residue is
+pure rejection.
+
+Between-run spread over four repeats of the reference cell:
+**73.4156 ± 2.1689 mJ**, a **2.9543 per cent** half-width at 95 per cent on 3
+degrees of freedom.
+
+### What the campaign measured
+
+20 of 20 planned runs, `aborted: false`, **27.05 minutes** of board time on an
+NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super,
+**268,425 inferences** of which **100,789 accepted**. Rail energy integrated
+from the board's own **INA3221** at `/sys/class/hwmon/hwmon1`, sampled at 20 Hz
+in a separate process sharing `CLOCK_MONOTONIC` with the pipeline. 125 trace
+files committed, 19 MB. The campaign program is committed **byte-identical to
+the program that ran on the board**, md5 `f84681d405242a3e39690414bdcb3033` in
+all three locations.
+
+A **60-second instrumentation dry run passed before** the full campaign was
+launched, and the orchestrator verified every expected file after **every single
+run**.
+
+### The pre-registered expectation held and the learned model lost
+
+| predictor | held-out duty | held-out frame dimension |
+|---|---|---|
+| measured `P_active` (ceiling) | 0.029186 | 0.029186 |
+| classical: constant grid mean | 0.066443 | **0.066287** |
+| classical: linear in duty and dimension | **0.051959** | 0.076385 |
+| classical: analytic duty inversion | 0.073620 | 0.079520 |
+| learned: random forest | 0.052428 | 0.072997 |
+| between-run half-width | 0.029543 | 0.029543 |
+
+Margins **−0.000469** and **−0.006710**: the forest is slightly worse on both
+splits, well inside the noise floor. Published as such; the learned component
+stays in the product reported as beaten, and nothing was retuned. Its one-sigma
+coverage is **0.2615**, published and not widened.
+
+### A falsified bound, caused by this session's own campaign design
+
+The duty-cycle lower bracket assumes the floor run's minimum power lower-bounds
+every cell's sleep windows. **Violated on 7 of 19 cells** —
+`w64_d050_permissive`, `w64_d050_rep2`, `w64_d050_rep3`, `w64_d050_rep4`,
+`w96_d010`, `w96_d025`, `w96_d050` — whose sleep windows reach 3480–3600 mW
+against the floor run's 4113.4 mW minimum. Ten cells have a sleep *sample* below
+that minimum; only seven violate the energy bound.
+
+The premise is false because **the floor was measured first, at the campaign's
+highest foreign load, and the run order was not randomised.** Recorded as
+**FALSIFIED** in `VALIDATION.md`, with the seven cells pinned as literals so any
+change to the set makes the script fail for real. The gate was not edited, no
+threshold moved, no check skipped. `F` depends on no floor figure at all.
+
+### Two errors found by cross-checking, one in each direction
+
+**The agent's:** `E_total` integrated the sampler's bracketing span rather than
+the run window `[t0_mono, t1_mono]`, charging 0.95 s of lead-in and tail-out
+energy to decisions not taken in it and overstating the headline by **+1.1041
+per cent**. Everything derived from the decisions CSV agreed between coordinator
+and agent to every digit, which is what isolated the one disagreeing quantity.
+The corrected exact declared-phase partition satisfies
+`E_active + E_sleep = E_total` and removes the decomposition's residual term
+entirely; the published headline is the smaller, correct number. Worst partition
+closure error **8.114e-05** on `w96_d100`, 0.81 of the 1e-4 tolerance, named
+explicitly rather than only passed.
+
+**The coordinator's:** it told the agent the falsified bound failed on nine
+cells, a number it had not computed but echoed back from the agent's own earlier
+report. The agent recomputed seven and explained why; the coordinator then
+computed seven independently and the agent was right.
+
+### Scope, which is part of the result
+
+One power mode (`MAXN_SUPER`; `sudo -n true` fails on this board), one ambient,
+one CPU-only CPython pipeline, one cycle period, one board — and a **shared**
+board. The measured floor is a background floor carrying **250.914 mW (5.895 per
+cent)** of foreign work by regression on measured CPU occupancy (slope 2034.282
+mW, intercept 4005.181 mW, Pearson **r = 0.6932**, weak and said to be weak).
+`w96_d010` draws 3716.75 mW while running, **below** the 4258.633 mW floor, and
+a check was written that fires on that condition. Instrument floors: an **8 mA
+current quantum**, 39.883 mW at 5 V, and **512-conversion hardware averaging**
+that bandwidth-limits the wake transient, which is why `E_ramp` comes out
+**negative on 12 of 15 grid cells**. **Two of the five gate reject reasons,
+`no_candidate` and `border`, never fire in 268,425 inferences**, so the measured
+acceptance rate belongs to a gate two of whose branches were never reached.
+
+Nothing in this product is described as flight-safe, certified, mission-ready or
+production-ready.
+
+### Security
+
+`bandit -r products/P093 -x '*/tests/*'`: **0 HIGH, 0 MEDIUM, 21 LOW** over
+**9588 lines**. `detect-secrets` over the product tree: **0 findings**.
+`pip-audit` against the declared and measured versions: **no known
+vulnerabilities**. **0 absolute paths** across 207 tracked text files, **0**
+tracked build artifacts, `junit.xml` correctly untracked, all 125 trace files
+tracked against 125 on disk. No unresolved critical finding, so publication was
+not blocked on security.

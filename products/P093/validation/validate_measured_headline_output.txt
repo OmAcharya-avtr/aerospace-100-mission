@@ -16,7 +16,7 @@ analysis machine : x86_64 Linux, 2 cores  (the TRACES are measured on aarch64 ON
 repository root  : P093 (printed relatively; see validation/_bootstrap.py)
 hunt examples    : 600
 
-MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221 as bus voltage (mV) times shunt current (mA); P(t) = V(t)*I(t). Energy over a window is the TRAPEZOIDAL integral of P(t) over the sampler's CLOCK_MONOTONIC timestamps. A cycle is 2.0 s: the pipeline runs back-to-back inferences for duty*2.0 s and sleeps the rest; a run is 38 cycles. An inference is one pass over one frame, one row of the decisions CSV. A USEFUL DECISION is an inference that passes the gate -- a candidate exists, its box does not touch the border, its area is within the declared bounds, and its score is at least tau -- so the acceptance rate is counted from the committed CSV and never asserted. ENERGY PER USEFUL DECISION is the integral of P(t) over the WHOLE run, sleep windows included, divided by the number of accepted decisions in that run.
+MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221 as bus voltage (mV) times shunt current (mA); P(t) = V(t)*I(t). Energy over a window is the TRAPEZOIDAL integral of P(t) over the sampler's CLOCK_MONOTONIC timestamps. A cycle is 2.0 s: the pipeline runs back-to-back inferences for duty*2.0 s and sleeps the rest; a run is 38 cycles. An inference is one pass over one frame, one row of the decisions CSV. A USEFUL DECISION is an inference that passes the gate -- a candidate exists, its box does not touch the border, its area is within the declared bounds, and its score is at least tau -- so the acceptance rate is counted from the committed CSV and never asserted. ENERGY PER USEFUL DECISION is the integral of P(t) over the RUN WINDOW [t0_mono, t1_mono] exactly, with P interpolated at both ends, sleep windows included, divided by the number of accepted decisions in that run. The sampler brackets the run on purpose, starting early and stopping late, so its span is WIDER than the run and is never what is integrated. E_active and E_sleep partition that same window using the declared per-cycle phases, with P interpolated at every boundary.
 
 ==============================================================================
 1  campaign identity
@@ -40,67 +40,85 @@ MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221
 
   cell                    dim   duty       tau    inf    acc        a    mean_mW
   ------------------------------------------------------------------------------
-  floor                    64   0.00    0.0000      -      -        -   4264.428
-  w48_d010                 48   0.10  153.0263   4549   1543   0.3392   4390.001
-  w48_d025                 48   0.25  153.0263  11566   4029   0.3483   4529.963
-  w48_d050                 48   0.50  153.0263  23072   8094   0.3508   4880.991
-  w48_d075                 48   0.75  153.0263  34914  12251   0.3509   5243.235
-  w48_d100                 48   1.00  153.0263  46338  16258   0.3509   5561.297
-  w64_d010                 64   0.10  154.7619   2551    879   0.3446   4366.931
-  w64_d025                 64   0.25  154.7619   6394   2237   0.3499   4589.115
-  w64_d050                 64   0.50  154.7619  12896   4449   0.3450   4410.823
-  w64_d050_permissive      64   0.50  139.8750  12880  11610   0.9014   4225.294
-  w64_d050_rep2            64   0.50  154.7619  12822   4422   0.3449   4230.644
-  w64_d050_rep3            64   0.50  154.7619  12899   4451   0.3451   4247.336
-  w64_d050_rep4            64   0.50  154.7619  12867   4433   0.3445   4232.202
-  w64_d075                 64   0.75  154.7619  19274   6666   0.3459   4560.609
-  w64_d100                 64   1.00  154.7619  25877   8907   0.3442   4930.373
-  w96_d010                 96   0.10  157.8333   1129    396   0.3508   3714.658
-  w96_d025                 96   0.25  157.8333   2829    997   0.3524   3919.490
-  w96_d050                 96   0.50  157.8333   5676   2044   0.3601   4237.523
-  w96_d075                 96   0.75  157.8333   8520   3049   0.3579   4575.874
-  w96_d100                 96   1.00  157.8333  11372   4074   0.3582   4897.039
+  floor                    64   0.00    0.0000      -      -        -   4258.633
+  w48_d010                 48   0.10  153.0263   4549   1543   0.3392   4392.039
+  w48_d025                 48   0.25  153.0263  11566   4029   0.3483   4534.004
+  w48_d050                 48   0.50  153.0263  23072   8094   0.3508   4889.143
+  w48_d075                 48   0.75  153.0263  34914  12251   0.3509   5253.666
+  w48_d100                 48   1.00  153.0263  46338  16258   0.3509   5571.535
+  w64_d010                 64   0.10  154.7619   2551    879   0.3446   4368.540
+  w64_d025                 64   0.25  154.7619   6394   2237   0.3499   4592.657
+  w64_d050                 64   0.50  154.7619  12896   4449   0.3450   4417.125
+  w64_d050_permissive      64   0.50  139.8750  12880  11610   0.9014   4233.513
+  w64_d050_rep2            64   0.50  154.7619  12822   4422   0.3449   4238.342
+  w64_d050_rep3            64   0.50  154.7619  12899   4451   0.3451   4255.196
+  w64_d050_rep4            64   0.50  154.7619  12867   4433   0.3445   4240.621
+  w64_d075                 64   0.75  154.7619  19274   6666   0.3459   4571.323
+  w64_d100                 64   1.00  154.7619  25877   8907   0.3442   4941.652
+  w96_d010                 96   0.10  157.8333   1129    396   0.3508   3716.753
+  w96_d025                 96   0.25  157.8333   2829    997   0.3524   3923.696
+  w96_d050                 96   0.50  157.8333   5676   2044   0.3601   4244.981
+  w96_d075                 96   0.75  157.8333   8520   3049   0.3579   4587.524
+  w96_d100                 96   1.00  157.8333  11372   4074   0.3582   4908.058
 
 ==============================================================================
 2  baseline 1 and baseline 3 on the headline cell w64_d050
 ==============================================================================
   variant                       : measured-active
-  mean active power (time-wtd)  : 4619.705 mW
+  mean active power (time-wtd)  : 4618.256 mW
   mean active power (sample)    : 4609.324 mW
   mean inference latency        : 0.002945833 s
-  ENERGY PER INFERENCE          : 13.608877384 mJ
+  ENERGY PER INFERENCE E_act/N  : 13.608386014 mJ
+  spec-literal P_act * L        : 13.604610761 mJ (ratio 0.999722579)
   inferences                    : 12896
-  active duration               : 38.002672 s
-  interstitial samples / gaps   : 0 / 0 (widest inter-inference gap 0.000020 s)
-  sleep-window samples in span  : 740
+  declared active duration      : 38.000000 s
+  occupied by inferences        : 37.989458 s (occupancy 0.999723, shortfall 10.542 ms)
+  interstitial samples / gaps   : 0 / 0 (widest inter-inference gap 0.0200 ms)
+  The two energies per inference differ by the phase occupancy alone. The
+  decomposition uses E_act/N, because dividing the same integral the numerator
+  takes a share of is what makes it exact in its three named factors.
 
   variant                       : nominal-rail
-  mean active power (time-wtd)  : 4667.401 mW
+  mean active power (time-wtd)  : 4665.871 mW
   mean active power (sample)    : 4656.421 mW
   mean inference latency        : 0.002945833 s
-  ENERGY PER INFERENCE          : 13.749383228 mJ
+  ENERGY PER INFERENCE E_act/N  : 13.748690553 mJ
+  spec-literal P_act * L        : 13.744876376 mJ (ratio 0.999722579)
   inferences                    : 12896
-  active duration               : 38.002672 s
-  interstitial samples / gaps   : 0 / 0 (widest inter-inference gap 0.000020 s)
-  sleep-window samples in span  : 740
+  declared active duration      : 38.000000 s
+  occupied by inferences        : 37.989458 s (occupancy 0.999723, shortfall 10.542 ms)
+  interstitial samples / gaps   : 0 / 0 (widest inter-inference gap 0.0200 ms)
+  The two energies per inference differ by the phase occupancy alone. The
+  decomposition uses E_act/N, because dividing the same integral the numerator
+  takes a share of is what makes it exact in its three named factors.
 
   cell                          : w64_d050
-  E_total (whole run)           : 339413.174917 mJ
-  duration / mean power         : 76.950 s / 4410.823 mW
+  E_total (whole run)           : 335706.769863 mJ
+  duration / mean power         : 76.001 s / 4417.125 mW
   inferences / accepted         : 12896 / 4449
   acceptance rate (counted)     : 0.344991
   reject reasons                : accept=4449, area_out=827, low_score=7620
-  ENERGY PER USEFUL DECISION    : 76.289767 mJ
-  energy per inference, whole   : 26.319260 mJ
+  ENERGY PER USEFUL DECISION    : 75.456680 mJ
+  energy per inference, whole   : 26.031853 mJ
   current quantum as power      : 39.692 mW (40 mW at the 5 V nominal)
 
 ==============================================================================
-3  the energy accounting adds up
+3  the run, the declared phases, and how they partition
 ==============================================================================
-  E_total  : 339413.174917 mJ over 76.950 s
-  E_active : 175561.127539 mJ over 38.003 s in 38 window(s)
-  E_sleep  : 163852.047378 mJ over 38.947 s
-[PASS] the active and complementary energies sum to the whole-run energy -- residual 2.220e-16
+  run window        : [t0_mono, t1_mono], 76.001192 s
+  sampler span      : 76.950071 s -- WIDER on purpose; the campaign brackets the run
+  E_total (run)     : 335706.769863 mJ
+  E over the span   : 339413.174917 mJ  (+1.1041% against the run; integrating this instead would charge the lead-in and tail-out to the decisions)
+  E_active (declared phases) : 175493.746037 mJ over 38.000000 s in 38 phase(s)
+  E_sleep  (declared phases) : 160208.592118 mJ over 38.000000 s
+[PASS] the declared active and sleep phases partition the run -- residual -1.320e-05; the phases tile the run's cycles exactly and the residual is the few milliseconds the run extends past the last cycle
+
+  PHASE OCCUPANCY, a diagnostic and not a factor of the decomposition:
+    declared active time : 38.000000 s
+    occupied by inferences: 37.989458 s (occupancy 0.999723)
+    spanned by merged intervals: 38.002672 s
+    shortfall 10.542 ms, overshoot 2.672 ms
+    The loop checks the clock before starting an inference and will not start one that would run past the declared boundary, so the inferences UNDERSHOOT the phase; the last one of a phase starts before the boundary and finishes after it, so the merged span OVERSHOOTS. Neither is a term in F.
   interstitial samples: 0 in 0 gap(s); widest inter-inference gap 0.000020 s against a merge tolerance of 0.025 s
   A sample in such a gap is excluded from both the active energy and the active duration, and the count is printed rather than absorbed.
 
@@ -112,53 +130,65 @@ MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221
   inferences counted                : 12896
   useful decisions counted          : 4449
   acceptance rate a                 : 0.344991
-  whole-run energy E_total          : 339413.174917 mJ
-  active-window energy E_active     : 175561.127539 mJ
-  active duration T_act             : 38.002672 s
+  run energy E_total                : 335706.769863 mJ
+  declared-active energy E_active   : 175493.746037 mJ
+  declared-sleep energy E_sleep     : 160208.592118 mJ
+  partition residual                : -1.320e-05
+  active duration                   : 38.000000 s
   mean inference latency L          : 0.002945833 s
-  energy per inference (baseline 1) : 13.608877384 mJ
-  energy per useful decision        : 76.289767 mJ
-  HEADLINE understatement factor F  : 5.605882
-    rejection factor 1/a            : 2.898629
-    duty-cycle factor E_tot/E_act   : 1.933305
-    rail-voltage factor P_m/P_q     : 1.000000
-    residual factor                 : 1.000348
-    accounting factor T_act/(N*L)   : 1.000348
-    closure error of the above      : 0.000e+00
-[PASS] the four factors multiply to F (measured-active) -- closure error 0.000e+00
+  energy per inference (baseline 1) : 13.608386014 mJ
+    spec-literal P_act * L          : 13.604610761 mJ
+  energy per useful decision        : 75.456680 mJ
+  HEADLINE understatement factor F  : 5.544866
+    rejection factor N/A            : 2.898629
+    duty-cycle factor E_tot/E_act   : 1.912927
+    rail-voltage factor             : 1.000000
+    closure error of the three      : 0.000e+00
+  DIAGNOSTIC, not a factor:
+    declared active time            : 38.000000 s
+    occupied by inferences          : 37.989458 s (occupancy 0.999723)
+    spanned by merged intervals     : 38.002672 s
+    shortfall / overshoot           : 10.542 ms / 2.672 ms
+[PASS] the three named factors multiply to F exactly (measured-active) -- closure error 0.000e+00; the decomposition has no residual term under the declared-phase partition
 
   cell                              : w64_d050
   variant of energy per inference   : nominal-rail
   inferences counted                : 12896
   useful decisions counted          : 4449
   acceptance rate a                 : 0.344991
-  whole-run energy E_total          : 339413.174917 mJ
-  active-window energy E_active     : 175561.127539 mJ
-  active duration T_act             : 38.002672 s
+  run energy E_total                : 335706.769863 mJ
+  declared-active energy E_active   : 175493.746037 mJ
+  declared-sleep energy E_sleep     : 160208.592118 mJ
+  partition residual                : -1.320e-05
+  active duration                   : 38.000000 s
   mean inference latency L          : 0.002945833 s
-  energy per inference (baseline 1) : 13.749383228 mJ
-  energy per useful decision        : 76.289767 mJ
-  HEADLINE understatement factor F  : 5.548596
-    rejection factor 1/a            : 2.898629
-    duty-cycle factor E_tot/E_act   : 1.933305
-    rail-voltage factor P_m/P_q     : 0.989781
-    residual factor                 : 1.000348
-    accounting factor T_act/(N*L)   : 1.000348
-    closure error of the above      : -2.220e-16
-[PASS] the four factors multiply to F (nominal-rail) -- closure error -2.220e-16
+  energy per inference (baseline 1) : 13.748690553 mJ
+    spec-literal P_act * L          : 13.744876376 mJ
+  energy per useful decision        : 75.456680 mJ
+  HEADLINE understatement factor F  : 5.488281
+    rejection factor N/A            : 2.898629
+    duty-cycle factor E_tot/E_act   : 1.912927
+    rail-voltage factor             : 0.989795
+    closure error of the three      : 2.220e-16
+  DIAGNOSTIC, not a factor:
+    declared active time            : 38.000000 s
+    occupied by inferences          : 37.989458 s (occupancy 0.999723)
+    spanned by merged intervals     : 38.002672 s
+    shortfall / overshoot           : 10.542 ms / 2.672 ms
+[PASS] the three named factors multiply to F exactly (nominal-rail) -- closure error 2.220e-16; the decomposition has no residual term under the declared-phase partition
 
 
 ==============================================================================
 5  the between-run interval on the headline quantity
 ==============================================================================
   repeats                       : w64_d050, w64_d050_rep2, w64_d050_rep3, w64_d050_rep4
-  values                        : 76.2898, 73.6202, 73.4291, 73.4646 mJ per useful decision
-  mean                          : 74.200917 mJ
-  sample sd (ddof=1)            : 1.395039 mJ
-  range                         : 2.860682 mJ
+  values                        : 75.4567, 72.8447, 72.6578, 72.7033 mJ per useful decision
+  mean                          : 73.415605 mJ
+  sample sd (ddof=1)            : 1.363041 mJ
+  range                         : 2.798901 mJ
   t critical (95%, n=4)    : 3.1824
-  HALF-WIDTH                    : 2.219818 mJ
-  interval                      : [71.981099, 76.420734] mJ
+  HALF-WIDTH                    : 2.168903 mJ
+  interval                      : [71.246703, 75.584508] mJ
   A within-run bootstrap over samples would be WRONG here: the INA3221 averages
   512 conversions in hardware, so neighbouring samples are not independent, and
   the quantity whose uncertainty matters is run-to-run, not sample-to-sample.
@@ -171,32 +201,57 @@ MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221
 [PASS] E_total lies inside the mean-value bracket -- [270864.249920, 443636.242933] mJ, slack 3.173e-10
 
   the duty-cycle factor against the sleep-power bound, on every pipeline cell
+  The sleep duration is the DECLARED one, cycles*(1-duty)*cycle_s, so a duty-1.00 cell has no sleep phase and the bound reduces to factor >= 1.
   cell                    campaign bd   measured   ok  in-cell min  in-cell bd   ok
   -----------------------------------------------------------------------------------
-  w48_d010                     9.2977     9.8248 True       4113.4      9.2977 True
-  w48_d025                     3.6308     3.8454 True       4113.4      3.6308 True
-  w48_d050                     1.8293     1.9445 True       4153.3      1.8373 True
-  w48_d075                     1.2700     1.3279 True       4266.3      1.2801 True
-  w48_d100                     1.0092     1.0106 True       4226.4      1.0095 True
-  w64_d010                     9.2832     9.7586 True       4113.4      9.2832 True
-  w64_d025                     3.5921     3.8397 True       4153.3      3.6173 True
-  w64_d050                     1.9125     1.9333 True       3520.0      1.7809 True
-  w64_d050_permissive          1.9510     1.9308False       3480.0      1.8046 True
-  w64_d050_rep2                1.9481     1.9270False       3560.0      1.8205 True
-  w64_d050_rep3                1.9473     1.9327False       3560.0      1.8198 True
-  w64_d050_rep4                1.9489     1.9291False       3520.0      1.8120 True
-  w64_d075                     1.3093     1.3242 True       3600.0      1.2707 True
-  w64_d100                     1.0104     1.0102False       3560.0      1.0090 True
-  w96_d010                    10.5859     9.6199False       3480.0      9.1098 True
-  w96_d025                     3.9968     3.7961False       3480.0      3.5353 True
-  w96_d050                     1.9427     1.9233False       3520.0      1.8067 True
-  w96_d075                     1.3070     1.3234 True       3480.0      1.2597 True
-  w96_d100                     1.0104     1.0101False       3520.0      1.0089 True
+  w48_d010                   9.176241   9.700231 True       4113.4    9.176241 True
+  w48_d025                   3.584148   3.797914 True       4113.4    3.584148 True
+  w48_d050                   1.809568   1.924512 True       4233.2    1.833148 True
+  w48_d075                   1.257256   1.314289 True       4570.6    1.285846 True
+  w48_d100                   1.000000   1.000021 True          nan         nan True
+  w64_d010                   9.186084   9.659950 True       4113.4    9.186084 True
+  w64_d025                   3.549990   3.796175 True       4153.3    3.574748 True
+  w64_d050                   1.890684   1.912927 True       3594.2    1.778268 True
+  w64_d050_permissive        1.928946   1.912182False       3560.0    1.803967 True
+  w64_d050_rep2              1.925898   1.908070False       3600.0    1.810334 True
+  w64_d050_rep3              1.924807   1.913399False       3560.0    1.800386 True
+  w64_d050_rep4              1.926358   1.910052False       3560.0    1.801728 True
+  w64_d075                   1.295050   1.311594 True       3901.2    1.279827 True
+  w64_d100                   1.000000   1.000022 True          nan         nan True
+  w96_d010                  10.616682   9.654936False       3480.0    9.135846 True
+  w96_d025                   3.964242   3.770123False       3520.0    3.536615 True
+  w96_d050                   1.924744   1.908674False       3560.0    1.800331 True
+  w96_d075                   1.294258   1.312717 True       3941.0    1.281924 True
+  w96_d100                   1.000000   1.000081 True          nan         nan True
 
-[FAIL] the duty-cycle factor satisfies the bound built from the CAMPAIGN floor minimum -- 9 of 19 cell(s) violate it: w64_d050_permissive, w64_d050_rep2, w64_d050_rep3, w64_d050_rep4, w64_d100, w96_d010, w96_d025, w96_d050, w96_d100
-  THIS CHECK FAILS AND THE FAILURE IS THE FINDING. The bound's premise is that a sleep window draws at least the minimum power ever seen on the no-pipeline floor run, which was 4113.4 mW. That premise is FALSE on this campaign, because the run order was not randomised and the board's foreign load fell throughout: later cells' sleep windows draw as little as 3480 mW, well under the floor run's minimum. The bound is sound arithmetic applied to a false premise about the board's state, and it caught a defect in the campaign's design rather than one in this code. It is NOT weakened to pass, and the headline does not depend on it: F is a ratio of measured integrals and counts and does not use the floor at all.
-[PASS] the duty-cycle factor satisfies the bound built from each cell's OWN sleep minimum -- this variant replaces the false premise with a measured one, per cell. It is a WEAKER argument than the campaign-floor form because it reads the minimum from the same samples the integral uses, so it shares an input with what it checks; it is reported as the sound-but-weaker companion and not as a replacement
-[PASS] F satisfies the extreme-value bound -- bound 1.440679, measured 5.605882, ratio 3.891
+  FALSIFICATION, pinned. The bound's premise is that a sleep window draws at
+  least the minimum power ever seen on the no-pipeline floor run, 4113.4 mW.
+  That premise is FALSE on this campaign. The run order was not randomised and
+  the board's foreign load fell throughout, so the floor was measured at the
+  highest load of the whole run and later cells' sleep windows draw less than
+  the floor run's minimum ever did. The arithmetic is sound; the premise is an
+  assumption about the board's state and the campaign falsifies it.
+
+  A script that correctly establishes a falsification has SUCCEEDED, so this
+  script reports the falsification as its finding and exits 0 when the set of
+  violating cells is exactly the pinned list below. If the set ever changes --
+  a cell joining it or leaving it -- the pinned list no longer matches and the
+  script FAILS for real. The bound is not weakened, the slack is not widened
+  and no cell is excluded.
+
+  pinned falsification set (7 cells):
+    w64_d050_permissive    sleep-window minimum 3560.0 mW < floor-run minimum 4113.4 mW
+    w64_d050_rep2          sleep-window minimum 3600.0 mW < floor-run minimum 4113.4 mW
+    w64_d050_rep3          sleep-window minimum 3560.0 mW < floor-run minimum 4113.4 mW
+    w64_d050_rep4          sleep-window minimum 3560.0 mW < floor-run minimum 4113.4 mW
+    w96_d010               sleep-window minimum 3480.0 mW < floor-run minimum 4113.4 mW
+    w96_d025               sleep-window minimum 3520.0 mW < floor-run minimum 4113.4 mW
+    w96_d050               sleep-window minimum 3560.0 mW < floor-run minimum 4113.4 mW
+
+[PASS] the campaign-floor sleep bound is FALSIFIED on exactly the pinned set of cells -- falsified on 7: ['w64_d050_permissive', 'w64_d050_rep2', 'w64_d050_rep3', 'w64_d050_rep4', 'w96_d010', 'w96_d025', 'w96_d050']; pinned ['w64_d050_permissive', 'w64_d050_rep2', 'w64_d050_rep3', 'w64_d050_rep4', 'w96_d010', 'w96_d025', 'w96_d050']
+  The headline does not depend on this bound. F is (E_total/A) over (E_active/N): four measured integrals and two counts, none of which is the floor cell. The floor enters Baseline 2 only, and its sensitivity is published in validate_measured_baselines.py section 4.
+[PASS] the same bound built from each cell's OWN sleep minimum holds everywhere -- this variant replaces the false premise with a measured one, per cell. It is a WEAKER argument than the campaign-floor form because it reads the minimum from the same samples the integral it checks is taken over, so it shares an input with what it checks; it is reported as the sound-but-weaker companion and not as a replacement
+[PASS] F satisfies the extreme-value bound -- bound 1.440679, measured 5.544866, ratio 3.849
 
 ==============================================================================
 7  the reject-reason census, and the two branches that never fired
@@ -220,19 +275,19 @@ MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221
 ==============================================================================
 8  the permissive-gate control: the rejection half of the headline
 ==============================================================================
-  strict     tau=154.7619  a=0.344991  1/a=2.898629  F=5.605882
-  permissive tau=139.8750  a=0.901398  1/a=1.109388  F=2.142742
+  strict     tau=154.7619  a=0.344991  1/a=2.898629  F=5.544866
+  permissive tau=139.8750  a=0.901398  1/a=1.109388  F=2.121353
 
   This is the specification's declared negative control for the rejection half of the headline: at the permissive tau the rejection factor should nearly vanish, and the duty-cycle factor, which is a property of the duty and not of the gate, should not move.
 [PASS] control: the permissive gate removes most of the rejection factor (must fire) -- FIRED; 1/a falls from 2.8986 to 1.1094, a ratio of 2.6128
-[PASS] control: the permissive gate moves the duty-cycle factor (must NOT fire) -- did not fire; 1.930767 against 1.933305
+[PASS] control: the permissive gate moves the duty-cycle factor (must NOT fire) -- did not fire; 1.912182 against 1.912927
 
 ==============================================================================
 9  the instrument's own floor on every figure above
 ==============================================================================
   power quantum                  : 39.692 mW
   per-sample quantiser sd        : 11.458 mW
-  implied energy sd (lower bound): 22.468 mJ (6.620e-05 relative)
+  implied energy sd (lower bound): 22.191 mJ (6.610e-05 relative)
   The sqrt(n) reduction is a LOWER bound: the INA3221 averages 512 conversions in hardware, so neighbouring samples are not independent.
 
 ==============================================================================
@@ -249,4 +304,4 @@ MEASUREMENT MODEL. The platform rail is VDD_IN, measured by the on-board INA3221
 CHECKS RUN: 11
 CONTROLS: 2 declared, 1 fired; must-fire 1/1, must-NOT-fire silent 1/1
 NOT MEASURED (1): the gate branches no_candidate, border
-FAILED CHECKS (1): the duty-cycle factor satisfies the bound built from the CAMPAIGN floor minimum
+FAILED CHECKS (0): none

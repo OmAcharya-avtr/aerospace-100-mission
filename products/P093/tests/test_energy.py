@@ -11,9 +11,12 @@ from powerenvelope.energy import (
     active_windows,
     cell_energy,
     clip_series,
+    declared_phases,
     energy_over_windows,
     interstitial_samples,
     merge_intervals,
+    phase_occupancy,
+    run_energy,
     sleep_energy,
     trapezoid_energy_mj,
     whole_run_energy,
@@ -132,7 +135,7 @@ def test_active_windows_merge_into_one_at_full_duty(campaign):
     assert lo.size == 1
 
 
-def test_active_plus_sleep_equals_whole_run(reference_cell):
+def test_active_plus_sleep_equals_the_run(reference_cell):
     whole, active = cell_energy(reference_cell)
     sleep = sleep_energy(reference_cell)
     assert active.energy_mj + sleep.energy_mj == pytest.approx(
@@ -143,16 +146,56 @@ def test_active_plus_sleep_equals_whole_run(reference_cell):
     )
 
 
-def test_whole_run_energy_matches_the_closed_form(campaign):
+def test_run_energy_matches_the_closed_form(campaign):
     for label, duty in (("w64_d025", 0.25), ("w64_d050", 0.50), ("w96_d075", 0.75)):
         cell = campaign.require(label)
         expected = synthetic_campaign.total_energy_mj(duty, cell.cycles)
-        assert whole_run_energy(cell.power).energy_mj == pytest.approx(
+        assert run_energy(cell).energy_mj == pytest.approx(
             expected, rel=synthetic_campaign.CLOSED_FORM_REL, abs=0.0
         )
 
 
-def test_active_energy_matches_the_closed_form(campaign):
+def test_the_sampler_span_is_wider_than_the_run_and_is_not_the_run(campaign):
+    # The campaign brackets the run deliberately, and the generator reproduces
+    # that. Integrating the span and calling it the run is the defect this
+    # distinction exists to prevent; it cost 1.1 per cent on the measured
+    # campaign before it was found.
+    for label in ("w48_d010", "w64_d050", "w96_d100"):
+        cell = campaign.require(label)
+        span = float(cell.power.t[-1] - cell.power.t[0])
+        run = cell.t1_mono - cell.t0_mono
+        assert span > run
+        assert span == pytest.approx(run + 1.0, rel=0.0, abs=1e-9)
+        assert whole_run_energy(cell.power).energy_mj > run_energy(cell).energy_mj
+
+
+def test_declared_phases_tile_the_run_cycles(campaign):
+    for label in ("w48_d010", "w64_d050", "w96_d075", "w64_d100"):
+        cell = campaign.require(label)
+        (a_lo, a_hi), (s_lo, s_hi) = declared_phases(cell)
+        covered = float(np.sum(a_hi - a_lo) + np.sum(s_hi - s_lo))
+        assert covered == pytest.approx(cell.cycles * 2.0, rel=1e-12, abs=0.0)
+        assert a_lo.size + s_lo.size >= cell.cycles
+
+
+def test_declared_sleep_energy_matches_the_closed_form(campaign):
+    for label, duty in (("w48_d010", 0.10), ("w64_d050", 0.50), ("w96_d075", 0.75)):
+        cell = campaign.require(label)
+        expected = synthetic_campaign.sleep_energy_mj(duty, cell.cycles)
+        assert sleep_energy(cell).energy_mj == pytest.approx(
+            expected, rel=synthetic_campaign.CLOSED_FORM_REL, abs=0.0
+        )
+
+
+def test_phase_occupancy_is_exact_on_the_synthetic_pipeline(campaign):
+    for label in ("w48_d025", "w64_d050", "w96_d075"):
+        occupancy = phase_occupancy(campaign.require(label))
+        assert occupancy.occupancy == pytest.approx(1.0, rel=1e-9, abs=0.0)
+        assert occupancy.shortfall_s == pytest.approx(0.0, rel=0.0, abs=1e-9)
+        assert occupancy.overshoot_s == pytest.approx(0.0, rel=0.0, abs=1e-9)
+
+
+def test_declared_active_energy_matches_the_closed_form(campaign):
     for label, duty in (("w48_d010", 0.10), ("w64_d050", 0.50), ("w96_d075", 0.75)):
         cell = campaign.require(label)
         expected = synthetic_campaign.active_energy_mj(duty, cell.cycles)
@@ -162,7 +205,7 @@ def test_active_energy_matches_the_closed_form(campaign):
         )
 
 
-def test_at_full_duty_active_energy_is_the_whole_run(campaign):
+def test_at_full_duty_active_energy_is_the_run(campaign):
     cell = campaign.require("w48_d100")
     whole, active = cell_energy(cell)
     assert active.energy_mj == pytest.approx(whole.energy_mj, rel=1e-12, abs=0.0)

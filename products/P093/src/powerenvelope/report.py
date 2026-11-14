@@ -39,8 +39,12 @@ MEASUREMENT_MODEL = (
     "exists, its box does not touch the border, its area is within the declared "
     "bounds, and its score is at least tau -- so the acceptance rate is counted "
     "from the committed CSV and never asserted. ENERGY PER USEFUL DECISION is "
-    "the integral of P(t) over the WHOLE run, sleep windows included, divided by "
-    "the number of accepted decisions in that run."
+    "the integral of P(t) over the RUN WINDOW [t0_mono, t1_mono] exactly, with P "
+    "interpolated at both ends, sleep windows included, divided by the number of "
+    "accepted decisions in that run. The sampler brackets the run on purpose, "
+    "starting early and stopping late, so its span is WIDER than the run and is "
+    "never what is integrated. E_active and E_sleep partition that same window "
+    "using the declared per-cycle phases, with P interpolated at every boundary."
 )
 
 
@@ -80,10 +84,10 @@ def cell_table(campaign: Campaign) -> list[str]:
         f"{'a':>9}{'mean_mW':>11}"
     )
     lines = [header, "  " + "-" * (len(header) - 2)]
-    from .energy import whole_run_energy
+    from .energy import run_energy
 
     for label, cell in sorted(campaign.cells.items()):
-        mean_mw = whole_run_energy(cell.power).mean_power_mw
+        mean_mw = run_energy(cell).mean_power_mw
         if cell.decisions is None:
             lines.append(
                 f"  {label:<22}{cell.frame_dim:>5}{cell.duty:>7.2f}{cell.tau:>10.4f}"
@@ -122,13 +126,20 @@ def baseline1_lines(baseline: EnergyPerInference) -> list[str]:
         f"mean active power (time-wtd)  : {baseline.mean_active_power_mw:.3f} mW",
         f"mean active power (sample)    : {baseline.sample_mean_active_power_mw:.3f} mW",
         f"mean inference latency        : {baseline.mean_latency_s:.9f} s",
-        f"ENERGY PER INFERENCE          : {baseline.energy_mj:.9f} mJ",
+        f"ENERGY PER INFERENCE E_act/N  : {baseline.energy_mj:.9f} mJ",
+        f"spec-literal P_act * L        : {baseline.spec_literal_energy_mj:.9f} mJ "
+        f"(ratio {baseline.spec_literal_energy_mj / baseline.energy_mj:.9f})",
         f"inferences                    : {baseline.n_inferences}",
-        f"active duration               : {baseline.active_duration_s:.6f} s",
+        f"declared active duration      : {baseline.active_duration_s:.6f} s",
+        f"occupied by inferences        : {baseline.occupancy.occupied_s:.6f} s "
+        f"(occupancy {baseline.occupancy.occupancy:.6f}, shortfall "
+        f"{baseline.occupancy.shortfall_s * 1e3:.3f} ms)",
         f"interstitial samples / gaps   : {baseline.interstitial.n_samples} / "
         f"{baseline.interstitial.n_gaps} (widest inter-inference gap "
-        f"{baseline.interstitial.max_gap_s:.6f} s)",
-        f"sleep-window samples in span  : {baseline.n_sleep_samples}",
+        f"{baseline.interstitial.max_gap_s * 1e3:.4f} ms)",
+        "The two energies per inference differ by the phase occupancy alone. The",
+        "decomposition uses E_act/N, because dividing the same integral the numerator",
+        "takes a share of is what makes it exact in its three named factors.",
     ]
 
 

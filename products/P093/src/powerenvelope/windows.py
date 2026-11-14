@@ -4,7 +4,11 @@ The dataset
 -----------
 
 Each pipeline cell is cut into fixed-length windows of :data:`WINDOW_S`
-seconds, four cycles each. A window contributes
+seconds, four cycles each, **beginning at ``t0_mono``** and covering the run
+rather than the sampler's wider bracketing span -- see
+:mod:`powerenvelope.energy` for why those are different. A window's active time
+is its intersection with the run's DECLARED active phases, the same partition
+the headline uses. A window contributes
 
 - **descriptors** that an operator could state from the configuration and read
   from the platform's own environment **without running the pipeline**, and
@@ -76,7 +80,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .energy import active_windows, energy_over_windows, merge_intervals
+from .energy import declared_phases, energy_over_windows, merge_intervals
 from .schema import N_CORES
 from .trace import FLOOR_CELL, Campaign, Cell
 
@@ -185,7 +189,7 @@ def pipeline_free_monitor_mask(cell: Cell) -> np.ndarray:
     """
     if cell.decisions is None:
         return np.ones(len(cell.monitor), dtype=bool)
-    starts, ends = active_windows(cell.decisions)
+    (starts, ends), _sleep = declared_phases(cell)
     lo = cell.monitor.t - cell.monitor.sample_interval_s
     hi = cell.monitor.t
     free = np.ones(lo.size, dtype=bool)
@@ -249,10 +253,10 @@ def extract_windows(campaign: Campaign, window_s: float = WINDOW_S) -> WindowSet
         if not cell.has_pipeline:
             dropped.append((cell.label, "no pipeline: the background floor cell has no target"))
             continue
-        decisions = cell.require_decisions()
-        a_lo, a_hi = active_windows(decisions)
-        t0 = float(cell.power.t[0])
-        t1 = float(cell.power.t[-1])
+        cell.require_decisions()
+        (a_lo, a_hi), _sleep = declared_phases(cell)
+        t0 = cell.t0_mono
+        t1 = cell.t1_mono
         n_windows = int(np.floor((t1 - t0) / window_s))
         if n_windows < 1:
             dropped.append((cell.label, "run shorter than one window"))

@@ -92,21 +92,32 @@ def test_the_floor_cell_ran_no_pipeline_and_has_an_empty_decisions_file(measured
 def test_the_headline_decomposes_and_closes(measured):
     for variant in ("measured-active", "nominal-rail"):
         result = decompose(measured.require("w64_d050"), variant)
-        product = result.product_of_named_factors() * result.residual_factor
-        assert product == pytest.approx(result.factor, rel=1e-10, abs=0.0)
-        assert result.factor > 1.0
-        assert result.residual_factor == pytest.approx(
-            result.accounting_factor, rel=1e-9, abs=0.0
+        assert result.product_of_named_factors() == pytest.approx(
+            result.factor, rel=1e-12, abs=0.0
         )
+        assert result.factor > 1.0
+        # The phase-occupancy diagnostic: the loop undershoots the declared
+        # boundary because it will not start an inference that would run past
+        # it. Asserted as a bound, not pinned to a value a re-run would move.
+        assert 0.99 < result.occupancy.occupancy < 1.0
+        assert 0.0 < result.occupancy.shortfall_s < 0.1
 
 
-def test_the_active_and_sleep_energies_sum_to_the_whole_run(measured):
+def test_the_declared_phases_partition_the_run(measured):
+    # The declared active and sleep phases tile the run's 38 cycles exactly.
+    # The run itself ends a few milliseconds after the last cycle, and that
+    # tail is the whole of the residual. The worst case measured on this
+    # campaign is 8.114e-05, on w96_d100, whose run is the longest past its
+    # last cycle; the tolerance is 1e-4 and the worst value is asserted to be
+    # under it rather than only the per-cell checks passing.
+    worst = 0.0
     for cell in measured.pipeline_cells():
         whole, active = cell_energy(cell)
         complement = sleep_energy(cell)
-        assert active.energy_mj + complement.energy_mj == pytest.approx(
-            whole.energy_mj, rel=1e-9, abs=0.0
-        )
+        residual = abs(active.energy_mj + complement.energy_mj - whole.energy_mj)
+        worst = max(worst, residual / whole.energy_mj)
+        assert residual / whole.energy_mj < 1e-4, cell.label
+    assert 1e-6 < worst < 1e-4
 
 
 def test_no_sampler_timestamp_fell_between_two_inferences(measured):

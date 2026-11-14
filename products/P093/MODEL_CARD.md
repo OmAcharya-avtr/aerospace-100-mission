@@ -35,8 +35,9 @@ the same cell. The equivalent two-term form
 into, because it consumes exactly the quantity the window dataset targets; it is
 algebraically the same number as the three-term form and
 `validate_measured_baselines.py` publishes the residual of that identity
-(worst case 3.021e-05 relative, which is the pipeline's loop overshoot past the
-declared phase boundary times the ramp's share of the cycle energy).
+(worst case 4.441e-16 relative: under the declared-phase partition both forms
+use the same declared active duration, so the two are the same number to
+rounding).
 
 ## Baseline, implemented and validated first
 
@@ -111,8 +112,11 @@ the cost.
    `/proc/stat` once a second and each sample covers the preceding second. A
    sample is pipeline-free only when no inference interval overlaps that second.
    With a 2.0 s cycle the sleep window is `2*(1-duty)` seconds, so a
-   pipeline-free second **can** exist at duty 0.10 and 0.25 and **cannot** exist
-   at duty 0.75 or 1.00. Where a window has none, the value is **imputed** from
+   pipeline-free second is plentiful at duty 0.10 and 0.25 (39 of 77 monitor
+   seconds), occurs exactly **once** per run at duty 0.50 and 0.75 because the
+   sleep window and the monitor's own 1 s interval have an arbitrary relative
+   phase, and **cannot** exist at duty 1.00. Where a window has none, the value
+   is **imputed** from
    the floor cell's own mean occupancy and `env_foreign_imputed` is set to 1.
    That is an imputation from a measured constant of the same campaign, flagged
    in the design matrix, and it is **not** a per-window measurement. The
@@ -131,7 +135,7 @@ is reported with its reason.
 |---|---|
 | windows | 171 (9 per cell, 19 pipeline cells) |
 | windows with imputed foreign occupancy | 117 |
-| target range, mW | 3825.10 to 5654.26 |
+| target range, mW | 3820.274 to 5657.178 |
 | windows dropped | 1, the background floor cell, which has no active window and therefore no target |
 
 On the committed synthetic generator at 10 cycles per run the same code yields
@@ -163,23 +167,23 @@ ground truth, with only `P_active` predicted:
 
 | predictor | held-out duty | held-out frame dimension |
 |---|---|---|
-| measured `P_active` (ceiling) | 0.031192 | 0.031192 |
-| classical: constant grid mean | 0.067395 | **0.065313** |
-| classical: linear in duty and dimension | **0.051096** | 0.076285 |
-| classical: analytic duty inversion | 0.076195 | 0.080497 |
-| learned: random forest | 0.052985 | 0.069153 |
-| between-run interval half-width | 0.029916 | 0.029916 |
+| measured `P_active` (ceiling) | 0.029186 | 0.029186 |
+| classical: constant grid mean | 0.066443 | **0.066287** |
+| classical: linear in duty and dimension | **0.051959** | 0.076385 |
+| classical: analytic duty inversion | 0.073620 | 0.079520 |
+| learned: random forest | 0.052428 | 0.072997 |
+| between-run interval half-width | 0.029543 | 0.029543 |
 
 The predictors' own relative error on the active power, for comparison: forest
-0.058614 and 0.080160; linear 0.045768 and 0.096436; constant 0.072327 and
-0.074441; duty inversion 0.077094 and 0.114138.
+0.061286 and 0.083798; linear 0.045813 and 0.096435; constant 0.072595 and
+0.074642; duty inversion 0.077117 and 0.112652.
 
 Mean one-sigma coverage of the learned predictor over the eight splits:
-**0.2455**, far below 0.68. The across-tree spread is a lower bound on the
+**0.2615**, far below 0.68. The across-tree spread is a lower bound on the
 predictive uncertainty and includes neither run-to-run variation nor the
 campaign's load drift; the figure is printed as it is rather than widened.
 
-Forest fit time over all eight splits: **1.70 s** on two cores, against a
+Forest fit time over all eight splits: **1.51 s** on two cores, against a
 three-minute budget.
 
 ## Pre-registered expectation, and its verdict
@@ -199,15 +203,15 @@ mean energy per useful decision — and that choice is stated in the output rath
 than left implicit.
 
 **Verdict: NOT REFUTED, on both splits.** The margin (strongest classical minus
-learned) is **-0.001889** on held-out duty and **-0.003840** on held-out frame
+learned) is **-0.000469** on held-out duty and **-0.006710** on held-out frame
 dimension; both are negative — the learned forest is slightly *worse* — and both
-are far inside the 0.029916 half-width. The classical predictors are
+are far inside the 0.029543 half-width. The classical predictors are
 competitive, exactly as the specification expected before the data existed.
 
 That is the finding. It is published as it stands, the learned component stays
 in the product reported as beaten, and nothing was retuned. Note also that the
-ceiling — the analytic form with the power known exactly — is 0.031192, only
-just above the measurement's own 0.029916 noise floor, so on this campaign the
+ceiling — the analytic form with the power known exactly — is 0.029186,
+essentially at the measurement's own 0.029543 noise floor, so on this campaign the
 analytic form is close to as good as any prediction of `P_active` could make
 it.
 
@@ -234,7 +238,7 @@ it is the quantity the pre-registered comparison is judged against.
 
 **Coverage**, the fraction of test windows whose true power lies within one
 reported sigma, is the only check that the uncertainty output means anything. It
-is reported whatever it is: **0.2455**, against the 0.68 a correctly sized
+is reported whatever it is: **0.2615**, against the 0.68 a correctly sized
 one-sigma band would give. The reported sigma is too small by roughly a factor
 of two to three, which is what a lower bound that omits run-to-run variation and
 a 27-minute load drift should look like. It is not widened to make the number
@@ -244,10 +248,10 @@ read better.
 
 - **Duty 0.50 and above**: `env_foreign_busy` is imputed on 117 of 171 windows,
   so for those cells the descriptor carries no per-window information. It still
-  draws 0.1663 of the summed impurity importance, which is importance attached
+  draws 0.1621 of the summed impurity importance, which is importance attached
   to what is effectively a constant plus its own flag.
 - **The campaign's load drift is in the training data.** Frame dimension is
-  confounded with elapsed time and with a falling foreign load, so the 0.2178
+  confounded with elapsed time and with a falling foreign load, so the 0.2208
   importance the forest gives `frame_dim` is partly importance given to when the
   run happened. A model trained on this campaign would carry that confound into
   any prediction it made.
@@ -285,7 +289,7 @@ scikit-learn build whose unpickling is not part of that library's public API.
 ## Compute used
 
 Two cores on the analysis machine, `x86_64 Linux`, Python 3.13.18,
-scikit-learn 1.9.1. Measured forest fit time over all eight splits: **1.70 s**,
+scikit-learn 1.9.1. Measured forest fit time over all eight splits: **1.51 s**,
 printed by `validation/validate_measured_learned.py` section 7 and asserted
 there to be under the three-minute budget. On the synthetic campaign the whole
 eight-split benchmark, all models, runs in under five seconds, which

@@ -3,7 +3,7 @@
 Measured energy per **useful decision** for a duty-cycled on-board autonomy
 pipeline, and the factor the usual unit misses.
 
-![tests](https://img.shields.io/badge/tests-356%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-360%20passing-brightgreen)
 ![python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
 ![licence](https://img.shields.io/badge/licence-Apache--2.0-green)
 ![validation](https://img.shields.io/badge/validation-level%204%20(hardware)-orange)
@@ -16,31 +16,49 @@ gate, 38 cycles, 76 s on an NVIDIA Jetson Orin Nano:
 
 | quantity | measured |
 |---|---|
-| energy per inference, measured-active | **13.608877 mJ** |
-| energy per useful decision | **76.289767 mJ** |
-| **understatement factor F** | **5.605882** |
+| energy per inference, measured-active `E_active/N` | **13.608386 mJ** |
+| energy per useful decision `E_total/A` | **75.456680 mJ** |
+| **understatement factor F** | **5.544866** |
 | rejection factor `1/a` | 2.898629 |
-| duty-cycle factor `E_total/E_active` | 1.933305 |
+| duty-cycle factor `E_total/E_active` | 1.912927 |
 | nominal-versus-measured rail factor | 1.000000 (measured-active) |
-| residual `T_act/(N·L)` | 1.000348 |
-| closure error of the four factors | 0.000e+00 |
+| closure error of the three factors | 0.000e+00 |
 | acceptance rate, counted | 0.344991 (4449 of 12896) |
 
-Across the 15-cell grid F runs from **2.820** (frame 48, duty 1.00) to
-**28.989** (frame 48, duty 0.10). Quoting this pipeline in energy per inference
-understates what a mission actually spends per decision by between about three
-and twenty-nine times, depending on how hard it is duty-cycling.
+`E_total` is the trapezoidal integral of rail power over the run window
+`[t0_mono, t1_mono]` exactly, with `P` interpolated at both ends.
+`E_active` and `E_sleep` partition that same window using the declared
+per-cycle phases, again with `P` interpolated at every boundary, so the
+decomposition is **exact in three factors with no residual term**:
+`F = (1/a) × (E_total/E_active) × (rail)`. The closure check
+`|E_active + E_sleep − E_total| / E_total` is reported on every cell; its
+worst value over the campaign is **8.114e-05** on `w96_d100`, against a
+declared tolerance of 1e-4.
+
+Across the 15-cell grid F runs from **2.791586** (frame 96, duty 1.00) to
+**28.597765** (frame 48, duty 0.10). Quoting this pipeline in energy per
+inference understates what a mission actually spends per decision by between
+about three and twenty-nine times, depending on how hard it is duty-cycling.
 
 With the **nominal 5.0 V rail** substituted for the measured bus voltage, F is
-**5.548596** on the same cell — *smaller*, not larger, because this board's
+**5.488281** on the same cell — *smaller*, not larger, because this board's
 VDD_IN averages 4961.5 mV under load, so quoting 5.0 V overstates the active
 power and flatters the comparison. A power budget on this board is wrong in the
 direction that makes it look better.
 
 The between-run interval over the four repeats of the reference cell is
-**74.2009 ± 2.2198 mJ** per useful decision (Student-t, 95 per cent, n = 4),
-which is **2.99 per cent** relative, and is the noise floor every comparison
+**73.4156 ± 2.1689 mJ** per useful decision (Student-t, 95 per cent, n = 4),
+which is **2.95 per cent** relative, and is the noise floor every comparison
 below is judged against.
+
+The ratio `T_act / (N·L)` is **not** a factor of F. It is reported separately
+as a phase-occupancy diagnostic: on the reference cell the inferences occupy
+37.989458 s of the 38.000000 s declared active window, an occupancy of
+**0.999723** and a **shortfall of 10.542 ms**. The loop checks the clock before
+starting an inference and will not start one that would run past the phase
+boundary, so the inferences *undershoot* the declared phase; the merged span of
+the inference intervals overshoots it by 2.672 ms because the last inference of
+a phase starts before the boundary and finishes after it.
 
 **The learned component is beaten.** Scored on the job the specification gives
 it — supplying `P_active` to the analytic model without measuring it — the
@@ -66,28 +84,37 @@ has measured.
 ## What this does
 
 - Computes **energy per useful decision** as the trapezoidal integral of the
-  measured VDD_IN rail power over the **whole** run, sleep windows included,
-  divided by accepted decisions counted from a committed per-inference record.
+  measured VDD_IN rail power over the run window `[t0_mono, t1_mono]` exactly,
+  sleep windows included, divided by accepted decisions counted from a committed
+  per-inference record.
   268,425 inferences and 100,789 accepted decisions across the campaign;
   acceptance is never asserted and every rejection carries its reason.
-- Reports the **understatement factor** and decomposes it into the rejection
-  factor, the duty-cycle factor and the nominal-versus-measured active-power
-  error, with the residual reported explicitly and checked against an
-  independently computed accounting factor — closure error 0.000e+00 on the
-  reference cell and below 2.3e-16 on every cell of the grid.
+- Reports the **understatement factor** and decomposes it into exactly three
+  factors — the rejection factor, the duty-cycle factor and the
+  nominal-versus-measured active-power error. Because `E_active` and `E_sleep`
+  partition the same run window the numerator integrates, the decomposition has
+  **no residual term**: closure error 0.000e+00 on the reference cell and below
+  2.3e-16 on every cell of the grid. The partition's own closure,
+  `|E_active + E_sleep − E_total| / E_total`, is checked separately on all 19
+  pipeline cells and its worst value, 8.114e-05 on `w96_d100`, is named rather
+  than passed over.
 - Implements all three baselines and validates the analytic one against the
   ground truth **before** anything is benchmarked: the duty-cycle model lands
-  within **12.30 per cent** of the integrated truth on the worst grid cell
-  (`w96_d010`) and within 3.90 per cent on average.
+  within **13.48 per cent** of the integrated truth on the worst grid cell
+  (`w96_d010`) and within 3.02 per cent on average.
 - Measures how much of the "floor" is other people's load rather than assuming:
   regressed on the floor run's own `/proc/stat` occupancy the slope is
-  **2013.3 mW per unit occupancy** with a Pearson **r = 0.5106**, implying
-  **248.7 mW, 5.83 per cent** of the measured floor is foreign work — and
+  **2034.3 mW per unit occupancy** with a Pearson **r = 0.6932**, implying
+  **250.9 mW, 5.90 per cent** of the measured floor is foreign work — and
   publishes a three-row floor-sensitivity table rather than one number.
 - Carries four independent brackets whose mathematics the integrator does not
-  use, **one of which fails on the measured data** and is published failing:
-  the campaign-floor sleep-power bound is violated on 9 of 19 cells because the
-  run order was not randomised. See *Limitations*.
+  use, **one of which is falsified on the measured data** and is published as a
+  falsification rather than removed: the campaign-floor sleep-power bound is
+  violated on 7 of the 19 pipeline cells because the run order was not
+  randomised, so the bound's premise — that a sleep window draws at least the
+  minimum power ever seen on the floor run — is false on this campaign. The
+  seven cells are pinned as literals, so the check fails for real if the
+  falsification set ever changes. See *Limitations*.
 
 ## Measurement model, stated once
 
@@ -100,8 +127,13 @@ over one frame, one row of the decisions CSV. A **useful decision** is an
 inference that passes the gate — a candidate exists, its box does not touch the
 border, its area is within the declared bounds, and its score is at least `tau`
 — so the acceptance rate is counted from the committed CSV and never asserted.
-**Energy per useful decision** is the integral of `P(t)` over the **whole** run,
-sleep windows included, divided by the number of accepted decisions in that run.
+**Energy per useful decision** is the integral of `P(t)` over the **run window
+`[t0_mono, t1_mono]` exactly**, with `P` interpolated at both ends, sleep
+windows included, divided by the number of accepted decisions in that run. The
+sampler brackets the run on purpose, starting early and stopping late, so its
+span is **wider** than the run and is never what is integrated. `E_active` and
+`E_sleep` partition that same window using the declared per-cycle phases, with
+`P` interpolated at every boundary.
 
 The same paragraph is in `src/powerenvelope/trace.py`'s module docstring, in
 `powerenvelope.report.MEASUREMENT_MODEL`, in `validation/VALIDATION.md`, and at
@@ -131,7 +163,7 @@ the head of every validation output that reports a measured quantity.
   research-grade.
 - Anyone who wants a converter-efficiency curve. What this measures is a
   **rail-accounting ratio** on the three channels the INA3221 instruments
-  (0.4949 to 0.6437 across the campaign, R² = 0.113 against load), and the code
+  (0.4943 to 0.6444 across the campaign, R² = 0.119 against load), and the code
   says so wherever it prints one.
 
 ## Alternatives, honestly
@@ -171,7 +203,7 @@ The suite prints, on the analysis machine described in
 not):
 
 ```
-356 passed in 42.15s
+360 passed in 35.11s
 ```
 
 and the example begins:
@@ -190,19 +222,25 @@ THE REFERENCE CELL, both variants of energy per inference
   inferences counted                : 12896
   useful decisions counted          : 4449
   acceptance rate a                 : 0.344991
-  whole-run energy E_total          : 339413.174917 mJ
-  active-window energy E_active     : 175561.127539 mJ
-  active duration T_act             : 38.002672 s
+  run energy E_total                : 335706.769863 mJ
+  declared-active energy E_active   : 175493.746037 mJ
+  declared-sleep energy E_sleep     : 160208.592118 mJ
+  partition residual                : -1.320e-05
+  active duration                   : 38.000000 s
   mean inference latency L          : 0.002945833 s
-  energy per inference (baseline 1) : 13.608877384 mJ
-  energy per useful decision        : 76.289767 mJ
-  HEADLINE understatement factor F  : 5.605882
-    rejection factor 1/a            : 2.898629
-    duty-cycle factor E_tot/E_act   : 1.933305
-    rail-voltage factor P_m/P_q     : 1.000000
-    residual factor                 : 1.000348
-    accounting factor T_act/(N*L)   : 1.000348
-    closure error of the above      : 0.000e+00
+  energy per inference (baseline 1) : 13.608386014 mJ
+    spec-literal P_act * L          : 13.604610761 mJ
+  energy per useful decision        : 75.456680 mJ
+  HEADLINE understatement factor F  : 5.544866
+    rejection factor N/A            : 2.898629
+    duty-cycle factor E_tot/E_act   : 1.912927
+    rail-voltage factor             : 1.000000
+    closure error of the three      : 0.000e+00
+  DIAGNOSTIC, not a factor:
+    declared active time            : 38.000000 s
+    occupied by inferences          : 37.989458 s (occupancy 0.999723)
+    spanned by merged intervals     : 38.002672 s
+    shortfall / overshoot           : 10.542 ms / 2.672 ms
 ```
 
 ## A worked example
@@ -226,24 +264,26 @@ result = decompose(cell, "measured-active")
 print(f"understatement factor F   : {result.factor:.4f}")
 print(f"  rejection 1/a           : {result.rejection_factor:.4f}")
 print(f"  duty cycle E_tot/E_act  : {result.duty_cycle_factor:.4f}")
-print(f"  rail voltage P_m/P_q    : {result.rail_voltage_factor:.4f}")
-print(f"  residual T_act/(N*L)    : {result.residual_factor:.4f}")
+print(f"  rail voltage            : {result.rail_voltage_factor:.4f}")
 print(f"  closure error           : {result.closure_error:.2e}")
+print(f"  partition residual      : {result.partition_residual:+.2e}")
+print(f"  occupancy (diagnostic)  : {result.occupancy.occupancy:.6f}")
 ```
 
 prints
 
 ```
 INPUT ORIGIN: measured -- 20 cell(s) from data/traces/
-energy per inference      : 13.6089 mJ
-energy per useful decision: 76.2898 mJ
+energy per inference      : 13.6084 mJ
+energy per useful decision: 75.4567 mJ
 acceptance rate (counted) : 0.3450
-understatement factor F   : 5.6059
+understatement factor F   : 5.5449
   rejection 1/a           : 2.8986
-  duty cycle E_tot/E_act  : 1.9333
-  rail voltage P_m/P_q    : 1.0000
-  residual T_act/(N*L)    : 1.0003
+  duty cycle E_tot/E_act  : 1.9129
+  rail voltage            : 1.0000
   closure error           : 0.00e+00
+  partition residual      : -1.32e-05
+  occupancy (diagnostic)  : 0.999723
 ```
 
 ## Architecture
@@ -257,7 +297,7 @@ flowchart TD
     trace["powerenvelope.trace<br/>Campaign, Cell, refusals"]
     energy["powerenvelope.energy<br/>trapezoid, active windows,<br/>interstitial count"]
     baselines["powerenvelope.baselines<br/>B1 energy per inference<br/>B2 duty-cycle model<br/>B3 ground truth + spread<br/>floor regression, run order"]
-    decomp["powerenvelope.decomposition<br/>F = 1/a x E_tot/E_act x P_m/P_q x residual"]
+    decomp["powerenvelope.decomposition<br/>F = 1/a x E_tot/E_act x rail"]
     bounds["powerenvelope.bounds<br/>Riemann, mean-value,<br/>sleep-power, extreme-value"]
     windows["powerenvelope.windows<br/>licensed descriptors,<br/>grouped splits"]
     predictor["powerenvelope.predictor<br/>forest + linear + constant + inversion<br/>assert_descriptors_licensed"]
@@ -312,9 +352,9 @@ comes out negative.
 ![the learned predictor against the classical ones](screenshots/learned_vs_analytic.png)
 
 `examples/learned_vs_analytic.py`. Notice that the dashed line — the
-between-run interval half-width, 2.99 per cent — sits just under the ceiling
-bar. The analytic form's own error with the power known exactly is 3.12 per
-cent, barely above the measurement's noise floor, and every predictor's error
+between-run interval half-width, 2.95 per cent — sits just under the ceiling
+bar. The analytic form's own error with the power known exactly is 2.92 per
+cent, essentially at the measurement's noise floor, and every predictor's error
 is dominated by the prediction rather than by the model. The learned forest is
 not the lowest bar on either split.
 
@@ -325,22 +365,21 @@ Full table, with what it would take to fail each check, in
 
 | check | reference | result | tolerance |
 |---|---|---|---|
-| The four factors multiply to F, reference cell | the decomposition's own identity | PASS, closure error 0.000e+00 | 1e-10 relative |
-| The residual equals `T_act/(N·L)` computed independently | an independent computation, not F | PASS, 1.000348 both ways | 1e-9 relative |
-| Active plus sleep energy equals the whole run | partition of the same integral | PASS, residual 2.220e-16 | 1e-9 relative |
+| The three factors multiply to F, reference cell | the decomposition's own identity | PASS, closure error 0.000e+00 | 1e-10 relative |
+| Declared active and sleep phases partition the run | partition of the same integral | PASS, worst closure 8.114e-05 on `w96_d100` | 1e-4 relative, declared |
 | Trapezoid inside the Riemann bracket, 20 cells | left and right Riemann sums | PASS | slack from conditioning, no absolute floor |
 | Trapezoid inside the mean-value bracket, 20 cells | the mean value theorem for integrals | PASS | the same |
-| **Duty-cycle factor above the campaign-floor sleep bound** | positivity of the floor run's minimum | **FAIL on 9 of 19 cells** — the premise is false, see Limitations | the same |
+| **Duty-cycle factor above the campaign-floor sleep bound** | positivity of the floor run's minimum | **FALSIFIED on exactly 7 of the 19 pipeline cells** — the bound's premise is false on this campaign. The seven cells are pinned as literals and the check fails for real if the set changes. See Limitations. | the bound and its arithmetic are unchanged |
 | Duty-cycle factor above each cell's **own** sleep-minimum bound | the same argument with a measured premise | PASS, 19 of 19; reported as the weaker companion | the same |
-| F above the extreme-value bound, reference cell | extreme values of power and latency, no integral | PASS, bound 1.4407 against 5.6059, ratio 3.891 | the same |
-| Analytic duty-cycle model against ground truth, 15 grid cells | Baseline 3, the integrated truth | PASS, worst gap 12.30 per cent on `w96_d010` | 20 per cent, declared |
-| Three-term and two-term cycle energies agree | the same integral, partitioned two ways | PASS, worst residual 3.021e-05 | 1e-4 relative |
-| Floor-occupancy regression is defined and weak | the floor run's own `/proc/stat` seconds | PASS, slope 2013.3 mW, r = 0.5106, r² = 0.2607 | r reported, not bounded |
-| In-cell floor adjustment collapses the analytic error's scatter | per-cell sleep-window mean power | PASS, adjusted ratios uniform to 0.0007 | 0.02, declared |
-| Between-run interval has positive width | four repeats of the reference cell | PASS, ±2.2198 mJ = 2.99 per cent | — |
+| F above the extreme-value bound, reference cell | extreme values of power and latency, no integral | PASS, bound 1.4407 against 5.5449, ratio 3.849 | the same |
+| Analytic duty-cycle model against ground truth, 15 grid cells | Baseline 3, the integrated truth | PASS, worst gap 13.48 per cent on `w96_d010` | 20 per cent, declared |
+| Three-term and two-term cycle energies agree | the same integral, partitioned two ways | PASS, worst residual 4.441e-16 | 1e-4 relative |
+| Floor-occupancy regression is defined and weak | the floor run's own `/proc/stat` seconds | PASS, slope 2034.3 mW, r = 0.6932, r² = 0.4805 | r reported, not bounded |
+| In-cell floor adjustment collapses the analytic error's scatter | per-cell sleep-window mean power | PASS, adjusted ratios uniform to 0.0000 | 0.02, declared |
+| Between-run interval has positive width | four repeats of the reference cell | PASS, ±2.1689 mJ = 2.95 per cent | — |
 | Permissive-gate control removes the rejection factor | the declared negative control | PASS, `1/a` falls 2.8986 → 1.1094 | must fire |
 | Negative controls, synthetic | 26 declared, anchored on true values | PASS: 18/18 must-fire fired, 8/8 must-not-fire silent | — |
-| `pytest.approx` audit | the suite re-run with the absolute default forced to 0.0 | PASS: **0** bare `rel=` call sites, 356 tests still pass | — |
+| `pytest.approx` audit | the suite re-run with the absolute default forced to 0.0 | PASS: **0** bare `rel=` call sites, 360 tests still pass | — |
 | Property hunt, 7 identities | Hypothesis, 600 examples each | PASS — after one property was **falsified and replaced** | — |
 | Working-directory probe | every script from four directories | PASS, same exit status from all four | — |
 | **Two of five gate branches never fired** | the campaign's own reject census | **NOT MEASURED**: `no_candidate` and `border` have zero occurrences | — |
@@ -353,17 +392,18 @@ decision against the measured ground truth.
 
 | predictor | held-out duty | held-out frame dimension |
 |---|---|---|
-| measured `P_active` (ceiling) | 0.031192 | 0.031192 |
-| classical: constant grid mean | 0.067395 | **0.065313** |
-| classical: linear in duty and dimension | **0.051096** | 0.076285 |
-| classical: analytic duty inversion *(the one the spec names)* | 0.076195 | 0.080497 |
-| learned: random forest | 0.052985 | 0.069153 |
-| between-run half-width | 0.029916 | 0.029916 |
+| measured `P_active` (ceiling) | 0.029186 | 0.029186 |
+| classical: constant grid mean | 0.066443 | **0.066287** |
+| classical: linear in duty and dimension | **0.051959** | 0.076385 |
+| classical: analytic duty inversion *(the one the spec names)* | 0.073620 | 0.079520 |
+| learned: random forest | 0.052428 | 0.072997 |
+| between-run half-width | 0.029543 | 0.029543 |
 
 **Pre-registered verdict: NOT REFUTED, on both splits.** The classical
 predictors are competitive, and the learned forest is in fact slightly worse
-than the strongest classical predictor on both — by 0.0019 on held-out duty and
-0.0038 on held-out frame dimension, both well inside the 0.0299 noise floor.
+than the strongest classical predictor on both — by 0.00047 on held-out duty
+and 0.0067 on held-out frame dimension, both well inside the 0.0295 noise
+floor.
 The learned component stays in the product, reported as beaten. Nothing was
 retuned. The predictor the specification names, the analytic duty inversion, is
 the **weakest** of the three classical ones on both splits, so the strongest
@@ -379,8 +419,8 @@ replaced by a quantitative one — the change is bounded by
 `4 * EPS * max|t| / min(dt)` — and the counterexample is pinned as a named
 literal regression test. The campaign's `t_mono` is the board's uptime, so every
 energy figure carries about 1e-8 relative uncertainty from the timestamp
-representation; that is far below the 39.88 mW quantisation floor and changes no
-reported figure.
+representation; that is far below the 39.69 mW quantisation floor on the
+reference cell and changes no reported figure.
 
 ## API reference
 
@@ -447,25 +487,40 @@ traces are absent or incomplete.
 - **The run order was not randomised, and frame dimension is confounded with
   elapsed time and with a falling foreign load.** The campaign ran the floor
   first, then all five duties at frame 48, then 64, then 96, then the repeats,
-  then the permissive control: 20 sequential 76 s runs over 27.0 minutes, during
+  then the permissive control: 20 sequential 76 s runs over 27.05 minutes, during
   which the board's 1-minute load average fell from 2.324 to 1.050. **The floor
   was therefore measured at the highest foreign load of the campaign and the
-  frame-96 cells ran at the lowest.** `w96_d010` draws 3714.66 mW on average —
-  *less than the 4264.43 mW "floor"* — while running the pipeline. This is a
+  frame-96 cells ran at the lowest.** `w96_d010` draws 3716.75 mW on average —
+  *less than the 4258.63 mW "floor"* — while running the pipeline. This is a
   defect in the campaign's design. Nothing was re-run to hide it, nothing is
   corrected out of the headline, and the per-cell table is published in
   `validate_measured_baselines.py` section 5. It is the honest explanation for
   the analytic model's error being largest on the frame-96 cells.
-- **One of the independent bounds fails because of that drift.** The bound
-  "`E_total ≥ E_active + floor_min · t_sleep`" is violated on 9 of 19 cells,
-  because its premise — that a sleep window draws at least the floor run's
-  minimum — is false when the floor was measured under heavier load than the
-  sleep windows. The arithmetic is sound and the premise is not. The bound is
-  **not** weakened to pass; a variant using each cell's own sleep-window minimum
-  holds on all 19 and is reported beside it as the weaker argument it is, since
-  it reads its minimum from the same samples the integral it checks is taken
-  over. **The headline does not depend on it**: F is a ratio of measured
-  integrals and counts and never touches the floor.
+- **One of the independent bounds is FALSIFIED because of that drift, and is
+  published as a falsification.** The bound
+  "`E_total ≥ E_active + floor_min · t_sleep`" rests on a premise — that a
+  sleep window draws at least the minimum power ever seen on the no-pipeline
+  floor run, 4113.4 mW — and **the non-randomised run order makes that premise
+  false on this campaign**: the floor was measured at the heaviest foreign load
+  of the whole run, so later cells' sleep windows draw less than the floor run's
+  minimum ever did. The arithmetic is sound; the assumption about the board's
+  state is not. It is violated on exactly **7 of the 19 pipeline cells** —
+  `w64_d050_permissive`, `w64_d050_rep2`, `w64_d050_rep3`, `w64_d050_rep4`,
+  `w96_d010`, `w96_d025`, `w96_d050`. Those seven are **pinned as literals** in
+  `validation/validate_measured_headline.py`, so the check reports `FALSIFIED`
+  as its finding and exits 0 only while the falsification set is exactly that
+  list; a cell joining it or leaving it makes the script fail for real. The
+  bound is not edited, the check is not skipped and the tolerance is not
+  loosened. A variant using each cell's own sleep-window minimum holds on all 19
+  and is reported beside it as the weaker argument it is, since it reads its
+  minimum from the same samples the integral it checks is taken over. The three
+  duty-1.00 cells are not in the set because, with the declared sleep duration
+  `cycles · (1 − duty) · cycle_s`, a duty-1.00 run has no sleep phase and the
+  bound reduces to `factor ≥ 1`, which they satisfy. **The headline does not
+  depend on this bound at all**: F is `(E_total/A)` over `(E_active/N)` — four
+  measured integrals and two counts, none of which is the floor cell. The floor
+  enters Baseline 2 only, and its sensitivity is published as a three-row
+  table.
 - **Two of the gate's five branches never fired.** Across 268,425 measured
   inferences the census is `accept` 100,789, `low_score` 146,410, `area_out`
   21,226, and `no_candidate` and `border` **zero**. The measured acceptance
@@ -483,19 +538,25 @@ traces are absent or incomplete.
   of the duty-sweep screenshot shows the smearing directly.
 - **The floor is a background floor on a shared machine, not an idle floor.**
   The board had logged-in users, a desktop browser, swap in use and a load
-  average above 1. Regressed on its own occupancy the floor gives slope 2013.3
-  mW per unit occupancy, intercept 4015.32 mW, Pearson r 0.5106 — a **weak**
-  correlation, so most of the floor's variation is not explained by the
-  occupancy counter and the intercept is an extrapolation. The published
+  average above 1. Regressed on its own occupancy the floor gives slope 2034.3
+  mW per unit occupancy, intercept 4005.18 mW, Pearson r 0.6932 (r² = 0.4805)
+  — a **weak** correlation, so over half of the floor's second-to-second
+  variation is not explained by the occupancy counter and the intercept is an
+  extrapolation below the observed occupancy range. The published
   headline uses the measured floor mean; a three-row sensitivity table is
   published beside it.
-- **Foreign CPU occupancy is separable only at duty 0.10 and 0.25.** A monitor
-  sample covers a whole second, and at duty 0.50 the 1.0 s sleep window and the
-  monitor's 1 s interval never align in practice. 117 of 171 windows therefore
-  carry an imputed occupancy, flagged in the design matrix.
+- **Foreign CPU occupancy is barely separable above duty 0.25.** A monitor
+  sample reports the occupancy of a whole preceding second, and a sample is
+  pipeline-free only when no inference interval overlaps that entire second. At
+  duty 0.10 and 0.25 that holds for 39 of the 77 monitor seconds; at duty 0.50
+  and 0.75 for exactly **1**, because the sleep window and the monitor's own 1 s
+  interval have an arbitrary relative phase; at duty 1.00 for none. 117 of 171
+  windows therefore carry an imputed occupancy, taken from the floor cell's
+  measured 0.123514 and flagged in the design matrix as `env_foreign_imputed`.
 - **`env_load1` is contaminated by the pipeline itself.** The specification
   licenses it and it is used; `validate_descriptor_leak.py` refits without it.
-- **The rail current quantises at 8 mA**, 39.88 mW at the measured bus voltage.
+- **The rail current quantises at 8 mA**, 39.69 mW at the reference cell's
+  measured bus voltage and 39.89 mW at the floor cell's.
   That is the limit on every power figure here, about ten orders of magnitude
   above the floating-point floor.
 - **The sampler draws power it is measuring.** It costs 1.058 s of CPU per 77 s
@@ -511,11 +572,12 @@ traces are absent or incomplete.
   was run at the declared floors (numpy 2.5.0, scipy 1.18.0, scikit-learn 1.9.0,
   pytest 9.1.0, hypothesis 6.170.0) and at the highest release below each
   declared ceiling (numpy 2.5.4, scipy 1.18.1, scikit-learn 1.9.1, pytest 9.1.1,
-  hypothesis 6.170.15). Both gave 356 passed, and every committed validation
-  output regenerated at both ends is byte-identical to the pinned one apart from
-  the forest's measured fit time, which is a wall-clock reading. `matplotlib` is
-  outside that sweep: it draws the screenshots and is in no reported number, and
-  it was measured only at 3.11.2. `ruff` is clean at 0.16.9 and 0.17.5. A pin
+  hypothesis 6.170.15). Both gave **360 passed**, and every committed validation
+  output regenerated at both ends differs from the pinned one only in the
+  environment stanza that prints the installed versions and in two wall-clock
+  readings — the suite duration and the forest's measured fit time.
+  `matplotlib` is outside that sweep: it draws the screenshots and is in no
+  reported number, and it was measured only at 3.11.2. `ruff` is clean at 0.16.9 and 0.17.5. A pin
   below a future security release is still a real cost, not a free safety
   measure, and that tension is recorded here rather than resolved by removing
   the ceiling.
@@ -540,21 +602,28 @@ PY
 ruff check src/ tests/ examples/ validation/
 python -m ruff check src/ tests/ examples/ validation/
 
-# 3. Every validation script. Each writes <script>_output.txt beside itself.
-#    validate_measured_headline.py exits 1 on the failing sleep-power bound,
-#    which is a published finding and not a defect in the run.
+# 3. Clear the caches the suite and the linter just created, so that
+#    validate_tree_hygiene.py reports the clean tree the committed output was
+#    taken from. It reports inherited artifacts without failing either way.
+rm -rf .ruff_cache .hypothesis
+find . -name __pycache__ -type d -prune -exec rm -rf {} +
+
+# 4. Every validation script. Each writes <script>_output.txt beside itself.
+#    validate_measured_headline.py reports the sleep-power bound as FALSIFIED
+#    and exits 0 while the falsification set matches its pinned seven cells; it
+#    exits non-zero if that set ever changes.
 for script in validation/*.py; do
   case "$(basename "$script")" in _*) continue;; esac
   python "$script"
 done
 
-# 4. Every example. Each writes its PNG into screenshots/ and its output beside itself.
+# 5. Every example. Each writes its PNG into screenshots/ and its output beside itself.
 for example in examples/*.py; do
   case "$(basename "$example")" in _*) continue;; esac
   python "$example"
 done
 
-# 5. The CLI.
+# 6. The CLI.
 python -m powerenvelope --help
 python -m powerenvelope --traces data/traces report
 ```

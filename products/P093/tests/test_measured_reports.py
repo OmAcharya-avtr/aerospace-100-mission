@@ -83,11 +83,12 @@ def test_headline_report_emits_the_decomposition(jittered, bootstrap_module, tmp
     text = "\n".join(out.lines)
     for fragment in (
         "HEADLINE understatement factor F",
-        "rejection factor 1/a",
+        "rejection factor N/A",
         "duty-cycle factor",
         "rail-voltage factor",
-        "residual factor",
-        "closure error",
+        "closure error of the three",
+        "PHASE OCCUPANCY, a diagnostic",
+        "sampler span",
         "Riemann bracket",
         "quantiser sd",
         "cpu_busy_fraction over the run",

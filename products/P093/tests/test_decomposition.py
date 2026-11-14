@@ -10,7 +10,6 @@ from powerenvelope.decomposition import decompose
 from powerenvelope.trace import FLOOR_CELL, TraceDataAbsentError
 
 from fixtures import synthetic_campaign
-from fixtures.synthetic_campaign import CLOSED_FORM_REL
 
 
 def test_factor_is_the_ratio_of_the_two_measured_quantities(reference_cell):
@@ -22,32 +21,38 @@ def test_factor_is_the_ratio_of_the_two_measured_quantities(reference_cell):
     )
 
 
-def test_three_named_factors_times_the_residual_give_the_factor(campaign):
+def test_three_named_factors_give_the_factor_exactly(campaign):
+    # The decomposition has no residual term. E_use = E_total/A and
+    # E_inf = E_active/N are shares of the same two integrals, so the three
+    # named factors multiply to F identically; what is left is rounding.
     for label in ("w48_d010", "w64_d050", "w96_d075", "w64_d050_permissive"):
         for variant in ("measured-active", "nominal-rail"):
             result = decompose(campaign.require(label), variant=variant)
-            product = result.product_of_named_factors() * result.residual_factor
-            assert product == pytest.approx(result.factor, rel=1e-12, abs=0.0)
+            assert result.product_of_named_factors() == pytest.approx(
+                result.factor, rel=1e-12, abs=0.0
+            )
+            assert abs(result.closure_error) < 1e-12
 
 
-def test_the_residual_is_the_within_active_accounting_factor(campaign):
-    # The residual is not a fudge: it equals T_act / (N * L), computed without
-    # reference to F. The closure error is the only slack allowed and it is a
-    # rounding residual.
+def test_the_declared_phases_partition_the_run(campaign):
+    # E_active and E_sleep tile the run's cycles exactly; the run may extend a
+    # few milliseconds past the last cycle and that tail is the whole residual.
     for label in ("w48_d025", "w64_d050", "w96_d100"):
         result = decompose(campaign.require(label))
-        assert result.residual_factor == pytest.approx(
-            result.accounting_factor, rel=1e-11, abs=0.0
+        assert result.active_energy_mj + result.sleep_energy_mj == pytest.approx(
+            result.total_energy_mj, rel=1e-3, abs=0.0
         )
-        assert abs(result.closure_error) < 1e-11
+        assert abs(result.partition_residual) < 1e-3
 
 
-def test_accounting_factor_is_one_when_inferences_tile_the_active_phase(reference_cell):
-    # The synthetic pipeline's inferences are contiguous and fill each active
-    # phase exactly, so T_act equals the summed latency.
-    assert decompose(reference_cell).accounting_factor == pytest.approx(
-        1.0, rel=1e-9, abs=0.0
-    )
+def test_phase_occupancy_is_a_diagnostic_and_is_one_on_synthetic_data(reference_cell):
+    # The synthetic pipeline's inferences tile each declared active phase
+    # exactly, so the occupancy is 1 and the shortfall is zero. On the measured
+    # campaign it is 0.9997 with a 10.5 ms shortfall. Either way it is a
+    # DIAGNOSTIC and not a factor of the decomposition.
+    occupancy = decompose(reference_cell).occupancy
+    assert occupancy.occupancy == pytest.approx(1.0, rel=1e-9, abs=0.0)
+    assert occupancy.shortfall_s == pytest.approx(0.0, rel=0.0, abs=1e-9)
 
 
 def test_rejection_factor_is_the_reciprocal_of_the_counted_rate(reference_cell):
@@ -90,25 +95,24 @@ def test_duty_cycle_factor_rises_as_the_duty_falls(campaign):
     )
 
 
-def test_headline_factor_at_half_duty_matches_the_closed_form(campaign, reference_cell):
+def test_headline_factor_at_half_duty_is_the_product_of_two_counted_ratios(
+    campaign, reference_cell
+):
+    # F = (N/A) * (E_total/E_active) with both energies over the run. The
+    # counts come from the closed-form gate rule and the energies from the
+    # product's own integrator, so this checks the ASSEMBLY of F rather than
+    # the integrals, which validate_baselines_synthetic.py checks separately.
     cycles = reference_cell.cycles
-    total = synthetic_campaign.total_energy_mj(0.50, cycles)
-    active = synthetic_campaign.active_energy_mj(0.50, cycles)
     accepted = synthetic_campaign.accepted(0.50, 64, cycles)
     inferences = synthetic_campaign.inferences(0.50, 64, cycles)
-    latency = 0.010
-    expected = (total / accepted) / ((active / (cycles * 1.0)) * latency)
-    assert decompose(reference_cell).factor == pytest.approx(
-        expected, rel=CLOSED_FORM_REL, abs=0.0
-    )
-    # And the same number through the factor product, which is the point.
     result = decompose(reference_cell)
-    assert (
-        (inferences / accepted)
-        * (total / active)
-        * 1.0
-        * (cycles * 1.0 / (inferences * latency))
-    ) == pytest.approx(result.factor, rel=CLOSED_FORM_REL, abs=0.0)
+    assert result.n_inferences == inferences
+    assert result.n_accepted == accepted
+    assert result.factor == pytest.approx(
+        (inferences / accepted) * (result.total_energy_mj / result.active_energy_mj),
+        rel=1e-12,
+        abs=0.0,
+    )
 
 
 def test_permissive_control_reduces_the_rejection_factor_and_the_headline(campaign):
@@ -136,12 +140,12 @@ def test_lines_render_every_factor(reference_cell):
     text = "\n".join(lines)
     for fragment in (
         "HEADLINE understatement factor F",
-        "rejection factor 1/a",
+        "rejection factor N/A",
         "duty-cycle factor",
         "rail-voltage factor",
-        "residual factor",
-        "accounting factor",
-        "closure error",
+        "closure error of the three",
+        "DIAGNOSTIC, not a factor",
+        "occupied by inferences",
     ):
         assert fragment in text
 

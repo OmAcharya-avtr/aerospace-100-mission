@@ -1566,15 +1566,17 @@ products:
     summary: "Energy per USEFUL DECISION for an on-board autonomy pipeline, measured on the board under duty cycling, against the energy-per-inference figure that flatters it by ignoring rejected and low-confidence outputs. Baseline 1 energy per inference at the nominal power rail, the thing being refuted; baseline 2 an analytic duty-cycle energy model with measured idle, ramp and active components and the rail efficiency curve applied; baseline 3 ground truth measured rail energy integrated over a run, with the between-run spread reported as an interval. Learned power predictor from workload descriptors, with an uncertainty output, scored on held-out DUTY CYCLES and held-out WORKLOADS separately. Expected result: the analytic model is competitive. WHAT IT DOES THAT EXISTING TOOLS DO NOT: power profilers report watts over time; none of them divides by the number of decisions a mission could actually act on, which is where the duty-cycle and confidence-rejection costs appear."
     ai_enabled: true
     validation_level: 4
-    status: NOT STARTED
+    validation_level_achieved: 4
+    validation_level_note: "ACHIEVED LEVEL 4, the third in this mission after P091 and P092. The criterion is the mission's own: the energy, power and timing figures come from an NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super, not from a simulation. 20 of 20 planned runs, 27.05 minutes of measured board time on 2026-11-14, rail energy integrated from the board's own INA3221 at /sys/class/hwmon/hwmon1. THE SCOPE IS PART OF THE RESULT AND IS NARROW: one power mode (MAXN_SUPER, because sudo -n true fails on this board), one ambient, one CPU-only CPython pipeline, one cycle period, one board, and a SHARED board whose measured background floor carries 250.914 mW (5.895 per cent) of foreign work. The run order was NOT randomised, so frame dimension is confounded with elapsed time and with a foreign load that fell during the campaign. NEEDS THE OWNER to ratify or reject Level 4 on this product as on P091 and P092; VALIDATION.md is written so either reading is correct."
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/powerenvelope
     local_path: products/P093
     approved_for_publish: false
-    published: false
+    published: true
     package: powerenvelope
-    pypi_name_check: "powerenvelope FREE, probed against https://pypi.org/pypi/powerenvelope/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"
-    hardware_note: "HARDWARE-BLOCKED. Needs the Jetson Orin Nano and a rail power measurement. Energy figures cannot be simulated. Nothing here may be labelled Level 4 until measured on the board."
+    pypi_name_check: "powerenvelope FREE, probed against https://pypi.org/pypi/powerenvelope/json on 2026-11-10 (HTTP 404). RE-PROBED 2026-11-14 by the coordinator immediately before publication: HTTP 404, still free, with numpy and sgp4 returning HTTP 200 as live controls that the probe itself works."
+    hardware_note: "HARDWARE-MEASURED 2026-11-14; this entry previously read HARDWARE-BLOCKED, and the rail-power precondition it named was checked FIRST: tegrastats reports VDD_IN/VDD_CPU_GPU_CV/VDD_SOC and an INA3221 is exposed at /sys/class/hwmon/hwmon1, so the product did not need rescoping. THE HEADLINE: energy per inference understates energy per useful decision by 5.544866x at duty 0.50 and 28.597765x at duty 0.10, decomposing exactly into a rejection factor of 2.898629 and a duty-cycle factor of 1.912927 with a closure error of 0.000e+00. The pre-registered expectation was NOT refuted: the classical predictors beat the learned one on both held-out splits, by margins of -0.000469 and -0.006710 against a between-run half-width of 0.029543, and the learned component is published as beaten. Instrument floors reported with every figure: an 8 mA current quantum, which is 39.883 mW at 5 V, and 512-conversion hardware averaging that bandwidth-limits the wake transient."
   - id: P094
     name: HilTimingDiff
     batch: 10

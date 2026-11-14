@@ -1,6 +1,76 @@
 # Mission Status
 
-> ## Reconciliation — 2026-11-13 (authoritative; supersedes the blocks below)
+> ## Reconciliation — 2026-11-14 (authoritative; supersedes the blocks below)
+>
+> Figures measured this session: registry totals from `scripts/quota_report.py`
+> run against `products.yaml` after the publication edit; test counts from junit
+> XML produced by the coordinator's own pytest run; contributor counts from
+> `gh api` against the live repository; every hardware figure reproduced by the
+> coordinator from the raw CSVs with code written separately from the product's.
+> No figure in this block was taken from the build agent's self-report.
+>
+> - **THE MISSION STANDS AT 94 OF 100 PUBLISHED.** `quota_report.py` measured
+>   this session: Registered 100/100, Built 94/100, Published 94/100. Remaining
+>   gap: flagship 0, medium 2, compact 4, AI 3, L1 0, L2 5, L3 0, L4 1.
+>
+> - **ACHIEVED LEVEL 4 IS NOW 3 OF 5.** P093 carries `validation_level: 4` and
+>   `validation_level_achieved: 4`, set against the mission's own criterion with
+>   its scope recorded as part of the result. `quota_report.py` prints `L4 built
+>   4 of 5` because it counts `validation_level`, and P095 still occupies a slot
+>   it has not achieved. **The counting ambiguity is unchanged and the script was
+>   again NOT edited — NEEDS THE OWNER**, now for the fourth consecutive session.
+>
+> - **One product published tonight.** P093 PowerEnvelope (`powerenvelope`, 360
+>   tests, medium, AI-enabled, Level 4 achieved with scope) at
+>   `https://github.com/OmAcharya-avtr/powerenvelope`. Authorising verdict:
+>   `release_gate.py P093` returned `P093 PASS 360 tests`, `repository PASS`,
+>   `VERDICT: PUSH ALLOWED`, **with the shell exit status captured directly as
+>   `0`** by running the gate as a background job writing `$?` to a file, so the
+>   printed verdict and the status are independent evidence. Published under
+>   ADR-017 on that verdict alone: no `APPROVAL_LOG.md` row, no product set to
+>   `APPROVED`, `approved_for_publish` stays `false`, no owner statement quoted
+>   or implied. **No human spoke in this session.**
+>
+> - **THE FINDING OF THIS SESSION: ENERGY PER INFERENCE UNDERSTATES ENERGY PER
+>   USEFUL DECISION BY 5.544866x AT A 50 PER CENT DUTY CYCLE AND BY 28.597765x
+>   AT 10 PER CENT, AND THE GAP DECOMPOSES EXACTLY INTO TWO MEASURED TERMS.**
+>   Rejection factor **2.898629**, duty-cycle factor **1.912927**, product equal
+>   to the headline with a **closure error of 0.000e+00**. At duty 1.00, where
+>   there is no sleep window at all, the factor is still 2.79 to 2.91, and that
+>   residue is pure rejection: no duty-cycle argument removes it. Measured over
+>   **268,425 inferences, 100,789 accepted**, in 27.05 minutes of board time.
+>
+> - **THE PRE-REGISTERED EXPECTATION WAS NOT REFUTED AND THE LEARNED MODEL
+>   LOST.** On held-out duty cycles the best classical predictor scores 0.051959
+>   against the forest's 0.052428; on held-out frame dimensions 0.066287 against
+>   0.072997. Margins **−0.000469** and **−0.006710**, both far inside the
+>   between-run half-width of **0.029543**. The learned component stays in the
+>   product, reported as beaten, and nothing was retuned.
+>
+> - **A BOUND WAS FALSIFIED BY THE MEASUREMENT AND THE CAUSE WAS THIS SESSION'S
+>   OWN CAMPAIGN DESIGN.** The duty-cycle factor's lower bracket assumes the
+>   floor run's minimum power lower-bounds every cell's sleep windows; it is
+>   violated on **7 of 19 cells**, whose sleep windows reach 3480–3600 mW
+>   against the floor run's 4113.4 mW minimum, because the floor was measured
+>   first, at the campaign's highest foreign load. Recorded as **FALSIFIED** in
+>   `VALIDATION.md`, not as a pass, with the seven cells pinned as literals so
+>   any change to the set makes the script fail for real. **The gate was not
+>   edited, no threshold was moved and no check was skipped.** `F` depends on no
+>   floor figure at all — it is four measured integrals and two counts.
+>
+> - **TWO ERRORS WERE FOUND BY CROSS-CHECKING, ONE IN EACH DIRECTION.** The
+>   product's `E_total` integrated the sampler's bracketing span rather than the
+>   run window, overstating the headline by **+1.1041 per cent**; the coordinator
+>   caught it and the corrected exact-partition definition removed the
+>   decomposition's residual term entirely. In the other direction, the
+>   coordinator told the agent the falsified bound failed on **nine** cells — a
+>   number it had not computed but echoed back from the agent's own earlier
+>   report. The agent recomputed **seven** and gave the reason; the coordinator
+>   then computed seven independently and the agent was right. **A coordinator
+>   that re-uses an agent's number as its own cross-check has stopped
+>   cross-checking.**
+>
+> ## Reconciliation — 2026-11-13 (superseded by the block above)
 >
 > Figures measured this session: registry totals from `scripts/quota_report.py`
 > run against `products.yaml` after the publication edit; test counts from junit

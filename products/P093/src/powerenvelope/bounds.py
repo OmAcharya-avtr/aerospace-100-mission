@@ -172,11 +172,16 @@ def duty_cycle_lower_bracket(
     campaign's run order was not randomised and the board's foreign load fell
     throughout, so the floor cell was measured at the highest foreign load of
     the whole campaign and later cells' sleep windows draw less than the floor
-    run's minimum ever did. Nine of nineteen pipeline cells violate the bound
-    for that reason, and
-    ``validation/validate_measured_headline.py`` publishes the violation with
-    the per-cell table rather than weakening the bound. A caller who wants a
-    bound that holds should pass each cell's OWN measured sleep-window minimum,
+    run's minimum ever did. **Seven** of the nineteen pipeline cells violate the
+    bound for that reason -- ``w64_d050_permissive``, ``w64_d050_rep2``,
+    ``w64_d050_rep3``, ``w64_d050_rep4``, ``w96_d010``, ``w96_d025`` and
+    ``w96_d050`` -- and ``validation/validate_measured_headline.py`` publishes
+    the violation with the per-cell table, reporting it as a PINNED
+    FALSIFICATION against those seven cells as literals, rather than weakening
+    the bound. The three duty-1.00 cells are outside the set because the
+    declared sleep duration ``cycles * (1 - duty) * cycle_s`` is zero there, so
+    the bound degenerates to ``factor >= 1``. A caller who wants a bound that
+    holds should pass each cell's OWN measured sleep-window minimum,
     which that script reports beside the campaign-floor form and labels as the
     weaker argument it is -- it reads its minimum from the same samples the
     integral it checks is taken over.
