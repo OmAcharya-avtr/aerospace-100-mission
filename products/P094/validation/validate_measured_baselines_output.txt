@@ -44,8 +44,8 @@ simulation mode, measured in this container, now
   python / numpy         : 3.13.18 / 2.5.3
   cells x passes x frames: 9 x 12 x 1500
   timed frames           : 162000
-  elapsed                : 36.89 s
-  empty-bracket cost     : 45.000 ns
+  elapsed                : 40.25 s
+  empty-bracket cost     : 42.097 ns
   clock resolution       : 1.000 ns
   frame stack matches the board: True
 
@@ -55,24 +55,24 @@ simulation mode, measured in this container, now
 ==============================================================================
 BASELINE 1 -- the declared timing model, the object being refuted
 ==============================================================================
-  single global ns_per_op calibrated on this host: 4.808693672 ns/op
+  single global ns_per_op calibrated on this host: 5.236443829 ns/op
   it is a TOTAL-MATCHING scalar: sum(measured ns) / sum(declared ops) over every stage, cell and pass
 
   stage         declared_ns      hw_median_ns   signed rel err   abs rel err
-  ingest          39392.8186           3840.00        +9.258547      9.258547
-  background      78785.6371          20000.00        +2.939282      2.939282
-  threshold       59089.2278         266056.75        -0.777907      0.777907
-  centroid         3879.6781         421630.00        -0.990798      0.990798
-  gate              310.3742           6144.00        -0.949483      0.949483
-  track             865.5649           8576.00        -0.899071      0.899071
+  ingest          42896.9479           3840.00       +10.171080     10.171080
+  background      85793.8957          20000.00        +3.289695      3.289695
+  threshold       64345.4218         266056.75        -0.758152      0.758152
+  centroid         4224.7891         421630.00        -0.989980      0.989980
+  gate              337.9831           6144.00        -0.944990      0.944990
+  track             942.5599           8576.00        -0.890093      0.890093
 
-  mean relative error over stages : 2.635848
-  worst stage                     : ingest (9.258547)
-  whole-pipeline total error      : 0.748951
-  total declared 182323.30 ns against total measured 726246.75 ns
+  mean relative error over stages : 2.840665
+  worst stage                     : ingest (10.171080)
+  whole-pipeline total error      : 0.726620
+  total declared 198541.60 ns against total measured 726246.75 ns
 
 [PASS] baseline 1 is at full strength: its scalar makes the whole-pipeline SIMULATION total exact -- the scalar is fitted to make sum(declared ops) * ns_per_op equal the measured simulation-mode total, which is the strongest single-scalar calibration available to a schedulability analysis reading the source
-[FINDING] Baseline 1 UNDER-predicts 4 of 6 stages (threshold, centroid, gate, track) and over-predicts 2 (ingest, background). Under-prediction is the dangerous direction: a schedulability analysis built on it believes it has headroom it does not have. The worst under-prediction is ingest only in absolute terms; by SIGN the worst under-prediction is centroid at -0.990798, i.e. the declared model claims it costs about 0.009 of what it does.
+[FINDING] Baseline 1 UNDER-predicts 4 of 6 stages (threshold, centroid, gate, track) and over-predicts 2 (ingest, background). Under-prediction is the dangerous direction: a schedulability analysis built on it believes it has headroom it does not have. The worst under-prediction is ingest only in absolute terms; by SIGN the worst under-prediction is centroid at -0.989980, i.e. the declared model claims it costs about 0.010 of what it does.
 
 ==============================================================================
 BASELINE 2 -- one scalar fitted on training stages, scored on held-out
@@ -83,36 +83,36 @@ BASELINE 2 -- one scalar fitted on training stages, scored on held-out
   so it is the HARDEST split for a single factor and not a flattering one.
 
   per-stage hardware-to-simulation ratio, over the nine paired cells:
-    ingest      3.742690
-    background  2.981004
-    threshold   3.789675
-    centroid    4.800181
-    gate        3.537969
-    track       4.815158
-    spread 1.615281 (2.9810 to 4.8152)
+    ingest      3.683902
+    background  3.130955
+    threshold   3.712657
+    centroid    4.626286
+    gate        3.429994
+    track       4.570803
+    spread 1.477596 (3.1310 to 4.6263)
 
-  fitted k on the training stages : 3.721899225
-  held-out mean relative error    : 0.157111 [0.155670, 0.157524]
-    centroid    predicted    340939.00 ns, measured    421630.00 ns, error 0.191379
-    gate        predicted      6504.95 ns, measured      6144.00 ns, error 0.058748
-    track       predicted      6678.95 ns, measured      8576.00 ns, error 0.221205
+  fitted k on the training stages : 3.650012186
+  held-out mean relative error    : 0.119850 [0.118388, 0.120269]
+    centroid    predicted    351894.02 ns, measured    421630.00 ns, error 0.165396
+    gate        predicted      6633.90 ns, measured      6144.00 ns, error 0.079736
+    track       predicted      7594.76 ns, measured      8576.00 ns, error 0.114417
 
   split-choice-free alternatives:
     leave-one-stage-out, per stage:
-      ingest      0.003823
-      background  0.274032
-      threshold   0.008883
-      centroid    0.191379
-      gate        0.080230
-      track       0.221205
-    leave-one-stage-out mean : 0.129925
-    all 20 three-and-three splits: min 0.085683, median 0.161577, max 0.388148
+      ingest      0.009726
+      background  0.207191
+      threshold   0.027853
+      centroid    0.177435
+      gate        0.103675
+      track       0.114417
+    leave-one-stage-out mean : 0.106716
+    all 20 three-and-three splits: min 0.066215, median 0.122524, max 0.299975
     splits above the pre-registered 0.5: 0 of 20
 
 [PASS] the declared split's error lies inside the all-splits range
-[PASS] the declared split is not the most favourable split available -- declared 0.157111 against the best split's 0.085683
-[PASS] baseline 2's held-out error is below the pre-registered threshold -- 0.157111 against 0.5: SPEC §7's secondary expectation is REFUTED
-[FINDING] SPEC §7 SECONDARY REFUTED: measured held-out transfer error 0.157111 against a pre-registered > 0.5. Leave-one-stage-out agrees at 0.129925, and 0 of 20 splits exceed the threshold. The baseline that was supposed to lose wins.
+[PASS] the declared split is not the most favourable split available -- declared 0.119850 against the best split's 0.066215
+[PASS] baseline 2's held-out error is below the pre-registered threshold -- 0.119850 against 0.5: SPEC §7's secondary expectation is REFUTED
+[FINDING] SPEC §7 SECONDARY REFUTED: measured held-out transfer error 0.119850 against a pre-registered > 0.5. Leave-one-stage-out agrees at 0.106716, and 0 of 20 splits exceed the threshold. The baseline that was supposed to lose wins.
 
 ==============================================================================
 BASELINE 3 -- ground truth, resampling unit = PASS, SPEC §4
@@ -145,16 +145,16 @@ the frame-stack sensitivity, published because the verdict depends on it
   reading on a shared two-core host and one reading is not a measurement of its spread.
 
   frames  repeats       k      held-out error (min..max)      LOO mean   splits>0.5  gate   track
-     150        3   3.6529       0.534927..0.571239      0.303652          4   2.542  1.894
-     300        3   3.7496       0.467377..0.532472      0.330606          3   2.536  1.934
-    1500        3   3.6438       0.145289..0.155912      0.127694          0   3.578  4.740
-    1500        1p  3.7704       0.153735               0.121857          0   3.631  4.914
-    1500        2p  3.6282       0.165957               0.131960          0   3.541  4.633
-    1500        4p  3.6870       0.146173               0.120202          0   3.501  4.565
+     150        3   2.2647       0.441186..0.505318      0.337720          3   1.874  1.225
+     300        3   2.2030       0.419963..0.481287      0.311229          4   1.840  1.208
+    1500        3   3.3697       0.065297..0.137107      0.100895          0   3.297  3.956
+    1500        1p  2.7980       0.110564               0.090964          0   2.883  3.230
+    1500        2p  3.2328       0.163314               0.135963          0   3.247  3.358
+    1500        4p  3.4961       0.131058               0.116864          0   3.471  4.034
 
-[PASS] the short-stack held-out error is at least twice the full-stack error -- 150 frames 0.534927..0.571239 against 1500 frames 0.145289..0.155912
-[PASS] the full-stack error is below the pre-registered threshold in every repeat -- worst of 3 repeats 0.155912 against 0.5
-[FINDING] A WEAK RESULT, published: SPEC §7's secondary verdict is CONFIGURATION-DEPENDENT. At the board's own 1500-frame stack the held-out error measured 0.145289 to 0.155912 over 3 repeats and the expectation is REFUTED in every one. At a 150-frame stack it measured 0.534927 to 0.571239, which SITS ON the 0.5 threshold rather than clearly above it: a separate 2-pass run of the same configuration earlier in this session returned 0.472583, below the threshold, under heavier concurrent load on the two shared cores. So the short-stack figure does not reliably confirm the expectation either; what it reliably does is sit about 3.4 times higher than the full-stack figure. The declared configuration is the board's stack length, because the comparison is only paired if both modes time the same stack.
+[PASS] the short-stack held-out error is at least twice the full-stack error -- 150 frames 0.441186..0.505318 against 1500 frames 0.065297..0.137107
+[PASS] the full-stack error is below the pre-registered threshold in every repeat -- worst of 3 repeats 0.137107 against 0.5
+[FINDING] A WEAK RESULT, published: SPEC §7's secondary verdict is CONFIGURATION-DEPENDENT. At the board's own 1500-frame stack the held-out error measured 0.065297 to 0.137107 over 3 repeats and the expectation is REFUTED in every one. At a 150-frame stack it measured 0.441186 to 0.505318, which SITS ON the 0.5 threshold rather than clearly above it: a separate 2-pass run of the same configuration earlier in this session returned 0.472583, below the threshold, under heavier concurrent load on the two shared cores. So the short-stack figure does not reliably confirm the expectation either; what it reliably does is sit about 3.2 times higher than the full-stack figure. The declared configuration is the board's stack length, because the comparison is only paired if both modes time the same stack.
 [FINDING] The pass count, by contrast, is measured stable: at 1, 2 and 4 passes over nine cells at the board's stack length the held-out error stays well below the threshold, so shortening the pass count is safe and shortening the stack is not.
 
 ==============================================================================
@@ -162,19 +162,19 @@ the divergence spread at this calibration, for the record
 ==============================================================================
   spread = 1114.863360 [1113.763384, 1124.917784]
   tau-b  = 0.200000 [0.200000, 0.200000]
-[PASS] baseline 1 is refuted and baseline 2 is not -- baseline 1 mean relative error 2.635848 against baseline 2's held-out 0.157111: the declared operation count is 16.8x worse than a single measured scaling factor extrapolated to stages it never saw
+[PASS] baseline 1 is refuted and baseline 2 is not -- baseline 1 mean relative error 2.840665 against baseline 2's held-out 0.119850: the declared operation count is 23.7x worse than a single measured scaling factor extrapolated to stages it never saw
 
 ==============================================================================
 negative controls
 ==============================================================================
-[PASS] control: a stage-dependent perturbation of ground truth raises the held-out error (must fire) -- FIRED; 1.418014 against 0.157111
-[PASS] control: an unperturbed copy changes the held-out error (must NOT fire) -- did not fire; 0.157110572
+[PASS] control: a stage-dependent perturbation of ground truth raises the held-out error (must fire) -- FIRED; 1.408236 against 0.119850
+[PASS] control: an unperturbed copy changes the held-out error (must NOT fire) -- did not fire; 0.119849550
 
 CHECKS RUN: 14
 CONTROLS: 2 declared, 1 fired; must-fire 1/1, must-NOT-fire silent 1/1
 FINDINGS (4):
-  - Baseline 1 UNDER-predicts 4 of 6 stages (threshold, centroid, gate, track) and over-predicts 2 (ingest, background). Under-prediction is the dangerous direction: a schedulability analysis built on it believes it has headroom it does not have. The worst under-prediction is ingest only in absolute terms; by SIGN the worst under-prediction is centroid at -0.990798, i.e. the declared model claims it costs about 0.009 of what it does.
-  - SPEC §7 SECONDARY REFUTED: measured held-out transfer error 0.157111 against a pre-registered > 0.5. Leave-one-stage-out agrees at 0.129925, and 0 of 20 splits exceed the threshold. The baseline that was supposed to lose wins.
-  - A WEAK RESULT, published: SPEC §7's secondary verdict is CONFIGURATION-DEPENDENT. At the board's own 1500-frame stack the held-out error measured 0.145289 to 0.155912 over 3 repeats and the expectation is REFUTED in every one. At a 150-frame stack it measured 0.534927 to 0.571239, which SITS ON the 0.5 threshold rather than clearly above it: a separate 2-pass run of the same configuration earlier in this session returned 0.472583, below the threshold, under heavier concurrent load on the two shared cores. So the short-stack figure does not reliably confirm the expectation either; what it reliably does is sit about 3.4 times higher than the full-stack figure. The declared configuration is the board's stack length, because the comparison is only paired if both modes time the same stack.
+  - Baseline 1 UNDER-predicts 4 of 6 stages (threshold, centroid, gate, track) and over-predicts 2 (ingest, background). Under-prediction is the dangerous direction: a schedulability analysis built on it believes it has headroom it does not have. The worst under-prediction is ingest only in absolute terms; by SIGN the worst under-prediction is centroid at -0.989980, i.e. the declared model claims it costs about 0.010 of what it does.
+  - SPEC §7 SECONDARY REFUTED: measured held-out transfer error 0.119850 against a pre-registered > 0.5. Leave-one-stage-out agrees at 0.106716, and 0 of 20 splits exceed the threshold. The baseline that was supposed to lose wins.
+  - A WEAK RESULT, published: SPEC §7's secondary verdict is CONFIGURATION-DEPENDENT. At the board's own 1500-frame stack the held-out error measured 0.065297 to 0.137107 over 3 repeats and the expectation is REFUTED in every one. At a 150-frame stack it measured 0.441186 to 0.505318, which SITS ON the 0.5 threshold rather than clearly above it: a separate 2-pass run of the same configuration earlier in this session returned 0.472583, below the threshold, under heavier concurrent load on the two shared cores. So the short-stack figure does not reliably confirm the expectation either; what it reliably does is sit about 3.2 times higher than the full-stack figure. The declared configuration is the board's stack length, because the comparison is only paired if both modes time the same stack.
   - The pass count, by contrast, is measured stable: at 1, 2 and 4 passes over nine cells at the board's stack length the held-out error stays well below the threshold, so shortening the pass count is safe and shortening the stack is not.
 FAILED CHECKS (0): none

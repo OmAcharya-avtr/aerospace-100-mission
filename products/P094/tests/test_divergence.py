@@ -287,6 +287,102 @@ def test_as_rows_matches_the_frame(divergence_result):
     assert len(divergence_result.as_rows()) == 6
 
 
+# --- the calibration-free interval, and the round trip that is not exact ---
+#
+# These exist because the product was BLOCKED at the release gate by an
+# intermittent failure in examples/headline_divergence.py: it drew the
+# calibration-free point `ns_per_declared_op` against `ratio_interval * ns_per_op`,
+# and that round trip is exact only in exact arithmetic.
+
+
+@pytest.mark.parametrize("stage", STAGES)
+def test_calibration_free_interval_brackets_its_point(divergence_result, stage):
+    interval = divergence_result.ns_per_declared_op_interval[stage]
+    point = divergence_result.ns_per_declared_op[stage]
+    assert interval.low <= point <= interval.high
+
+
+@pytest.mark.parametrize("stage", STAGES)
+def test_calibration_free_interval_records_the_pass_unit(divergence_result, stage):
+    assert divergence_result.ns_per_declared_op_interval[stage].unit == "pass"
+
+
+@pytest.mark.parametrize("stage", STAGES)
+def test_calibration_free_interval_point_is_the_calibration_free_point(
+    divergence_result, stage
+):
+    assert divergence_result.ns_per_declared_op_interval[stage].point == (
+        divergence_result.ns_per_declared_op[stage]
+    )
+
+
+@pytest.mark.parametrize("factor", [1e-3, 0.5, 2.0, 1000.0])
+def test_calibration_free_interval_is_BIT_IDENTICAL_under_ns_per_op(
+    units, ns_per_op, factor
+):
+    # Not `approx`: bit-identical. The whole point of the calibration-free form
+    # is that ns_per_op never enters it.
+    base = divergence(units, ns_per_op, resamples=128, seed=4242)
+    scaled = divergence(units, ns_per_op * factor, resamples=128, seed=4242)
+    for stage in STAGES:
+        assert (
+            scaled.ns_per_declared_op_interval[stage].low
+            == base.ns_per_declared_op_interval[stage].low
+        )
+        assert (
+            scaled.ns_per_declared_op_interval[stage].high
+            == base.ns_per_declared_op_interval[stage].high
+        )
+
+
+@pytest.mark.parametrize("factor", [1e-3, 0.5, 2.0, 1000.0])
+def test_spread_and_its_interval_are_BIT_IDENTICAL_under_ns_per_op(
+    units, ns_per_op, factor
+):
+    # The spread and its interval are now computed where ns_per_op never enters,
+    # so the cancellation is exact in floating point and not only in exact
+    # arithmetic. Before that change both moved by one ulp with the calibration.
+    base = divergence(units, ns_per_op, resamples=128, seed=4242)
+    scaled = divergence(units, ns_per_op * factor, resamples=128, seed=4242)
+    assert scaled.spread == base.spread
+    assert scaled.spread_interval.low == base.spread_interval.low
+    assert scaled.spread_interval.high == base.spread_interval.high
+    assert scaled.tau_b == base.tau_b
+
+
+def test_spread_equals_the_ratio_of_the_calibration_free_extremes(divergence_result):
+    values = list(divergence_result.ns_per_declared_op.values())
+    assert divergence_result.spread == max(values) / min(values)
+
+
+def test_regression_the_round_trip_through_ns_per_op_is_NOT_exact(units):
+    # THE GATE BLOCKER, pinned as a defect that is present rather than described.
+    # `ingest`'s interval high EQUALS its point estimate -- its per-pass medians
+    # are coarsely quantised, so the observed median sits at the top of the
+    # resample distribution -- which makes `high - point` mathematically zero.
+    # Recovering the bound by `ratio_interval.high * ns_per_op` then rounds to
+    # ONE ULP BELOW the point at this calibration, and matplotlib refuses a
+    # negative `xerr`. Whether it lands negative depends on ns_per_op, which is
+    # a wall-clock reading, which is why the failure was intermittent.
+    blocking = 4.064160401002506
+    result = divergence(units, blocking, resamples=400, seed=94094)
+    point = result.ns_per_declared_op["ingest"]
+    round_tripped = result.ratio_interval["ingest"].high * result.ns_per_op
+    assert point == 0.46875
+    assert round_tripped == 0.46874999999999994
+    assert round_tripped - point == -float(np.spacing(point))
+    # The calibration-free interval at the same calibration does NOT go negative.
+    assert result.ns_per_declared_op_interval["ingest"].high - point == 0.0
+
+
+def test_regression_the_blocking_stage_has_a_zero_width_upper_bar(divergence_result):
+    # A zero-width bar is legitimate and is what the fix produces; a negative one
+    # never is. Pinned so a future change that reintroduces a rescaling fails.
+    interval = divergence_result.ns_per_declared_op_interval["ingest"]
+    assert interval.high - divergence_result.ns_per_declared_op["ingest"] == 0.0
+    assert interval.low < divergence_result.ns_per_declared_op["ingest"]
+
+
 # --- invariance under the host calibration --------------------------------
 
 

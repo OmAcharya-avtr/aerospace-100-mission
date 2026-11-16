@@ -11,9 +11,14 @@ refuting results are published here, not removed.
 - SPEC §7's **primary** expectation — the divergence spread `max(R)/min(R)`
   exceeds 3 — is **CONFIRMED**, at 1114.8633602088898.
 - SPEC §7's **secondary** expectation — baseline 2's held-out transfer error
-  exceeds 0.5 — is **REFUTED**, at 0.152250. The baseline that the
+  exceeds 0.5 — is **REFUTED**, at 0.152147. The baseline that the
   specification expected to lose wins, and it is published as winning. It was
   not retuned, softened or removed.
+
+**The release gate BLOCKED this product on an intermittent example, and two
+gate runs on byte-identical content disagreed.** The mechanism is an inexact
+round trip through the host calibration, found and fixed; no published number
+was wrong. Full account below, first section.
 
 **One test in this suite was intermittently failing and the property it asserted
 was false in float64.** Found by the coordinator's independent re-run — one
@@ -114,11 +119,11 @@ output prints both.
 
 | quantity | value | source |
 |---|---|---|
-| tests | 1209 | `junit.xml` `testsuite/@tests` |
+| tests | 1242 | `junit.xml` `testsuite/@tests` |
 | failures | 0 | `junit.xml` `testsuite/@failures` |
 | errors | 0 | `junit.xml` `testsuite/@errors` |
 | skipped | 0 | `junit.xml` `testsuite/@skipped` |
-| `testcase` elements | 1209 | cross-check against the attribute |
+| `testcase` elements | 1242 | cross-check against the attribute |
 
 The count is taken from the junit XML and cross-checked against a count of
 `testcase` elements, never from pytest's stdout: a suite that collects nothing
@@ -127,7 +132,7 @@ prints success and exits 0.
 `tests/test_honesty.py` parametrises over every tracked text file in the tree,
 so the total moves when a file is added or removed. On a cold clone of this
 repository — 14 committed validation outputs, 3 committed example outputs — the
-count is 1209, and it is 1209 at both ends of every declared dependency range.
+count is 1242, and it is 1242 at both ends of every declared dependency range.
 
 `junit.xml` is **not tracked**: the repository root `.gitignore` has
 `**/junit.xml`, which ignores it at any depth.
@@ -144,8 +149,8 @@ raise.
 | `pytest.approx` call sites | 105 |
 | `rel=` occurrences | 105 |
 | `rel=` without an explicit `abs=` | 0 |
-| plain run | 1209 passed, 0 failed, 0 errors |
-| audited run | 1209 passed, 0 failed, 0 errors |
+| plain run | 1242 passed, 0 failed, 0 errors |
+| audited run | 1242 passed, 0 failed, 0 errors |
 | tests that fail or error when a bare `rel=` raises | **0** |
 
 The plugin is proved to fire: a deliberately bare `rel=1e-30` assertion against
@@ -161,17 +166,37 @@ Source: `validate_measured_headline_output.txt`, 30 checks, 4 controls,
 
 `R[s] = median(hw_measured[s]) / median(declared[s])`, with
 `declared[s] = declared_ops[s] * ns_per_op` and a single global
-`ns_per_op = 4.690168` ns per declared operation calibrated once on this
+`ns_per_op = 4.918144` ns per declared operation calibrated once on this
 host.
 
 | stage | hw median (ns) | declared ops | ns per declared op | R | R 95% interval |
 |---|---|---|---|---|---|
-| `ingest` | 3840.00 | 8192.0000 | 0.468750 | 0.099943 | [0.099136, 0.099943] |
-| `background` | 20000.00 | 16384.0000 | 1.220703 | 0.260269 | [0.259865, 0.260282] |
-| `threshold` | 266056.75 | 12288.0000 | 21.651754 | 4.616414 | [4.612514, 4.626269] |
-| `centroid` | 421630.00 | 806.8050 | 522.592200 | 111.422924 | [111.312989, 111.661822] |
-| `gate` | 6144.00 | 64.5444 | 95.190288 | 20.295711 | [20.244509, 20.401418] |
-| `track` | 8576.00 | 180.0000 | 47.644444 | 10.158367 | [10.121647, 10.159551] |
+| `ingest` | 3840.00 | 8192.0000 | **0.46875** | 0.095310 | [0.094541, 0.095310] |
+| `background` | 20000.00 | 16384.0000 | **1.220703125** | 0.248204 | [0.247819, 0.248216] |
+| `threshold` | 266056.75 | 12288.0000 | **21.651753743489582** | 4.402423 | [4.398704, 4.411822] |
+| `centroid` | 421630.00 | 806.8050 | **522.5922000979172** | 106.258003 | [106.153164, 106.485827] |
+| `gate` | 6144.00 | 64.5444 | **95.1902876159667** | 19.354919 | [19.306091, 19.455726] |
+| `track` | 8576.00 | 180.0000 | **47.644444444444446** | 9.687484 | [9.652466, 9.688614] |
+
+**The `R` column and its interval are CALIBRATION-DEPENDENT and move between
+runs by construction** — they carry the `ns_per_op` named above, which is a
+wall-clock reading on the analysis host. The **ns per declared op** column is
+calibration-free and reproduces bit-for-bit. Each form has its own pass-unit
+interval, bootstrapped in its own units:
+
+| stage | ns per declared op | 95% interval, same units — bit-exactly reproducible |
+|---|---|---|
+| `ingest` | 0.46875 | [0.4649658203125, **0.46875**] |
+| `background` | 1.220703125 | [1.21881103515625, 1.22076416015625] |
+| `threshold` | 21.651753743489582 | [21.633463541666668, 21.697977701822918] |
+| `centroid` | 522.5922000979172 | [522.0765860399973, 523.7126691083968] |
+| `gate` | 95.1902876159667 | [94.95014284740428, 95.68607036396652] |
+| `track` | 47.644444444444446 | [47.47222222222222, 47.65] |
+
+Note `ingest`: its interval **high equals its point estimate exactly**, because
+its per-pass medians are coarsely quantised and the observed median sits at the
+top of the resample distribution. That is legitimate — a zero-width upper bar —
+and it is the precondition for the gate blocker recorded below.
 
 **Which of these are exactly reproducible and which are not.** `ns_per_op` is a
 wall-clock reading on the analysis host and moves between runs, so the `R`
@@ -221,8 +246,8 @@ uncertainty, and it is stated here rather than presented as precision.
 
 | quantity | stage | R | share of measured frame time |
 |---|---|---|---|
-| `argmax(R)` | **`centroid`** | 111.422924 | 0.5805602572403938 |
-| `argmin(R)` | **`ingest`** | 0.099943 | 0.005287459117717222 |
+| `argmax(R)` | **`centroid`** | 106.258003 | 0.5805602572403938 |
+| `argmin(R)` | **`ingest`** | 0.095310 | 0.005287459117717222 |
 
 The least trustworthy stage is also the most expensive one. The divergence is
 therefore consequential rather than a curiosity about a cheap stage.
@@ -233,11 +258,11 @@ therefore consequential rather than a curiosity about a cheap stage.
 |---|---|
 | training stages | `ingest`, `background`, `threshold` |
 | held-out stages | `centroid`, `gate`, `track` |
-| fitted `k` | 3.705740473 |
-| held-out mean relative error | **0.152250** |
-| 95% pass-unit interval | [0.150838, 0.152653] |
-| leave-one-stage-out mean | 0.121751 |
-| all 20 three-and-three splits | min 0.080544, median 0.151131, max 0.376913 |
+| fitted `k` | 3.444041626 |
+| held-out mean relative error | **0.152147** |
+| 95% pass-unit interval | [0.150778, 0.152529] |
+| leave-one-stage-out mean | 0.127330 |
+| all 20 three-and-three splits | min 0.075952, median 0.149967, max 0.268873 |
 | splits above the pre-registered 0.5 | **0 of 20** |
 | pre-registered (SPEC §7 secondary) | greater than 0.5 |
 | verdict | **REFUTED** |
@@ -246,32 +271,32 @@ Per held-out stage, from `validate_measured_headline_output.txt`:
 
 | stage | predicted (ns) | measured (ns) | relative error |
 |---|---|---|---|
-| `centroid` | 340103.60 | 421630.00 | 0.193360 |
-| `gate` | 6401.67 | 6144.00 | 0.041938 |
-| `track` | 6676.82 | 8576.00 | 0.221453 |
+| `centroid` | 320720.35 | 421630.00 | 0.239332 |
+| `gate` | 6178.61 | 6144.00 | 0.005633 |
+| `track` | 6762.38 | 8576.00 | 0.211477 |
 
 ## The three baselines, SPEC §4
 
 Source: `validate_measured_baselines_output.txt`, 14 checks, 2 controls,
-0 failures. `ns_per_op` in that run was 4.690460234.
+0 failures. `ns_per_op` in that run was 5.073500615.
 
 ### Baseline 1 — the declared timing model, the object being refuted
 
 | stage | declared (ns) | hw median (ns) | signed relative error |
 |---|---|---|---|
-| `ingest` | 38424.2502 | 3840.00 | +9.006315 |
-| `background` | 76848.5005 | 20000.00 | +2.842425 |
-| `threshold` | 57636.3754 | 266056.75 | -0.783368 |
-| `centroid` | 3784.2868 | 421630.00 | -0.991025 |
-| `gate` | 302.7429 | 6144.00 | -0.950725 |
-| `track` | 844.2828 | 8576.00 | -0.901553 |
+| `ingest` | 41562.1170 | 3840.00 | +9.823468 |
+| `background` | 83124.2341 | 20000.00 | +3.156212 |
+| `threshold` | 62343.1756 | 266056.75 | -0.765677 |
+| `centroid` | 4093.3257 | 421630.00 | -0.990292 |
+| `gate` | 327.4661 | 6144.00 | -0.946701 |
+| `track` | 913.2301 | 8576.00 | -0.893513 |
 
 | quantity | value |
 |---|---|
-| mean relative error over stages | 2.579235 |
-| worst stage | `ingest`, 9.006315 |
-| whole-pipeline total error | 0.755124 |
-| total declared against total measured | 177840.44 ns against 726246.75 ns |
+| mean relative error over stages | 2.762644 |
+| worst stage | `ingest`, 9.823468 |
+| whole-pipeline total error | 0.735126 |
+| total declared against total measured | 192363.55 ns against 726246.75 ns |
 
 Baseline 1 is implemented **at full strength**: its single scalar is fitted to
 make the whole-pipeline simulation-mode total exact, which is the strongest
@@ -280,7 +305,7 @@ off the source. An under-strength version would inflate this product's finding.
 
 **It under-predicts four of six stages**, which is the dangerous direction: a
 schedulability analysis built on it believes it has headroom it does not have.
-The worst under-prediction is `centroid` at -0.991025 — the declared model
+The worst under-prediction is `centroid` at -0.990292 — the declared model
 claims it costs about 0.009 of what it does.
 
 ### Baseline 2 — one scalar, fitted on some stages, applied to others
@@ -288,24 +313,24 @@ claims it costs about 0.009 of what it does.
 The declared split is the vectorised/interpreted split SPEC §7 names as the
 mechanism, so it is the **hardest** split for a single factor, not a flattering
 one. It is not the most favourable split available: in the headline run the
-best of the twenty splits scores 0.080544 against the declared split's 0.152250,
-and in this script's independent run 0.079608 against 0.150806.
+best of the twenty splits scores 0.075952 against the declared split's 0.152147,
+and in this script's independent run 0.082209 against 0.144458.
 
 Per-stage hardware-to-simulation ratio, over the nine paired cells, from
 `validate_measured_headline_output.txt`:
 
 | stage | hw median (ns) | sim median (ns) | hw / sim |
 |---|---|---|---|
-| `ingest` | 3840.00 | 1024.50 | 3.719821 |
-| `background` | 20000.00 | 6573.00 | 3.041389 |
-| `threshold` | 266056.75 | 72053.75 | 3.762863 |
-| `centroid` | 421630.00 | 91777.50 | 4.832161 |
-| `gate` | 6144.00 | 1727.50 | 3.590076 |
-| `track` | 8576.00 | 1801.75 | 4.836881 |
+| `ingest` | 3840.00 | 1040.25 | 3.653663 |
+| `background` | 20000.00 | 6597.50 | 3.027441 |
+| `threshold` | 266056.75 | 75243.00 | 3.733994 |
+| `centroid` | 421630.00 | 93123.25 | 4.718407 |
+| `gate` | 6144.00 | 1794.00 | 3.557561 |
+| `track` | 8576.00 | 1963.50 | 4.789613 |
 
-Spread **1.590353**, against a declared-model divergence spread of 1114.8634.
+Spread **1.582067**, against a declared-model divergence spread of 1114.8634.
 The independent run in `validate_measured_baselines_output.txt` measured the
-same spread at 1.602381, with per-stage ratios from 3.091655 to 4.954009; the
+same spread at 1.580301, with per-stage ratios from 3.012589 to 4.760799; the
 simulation-mode side of each ratio is a wall-clock reading and moves between
 runs, which is why two runs give two values and both are shown.
 
@@ -318,12 +343,12 @@ because its figures are what its sensitivity table is anchored on:
 
 | quantity | value |
 |---|---|
-| fitted `k` | 3.750859270 |
-| held-out mean relative error | 0.150806, interval [0.149405, 0.151206] |
-| leave-one-stage-out mean | 0.122586 |
-| all 20 splits | min 0.079608, median 0.149760, max 0.375219 |
+| fitted `k` | 3.611659614 |
+| held-out mean relative error | 0.144458, interval [0.143032, 0.144860] |
+| leave-one-stage-out mean | 0.130753 |
+| all 20 splits | min 0.082209, median 0.153523, max 0.353655 |
 | splits above 0.5 | 0 of 20 |
-| baseline 1 against baseline 2 | 2.579235 against 0.150806, a factor of 17.1 |
+| baseline 1 against baseline 2 | 2.762644 against 0.144458, a factor of 19.1 |
 
 Two runs, two sets of simulation-mode wall-clock readings, the same verdict.
 
@@ -474,12 +499,12 @@ Fitting a line is a smoothing of a staircase and under-reads the bracket:
 
 | stage | R raw measured (headline) | R drift-adjusted | relative shift |
 |---|---|---|---|
-| `ingest` | 0.099893 | 0.097253 | -0.026430 |
-| `background` | 0.260139 | 0.253330 | -0.026174 |
-| `threshold` | 4.614119 | 4.567637 | -0.010074 |
-| `centroid` | 111.367536 | 110.302191 | -0.009566 |
-| `gate` | 20.285622 | 19.915863 | -0.018228 |
-| `track` | 10.153317 | 9.901884 | -0.024764 |
+| `ingest` | 0.085569 | 0.083307 | -0.026430 |
+| `background` | 0.222836 | 0.217003 | -0.026174 |
+| `threshold` | 3.952461 | 3.912644 | -0.010074 |
+| `centroid` | 95.397595 | 94.485019 | -0.009566 |
+| `gate` | 17.376694 | 17.059957 | -0.018228 |
+| `track` | 8.697346 | 8.481969 | -0.024764 |
 
 The `R` levels in that table carry that run's own `ns_per_op`, which differs
 from the headline run's; the **relative shift** column does not, and it is the
@@ -666,6 +691,144 @@ roughly 3.0 per cent of the reported `ingest` time could be the bracket itself.
 `ingest` is `argmin(R)` and holds 0.53 per cent of frame time, so this does not
 move the headline, but a reader using the `ingest` figure on its own should
 subtract the bracket cost.
+
+## A RELEASE-GATE BLOCK from an intermittent example, and the mechanism
+
+**Two gate runs reached opposite verdicts on byte-identical product content.**
+
+```
+run 1:  P094  PASS      1209 tests
+run 2:  P094  BLOCKED   1209 tests
+          ! examples/headline_divergence.py exit 1:
+            ValueError: 'xerr' must not contain negative values
+```
+
+The coordinator then ran the example six times: **five clean, one failure.** One
+in six — the same rate as the `ordering` flake recorded below, and the **fourth
+intermittent failure of the session, the third in this product**.
+
+**This is the cleanest illustration this mission has produced of why a single
+green gate is not proof.** Two runs of the same gate on the same bytes
+disagreed. **P100 SeedAudit**'s closed-form bound says a clean two-run check is
+consistent with a defect rate as high as **0.776**; here a one-in-six defect
+produced a pass and a block on consecutive runs, which is exactly the regime
+P100 quantifies. A gate verdict is a sample, not a proof.
+
+### The mechanism, confirmed and refuted hypothesis by hypothesis
+
+**Hypothesis A — `ns_per_op` calibrated more than once per run, so the interval
+and the rescaling used different values. REFUTED.** `build_headline` has exactly
+one `calibrate_ns_per_op` call site and threads one value through.
+
+**Hypothesis B — the round trip through `ns_per_op` is not exact. CONFIRMED,
+and the error is exactly one ulp.**
+
+The example plotted a **calibration-free** point against a **calibration-
+dependent** bound:
+
+```python
+per_op = ns_per_declared_op[s]                    # hw_median / ops_median
+high   = ratio_interval[s].high * ns_per_op       # a round trip
+xerr   = high - per_op
+```
+
+`divergence()` computes `ratio = hw_median / (ops_median * ns_per_op)`.
+Multiplying that back by `ns_per_op` is a division followed by a multiplication
+and is exact only in exact arithmetic.
+
+The precondition is `ingest`: **its interval high equals its point estimate
+exactly**, because its per-pass medians are coarsely quantised and the observed
+median sits at the top of the resample distribution, so `high - point` is
+mathematically zero. The round trip then rounds to **one ulp below** the point
+for some values of `ns_per_op`:
+
+```
+ns_per_op            = 4.064160401002506
+point                = 0.46875
+high * ns_per_op     = 0.46874999999999994
+difference           = -5.551115123125783e-17
+ulp at 0.46875       =  5.551115123125783e-17
+```
+
+Sweeping 400 values of `ns_per_op` across the range this host produces, **35
+produced a negative `xerr`** — 8.75 per cent, consistent with the observed one
+in six. `ns_per_op` is a wall-clock reading that changes every run, which is
+precisely why the failure was intermittent.
+
+**The coordinator's measurement was right and correctly ruled out its own
+hypothesis.** Coarse quantisation of the stage medians is *not* the cause; it is
+the *precondition* that makes `high == point`, and the cause is the inexact
+round trip on top of it. The point estimate never falls outside its own
+interval, which is what that measurement showed.
+
+### The fix
+
+`Divergence` now carries `ns_per_declared_op_interval`, **bootstrapped directly
+in ns-per-declared-op units** and never derived from `ratio_interval` by
+rescaling. The example plots the calibration-free point against the
+calibration-free interval, so no rescaling is involved at all.
+
+**Nothing was clipped.** No `abs`, no `maximum(0, ...)`. The example now asserts
+the interval brackets the point **before** plotting and raises with the stage
+name and all three values if it ever does not, because an error bar drawn after
+clipping would not mean what the axis label says. `ingest`'s upper bar is now a
+legitimate **zero-width** bar, which is the honest rendering of `high == point`.
+
+The new interval is **bit-identical across `ns_per_op` from 1e-3 to 777** and
+brackets its point at all six stages.
+
+### A second instance of the same class, found while fixing the first
+
+The **spread and its interval** were also computed through the calibration-
+dependent `R` values. `ns_per_op` cancels in `max(R)/min(R)` mathematically, but
+not in floating point: measured across seven calibrations, the spread point took
+**two distinct values** and each interval endpoint took two, differing by
+`2.2737367544323206e-13` — one ulp. **This document's claim that the spread is
+exactly reproducible was therefore itself an overclaim.**
+
+The spread and its replicates are now computed as the ratio of the
+calibration-free per-op extremes, where `ns_per_op` never enters. Measured again
+across the same seven calibrations: **one distinct value each**. The published
+figure is unchanged at `1114.8633602088898` and is now bit-exact, so
+`tests/test_regressions.py` pins it with `==` rather than `approx`, and pins the
+interval `(1113.7633835519944, 1124.9177840094571)` at the published resample
+count.
+
+### Audit of the other two examples and every figure
+
+| figure | quantity drawn | calibration | verdict |
+|---|---|---|---|
+| `headline_divergence.png` left | `ns_per_declared_op` + its interval | free + free | **fixed**; the only `errorbar` in the product |
+| `headline_divergence.png` left | subplot title's spread interval | free (now bit-exact) | sound |
+| `headline_divergence.png` right | rank positions | free | sound |
+| `baseline_transfer.png` left | `declared_ns` (carries `ns_per_op`), `sim_median` (run-dependent), `hw_median` (free) | **mixed, by design** | no error bars, no geometric inconsistency possible; it *is* the baseline-1 comparison. **Footer now labels which bars move and which do not** |
+| `baseline_transfer.png` right | split errors, LOO, declared split, the 0.5 line | all dimensionless, same run | sound |
+| `drift_and_clock.png` left | calibration block medians, straight-line fit | pure trace data | sound |
+| `drift_and_clock.png` right | raw and adjusted `R` | both carry the **same** `ns_per_op`; the printed relative shifts do not | internally consistent; **footer now says the bar heights move between runs while the shifts do not** |
+
+**Finding: one defect (fixed) and two figures that drew a calibration-dependent
+quantity without saying so.** Neither of the two can produce a negative or
+inconsistent value — there are no error bars in them — but both now label it.
+
+### Which published figures are and are not calibration-dependent
+
+**Not calibration-dependent — bit-exactly reproducible from the committed
+traces:** the divergence spread `1114.8633602088898` and its interval, Kendall's
+tau-b `0.2` and its interval, the permutation `(3, 0, 1, 5, 4, 2)`, both stage
+orders, `argmax(R) = centroid` and `argmin(R) = ingest` and their frame-time
+shares, every `ns per declared op` value and its interval, every hardware
+median, the drift figures, the frequency co-variation, the confounding figures
+and the gate census. **Both §7 verdicts rest only on these.**
+
+**Calibration-dependent — these carry `ns_per_op` and move between runs by
+construction:** the per-stage `R` column and its interval, `declared_ns`,
+baseline 1's relative errors, baseline 2's fitted `k` and held-out transfer
+error, and every hardware-to-simulation ratio. Each is now labelled where it
+appears, and the per-stage table above says so explicitly.
+
+**No published figure was wrong.** The defect was in how one example *drew* a
+correct number, and in the one-ulp instability of the spread's last digits,
+which did not change the published value.
 
 ## An INTERMITTENT failure found by the coordinator's independent re-run
 
@@ -898,29 +1061,39 @@ spread.
 
 | frames | repeats | held-out error (min..max) | leave-one-out | splits > 0.5 | `gate` ratio | `track` ratio |
 |---|---|---|---|---|---|---|
-| 150 | 3 | 0.431879 .. 0.543503 | 0.241514 | 2 of 20 | 2.116 | 1.864 |
-| 300 | 3 | 0.519139 .. 0.551779 | 0.319774 | 3 of 20 | 2.508 | 1.910 |
-| 1500 | 3 | **0.137645 .. 0.142098** | 0.116153 | **0 of 20** | 3.535 | 4.616 |
+| 150 | 3 | 0.543669 .. 0.557502 | 0.307189 | 3 of 20 | 2.500 | 1.904 |
+| 300 | 3 | 0.430233 .. 0.527063 | 0.321365 | 1 of 20 | 2.414 | 1.907 |
+| 1500 | 3 | **0.146817 .. 0.160301** | 0.126215 | **0 of 20** | 3.581 | 4.919 |
 
 At the board's stack length the expectation is REFUTED in every repeat. At a
 150-frame stack the figure **sits on** the 0.5 threshold rather than clearly
 above it: an earlier two-pass run of the same configuration in this session
 returned **0.472583**, below the threshold, under heavier concurrent load on the
 two shared cores. So the short-stack figure does not reliably confirm the
-expectation either. What it reliably does is sit about **3.0 times higher** than
-the full-stack figure. This run's 150-frame band, 0.431879 to 0.543503,
-**straddles the 0.5 threshold within a single three-repeat block** — the
+expectation either. What it reliably does is sit about **3.4 times higher** than
+the full-stack figure. Across the runs recorded during this build the 150-frame
+band has landed at 0.5348–0.5532, 0.5459–0.5688, 0.4319–0.5435, 0.5091–0.5419
+and 0.5437–0.5575, and the 300-frame band at 0.4302–0.5271 — both have
+**straddled the 0.5 threshold inside a single three-repeat block**, which is the
 clearest demonstration yet that the short-stack figure confirms nothing.
+
+A fifth load-sensitive assertion was found and withdrawn while fixing the
+gate blocker: `tests/test_baselines.py` pinned the short-stack error at "at
+least twice" the full-stack one, and the single-pass fixture produced a
+full-stack 0.2530 against a short-stack 0.4816 under contention -- the right
+direction, below the factor. The test now asserts only the DIRECTION; the
+quantitative bands, which have a spread, are measured with three repeats and
+published in the table above, which is where a figure with a spread belongs.
 
 The mechanism: over a short stack the exponential running background has not
 converged, so the candidate population and therefore the gate's branch mix
 differ, and the two stages whose cost depends on that mix — `gate` and `track` —
 stop being comparable between modes. Their hardware-to-simulation ratios fall
-from 3.535 and 4.616 to 2.116 and 1.864.
+from 3.581 and 4.919 to 2.500 and 1.904.
 
 **The pass count is measured stable.** At 1, 2 and 4 passes over nine cells at
-the board's stack length the held-out error measured 0.155270, 0.168389 and
-0.151401, all far below the threshold. So shortening the pass count is safe and
+the board's stack length the held-out error measured 0.132361, 0.161124 and
+0.151173, all far below the threshold. So shortening the pass count is safe and
 shortening the stack is not. `SimulationResult.stack_matches_campaign` records
 a mismatch on the result object and the CLI prints it.
 
@@ -1028,10 +1201,10 @@ already means "the question is whether it runs, not what the numbers are", the
 same contract `validate_measured_baselines.py` uses for its sensitivity sweep.
 
 **The cost, stated plainly:** in FAST mode the audit's dynamic count is about
-one file rather than 1209 tests. The probe never reads that number, the FAST
+one file rather than the whole suite. The probe never reads that number, the FAST
 output is redirected away from the committed file, and the committed output and
 the gate's own run of the script are full-suite and unaffected — this document's
-audit row still reports 1209 plain and 1209 audited. The only thing given up is
+audit row still reports 1242 plain and 1242 audited. The only thing given up is
 a number nobody consumes.
 
 The margin is now 232 s against 600 s rather than 493 s, so contention of the
@@ -1103,9 +1276,9 @@ dangerous case.
 
 | end | numpy | pandas | pytest | hypothesis | scipy | suite | deterministic outputs |
 |---|---|---|---|---|---|---|---|
-| floor | 2.5.0 | 3.0.0 | 9.1.0 | 6.170.0 | 1.18.0 | **1209 passed** | identical |
-| measured | 2.5.3 | 3.0.5 | 9.1.1 | 6.170.15 | 1.18.1 | **1209 passed** | reference |
-| ceiling | 2.5.5 | 3.0.6 | 9.1.1 | 6.170.15 | 1.18.1 | **1209 passed** | identical |
+| floor | 2.5.0 | 3.0.0 | 9.1.0 | 6.170.0 | 1.18.0 | **1242 passed** | identical |
+| measured | 2.5.3 | 3.0.5 | 9.1.1 | 6.170.15 | 1.18.1 | **1242 passed** | reference |
+| ceiling | 2.5.5 | 3.0.6 | 9.1.1 | 6.170.15 | 1.18.1 | **1242 passed** | identical |
 
 The outputs diffed are the three validation scripts whose every figure is
 deterministic given the committed campaign —

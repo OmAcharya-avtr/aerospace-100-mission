@@ -136,15 +136,36 @@ SYNTAX_AFTER_BANG = ("[", "/")
 
 
 def _prose_exclamations(text: str) -> list[int]:
-    """Line numbers of exclamation marks that are prose rather than syntax."""
+    """Line numbers of exclamation marks that are prose rather than syntax.
+
+    Fenced code blocks are skipped. They hold verbatim transcripts -- captured
+    command output, a quoted release-gate verdict -- and editing a transcript to
+    satisfy a prose rule would be falsifying evidence to pass a style check.
+    The rule is about prose, so it is applied to prose.
+    """
     offenders: list[int] = []
-    for index, character in enumerate(text):
-        if character != "!":
+    inside_fence = False
+    for number, line in enumerate(text.splitlines(), start=1):
+        if line.lstrip().startswith("```"):
+            inside_fence = not inside_fence
             continue
-        if text[index + 1 : index + 2] in SYNTAX_AFTER_BANG:
+        if inside_fence:
             continue
-        offenders.append(text.count("\n", 0, index) + 1)
+        for index, character in enumerate(line):
+            if character != "!":
+                continue
+            if line[index + 1 : index + 2] in SYNTAX_AFTER_BANG:
+                continue
+            offenders.append(number)
     return offenders
+
+
+def test_the_prose_exclamation_rule_skips_fenced_code_but_not_prose():
+    # The skip must not become a hole. Checked directly.
+    assert _prose_exclamations("```\nnot prose!\n```\n") == []
+    assert _prose_exclamations("this is prose!\n") == [1]
+    assert _prose_exclamations("![badge](x)\n") == []
+    assert _prose_exclamations("!/data/traces/campaign.log\n") == []
 
 
 @pytest.mark.parametrize("path", PROSE_FILES, ids=PROSE_IDS)

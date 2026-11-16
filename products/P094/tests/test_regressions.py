@@ -17,6 +17,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+from hiltimingdiff import BOOTSTRAP_SEED, RESAMPLES
 from hiltimingdiff import divergence as divergence_of
 
 #: Nanoseconds per declared operation, per stage. The host-calibration-free
@@ -50,8 +51,14 @@ DECLARED_OPS_MEDIAN = {
     "track": 180.0,
 }
 
-#: The divergence spread, SPEC §5 output 2. Invariant under ns_per_op.
+#: The divergence spread, SPEC §5 output 2. Invariant under ns_per_op, and
+#: BIT-EXACTLY so since 2026-11-16: it is computed as the ratio of the
+#: calibration-free per-op extremes, where ns_per_op never enters. Computed via
+#: the R values it moved by one ulp with the host calibration.
 SPREAD = 1114.8633602088898
+
+#: The pass-unit bootstrap interval on the spread, also bit-exact.
+SPREAD_INTERVAL = (1113.7633835519944, 1124.9177840094571)
 
 #: Kendall's tau-b between the declared and measured stage orderings.
 TAU_B = 0.2
@@ -141,7 +148,24 @@ def test_declared_ops_median_is_pinned(unit_divergence, stage):
 
 
 def test_spread_is_pinned(unit_divergence):
-    assert unit_divergence.spread == pytest.approx(SPREAD, rel=1e-12, abs=0.0)
+    # Bit-exact, not approx: the spread is computed where ns_per_op never
+    # enters, so it is reproducible to the last bit from the committed traces.
+    assert unit_divergence.spread == SPREAD
+
+
+def test_spread_interval_is_pinned(units):
+    # Interval ENDPOINTS depend on the resample count, so this is pinned at the
+    # package's published RESAMPLES and BOOTSTRAP_SEED -- the configuration the
+    # validation scripts report -- and not at the suite's reduced fixture count.
+    result = divergence_of(units, 1.0, resamples=RESAMPLES, seed=BOOTSTRAP_SEED)
+    assert (result.spread_interval.low, result.spread_interval.high) == SPREAD_INTERVAL
+
+
+@pytest.mark.parametrize("factor", [1e-3, 777.0])
+def test_spread_interval_pin_does_not_move_with_the_host_calibration(units, factor):
+    result = divergence_of(units, factor, resamples=RESAMPLES, seed=BOOTSTRAP_SEED)
+    assert (result.spread_interval.low, result.spread_interval.high) == SPREAD_INTERVAL
+    assert result.spread == SPREAD
 
 
 def test_spread_exceeds_the_preregistered_three_by_more_than_two_orders(unit_divergence):

@@ -49,10 +49,15 @@ def main() -> int:
 
     tee("")
     tee("The calibration-free form, which depends on nothing but the committed traces:")
-    tee("  stage        ns per declared op   hw median ns   declared ops")
+    tee(
+        "  stage        ns per declared op         95% interval (same units)   "
+        "hw median ns   declared ops"
+    )
     for stage in divergence.stages:
+        interval = divergence.ns_per_declared_op_interval[stage]
         tee(
             f"  {stage:<11s} {divergence.ns_per_declared_op[stage]:>18.6f} "
+            f"[{interval.low:>12.6f}, {interval.high:>12.6f}] "
             f"{divergence.hw_median_ns[stage]:>14.2f} "
             f"{divergence.declared_ops_median[stage]:>14.4f}"
         )
@@ -62,19 +67,34 @@ def main() -> int:
 
     stages = list(divergence.stages)
     positions = np.arange(len(stages))
+    # The point estimate is CALIBRATION-FREE, so its error bar must be too. The
+    # interval is taken in ns-per-declared-op units directly and is NOT
+    # recovered from the R interval by multiplying back by ns_per_op: that round
+    # trip is exact only in exact arithmetic, and it blocked this product at the
+    # release gate. `ingest`'s interval high EQUALS its point estimate, because
+    # its per-pass medians are coarsely quantised, so the round trip landed one
+    # ulp below the point for some values of ns_per_op and matplotlib refused a
+    # negative `xerr`. Mixing a quantity that does not move with bounds that do
+    # was the defect; the fix is to never rescale one into the other.
     per_op = np.array([divergence.ns_per_declared_op[stage] for stage in stages])
     low = np.array(
-        [
-            divergence.ratio_interval[stage].low * divergence.ns_per_op
-            for stage in stages
-        ]
+        [divergence.ns_per_declared_op_interval[stage].low for stage in stages]
     )
     high = np.array(
-        [
-            divergence.ratio_interval[stage].high * divergence.ns_per_op
-            for stage in stages
-        ]
+        [divergence.ns_per_declared_op_interval[stage].high for stage in stages]
     )
+
+    # Fail loudly and informatively here rather than inside matplotlib. A
+    # zero-width bar is legitimate -- `ingest`'s high equals its point exactly --
+    # but a negative one never is, and it is never clipped away.
+    for index, stage in enumerate(stages):
+        if not (low[index] <= per_op[index] <= high[index]):
+            raise ValueError(
+                f"interval does not bracket the point estimate for stage {stage!r}: "
+                f"low={low[index]!r} point={per_op[index]!r} high={high[index]!r}. "
+                "This is a real inconsistency and is not clipped: an error bar "
+                "drawn after clipping would not mean what the axis label says."
+            )
 
     left = axes[0]
     left.barh(

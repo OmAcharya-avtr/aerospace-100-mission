@@ -2,7 +2,7 @@
 
 Per-stage timing divergence between the simulation-mode and hardware-mode execution of one PAT pipeline.
 
-![tests](https://img.shields.io/badge/tests-1209%20passing-brightgreen)
+![tests](https://img.shields.io/badge/tests-1242%20passing-brightgreen)
 ![python](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue)
 ![licence](https://img.shields.io/badge/licence-Apache--2.0-lightgrey)
 ![validation](https://img.shields.io/badge/validation-level%204%20hardware--measured-blue)
@@ -33,7 +33,7 @@ you have allocated your headroom to the wrong stage — and nothing in a hardwar
   as the explicit permutation **(3, 0, 1, 5, 4, 2)**: 5 of 6 stages change rank
   between the declared and measured orderings.
 - Reports **how far a single measured scaling factor transfers** to a stage you
-  never put on the board: 0.152250 mean relative error on three held-out
+  never put on the board: 0.152147 mean relative error on three held-out
   stages, 0 of 20 three-and-three splits above 0.5.
 - Reports the **board drift** (1.0752408447278534 over the campaign) as a
   drift-adjusted variant beside the raw figure, and the **measured** share of
@@ -171,9 +171,9 @@ exact; the two that carry simulation-mode wall-clock readings are marked):
 spread   1114.8634  1114.8634 [1113.7634, 1124.9178]
 tau-b    0.2000   permutation (3, 0, 1, 5, 4, 2)
 argmax   centroid      argmin ingest
-held-out transfer error 0.165670          <- carries simulation-mode time
+held-out transfer error 0.138694          <- carries simulation-mode time
 resampling unit         pass
-baseline 1 mean error   2.558466          <- carries simulation-mode time
+baseline 1 mean error   2.724570          <- carries simulation-mode time
 ```
 
 ## Architecture
@@ -256,7 +256,7 @@ falsified, is in [`validation/VALIDATION.md`](validation/VALIDATION.md).
 | check | reference | result | tolerance |
 |---|---|---|---|
 | SPEC §7 primary: spread exceeds 3 | pre-registration committed 2026-11-15 | **CONFIRMED**, 1114.8633602088898, 95% interval [1113.763384, 1124.917784] | whole interval above 3 |
-| SPEC §7 secondary: held-out transfer error exceeds 0.5 | pre-registration committed 2026-11-15 | **REFUTED**, 0.152250, interval [0.150838, 0.152653], 0 of 20 splits above 0.5 | whole interval below 0.5 |
+| SPEC §7 secondary: held-out transfer error exceeds 0.5 | pre-registration committed 2026-11-15 | **REFUTED**, 0.152147, interval [0.150778, 0.152529], 0 of 20 splits above 0.5 | whole interval below 0.5 |
 | SPEC §7 mechanism: `threshold` is a cheap vectorised stage | pre-registration | **FALSIFIED**, 21.651754 ns/op against `background`'s 1.220703, a factor of 17.7 | pinned as a literal |
 | SPEC §4 reason: a frame-unit bootstrap understates the interval | pre-registration | **FALSIFIED**, narrower on 2 of 6 stages and wider on 4, up to 15.03x | partition pinned as literals |
 | SPEC §8: randomisation decorrelates order from dimension | pre-registration | **FALSIFIED**, `corr(order_index, W)` = 0.5011614417507341 Pearson, 0.5809475019311126 Spearman on midranks | pinned to full precision |
@@ -331,11 +331,19 @@ classical baseline the specification expected to lose, and it won.
   [`validation/VALIDATION.md`](validation/VALIDATION.md).
 - **Simulation-mode figures move between runs.** They are wall-clock readings
   on a shared host. The spread, the Kendall statistic, the permutation and both
-  arg-extrema do not depend on them at all; `R[s]` levels, `ns_per_op`, `k` and
-  the transfer error do, and each is labelled where it appears.
+  arg-extrema do not depend on them at all — and since 2026-11-16 they are
+  computed where `ns_per_op` never enters, so they are reproducible to the last
+  bit rather than to within an ulp. The `R[s]` column and its interval,
+  `ns_per_op`, `declared_ns`, `k`, baseline 1's errors and every
+  hardware-to-simulation ratio **do** carry the host calibration and move
+  between runs by construction; each is labelled where it appears. A quantity
+  that does not move must never be drawn against bounds that do: doing exactly
+  that blocked this product at the release gate, and the account is in
+  [`validation/VALIDATION.md`](validation/VALIDATION.md).
 - **Simulation mode must use the board's 1500-frame stack.** At a 150-frame
-  stack the held-out transfer error rises to 0.431879..0.543503, which straddles
-  the pre-registered 0.5 threshold inside a single three-repeat block.
+  stack the held-out transfer error rises to 0.543669..0.557502, and across the
+  runs recorded in VALIDATION.md that band has straddled the pre-registered 0.5
+  threshold inside a single three-repeat block.
   `stack_matches_campaign` records a mismatch; shortening the stack is not a
   cheaper version of the same measurement.
 - **The instrument is not negligible for the cheapest stage.** About 3.0 per

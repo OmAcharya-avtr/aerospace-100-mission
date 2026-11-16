@@ -206,13 +206,15 @@ def main() -> int:
         0.5,
         0.012,
         "Hardware mode: Jetson Orin Nano, 810000 timed frames, UNPINNED schedutil "
-        "clock in MAXN_SUPER. Simulation mode re-measured on every run and therefore "
-        "moves between runs. Research-grade, not flight-qualified.",
+        "clock in MAXN_SUPER.\nThe BLUE bars are calibration-free and reproduce "
+        "exactly; the AMBER bars are wall-clock readings taken on this host now, and "
+        "the RED bars\ncarry the host-calibrated ns_per_op. Both move between runs. "
+        "Research-grade, not flight-qualified.",
         ha="center",
         fontsize=8.5,
         color=_common.NEUTRAL,
     )
-    figure.tight_layout(rect=(0.0, 0.035, 1.0, 0.94))
+    figure.tight_layout(rect=(0.0, 0.075, 1.0, 0.94))
     target = _common.figure_path("baseline_transfer.png")
     figure.savefig(target)
     pyplot.close(figure)

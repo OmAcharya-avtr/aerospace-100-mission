@@ -6,13 +6,13 @@ Research-grade. Not flight-qualified, not certified, and not approved for operat
 HEADLINE -- P094 HilTimingDiff
 Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin Nano; the board drifted 7.52 per cent over the campaign.
 
-1. Per-stage divergence ratio R[s], pass-unit 95% bootstrap interval, ns_per_op = 4.774669 ns/op:
-     ingest      R = 0.098174 [0.097382, 0.098174]   (0.468750 ns per declared op)
-     background  R = 0.255662 [0.255266, 0.255675]   (1.220703 ns per declared op)
-     threshold   R = 4.534713 [4.530882, 4.544541]   (21.651754 ns per declared op)
-     centroid    R = 109.450970 [109.342981, 109.685640]   (522.592200 ns per declared op)
-     gate        R = 19.936519 [19.886223, 20.040355]   (95.190288 ns per declared op)
-     track       R = 9.978585 [9.942515, 9.979749]   (47.644444 ns per declared op)
+1. Per-stage divergence ratio R[s], pass-unit 95% bootstrap interval, ns_per_op = 5.787857 ns/op:
+     ingest      R = 0.080989 [0.080335, 0.080989]   (0.468750 ns per declared op)
+     background  R = 0.210908 [0.210581, 0.210918]   (1.220703 ns per declared op)
+     threshold   R = 3.740893 [3.737733, 3.749001]   (21.651754 ns per declared op)
+     centroid    R = 90.291134 [90.202048, 90.484724]   (522.592200 ns per declared op)
+     gate        R = 16.446551 [16.405059, 16.532210]   (95.190288 ns per declared op)
+     track       R = 8.231793 [8.202037, 8.232753]   (47.644444 ns per declared op)
 
 2. Divergence spread max(R)/min(R) = 1114.8634 [1113.7634, 1124.8970]
    SPEC §7 primary (divergence spread): CONFIRMED -- pre-registered > 3, measured 1114.86
@@ -22,23 +22,23 @@ Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin 
    declared order (cheapest first): gate < track < centroid < ingest < threshold < background
    measured order (cheapest first): ingest < gate < track < background < threshold < centroid
 
-4. argmax(R) = centroid (R = 109.451, 0.5806 of measured frame time); argmin(R) = ingest (R = 0.0981743, 0.0053 of measured frame time)
+4. argmax(R) = centroid (R = 90.2911, 0.5806 of measured frame time); argmin(R) = ingest (R = 0.0809885, 0.0053 of measured frame time)
 
-5. Baseline 2 held-out transfer error = 0.159683 [0.158239, 0.160209] on held-out stages centroid, gate, track
-   SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.159683
+5. Baseline 2 held-out transfer error = 0.143344 [0.141936, 0.143754] on held-out stages centroid, gate, track
+   SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.143344
 
 Research-grade. Not flight-qualified, not certified, and not approved for operational aerospace use.
 
-simulation mode measured here: x86_64, 4 passes x 1500 frames x 9 cells = 54000 timed frames in 13.3 s
+simulation mode measured here: x86_64, 4 passes x 1500 frames x 9 cells = 54000 timed frames in 15.8 s
 hardware mode read from data/traces/: 810000 timed frames on the board
 
 The calibration-free form, which depends on nothing but the committed traces:
-  stage        ns per declared op   hw median ns   declared ops
-  ingest                0.468750        3840.00      8192.0000
-  background            1.220703       20000.00     16384.0000
-  threshold            21.651754      266056.75     12288.0000
-  centroid            522.592200      421630.00       806.8050
-  gate                 95.190288        6144.00        64.5444
-  track                47.644444        8576.00       180.0000
+  stage        ns per declared op         95% interval (same units)   hw median ns   declared ops
+  ingest                0.468750 [    0.464966,     0.468750]        3840.00      8192.0000
+  background            1.220703 [    1.218811,     1.220764]       20000.00     16384.0000
+  threshold            21.651754 [   21.633464,    21.698681]      266056.75     12288.0000
+  centroid            522.592200 [  522.076586,   523.712669]      421630.00       806.8050
+  gate                 95.190288 [   94.950143,    95.686070]        6144.00        64.5444
+  track                47.644444 [   47.472222,    47.650000]        8576.00       180.0000
 
 figure written: screenshots/headline_divergence.png

@@ -8,7 +8,10 @@ Definitions, exactly as SPEC §5 states them
     statistics and the specification names the first.
 
 ``spread = max(R) / min(R)``
-    The number SPEC §5 calls the one that matters. At 1.0 the declared model is
+    The number SPEC §5 calls the one that matters. Computed as
+    ``max(ns_per_declared_op) / min(ns_per_declared_op)``, which is the same
+    quantity because ``ns_per_op`` cancels, and which is the only form in which
+    the cancellation is also exact in floating point. At 1.0 the declared model is
     uniformly wrong and a schedulability ordering built on it survives; far
     from 1.0 the model is stage-dependently wrong and the ordering does not.
 
@@ -38,6 +41,19 @@ So this module reports two forms and labels both:
   committed traces and is bit-for-bit reproducible from them;
 * ``R[s] = ns_per_declared_op[s] / ns_per_op``, which is the specification's
   ratio and moves with the host calibration.
+
+**Each form carries its own interval, and the two are not interconvertible in
+floating point.** ``ns_per_declared_op_interval`` is bootstrapped directly in
+ns-per-declared-op units; ``ratio_interval`` is bootstrapped in ``R`` units.
+Recovering one from the other by multiplying or dividing by ``ns_per_op`` is a
+round trip through a division and a multiplication and is exact only in exact
+arithmetic. It cost this product a release-gate block: an example drew the
+calibration-free point against ``ratio_interval.high * ns_per_op``, and for
+``ingest`` -- whose interval high equals its point estimate exactly, because the
+per-pass medians are coarsely quantised -- that round trip rounds to ONE ULP
+BELOW the point for some values of ``ns_per_op``, making the error bar
+negative. Plot a point against the interval in its own units; never rescale one
+into the other.
 
 Units: ``median_ns`` and every hardware quantity are nanoseconds;
 ``declared_ops`` is dimensionless; ``ns_per_declared_op`` is ns per declared
@@ -226,6 +242,10 @@ class Divergence:
     ns_per_declared_op: dict[str, float]
     ratio: dict[str, float]
     ratio_interval: dict[str, Interval]
+    #: Interval on ``ns_per_declared_op``, bootstrapped in those units directly.
+    #: Calibration-free, like the point estimate it belongs to. Never derived
+    #: from :attr:`ratio_interval` by rescaling; see the module docstring.
+    ns_per_declared_op_interval: dict[str, Interval]
     spread: float
     spread_interval: Interval
     tau_b: float
@@ -251,6 +271,8 @@ class Divergence:
                 "declared_ops": self.declared_ops_median[stage],
                 "declared_ns": self.declared_ns[stage],
                 "ns_per_declared_op": self.ns_per_declared_op[stage],
+                "ns_per_declared_op_low": self.ns_per_declared_op_interval[stage].low,
+                "ns_per_declared_op_high": self.ns_per_declared_op_interval[stage].high,
                 "R": self.ratio[stage],
                 "R_low": self.ratio_interval[stage].low,
                 "R_high": self.ratio_interval[stage].high,
@@ -300,6 +322,7 @@ def divergence(
 
     indices = unit_resamples(units.n_units, resamples=resamples, seed=seed)
     ratio_replicates = np.empty((indices.shape[0], units.n_stages), dtype=np.float64)
+    per_op_replicates = np.empty((indices.shape[0], units.n_stages), dtype=np.float64)
     spread_replicates = np.empty(indices.shape[0], dtype=np.float64)
     tau_replicates = np.empty(indices.shape[0], dtype=np.float64)
     for row_index, row in enumerate(indices):
@@ -307,8 +330,20 @@ def divergence(
         ops_sample = np.median(units.ops[row], axis=0)
         with np.errstate(divide="ignore", invalid="ignore"):
             replicate = hw_sample / (ops_sample * float(ns_per_op))
+            # Computed in ns-per-declared-op units DIRECTLY, not as
+            # `replicate * ns_per_op`, which is a round trip that is exact only
+            # in exact arithmetic. See the module docstring.
+            per_op_replicates[row_index] = hw_sample / ops_sample
         ratio_replicates[row_index] = replicate
-        finite = replicate[np.isfinite(replicate) & (replicate > 0.0)]
+        # The spread is computed from the CALIBRATION-FREE per-op replicates, not
+        # from `replicate`. ns_per_op cancels in max(R)/min(R) mathematically,
+        # but dividing every element by it first and then taking a ratio does
+        # not cancel it in floating point: measured, both the point estimate and
+        # the interval endpoints moved by one ulp with ns_per_op. Taking the
+        # ratio where ns_per_op never enters makes the published spread exactly
+        # reproducible, which is what this product claims of it.
+        finite = per_op_replicates[row_index]
+        finite = finite[np.isfinite(finite) & (finite > 0.0)]
         spread_replicates[row_index] = (
             float(finite.max() / finite.min()) if finite.size == units.n_stages else np.nan
         )
@@ -323,7 +358,17 @@ def divergence(
         )
         for column in range(units.n_stages)
     }
-    spread = float(ratio.max() / ratio.min())
+    per_op_interval = {
+        units.stages[column]: percentile_interval(
+            float(per_op[column]),
+            per_op_replicates[:, column],
+            confidence=confidence,
+            units=units.n_units,
+        )
+        for column in range(units.n_stages)
+    }
+    # Same reason as the replicates above: ns_per_op never enters.
+    spread = float(per_op.max() / per_op.min())
     spread_interval = percentile_interval(
         spread, spread_replicates, confidence=confidence, units=units.n_units
     )
@@ -348,6 +393,7 @@ def divergence(
         ns_per_declared_op=dict(zip(units.stages, (float(v) for v in per_op), strict=True)),
         ratio=dict(zip(units.stages, (float(v) for v in ratio), strict=True)),
         ratio_interval=ratio_interval,
+        ns_per_declared_op_interval=per_op_interval,
         spread=spread,
         spread_interval=spread_interval,
         tau_b=float(tau),

@@ -20,7 +20,7 @@ First release. Status: TESTING.
   produces the drift-adjusted variant; `frequency` measures the clock
   co-variation SPEC §6 requires; `gate` counts the branch reachability SPEC §9
   requires; `report` assembles the headline; `__main__` is the CLI.
-- `tests/` -- 1209 tests, counted from `junit.xml`.
+- `tests/` -- 1242 tests, counted from `junit.xml`.
 - `validation/` -- fourteen re-runnable evidence scripts and their captured
   output, plus `VALIDATION.md`.
 - `examples/` -- three runnable scripts, each writing a PNG to `screenshots/`
@@ -50,6 +50,19 @@ First release. Status: TESTING.
 - Gate branch reachability: all five branches fire in all nine cells.
 
 ### Corrected after coordinator review
+
+- `examples/headline_divergence.py` failed intermittently with
+  `ValueError: 'xerr' must not contain negative values`, blocking the release
+  gate; two gate runs on byte-identical content reached opposite verdicts. It
+  drew the calibration-free `ns_per_declared_op` against
+  `ratio_interval * ns_per_op`, a round trip that is exact only in exact
+  arithmetic. `ingest`'s interval high equals its point estimate, so the round
+  trip landed one ulp below the point for some values of the host calibration.
+  `Divergence` now carries `ns_per_declared_op_interval`, bootstrapped in
+  calibration-free units; nothing is clipped and the example asserts bracketing
+  before plotting. The divergence spread and its interval are likewise now
+  computed where `ns_per_op` never enters, making them bit-exact rather than
+  reproducible to within one ulp; the published value is unchanged.
 
 - `tests/test_properties.py::test_ordering_is_invariant_under_a_positive_rescaling`
   asserted a property that is false in float64 and failed intermittently -- once

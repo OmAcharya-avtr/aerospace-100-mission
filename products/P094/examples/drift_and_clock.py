@@ -203,7 +203,9 @@ def main() -> int:
         0.5,
         0.012,
         "UNPINNED schedutil clock in MAXN_SUPER; passwordless sudo unavailable on the "
-        "board.\nMeasured frequency co-variation: at most "
+        "board. Both bar series carry the same host-calibrated ns_per_op, so their "
+        "HEIGHTS move between runs\nwhile the relative shift printed above each pair "
+        "does not.\nMeasured frequency co-variation: at most "
         f"{covariation.max_pooled_share:.6f} of per-stage variance pooled and "
         f"{covariation.max_within_cell_share:.6f} within-cell, over 54 paired points. "
         "Research-grade, not flight-qualified.",
@@ -211,7 +213,7 @@ def main() -> int:
         fontsize=8.5,
         color=_common.NEUTRAL,
     )
-    figure.tight_layout(rect=(0.0, 0.065, 1.0, 0.94))
+    figure.tight_layout(rect=(0.0, 0.095, 1.0, 0.94))
     target = _common.figure_path("drift_and_clock.png")
     figure.savefig(target)
     pyplot.close(figure)

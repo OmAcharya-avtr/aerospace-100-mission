@@ -175,3 +175,28 @@ deliverable; it records what is done, what is next, and what has been verified.
   suite twice, four times over; it now narrows to one file in FAST mode only.
 - Final: 1209 tests, 0 failures; all 14 validation scripts exit 0; ruff clean
   under 0.16.9 and 0.17.5.
+
+## Release-gate block, fixed (2026-11-16)
+
+- GATE BLOCKER: examples/headline_divergence.py `ValueError: 'xerr' must not
+  contain negative values`, 1 in 6. Two gate runs on identical bytes disagreed.
+- Hypothesis A (ns_per_op calibrated twice) REFUTED: one call site.
+- Hypothesis B CONFIRMED, error is exactly one ulp: the example drew the
+  calibration-free ns_per_declared_op against ratio_interval.high * ns_per_op.
+  ratio = hw/(ops*ns_per_op), so multiplying back is an inexact round trip.
+  Precondition: ingest's interval high == its point (coarse quantisation), so
+  high-point is mathematically 0 and the round trip lands 1 ulp below.
+  Sweep: 35 of 400 ns_per_op values produce a negative xerr (8.75%).
+- FIX: Divergence.ns_per_declared_op_interval, bootstrapped in calibration-free
+  units; example plots point and interval in the same units, no rescaling.
+  Nothing clipped; example asserts bracketing before plotting.
+- SECOND instance found: spread and its interval were computed via R and moved
+  by one ulp with ns_per_op. Now computed from the per-op extremes; bit-exact.
+  Published value unchanged (1114.8633602088898). Pins strengthened to ==.
+- AUDIT: only errorbar in the product was the one fixed. baseline_transfer and
+  drift_and_clock mix calibration-dependent and -free quantities but have no
+  error bars; both footers now label which bars move.
+- Prose exclamation rule now skips fenced code, so a verbatim gate transcript is
+  not edited to pass a style check.
+- Fifth load-sensitive assertion withdrawn (short-stack "at least twice").
+- Final: 1242 tests, 0 failures; 14 validation scripts exit 0; 3 examples exit 0.
