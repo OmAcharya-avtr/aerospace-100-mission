@@ -12,34 +12,39 @@ of its own sampling.
 ## The headline, measured
 
 Run over `products/` and `scripts/` of the repository this product was built
-in — 3564 Python files, 229 candidate claims, every one attempted:
+in — 3564 Python files, 229 candidate claims, every one attempted. The audit is
+a **campaign**, `data/repository_audit.py`; its output is committed frozen at
+`validation/repository_findings.json` (sha256
+`cafca4b3a4b63249a07229ed98531f4c27ebde4e12be1b81298d799cff589ef3`) and
+verified in under a second by `validation/validate_repository_findings.py`.
 
 | quantity | measured |
 |---|---|
-| **committed numbers claimed reproducible that MOVE under a seed change** | **5683** |
-| scripts contributing at least one | 103, across 31 products |
+| **committed numbers claimed reproducible that MOVE under a seed change** | **5677** |
+| scripts contributing at least one | 102, across 31 products |
 | committed numbers that move with the seed **held at its declared value** | **345** |
-| scripts contributing at least one of those | 46, across 19 products |
-| of those 345, sitting on a line with a wall-clock duration marker | 88 |
+| scripts contributing at least one of those | 47, across 19 products |
+| of those 345, sitting on a line with a wall-clock duration marker | 89 |
 | numbers excluded as the audit's **own** perturbation echoed back | 45 |
 | committed numeric tokens across all candidates | 43321 |
-| tokens the comparison actually evaluated | 21414 |
+| tokens the comparison actually evaluated | 21401 |
 | candidates compared / no output / failed to run / timed out | 110 / 73 / 37 / 9 |
 | self-pollution screen: files flagged, findings, files parsed | 53, 275, 3564 |
 | escaped-rate upper bound on the repeat axis, one run per arrangement | 0.95 |
 
-Every figure comes from `validation/validate_repository_audit.py`, whose
-itemised evidence is committed at `validation/repository_findings.json` and is
-pinned as literals — per-script counts and a sha256 digest over every item's
-before and after value — by `validation/validate_repository_findings.py`.
+**The headline is a lower bound, not a total.** It counts moved numbers among
+the 110 claims that completed inside the 75 s per-run limit, on 2 cores, in
+3339.8 s. A claim that timed out contributes nothing, so a machine with more
+headroom finds at least as many and never fewer. Those conditions are recorded
+in the evidence and printed by the verifying check.
 
 **`products/P094/` is excluded** because another agent was writing it
 concurrently, so any number from it would not be reproducible by a reader.
 **`products/P100/` — this product — is excluded** from its own repository scan,
 because a tool scanning its own tree while it is being written is the class it
 exists to detect; it is audited separately and deliberately in
-`validation/validate_self_audit.py`, which publishes 17 self-pollution findings
-against 6 of this product's own files.
+`validation/validate_self_audit.py`, which publishes 15 self-pollution findings
+against 5 of this product's own files.
 
 ## The problem
 
@@ -65,8 +70,8 @@ is not zero; it is that the rate could be as high as **0.7763932022500211** at
   candidate script is executed twice in two separate pristine copies: once with
   every seed literal rewritten and once with them left alone. A number that
   moves in the first and not the second is seed-attributable.
-  Over this repository: **5683** moved, net of **45** excluded as the audit's
-  own footprint, against **21414** evaluated tokens.
+  Over this repository: **5677** moved, net of **45** excluded as the audit's
+  own footprint, against **21401** evaluated tokens.
 - **Separates the self-polluting-check class from ordinary non-determinism** by
   running a script twice in two *pristine* copies and twice in *one reused*
   tree, and cross-tabulating the two answers. A verdict that changes between
@@ -81,7 +86,8 @@ is not zero; it is that the rate could be as high as **0.7763932022500211** at
   by a committed generator, and the audit's power is measured per rate with
   bootstrap and exact intervals. 1320 independent processes per rate and 4400 at 1 in 44; every Clopper–Pearson
   interval covers its injected rate, and the derived detection power lies inside
-  the family-wise interval on **24 of 24** cells for both designs.
+  the family-wise interval on **24 of 24** cells for both designs. Baseline 1
+  measured **0.05181818181818182** against its derived 0.044421487603305776.
 - **Reports its own coverage as a number, never as an implication.** How many
   candidates were found, attempted, compared, timed out, failed to run and
   produced no evaluable output, plus what was excluded and why.
@@ -261,6 +267,9 @@ flowchart TD
     end
     O["corpus.generate_corpus<br/>Baseline 3, known rates"]
     P["report.format_audit<br/>coverage first, then findings"]
+    Q["data/repository_audit.py<br/>CAMPAIGN, ~1 hour, not run by the gate"]
+    R["validation/repository_findings.json<br/>frozen evidence, sha256 pinned"]
+    S["validation/validate_repository_findings.py<br/>fast check, executes nothing"]
 
     A --> B --> E
     A --> D
@@ -275,6 +284,7 @@ flowchart TD
     O --> G
     O --> K
     O --> L
+    P --> Q --> R --> S
 ```
 
 ## Screenshots
@@ -328,19 +338,20 @@ script it came from.
 | `p_min` and `p_max` agree over 11 budgets | `validate_power_model.py` | **PASS**, worst absolute disagreement **0.0** |
 | corpus calibration, 6 injected rates, family-wise Clopper–Pearson | `validate_injected_corpus.py` | **PASS**, 6 of 6 cover |
 | derived detection power inside the family-wise interval, both designs | `validate_injected_corpus.py` | **PASS**, 24 of 24 and 24 of 24 |
-| **Baseline 1 at p = 1/44**, measured against derived 0.044421487603305776 | `validate_injected_corpus.py` | **measured 0.05136363636363636**, exact interval [0.038016626326467684, 0.06747655439900632], derived inside |
+| **Baseline 1 at p = 1/44**, measured against derived 0.044421487603305776 | `validate_injected_corpus.py` | **measured 0.05181818181818182**, exact interval [0.03840947445363034, 0.06798977050158111], derived inside |
 | dynamic false-positive rate on the deterministic negative controls | `validate_injected_corpus.py` | **0.0** (0 of 3) |
 | static false-positive rate on the same controls | `validate_injected_corpus.py` | **0.0** (0 of 3) — **refutes** the pre-registered expectation of a non-zero rate |
 | the two-arrangement classifier fires on the self-polluting check | `validate_injected_corpus.py` | **control FIRED** |
 | a numeric-only comparison is blind to an iteration-order change | `validate_injected_corpus.py` | **PASS**, 0 moved numbers, structural change seen |
 | a text comparison misses a sub-precision change, a numeric one catches it | `validate_injected_corpus.py` | **PASS**, 0 against 1 |
 | `pytest.approx` calls relying on the hidden `abs=1e-12` default | `validate_approx_audit.py` | **0 of 38**, suite passes with the default forbidden, both controls fire |
-| the audit's own headline on a bounded 24-candidate subset, run twice | `validate_self_audit.py` | **identical**: 124 and 124, same coverage, same script set |
+| the audit's coverage, token count and contributing script set on a bounded 8-candidate subset, run twice | `validate_self_audit.py` | **identical**, with the headline drift reported and bounded, not asserted equal |
 | the audit over a fixture, run twice | `validate_self_audit.py` | **identical reports** |
-| the pinned finding set against the committed evidence | `validate_repository_findings.py` | **PASS**, 26 checks, digests match |
+| the frozen evidence against its pinned sha256 and literals | `validate_repository_findings.py` | **PASS**, 23 checks, 0.2 s, executes nothing |
 | running the hygiene script adds no cache or bytecode file | `validate_tree_hygiene.py` | **PASS**, 0 added |
 | no tracked text file carries an absolute home or temp path | `validate_tree_hygiene.py` | **PASS**, 0 occurrences |
-| every script returns the same exit status from four working directories | `probe_working_directories.py` | **PASS**, 11 scripts × 4 directories, all exit 0, and the probe changed no committed output file but its own |
+| every script returns the same exit status from four working directories | `probe_working_directories.py` | **PASS**, 10 scripts × 4 directories, all exit 0, and the probe changed no committed output file but its own |
+| every script in `validation/` and `examples/` run **in gate order** under the gate's environment, twice | gate replication | **PASS**, 14 scripts, 0 failures in both sweeps, slowest observed **200.4 s** against the 600 s ceiling, and the frozen evidence unchanged by the sweep |
 
 **The weak one, named:** the worst Monte Carlo deviation is **3.3018** standard
 errors. Over 48 comparisons a maximum above 3.3 has probability about 0.045, so
@@ -512,14 +523,54 @@ narrower than a floor with no ceiling, and weaker than a measured range.
 take such a release without a port. The tension is recorded rather than resolved
 by removing the ceiling.
 
-**The audited corpus is a live repository that other agents were writing to.**
-`products/P094/` is excluded for exactly that reason. The full-corpus audit is a
-**single** measurement; its between-run variation is measured on a bounded
-24-candidate subset, where it was zero, and is not measured at full size.
+**The campaign's findings are load-sensitive, and this is the deepest finding
+this product produced.** Three independent full-corpus runs of the same code
+over the same repository:
 
-**Compute budget.** The full repository audit took **3337.1 s** on two cores
-with a 75 s per-run limit and two workers. The injected-corpus validation runs
-11000 subprocesses. Everything else finishes in seconds.
+| run | conditions | compared | timeout | headline | declared-seed |
+|---|---|---|---|---|---|
+| A, during the build | 2 cores, otherwise idle | 110 | 9 | 5683 | 345 |
+| B, independent re-execution by the mission coordinator | 2 cores, both busy with another build | 106 | **18** | 5455 | 266 |
+| C, **the frozen evidence** | 2 cores, this session | 110 | 9 | **5677** | 345 |
+
+The timeout set **doubled** in run B with no change to the repository, taking
+its claims' findings with it. Runs A and C had **identical coverage** and still
+differ by **6** moved numbers, which can only mean an audited script is itself
+intermittently non-deterministic at a fixed seed — the thing this product looks
+for, arriving in its own measurement.
+
+**A reproducibility auditor whose own findings move with machine load is
+reporting load, not reproducibility.** The response was not a wider tolerance.
+Every quantity that depends on executing an audited script was **de-pinned**
+and is now reported with the conditions it was taken under; what remains pinned
+is the evidence's sha256 and the quantities that come from reading and parsing
+files — the candidate count, the committed-token count and the whole static
+screen, every one of which run B reproduced exactly. The de-pinned list is
+printed by `validate_repository_findings.py` under *LOAD-SENSITIVE QUANTITIES*.
+Run A's and run B's figures above are recorded from this build and from the
+coordinator's report respectively; only run C has a committed artifact.
+
+The same thing happened one level down. `validate_self_audit.py` originally
+asserted that the audit's headline on a bounded subset was **identical** across
+two back-to-back runs. Under the release gate's own environment it measured
+**110 against 111** with identical coverage. That assertion was asserting the
+audited corpus is deterministic, which is the claim this product exists to
+refute, so it was removed. The script now asserts coverage, token count and
+contributing-script-set stability, reports the drift, names any script whose
+count moved, and bounds the drift at a declared **0.05** fraction with its
+meaning stated.
+
+**Compute budget.** The campaign took **3339.8 s** on two cores with a 75 s
+per-run limit and two workers, and is **not** run by the release gate. Every
+script the gate does run finishes well inside its 600 s ceiling: across two
+full gate-order sweeps the slowest observed was
+`probe_working_directories.py` at **200.4 s**, leaving **399.6 s** of margin,
+and the whole 14-script sweep took **437.3 s** and **447.5 s**. Two sweeps are
+quoted rather than one because these are wall-clock readings and they differ —
+the same class of number this product counts 89 of in other products'
+committed evidence. `validate_self_audit.py` declares its own 300 s budget and
+reports its margin; it measured **81.7 s**, after an earlier version measured
+473 s on a busy machine and was cut from 24 subset candidates to 8.
 
 **Python only.** The seed rewriter and the static screen are Python syntax trees.
 
@@ -543,15 +594,21 @@ python validation/validate_injected_corpus.py
 # the pytest.approx hidden-default audit and its two controls
 python validation/validate_approx_audit.py
 
-# this product audited by this product, and the subset reproducibility (~12 min)
+# this product audited by this product, and the subset reproducibility (~3 min)
 python validation/validate_self_audit.py
 
-# the repository audit itself. THIS TAKES ABOUT AN HOUR and writes
-# validation/repository_findings.json
-python validation/validate_repository_audit.py
-
-# the pinned finding set, re-verified from that evidence, in under a second
+# the pinned finding set, verified against the FROZEN committed evidence.
+# Runs in under a second and executes nothing.
 python validation/validate_repository_findings.py
+
+# The corpus-wide audit CAMPAIGN. It is NOT a validation script and the
+# release gate does not run it: it takes about an hour. Its output is
+# committed, frozen, at validation/repository_findings.json, and the check
+# above verifies that evidence. By default it writes to a temporary directory
+# and prints the path; refreshing the committed evidence is explicit.
+python data/repository_audit.py                      # to a temp directory
+python data/repository_audit.py --limit 8            # a smoke run
+python data/repository_audit.py --refresh-committed  # replace the evidence
 
 # tree hygiene and the four-working-directory probe
 python validation/validate_tree_hygiene.py
@@ -570,8 +627,12 @@ python -m ruff check src/ tests/ examples/ validation/
 
 `validate_injected_corpus.py` and `examples/injected_corpus_power.py` draw from
 the operating system's entropy by design, so their measured figures move between
-runs; the derived values they are compared against do not. Everything else is
-deterministic under the single declared seed `1000044`.
+runs; the derived values they are compared against do not.
+
+`data/repository_audit.py` is **not** reproducible to the digit, and that is a
+measured finding rather than a caveat — see *The campaign's findings are
+load-sensitive* under Limitations. Everything else is deterministic under the
+single declared seed `1000044`.
 
 ## Safety statement
 

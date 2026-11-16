@@ -8,10 +8,10 @@ excluded from the dynamic check: validation/validate_self_audit.py -- running it
 ==============================================================================
 1. THE STATIC SCREEN OVER THIS PRODUCT'S OWN TREE
 ==============================================================================
-python files parsed: 35
+python files parsed: 34
 files that would not parse: 0
-files with at least one finding: 6
-findings in total: 17
+files with at least one finding: 5
+findings in total: 15
 
 src/seedaudit/audit.py: 2 findings
     write_to_read_path: writes '$script_path' at line 426 via write_text, reads '$script_path' at line 425 via read_text
@@ -31,14 +31,11 @@ validation/_bootstrap.py: 3 findings
     write_under_read: writes '$path/*?*' at line 210 via mkdir, reads '$path' at line 211 via exists
     write_to_read_path: writes '$path' at line 212 via unlink, reads '$path' at line 211 via exists
     write_to_read_path: writes '$path' at line 213 via write_text, reads '$path' at line 211 via exists
-validation/validate_repository_audit.py: 2 findings
-    write_to_read_path: writes '$target' at line 320 via unlink, reads '$target' at line 319 via exists
-    write_to_read_path: writes '$target' at line 321 via write_text, reads '$target' at line 319 via exists
 validation/validate_tree_hygiene.py: 1 findings
-    write_to_read_path: writes '$target' at line 284 via unlink, reads '$target' at line 283 via exists
+    write_to_read_path: writes '$target' at line 291 via unlink, reads '$target' at line 290 via exists
 
-path uses across this product: 174
-  informative (the screen can reason about them): 171
+path uses across this product: 171
+  informative (the screen can reason about them): 168
   vacuous (the screen is blind to them): 3
 
 THIS PRODUCT'S VALIDATION LAYOUT IS AN INSTANCE OF THE CLASS IT DETECTS.
@@ -75,10 +72,10 @@ validation/validate_tree_hygiene.py
   reused tree agree   : True
   classification      : no_evidence
   escaped-rate bound at n=2: 0.7763932022500211
-  pristine run 1: exit=0 timed_out=False artifact_bytes=4854
-  pristine run 2: exit=0 timed_out=False artifact_bytes=4854
-  reused   run 1: exit=0 timed_out=False artifact_bytes=4854
-  reused   run 2: exit=0 timed_out=False artifact_bytes=4854
+  pristine run 1: exit=0 timed_out=False artifact_bytes=5038
+  pristine run 2: exit=0 timed_out=False artifact_bytes=5038
+  reused   run 1: exit=0 timed_out=False artifact_bytes=5038
+  reused   run 2: exit=0 timed_out=False artifact_bytes=5038
 [PASS] validation/validate_tree_hygiene.py is not classified as a self-polluting check -- no_evidence
 
 
@@ -115,24 +112,48 @@ by widening the rule until it guesses.
 ==============================================================================
 4. THE AUDIT'S OWN REPRODUCIBILITY ON THE REAL CORPUS
 ==============================================================================
-the full-corpus audit is ONE measurement and takes most of an hour, so
-its between-run variation is not measured at full size. It is measured
-here on a bounded subset of the same corpus, run twice, which is
-re-runnable and committed.
+the full-corpus campaign is data/repository_audit.py and takes most of
+an hour, so it is NOT re-run here and the gate does not run it either.
+Its between-run variation is measured on a bounded subset instead.
 
 this matters more for this product than for any other in the mission. A
 tool that audits reproducibility and is itself irreproducible is
 worthless, and the honest way to say so is a number.
 
-candidates in the subset: 24
-per-run timeout, seconds: 30.0
-run 1: headline=124 declared_seed=3 footprint=4 status={'compared': 6, 'no_output': 11, 'run_failed': 7} evaluated_tokens=388
-run 2: headline=124 declared_seed=3 footprint=4 status={'compared': 6, 'no_output': 11, 'run_failed': 7} evaluated_tokens=388
+candidates in the subset: 8
+per-run timeout, seconds: 20.0
+run 1: headline=110 declared_seed=3 footprint=3 status={'compared': 5, 'run_failed': 3} evaluated_tokens=300
+run 2: headline=110 declared_seed=3 footprint=3 status={'compared': 5, 'run_failed': 3} evaluated_tokens=300
 
 headline difference between the two runs: 0
+as a fraction of the larger headline     : 0.000000
+declared ceiling for that fraction       : 0.05
 declared-seed difference: 0
-status counts identical: True
-contributing script set identical: True
+
+scripts whose finding count differs between the two runs: 0
+  none
+
+WHAT IS AND IS NOT ASSERTED HERE, and this is the whole point.
+
+The headline is NOT asserted to be identical across two runs. It
+cannot be. An audited script that is intermittently non-deterministic
+AT A FIXED SEED moves the count between back-to-back runs, and finding
+exactly that is what this product is for. Asserting equality would be
+asserting that the audited corpus is deterministic, which is the claim
+this product exists to refute. A run of this script under the release
+gate's environment measured 110 against 111 with identical coverage,
+and the assertion that they must match was removed rather than the
+observation being explained away. Any script named above is a script
+whose committed numbers are not reproducible at its declared seed.
+
+What IS asserted is the part this product controls: that the coverage,
+the evaluated token count and the set of contributing scripts are
+identical, and that the drift stays far below the declared ceiling at
+which a single run would stop being informative.
+[PASS] the audit's coverage on a bounded subset is identical across two runs -- {'compared': 5, 'run_failed': 3} against {'compared': 5, 'run_failed': 3}
+[PASS] the evaluated token count is identical across two runs -- 300 against 300
+[PASS] the set of contributing scripts is identical across two runs -- 5 against 5 scripts
+[PASS] the headline drift between two runs is below the declared ceiling -- 0.000000 against 0.05
 
 WHERE VARIATION COMES FROM, when it does. Two mechanisms, both real:
 a per-run TIMEOUT is wall-clock and depends on machine load, so a
@@ -140,9 +161,8 @@ candidate can move between `timeout` and `compared` between runs and
 take its findings with it; and an audited script can itself be
 non-deterministic, which is the thing being looked for. The audit
 cannot tell those apart from one run, and it does not pretend to.
-[PASS] the audit's headline on a bounded subset is identical across two runs -- 124 against 124
-[PASS] the audit's coverage on a bounded subset is identical across two runs -- {'compared': 6, 'run_failed': 7, 'no_output': 11} against {'compared': 6, 'run_failed': 7, 'no_output': 11}
-[PASS] the contributing script set is identical across two runs -- 6 against 6 scripts
+The coverage check above separates them: coverage identical with a
+moved headline is the SECOND mechanism and nothing else.
 
 ==============================================================================
 5. THE PRODUCT'S OWN REPORT IS REPRODUCIBLE ON A FIXTURE
@@ -157,6 +177,20 @@ report 2: (1, 0, ('products/PA/validation/seeded.py',), (('compared', 1),), 1, 1
 [PASS] the audit found the fixture's one seed-dependent number both times -- headline 1 and 1
 
 ==============================================================================
-checks: 10
+6. THIS SCRIPT'S OWN WALL-CLOCK MARGIN AGAINST THE RELEASE GATE
+==============================================================================
+the release gate fails a validation script at 600 s. An earlier version
+of this script measured 473 s on a machine with both cores busy, which
+is inside the ceiling and not safely inside it. The subset was reduced
+and the margin is reported here so a regression is visible.
+
+declared budget for this script, seconds: 300.0
+release gate ceiling, seconds           : 600.0
+measured elapsed, seconds               : 76.6
+margin against the gate ceiling, seconds: 523.4
+[PASS] this script finishes inside the budget it declares for itself -- 76.6 s against 300.0 s
+
+==============================================================================
+checks: 12
 failures: 0
 ==============================================================================

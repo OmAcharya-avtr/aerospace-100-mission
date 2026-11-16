@@ -35,3 +35,8 @@ __pycache__/
 !/validation/repository_findings.json
 # Every validation script's raw output is evidence and must ship.
 !/validation/*_output.txt
+# The campaign in data/ is a data generator, not a validation script. Its
+# program and the transcript of the run that produced the committed evidence
+# are both evidence and must reach a cold clone.
+!/data/repository_audit.py
+!/data/repository_audit_output.txt

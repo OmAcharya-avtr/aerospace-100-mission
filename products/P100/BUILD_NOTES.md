@@ -3,7 +3,7 @@
 Running state, kept for resumption. Not a deliverable. The coordinator may
 delete it before publishing; nothing else references it.
 
-## Status: BUILD COMPLETE
+## Status: BUILD COMPLETE, restructured after coordinator review
 
 Every deliverable is written, every validation script exits 0, and every
 number quoted in `README.md` and `validation/VALIDATION.md` was re-executed
@@ -19,10 +19,12 @@ after the final code change.
   and cross-checked against 181 `testcase` elements.
 - PyPI 2026-11-16T04:17:23Z: `seedaudit` HTTP 404 (FREE), `numpy` HTTP 200
   (live control).
-- Repository audit: headline **5683** seed-attributable moved numbers across
-  103 scripts; **345** moving at the declared seed across 46 scripts; **45**
+- Frozen campaign: headline **5677** seed-attributable moved numbers across
+  102 scripts; **345** moving at the declared seed across 47 scripts; **45**
   excluded as the audit's own footprint; 229 of 229 candidates attempted;
-  110 compared, 73 no_output, 37 run_failed, 9 timeout; 3337.1 s.
+  110 compared, 73 no_output, 37 run_failed, 9 timeout; 3339.8 s on 2 cores.
+- Gate-order sweep: 14 scripts, 0 failures, slowest 192.0 s against the 600 s
+  ceiling, total 437.3 s.
 - Static screen: 3564 files parsed, 53 flagged, 275 findings, 0 parse failures.
 - Baseline 1 at p = 1/44: measured 0.05136363636363636 against derived
   0.044421487603305776.
@@ -54,6 +56,33 @@ Each was forced by a measurement, not by review.
 9. The fast path's statistical checks were flaky and made the working-directory
    probe report a sampling outcome as a path defect; they are now recorded as
    UNAVAILABLE on the fast path.
+
+## Restructure after the coordinator's gate review
+
+Two blockers, both measured by the coordinator, both structural.
+
+1. The corpus audit lived in `validation/` and took 4216 s against the gate's
+   600 s per-script ceiling. It is now `data/repository_audit.py`, is not run
+   by the gate, writes to a temp directory by default, and refuses to
+   overwrite the committed evidence without `--refresh-committed`.
+2. The gate runs `validation/*.py` in sorted order, so the audit rewrote the
+   evidence `validate_repository_findings.py` pins, one script later. Fifteen
+   of twenty-six checks failed. That is the self-polluting-check class in this
+   product's own validation directory, and it is published in VALIDATION.md
+   section 9 in those terms.
+
+Also changed:
+
+- Load-sensitive quantities de-pinned and reported with conditions. The
+  coordinator's re-execution saw the timeout set double, 9 to 18, with no
+  change to the repository. The headline is now stated as a lower bound.
+- `validate_self_audit.py` cut from 473 s to 81.7 s; it declares a 300 s budget
+  and reports its margin against the gate's 600 s.
+- `validate_self_audit.py` asserted the audit's subset headline was identical
+  across two runs. Under the gate's environment it measured 110 against 111
+  with identical coverage. The assertion was removed, not explained away.
+- The evidence and its transcript are now from one campaign run; sha256
+  `cafca4b3a4b63249a07229ed98531f4c27ebde4e12be1b81298d799cff589ef3`.
 
 ## Rules held to
 

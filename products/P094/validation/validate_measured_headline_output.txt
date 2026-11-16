@@ -55,13 +55,13 @@ THE HEADLINE
   HEADLINE -- P094 HilTimingDiff
   Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin Nano; the board drifted 7.52 per cent over the campaign.
   
-  1. Per-stage divergence ratio R[s], pass-unit 95% bootstrap interval, ns_per_op = 4.690168 ns/op:
-       ingest      R = 0.099943 [0.099136, 0.099943]   (0.468750 ns per declared op)
-       background  R = 0.260269 [0.259865, 0.260282]   (1.220703 ns per declared op)
-       threshold   R = 4.616414 [4.612514, 4.626269]   (21.651754 ns per declared op)
-       centroid    R = 111.422924 [111.312989, 111.661822]   (522.592200 ns per declared op)
-       gate        R = 20.295711 [20.244509, 20.401418]   (95.190288 ns per declared op)
-       track       R = 10.158367 [10.121647, 10.159551]   (47.644444 ns per declared op)
+  1. Per-stage divergence ratio R[s], pass-unit 95% bootstrap interval, ns_per_op = 4.807219 ns/op:
+       ingest      R = 0.097510 [0.096722, 0.097510]   (0.468750 ns per declared op)
+       background  R = 0.253931 [0.253538, 0.253944]   (1.220703 ns per declared op)
+       threshold   R = 4.504008 [4.500203, 4.513624]   (21.651754 ns per declared op)
+       centroid    R = 108.709877 [108.602619, 108.942958]   (522.592200 ns per declared op)
+       gate        R = 19.801529 [19.751574, 19.904662]   (95.190288 ns per declared op)
+       track       R = 9.911020 [9.875194, 9.912176]   (47.644444 ns per declared op)
   
   2. Divergence spread max(R)/min(R) = 1114.8634 [1113.7634, 1124.9178]
      SPEC §7 primary (divergence spread): CONFIRMED -- pre-registered > 3, measured 1114.86
@@ -71,24 +71,24 @@ THE HEADLINE
      declared order (cheapest first): gate < track < centroid < ingest < threshold < background
      measured order (cheapest first): ingest < gate < track < background < threshold < centroid
   
-  4. argmax(R) = centroid (R = 111.423, 0.5806 of measured frame time); argmin(R) = ingest (R = 0.0999431, 0.0053 of measured frame time)
+  4. argmax(R) = centroid (R = 108.71, 0.5806 of measured frame time); argmin(R) = ingest (R = 0.0975096, 0.0053 of measured frame time)
   
-  5. Baseline 2 held-out transfer error = 0.152250 [0.150838, 0.152653] on held-out stages centroid, gate, track
-     SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.15225
+  5. Baseline 2 held-out transfer error = 0.167773 [0.166322, 0.168192] on held-out stages centroid, gate, track
+     SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.167773
   
   Research-grade. Not flight-qualified, not certified, and not approved for operational aerospace use.
 
 ==============================================================================
 output 1 -- per-stage divergence ratio, both forms
 ==============================================================================
-  ns_per_op calibrated on this host: 4.690167690 ns per declared op
+  ns_per_op calibrated on this host: 4.807219114 ns per declared op
   stage        hw_median_ns   declared_ops   ns/declared_op          R        R 95% interval
-  ingest           3840.00      8192.0000      0.468750000   0.099943  [0.099136, 0.099943]
-  background      20000.00     16384.0000      1.220703125   0.260269  [0.259865, 0.260282]
-  threshold      266056.75     12288.0000     21.651753743   4.616414  [4.612514, 4.626269]
-  centroid       421630.00       806.8050    522.592200098 111.422924  [111.312989, 111.661822]
-  gate             6144.00        64.5444     95.190287616  20.295711  [20.244509, 20.401418]
-  track            8576.00       180.0000     47.644444444  10.158367  [10.121647, 10.159551]
+  ingest           3840.00      8192.0000      0.468750000   0.097510  [0.096722, 0.097510]
+  background      20000.00     16384.0000      1.220703125   0.253931  [0.253538, 0.253944]
+  threshold      266056.75     12288.0000     21.651753743   4.504008  [4.500203, 4.513624]
+  centroid       421630.00       806.8050    522.592200098 108.709877  [108.602619, 108.942958]
+  gate             6144.00        64.5444     95.190287616  19.801529  [19.751574, 19.904662]
+  track            8576.00       180.0000     47.644444444   9.911020  [9.875194, 9.912176]
 
 [PASS] ns per declared op for ingest matches the pinned value -- pinned 0.46875, measured 0.46875
 [PASS] R interval for ingest brackets its point estimate
@@ -110,7 +110,7 @@ output 2 -- divergence spread, and the PRIMARY verdict
   pinned value         = 1114.8633602088898
   resampling unit      = pass, 540 units
 
-[PASS] spread matches the pinned value -- pinned 1114.8633602088898, measured 1114.86336020889
+[PASS] spread matches the pinned value -- pinned 1114.8633602088898, measured 1114.8633602088898
 [PASS] the whole 95 per cent interval on the spread lies above the threshold -- interval low 1113.7634 against 3
   VERDICT: SPEC §7 primary (divergence spread): CONFIRMED -- pre-registered > 3, measured 1114.86
 [PASS] the primary expectation's verdict is reported as it lands
@@ -135,8 +135,8 @@ output 3 -- rank disagreement
 ==============================================================================
 output 4 -- the least and most trustworthy stages
 ==============================================================================
-  argmax(R) = centroid  R = 111.422924  share of measured frame time = 0.580560
-  argmin(R) = ingest  R = 0.099943  share of measured frame time = 0.005287
+  argmax(R) = centroid  R = 108.709877  share of measured frame time = 0.580560
+  argmin(R) = ingest  R = 0.097510  share of measured frame time = 0.005287
 
 [PASS] argmax(R) matches the pinned stage
 [PASS] argmin(R) matches the pinned stage
@@ -149,33 +149,33 @@ output 5 -- baseline 2's held-out transfer error, and the SECONDARY verdict
 ==============================================================================
   training stages      : ingest, background, threshold
   held-out stages      : centroid, gate, track
-  fitted k             : 3.705740473
-  held-out mean error  : 0.152250 [0.150838, 0.152653]
-    centroid    predicted    340103.60 ns against measured    421630.00 ns, relative error 0.193360
-    gate        predicted      6401.67 ns against measured      6144.00 ns, relative error 0.041938
-    track       predicted      6676.82 ns against measured      8576.00 ns, relative error 0.221453
+  fitted k             : 3.679703812
+  held-out mean error  : 0.167773 [0.166322, 0.168192]
+    centroid    predicted    335719.62 ns against measured    421630.00 ns, relative error 0.203758
+    gate        predicted      6520.44 ns against measured      6144.00 ns, relative error 0.061269
+    track       predicted      6532.39 ns against measured      8576.00 ns, relative error 0.238294
 
-  leave-one-stage-out mean : 0.121751
-  all 20 three-and-three splits: min 0.080544, median 0.151131, max 0.376913
+  leave-one-stage-out mean : 0.143007
+  all 20 three-and-three splits: min 0.096183, median 0.166045, max 0.371054
   splits above the pre-registered 0.5: 0 of 20
 
-  VERDICT: SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.15225
+  VERDICT: SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.167773
 [PASS] the secondary expectation's verdict is reported as it lands
-[PASS] the whole 95 per cent interval on the held-out error lies BELOW the threshold -- interval high 0.152653 against 0.5
-[FINDING] SPEC §7 SECONDARY IS REFUTED. The pre-registration predicted a held-out transfer error above 0.5; the measured error is 0.152250, with the whole 95 per cent interval below the threshold, and none of the 20 three-and-three splits exceeds it. A BASELINE THAT WAS SUPPOSED TO LOSE WINS, and it is published as winning rather than retuned. The mechanism: the hardware-to-simulation ratio is nearly uniform across the six stages (measured span 3.041 to 4.837, a factor of 1.59), so a single scalar absorbs it. The vectorised/interpreted split the specification expected to defeat the scalar is a property of the DECLARED OPERATION COUNT, not of the platform ratio, which is exactly why the primary expectation is confirmed and the secondary is not.
+[PASS] the whole 95 per cent interval on the held-out error lies BELOW the threshold -- interval high 0.168192 against 0.5
+[FINDING] SPEC §7 SECONDARY IS REFUTED. The pre-registration predicted a held-out transfer error above 0.5; the measured error is 0.167773, with the whole 95 per cent interval below the threshold, and none of the 20 three-and-three splits exceeds it. A BASELINE THAT WAS SUPPOSED TO LOSE WINS, and it is published as winning rather than retuned. The mechanism: the hardware-to-simulation ratio is nearly uniform across the six stages (measured span 3.019 to 4.830, a factor of 1.60), so a single scalar absorbs it. The vectorised/interpreted split the specification expected to defeat the scalar is a property of the DECLARED OPERATION COUNT, not of the platform ratio, which is exactly why the primary expectation is confirmed and the secondary is not.
 
 ==============================================================================
 the per-stage hardware-to-simulation ratio, which is the refuting evidence
 ==============================================================================
   stage        hw_median_ns     sim_median_ns      hw/sim
-  ingest           3840.00           1024.50    3.719821
-  background      20000.00           6573.00    3.041389
-  threshold      266056.75          72053.75    3.762863
-  centroid       421630.00          91777.50    4.832161
-  gate             6144.00           1727.50    3.590076
-  track            8576.00           1801.75    4.836881
+  ingest           3840.00           1013.00    3.790721
+  background      20000.00           6617.00    3.019202
+  threshold      266056.75          71834.00    3.821127
+  centroid       421630.00          91235.50    4.830171
+  gate             6144.00           1772.00    3.489677
+  track            8576.00           1775.25    4.764338
 
-  platform ratio spread = 1.590353  against a declared model divergence spread of 1114.8634
+  platform ratio spread = 1.599817  against a declared model divergence spread of 1114.8634
 [PASS] the platform ratio spread is below the pre-registered spread threshold -- the PLATFORM is close to uniformly slower; the DECLARED MODEL is not close to uniformly wrong
 
 ==============================================================================
@@ -193,5 +193,5 @@ FINDINGS (5):
   - SPEC §7's stated MECHANISM is only partly right, and the part that is wrong is published. The specification puts ingest, background and threshold in one cheap vectorised group. Measured, threshold costs 21.6518 ns per declared operation against background's 1.2207, a factor of 17.7. threshold is NOT in the cheap group, because extract_candidates contains a Python-level loop over candidate groups. The specification's three-group picture is therefore wrong about one of its six stages; its prediction about the spread is not.
   - The stage ordering a schedulability analysis would read off the declared operation counts disagrees with the measured ordering at tau-b 0.2000. 5 of the 6 stages change rank. A WCET budget built on the declared counts allocates its headroom to the wrong stages: it ranks gate as the cheapest when ingest is, and ranks background as the most expensive when centroid is.
   - The least trustworthy stage as a schedulability input, centroid, is also the most expensive one: it holds 0.5806 of measured frame time. The divergence is therefore consequential rather than a curiosity about a cheap stage.
-  - SPEC §7 SECONDARY IS REFUTED. The pre-registration predicted a held-out transfer error above 0.5; the measured error is 0.152250, with the whole 95 per cent interval below the threshold, and none of the 20 three-and-three splits exceeds it. A BASELINE THAT WAS SUPPOSED TO LOSE WINS, and it is published as winning rather than retuned. The mechanism: the hardware-to-simulation ratio is nearly uniform across the six stages (measured span 3.041 to 4.837, a factor of 1.59), so a single scalar absorbs it. The vectorised/interpreted split the specification expected to defeat the scalar is a property of the DECLARED OPERATION COUNT, not of the platform ratio, which is exactly why the primary expectation is confirmed and the secondary is not.
+  - SPEC §7 SECONDARY IS REFUTED. The pre-registration predicted a held-out transfer error above 0.5; the measured error is 0.167773, with the whole 95 per cent interval below the threshold, and none of the 20 three-and-three splits exceeds it. A BASELINE THAT WAS SUPPOSED TO LOSE WINS, and it is published as winning rather than retuned. The mechanism: the hardware-to-simulation ratio is nearly uniform across the six stages (measured span 3.019 to 4.830, a factor of 1.60), so a single scalar absorbs it. The vectorised/interpreted split the specification expected to defeat the scalar is a property of the DECLARED OPERATION COUNT, not of the platform ratio, which is exactly why the primary expectation is confirmed and the secondary is not.
 FAILED CHECKS (0): none

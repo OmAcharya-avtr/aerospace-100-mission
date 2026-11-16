@@ -15,6 +15,11 @@ self-check asserts two things and not the third:
   script. Anything found that this script did not create is reported, named as
   inherited, and does not fail.
 
+The corpus-wide audit campaign is **not** in ``validation/``; it is
+``data/repository_audit.py`` and the gate does not run it. This script checks
+that both the campaign and the transcript of the run that produced the
+committed evidence reach a cold clone.
+
 **No ``git`` command is run here, and that is a deliberate restriction rather
 than an oversight.** The build agent for this product is forbidden from running
 ``git`` at all: the coordinator commits, gates and publishes. So instead of
@@ -84,6 +89,8 @@ MUST_SHIP = (
     "validation/_bootstrap.py",
     "validation/repository_findings.json",
     "validation/validate_power_model_output.txt",
+    "data/repository_audit.py",
+    "data/repository_audit_output.txt",
 )
 
 #: Paths that must be IGNORED, so a cold clone never carries them.

@@ -34,6 +34,17 @@ First release. Status: TESTING.
 - `python -m seedaudit` with the subcommands `power`, `static`,
   `arrangements`, `corpus` and `audit`.
 
+### Layout
+
+- The corpus-wide audit is a **campaign**, `data/repository_audit.py`, not a
+  validation script. It is not run by the release gate, writes to a temporary
+  directory by default, and refuses to overwrite the committed evidence
+  without `--refresh-committed`.
+- `validation/repository_findings.json` is the campaign's committed, frozen
+  evidence, with its sha256 pinned.
+- `validation/validate_repository_findings.py` verifies that evidence in under
+  a second and executes nothing.
+
 ### Known limitations recorded at release
 
 - The candidate rule requires a seed literal in the script itself, so a script
@@ -41,5 +52,11 @@ First release. Status: TESTING.
   that blind spot is measured in `validation/validate_self_audit_output.txt`
   and published in README.md.
 - The suite has not been run at both ends of every declared dependency range.
-- The repeat axis of the repository audit is sampled once per arrangement, so
-  its escaped-rate bound is weak and is stated with every result.
+- The repeat axis of the campaign is sampled once per arrangement, so its
+  escaped-rate bound is weak and is stated with every result.
+- The campaign's coverage, and therefore its headline, depend on how many
+  audited scripts finish inside the per-run limit, which depends on the
+  machine. Those quantities are reported with their conditions and are
+  deliberately not pinned; the headline is a lower bound. Measured across three
+  full-corpus runs the timeout count ranged from 9 to 18 with no change to the
+  repository.

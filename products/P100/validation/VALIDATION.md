@@ -8,6 +8,15 @@ refuting results are published here, not removed.
 **One pre-registered expectation is REFUTED and one is CONFIRMED, and both are
 reported as they landed.** See *Pre-registered expectations, judged*.
 
+**The corpus-wide audit is a CAMPAIGN, not a validation script.** It lives at
+`data/repository_audit.py`, takes most of an hour, and the release gate does
+not run it. Its output is committed frozen at `repository_findings.json` with
+its sha256 pinned, and `validate_repository_findings.py` verifies that evidence
+in under a second without executing anything. Section 9 records why the two had
+to be separated, and section 10 records the load-sensitivity finding that
+forced the de-pinning. Both are findings about this product and both are
+published.
+
 ## What a number in this product means, stated once
 
 A **committed numeric claim** is a numeric token in a committed output file
@@ -90,7 +99,7 @@ exit statuses are listed at the end of this file.
 | 8 | corpus calibration, family-wise Clopper-Pearson | `validate_injected_corpus.py` | any family-wise interval not covering its injected rate | **PASS**, 6 of 6 |
 | 9 | derived pairwise power inside the family-wise interval | `validate_injected_corpus.py` | the disjoint-block detection mathematics disagreeing with the closed form at the realised rate | **PASS**, 24 of 24 |
 | 10 | derived reference power inside the family-wise interval | `validate_injected_corpus.py` | the same for the reference design | **PASS**, 24 of 24 |
-| 11 | **Baseline 1 at `p = 1/44` contains its derived value** | `validate_injected_corpus.py` | the measured power excluding 0.044421487603305776 | **PASS**, measured **0.05136363636363636** |
+| 11 | **Baseline 1 at `p = 1/44` contains its derived value** | `validate_injected_corpus.py` | the measured power excluding 0.044421487603305776 | **PASS**, measured **0.05181818181818182** |
 | 12 | Baseline 1 at `p = 1/44` is below 0.06, as pre-registered | `validate_injected_corpus.py` | the realised sample landing above 0.06 | **PASS** |
 | 13 | the dynamic detector stays silent on all three negative controls | `validate_injected_corpus.py` | a deterministic control classified as anything but `no_evidence` | **PASS**, 3 of 3 silent, FPR **0.0** |
 | 14 | the static false-positive set is exactly the pinned literal set | `validate_injected_corpus.py` | a control joining or leaving the set | **PASS**, the set is empty |
@@ -104,17 +113,19 @@ exit statuses are listed at the end of this file.
 | 22 | the static screen parses every Python file in this product | `validate_self_audit.py` | any file failing to parse | **PASS**, 0 unparseable |
 | 23 | this product's own scripts are not classified self-polluting | `validate_self_audit.py` | a verdict changing in the reused tree while the pristine pair agrees | **PASS**, 2 of 2 `no_evidence` |
 | 24 | the audit's blind spot is measured, not asserted | `validate_self_audit.py` | the blind spot being zero, which would make the limitation unverifiable | **PASS**, **72 of 565**, **0.127434** |
-| 25 | the audit's headline on a 24-candidate subset is identical across two runs | `validate_self_audit.py` | the headline, the coverage or the script set moving between runs | **PASS**, 124 and 124 |
+| 25 | the audit's coverage, token count and contributing-script set on an 8-candidate subset are identical across two runs, and the headline drift is below a declared 0.05 | `validate_self_audit.py` | coverage or the script set moving, or the headline drifting by more than one in twenty | **PASS**. The headline is deliberately **not** asserted equal; see section 10 |
 | 26 | the audit over a fixture, run twice, gives identical reports | `validate_self_audit.py` | any element of the report differing | **PASS** |
-| 27 | the pinned finding set matches the committed evidence | `validate_repository_findings.py` | a finding appearing, disappearing or changing value | **PASS**, 26 checks, 3 digests match |
+| 27 | the frozen evidence is byte-identical to the one the pins were taken from | `validate_repository_findings.py` | one byte of the evidence changing | **PASS**, sha256 `cafca4b3…589ef3` |
+| 27b | the frozen finding set matches its pinned per-script counts and digests | `validate_repository_findings.py` | a finding appearing, disappearing or changing value | **PASS**, 23 checks in 0.2 s, 3 digests match |
 | 28 | running the hygiene script adds no cache directory or bytecode file | `validate_tree_hygiene.py` | the exit snapshot exceeding the entry snapshot | **PASS**, 0 added |
 | 29 | nothing a cold clone would carry is a cache or build artifact | `validate_tree_hygiene.py` | an artifact surviving the re-implemented ignore rules | **PASS**, 0 offenders |
 | 30 | every required file exists and is not ignored; every scratch path is | `validate_tree_hygiene.py` | a required deliverable being excluded, or `junit.xml` being shipped | **PASS**, 16 and 6 |
 | 31 | no tracked text file carries an absolute home or temp path | `validate_tree_hygiene.py` | any such path in any committed text file | **PASS**, 0 occurrences |
-| 32 | every script returns the same exit status from four directories | `probe_working_directories.py` | a script that runs from the product root and not from `validation/` | **PASS**, 11 scripts x 4 directories |
+| 32 | every script returns the same exit status from four directories | `probe_working_directories.py` | a script that runs from the product root and not from `validation/` | **PASS**, 10 scripts x 4 directories |
 | 33 | every script exits 0 from all four directories | `probe_working_directories.py` | any non-zero status anywhere | **PASS** |
 | 34 | the probe changed no committed output file but its own | `probe_working_directories.py` | the probe overwriting measured evidence with fast-path numbers | **PASS**, 0 changed |
-| 35 | the audit completed with at least one candidate compared | `validate_repository_audit.py` | the whole audit producing no evaluable claim | **PASS**, 110 compared |
+| 35 | this script finishes inside the budget it declares for itself | `validate_self_audit.py` | the script approaching the gate's 600 s ceiling unnoticed | **PASS**, 81.7 s against a declared 300 s, margin 518.3 s |
+| 36 | every script in `validation/` and `examples/` run **in gate order**, under the gate's environment, with the gate's 600 s per-script timeout | gate replication | any script failing, or exceeding 600 s, or being affected by one that ran before it | **PASS**, 14 scripts, 0 failures, slowest 192.0 s, total 437.3 s |
 
 ## 1. The closed-form detection power
 
@@ -317,9 +328,9 @@ designs, and inside the **per-cell 95 per cent bootstrap** interval on **22 of
 | injected rate | 0.022727272727272728 |
 | independent processes | 4400 |
 | disjoint audits of 2 runs | 2200 |
-| **measured detection power** | **0.05136363636363636** |
-| bootstrap 95 per cent interval | [0.042272727272727274, 0.060454545454545455] |
-| exact 95 per cent interval | [0.038016626326467684, 0.06747655439900632] |
+| **measured detection power** | **0.05181818181818182** |
+| bootstrap 95 per cent interval | [0.042272727272727274, 0.06136363636363636] |
+| exact 95 per cent interval | [0.03840947445363034, 0.06798977050158111] |
 | **derived `1 - p^2 - (1-p)^2`** | **0.044421487603305776** |
 | derived inside the bootstrap interval | True |
 | derived inside the exact interval | True |
@@ -354,20 +365,43 @@ control joins it.
 
 ## 4. The audit of this repository
 
-From `validate_repository_audit.py`, output in
-`validate_repository_audit_output.txt`, itemised evidence in
-`repository_findings.json`, pinned by `validate_repository_findings.py`.
+Produced by the **campaign** `data/repository_audit.py`, transcript committed at
+`data/repository_audit_output.txt`, itemised evidence committed frozen at
+`validation/repository_findings.json`, verified by
+`validation/validate_repository_findings.py`.
+
+### Provenance of the frozen evidence
+
+| field | value |
+|---|---|
+| evidence sha256 | `cafca4b3a4b63249a07229ed98531f4c27ebde4e12be1b81298d799cff589ef3` |
+| evidence bytes | 2543180 |
+| repository commit the campaign ran against | `0dfd86d583cc6e1f8db413c27694d59861e565b9` |
+| date | 2026-11-16 |
+| machine | x86_64 Linux, **2** cores reported by the operating system |
+| per-run timeout | **75.0 s** |
+| workers | **2** |
+| campaign wall clock | **3339.8 s** |
+| exclusions | `products/P094`, `products/P100` |
+
+The commit is the one the mission coordinator had pushed when the campaign ran;
+this product's own changes land as a follow-up commit, so the evidence
+describes the corpus **as of that commit** and not as of this file. The
+campaign writes to a temporary directory by default and will **refuse** to
+write into `validation/` without an explicit `--refresh-committed`, because a
+program that silently overwrites the file another script pins is the defect
+this product exists to name. Section 9 records the occasion on which it did.
 
 ### The headline
 
 | quantity | measured |
 |---|---|
-| **committed numbers claimed reproducible that MOVE under a seed change** | **5683** |
-| scripts contributing at least one | 103, across 31 products |
+| **committed numbers claimed reproducible that MOVE under a seed change** | **5677** |
+| scripts contributing at least one | 102, across 31 products |
 | **committed numbers that move with the seed HELD AT ITS DECLARED VALUE** | **345** |
-| scripts contributing at least one of those | 46, across 19 products |
-| of those 345, on a line carrying a wall-clock duration marker | 88 |
-| of those 345, with no such marker (an UPPER bound on non-timing) | 257 |
+| scripts contributing at least one of those | 47, across 19 products |
+| of those 345, on a line carrying a wall-clock duration marker | 89 |
+| of those 345, with no such marker (an UPPER bound on non-timing) | 256 |
 | numbers excluded as the audit's **own** perturbation echoed back | 45, across 33 scripts |
 
 ### Coverage, stated as a number
@@ -383,12 +417,12 @@ From `validate_repository_audit.py`, output in
 | failed to run in a pristine copy | 37 |
 | timed out at the 75 s per-run limit | 9 |
 | committed numeric tokens across all candidates | 43321 |
-| tokens the perturbed comparison evaluated | 21414 |
+| tokens the perturbed comparison evaluated | 21401 |
 | repeats per claim on the repeat axis | 1 |
 | escaped-rate upper bound at that repeat count | 0.95 |
-| audit wall-clock seconds | 3337.1 |
+| campaign wall-clock seconds | 3339.8 |
 
-Of the 110 compared candidates, **7** produced no seed-attributable finding.
+Of the 110 compared candidates, **8** produced no seed-attributable finding.
 
 ### The exclusions are part of the result
 
@@ -423,13 +457,13 @@ rather than a property of a seed** — top ten:
 
 | script | moved numbers |
 |---|---|
-| `products/P061/validation/validate_warmstart.py` | 65 |
+| `products/P061/validation/validate_warmstart.py` | 64 |
 | `products/P061/validation/validate_gap.py` | 62 |
 | `products/P080/validation/validate_rate_distortion.py` | 49 |
 | `products/P079/validation/validate_benchmark_table.py` | 38 |
 | `products/P083/validation/validate_certificate.py` | 21 |
-| `products/P061/validation/validate_predictor.py` | 11 |
 | `products/P083/validation/validate_resimulation.py` | 11 |
+| `products/P061/validation/validate_predictor.py` | 10 |
 | `products/P052/validation/validate_surrogate.py` | 8 |
 | `products/P068/validation/validate_headtohead.py` | 8 |
 | `products/P071/validation/validate_screening.py` | 8 |
@@ -492,16 +526,17 @@ From `validate_self_audit.py`, output in `validate_self_audit_output.txt`.
 |---|---|
 | Python files parsed | 35 |
 | files that would not parse | 0 |
-| files with at least one finding | 6 |
-| findings in total | 17 |
-| path uses across this product | 174 |
-| informative — the screen can reason about them | 171 |
+| files with at least one finding | 5 |
+| findings in total | 15 |
+| path uses across this product | 171 |
+| informative — the screen can reason about them | 168 |
 | vacuous — the screen is blind to them | 3 |
 
-The six files are `src/seedaudit/audit.py` (2), `src/seedaudit/dynamic.py` (2),
-`tests/test_dynamic.py` (7), `validation/_bootstrap.py` (3),
-`validation/validate_repository_audit.py` (2) and
-`validation/validate_tree_hygiene.py` (1).
+The five files are `src/seedaudit/audit.py` (2), `src/seedaudit/dynamic.py`
+(2), `tests/test_dynamic.py` (7), `validation/_bootstrap.py` (3) and
+`validation/validate_tree_hygiene.py` (1). The sixth in the first version was
+`validation/validate_repository_audit.py`, which no longer exists: it is now
+`data/repository_audit.py` and is outside the scanned set.
 
 **This product's validation layout is itself an instance of the class it
 detects.** The build guide requires `validation/<stem>_output.txt` beside the
@@ -546,26 +581,39 @@ guesses.
 
 ### The audit's own reproducibility on the real corpus
 
-The full-corpus audit is **one** measurement and takes most of an hour, so its
-between-run variation is not measured at full size. It is measured on a bounded
-subset of the same corpus, run twice, which is re-runnable and committed.
+The campaign is **one** measurement and takes most of an hour, so its
+between-run variation is not measured at full size here; section 10 records
+the three full-corpus observations. What is measured here, and is re-runnable,
+is a bounded subset of the same corpus audited twice back to back.
 
 | quantity | run 1 | run 2 |
 |---|---|---|
-| candidates in the subset | 24 | 24 |
-| headline | **124** | **124** |
+| candidates in the subset | 8 | 8 |
+| headline | 110 | 110 |
 | declared-seed | 3 | 3 |
-| instrument footprint | 4 | 4 |
-| coverage | compared 6, no_output 11, run_failed 7 | identical |
-| evaluated tokens | 388 | 388 |
+| instrument footprint | 3 | 3 |
+| coverage | compared 5, run_failed 3 | identical |
+| evaluated tokens | 300 | 300 |
 | contributing script set | identical | identical |
+| headline drift | **0** of about 110, which is 0.000000 | — |
 
-Where variation would come from, when it occurs: a per-run **timeout** is
-wall-clock and depends on machine load, so a candidate can move between
-`timeout` and `compared` between runs and take its findings with it; and an
-audited script can itself be non-deterministic, which is the thing being looked
-for. **The audit cannot tell those apart from one run and does not pretend
-to.**
+**The headline is deliberately not asserted to be identical.** Under the
+release gate's own environment this check once measured 110 against 111 with
+identical coverage, and the assertion was removed rather than the observation
+explained away — see section 10. What is asserted is coverage, evaluated token
+count and the contributing script set, plus a declared 0.05 ceiling on the
+drift fraction. Any script whose finding count moves between the two runs is
+**named** in the output, because such a script is one whose committed numbers
+are not reproducible at its declared seed.
+
+### This script's own margin against the release gate
+
+| quantity | measured |
+|---|---|
+| declared budget for this script | 300.0 s |
+| release gate ceiling | 600.0 s |
+| measured elapsed | **81.7 s**, and 79.7 s and 81.9 s in the two gate-order sweeps |
+| margin against the ceiling | **518.1 s** at the slowest of those |
 
 ## 6. The `pytest.approx` hidden-default audit
 
@@ -658,13 +706,13 @@ output file before the probe and compares them after it.
 
 | quantity | measured |
 |---|---|
-| validation scripts probed | 7 |
+| validation scripts probed | 6 |
 | examples probed | 4 |
 | directories each was run from | 4 |
-| scripts returning the same exit status from all four | **11 of 11** |
-| scripts exiting 0 from all four | **11 of 11** |
-| committed output files before the probe | 8 |
-| committed output files after the probe | 8 |
+| scripts returning the same exit status from all four | **10 of 10** |
+| scripts exiting 0 from all four | **10 of 10** |
+| committed output files before the probe | 7 |
+| committed output files after the probe | 7 |
 | committed output files changed by the probe, other than its own | **0** |
 
 ### A finding the probe produced about this product
@@ -678,6 +726,134 @@ working-directory defect, so those checks are now recorded as **UNAVAILABLE**
 on the fast path rather than evaluated, with the reason printed. No number from
 the fast path is reported anywhere in this file.
 
+## 9. The campaign is not a validation script, and why that had to change
+
+In the first version of this product the corpus-wide audit lived at
+`validation/validate_repository_audit.py`. It failed the release gate twice
+over, and both failures were structural rather than marginal.
+
+**It exceeded the per-script ceiling by seven times.** `scripts/release_gate.py`
+sets `TIMEOUT_SCRIPT = 600` and applies it per script in `check_scripts`. The
+coordinator measured the audit at **4216 s**. No amount of load luck fixes that.
+
+**It overwrote the evidence that the script next to it pins.** The gate runs
+every script in `validation/` with `sorted(d.glob("*.py"))`, so
+`validate_repository_audit.py` ran immediately before
+`validate_repository_findings.py` and rewrote `repository_findings.json` —
+the very file the second script exists to verify — from a tree that had changed
+and under a load that was not the one the pins were taken under. **Fifteen of
+twenty-six checks failed.** The two scripts contradicted each other by
+construction and the gate's own ordering guaranteed it.
+
+**That is the self-polluting-check class, arriving in this product's own
+validation directory.** A check whose own execution creates the condition it
+tests is not a check; here one script's execution destroyed another's
+precondition. The product detects this class in other people's code and
+shipped an instance of it in its own.
+
+The fix is a reclassification, not a weakening. A 70-minute corpus-wide
+execution campaign is a data-generation campaign:
+
+| | before | now |
+|---|---|---|
+| the campaign | `validation/validate_repository_audit.py` | `data/repository_audit.py` |
+| run by the release gate | yes, and it blew the ceiling | **no** |
+| where its evidence goes | `validation/repository_findings.json`, always | a temporary directory by default; `--refresh-committed` is explicit |
+| can it clobber the pinned evidence | yes, silently | **refuses**, with the reason printed |
+| what verifies the evidence | nothing; the audit re-made it | `validate_repository_findings.py`, 0.2 s, executes nothing |
+| integrity of the evidence | not checked | **sha256 pinned** |
+
+Committing a campaign's output and verifying it is not a weaker claim than
+re-running it. It is the same claim with its provenance stated, which is the
+stronger form — and it is the pattern this mission already uses for a hardware
+campaign in an earlier product.
+
+## 10. The load-sensitivity finding, and what was de-pinned because of it
+
+**A reproducibility auditor whose own findings move with machine load is
+reporting load, not reproducibility.** That sentence is the finding.
+
+Three independent full-corpus runs of the same code over the same repository:
+
+| run | conditions | compared | timeout | headline | declared-seed | artifact |
+|---|---|---|---|---|---|---|
+| A | 2 cores, otherwise idle, during the build | 110 | 9 | 5683 | 345 | not committed |
+| B | 2 cores, **both busy with another build**, independent re-execution by the mission coordinator | 106 | **18** | 5455 | 266 | reported by the coordinator |
+| C | 2 cores, this session | 110 | 9 | **5677** | 345 | **the committed evidence** |
+
+Two things in that table matter.
+
+**The timeout set doubled in run B**, from 9 candidates to 18, with no change to
+the repository at all. Those nine extra candidates took their findings with
+them, which is most of the gap between 5683 and 5455.
+
+**Runs A and C had identical coverage and still differ by 6 moved numbers.**
+Coverage cannot explain that. The only remaining explanation is that an audited
+script is itself intermittently non-deterministic at a fixed seed — which is
+precisely what this product looks for, observed in its own measurement.
+
+### What was de-pinned, and why
+
+The first version pinned every quantity as an exact set. Run B showed which of
+those pins were claims about the repository and which were claims about the
+machine:
+
+| quantity | run B reproduced it | pinned now |
+|---|---|---|
+| python files parsed, 3564 | **yes, exactly** | **yes** |
+| files with a static finding, 53 | **yes, exactly** | **yes** |
+| static findings, 275 | **yes, exactly** | **yes** |
+| static subkinds `{246, 16, 13}` | **yes, exactly** | **yes** |
+| static parse failures, 0 | **yes, exactly** | **yes** |
+| candidates found, 229 | **yes, exactly** | **yes** |
+| committed tokens, 43321 | **yes, exactly** | **yes** |
+| `status_counts` | no | **no — reported with conditions** |
+| the `timeout`, `no_output`, `run_failed` SETS | no | **no — reported with conditions** |
+| `claim_tokens_compared` | no | **no — reported with conditions** |
+| wall clock | no | **no — reported with conditions** |
+
+Everything that reproduced exactly is produced by **reading and parsing files**.
+The static screen executes nothing, and it is the part of the campaign that is
+independent of machine load. Everything that moved depends on **executing** an
+audited script.
+
+The de-pinned quantities are now printed by `validate_repository_findings.py`
+under *LOAD-SENSITIVE QUANTITIES — reported, deliberately NOT pinned*, together
+with the conditions the campaign recorded, and the script lists them by name in
+its `REPORTED_NOT_PINNED` constant so the de-pinning is visible rather than
+inferred. **No tolerance was widened.** A pin that was a claim about the wrong
+thing was removed and replaced with the true statement, which is a bound:
+
+> At least **9** of **229** candidate claims did not complete within 75.0 s at
+> the load the frozen campaign ran under. On a busier machine the figure was
+> **18**. The headline of **5677** is likewise a **lower bound**: it counts
+> moved numbers among the 110 claims that completed, and a claim that timed out
+> contributes nothing, so a machine with more headroom finds at least as many
+> and never fewer.
+
+What *is* still checked is internal consistency, which is load-invariant: the
+status counts sum to the candidates attempted, the unevaluable sets have the
+sizes the status counts report, the evaluated token count does not exceed the
+committed total, and the recorded escaped-rate bound equals the one recomputed
+from the model.
+
+### The same mistake, one level down, in this product's own self-check
+
+`validate_self_audit.py` asserted that the audit's headline over a bounded
+subset was **identical** across two back-to-back runs. Run under the release
+gate's own environment, it measured **110 against 111** with identical coverage
+and an identical evaluated-token count, and failed.
+
+The assertion was wrong in the same way: it asserted that the **audited corpus**
+is deterministic, which is the claim this product exists to refute. It was
+removed. The script now asserts the part this product controls — coverage,
+evaluated token count and the set of contributing scripts, all identical across
+runs — reports the headline drift, **names any script whose finding count
+moved**, and bounds the drift by a declared fraction of **0.05**, chosen because
+a corpus whose findings moved by more than one in twenty between consecutive
+runs would make a single run uninformative. Measured drift across four runs
+since: 0, 0, 0 and 1 out of about 110.
+
 ## Pre-registered expectations, judged
 
 `SPEC.md` section 8 was written and committed before the audit ran against this
@@ -685,10 +861,10 @@ repository. Each expectation is reported as it landed.
 
 | # | expectation, as written in `SPEC.md` §8 | outcome |
 |---|---|---|
-| 1 | **Primary.** The headline count will be between 1 and 40 moved numbers, concentrated in fewer than 15 scripts. | **REFUTED.** Measured **5683** across **103** scripts. |
+| 1 | **Primary.** The headline count will be between 1 and 40 moved numbers, concentrated in fewer than 15 scripts. | **REFUTED.** Measured **5677** across **102** scripts. |
 | 2 | **Secondary.** The count moving with the seed held fixed will be non-zero and dominated by wall-clock and timing fields rather than by seeded quantities. | **CONFIRMED on both halves.** 345, non-zero; inspection of the itemised evidence shows them dominated by durations and quantities derived from them. The line-local marker test recognises 88; the remaining 257 is an **upper** bound on non-timing findings, not a count of them. |
 | 3 | **Secondary.** The static screen will flag at least 6 scripts, and more than half the flags will be scanner scripts writing their own `_output.txt` into a tree they scan. | **SPLIT: first half CONFIRMED, second half REFUTED.** 53 files flagged, well above 6. But the dominant subkind is `write_to_read_path` at **246 of 275**, not `write_under_glob` at **16**: the common pattern is a script writing then reading the same temporary path, not a scanner polluting a tree it scans. |
-| 4 | **Secondary.** Baseline 1's measured power at `p = 1/44` will lie within the interval of the derived 0.044421487603305776 and below 0.06. | **CONFIRMED on both halves.** Measured 0.05136363636363636, exact interval [0.038016626326467684, 0.06747655439900632] contains the derived value, and 0.05136363636363636 < 0.06. |
+| 4 | **Secondary.** Baseline 1's measured power at `p = 1/44` will lie within the interval of the derived 0.044421487603305776 and below 0.06. | **CONFIRMED on both halves.** Measured 0.05181818181818182, exact interval [0.03840947445363034, 0.06798977050158111] contains the derived value, and 0.05181818181818182 < 0.06. |
 | 5 | **Secondary.** The dynamic detector's false-positive rate on the negative controls will be 0, and the static detector's will be non-zero. | **SPLIT: first half CONFIRMED (0.0), second half REFUTED (also 0.0).** The screen is more precise than the prediction: `deterministic_config_adjacent.py` **reads a file** in the directory it writes to and does not **enumerate** that directory, and a write beside a file that was read is not containment under a scan root. The screen was not changed to produce this; the prediction was wrong. |
 
 **Why the primary expectation was wrong, stated plainly.** It assumed that a
@@ -703,38 +879,75 @@ claim that 5683 defects were found.
 
 ## Every validation script and its exit status
 
-All eight were executed on 2026-11-16 and all eight exit 0 when re-run. Each
-writes its raw output beside itself as `<stem>_output.txt`, and all eight output
-files are committed.
+All seven were executed on 2026-11-16 in the release gate's own sorted order,
+under the gate's environment, with the gate's 600 s per-script timeout. All
+seven exit 0. Each writes its raw output beside itself as `<stem>_output.txt`
+and all seven output files are committed.
 
-| script | exit status | approximate runtime | output file |
+| # | script, in gate order | exit | sweep 1 | sweep 2 |
+|---|---|---|---|---|
+| 1 | `_approx_audit_plugin.py` (support module) | **0** | 0.1 s | 0.1 s |
+| 2 | `_bootstrap.py` (support module) | **0** | 0.0 s | 0.0 s |
+| 3 | `probe_working_directories.py` | **0** | 192.0 s | **200.4 s** |
+| 4 | `validate_approx_audit.py` | **0** | 8.0 s | 8.1 s |
+| 5 | `validate_injected_corpus.py` | **0** | 121.8 s | 123.5 s |
+| 6 | `validate_power_model.py` | **0** | 0.2 s | 0.2 s |
+| 7 | `validate_repository_findings.py` | **0** | 0.2 s | 0.1 s |
+| 8 | `validate_self_audit.py` | **0** | 81.9 s | 79.7 s |
+| 9 | `validate_tree_hygiene.py` | **0** | 0.1 s | 0.1 s |
+
+The gate also runs `examples/`, in the same way and before `validation/`:
+
+| script | exit | sweep 1 | sweep 2 |
 |---|---|---|---|
-| `validate_power_model.py` | **0** | 50 s | `validate_power_model_output.txt` |
-| `validate_injected_corpus.py` | **0** | 6 min | `validate_injected_corpus_output.txt` |
-| `validate_approx_audit.py` | **0** | 25 s | `validate_approx_audit_output.txt` |
-| `validate_self_audit.py` | **0** | 12 min | `validate_self_audit_output.txt` |
-| `validate_repository_audit.py` | **0** | **3337.1 s** | `validate_repository_audit_output.txt` |
-| `validate_repository_findings.py` | **0** | under 1 s | `validate_repository_findings_output.txt` |
-| `validate_tree_hygiene.py` | **0** | 2 s | `validate_tree_hygiene_output.txt` |
-| `probe_working_directories.py` | **0** | 20 min | `probe_working_directories_output.txt` |
+| `_bootstrap.py` (support module) | **0** | 0.0 s | 0.0 s |
+| `arrangement_classifier.py` | **0** | 1.3 s | 1.6 s |
+| `injected_corpus_power.py` | **0** | 30.2 s | 32.2 s |
+| `power_table.py` | **0** | 0.8 s | 0.7 s |
+| `repository_audit_coverage.py` | **0** | 0.8 s | 0.7 s |
 
-`_bootstrap.py` and `_approx_audit_plugin.py` are support modules and are not
-run directly; `probe_working_directories.py` excludes them by name with the
-reason in its docstring.
+**Two sweeps, 14 scripts each, 0 failures in both.** Totals 437.3 s and
+447.5 s; slowest single script 192.0 s and 200.4 s, against the gate's 600 s
+ceiling. **These are wall-clock readings and they differ between sweeps** —
+which is exactly the class of number this product counts **89** of in other
+products' committed evidence, so two sweeps are given rather than one, and the
+claim is stated as a bound: **the slowest script observed was 200.4 s, leaving
+399.6 s of margin.**
+
+The ordering is tested, not the scripts individually, because the ordering is
+what exposed the clobber recorded in section 9. Both sweeps also verified that
+the frozen evidence's sha256 was **unchanged** by the sweep, which is the
+structural fix for that clobber.
+
+**The campaign is not in this table and the gate does not run it.**
+`data/repository_audit.py` took **3339.8 s** — more than five times the gate's
+per-script ceiling, which is the first of the two reasons it had to move out of
+`validation/`.
+
+`validate_self_audit.py` declares its own 300 s budget and reports its margin
+in its output, because an earlier version measured **473 s** on a machine with
+both cores busy. That is inside the 600 s ceiling and not safely inside it, so
+the bounded subset was cut from 24 candidates to 8 and the measured figure is
+now 81.9 s.
 
 ## Reproducing every number
 
-The exact commands are listed in `README.md` under *Reproducing every number*,
-in the order they must be run. The only ordering constraint is that
-`validate_repository_audit.py` writes `repository_findings.json` and must run
-before `validate_repository_findings.py` and
-`examples/repository_audit_coverage.py`, which read it.
+The exact commands are listed in `README.md` under *Reproducing every number*.
+**There is no ordering constraint among the validation scripts**, which is the
+point of section 9: the campaign that produces `repository_findings.json` is
+`data/repository_audit.py`, it is not in `validation/`, the gate does not run
+it, and it refuses to overwrite the committed evidence without
+`--refresh-committed`. Every script in `validation/` reads that evidence and
+none of them writes it.
 
 `validate_injected_corpus.py` and `examples/injected_corpus_power.py` draw from
 the operating system's entropy by design, so their **measured** figures move
 between runs while the **derived** values they are compared against do not.
-Everything else here is deterministic under the single declared seed
-`1000044`.
+
+`data/repository_audit.py` is **not** reproducible to the digit; section 10 is
+the measurement of that and the reason the load-sensitive quantities are no
+longer pinned. Everything else here is deterministic under the single declared
+seed `1000044`.
 
 ## Honesty statement
 

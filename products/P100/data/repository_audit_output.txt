@@ -1,8 +1,14 @@
-Repository audit -- P100 SeedAudit
+Repository audit campaign -- P100 SeedAudit
+
+THIS IS A DATA-GENERATION CAMPAIGN, NOT A VALIDATION SCRIPT. It takes
+most of an hour and lives in data/ for that reason. The fast check that
+verifies its output is validation/validate_repository_findings.py.
 
 A committed numeric claim is a numeric token in a committed output file beside the script that produced it, where that script declares a rewritable random seed. Each candidate is run twice in two separate pristine copies: PERTURBED, with every seed literal rewritten, and CONTROL, with the seeds left alone. A number that moves in the perturbed run and not in the control is seed-attributable and is the headline. A number that moves in the control was never reproducible at its declared seed and is counted separately. Detection power is 1-(1-p)^n against a committed reference and 1-p^n-(1-p)^n for run-and-diff with no reference; a clean result reports the escaped-rate upper bound 1-alpha^(1/n), never zero.
 
-fast path (SEEDAUDIT_FAST=1): False
+evidence will be written to  : validation/repository_findings.json
+transcript will be written to: data/repository_audit_output.txt
+refresh-committed: True
 per-run timeout, seconds: 75.0
 workers: 2
 global deadline, seconds: 6000.0
@@ -16,29 +22,40 @@ excluded: products/P100 -- this product; a tool scanning its own tree while it i
 ==============================================================================
 1. HEADLINE
 ==============================================================================
-committed numbers claimed reproducible that MOVE under a seed change: 5455
+committed numbers claimed reproducible that MOVE under a seed change: 5677
   (net of the instrument's own footprint; see section 3b)
-scripts contributing at least one: 98
+scripts contributing at least one: 102
 
-committed numbers that move with the seed held at its DECLARED value (separate, worse class): 266
-scripts contributing at least one of those: 43
+committed numbers that move with the seed held at its DECLARED value (separate, worse class): 345
+scripts contributing at least one of those: 47
+
+THE HEADLINE IS A LOWER BOUND, NOT A TOTAL. It counts moved numbers
+among the 110 claims that completed inside the
+75.0 s per-run limit on this machine under this load. A
+claim that timed out contributes nothing, so a machine with more
+headroom would find at least as many and never fewer.
 
 ==============================================================================
 2. COVERAGE, stated as a number
 ==============================================================================
 candidates found: 229
 candidates attempted: 229
-compared: 106
-no_output (claim UNEVALUABLE, not clean): 68
+compared: 110
+no_output (claim UNEVALUABLE, not clean): 73
 run_failed: 37
-timeout: 18
+timeout: 9
 global deadline reached: False
 committed numeric tokens across all candidates: 43321
-numeric tokens the perturbed comparison evaluated: 20550
+numeric tokens the perturbed comparison evaluated: 21401
 repeats per claim: 1
 escaped-rate upper bound at that repeat count on the REPEAT axis, alpha=0.05: 0.95
-note: the seed axis is sampled with one perturbed draw, which for a seed-sensitive continuous output has detection probability near 1; the repeat axis is sampled once per arrangement, so its bound is weak and is stated rather than hidden.
-audit wall-clock seconds: 4215.8
+audit wall-clock seconds: 3339.8
+cpu count reported by the operating system: 2
+
+THE timeout AND no_output COUNTS ARE PROPERTIES OF THIS MACHINE AND THIS
+LOAD AS WELL AS OF THE REPOSITORY. A re-run on a busier machine moves
+candidates between `timeout` and `compared`. They are reported here and
+are deliberately NOT pinned as exact sets by the validation check.
 
 ==============================================================================
 3. SEED-ATTRIBUTABLE MOVED NUMBERS -- the headline, itemised
@@ -5169,6 +5186,16 @@ products/P061/validation/validate_gap.py  line 90 token 0: 0.8500 -> 0.8214  (ab
     context: greedy/exact worst ratio         <#>
 products/P061/validation/validate_gap.py  line 91 token 0: 4.97 -> 3.72  (abs 1.25, rel 0.251509)
     context: pooled shortfall                 <#> %
+products/P061/validation/validate_predictor.py  line 46 token 0: 26.83000 -> 27.03675  (abs 0.20675, rel 0.00770593)
+    context: duration floor, Monte Carlo     : <#> s over <#> requests
+products/P061/validation/validate_predictor.py  line 47 token 0: 0.0031 -> 0.0108  (abs 0.0077, rel 2.48387)
+    context: relative difference           : <#>
+products/P061/validation/validate_predictor.py  line 48 token 0: 0.31358 -> 0.31281  (abs 0.00077, rel 0.00245551)
+    context: energy   floor, Monte Carlo     : <#> W*h
+products/P061/validation/validate_predictor.py  line 52 token 2: 0.31358 -> 0.31281  (abs 0.00077, rel 0.00245551)
+    context: energy   : analytic <#> W*h, learned <#> W*h, floor <#> W*h
+products/P061/validation/validate_predictor.py  line 53 token 0: 86.1 -> 86.0  (abs 0.1, rel 0.00116144)
+    context: the learned model closes <#> % of the gap between the analytic model and the floor
 products/P061/validation/validate_robust.py  line 22 token 0: 0.216 -> 2.619  (abs 2.403, rel 11.125)
     context: ml-point          <#>         <#>    <#>     <#>           <#>
 products/P061/validation/validate_robust.py  line 22 token 1: 0.348 -> 2.383  (abs 2.035, rel 5.8477)
@@ -5283,6 +5310,20 @@ products/P061/validation/validate_robust.py  line 141 token 1: 11.333 -> 7.556  
     context: ml-robust   feasible <#>  realised <#>  placed <#>
 products/P061/validation/validate_robust.py  line 141 token 2: 8.000 -> 8.500  (abs 0.5, rel 0.0625)
     context: ml-robust   feasible <#>  realised <#>  placed <#>
+products/P061/validation/validate_warmstart.py  line 81 token 0: -2.81873 -> -3.95643  (abs 1.1377, rel 0.403621)
+    context: analytic candidate refused: rejected: battery-depth-of-discharge has slack <#> W*h on the target problem, so the value is not a valid bound
+products/P061/validation/validate_warmstart.py  line 93 token 0: 5 -> 7  (abs 2, rel 0.4)
+    context: greedy-analytic candidate verified      : <#> of <#>
+products/P061/validation/validate_warmstart.py  line 94 token 0: 0.9534 -> 0.9248  (abs 0.0286, rel 0.0299979)
+    context: greedy-ml bound as a fraction of the optimum   : mean <#>, min <#>
+products/P061/validation/validate_warmstart.py  line 94 token 1: 0.8696 -> 0.8125  (abs 0.0571, rel 0.0656624)
+    context: greedy-ml bound as a fraction of the optimum   : mean <#>, min <#>
+products/P061/validation/validate_warmstart.py  line 95 token 0: 0.9765 -> 0.9141  (abs 0.0624, rel 0.0639017)
+    context: greedy-analytic bound as a fraction of the optimum: mean <#>, min <#>
+products/P061/validation/validate_warmstart.py  line 95 token 1: 0.8824 -> 0.8125  (abs 0.0699, rel 0.0792158)
+    context: greedy-analytic bound as a fraction of the optimum: mean <#>, min <#>
+products/P061/validation/validate_warmstart.py  line 113 token 0: 5 -> 7  (abs 2, rel 0.4)
+    context: greedy-analytic candidates verified     <#> of <#>
 products/P061/validation/worked_example.py  line 65 token 0: 578.47 -> 647.18  (abs 68.71, rel 0.118779)
     context: new003     calibration       <#>    <#>    <#>     <#>   <#>   <#>
 products/P061/validation/worked_example.py  line 65 token 1: 513.59 -> 596.05  (abs 82.46, rel 0.160556)
@@ -7395,8 +7436,6 @@ products/P071/validation/validate_screening.py  line 193 token 1: 0.99213 -> 0.9
     context: <#>   <#>  <#>     <#>
 products/P071/validation/validate_screening.py  line 193 token 2: -0.00072 -> +0.00024  (abs 0.00096, rel 1.33333)
     context: <#>   <#>  <#>     <#>
-products/P071/validation/validate_screening.py  line 193 token 3: 7.729 -> 6.166  (abs 1.563, rel 0.202225)
-    context: <#>   <#>  <#>     <#>
 products/P071/validation/validate_screening.py  line 212 token 1: 0.272486 -> 0.256448  (abs 0.016038, rel 0.0588581)
     context: check <#>, calibration: worst reliability-bin gap <#> against a declared tolerance of <#>
 products/P071/validation/worked_example.py  line 55 token 0: 3.605333e-03 -> 3.587333e-03  (abs 1.8e-05, rel 0.0049926)
@@ -7527,6 +7566,430 @@ products/P072/validation/validate_compress.py  line 116 token 0: 0.962760 -> 0.9
     context: delivered value : <#> against <#>
 products/P072/validation/validate_compress.py  line 116 token 1: 0.947669 -> 0.941780  (abs 0.005889, rel 0.0062142)
     context: delivered value : <#> against <#>
+products/P072/validation/validate_stability.py  line 32 token 1: 0.99863 -> 0.99909  (abs 0.00046, rel 0.000460631)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 32 token 3: 0.96711 -> 0.97807  (abs 0.01096, rel 0.0113327)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 32 token 4: 1.000183 -> 1.000122  (abs 6.1e-05, rel 6.09888e-05)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 32 token 7: 0.0260 -> 0.0174  (abs 0.0086, rel 0.330769)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 33 token 1: 0.99615 -> 0.99739  (abs 0.00124, rel 0.00124479)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 33 token 3: 0.91052 -> 0.94027  (abs 0.02975, rel 0.0326736)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 33 token 4: 1.000611 -> 1.000422  (abs 0.000189, rel 0.000188885)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 33 token 7: 0.0712 -> 0.0486  (abs 0.0226, rel 0.317416)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 34 token 1: 0.99279 -> 0.99386  (abs 0.00107, rel 0.00107777)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 34 token 2: 0.96062 -> 0.96981  (abs 0.00919, rel 0.00956674)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 34 token 3: 0.87900 -> 0.90071  (abs 0.02171, rel 0.0246985)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 34 token 4: 1.001491 -> 1.001083  (abs 0.000408, rel 0.000407393)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 34 token 7: 0.1233 -> 0.1059  (abs 0.0174, rel 0.141119)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 35 token 1: 0.99013 -> 0.99048  (abs 0.00035, rel 0.000353489)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 35 token 2: 0.95884 -> 0.94694  (abs 0.0119, rel 0.0124108)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 35 token 3: 0.89521 -> 0.91278  (abs 0.01757, rel 0.0196267)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 35 token 4: 1.001615 -> 1.000997  (abs 0.000618, rel 0.000617004)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 35 token 5: 0.996492 -> 0.996787  (abs 0.000295, rel 0.000296039)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 35 token 6: 0.994943 -> 0.996180  (abs 0.001237, rel 0.00124329)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 35 token 7: 0.1615 -> 0.1545  (abs 0.007, rel 0.0433437)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 36 token 1: 0.98146 -> 0.97806  (abs 0.0034, rel 0.00346423)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 36 token 2: 0.94120 -> 0.90738  (abs 0.03382, rel 0.0359329)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 36 token 3: 0.86715 -> 0.89719  (abs 0.03004, rel 0.0346422)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 36 token 4: 1.001526 -> 0.997805  (abs 0.003721, rel 0.00371533)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 36 token 5: 0.992281 -> 0.983589  (abs 0.008692, rel 0.00875962)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 36 token 6: 0.989959 -> 0.977408  (abs 0.012551, rel 0.0126783)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 36 token 7: 0.3021 -> 0.3490  (abs 0.0469, rel 0.155247)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 37 token 1: 0.95829 -> 0.96036  (abs 0.00207, rel 0.0021601)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 37 token 2: 0.88263 -> 0.88003  (abs 0.0026, rel 0.00294574)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 37 token 3: 0.86042 -> 0.87089  (abs 0.01047, rel 0.0121685)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 37 token 4: 0.998671 -> 0.995111  (abs 0.00356, rel 0.00356474)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 37 token 5: 0.966512 -> 0.972983  (abs 0.006471, rel 0.00669521)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 37 token 6: 0.958951 -> 0.968400  (abs 0.009449, rel 0.00985348)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 37 token 7: 0.6684 -> 0.6354  (abs 0.033, rel 0.0493716)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 44 token 1: 0.99904 -> 0.99942  (abs 0.00038, rel 0.000380365)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 44 token 3: 0.97685 -> 0.98611  (abs 0.00926, rel 0.00947945)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 44 token 4: 0.999990 -> 0.999994  (abs 4e-06, rel 4.00004e-06)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 44 token 6: 0.999761 -> 0.999857  (abs 9.6e-05, rel 9.60229e-05)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 44 token 7: 0.0174 -> 0.0104  (abs 0.007, rel 0.402299)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 45 token 1: 0.99763 -> 0.99825  (abs 0.00062, rel 0.000621473)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 45 token 2: 0.99494 -> 0.98953  (abs 0.00541, rel 0.00543751)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 45 token 3: 0.94907 -> 0.97222  (abs 0.02315, rel 0.0243923)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 45 token 4: 0.999971 -> 0.999972  (abs 1e-06, rel 1.00003e-06)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 45 token 5: 0.999855 -> 0.999750  (abs 0.000105, rel 0.000105015)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 45 token 6: 0.999475 -> 0.999660  (abs 0.000185, rel 0.000185097)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 45 token 7: 0.0417 -> 0.0295  (abs 0.0122, rel 0.292566)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 46 token 1: 0.99313 -> 0.99323  (abs 0.0001, rel 0.000100692)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 46 token 2: 0.95463 -> 0.94282  (abs 0.01181, rel 0.0123713)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 46 token 3: 0.90677 -> 0.93333  (abs 0.02656, rel 0.0292908)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 46 token 4: 0.999747 -> 0.999717  (abs 3e-05, rel 3.00076e-05)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 46 token 5: 0.998992 -> 0.998404  (abs 0.000588, rel 0.000588593)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 46 token 6: 0.996083 -> 0.997388  (abs 0.001305, rel 0.00131013)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 47 token 1: 0.98356 -> 0.98433  (abs 0.00077, rel 0.00078287)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 47 token 2: 0.93264 -> 0.93608  (abs 0.00344, rel 0.00368845)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 47 token 3: 0.84435 -> 0.86533  (abs 0.02098, rel 0.0248475)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 47 token 4: 0.998976 -> 0.999030  (abs 5.4e-05, rel 5.40554e-05)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 47 token 5: 0.994480 -> 0.995506  (abs 0.001026, rel 0.00103169)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 47 token 6: 0.991574 -> 0.992939  (abs 0.001365, rel 0.0013766)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 47 token 7: 0.2743 -> 0.2604  (abs 0.0139, rel 0.0506744)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 48 token 1: 0.97131 -> 0.96863  (abs 0.00268, rel 0.00275916)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 48 token 2: 0.89002 -> 0.89696  (abs 0.00694, rel 0.00779758)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 48 token 3: 0.76778 -> 0.77788  (abs 0.0101, rel 0.0131548)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 48 token 4: 0.997548 -> 0.996725  (abs 0.000823, rel 0.000825023)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 48 token 5: 0.992620 -> 0.986296  (abs 0.006324, rel 0.00637102)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 48 token 6: 0.985960 -> 0.982109  (abs 0.003851, rel 0.00390584)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 48 token 7: 0.4774 -> 0.5208  (abs 0.0434, rel 0.0909091)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 49 token 1: 0.95919 -> 0.96061  (abs 0.00142, rel 0.00148042)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 49 token 2: 0.88988 -> 0.89590  (abs 0.00602, rel 0.00676496)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 49 token 3: 0.79531 -> 0.80070  (abs 0.00539, rel 0.00677723)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 49 token 4: 0.992742 -> 0.992358  (abs 0.000384, rel 0.000386807)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 49 token 5: 0.982033 -> 0.976280  (abs 0.005753, rel 0.00585826)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 49 token 6: 0.972522 -> 0.973145  (abs 0.000623, rel 0.000640602)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 49 token 7: 0.6823 -> 0.6580  (abs 0.0243, rel 0.0356148)
+    context: <#>   <#>   <#>   <#>   <#>  <#>  <#>      <#>
+products/P072/validation/validate_stability.py  line 59 token 1: 0.99863 -> 0.99909  (abs 0.00046, rel 0.000460631)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 59 token 2: 0.99904 -> 0.99942  (abs 0.00038, rel 0.000380365)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 59 token 3: 1.000183 -> 1.000122  (abs 6.1e-05, rel 6.09888e-05)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 59 token 4: 0.999990 -> 0.999994  (abs 4e-06, rel 4.00004e-06)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 60 token 1: 0.99615 -> 0.99739  (abs 0.00124, rel 0.00124479)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 60 token 2: 0.99763 -> 0.99825  (abs 0.00062, rel 0.000621473)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 60 token 3: 1.000611 -> 1.000422  (abs 0.000189, rel 0.000188885)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 60 token 4: 0.999971 -> 0.999972  (abs 1e-06, rel 1.00003e-06)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 61 token 1: 0.99279 -> 0.99386  (abs 0.00107, rel 0.00107777)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 61 token 2: 0.99313 -> 0.99323  (abs 0.0001, rel 0.000100692)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 61 token 3: 1.001491 -> 1.001083  (abs 0.000408, rel 0.000407393)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 61 token 4: 0.999747 -> 0.999717  (abs 3e-05, rel 3.00076e-05)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 62 token 1: 0.99013 -> 0.99048  (abs 0.00035, rel 0.000353489)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 62 token 2: 0.98356 -> 0.98433  (abs 0.00077, rel 0.00078287)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 62 token 3: 1.001615 -> 1.000997  (abs 0.000618, rel 0.000617004)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 62 token 4: 0.998976 -> 0.999030  (abs 5.4e-05, rel 5.40554e-05)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 63 token 1: 0.98146 -> 0.97806  (abs 0.0034, rel 0.00346423)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 63 token 2: 0.97131 -> 0.96863  (abs 0.00268, rel 0.00275916)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 63 token 3: 1.001526 -> 0.997805  (abs 0.003721, rel 0.00371533)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 63 token 4: 0.997548 -> 0.996725  (abs 0.000823, rel 0.000825023)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 64 token 1: 0.95829 -> 0.96036  (abs 0.00207, rel 0.0021601)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 64 token 2: 0.95919 -> 0.96061  (abs 0.00142, rel 0.00148042)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 64 token 3: 0.998671 -> 0.995111  (abs 0.00356, rel 0.00356474)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 64 token 4: 0.992742 -> 0.992358  (abs 0.000384, rel 0.000386807)
+    context: <#>    <#>    <#>     <#>    <#>
+products/P072/validation/validate_stability.py  line 83 token 1: 9.943610e-06 -> 5.966166e-06  (abs 3.97744e-06, rel 0.4)
+    context: <#>      <#> <#>        optimality still pays
+products/P072/validation/validate_stability.py  line 84 token 1: 2.896352e-05 -> 2.804510e-05  (abs 9.1842e-07, rel 0.0317095)
+    context: <#>      <#> <#>        optimality still pays
+products/P072/validation/validate_stability.py  line 85 token 1: 2.529231e-04 -> 2.828250e-04  (abs 2.99019e-05, rel 0.118225)
+    context: <#>      <#> <#>        optimality still pays
+products/P072/validation/validate_stability.py  line 86 token 1: 1.023942e-03 -> 9.695406e-04  (abs 5.44014e-05, rel 0.0531294)
+    context: <#>      <#> <#>        optimality still pays
+products/P072/validation/validate_stability.py  line 87 token 1: 2.452247e-03 -> 3.274625e-03  (abs 0.000822378, rel 0.335357)
+    context: <#>      <#> <#>        optimality still pays
+products/P072/validation/validate_stability.py  line 88 token 1: 7.257854e-03 -> 7.641983e-03  (abs 0.000384129, rel 0.052926)
+    context: <#>      <#> <#>        optimality still pays
+products/P072/validation/validate_valuemodel.py  line 32 token 0: -3.090994 -> -3.032949  (abs 0.058045, rel 0.0187787)
+    context: size/age fit      : value = <#> + <#> * log10(bytes) + <#> * age_s
+products/P072/validation/validate_valuemodel.py  line 32 token 1: 1.017927 -> 1.048674  (abs 0.030747, rel 0.0302055)
+    context: size/age fit      : value = <#> + <#> * log10(bytes) + <#> * age_s
+products/P072/validation/validate_valuemodel.py  line 32 token 2: -1.643576e-05 -> -1.901185e-05  (abs 2.57609e-06, rel 0.156737)
+    context: size/age fit      : value = <#> + <#> * log10(bytes) + <#> * age_s
+products/P072/validation/validate_valuemodel.py  line 40 token 0: 0.962341 -> 1.083292  (abs 0.120951, rel 0.125684)
+    context: learned forest   <#>   <#>   <#>   <#>
+products/P072/validation/validate_valuemodel.py  line 40 token 1: 1.585054 -> 1.655824  (abs 0.07077, rel 0.0446483)
+    context: learned forest   <#>   <#>   <#>   <#>
+products/P072/validation/validate_valuemodel.py  line 40 token 2: 0.912832 -> 0.896091  (abs 0.016741, rel 0.0183396)
+    context: learned forest   <#>   <#>   <#>   <#>
+products/P072/validation/validate_valuemodel.py  line 40 token 3: 5.278e-03 -> 4.097e-02  (abs 0.035692, rel 6.76241)
+    context: learned forest   <#>   <#>   <#>   <#>
+products/P072/validation/validate_valuemodel.py  line 46 token 0: 0.275147 -> 0.276832  (abs 0.001685, rel 0.006124)
+    context: log10_raw_bytes <#>
+products/P072/validation/validate_valuemodel.py  line 47 token 0: 0.236182 -> 0.212837  (abs 0.023345, rel 0.0988433)
+    context: novelty <#>
+products/P072/validation/validate_valuemodel.py  line 48 token 0: 0.171185 -> 0.192373  (abs 0.021188, rel 0.123773)
+    context: age_s <#>
+products/P072/validation/validate_valuemodel.py  line 49 token 0: 0.117066 -> 0.108373  (abs 0.008693, rel 0.0742573)
+    context: entropy_bits_per_sample <#>
+products/P072/validation/validate_valuemodel.py  line 50 token 0: 0.083647 -> 0.091839  (abs 0.008192, rel 0.0979354)
+    context: coverage_fraction <#>
+products/P072/validation/validate_valuemodel.py  line 51 token 0: 0.054717 -> 0.055270  (abs 0.000553, rel 0.0101065)
+    context: instrument_code <#>
+products/P072/validation/validate_valuemodel.py  line 52 token 0: 0.034967 -> 0.032407  (abs 0.00256, rel 0.0732119)
+    context: time_to_expiry_s <#>
+products/P072/validation/validate_valuemodel.py  line 53 token 0: 0.018362 -> 0.019054  (abs 0.000692, rel 0.0376865)
+    context: bit_depth <#>
+products/P072/validation/validate_valuemodel.py  line 54 token 0: 0.008726 -> 0.011015  (abs 0.002289, rel 0.26232)
+    context: channels <#>
+products/P072/validation/validate_valuemodel.py  line 66 token 2: 0.688889 -> 0.660000  (abs 0.028889, rel 0.0419356)
+    context: +<#> sigma          <#>           <#>
+products/P072/validation/validate_valuemodel.py  line 67 token 2: 0.941111 -> 0.929444  (abs 0.011667, rel 0.012397)
+    context: +<#> sigma          <#>           <#>
+products/P072/validation/validate_valuemodel.py  line 68 token 2: 0.947222 -> 0.933889  (abs 0.013333, rel 0.0140759)
+    context: +<#> sigma          <#>           <#>
+products/P072/validation/validate_valuemodel.py  line 70 token 0: 1.175507 -> 1.247591  (abs 0.072084, rel 0.0613216)
+    context: mean dispersion                       : <#> value units
+products/P072/validation/validate_valuemodel.py  line 71 token 0: 0.962341 -> 1.083292  (abs 0.120951, rel 0.125684)
+    context: mean absolute error                   : <#> value units
+products/P072/validation/validate_valuemodel.py  line 72 token 0: 0.601302 -> 0.605444  (abs 0.004142, rel 0.00688839)
+    context: Spearman(dispersion, |error|)          : <#>
+products/P072/validation/validate_valuemodel.py  line 90 token 0: 1.940464 -> 1.969861  (abs 0.029397, rel 0.0151495)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 90 token 1: 0.517327 -> 0.513990  (abs 0.003337, rel 0.00645047)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 90 token 2: 57.86882 -> 57.77293  (abs 0.09589, rel 0.00165702)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 90 token 4: 2.40572 -> 2.50161  (abs 0.09589, rel 0.0398592)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 90 token 5: 0.039722 -> 0.041134  (abs 0.001412, rel 0.0355471)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 91 token 0: 1.002261 -> 1.011541  (abs 0.00928, rel 0.00925907)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 91 token 1: 0.905926 -> 0.907432  (abs 0.001506, rel 0.00166239)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 91 token 2: 59.68522 -> 59.90530  (abs 0.22008, rel 0.00368735)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 91 token 4: 0.58932 -> 0.36924  (abs 0.22008, rel 0.373447)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 91 token 5: 0.009582 -> 0.006029  (abs 0.003553, rel 0.370799)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 91 token 6: 0.075064 -> 0.044954  (abs 0.03011, rel 0.401124)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 102 token 0: 1.940464 -> 1.969861  (abs 0.029397, rel 0.0151495)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 102 token 1: 0.517327 -> 0.513990  (abs 0.003337, rel 0.00645047)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 102 token 2: 57.86882 -> 57.77293  (abs 0.09589, rel 0.00165702)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 102 token 4: 2.40572 -> 2.50161  (abs 0.09589, rel 0.0398592)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 102 token 5: 0.039722 -> 0.041134  (abs 0.001412, rel 0.0355471)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 103 token 0: 1.002261 -> 1.011541  (abs 0.00928, rel 0.00925907)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 103 token 1: 0.905926 -> 0.907432  (abs 0.001506, rel 0.00166239)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 103 token 2: 59.68522 -> 59.90530  (abs 0.22008, rel 0.00368735)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 103 token 4: 0.58932 -> 0.36924  (abs 0.22008, rel 0.373447)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 103 token 5: 0.009582 -> 0.006029  (abs 0.003553, rel 0.370799)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 103 token 6: 0.075064 -> 0.044954  (abs 0.03011, rel 0.401124)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 106 token 0: 0.009582 -> 0.006029  (abs 0.003553, rel 0.370799)
+    context: best non-oracle arm: learned at regret fraction <#>
+products/P072/validation/validate_valuemodel.py  line 114 token 0: 1.940464 -> 1.969861  (abs 0.029397, rel 0.0151495)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 114 token 1: 0.517327 -> 0.513990  (abs 0.003337, rel 0.00645047)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 114 token 2: 58.28227 -> 58.42692  (abs 0.14465, rel 0.00248189)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 114 token 4: 2.17196 -> 2.02731  (abs 0.14465, rel 0.0665988)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 114 token 5: 0.036017 -> 0.033910  (abs 0.002107, rel 0.0585002)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 115 token 0: 1.002261 -> 1.011541  (abs 0.00928, rel 0.00925907)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 115 token 1: 0.905926 -> 0.907432  (abs 0.001506, rel 0.00166239)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 115 token 2: 60.11996 -> 59.94181  (abs 0.17815, rel 0.00296324)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 115 token 4: 0.33427 -> 0.51242  (abs 0.17815, rel 0.532952)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 115 token 5: 0.005488 -> 0.008951  (abs 0.003463, rel 0.631013)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 115 token 6: 0.038932 -> 0.091068  (abs 0.052136, rel 1.33916)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 116 token 0: 0.429868 -> 0.431472  (abs 0.001604, rel 0.00373138)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 116 token 1: 0.967634 -> 0.969005  (abs 0.001371, rel 0.00141686)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 116 token 2: 60.32579 -> 60.29468  (abs 0.03111, rel 0.0005157)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 116 token 4: 0.12844 -> 0.15955  (abs 0.03111, rel 0.242214)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 116 token 5: 0.002253 -> 0.002810  (abs 0.000557, rel 0.247226)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 118 token 0: 0.002253 -> 0.002810  (abs 0.000557, rel 0.247226)
+    context: best non-oracle arm: hybrid at regret fraction <#>
+products/P072/validation/validate_valuemodel.py  line 124 token 0: 1.940464 -> 1.969861  (abs 0.029397, rel 0.0151495)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 124 token 1: 0.517327 -> 0.513990  (abs 0.003337, rel 0.00645047)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 124 token 2: 58.20370 -> 58.28082  (abs 0.07712, rel 0.001325)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 124 token 4: 2.66740 -> 2.59028  (abs 0.07712, rel 0.028912)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 124 token 5: 0.042048 -> 0.041143  (abs 0.000905, rel 0.021523)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 124 token 6: 0.137861 -> 0.149297  (abs 0.011436, rel 0.0829531)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 125 token 0: 1.002261 -> 1.011541  (abs 0.00928, rel 0.00925907)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 125 token 1: 0.905926 -> 0.907432  (abs 0.001506, rel 0.00166239)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 125 token 2: 60.37149 -> 60.14787  (abs 0.22362, rel 0.00370407)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 125 token 4: 0.49961 -> 0.72323  (abs 0.22362, rel 0.447589)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 125 token 5: 0.008156 -> 0.011207  (abs 0.003051, rel 0.37408)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 125 token 6: 0.054295 -> 0.088936  (abs 0.034641, rel 0.638015)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 126 token 0: 1.002261 -> 1.011541  (abs 0.00928, rel 0.00925907)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 126 token 1: 0.905926 -> 0.907432  (abs 0.001506, rel 0.00166239)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 126 token 2: 60.37149 -> 60.14787  (abs 0.22362, rel 0.00370407)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 126 token 4: 0.49961 -> 0.72323  (abs 0.22362, rel 0.447589)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 126 token 5: 0.008156 -> 0.011207  (abs 0.003051, rel 0.37408)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 126 token 6: 0.054295 -> 0.088936  (abs 0.034641, rel 0.638015)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 128 token 0: 0.008156 -> 0.011207  (abs 0.003051, rel 0.37408)
+    context: best non-oracle arm: learned at regret fraction <#>
+products/P072/validation/validate_valuemodel.py  line 140 token 0: 1.940464 -> 1.969861  (abs 0.029397, rel 0.0151495)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 140 token 1: 0.517327 -> 0.513990  (abs 0.003337, rel 0.00645047)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 140 token 2: 58.33781 -> 58.41493  (abs 0.07712, rel 0.00132196)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 140 token 4: 2.20375 -> 2.12663  (abs 0.07712, rel 0.0349949)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 140 token 5: 0.036160 -> 0.035244  (abs 0.000916, rel 0.0253319)
+    context: size-age   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 141 token 0: 1.002261 -> 1.011541  (abs 0.00928, rel 0.00925907)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 141 token 1: 0.905926 -> 0.907432  (abs 0.001506, rel 0.00166239)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 141 token 2: 60.18152 -> 60.16128  (abs 0.02024, rel 0.000336316)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 141 token 4: 0.36004 -> 0.38028  (abs 0.02024, rel 0.056216)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 141 token 5: 0.005799 -> 0.006105  (abs 0.000306, rel 0.0527677)
+    context: learned   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 142 token 0: 1.048338 -> 1.050234  (abs 0.001896, rel 0.00180858)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 142 token 1: 0.884616 -> 0.886665  (abs 0.002049, rel 0.00231626)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 142 token 2: 59.97144 -> 59.92672  (abs 0.04472, rel 0.000745688)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 142 token 4: 0.57012 -> 0.61484  (abs 0.04472, rel 0.0784396)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 142 token 5: 0.009625 -> 0.010324  (abs 0.000699, rel 0.0726234)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 142 token 6: 0.071828 -> 0.079007  (abs 0.007179, rel 0.0999471)
+    context: hybrid   <#>   <#>   <#>   <#>    <#>     <#>    <#>
+products/P072/validation/validate_valuemodel.py  line 144 token 0: 0.005799 -> 0.006105  (abs 0.000306, rel 0.0527677)
+    context: best non-oracle arm: learned at regret fraction <#>
+products/P072/validation/validate_valuemodel.py  line 154 token 2: 0.009582 -> 0.006029  (abs 0.003553, rel 0.370799)
+    context: <#> complete and fresh    declared-median       <#>      <#>
+products/P072/validation/validate_valuemodel.py  line 155 token 2: 0.009582 -> 0.006029  (abs 0.003553, rel 0.370799)
+    context: <#> complete but stale            learned       <#>      <#>
+products/P072/validation/validate_valuemodel.py  line 156 token 3: 0.005488 -> 0.008951  (abs 0.003463, rel 0.631013)
+    context: <#> <#> per cent missing             hybrid       <#>      <#>
+products/P072/validation/validate_valuemodel.py  line 157 token 2: 0.008156 -> 0.011207  (abs 0.003051, rel 0.37408)
+    context: <#> all missing            learned       <#>      <#>
+products/P072/validation/validate_valuemodel.py  line 158 token 3: 0.005799 -> 0.006105  (abs 0.000306, rel 0.0527677)
+    context: <#> <#> per cent missing, half of the rest stale            learned       <#>      <#>
+products/P072/validation/validate_valuemodel.py  line 177 token 0: 0.042057 -> 0.043960  (abs 0.001903, rel 0.0452481)
+    context: size-age            <#>           <#>
+products/P072/validation/validate_valuemodel.py  line 177 token 1: 0.036160 -> 0.035244  (abs 0.000916, rel 0.0253319)
+    context: size-age            <#>           <#>
+products/P072/validation/validate_valuemodel.py  line 178 token 0: 0.011111 -> 0.003310  (abs 0.007801, rel 0.702097)
+    context: learned            <#>           <#>
+products/P072/validation/validate_valuemodel.py  line 178 token 1: 0.005799 -> 0.006105  (abs 0.000306, rel 0.0527677)
+    context: learned            <#>           <#>
+products/P072/validation/validate_valuemodel.py  line 179 token 0: 0.011621 -> 0.014691  (abs 0.00307, rel 0.264177)
+    context: hybrid            <#>           <#>
+products/P072/validation/validate_valuemodel.py  line 179 token 1: 0.009625 -> 0.010324  (abs 0.000699, rel 0.0726234)
+    context: hybrid            <#>           <#>
 products/P073/validation/validate_geometry.py  line 68 token 2: 57 -> 62  (abs 5, rel 0.0877193)
     context: [  <#>,   <#>)               <#>          <#>      <#>
 products/P073/validation/validate_geometry.py  line 68 token 3: 2.869e-14 -> 3.046e-14  (abs 1.77e-15, rel 0.061694)
@@ -9419,8 +9882,6 @@ products/P079/validation/worked_example.py  line 106 token 0: 1.349819e-05 -> 1.
     context: u combined with no asymmetry term: <#> s
 products/P079/validation/worked_example.py  line 107 token 0: 34.2325 -> 34.7258  (abs 0.4933, rel 0.0144103)
     context: ratio                            : <#>
-products/P080/validation/validate_learned.py  line 37 token 6: 0.02 -> 0.01  (abs 0.01, rel 0.5)
-    context: linear  none  <#>       <#>      <#>          <#>/<#>        <#>                            <#>
 products/P080/validation/validate_learned.py  line 57 token 2: 1282.000772 -> 580.080296  (abs 701.92, rel 0.54752)
     context: none  <#>       <#>     <#>  no
 products/P080/validation/validate_learned.py  line 58 token 2: 1270.516538 -> 579.778502  (abs 690.738, rel 0.543667)
@@ -10990,6 +11451,9 @@ products/P068/validation/validate_physics.py  line 6 token 0: 20261016 -> 203657
 products/P071/validation/validate_screening.py  line 22 token 0: 0 -> 104729  (declared seed plus the perturbation)
 products/P072/validation/validate_compress.py  line 24 token 1: 1002 -> 105731  (declared seed plus the perturbation)
 products/P072/validation/validate_compress.py  line 27 token 2: 20261021 -> 20365750  (declared seed plus the perturbation)
+products/P072/validation/validate_stability.py  line 24 token 1: 20261021 -> 20365750  (declared seed plus the perturbation)
+products/P072/validation/validate_valuemodel.py  line 24 token 1: 1001 -> 105730  (declared seed plus the perturbation)
+products/P072/validation/validate_valuemodel.py  line 27 token 2: 20261021 -> 20365750  (declared seed plus the perturbation)
 products/P075/validation/validate_bridge.py  line 198 token 0: 20261025 -> 20365754  (declared seed plus the perturbation)
 products/P075/validation/validate_montecarlo.py  line 21 token 0: 20261025 -> 20365754  (declared seed plus the perturbation)
 products/P077/validation/validate_predictors.py  line 26 token 1: 100000 -> 204729  (declared seed plus the perturbation)
@@ -11006,189 +11470,341 @@ products/P079/validation/validate_uncertainty_coverage.py  line 17 token 0: 7007
 products/P079/validation/validate_uncertainty_coverage.py  line 28 token 0: 70079 -> 174808  (declared seed plus the perturbation)
 products/P083/validation/worked_example.py  line 17 token 0: 902 -> 105631  (declared seed plus the perturbation)
 
-instrument-footprint numbers excluded from the headline: 42
-scripts that print a seed the audit rewrote: 31
+instrument-footprint numbers excluded from the headline: 45
+scripts that print a seed the audit rewrote: 33
 
 ==============================================================================
 4. NUMBERS THAT MOVE AT THE DECLARED SEED -- separate, worse class
 ==============================================================================
-products/P004/validation/validate_availability_model.py  line 5 token 2: 4.6 -> 13.4  [duration marker]
+products/P004/validation/validate_availability_model.py  line 5 token 2: 4.6 -> 4.3  [duration marker]
     context: training time (<#> GBM members, <#> CPU cores): <#> s
-products/P005/validation/val_detector.py  line 8 token 0: 1.632 -> 4.946  [duration marker]
+products/P005/validation/val_detector.py  line 8 token 0: 1.632 -> 1.913  [duration marker]
     context: MLP fit:      <#> s, threshold = <#> (reconstruction MSE)
-products/P005/validation/val_detector.py  line 45 token 0: 4.5 -> 11.8  [duration marker]
+products/P005/validation/val_detector.py  line 45 token 0: 4.5 -> 4.6  [duration marker]
     context: total benchmark runtime: <#> s on <#> CPU cores
-products/P025/validation/cusum_delay.py  line 59 token 0: 133.9 -> 17.9  [duration marker]
+products/P025/validation/cusum_delay.py  line 59 token 0: 133.9 -> 10.2  [duration marker]
     context: wall time <#> s
-products/P035/validation/validate_changepoint.py  line 89 token 0: 1.8 -> 1.7  [duration marker]
+products/P035/validation/validate_changepoint.py  line 89 token 0: 1.8 -> 2.1  [duration marker]
     context: elapsed: <#> s on this machine
-products/P035/validation/validate_cusum_delay.py  line 110 token 0: 17.1 -> 29.1  [duration marker]
+products/P035/validation/validate_cusum_delay.py  line 110 token 0: 17.1 -> 15.7  [duration marker]
     context: elapsed: <#> s on this machine
-products/P035/validation/validate_far_design.py  line 120 token 0: 10.9 -> 8.0  [duration marker]
+products/P035/validation/validate_far_design.py  line 120 token 0: 10.9 -> 4.1  [duration marker]
     context: elapsed: <#> s on this machine
-products/P035/validation/validate_matched_far.py  line 35 token 0: 33.0 -> 20.0  [duration marker]
+products/P035/validation/validate_matched_far.py  line 35 token 0: 33.0 -> 18.1  [duration marker]
     context: harness wall time        : <#> s
-products/P035/validation/validate_matched_far.py  line 413 token 0: 42.6 -> 23.2  [duration marker]
+products/P035/validation/validate_matched_far.py  line 413 token 0: 42.6 -> 21.1  [duration marker]
     context: elapsed: <#> s on this machine
-products/P052/validation/validate_benchmark.py  line 383 token 1: 28.3 -> 20.0  [duration marker]
+products/P052/validation/validate_benchmark.py  line 383 token 1: 28.3 -> 18.9  [duration marker]
     context: difficulty estimate      : <#> simulations, <#> s
-products/P052/validation/validate_benchmark.py  line 386 token 0: 38.5 -> 26.2  [duration marker]
+products/P052/validation/validate_benchmark.py  line 386 token 0: 38.5 -> 25.4  [duration marker]
     context: benchmark wall clock     : <#> s
-products/P052/validation/validate_benchmark.py  line 387 token 0: 66.8 -> 46.2  [duration marker]
+products/P052/validation/validate_benchmark.py  line 387 token 0: 66.8 -> 44.2  [duration marker]
     context: total wall clock         : <#> s
-products/P052/validation/validate_difficulty.py  line 85 token 0: 50.5 -> 43.0  [duration marker]
+products/P052/validation/validate_difficulty.py  line 85 token 0: 50.5 -> 35.8  [duration marker]
     context: wall clock                : <#> s
-products/P052/validation/validate_difficulty.py  line 86 token 0: 420.6 -> 358.5  [duration marker]
+products/P052/validation/validate_difficulty.py  line 86 token 0: 420.6 -> 298.6  [duration marker]
     context: per simulation            : <#> us
-products/P052/validation/validate_surrogate.py  line 64 token 0: 0.5383 -> 0.8172  [duration marker]
+products/P052/validation/validate_surrogate.py  line 64 token 0: 0.5383 -> 0.2830  [duration marker]
     context: one simulation + requirement evaluation : <#> ms
-products/P052/validation/validate_surrogate.py  line 65 token 1: 24.6324 -> 50.1176  [duration marker]
+products/P052/validation/validate_surrogate.py  line 65 token 1: 24.6324 -> 16.6022  [duration marker]
     context: one forest refit on <#> points        : <#> ms (<#> simulations)
-products/P052/validation/validate_surrogate.py  line 65 token 2: 45.8 -> 61.3  [duration marker]
+products/P052/validation/validate_surrogate.py  line 65 token 2: 45.8 -> 58.7  [duration marker]
     context: one forest refit on <#> points        : <#> ms (<#> simulations)
-products/P052/validation/validate_surrogate.py  line 66 token 1: 3.1841 -> 7.0195  [duration marker]
+products/P052/validation/validate_surrogate.py  line 66 token 1: 3.1841 -> 2.2676  [duration marker]
     context: scoring <#> candidates (mean + spread)   : <#> ms (<#> simulations)
-products/P052/validation/validate_surrogate.py  line 66 token 2: 5.9 -> 8.6  [duration marker]
+products/P052/validation/validate_surrogate.py  line 66 token 2: 5.9 -> 8.0  [duration marker]
     context: scoring <#> candidates (mean + spread)   : <#> ms (<#> simulations)
-products/P052/validation/validate_surrogate.py  line 68 token 2: 11.6 -> 16.3  [duration marker]
+products/P052/validation/validate_surrogate.py  line 68 token 2: 11.6 -> 15.3  [duration marker]
     context: The surrogate strategy refits every <#> simulations and scores <#> candidates before each one, so its overhead per simulation is roughly <#>
-products/P052/validation/validate_surrogate.py  line 75 token 1: 1613.6 -> 3596.5  [duration marker]
+products/P052/validation/validate_surrogate.py  line 75 token 1: 1613.6 -> 1064.2  [duration marker]
     context: n_jobs=<#>   single-row predict:     <#> us
-products/P052/validation/validate_surrogate.py  line 76 token 1: 12190.6 -> 25511.1  [duration marker]
+products/P052/validation/validate_surrogate.py  line 76 token 1: 12190.6 -> 14853.3  [duration marker]
     context: n_jobs=<#>   single-row predict:    <#> us
-products/P061/validation/validate_gap.py  line 15 token 7: 0.015 -> 0.027
+products/P061/validation/validate_gap.py  line 15 token 7: 0.015 -> 0.011
     context: tiny-enumerable        <#>     <#>     <#>  <#>     <#>       <#>     <#>    <#> horizon
-products/P061/validation/validate_gap.py  line 16 token 6: 0.095 -> 0.221
+products/P061/validation/validate_gap.py  line 16 token 6: 0.095 -> 0.069
     context: energy-bound          <#>    <#>    <#>  <#>     <#>     <#>     <#>    <#> battery-depth-of-discharge
-products/P061/validation/validate_gap.py  line 16 token 7: 0.966 -> 2.707
+products/P061/validation/validate_gap.py  line 16 token 7: 0.966 -> 0.651
     context: energy-bound          <#>    <#>    <#>  <#>     <#>     <#>     <#>    <#> battery-depth-of-discharge
-products/P061/validation/validate_gap.py  line 17 token 6: 0.058 -> 0.210
+products/P061/validation/validate_gap.py  line 17 token 6: 0.058 -> 0.042
     context: recorder-bound        <#>    <#>    <#>  <#>     <#>       <#>     <#>    <#> recorder-capacity
-products/P061/validation/validate_gap.py  line 17 token 7: 0.021 -> 0.084
+products/P061/validation/validate_gap.py  line 17 token 7: 0.021 -> 0.016
     context: recorder-bound        <#>    <#>    <#>  <#>     <#>       <#>     <#>    <#> recorder-capacity
-products/P061/validation/validate_gap.py  line 18 token 7: 0.010 -> 0.037
+products/P061/validation/validate_gap.py  line 18 token 6: 0.002 -> 0.001
     context: window-bound          <#>     <#>     <#>  <#>     <#>       <#>     <#>    <#> window:target-<#>
-products/P061/validation/validate_gap.py  line 19 token 6: 0.051 -> 0.186
+products/P061/validation/validate_gap.py  line 18 token 7: 0.010 -> 0.007
+    context: window-bound          <#>     <#>     <#>  <#>     <#>       <#>     <#>    <#> window:target-<#>
+products/P061/validation/validate_gap.py  line 19 token 6: 0.051 -> 0.038
     context: leo-imaging           <#>    <#>    <#>  <#>    <#>       <#>     <#>    <#> recorder-capacity
-products/P061/validation/validate_gap.py  line 19 token 7: 0.483 -> 1.516
+products/P061/validation/validate_gap.py  line 19 token 7: 0.483 -> 0.349
     context: leo-imaging           <#>    <#>    <#>  <#>    <#>       <#>     <#>    <#> recorder-capacity
-products/P061/validation/validate_gap.py  line 25 token 7: 0.134 -> 0.288
+products/P061/validation/validate_gap.py  line 25 token 7: 0.134 -> 0.084
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 25 token 8: 0.282 -> 0.657
+products/P061/validation/validate_gap.py  line 25 token 8: 0.282 -> 0.197
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 26 token 7: 0.128 -> 0.236
+products/P061/validation/validate_gap.py  line 26 token 7: 0.128 -> 0.077
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 26 token 8: 0.084 -> 0.133
+products/P061/validation/validate_gap.py  line 26 token 8: 0.084 -> 0.044
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 27 token 7: 0.223 -> 0.240
+products/P061/validation/validate_gap.py  line 27 token 7: 0.223 -> 0.091
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 27 token 8: 0.473 -> 1.276
+products/P061/validation/validate_gap.py  line 27 token 8: 0.473 -> 0.357
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 28 token 7: 0.118 -> 0.276
+products/P061/validation/validate_gap.py  line 28 token 7: 0.118 -> 0.091
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes battery-depth-of-discharge
-products/P061/validation/validate_gap.py  line 28 token 8: 0.603 -> 1.240
+products/P061/validation/validate_gap.py  line 28 token 8: 0.603 -> 0.457
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes battery-depth-of-discharge
-products/P061/validation/validate_gap.py  line 29 token 7: 0.098 -> 0.290
+products/P061/validation/validate_gap.py  line 29 token 7: 0.098 -> 0.078
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 29 token 8: 0.362 -> 0.944
+products/P061/validation/validate_gap.py  line 29 token 8: 0.362 -> 0.277
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 30 token 7: 0.128 -> 0.262
+products/P061/validation/validate_gap.py  line 30 token 7: 0.128 -> 0.088
     context: family-<#>       <#>    <#>    <#>  <#>      <#>  <#>     <#>    <#>     yes battery-depth-of-discharge
-products/P061/validation/validate_gap.py  line 30 token 8: 0.774 -> 1.830
+products/P061/validation/validate_gap.py  line 30 token 8: 0.774 -> 0.562
     context: family-<#>       <#>    <#>    <#>  <#>      <#>  <#>     <#>    <#>     yes battery-depth-of-discharge
-products/P061/validation/validate_gap.py  line 31 token 7: 0.165 -> 0.443
+products/P061/validation/validate_gap.py  line 31 token 7: 0.165 -> 0.124
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 31 token 8: 0.582 -> 1.410
+products/P061/validation/validate_gap.py  line 31 token 8: 0.582 -> 0.416
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 32 token 7: 0.143 -> 0.272
+products/P061/validation/validate_gap.py  line 32 token 7: 0.143 -> 0.093
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 32 token 8: 0.503 -> 1.202
+products/P061/validation/validate_gap.py  line 32 token 8: 0.503 -> 0.345
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 33 token 7: 0.149 -> 0.233
+products/P061/validation/validate_gap.py  line 33 token 7: 0.149 -> 0.074
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 33 token 8: 0.498 -> 1.404
+products/P061/validation/validate_gap.py  line 33 token 8: 0.498 -> 0.366
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 34 token 7: 0.108 -> 0.348
+products/P061/validation/validate_gap.py  line 34 token 7: 0.108 -> 0.083
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 34 token 8: 0.108 -> 0.323
+products/P061/validation/validate_gap.py  line 34 token 8: 0.108 -> 0.084
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 35 token 7: 0.122 -> 0.313
+products/P061/validation/validate_gap.py  line 35 token 7: 0.122 -> 0.093
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 35 token 8: 0.122 -> 0.305
+products/P061/validation/validate_gap.py  line 35 token 8: 0.122 -> 0.091
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 36 token 7: 0.118 -> 0.317
+products/P061/validation/validate_gap.py  line 36 token 7: 0.118 -> 0.088
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 36 token 8: 0.045 -> 0.147
+products/P061/validation/validate_gap.py  line 36 token 8: 0.045 -> 0.034
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 37 token 7: 0.134 -> 0.485
+products/P061/validation/validate_gap.py  line 37 token 7: 0.134 -> 0.102
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 37 token 8: 0.677 -> 1.819
+products/P061/validation/validate_gap.py  line 37 token 8: 0.677 -> 0.500
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 38 token 7: 0.136 -> 0.408
+products/P061/validation/validate_gap.py  line 38 token 7: 0.136 -> 0.099
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 38 token 8: 0.646 -> 1.915
+products/P061/validation/validate_gap.py  line 38 token 8: 0.646 -> 0.489
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 39 token 7: 0.204 -> 0.310
+products/P061/validation/validate_gap.py  line 39 token 7: 0.204 -> 0.092
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 39 token 8: 0.822 -> 2.138
+products/P061/validation/validate_gap.py  line 39 token 8: 0.822 -> 0.604
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 40 token 7: 0.152 -> 0.277
+products/P061/validation/validate_gap.py  line 40 token 7: 0.152 -> 0.091
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 40 token 8: 0.348 -> 0.713
+products/P061/validation/validate_gap.py  line 40 token 8: 0.348 -> 0.286
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 41 token 7: 0.130 -> 0.234
+products/P061/validation/validate_gap.py  line 41 token 7: 0.130 -> 0.096
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 41 token 8: 0.340 -> 0.637
+products/P061/validation/validate_gap.py  line 41 token 8: 0.340 -> 0.262
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 42 token 7: 0.115 -> 0.094
+products/P061/validation/validate_gap.py  line 42 token 7: 0.115 -> 0.085
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 42 token 8: 0.296 -> 0.386
+products/P061/validation/validate_gap.py  line 42 token 8: 0.296 -> 0.223
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 43 token 7: 0.127 -> 0.196
+products/P061/validation/validate_gap.py  line 43 token 7: 0.127 -> 0.093
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 43 token 8: 0.380 -> 0.794
+products/P061/validation/validate_gap.py  line 43 token 8: 0.380 -> 0.285
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 44 token 7: 0.110 -> 0.221
+products/P061/validation/validate_gap.py  line 44 token 7: 0.110 -> 0.082
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 44 token 8: 0.663 -> 1.281
+products/P061/validation/validate_gap.py  line 44 token 8: 0.663 -> 0.495
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 45 token 7: 0.131 -> 0.185
+products/P061/validation/validate_gap.py  line 45 token 7: 0.131 -> 0.093
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 45 token 8: 0.552 -> 0.857
+products/P061/validation/validate_gap.py  line 45 token 8: 0.552 -> 0.405
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 46 token 7: 0.103 -> 0.151
+products/P061/validation/validate_gap.py  line 46 token 7: 0.103 -> 0.075
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 46 token 8: 0.527 -> 0.949
+products/P061/validation/validate_gap.py  line 46 token 8: 0.527 -> 0.392
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 47 token 7: 0.129 -> 0.306
+products/P061/validation/validate_gap.py  line 47 token 7: 0.129 -> 0.127
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 47 token 8: 0.175 -> 0.338
+products/P061/validation/validate_gap.py  line 47 token 8: 0.175 -> 0.131
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes recorder-capacity
-products/P061/validation/validate_gap.py  line 48 token 7: 0.114 -> 0.197
+products/P061/validation/validate_gap.py  line 48 token 7: 0.114 -> 0.092
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 48 token 8: 0.081 -> 0.177
+products/P061/validation/validate_gap.py  line 48 token 8: 0.081 -> 0.063
     context: family-<#>       <#>    <#>    <#>  <#>       <#>  <#>     <#>    <#>     yes horizon
-products/P061/validation/validate_gap.py  line 63 token 0: 0.134 -> 0.274  [duration marker]
+products/P061/validation/validate_gap.py  line 63 token 0: 0.134 -> 0.091  [duration marker]
     context: greedy wall clock, mean : <#> s
-products/P061/validation/validate_gap.py  line 64 token 0: 0.414 -> 0.953  [duration marker]
+products/P061/validation/validate_gap.py  line 64 token 0: 0.414 -> 0.307  [duration marker]
     context: exact wall clock, mean  : <#> s
-products/P061/validation/validate_gap.py  line 65 token 0: 0.822 -> 2.138  [duration marker]
+products/P061/validation/validate_gap.py  line 65 token 0: 0.822 -> 0.604  [duration marker]
     context: exact wall clock, max   : <#> s
-products/P061/validation/validate_gap.py  line 66 token 0: 3.09 -> 3.48
+products/P061/validation/validate_gap.py  line 66 token 0: 3.09 -> 3.36
     context: exact/greedy time ratio : <#>
-products/P061/validation/validate_gap.py  line 93 token 0: 15.3 -> 35.5  [duration marker]
+products/P061/validation/validate_gap.py  line 93 token 0: 15.3 -> 11.0  [duration marker]
     context: wall clock                       <#> s
-products/P061/validation/validate_robust.py  line 11 token 0: 1.62 -> 2.67  [duration marker]
+products/P061/validation/validate_predictor.py  line 19 token 6: 1.51 -> 1.02  [duration marker]
+    context: <#> duration [s]      <#>     <#>     <#>       <#>      <#>    <#>
+products/P061/validation/validate_predictor.py  line 20 token 6: 1.51 -> 1.02  [duration marker]
+    context: <#> energy [W*h]       <#>      <#>     <#>        <#>       <#>    <#>
+products/P061/validation/validate_predictor.py  line 21 token 6: 1.54 -> 1.10  [duration marker]
+    context: <#> duration [s]      <#>     <#>     <#>       <#>      <#>    <#>
+products/P061/validation/validate_predictor.py  line 22 token 6: 1.54 -> 1.10  [duration marker]
+    context: <#> energy [W*h]       <#>      <#>     <#>        <#>       <#>    <#>
+products/P061/validation/validate_predictor.py  line 23 token 6: 1.56 -> 1.04  [duration marker]
+    context: <#> duration [s]      <#>     <#>     <#>       <#>      <#>    <#>
+products/P061/validation/validate_predictor.py  line 24 token 6: 1.56 -> 1.04  [duration marker]
+    context: <#> energy [W*h]       <#>      <#>     <#>        <#>       <#>    <#>
+products/P061/validation/validate_predictor.py  line 25 token 6: 1.48 -> 1.04  [duration marker]
+    context: <#> duration [s]      <#>     <#>     <#>       <#>      <#>    <#>
+products/P061/validation/validate_predictor.py  line 26 token 6: 1.48 -> 1.04  [duration marker]
+    context: <#> energy [W*h]       <#>      <#>     <#>        <#>       <#>    <#>
+products/P061/validation/validate_predictor.py  line 27 token 6: 1.55 -> 1.04  [duration marker]
+    context: <#> duration [s]      <#>     <#>     <#>       <#>      <#>    <#>
+products/P061/validation/validate_predictor.py  line 28 token 6: 1.55 -> 1.04  [duration marker]
+    context: <#> energy [W*h]       <#>      <#>     <#>        <#>       <#>    <#>
+products/P061/validation/validate_predictor.py  line 111 token 0: 55.7 -> 38.4  [duration marker]
+    context: wall clock                            <#> s
+products/P061/validation/validate_robust.py  line 11 token 0: 1.62 -> 1.08  [duration marker]
     context: predictor fit    : <#> s
-products/P061/validation/validate_robust.py  line 142 token 0: 24.0 -> 40.0  [duration marker]
+products/P061/validation/validate_robust.py  line 142 token 0: 24.0 -> 17.0  [duration marker]
     context: wall clock  <#> s
-products/P061/validation/worked_example.py  line 4 token 2: 0.540 -> 0.576  [duration marker]
+products/P061/validation/validate_warmstart.py  line 13 token 2: 0.015 -> 0.013
+    context: tiny-enumerable      <#>      True       <#>     <#>      <#>  <#>
+products/P061/validation/validate_warmstart.py  line 14 token 2: 0.014 -> 0.011
+    context: tiny-enumerable      <#>     False       <#>     <#>      <#>  <#>
+products/P061/validation/validate_warmstart.py  line 15 token 2: 0.913 -> 0.688
+    context: energy-bound        <#>      True     <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 16 token 2: 0.115 -> 0.086
+    context: energy-bound        <#>     False       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 17 token 2: 0.021 -> 0.016
+    context: recorder-bound      <#>      True       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 18 token 2: 0.023 -> 0.018
+    context: recorder-bound      <#>     False       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 19 token 2: 0.010 -> 0.007
+    context: window-bound         <#>      True       <#>     <#>      <#>  <#>
+products/P061/validation/validate_warmstart.py  line 20 token 2: 0.008 -> 0.006
+    context: window-bound         <#>     False       <#>     <#>      <#>  <#>
+products/P061/validation/validate_warmstart.py  line 21 token 2: 0.478 -> 0.353
+    context: leo-imaging         <#>      True       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 22 token 2: 14.644 -> 11.166
+    context: leo-imaging         <#>     False    <#>    <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 23 token 3: 0.291 -> 0.195
+    context: family-<#>         <#>      True       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 24 token 3: 0.804 -> 0.530
+    context: family-<#>         <#>     False       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 25 token 3: 0.063 -> 0.045
+    context: family-<#>         <#>      True       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 27 token 3: 0.443 -> 0.330
+    context: family-<#>         <#>      True       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 28 token 3: 0.597 -> 0.472
+    context: family-<#>         <#>     False       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 29 token 3: 0.497 -> 0.380
+    context: family-<#>         <#>      True       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 30 token 3: 0.914 -> 0.659
+    context: family-<#>         <#>     False       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 31 token 3: 0.372 -> 0.272
+    context: family-<#>         <#>      True       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 32 token 3: 0.548 -> 0.376
+    context: family-<#>         <#>     False       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 33 token 3: 0.746 -> 0.545
+    context: family-<#>         <#>      True      <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 34 token 3: 0.381 -> 0.272
+    context: family-<#>         <#>     False       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 35 token 3: 0.626 -> 0.427
+    context: family-<#>         <#>      True       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 36 token 3: 0.371 -> 0.272
+    context: family-<#>         <#>     False       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 37 token 3: 0.625 -> 0.355
+    context: family-<#>         <#>      True       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 38 token 3: 0.572 -> 0.379
+    context: family-<#>         <#>     False       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 39 token 3: 0.513 -> 0.366
+    context: family-<#>         <#>      True       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 40 token 3: 0.510 -> 0.344
+    context: family-<#>         <#>     False       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 41 token 3: 0.114 -> 0.084
+    context: family-<#>         <#>      True       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 42 token 3: 0.619 -> 0.455
+    context: family-<#>         <#>     False       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 43 token 3: 0.121 -> 0.091
+    context: family-<#>         <#>      True       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 44 token 3: 0.120 -> 0.090
+    context: family-<#>         <#>     False       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 45 token 3: 0.044 -> 0.034
+    context: family-<#>         <#>      True       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 46 token 3: 0.108 -> 0.080
+    context: family-<#>         <#>     False       <#>     <#>     <#>  <#>
+products/P061/validation/validate_warmstart.py  line 61 token 5: 0.901 -> 0.655
+    context: energy-bound          True        <#>     <#>         <#>           <#>      <#>    <#>    <#>      <#>      True
+products/P061/validation/validate_warmstart.py  line 61 token 6: 0.628 -> 0.450
+    context: energy-bound          True        <#>     <#>         <#>           <#>      <#>    <#>    <#>      <#>      True
+products/P061/validation/validate_warmstart.py  line 61 token 7: 0.6971 -> 0.6875
+    context: energy-bound          True        <#>     <#>         <#>           <#>      <#>    <#>    <#>      <#>      True
+products/P061/validation/validate_warmstart.py  line 62 token 5: 15.114 -> 10.654
+    context: leo-imaging          False        <#>     <#>        <#>         <#>      <#>   <#>    <#>      <#>      True
+products/P061/validation/validate_warmstart.py  line 62 token 6: 3.493 -> 2.664
+    context: leo-imaging          False        <#>     <#>        <#>         <#>      <#>   <#>    <#>      <#>      True
+products/P061/validation/validate_warmstart.py  line 62 token 7: 0.2311 -> 0.2500
+    context: leo-imaging          False        <#>     <#>        <#>         <#>      <#>   <#>    <#>      <#>      True
+products/P061/validation/validate_warmstart.py  line 63 token 6: 0.776 -> 0.602
+    context: family-<#>           True        <#>     <#>          <#>           <#>      <#>    <#>    <#>      <#>      True
+products/P061/validation/validate_warmstart.py  line 63 token 7: 0.527 -> 0.396
+    context: family-<#>           True        <#>     <#>          <#>           <#>      <#>    <#>    <#>      <#>      True
+products/P061/validation/validate_warmstart.py  line 63 token 8: 0.6789 -> 0.6577
+    context: family-<#>           True        <#>     <#>          <#>           <#>      <#>    <#>    <#>      <#>      True
+products/P061/validation/validate_warmstart.py  line 79 token 7: 0.274 -> 0.228
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 79 token 8: 0.356 -> 0.285
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 79 token 9: 0.335 -> 0.256
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 80 token 6: 0.298 -> 0.270
+    context: family-<#>        <#>      <#>   True        nan   False           <#>         <#>         <#>    <#>   <#>     nan
+products/P061/validation/validate_warmstart.py  line 80 token 7: 0.293 -> 0.252
+    context: family-<#>        <#>      <#>   True        nan   False           <#>         <#>         <#>    <#>   <#>     nan
+products/P061/validation/validate_warmstart.py  line 82 token 6: 0.273 -> 0.221
+    context: family-<#>        <#>      <#>   True        nan   False           <#>         <#>         <#>    <#>   <#>     nan
+products/P061/validation/validate_warmstart.py  line 82 token 7: 0.307 -> 0.267
+    context: family-<#>        <#>      <#>   True        nan   False           <#>         <#>         <#>    <#>   <#>     nan
+products/P061/validation/validate_warmstart.py  line 84 token 6: 2.333 -> 1.627
+    context: family-<#>        <#>      <#>   True        nan   False         <#>       <#>         <#>    <#>   <#>     nan
+products/P061/validation/validate_warmstart.py  line 84 token 7: 2.913 -> 2.208
+    context: family-<#>        <#>      <#>   True        nan   False         <#>       <#>         <#>    <#>   <#>     nan
+products/P061/validation/validate_warmstart.py  line 86 token 7: 0.159 -> 0.142
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 86 token 8: 0.112 -> 0.102
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 86 token 9: 0.114 -> 0.088
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 87 token 7: 0.180 -> 0.150
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 87 token 8: 0.145 -> 0.097
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 87 token 9: 0.130 -> 0.117
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 88 token 7: 0.570 -> 0.430
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 88 token 8: 0.269 -> 0.215
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 88 token 9: 0.270 -> 0.205
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 89 token 7: 0.351 -> 0.197
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 89 token 8: 0.174 -> 0.124
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 89 token 9: 0.175 -> 0.123
+    context: family-<#>        <#>      <#>   True       <#>    True           <#>         <#>          <#>    <#>   <#>   <#>
+products/P061/validation/validate_warmstart.py  line 117 token 0: 61.8 -> 45.5  [duration marker]
+    context: wall clock                              <#> s
+products/P061/validation/worked_example.py  line 4 token 2: 0.540 -> 0.376  [duration marker]
     context: exact objective     : <#>, <#> nodes, <#> s, proven optimal True
-products/P062/validation/validate_coverage.py  line 42 token 0: 83.8 -> 67.8  [duration marker]
+products/P062/validation/validate_coverage.py  line 42 token 0: 83.8 -> 57.2  [duration marker]
     context: elapsed <#> s
-products/P062/validation/validate_profile.py  line 140 token 0: 51.9 -> 70.4  [duration marker]
+products/P062/validation/validate_profile.py  line 140 token 0: 51.9 -> 35.4  [duration marker]
     context: elapsed <#> s
-products/P062/validation/validate_recovery.py  line 115 token 0: 44.6 -> 63.6  [duration marker]
+products/P062/validation/validate_recovery.py  line 115 token 0: 44.6 -> 32.4  [duration marker]
     context: elapsed <#> s
 products/P062/validation/validate_residual.py  line 152 token 1: 0.091097 -> 0.091154
     context: full-sun                      <#>   <#> <#>     WORSE
@@ -11200,135 +11816,143 @@ products/P062/validation/validate_residual.py  line 154 token 2: +0.179540 -> +0
     context: weak-excitation               <#>   <#> <#>     WORSE
 products/P062/validation/validate_residual.py  line 166 token 1: 27.1375 -> 27.1374
     context: q_par             <#>        <#>    <#>
-products/P062/validation/validate_residual.py  line 222 token 0: 27.6 -> 24.0  [duration marker]
+products/P062/validation/validate_residual.py  line 222 token 0: 27.6 -> 22.0  [duration marker]
     context: elapsed <#> s
-products/P062/validation/worked_example.py  line 16 token 0: 4.1 -> 4.5  [duration marker]
+products/P062/validation/worked_example.py  line 16 token 0: 4.1 -> 3.8  [duration marker]
     context: elapsed <#> s
-products/P068/validation/validate_headtohead.py  line 165 token 0: 0.05 -> 0.10  [duration marker]
+products/P068/validation/validate_headtohead.py  line 165 token 0: 0.05 -> 0.03  [duration marker]
     context: linear                  predict    <#> s
-products/P068/validation/validate_headtohead.py  line 166 token 0: 0.05 -> 0.07  [duration marker]
+products/P068/validation/validate_headtohead.py  line 166 token 0: 0.05 -> 0.04  [duration marker]
     context: exponential             predict    <#> s
-products/P068/validation/validate_headtohead.py  line 167 token 0: 0.05 -> 0.10  [duration marker]
+products/P068/validation/validate_headtohead.py  line 167 token 0: 0.05 -> 0.03  [duration marker]
     context: powerlaw-fade           predict    <#> s
 products/P068/validation/validate_headtohead.py  line 168 token 0: 0.11 -> 0.05  [duration marker]
     context: learned-ipcw            predict    <#> s, fit    <#> s
-products/P068/validation/validate_headtohead.py  line 168 token 1: 6.86 -> 6.76  [duration marker]
+products/P068/validation/validate_headtohead.py  line 168 token 1: 6.86 -> 4.72  [duration marker]
     context: learned-ipcw            predict    <#> s, fit    <#> s
 products/P068/validation/validate_headtohead.py  line 169 token 0: 0.08 -> 0.05  [duration marker]
     context: learned-complete-case   predict    <#> s, fit    <#> s
-products/P068/validation/validate_headtohead.py  line 169 token 1: 7.48 -> 4.54  [duration marker]
+products/P068/validation/validate_headtohead.py  line 169 token 1: 7.48 -> 4.42  [duration marker]
     context: learned-complete-case   predict    <#> s, fit    <#> s
-products/P068/validation/validate_headtohead.py  line 170 token 0: 85.3 -> 63.5  [duration marker]
+products/P068/validation/validate_headtohead.py  line 170 token 0: 85.3 -> 55.4  [duration marker]
     context: whole script                        : <#> s (budget <#> s: PASS)
 products/P070/validation/validate_false_trip.py  line 59 token 0: 1.6 -> 0.9  [duration marker]
     context: wall clock            : <#> s on <#> cores
-products/P071/validation/validate_screening.py  line 41 token 3: 6.107 -> 8.324  [duration marker]
+products/P071/validation/validate_screening.py  line 41 token 3: 6.107 -> 7.185  [duration marker]
     context: forest: <#> trees, min_samples_leaf <#>, <#> workers; trained in <#> s
-products/P071/validation/validate_screening.py  line 188 token 2: 0.530 -> 0.612
+products/P071/validation/validate_screening.py  line 188 token 2: 0.530 -> 0.621
     context: <#>   <#>               <#>
-products/P071/validation/validate_screening.py  line 189 token 3: 0.987 -> 1.182
+products/P071/validation/validate_screening.py  line 189 token 3: 0.987 -> 1.214
     context: <#>   <#>  <#>     <#>
-products/P071/validation/validate_screening.py  line 190 token 3: 1.949 -> 2.397
+products/P071/validation/validate_screening.py  line 190 token 3: 1.949 -> 2.369
     context: <#>   <#>  <#>     <#>
-products/P071/validation/validate_screening.py  line 191 token 3: 3.897 -> 8.618
+products/P071/validation/validate_screening.py  line 191 token 3: 3.897 -> 4.530
     context: <#>   <#>  <#>     <#>
-products/P071/validation/validate_screening.py  line 192 token 3: 5.686 -> 8.748
+products/P071/validation/validate_screening.py  line 192 token 3: 5.686 -> 4.436
     context: <#>   <#>  <#>     <#>
-products/P071/validation/validate_screening.py  line 202 token 1: 31.75 -> 45.77  [duration marker]
+products/P071/validation/validate_screening.py  line 193 token 3: 7.729 -> 5.908
+    context: <#>   <#>  <#>     <#>
+products/P071/validation/validate_screening.py  line 202 token 1: 31.75 -> 30.24  [duration marker]
     context: whole script, including <#> extra forest fits: <#> s wall clock
-products/P072/validation/validate_compress.py  line 123 token 0: 1.876 -> 1.474  [duration marker]
+products/P072/validation/validate_compress.py  line 123 token 0: 1.876 -> 1.371  [duration marker]
     context: forest fit [s]        <#>
-products/P072/validation/validate_compress.py  line 124 token 0: 7.624 -> 5.409  [duration marker]
+products/P072/validation/validate_compress.py  line 124 token 0: 7.624 -> 5.104  [duration marker]
     context: benchmark wall clock [s]        <#>
-products/P075/validation/validate_bridge.py  line 228 token 0: 1.71 -> 0.71  [duration marker]
+products/P072/validation/validate_stability.py  line 110 token 0: 61.151 -> 43.997  [duration marker]
+    context: total wall clock [s]       <#>
+products/P072/validation/validate_valuemodel.py  line 191 token 0: 3.886 -> 3.219  [duration marker]
+    context: forest fit [s]        <#>
+products/P072/validation/validate_valuemodel.py  line 193 token 0: 54.716 -> 40.224  [duration marker]
+    context: benchmark wall clock [s]       <#>
+products/P075/validation/validate_bridge.py  line 228 token 0: 1.71 -> 0.75  [duration marker]
     context: | whole script wall clock | <#> s | UNSTABLE, shared hardware |
-products/P075/validation/validate_commoncause.py  line 219 token 0: 3.24 -> 2.45  [duration marker]
+products/P075/validation/validate_commoncause.py  line 219 token 0: 3.24 -> 1.40  [duration marker]
     context: | whole script wall clock | <#> s | UNSTABLE, shared hardware |
-products/P075/validation/validate_montecarlo.py  line 201 token 0: 4.68 -> 4.91  [duration marker]
+products/P075/validation/validate_montecarlo.py  line 201 token 0: 4.68 -> 2.46  [duration marker]
     context: | simulation wall clock | <#> s | UNSTABLE, shared hardware |
-products/P075/validation/validate_negative_controls.py  line 221 token 0: 0.03 -> 0.02  [duration marker]
+products/P075/validation/validate_negative_controls.py  line 221 token 0: 0.03 -> 0.01  [duration marker]
     context: | whole script wall clock | <#> s | UNSTABLE, shared hardware |
-products/P075/validation/worked_example.py  line 249 token 0: 2.51 -> 1.65  [duration marker]
+products/P075/validation/worked_example.py  line 249 token 0: 2.51 -> 0.96  [duration marker]
     context: | quantification and simulation | <#> s | UNSTABLE, shared hardware |
-products/P076/validation/validate_kepler.py  line 64 token 1: 0.0461 -> 0.0486
+products/P076/validation/validate_kepler.py  line 64 token 1: 0.0461 -> 0.0299
     context: propagate_two_body                              <#>       <#>
-products/P076/validation/validate_kepler.py  line 65 token 2: 1.6587 -> 2.6172
+products/P076/validation/validate_kepler.py  line 65 token 2: 1.6587 -> 1.0582
     context: solve_ivp DOP853 rtol <#>                     <#>       <#>
-products/P077/validation/validate_predictors.py  line 221 token 1: 19.77 -> 13.90  [duration marker]
+products/P077/validation/validate_predictors.py  line 221 token 1: 19.77 -> 13.95  [duration marker]
     context: fit and score <#> predictors     <#>
-products/P077/validation/validate_predictors.py  line 222 token 0: 29.81 -> 21.38
+products/P077/validation/validate_predictors.py  line 222 token 0: 29.81 -> 19.66
     context: total     <#>
-products/P079/validation/validate_asymmetry_benchmark.py  line 42 token 0: 7.125 -> 6.697  [duration marker]
+products/P079/validation/validate_asymmetry_benchmark.py  line 42 token 0: 7.125 -> 3.465  [duration marker]
     context: dataset build time                       : <#> s
-products/P079/validation/validate_asymmetry_benchmark.py  line 74 token 0: 10.254 -> 3.219  [duration marker]
+products/P079/validation/validate_asymmetry_benchmark.py  line 74 token 0: 10.254 -> 3.379  [duration marker]
     context: dataset build time                       : <#> s
-products/P079/validation/validate_asymmetry_benchmark.py  line 106 token 0: 9.413 -> 3.212  [duration marker]
+products/P079/validation/validate_asymmetry_benchmark.py  line 106 token 0: 9.413 -> 3.415  [duration marker]
     context: dataset build time                       : <#> s
-products/P079/validation/validate_asymmetry_benchmark.py  line 201 token 0: 0.0070 -> 0.0022
+products/P079/validation/validate_asymmetry_benchmark.py  line 201 token 0: 0.0070 -> 0.0021
     context: learned_ridge         <#>
-products/P079/validation/validate_asymmetry_benchmark.py  line 202 token 0: 5.0031 -> 1.6523
+products/P079/validation/validate_asymmetry_benchmark.py  line 202 token 0: 5.0031 -> 1.7947
     context: learned_gbr         <#>
-products/P079/validation/validate_benchmark_table.py  line 28 token 1: 0.6596 -> 0.1524
+products/P079/validation/validate_benchmark_table.py  line 28 token 1: 0.6596 -> 0.1549
     context: two_way_estimate      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 28 token 2: 0.1918 -> 0.1357
+products/P079/validation/validate_benchmark_table.py  line 28 token 2: 0.1918 -> 0.1429
     context: two_way_estimate      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 28 token 3: 2.7186 -> 0.2024
+products/P079/validation/validate_benchmark_table.py  line 28 token 3: 2.7186 -> 0.2154
     context: two_way_estimate      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 28 token 4: 0.1636 -> 0.1274
+products/P079/validation/validate_benchmark_table.py  line 28 token 4: 0.1636 -> 0.1304
     context: two_way_estimate      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 28 token 5: 4.3596 -> 0.2029
+products/P079/validation/validate_benchmark_table.py  line 28 token 5: 4.3596 -> 0.2494
     context: two_way_estimate      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 29 token 1: 0.7974 -> 0.7759
+products/P079/validation/validate_benchmark_table.py  line 29 token 1: 0.7974 -> 0.2866
     context: fit_least_squares_order2      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 29 token 2: 0.3325 -> 0.2722
+products/P079/validation/validate_benchmark_table.py  line 29 token 2: 0.3325 -> 0.2569
     context: fit_least_squares_order2      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 29 token 3: 2.8755 -> 2.8834
+products/P079/validation/validate_benchmark_table.py  line 29 token 3: 2.8755 -> 0.4280
     context: fit_least_squares_order2      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 29 token 4: 0.2886 -> 0.2274
+products/P079/validation/validate_benchmark_table.py  line 29 token 4: 0.2886 -> 0.2292
     context: fit_least_squares_order2      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 29 token 5: 4.4379 -> 4.4905
+products/P079/validation/validate_benchmark_table.py  line 29 token 5: 4.4379 -> 0.4823
     context: fit_least_squares_order2      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 31 token 1: 6.2465 -> 5.4818
+products/P079/validation/validate_benchmark_table.py  line 31 token 1: 6.2465 -> 2.7381
     context: allan_table      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 31 token 2: 5.1822 -> 6.7510
+products/P079/validation/validate_benchmark_table.py  line 31 token 2: 5.1822 -> 2.6119
     context: allan_table      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 31 token 3: 9.1239 -> 7.1453
+products/P079/validation/validate_benchmark_table.py  line 31 token 3: 9.1239 -> 3.1258
     context: allan_table      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 31 token 4: 3.7779 -> 2.6287
+products/P079/validation/validate_benchmark_table.py  line 31 token 4: 3.7779 -> 2.5727
     context: allan_table      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 31 token 5: 9.4095 -> 7.3122
+products/P079/validation/validate_benchmark_table.py  line 31 token 5: 9.4095 -> 3.1769
     context: allan_table      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 32 token 1: 0.7093 -> 0.6291
+products/P079/validation/validate_benchmark_table.py  line 32 token 1: 0.7093 -> 0.1635
     context: offset_uncertainty      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 32 token 2: 0.2177 -> 0.1624
+products/P079/validation/validate_benchmark_table.py  line 32 token 2: 0.2177 -> 0.1459
     context: offset_uncertainty      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 32 token 3: 2.8818 -> 2.6869
+products/P079/validation/validate_benchmark_table.py  line 32 token 3: 2.8818 -> 0.2396
     context: offset_uncertainty      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 32 token 4: 0.1827 -> 0.1377
+products/P079/validation/validate_benchmark_table.py  line 32 token 4: 0.1827 -> 0.1383
     context: offset_uncertainty      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 32 token 5: 4.5339 -> 4.3026
+products/P079/validation/validate_benchmark_table.py  line 32 token 5: 4.5339 -> 0.2823
     context: offset_uncertainty      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 33 token 1: 1.2505 -> 1.0408
+products/P079/validation/validate_benchmark_table.py  line 33 token 1: 1.2505 -> 0.5971
     context: window_features      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 33 token 2: 0.7659 -> 0.5608
+products/P079/validation/validate_benchmark_table.py  line 33 token 2: 0.7659 -> 0.5881
     context: window_features      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 33 token 3: 3.3521 -> 3.1153
+products/P079/validation/validate_benchmark_table.py  line 33 token 3: 3.3521 -> 0.6691
     context: window_features      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 33 token 4: 0.7153 -> 0.5446
+products/P079/validation/validate_benchmark_table.py  line 33 token 4: 0.7153 -> 0.5322
     context: window_features      <#>      <#>      <#>      <#>      <#>      <#>
-products/P079/validation/validate_benchmark_table.py  line 33 token 5: 4.9386 -> 4.7405
+products/P079/validation/validate_benchmark_table.py  line 33 token 5: 4.9386 -> 0.6937
     context: window_features      <#>      <#>      <#>      <#>      <#>      <#>
 products/P079/validation/validate_benchmark_table.py  line 37 token 1: 024 -> 020
     context: tracemalloc peak   : <#>,<#> B
 products/P079/validation/validate_benchmark_table.py  line 38 token 0: 173 -> 181
     context: maxrss             : <#>,<#>,<#> B (ru_maxrss interpreted as kibibytes (linux))
-products/P079/validation/validate_benchmark_table.py  line 38 token 1: 494 -> 837
+products/P079/validation/validate_benchmark_table.py  line 38 token 1: 494 -> 706
     context: maxrss             : <#>,<#>,<#> B (ru_maxrss interpreted as kibibytes (linux))
-products/P079/validation/validate_benchmark_table.py  line 38 token 2: 272 -> 824
+products/P079/validation/validate_benchmark_table.py  line 38 token 2: 272 -> 752
     context: maxrss             : <#>,<#>,<#> B (ru_maxrss interpreted as kibibytes (linux))
 products/P079/validation/validate_benchmark_table.py  line 42 token 0: 105 -> 74  [duration marker]
     context: measured resolution: <#> ns
-products/P079/validation/validate_benchmark_table.py  line 43 token 0: 69.0 -> 49.0  [duration marker]
+products/P079/validation/validate_benchmark_table.py  line 43 token 0: 69.0 -> 48.0  [duration marker]
     context: call-pair overhead : <#> ns
 products/P079/validation/validate_benchmark_table.py  line 44 token 0: 3.031089e-08 -> 2.136196e-08  [duration marker]
     context: u_q(offset)        : <#> s
@@ -11336,16 +11960,18 @@ products/P079/validation/validate_benchmark_table.py  line 138 token 1: 024 -> 0
     context: tracemalloc peak     : <#>,<#> B
 products/P079/validation/validate_benchmark_table.py  line 139 token 0: 173 -> 181
     context: maxrss               : <#>,<#>,<#> B
-products/P079/validation/validate_benchmark_table.py  line 139 token 1: 494 -> 837
+products/P079/validation/validate_benchmark_table.py  line 139 token 1: 494 -> 706
     context: maxrss               : <#>,<#>,<#> B
-products/P079/validation/validate_benchmark_table.py  line 139 token 2: 272 -> 824
+products/P079/validation/validate_benchmark_table.py  line 139 token 2: 272 -> 752
     context: maxrss               : <#>,<#>,<#> B
 products/P079/validation/validate_benchmark_table.py  line 140 token 0: 105 -> 74  [duration marker]
     context: measured clock res.  : <#> ns
 products/P079/validation/validate_benchmark_table.py  line 141 token 0: 3.031089e-08 -> 2.136196e-08  [duration marker]
     context: u_q(offset)          : <#> s
-products/P080/validation/validate_learned.py  line 36 token 7: 0.16 -> 0.18
+products/P080/validation/validate_learned.py  line 36 token 7: 0.16 -> 0.09
     context: linear  <#>   <#>       <#>      <#>          <#>/<#>        <#>                            <#>
+products/P080/validation/validate_learned.py  line 37 token 6: 0.02 -> 0.01
+    context: linear  none  <#>       <#>      <#>          <#>/<#>        <#>                            <#>
 products/P080/validation/validate_rate_distortion.py  line 48 token 1: 441 -> 443
     context: <#>  zlib_symbols   <#>    <#>       <#>  -            yes    yes
 products/P080/validation/validate_rate_distortion.py  line 48 token 2: 0.8613 -> 0.8652
@@ -11442,7 +12068,7 @@ products/P080/validation/validate_rate_distortion.py  line 192 token 5: 1.040 ->
     context: white_noise        <#>  <#>      <#>       <#>      <#>         <#>   <#>         <#>   <#>        <#>
 products/P080/validation/validate_rate_distortion.py  line 193 token 4: 27100 -> 27111
     context: step_transient     <#>  <#>      <#>       <#>     <#>         <#>   <#>         <#>   <#>        <#>
-products/P080/validation/validate_rate_distortion.py  line 213 token 0: 4.22 -> 2.51
+products/P080/validation/validate_rate_distortion.py  line 213 token 0: 4.22 -> 2.63
     context: previous   <#>            <#>
 products/P080/validation/worked_example.py  line 81 token 0: 6090 -> 6093
     context: zlib_symbols                  <#>   <#>      <#>   yes
@@ -11452,100 +12078,96 @@ products/P080/validation/worked_example.py  line 84 token 0: 26950 -> 27081
     context: zlib_float64 (lossless)       <#>  <#>      <#>   yes
 products/P080/validation/worked_example.py  line 84 token 1: 52.6367 -> 52.8926
     context: zlib_float64 (lossless)       <#>  <#>      <#>   yes
-products/P082/validation/validate_climatology.py  line 144 token 0: 1.539 -> 1.497  [duration marker]
+products/P082/validation/validate_climatology.py  line 144 token 0: 1.539 -> 0.749  [duration marker]
     context: bootstrap time           : <#> s
-products/P082/validation/validate_copula.py  line 34 token 0: 2.80 -> 2.25  [duration marker]
+products/P082/validation/validate_copula.py  line 34 token 0: 2.80 -> 2.35  [duration marker]
     context: this product, vectorised     : <#> ms for <#> cases
-products/P082/validation/validate_copula.py  line 106 token 0: 78.76 -> 177.44  [duration marker]
+products/P082/validation/validate_copula.py  line 106 token 0: 78.76 -> 79.97  [duration marker]
     context: exact evaluation, mean        : <#> ms
-products/P082/validation/validate_copula.py  line 107 token 0: 3.23 -> 5.06  [duration marker]
+products/P082/validation/validate_copula.py  line 107 token 0: 3.23 -> 2.79  [duration marker]
     context: node construction, mean       : <#> ms
-products/P082/validation/validate_empirical.py  line 142 token 0: 0.205 -> 0.362  [duration marker]
+products/P082/validation/validate_empirical.py  line 142 token 0: 0.205 -> 0.217  [duration marker]
     context: total                    : <#> s
-products/P082/validation/validate_empirical.py  line 143 token 0: 34.2 -> 60.3  [duration marker]
+products/P082/validation/validate_empirical.py  line 143 token 0: 34.2 -> 36.2  [duration marker]
     context: mean per network         : <#> ms
-products/P082/validation/validate_empirical.py  line 144 token 0: 0.205 -> 0.362  [duration marker]
+products/P082/validation/validate_empirical.py  line 144 token 0: 0.205 -> 0.217  [duration marker]
     context: [PASS] the whole bootstrap is well inside the declared three-minute budget -- <#> s for <#> networks at <#> replicates
-products/P082/validation/validate_overstatement.py  line 28 token 0: 0.068 -> 0.134  [duration marker]
+products/P082/validation/validate_overstatement.py  line 28 token 0: 0.068 -> 0.101  [duration marker]
     context: generate and estimate        : <#> s
-products/P082/validation/worked_example.py  line 153 token 0: 0.199 -> 0.423  [duration marker]
+products/P082/validation/worked_example.py  line 153 token 0: 0.199 -> 0.204  [duration marker]
     context: whole worked example      : <#> s
-products/P083/validation/validate_certificate.py  line 176 token 2: 3.01 -> 2.60
+products/P083/validation/validate_certificate.py  line 176 token 2: 3.01 -> 2.78
     context: nominal-6deg-seed3001  <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 176 token 3: 19.27 -> 13.73
+products/P083/validation/validate_certificate.py  line 176 token 3: 19.27 -> 13.49
     context: nominal-6deg-seed3001  <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 176 token 4: 2.26 -> 1.61
+products/P083/validation/validate_certificate.py  line 176 token 4: 2.26 -> 1.59
     context: nominal-6deg-seed3001  <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 177 token 2: 3.09 -> 2.78
+products/P083/validation/validate_certificate.py  line 177 token 2: 3.09 -> 2.62
     context: nominal-8deg-seed3002  <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 177 token 3: 19.41 -> 14.25
+products/P083/validation/validate_certificate.py  line 177 token 3: 19.41 -> 14.35
     context: nominal-8deg-seed3002  <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 177 token 4: 3.29 -> 2.36
+products/P083/validation/validate_certificate.py  line 177 token 4: 3.29 -> 2.38
     context: nominal-8deg-seed3002  <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 178 token 2: 3.15 -> 2.56
+products/P083/validation/validate_certificate.py  line 178 token 2: 3.15 -> 2.54
     context: loaded-3deg-seed3003   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 178 token 3: 33.36 -> 24.19
+products/P083/validation/validate_certificate.py  line 178 token 3: 33.36 -> 24.44
     context: loaded-3deg-seed3003   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 178 token 4: 2.82 -> 2.12
+products/P083/validation/validate_certificate.py  line 178 token 4: 2.82 -> 2.11
     context: loaded-3deg-seed3003   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 179 token 2: 3.22 -> 2.67
+products/P083/validation/validate_certificate.py  line 179 token 2: 3.22 -> 2.63
     context: loaded-6deg-seed3004   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 179 token 3: 39.13 -> 28.67
+products/P083/validation/validate_certificate.py  line 179 token 3: 39.13 -> 28.64
     context: loaded-6deg-seed3004   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 179 token 4: 8.83 -> 6.62
+products/P083/validation/validate_certificate.py  line 179 token 4: 8.83 -> 6.49
     context: loaded-6deg-seed3004   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 180 token 2: 3.20 -> 2.74
+products/P083/validation/validate_certificate.py  line 180 token 2: 3.20 -> 2.64
     context: loaded-8deg-seed3005   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 180 token 3: 32.66 -> 23.61
+products/P083/validation/validate_certificate.py  line 180 token 3: 32.66 -> 36.10
     context: loaded-8deg-seed3005   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 180 token 4: 4.82 -> 3.57
+products/P083/validation/validate_certificate.py  line 180 token 4: 4.82 -> 5.67
     context: loaded-8deg-seed3005   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 181 token 2: 3.22 -> 2.64
+products/P083/validation/validate_certificate.py  line 181 token 2: 3.22 -> 3.72
     context: bursty-3deg-seed3006   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 181 token 3: 14.56 -> 10.56
+products/P083/validation/validate_certificate.py  line 181 token 3: 14.56 -> 17.50
     context: bursty-3deg-seed3006   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 181 token 4: 1.85 -> 1.24
+products/P083/validation/validate_certificate.py  line 181 token 4: 1.85 -> 1.98
     context: bursty-3deg-seed3006   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 182 token 2: 3.23 -> 2.64
+products/P083/validation/validate_certificate.py  line 182 token 2: 3.23 -> 4.10
     context: bursty-6deg-seed3007   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 182 token 3: 18.12 -> 13.14
+products/P083/validation/validate_certificate.py  line 182 token 3: 18.12 -> 21.48
     context: bursty-6deg-seed3007   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_certificate.py  line 182 token 4: 4.46 -> 2.91
+products/P083/validation/validate_certificate.py  line 182 token 4: 4.46 -> 4.60
     context: bursty-6deg-seed3007   <#>      <#>          <#>          <#>           <#>                 <#>            <#>
-products/P083/validation/validate_resimulation.py  line 130 token 2: 13.96 -> 24.01
-    context: nominal-3deg-seed3000  <#>      <#>              <#>      <#>
-products/P083/validation/validate_resimulation.py  line 130 token 3: 0.7795 -> 1.3410
-    context: nominal-3deg-seed3000  <#>      <#>              <#>      <#>
-products/P083/validation/validate_resimulation.py  line 131 token 2: 19.69 -> 30.95
+products/P083/validation/validate_resimulation.py  line 131 token 2: 19.69 -> 13.52
     context: nominal-6deg-seed3001  <#>      <#>              <#>      <#>
-products/P083/validation/validate_resimulation.py  line 131 token 3: 0.7855 -> 1.2343
+products/P083/validation/validate_resimulation.py  line 131 token 3: 0.7855 -> 0.5392
     context: nominal-6deg-seed3001  <#>      <#>              <#>      <#>
-products/P083/validation/validate_resimulation.py  line 132 token 2: 22.15 -> 27.20
+products/P083/validation/validate_resimulation.py  line 132 token 2: 22.15 -> 14.75
     context: nominal-8deg-seed3002  <#>      <#>              <#>      <#>
-products/P083/validation/validate_resimulation.py  line 132 token 3: 0.8482 -> 1.0418
+products/P083/validation/validate_resimulation.py  line 132 token 3: 0.8482 -> 0.5648
     context: nominal-8deg-seed3002  <#>      <#>              <#>      <#>
-products/P083/validation/validate_resimulation.py  line 133 token 2: 35.39 -> 55.32
+products/P083/validation/validate_resimulation.py  line 133 token 2: 35.39 -> 25.34
     context: loaded-3deg-seed3003   <#>      <#>              <#>      <#>
-products/P083/validation/validate_resimulation.py  line 133 token 3: 0.7861 -> 1.2286
+products/P083/validation/validate_resimulation.py  line 133 token 3: 0.7861 -> 0.5627
     context: loaded-3deg-seed3003   <#>      <#>              <#>      <#>
-products/P083/validation/validate_resimulation.py  line 134 token 2: 42.98 -> 61.06
+products/P083/validation/validate_resimulation.py  line 134 token 2: 42.98 -> 29.07
     context: loaded-6deg-seed3004   <#>      <#>              <#>      <#>
-products/P083/validation/validate_resimulation.py  line 134 token 3: 0.8026 -> 1.1402
+products/P083/validation/validate_resimulation.py  line 134 token 3: 0.8026 -> 0.5428
     context: loaded-6deg-seed3004   <#>      <#>              <#>      <#>
-products/P083/validation/validate_resimulation.py  line 135 token 2: 34.71 -> 24.08
+products/P083/validation/validate_resimulation.py  line 135 token 2: 34.71 -> 24.12
     context: loaded-8deg-seed3005   <#>      <#>              <#>      <#>
-products/P083/validation/validate_resimulation.py  line 135 token 3: 0.8053 -> 0.5587
+products/P083/validation/validate_resimulation.py  line 135 token 3: 0.8053 -> 0.5597
     context: loaded-8deg-seed3005   <#>      <#>              <#>      <#>
-products/P083/validation/validate_resimulation.py  line 141 token 0: 168.9 -> 222.6  [duration marker]
+products/P083/validation/validate_resimulation.py  line 141 token 0: 168.9 -> 116.7  [duration marker]
     context: [PASS] the whole cost section stays inside a few seconds on two cores -- <#> ms for <#> evaluations
-products/P084/validation/validate_bounds.py  line 100 token 0: 1.1 -> 1.4  [duration marker]
+products/P084/validation/validate_bounds.py  line 100 token 0: 1.1 -> 0.6  [duration marker]
     context: mean-bound scoring wall clock: <#> s over <#> sample sizes
-products/P084/validation/validate_inversion.py  line 103 token 0: 1.4 -> 2.3  [duration marker]
+products/P084/validation/validate_inversion.py  line 103 token 0: 1.4 -> 1.1  [duration marker]
     context: total Monte Carlo wall clock: <#> s over <#> blocks
-products/P084/validation/validate_inversion.py  line 105 token 0: 1.4 -> 2.3  [duration marker]
+products/P084/validation/validate_inversion.py  line 105 token 0: 1.4 -> 1.1  [duration marker]
     context: [PASS] the Monte Carlo finishes inside the declared three-minute budget -- <#> s
 
-of 266 numbers that move at the declared seed, 74 sit on a line carrying a wall-clock duration marker and 192 do not.
+of 345 numbers that move at the declared seed, 89 sit on a line carrying a wall-clock duration marker and 256 do not.
 the duration marker GROUPS these findings and never removes one. A wall-clock
 reading written into a file the repository treats as reproducible evidence is
 still a number that is not reproducible.
@@ -11553,7 +12175,7 @@ still a number that is not reproducible.
 ==============================================================================
 5. CANDIDATES WHOSE CLAIM COULD NOT BE EVALUATED
 ==============================================================================
-no_output: 68
+no_output: 73
   products/P012/validation/v1_riccati_steady_state.py
   products/P012/validation/v2_nees_nis_consistency.py
   products/P012/validation/v3_ukf_vs_ekf.py
@@ -11577,6 +12199,7 @@ no_output: 68
   products/P031/validation/recovery_abort.py
   products/P031/validation/timing_uncertainty.py
   products/P032/validation/validate_benchmark.py
+  products/P032/validation/validate_calibration.py
   products/P032/validation/validate_ilp.py
   products/P032/validation/validate_routing.py
   products/P032/validation/validate_uncertainty.py
@@ -11596,6 +12219,7 @@ no_output: 68
   products/P045/validation/export_policy_table.py
   products/P045/validation/validate_burst_channel.py
   products/P045/validation/validate_burst_goodput.py
+  products/P045/validation/validate_closed_form.py
   products/P045/validation/validate_crc.py
   products/P045/validation/validate_harq.py
   products/P045/validation/validate_policy.py
@@ -11612,10 +12236,13 @@ no_output: 68
   products/P051/validation/worked_example.py
   products/P053/validation/validate_ambiguity.py
   products/P053/validation/validate_arl_curve.py
+  products/P053/validation/validate_classifier.py
+  products/P053/validation/validate_thresholds.py
   products/P053/validation/validate_twin.py
   products/P053/validation/worked_example.py
   products/P060/validation/validate_coverage.py
   products/P067/validation/dependency_range_check.py
+  products/P067/validation/validate_policies.py
   products/P067/validation/validate_spiral_coverage.py
   products/P067/validation/worked_example.py
   products/P069/validation/validate_dependency_ends.py
@@ -11660,18 +12287,9 @@ run_failed: 37
   products/P059/validation/validate_support_algebra.py
   products/P063/validation/validate_calibration.py
   products/P063/validation/validate_conservatism.py
-timeout: 18
-  products/P032/validation/validate_calibration.py
-  products/P045/validation/validate_closed_form.py
-  products/P053/validation/validate_classifier.py
-  products/P053/validation/validate_thresholds.py
-  products/P061/validation/validate_predictor.py
-  products/P061/validation/validate_warmstart.py
-  products/P067/validation/validate_policies.py
+timeout: 9
   products/P070/validation/validate_latency_vs_simulation.py
   products/P071/validation/validate_montecarlo.py
-  products/P072/validation/validate_stability.py
-  products/P072/validation/validate_valuemodel.py
   products/P074/validation/validate_reproducibility.py
   products/P078/validation/validate_determinism.py
   products/P078/validation/validate_irreversible_gate.py
@@ -11690,6 +12308,10 @@ files that would not parse: 0
   write_to_read_path: 246
   write_under_glob: 16
   write_under_read: 13
+
+the static screen executes nothing. It is therefore the one part of this
+campaign that is INDEPENDENT OF MACHINE LOAD, and it is the part the
+validation check pins as exact literals.
 
 files with the most findings, with one finding each shown in full:
   products/P093/tests/test_trace.py: 102 findings
@@ -11733,18 +12355,5 @@ files with the most findings, with one finding each shown in full:
   products/P001/tests/test_surrogate.py: 1 findings
     write_to_read_path: writes '$path' at line 179 via save, reads '$path' at line 180 via load
 
-the screen is conservative by construction: a path expression it cannot resolve becomes a wildcard and a wildcard is under everything, so it over-flags rather than under-flags. Its false-positive rate on the deterministic negative controls of the injected corpus is measured in validate_injected_corpus.py and published there.
-
-machine-readable evidence written to validation/repository_findings.json
-
-==============================================================================
-7. WHAT THIS RUN DOES NOT CLAIM
-==============================================================================
-a candidate reported as compared with no moved numbers is evidence that this ONE perturbed seed draw did not move it. It is not evidence that no seed does, and it is not evidence about intermittency at a fixed seed: that is the repeat axis and this run samples it once per arrangement, bound 0.95.
-the committed output artifact is deleted inside the pristine copy before each run, so a script that does not rewrite it is reported as no_output rather than compared against itself. That deletion applies identically to the control run, so it cannot reach the headline.
-[PASS] the audit completed with at least one candidate compared -- compared=106
-
-==============================================================================
-checks: 1
-failures: 0
-==============================================================================
+evidence written to validation/repository_findings.json
+transcript written to data/repository_audit_output.txt
