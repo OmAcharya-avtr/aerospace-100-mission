@@ -1,0 +1,243 @@
+Baseline 3 -- injected corpus of known rate -- P100 SeedAudit
+
+fast path (SEEDAUDIT_FAST=1): False
+declared seed: 1000044
+runs per rate: 1320
+runs at the mission rate 1/44: 4400
+audit sizes: (2, 5, 10, 20)
+bootstrap resamples: 2000
+confidence: 0.95
+injected rates: (1.0, 0.5, 0.1, 0.022727272727272728, 0.01, 0.001)
+
+audits are formed from DISJOINT consecutive blocks of runs. Overlapping
+windows share runs and would inflate the apparent number of independent
+audits, which is the error this product exists to report elsewhere.
+
+corpus scripts generated: 12
+
+==============================================================================
+1. CALIBRATION -- is the ground truth actually the declared rate?
+==============================================================================
+per-rate coverage: 0.95
+family size: 6
+Bonferroni family-wise per-interval coverage: 0.9916666666666667
+
+six intervals at 95 per cent each all cover with probability
+0.95**6 = 0.7350918906249998, so a
+single miss is the expected outcome about a quarter of the time. BOTH
+intervals are reported; the family-wise one is the pass criterion and
+the correction is declared in the source above, not chosen after
+seeing which interval missed.
+
+    injected    runs    hits      realised      95% lo      95% hi   in95       FW lo       FW hi   inFW
+    1.000000    1320    1320      1.000000    0.997209    1.000000   True    0.995857    1.000000   True
+    0.500000    1320     644      0.487879    0.460587    0.515224   True    0.451305    0.524545   True
+    0.100000    1320     112      0.084848    0.070375    0.101201   True    0.065834    0.107065   True
+    0.022727    4400      98      0.022273    0.018118    0.027077   True    0.016832    0.028821   True
+    0.010000    1320       8      0.006061    0.002620    0.011907   True    0.001891    0.014244   True
+    0.001000    1320       0      0.000000    0.000000    0.002791   True    0.000000    0.004143   True
+
+per-rate 95 per cent intervals covering the injected rate: 6 of 6
+family-wise intervals covering the injected rate: 6 of 6
+[PASS] every family-wise interval covers its injected rate -- 6 of 6
+
+==============================================================================
+2. MEASURED DETECTION POWER PER RATE, with bootstrap intervals
+==============================================================================
+P_pair is the run-and-diff design with no committed reference.
+P_ref is the design that compares each run against a committed value.
+
+TWO DERIVED VALUES ARE REPORTED AND THEY ANSWER DIFFERENT QUESTIONS.
+  derived@injected uses the rate the corpus was BUILT with. Comparing
+    the measurement against it tests the corpus calibration AND the
+    detection mathematics together, so a miss does not say which failed.
+  derived@realised uses the per-run rate actually OBSERVED in section 1.
+    Comparing against it tests the disjoint-block detection mathematics
+    ALONE, with the calibration confound removed.
+The pass criterion is derived@realised, because that is the claim this
+product makes; the derived@injected count is reported beside it and the
+calibration itself is section 1's job.
+
+cells: 24; Bonferroni per-cell coverage for the family: 0.9979166666666667
+
+THE PERCENTILE BOOTSTRAP IS DEGENERATE WHEN NO AUDIT DETECTED. All
+resamples of an all-zero indicator array have mean 0, so the interval
+is [0, 0] and cannot contain a positive derived value. That is a
+property of the bootstrap at the boundary, not evidence of
+disagreement. The exact interval is reported beside it and is what the
+pass criterion uses; the bootstrap interval is reported because the
+specification asks for it, and both counts are given.
+
+      rate    n   blocks   meas P_pair    boot lo    boot hi      FW lo      FW hi      d@inj     d@real    inj   real   meas P_ref     d@real   real
+  1.000000    2      660      0.000000   0.000000   0.000000   0.000000   0.010351   0.000000   0.000000   True   True     1.000000   1.000000   True
+  1.000000    5      264      0.000000   0.000000   0.000000   0.000000   0.025676   0.000000   0.000000   True   True     1.000000   1.000000   True
+  1.000000   10      132      0.000000   0.000000   0.000000   0.000000   0.050692   0.000000   0.000000   True   True     1.000000   1.000000   True
+  1.000000   20       66      0.000000   0.000000   0.000000   0.000000   0.098815   0.000000   0.000000   True   True     1.000000   1.000000   True
+  0.500000    2      660      0.475758   0.437879   0.513636   0.415655   0.536355   0.500000   0.499706   True   True     0.725758   0.737732   True
+  0.500000    5      264      0.920455   0.886364   0.950758   0.856306   0.962699   0.937500   0.937133   True   True     0.969697   0.964774   True
+  0.500000   10      132      1.000000   1.000000   1.000000   0.949308   1.000000   0.998047   0.997995   True   True     1.000000   0.998759   True
+  0.500000   20       66      1.000000   1.000000   1.000000   0.901185   1.000000   0.999998   0.999998   True   True     1.000000   0.999998   True
+  0.100000    2      660      0.163636   0.136364   0.192424   0.122118   0.212058   0.180000   0.155298   True   True     0.166667   0.162498   True
+  0.100000    5      264      0.359848   0.303030   0.416667   0.271522   0.455350   0.409500   0.358099   True   True     0.359848   0.358103   True
+  0.100000   10      132      0.590909   0.507576   0.674242   0.453466   0.719063   0.651322   0.587969   True   True     0.590909   0.587969   True
+  0.100000   20       66      0.818182   0.727273   0.909091   0.636457   0.934926   0.878423   0.830230   True   True     0.818182   0.830230   True
+  0.022727    2     2200      0.040909   0.032727   0.049102   0.029077   0.055578   0.044421   0.043553   True   True     0.042727   0.044049   True
+  0.022727    5      880      0.102273   0.081818   0.121591   0.073351   0.137330   0.108587   0.106512   True   True     0.102273   0.106512   True
+  0.022727   10      440      0.197727   0.163636   0.236364   0.143067   0.261698   0.205383   0.201679   True   True     0.197727   0.201679   True
+  0.022727   20      220      0.336364   0.277159   0.395455   0.242228   0.440558   0.368584   0.362684   True   True     0.336364   0.362684   True
+  0.010000    2      660      0.012121   0.004545   0.021212   0.003017   0.031643   0.019800   0.012048   True   True     0.012121   0.012084   True
+  0.010000    5      264      0.030303   0.011364   0.053030   0.007586   0.077935   0.049010   0.029938   True   True     0.030303   0.029938   True
+  0.010000   10      132      0.060606   0.022727   0.106061   0.015321   0.152015   0.095618   0.058980   True   True     0.060606   0.058980   True
+  0.010000   20       66      0.121212   0.045455   0.212121   0.031265   0.289033   0.182093   0.114481   True   True     0.121212   0.114481   True
+  0.001000    2      660      0.000000   0.000000   0.000000   0.000000   0.010351   0.001998   0.000000   True   True     0.000000   0.000000   True
+  0.001000    5      264      0.000000   0.000000   0.000000   0.000000   0.025676   0.004990   0.000000   True   True     0.000000   0.000000   True
+  0.001000   10      132      0.000000   0.000000   0.000000   0.000000   0.050692   0.009955   0.000000   True   True     0.000000   0.000000   True
+  0.001000   20       66      0.000000   0.000000   0.000000   0.000000   0.098815   0.019811   0.000000   True   True     0.000000   0.000000   True
+
+cells: 24
+pairwise: derived@realised inside the family-wise exact interval on 24 of 24
+reference: derived@realised inside the family-wise exact interval on 24 of 24
+pairwise: derived@injected inside the family-wise exact interval on 24 of 24
+pairwise: derived@realised inside the per-cell 95 per cent BOOTSTRAP interval on 22 of 24
+cells whose bootstrap interval is degenerate (no audit detected): 10
+
+at rate 1.000000 the measured pairwise power is 0 at every audit size,
+and the derived value is 0 too: when every run manifests, every run
+agrees with every other and run-and-diff cannot see the change at all.
+that is not a defect in the measurement. It is the strongest single
+statement this corpus makes about Baseline 1.
+[PASS] the derived pairwise power at the REALISED rate lies inside the family-wise exact interval on every cell -- 24 of 24
+[PASS] the derived reference power at the REALISED rate lies inside the family-wise exact interval on every cell -- 24 of 24
+the derived@injected count (24 of 24) and the bootstrap count (22 of 24) are REPORTED and are not pass criteria: 10 of 24 bootstrap intervals are degenerate at the boundary for the reason stated above, and a derived@injected miss is a calibration result that section 1 owns.
+
+==============================================================================
+3. BASELINE 1 AT THE MISSION RATE -- measured against derived
+==============================================================================
+Baseline 1 is run-each-script-twice-and-diff. It is implemented
+deliberately as the thing being refuted.
+
+injected rate                 : 0.022727272727272728
+independent runs              : 4400
+disjoint audits of 2 runs     : 2200
+MEASURED detection power      : 0.04090909090909091
+bootstrap 95 per cent interval: [0.03272727272727273, 0.04910227272727266]
+exact 95 per cent interval    : [0.029076873796789277, 0.05557794466229227]
+DERIVED  1 - p^2 - (1-p)^2    : 0.04442148760330579
+derived inside the bootstrap interval: True
+derived inside the exact interval    : True
+reference-design derived value: 0.04493801652892562
+
+a method that finds a 1-in-44 intermittent defect about one time in
+twenty-two is the method every reproducibility checker uses.
+[PASS] Baseline 1's measured power at p = 1/44 contains its derived value -- derived 0.044421 in exact [0.029077, 0.055578]
+
+SPEC.md section 8 pre-registered that this measured power would lie
+inside the interval of the derived 0.044421487603305776 AND be below
+0.06. The second half is a statement about the realised sample and is
+reported as it lands, not as a tolerance to be widened.
+[PASS] Baseline 1's measured power at p = 1/44 is below 0.06, as pre-registered -- measured 0.04090909090909091
+
+==============================================================================
+4. NEGATIVE CONTROLS -- the dynamic detector
+==============================================================================
+a control that is supposed to stay silent and does not is a false
+positive, and it is published rather than removed.
+
+              deterministic_control.py  pristine_agree= True  reused_agree= True  no_evidence
+[PASS] control stays silent: dynamic detector on deterministic_control.py
+               deterministic_reader.py  pristine_agree= True  reused_agree= True  no_evidence
+[PASS] control stays silent: dynamic detector on deterministic_reader.py
+      deterministic_config_adjacent.py  pristine_agree= True  reused_agree= True  no_evidence
+[PASS] control stays silent: dynamic detector on deterministic_config_adjacent.py
+
+DYNAMIC false-positive rate on the negative controls: 0.0  (0 of 3)
+
+==============================================================================
+5. NEGATIVE CONTROLS -- the static screen, reported separately
+==============================================================================
+the screen is conservative by construction: an unresolvable path
+expression becomes a wildcard. deterministic_config_adjacent.py is in
+the corpus BECAUSE it is the case where the two detectors are expected
+to disagree -- it writes its result into the directory it reads its
+config from, and it is deterministic.
+
+              deterministic_control.py  findings= 0  path uses= 0  vacuous= 0
+               deterministic_reader.py  findings= 0  path uses= 3  vacuous= 0
+      deterministic_config_adjacent.py  findings= 0  path uses= 2  vacuous= 0
+
+STATIC false-positive rate on the negative controls: 0.0  (0 of 3)
+
+THE PRE-REGISTERED EXPECTATION IS REFUTED HERE, and the refutation is
+published rather than retuned. SPEC.md section 8 predicted a NON-ZERO
+static false-positive rate, on the reasoning that an unresolvable path
+becomes a wildcard and deterministic_config_adjacent.py would be
+flagged. It is not flagged, and the reason is that the screen is more
+precise than the prediction: that script READS A FILE in the directory
+it writes to, it does not ENUMERATE the directory, and a write beside a
+file that was read is not containment under a scan root. The screen was
+not changed to produce this result; the prediction was wrong.
+
+PINNED AS A LITERAL. The static false-positive set is exactly the empty
+set, and this check fails for real if a control joins it.
+expected: []
+actual  : []
+[PASS] the static false-positive set is exactly the pinned literal set -- []
+[PASS] the dynamic false-positive rate on the negative controls is 0 -- 0 of 3
+
+==============================================================================
+6. THE SELF-POLLUTING CHECK -- the two-arrangement signature
+==============================================================================
+pristine pair verdicts agree: True
+reused tree verdicts agree  : False
+classification              : self_polluting_check
+escaped-rate bound at n=2  : 0.7763932022500211
+
+  pristine run 1: exit=0 artifact='CLEAN\n'
+  pristine run 2: exit=0 artifact='CLEAN\n'
+  reused   run 1: exit=0 artifact='CLEAN\n'
+  reused   run 2: exit=0 artifact='DIRTY\n'
+
+the signature: two PRISTINE runs agree because each sees an empty
+directory; the SECOND run in the same tree sees the file the first run
+wrote. Neither arrangement alone says which defect this is.
+[PASS] control fires: the two-arrangement classifier fires on the self-polluting check -- self_polluting_check
+
+==============================================================================
+7. THE TWO CASES A SINGLE COMPARISON MODE CANNOT SEE
+==============================================================================
+iteration order -- the number is fixed, the printed order is not.
+  runs needed before the two outputs differed: 2
+  moved numeric claims            : 0
+  structurally changed lines      : 1
+  a numeric-only comparison sees  : 0 changes
+  the skeleton comparison sees    : 1 changed lines
+[PASS] a numeric-only comparison is blind to the iteration-order change and the skeleton comparison is not -- moved=0, structural=True
+
+sub-precision -- the change is at the thirteenth decimal place.
+  unperturbed rounded line : rounded 0.123457
+  perturbed   rounded line : rounded 0.123457
+  moved claims in the rounded line: 0
+  unperturbed full line    : full 0.12345678901230001
+  perturbed   full line    : full 0.12345678901240001
+  moved claims in the full line   : 1
+[PASS] a text comparison of the rounded line misses the change and the full-precision comparison catches it -- rounded=0, full=1
+
+==============================================================================
+8. WHAT A CLEAN RESULT ON THIS CORPUS WOULD HAVE MEANT
+==============================================================================
+  after  2 agreeing runs, the escaped-rate upper bound is 0.7763932022500211
+  after  5 agreeing runs, the escaped-rate upper bound is 0.45071972834694113
+  after 10 agreeing runs, the escaped-rate upper bound is 0.2588655508930523
+  after 20 agreeing runs, the escaped-rate upper bound is 0.13910834066826522
+
+the lowest injected rate in this corpus is 0.001, and at the audit
+sizes used here no design reaches a bound anywhere near it. That is a
+statement about the budget, not about the corpus, and it is why the
+bound travels with every verdict.
+
+==============================================================================
+checks: 13
+failures: 0
+controls that must fire: 1 of 1 fired
+controls that must stay silent: 3 of 3 silent
+==============================================================================

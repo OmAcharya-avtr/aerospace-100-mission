@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "hiltimingdiff: measured per-stage timing divergence between simulation and hardware for one PAT pipeline"
+version: 0.1.0
+date-released: "2026-11-16"
+license: Apache-2.0
+repository-code: "https://github.com/OmAcharya-avtr/hiltimingdiff"
+authors:
+  - name: "OPTIMA Organisation"
+abstract: >-
+  Executes one six-stage pointing, acquisition and tracking frame pipeline in
+  two modes -- simulation mode on a host and hardware mode on a Jetson Orin
+  Nano -- from the same committed source file and with the same instrumented
+  driver, and reports stage by stage where the simulation's declared timing
+  model diverges from the board. The headline outputs are the per-stage
+  divergence ratio with a bootstrap interval whose resampling unit is the pass,
+  the divergence spread across stages, the rank disagreement between the
+  declared and measured stage orderings as Kendall's tau-b and as an explicit
+  permutation, the least and most trustworthy stages named, and the held-out
+  transfer error of a single measured scaling factor. Includes a fitted
+  correction for the 7.52 per cent board drift measured over the campaign,
+  reported beside the raw figure, the measured share of per-stage variance that
+  co-varies with core frequency at an unpinned schedutil clock, and a gate
+  branch reachability census. No learned component. Research-grade; not
+  flight-qualified, not certified, and not approved for operational aerospace
+  use.
+keywords:
+  - timing-conformance
+  - hardware-in-the-loop
+  - schedulability
+  - jetson-orin-nano
+  - per-stage-timing
+  - differential-testing

@@ -1,0 +1,44 @@
+P094 HilTimingDiff -- example 1: the headline divergence
+========================================================
+Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin Nano; the board drifted 7.52 per cent over the campaign.
+Research-grade. Not flight-qualified, not certified, and not approved for operational aerospace use.
+
+HEADLINE -- P094 HilTimingDiff
+Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin Nano; the board drifted 7.52 per cent over the campaign.
+
+1. Per-stage divergence ratio R[s], pass-unit 95% bootstrap interval, ns_per_op = 4.733067 ns/op:
+     ingest      R = 0.099037 [0.098238, 0.099037]   (0.468750 ns per declared op)
+     background  R = 0.257910 [0.257510, 0.257922]   (1.220703 ns per declared op)
+     threshold   R = 4.574571 [4.570707, 4.584486]   (21.651754 ns per declared op)
+     centroid    R = 110.413010 [110.304071, 110.649742]   (522.592200 ns per declared op)
+     gate        R = 20.111755 [20.061017, 20.216503]   (95.190288 ns per declared op)
+     track       R = 10.066294 [10.029907, 10.067467]   (47.644444 ns per declared op)
+
+2. Divergence spread max(R)/min(R) = 1114.8634 [1113.7634, 1124.8970]
+   SPEC §7 primary (divergence spread): CONFIRMED -- pre-registered > 3, measured 1114.86
+
+3. Rank disagreement: Kendall tau-b = 0.200000 [0.200000, 0.200000]
+   permutation (measured position -> declared position) = (3, 0, 1, 5, 4, 2)
+   declared order (cheapest first): gate < track < centroid < ingest < threshold < background
+   measured order (cheapest first): ingest < gate < track < background < threshold < centroid
+
+4. argmax(R) = centroid (R = 110.413, 0.5806 of measured frame time); argmin(R) = ingest (R = 0.0990373, 0.0053 of measured frame time)
+
+5. Baseline 2 held-out transfer error = 0.164190 [0.162722, 0.164727] on held-out stages centroid, gate, track
+   SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.16419
+
+Research-grade. Not flight-qualified, not certified, and not approved for operational aerospace use.
+
+simulation mode measured here: x86_64, 4 passes x 1500 frames x 9 cells = 54000 timed frames in 13.1 s
+hardware mode read from data/traces/: 810000 timed frames on the board
+
+The calibration-free form, which depends on nothing but the committed traces:
+  stage        ns per declared op   hw median ns   declared ops
+  ingest                0.468750        3840.00      8192.0000
+  background            1.220703       20000.00     16384.0000
+  threshold            21.651754      266056.75     12288.0000
+  centroid            522.592200      421630.00       806.8050
+  gate                 95.190288        6144.00        64.5444
+  track                47.644444        8576.00       180.0000
+
+figure written: screenshots/headline_divergence.png

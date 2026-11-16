@@ -1,0 +1,108 @@
+Tree hygiene -- P100 SeedAudit
+
+this check asserts what the product OWNS: that running it ADDS no cache
+directory or bytecode file, and that nothing a cold clone carries is one.
+It does NOT assert that none EXISTS, because what the release-gate harness
+leaves in the tree before calling this script is not this product's doing.
+
+NO git COMMAND IS RUN HERE. The build agent for this product is forbidden
+from running git; the coordinator commits, gates and publishes. The
+.gitignore semantics the check needs are re-implemented instead, and the
+subset is declared below.
+
+fast path (SEEDAUDIT_FAST=1): False
+product root directory name: P100
+
+==============================================================================
+1. INHERITED ARTIFACTS -- reported, named as inherited, not failed
+==============================================================================
+artifacts present at entry: 24
+  inherited: .hypothesis
+  inherited: .ruff_cache
+  inherited: src/seedaudit/__pycache__
+  inherited: src/seedaudit/__pycache__/__init__.cpython-313.pyc
+  inherited: src/seedaudit/__pycache__/__main__.cpython-313.pyc
+  inherited: src/seedaudit/__pycache__/audit.cpython-313.pyc
+  inherited: src/seedaudit/__pycache__/corpus.cpython-313.pyc
+  inherited: src/seedaudit/__pycache__/dynamic.cpython-313.pyc
+  inherited: src/seedaudit/__pycache__/numeric.cpython-313.pyc
+  inherited: src/seedaudit/__pycache__/power.cpython-313.pyc
+  inherited: src/seedaudit/__pycache__/report.cpython-313.pyc
+  inherited: src/seedaudit/__pycache__/seeds.cpython-313.pyc
+  inherited: src/seedaudit/__pycache__/static.cpython-313.pyc
+  inherited: tests/__pycache__
+  inherited: tests/__pycache__/conftest.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_audit.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_cli.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_corpus.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_determinism.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_dynamic.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_numeric.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_power.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_seeds.cpython-313-pytest-9.1.1.pyc
+  inherited: tests/__pycache__/test_static.cpython-313-pytest-9.1.1.pyc
+
+==============================================================================
+2. WHAT A COLD CLONE WOULD CARRY, by the re-implemented ignore rules
+==============================================================================
+ignore rules collected: 59
+
+covered: comments and blank lines; a leading '!' negation; a trailing '/' making a pattern directory-only; a leading '/' anchoring a pattern to the file's own directory; a pattern with no slash matching a BASENAME at any depth; a pattern with a slash matched against the relative path; '**' segments; last match wins. NOT covered: core.excludesFile, .git/info/exclude, per-directory .gitignore files below this product, and the index itself. The authoritative check is release-gate check 9.
+
+files a cold clone would carry: 57
+of those, cache or build artifacts: 0
+[PASS] nothing a cold clone would carry is a cache directory, bytecode file or build artifact -- 0 offenders
+
+[PASS] pyproject.toml exists and is NOT ignored -- exists=True, ignored=False
+[PASS] README.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] LICENSE exists and is NOT ignored -- exists=True, ignored=False
+[PASS] CHANGELOG.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] CITATION.cff exists and is NOT ignored -- exists=True, ignored=False
+[PASS] SPEC.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] BUILD_NOTES.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] src/seedaudit/__init__.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] src/seedaudit/power.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] tests/test_power.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] examples/power_table.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] screenshots/detection_power.png exists and is NOT ignored -- exists=True, ignored=False
+[PASS] validation/VALIDATION.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] validation/_bootstrap.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] validation/repository_findings.json exists and is NOT ignored -- exists=True, ignored=False
+[PASS] validation/validate_power_model_output.txt exists and is NOT ignored -- exists=True, ignored=False
+
+[PASS] junit.xml IS ignored
+[PASS] __pycache__/x.pyc IS ignored
+[PASS] src/seedaudit/__pycache__/power.pyc IS ignored
+[PASS] .ruff_cache/CACHEDIR.TAG IS ignored
+[PASS] .pytest_cache/CACHEDIR.TAG IS ignored
+[PASS] .hypothesis/unicode_data/x IS ignored
+
+==============================================================================
+3. ABSOLUTE PATHS IN TRACKED TEXT
+==============================================================================
+this scan deletes its own previous output before scanning and assembles
+its patterns from os.sep, because three consecutive sessions of this
+mission introduced a self-reporting scanner in the act of writing about
+one. Its own output file is additionally excluded by name.
+
+patterns, assembled from os.sep = '/': ('/home/', '/Users/', '/root/', '/tmp/')
+files scanned: 50
+lines carrying an absolute path pattern: 0
+[PASS] no tracked text file carries an absolute home or temp path -- 0 occurrences
+
+==============================================================================
+4. WHAT THIS RUN ADDED
+==============================================================================
+artifacts present at exit: 24
+artifacts ADDED by this run: 0
+  none
+[PASS] running this script adds no cache directory and no bytecode file -- 0 added
+
+run this script twice in a row from a clean tree and the second run must
+agree with the first. That is the product's own criterion and this script
+is not exempt from it: probe_working_directories.py runs it four times.
+
+==============================================================================
+checks: 25
+failures: 0
+==============================================================================

@@ -1,0 +1,149 @@
+P094 HilTimingDiff -- working-directory independence
+====================================================
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  pandas           : 3.0.5
+  scipy            : 1.18.1  (cross-check only)
+  pytest           : 9.1.1
+  hypothesis       : 6.170.15
+  matplotlib       : 3.11.2
+  ruff             : 0.17.5
+  analysis machine : x86_64 Linux, 2 cores  (the HARDWARE traces are measured on aarch64 ON THE BOARD; simulation mode and all arithmetic run here)
+  repository root  : P094 (printed relatively; see validation/_bootstrap.py)
+  simulation passes: 12
+  bootstrap resamples: 4000
+
+MEASUREMENT MODEL
+-----------------
+  Hardware-mode figures come from the committed campaign in data/traces/, run on
+  a Jetson Orin Nano: nine grid cells, 60 passes of 1500 frames each, 90000 timed
+  frames per cell, 810000 frames in all, with the cell order randomised under seed
+  20261115. Each of the six stages is bracketed individually by
+  time.perf_counter_ns, whose resolution the campaign measured at 1.000 ns and
+  whose empty-bracket cost it measured per cell at 107.365 to 115.204 ns. A pass
+  summary is computed over EVERY timed frame of that pass; data/traces/stages.csv
+  is subsampled every third frame and any figure taken from it says so. EVERY
+  HARDWARE FIGURE HERE IS A FIGURE AT AN UNPINNED, SCHEDUTIL-GOVERNED CLOCK IN
+  MAXN_SUPER: passwordless sudo was unavailable on the board, so neither the
+  governor nor the power mode could be pinned, per-core frequency spanned 729600
+  to 1728000 kHz across the campaign, and the share of per-stage variance that
+  co-varies with core frequency is measured and reported rather than assumed away.
+  The board also drifted: a fixed 160x160 float64 matmul reference, sharing no code
+  with the pipeline, measured 141844.5 ns before the first cell and 152517.0 ns
+  after the last, a ratio of 1.0752408447278534, and every divergence ratio is
+  reported raw AND drift-adjusted with the raw figure as the headline.
+  Simulation-mode figures are measured in the analysis container, now, by the same
+  instrumented driver over the same committed pipeline file, and move between runs
+  because they are wall-clock readings.
+
+==============================================================================
+what is probed
+==============================================================================
+  validation/validate_approx_audit.py
+  validation/validate_bootstrap_unit.py
+  validation/validate_cli.py
+  validation/validate_drift.py
+  validation/validate_frequency_covariation.py
+  validation/validate_gate_reachability.py
+  validation/validate_independent_bound.py
+  validation/validate_loader_contract.py
+  validation/validate_measured_baselines.py
+  validation/validate_measured_headline.py
+  validation/validate_source_identity.py
+  validation/validate_tree_hygiene.py
+
+  excluded : probe_working_directories.py, validate_pypi_probe.py
+  reasons  : this probe would recurse into itself; the PyPI probe needs the
+             network and a transient failure would look like a path defect.
+
+  working directory : the filesystem root
+  working directory : the system temporary directory
+  working directory : the product root (P094)
+  working directory : validation
+
+[PASS] the sweep has scripts to run
+
+==============================================================================
+the sweep
+==============================================================================
+  validate_approx_audit.py                   exits [0, 0, 0, 0] agree
+[PASS] validate_approx_audit.py returns the same exit status from all four directories -- statuses [0, 0, 0, 0]
+[PASS] validate_approx_audit.py exits 0 from every directory -- statuses [0, 0, 0, 0]
+  validate_bootstrap_unit.py                 exits [0, 0, 0, 0] agree
+[PASS] validate_bootstrap_unit.py returns the same exit status from all four directories -- statuses [0, 0, 0, 0]
+[PASS] validate_bootstrap_unit.py exits 0 from every directory -- statuses [0, 0, 0, 0]
+  validate_cli.py                            exits [0, 0, 0, 0] agree
+[PASS] validate_cli.py returns the same exit status from all four directories -- statuses [0, 0, 0, 0]
+[PASS] validate_cli.py exits 0 from every directory -- statuses [0, 0, 0, 0]
+  validate_drift.py                          exits [0, 0, 0, 0] agree
+[PASS] validate_drift.py returns the same exit status from all four directories -- statuses [0, 0, 0, 0]
+[PASS] validate_drift.py exits 0 from every directory -- statuses [0, 0, 0, 0]
+  validate_frequency_covariation.py          exits [0, 0, 0, 0] agree
+[PASS] validate_frequency_covariation.py returns the same exit status from all four directories -- statuses [0, 0, 0, 0]
+[PASS] validate_frequency_covariation.py exits 0 from every directory -- statuses [0, 0, 0, 0]
+  validate_gate_reachability.py              exits [0, 0, 0, 0] agree
+[PASS] validate_gate_reachability.py returns the same exit status from all four directories -- statuses [0, 0, 0, 0]
+[PASS] validate_gate_reachability.py exits 0 from every directory -- statuses [0, 0, 0, 0]
+  validate_independent_bound.py              exits [0, 0, 0, 0] agree
+[PASS] validate_independent_bound.py returns the same exit status from all four directories -- statuses [0, 0, 0, 0]
+[PASS] validate_independent_bound.py exits 0 from every directory -- statuses [0, 0, 0, 0]
+  validate_loader_contract.py                exits [0, 0, 0, 0] agree
+[PASS] validate_loader_contract.py returns the same exit status from all four directories -- statuses [0, 0, 0, 0]
+[PASS] validate_loader_contract.py exits 0 from every directory -- statuses [0, 0, 0, 0]
+  validate_measured_baselines.py             exits [0, 0, 0, 0] agree
+[PASS] validate_measured_baselines.py returns the same exit status from all four directories -- statuses [0, 0, 0, 0]
+[PASS] validate_measured_baselines.py exits 0 from every directory -- statuses [0, 0, 0, 0]
+  validate_measured_headline.py              exits [0, 0, 0, 0] agree
+[PASS] validate_measured_headline.py returns the same exit status from all four directories -- statuses [0, 0, 0, 0]
+[PASS] validate_measured_headline.py exits 0 from every directory -- statuses [0, 0, 0, 0]
+  validate_source_identity.py                exits [0, 0, 0, 0] agree
+[PASS] validate_source_identity.py returns the same exit status from all four directories -- statuses [0, 0, 0, 0]
+[PASS] validate_source_identity.py exits 0 from every directory -- statuses [0, 0, 0, 0]
+  validate_tree_hygiene.py                   exits [0, 0, 0, 0] agree
+[PASS] validate_tree_hygiene.py returns the same exit status from all four directories -- statuses [0, 0, 0, 0]
+[PASS] validate_tree_hygiene.py exits 0 from every directory -- statuses [0, 0, 0, 0]
+
+==============================================================================
+summary
+==============================================================================
+  scripts probed  : 12
+  directories     : 4
+  executions      : 48
+  disagreements   : 0
+[PASS] no script depends on the caller's working directory
+
+==============================================================================
+this probe must not have replaced the committed evidence
+==============================================================================
+  Every script above writes its own <stem>_output.txt. Four runs each would leave the
+  committed outputs holding this probe's reduced HILTIMINGDIFF_FAST=1 figures instead of
+  the full runs VALIDATION.md quotes, so the subject scripts were redirected to a
+  temporary directory. That redirection is verified here, not assumed.
+
+  outputs written into the temporary sink : 12
+    validate_approx_audit_output.txt
+    validate_bootstrap_unit_output.txt
+    validate_cli_output.txt
+    validate_drift_output.txt
+    validate_frequency_covariation_output.txt
+    validate_gate_reachability_output.txt
+    validate_independent_bound_output.txt
+    validate_loader_contract_output.txt
+    validate_measured_baselines_output.txt
+    validate_measured_headline_output.txt
+    validate_source_identity_output.txt
+    validate_tree_hygiene_output.txt
+
+[PASS] every probed script wrote into the temporary sink, not into validation/ -- 12 sink files against 12 probed scripts
+[PASS] no committed validation output carries the FAST marker -- every committed output is a full run (probe_working_directories_output.txt excluded: it names the marker in its own prose)
+
+==============================================================================
+negative control: a script that DOES depend on the working directory
+==============================================================================
+  control script exits [1, 1, 0, 1]
+[PASS] control: a bare-relative-path script disagrees across the four directories (must fire) -- FIRED; statuses [1, 1, 0, 1]: the probe can see the defect it exists to catch
+
+CHECKS RUN: 29
+CONTROLS: 1 declared, 1 fired; must-fire 1/1, must-NOT-fire silent 0/0
+FAILED CHECKS (0): none

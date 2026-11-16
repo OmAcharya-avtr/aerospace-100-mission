@@ -1,0 +1,37 @@
+# Scratch-file patterns are ANCHORED with a leading slash. A pattern with no
+# slash matches at ANY depth: a bare junit.xml in a product .gitignore silently
+# excluded a required committed fixture in P060 of this mission, and a cold
+# clone then failed with 17 failures and 9 errors while every local check
+# passed. validation/validate_tree_hygiene.py checks both directions, with the
+# .gitignore semantics re-implemented rather than delegated to a git command,
+# because the build agent for this product is forbidden from running git.
+__pycache__/
+*.py[cod]
+*.egg-info/
+/build/
+/dist/
+/.venv/
+/venv/
+/.pytest_cache/
+/.hypothesis/
+/.ruff_cache/
+/.coverage
+/htmlcov/
+/junit.xml
+/.config/
+# This product ships no serialised model and no learned component at all: the
+# registry records ai_enabled: false, and the reason is in SPEC.md section 5.
+# These patterns exist so a future change cannot add one silently.
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.joblib
+# The audit's machine-readable evidence is NOT ignored. It is this product's
+# record of what the audit found over this repository, and
+# validate_repository_findings.py pins its contents as literals, so it must
+# reach a cold clone. It is listed as a negation so that a future broad pattern
+# cannot swallow it silently.
+!/validation/repository_findings.json
+# Every validation script's raw output is evidence and must ship.
+!/validation/*_output.txt

@@ -1,0 +1,162 @@
+Self-audit -- P100 SeedAudit audits P100 SeedAudit
+
+fast path (SEEDAUDIT_FAST=1): False
+product root directory name: P100
+excluded from the dynamic check: validation/validate_self_audit.py -- running it inside a
+  pristine copy of this product would run it recursively
+
+==============================================================================
+1. THE STATIC SCREEN OVER THIS PRODUCT'S OWN TREE
+==============================================================================
+python files parsed: 35
+files that would not parse: 0
+files with at least one finding: 6
+findings in total: 17
+
+src/seedaudit/audit.py: 2 findings
+    write_to_read_path: writes '$script_path' at line 426 via write_text, reads '$script_path' at line 425 via read_text
+    write_to_read_path: writes '$artifact' at line 429 via unlink, reads '$artifact' at line 428 via exists
+src/seedaudit/dynamic.py: 2 findings
+    write_to_read_path: writes '$target' at line 333 via write_text, reads '$target' at line 270 via is_file
+    write_to_read_path: writes '$target' at line 333 via write_text, reads '$target' at line 333 via read_text
+tests/test_dynamic.py: 7 findings
+    write_to_read_path: writes '$source/a.txt' at line 54 via write_text, reads '$source/a.txt' at line 58 via read_text
+    write_to_read_path: writes '$source/s.py' at line 89 via write_text, reads '$source/s.py' at line 123 via read_text
+    write_to_read_path: writes '$source/s.py' at line 102 via write_text, reads '$source/s.py' at line 123 via read_text
+    write_to_read_path: writes '$source/s.py' at line 118 via write_text, reads '$source/s.py' at line 123 via read_text
+    write_to_read_path: writes '$source/s.py' at line 129 via write_text, reads '$source/s.py' at line 123 via read_text
+    write_to_read_path: writes '$source/s.py' at line 138 via write_text, reads '$source/s.py' at line 123 via read_text
+    write_to_read_path: writes '$source/s.py' at line 147 via write_text, reads '$source/s.py' at line 123 via read_text
+validation/_bootstrap.py: 3 findings
+    write_under_read: writes '$path/*?*' at line 210 via mkdir, reads '$path' at line 211 via exists
+    write_to_read_path: writes '$path' at line 212 via unlink, reads '$path' at line 211 via exists
+    write_to_read_path: writes '$path' at line 213 via write_text, reads '$path' at line 211 via exists
+validation/validate_repository_audit.py: 2 findings
+    write_to_read_path: writes '$target' at line 320 via unlink, reads '$target' at line 319 via exists
+    write_to_read_path: writes '$target' at line 321 via write_text, reads '$target' at line 319 via exists
+validation/validate_tree_hygiene.py: 1 findings
+    write_to_read_path: writes '$target' at line 284 via unlink, reads '$target' at line 283 via exists
+
+path uses across this product: 174
+  informative (the screen can reason about them): 171
+  vacuous (the screen is blind to them): 3
+
+THIS PRODUCT'S VALIDATION LAYOUT IS AN INSTANCE OF THE CLASS IT DETECTS.
+The mission's build guide requires validation/<stem>_output.txt beside the
+script, so every script here writes into the directory the hygiene check
+scans. It cannot be avoided, so it is handled the only honest way: the
+Tee deletes its target before writing, so a run's output is never a merge
+of this run and the last; the hygiene check asserts what this product OWNS
+rather than what merely exists; and the finding is printed above rather
+than excluded.
+[PASS] the static screen parses every Python file in this product -- 0 unparseable
+
+==============================================================================
+2. THE TWO-ARRANGEMENT CLASSIFIER ON THIS PRODUCT'S OWN SCRIPTS
+==============================================================================
+each run is in its own pristine copy, with SEEDAUDIT_FAST set in the
+subprocess so the runs are short. The question asked is whether the
+script's VERDICT is stable, not what its numbers are, so the fast path is
+the right setting and it is declared here.
+
+validation/validate_power_model.py
+  pristine runs agree : True
+  reused tree agree   : True
+  classification      : no_evidence
+  escaped-rate bound at n=2: 0.7763932022500211
+  pristine run 1: exit=0 timed_out=False artifact_bytes=12761
+  pristine run 2: exit=0 timed_out=False artifact_bytes=12761
+  reused   run 1: exit=0 timed_out=False artifact_bytes=12761
+  reused   run 2: exit=0 timed_out=False artifact_bytes=12761
+[PASS] validation/validate_power_model.py is not classified as a self-polluting check -- no_evidence
+
+validation/validate_tree_hygiene.py
+  pristine runs agree : True
+  reused tree agree   : True
+  classification      : no_evidence
+  escaped-rate bound at n=2: 0.7763932022500211
+  pristine run 1: exit=0 timed_out=False artifact_bytes=4854
+  pristine run 2: exit=0 timed_out=False artifact_bytes=4854
+  reused   run 1: exit=0 timed_out=False artifact_bytes=4854
+  reused   run 2: exit=0 timed_out=False artifact_bytes=4854
+[PASS] validation/validate_tree_hygiene.py is not classified as a self-polluting check -- no_evidence
+
+
+==============================================================================
+3. A FALSE-NEGATIVE CLASS IN THE AUDIT'S OWN CANDIDATE RULE
+==============================================================================
+candidates this audit finds inside this product: 1
+
+this product declares its ONE seed in validation/_bootstrap.py as
+SEED = 1000044 and every script imports it. The candidate rule requires a
+seed literal in the SCRIPT, so by its own rule this product has no
+candidates. THAT IS A FALSE-NEGATIVE CLASS IN THE RULE, not a property of
+this product, and the size of the blind spot across the corpus is measured
+below rather than asserted.
+
+seed literals in validation/_bootstrap.py: 1
+  values: [1000044]
+[PASS] this product does declare a seed, in a shared module the candidate rule does not look at -- 1 literals
+
+scripts with a committed output file: 565
+  declaring a seed literal in the script (CANDIDATES): 229
+  declaring no seed of their own while a sibling _module does: 72
+  unparseable: 0
+
+MEASURED BLIND SPOT of the candidate rule: 72 of 565 scripts with a
+committed output, which is 0.127434 of them. Those scripts DO have a
+declared seed; it is just not written in the file the rule inspects.
+Resolving an imported constant would need the audit to execute or
+import the module it is auditing, which is a different and larger
+design. The limitation is published in README.md rather than reduced
+by widening the rule until it guesses.
+[PASS] the blind spot is measured and non-trivial, so it belongs in the limitations -- 72 scripts
+
+==============================================================================
+4. THE AUDIT'S OWN REPRODUCIBILITY ON THE REAL CORPUS
+==============================================================================
+the full-corpus audit is ONE measurement and takes most of an hour, so
+its between-run variation is not measured at full size. It is measured
+here on a bounded subset of the same corpus, run twice, which is
+re-runnable and committed.
+
+this matters more for this product than for any other in the mission. A
+tool that audits reproducibility and is itself irreproducible is
+worthless, and the honest way to say so is a number.
+
+candidates in the subset: 24
+per-run timeout, seconds: 30.0
+run 1: headline=124 declared_seed=3 footprint=4 status={'compared': 6, 'no_output': 11, 'run_failed': 7} evaluated_tokens=388
+run 2: headline=124 declared_seed=3 footprint=4 status={'compared': 6, 'no_output': 11, 'run_failed': 7} evaluated_tokens=388
+
+headline difference between the two runs: 0
+declared-seed difference: 0
+status counts identical: True
+contributing script set identical: True
+
+WHERE VARIATION COMES FROM, when it does. Two mechanisms, both real:
+a per-run TIMEOUT is wall-clock and depends on machine load, so a
+candidate can move between `timeout` and `compared` between runs and
+take its findings with it; and an audited script can itself be
+non-deterministic, which is the thing being looked for. The audit
+cannot tell those apart from one run, and it does not pretend to.
+[PASS] the audit's headline on a bounded subset is identical across two runs -- 124 against 124
+[PASS] the audit's coverage on a bounded subset is identical across two runs -- {'compared': 6, 'run_failed': 7, 'no_output': 11} against {'compared': 6, 'run_failed': 7, 'no_output': 11}
+[PASS] the contributing script set is identical across two runs -- 6 against 6 scripts
+
+==============================================================================
+5. THE PRODUCT'S OWN REPORT IS REPRODUCIBLE ON A FIXTURE
+==============================================================================
+a tool that audits reproducibility and is itself non-reproducible is
+worthless, so the audit is run twice over a fixture and the two reports
+are compared.
+
+report 1: (1, 0, ('products/PA/validation/seeded.py',), (('compared', 1),), 1, 1, 0)
+report 2: (1, 0, ('products/PA/validation/seeded.py',), (('compared', 1),), 1, 1, 0)
+[PASS] two runs of the audit over one fixture produce identical reports
+[PASS] the audit found the fixture's one seed-dependent number both times -- headline 1 and 1
+
+==============================================================================
+checks: 10
+failures: 0
+==============================================================================

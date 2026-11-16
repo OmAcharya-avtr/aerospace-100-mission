@@ -1,0 +1,58 @@
+P094 HilTimingDiff -- example 3: board drift and the unpinned clock
+===================================================================
+Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin Nano; the board drifted 7.52 per cent over the campaign.
+Research-grade. Not flight-qualified, not certified, and not approved for operational aerospace use.
+
+BOARD DRIFT, fitted over eleven calibration blocks
+      which  reps  median_ns        t_mono  elapsed_s
+floor_start  2000   141844.5 307892.656180   0.005997
+   floor_00  2000   141669.0 307893.185572   0.535389
+   floor_01  2000   148709.0 307944.422398  51.772215
+   floor_02  2000   147860.5 308013.820975 121.170792
+   floor_03  2000   147621.0 308059.127827 166.477644
+   floor_04  2000   147269.0 308128.870456 236.220272
+   floor_05  2000   147493.0 308201.330881 308.680697
+   floor_06  2000   153669.0 308342.161489 449.511306
+   floor_07  2000   153669.0 308477.396994 584.746811
+   floor_08  2000   152325.0 308557.691380 665.041196
+  floor_end  2000   152517.0 308626.291691 733.641507
+
+  bracket ratio end/start : 1.0752408447278534
+  fitted ratio            : 1.0682256407994783
+  straight-line r_squared : 0.726861065
+  adjacent steps rising   : 4 of 10
+  largest single step     : 1.049693299
+
+RAW MEASURED (the headline) beside the DRIFT-ADJUSTED variant
+     stage  R_raw_measured  R_drift_adjusted  relative_shift
+    ingest        0.099437          0.096809       -0.026430
+background        0.258951          0.252173       -0.026174
+ threshold        4.593040          4.546771       -0.010074
+  centroid      110.858784        109.798305       -0.009566
+      gate       20.192953         19.824883       -0.018228
+     track       10.106935          9.856650       -0.024764
+  raw measured spread   : 1114.863360   <-- HEADLINE
+  drift-adjusted spread : 1134.174469
+  relative shift        : +0.017322
+
+THE UNPINNED CLOCK, measured co-variation
+  governor schedutil, power mode NV Power Mode: MAXN_SUPER | 2
+  passwordless sudo available: False
+  per-core frequency 729600 to 1728000 kHz
+  stage        pooled r2   within-cell r2
+  ingest        0.000505         0.000193
+  background    0.002018         0.003863
+  threshold     0.004287         0.004570
+  centroid      0.005091         0.001027
+  gate          0.005286         0.000514
+  track         0.008537         0.001205
+
+CONFOUNDING CHECK on the randomised cell order
+  cell median total on order_index : r_squared 0.233128
+  cell median total on W           : r_squared 0.982430
+  corr(order_index, W)             : Pearson 0.501161, Spearman 0.580948
+  The Pearson figure is NOT near zero. SPEC §8's randomisation removed the systematic
+  ascending-dimension ordering of P093; it did not make order and dimension orthogonal
+  in this draw, and that is published rather than asserted away.
+
+figure written: screenshots/drift_and_clock.png

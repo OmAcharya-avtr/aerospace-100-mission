@@ -1,0 +1,207 @@
+P094 HilTimingDiff -- board drift, raw against adjusted
+=======================================================
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  pandas           : 3.0.5
+  scipy            : 1.18.1  (cross-check only)
+  pytest           : 9.1.1
+  hypothesis       : 6.170.15
+  matplotlib       : 3.11.2
+  ruff             : 0.17.5
+  analysis machine : x86_64 Linux, 2 cores  (the HARDWARE traces are measured on aarch64 ON THE BOARD; simulation mode and all arithmetic run here)
+  repository root  : P094 (printed relatively; see validation/_bootstrap.py)
+  simulation passes: 12
+  bootstrap resamples: 4000
+
+MEASUREMENT MODEL
+-----------------
+  Hardware-mode figures come from the committed campaign in data/traces/, run on
+  a Jetson Orin Nano: nine grid cells, 60 passes of 1500 frames each, 90000 timed
+  frames per cell, 810000 frames in all, with the cell order randomised under seed
+  20261115. Each of the six stages is bracketed individually by
+  time.perf_counter_ns, whose resolution the campaign measured at 1.000 ns and
+  whose empty-bracket cost it measured per cell at 107.365 to 115.204 ns. A pass
+  summary is computed over EVERY timed frame of that pass; data/traces/stages.csv
+  is subsampled every third frame and any figure taken from it says so. EVERY
+  HARDWARE FIGURE HERE IS A FIGURE AT AN UNPINNED, SCHEDUTIL-GOVERNED CLOCK IN
+  MAXN_SUPER: passwordless sudo was unavailable on the board, so neither the
+  governor nor the power mode could be pinned, per-core frequency spanned 729600
+  to 1728000 kHz across the campaign, and the share of per-stage variance that
+  co-varies with core frequency is measured and reported rather than assumed away.
+  The board also drifted: a fixed 160x160 float64 matmul reference, sharing no code
+  with the pipeline, measured 141844.5 ns before the first cell and 152517.0 ns
+  after the last, a ratio of 1.0752408447278534, and every divergence ratio is
+  reported raw AND drift-adjusted with the raw figure as the headline.
+  Simulation-mode figures are measured in the analysis container, now, by the same
+  instrumented driver over the same committed pipeline file, and move between runs
+  because they are wall-clock readings.
+
+==============================================================================
+the calibration series: ELEVEN blocks, not the ten SPEC §8 states
+==============================================================================
+  The reference is a fixed 160x160 float64 matmul, data-independent, sharing no code with
+  the pipeline. The campaign program emits an explicit leading block, one before each of
+  the nine cells, and one after the last: eleven. SPEC §8 says ten. The discrepancy is
+  reported, not reconciled by dropping a block.
+
+      which  reps  median_ns        t_mono  elapsed_s
+floor_start  2000   141844.5 307892.656180   0.005997
+   floor_00  2000   141669.0 307893.185572   0.535389
+   floor_01  2000   148709.0 307944.422398  51.772215
+   floor_02  2000   147860.5 308013.820975 121.170792
+   floor_03  2000   147621.0 308059.127827 166.477644
+   floor_04  2000   147269.0 308128.870456 236.220272
+   floor_05  2000   147493.0 308201.330881 308.680697
+   floor_06  2000   153669.0 308342.161489 449.511306
+   floor_07  2000   153669.0 308477.396994 584.746811
+   floor_08  2000   152325.0 308557.691380 665.041196
+  floor_end  2000   152517.0 308626.291691 733.641507
+
+[PASS] the committed calibration table holds exactly the eleven pinned blocks
+[PASS] every block holds 2000 repetitions
+[FINDING] SPEC §8 and the dispatch brief both say TEN calibration blocks. The committed calibration.csv holds ELEVEN (floor_start, floor_00..floor_08, floor_end), 22000 rows at 2000 repetitions each. The specification's count is one low. Nothing in the analysis depends on the count, and the discrepancy is recorded rather than silently corrected.
+
+==============================================================================
+the fit, and how badly a straight line describes this drift
+==============================================================================
+  start median (floor_start) : 141844.5 ns
+  end median (floor_end)     : 152517.0 ns
+  bracket ratio end/start    : 1.0752408447278534
+  meta.json drift ratio      : 1.0752408447278534
+  campaign elapsed           : 734.0329 s
+  fitted slope               : 13.435552559 ns per second
+  fitted intercept           : 144551.770210 ns
+  fitted ratio over the run  : 1.0682256407994783
+  straight-line r_squared    : 0.726861065
+  adjacent steps increasing  : 4 of 10
+  largest single block step  : 1.049693299
+
+[PASS] the bracket ratio matches meta.json to full precision
+[PASS] the bracket ratio matches the pinned value
+[PASS] the fitted ratio matches the pinned value
+[PASS] the straight-line r_squared matches the pinned value
+[FINDING] The drift is STEP-LIKE, not linear, and the linear fit is published with that stated. A straight line explains 0.7269 of the calibration reference's variation; only 4 of the 10 adjacent block-to-block steps are increases; and the largest single step, 1.0497, is 66% of the whole campaign's drift. Fitting a line is therefore a smoothing of a staircase and under-reads the bracket: 1.0682 fitted against 1.0752 measured end to start. Both are reported.
+
+==============================================================================
+per-cell fitted drift factors, normalised to 1.0 at the campaign start
+==============================================================================
+  order 0  W= 48  w48_dense          factor 1.002435876
+  order 1  W= 64  w64_sparse_rep1    factor 1.008049213
+  order 2  W= 48  w48_sparse         factor 1.013376122
+  order 3  W= 64  w64_sparse         factor 1.018721405
+  order 4  W= 64  w64_sparse_rep3    factor 1.025285921
+  order 5  W= 96  w96_dense          factor 1.035229343
+  order 6  W= 96  w96_sparse         factor 1.048066015
+  order 7  W= 64  w64_dense          factor 1.058093340
+  order 8  W= 64  w64_sparse_rep2    factor 1.065017165
+
+[PASS] every factor exceeds 1.0, so every cell is adjusted downwards
+[PASS] the factors increase with execution order
+
+==============================================================================
+RAW MEASURED (the headline) beside the DRIFT-ADJUSTED variant
+==============================================================================
+     stage  R_raw_measured  R_drift_adjusted  relative_shift
+    ingest        0.099893          0.097253       -0.026430
+background        0.260139          0.253330       -0.026174
+ threshold        4.614119          4.567637       -0.010074
+  centroid      111.367536        110.302191       -0.009566
+      gate       20.285622         19.915863       -0.018228
+     track       10.153317          9.901884       -0.024764
+
+  raw measured spread       : 1114.863360209   <-- HEADLINE
+  drift-adjusted spread     : 1134.174468556
+  relative shift in spread  : +0.017321502
+  largest per-stage shift   : 0.026429729
+
+[PASS] no stage's R moves by more than 5 per cent under the adjustment -- largest shift 0.026430
+[PASS] the spread stays far above the pre-registered 3 under the adjustment -- adjusted spread 1134.1745
+[PASS] the permutation is unchanged by the adjustment -- (3, 0, 1, 5, 4, 2)
+[FINDING] HOW MUCH OF EACH R[s] COULD BE DRIFT: at most 0.0264 in relative terms, and that is an upper bound on the whole adjustment rather than on the uncertainty. The adjustment is a PER-CELL multiplicative factor, so it is stage-independent by construction: it can move the level of an R[s] and it cannot move the ratio between two stages of the same cell. Drift therefore cannot explain the measured spread of 1114.86, and the adjusted spread is 1134.17 -- slightly LARGER, because removing a per-cell factor re-weights which cells dominate the pooled medians.
+
+==============================================================================
+structural check: the adjustment cannot change a within-cell stage ratio
+==============================================================================
+  largest relative change in the centroid/ingest ratio: 2.220e-16
+[PASS] the within-cell centroid/ingest ratio is unchanged to rounding -- agreeing to within rounding, which is what is guaranteed; exact in exact arithmetic
+
+==============================================================================
+CONFOUNDING: is elapsed time confounded with frame dimension
+==============================================================================
+  cell median total frame time, regressed SEPARATELY on each predictor:
+    on order_index : slope    63266.150 ns/position, r_squared 0.233128476
+    on W           : slope    20340.057 ns/pixel,    r_squared 0.982429687
+
+    corr(order_index, W) Pearson  : 0.5011614417507341
+    corr(order_index, W) Spearman : 0.5809475019311126  (tie-averaged midranks)
+
+  cell          order  W   median total ns
+  w48_dense           0  48        504096.00
+  w48_sparse          2  48        503360.25
+  w64_dense           7  64        823450.25
+  w64_sparse          3  64        725614.50
+  w64_sparse_rep1     1  64        724881.25
+  w64_sparse_rep2     8  64        721840.25
+  w64_sparse_rep3     4  64        751849.50
+  w96_dense           5  96       1459031.00
+  w96_sparse          6  96       1451294.50
+
+[PASS] frame dimension explains almost all between-cell variance -- r_squared 0.982430
+[PASS] execution order explains far less than frame dimension -- 0.233128 against 0.982430
+[PASS] the confounding figures match their pinned values
+
+==============================================================================
+a DEFECT in this product's own Spearman, found and corrected
+==============================================================================
+  Found by the coordinator's independent check on 2026-11-16, not by this build.
+
+    published before the fix : 0.5333333333333333   WRONG
+    corrected value         : 0.5809475019311126
+
+  MECHANISM. The original implementation ranked with numpy.argsort(numpy.argsort(x)),
+  which is an ORDINAL rank: it breaks ties by position in the array. W takes three
+  values over the nine cells -- two 48s, five 64s and two 96s -- so the five 64s
+  received five distinct ranks instead of five copies of their midrank. Spearman's
+  rho is defined on midranks, so the published figure was a Pearson correlation on
+  an arbitrary ordering and not Spearman's rho.
+
+  It was not even well defined. The ordinal form is not invariant under a permutation
+  of the rows: on this campaign it returns 0.85 with the cells in EXECUTION order
+  and 0.5333333333333333 with them in the alphabetical order this
+  function's groupby happens to produce, from identical data. The midrank form
+  returns 0.5809475019311126 either way.
+
+  The Pearson figure was unaffected and is unchanged, which is what made the defect
+  diagnosable: the disagreement was isolated to the rank treatment.
+
+[PASS] the superseded ordinal form is reproduced exactly, in both row orders -- alphabetical 0.5333333333333333, execution 0.8499999999999999
+[PASS] the corrected midrank form IS invariant under that same reordering -- a rank statistic must not depend on the order of the observations
+[PASS] the corrected Spearman matches the pinned value -- pinned 0.5809475019311126, measured 0.5809475019311126
+[PASS] the corrected Spearman is FURTHER from the < 0.2 the SPEC §8 claim needs -- the finding is unchanged in direction and STRENGTHENED in magnitude by the correction; nothing was retuned to recover the old number
+[FINDING] A DEFECT IN THIS PRODUCT, found by the coordinator's independent check and corrected. The published Spearman rho was 0.5333333333333333, computed with ordinal ranks from argsort(argsort(x)) on a series with five tied values. The correct tie-averaged-midrank value is 0.5809475019311126, which agrees with scipy.stats.spearmanr to 1e-12. The Pearson figure was unaffected. THE CONCLUSION IS UNCHANGED IN DIRECTION AND STRENGTHENED IN MAGNITUDE: the corrected rho is further from the < 0.2 that SPEC §8's decorrelation claim needs, not closer to it.
+
+==============================================================================
+the falsified claim, restated on the corrected figures
+==============================================================================
+[FALSIFIED] order_index and W are uncorrelated, as SPEC §8's randomisation intended -- measured Pearson 0.5011614417507341 and Spearman 0.5809475019311126 (midranks), against the < 0.2 the claim needs
+[PASS] the falsification of "order_index and W are uncorrelated, as SPEC §8's randomisation intended" is exactly the pinned one -- pinned Pearson 0.5011614417507341 and Spearman 0.5809475019311126; this script exits 0 while the measurement is exactly these two numbers and non-zero the moment either moves
+[FINDING] A CHECK THAT FAILS, published as failing. SPEC §8 randomised the cell order so that elapsed time would not be confounded with frame dimension, and the brief states that drift is therefore NOT confounded with frame dimension. Measured, corr(order_index, W) is 0.5012 Pearson and 0.5809 Spearman on midranks. That is not near zero. With nine cells and one draw under seed 20261115, the randomisation removed P093's SYSTEMATIC ascending-dimension ordering but left a substantial positive association in this particular draw. The claim as stated is therefore only partly supported, and the honest version is: dimension dominates the between-cell variance (0.9824 against order's 0.2331), and the drift's total magnitude of 1.0752 is three orders of magnitude too small to produce the measured spread, so the headline does not rest on the decorrelation -- but the decorrelation itself was not achieved.
+
+==============================================================================
+negative controls
+==============================================================================
+[PASS] control: adjusting by the INVERSE drift factors raises every R (must fire) -- FIRED; an adjustment in the wrong direction is visible in every stage
+[PASS] control: adjusting by a factor of exactly 1.0 changes the spread (must NOT fire) -- did not fire; spread 1114.863360209 against raw 1114.863360209
+[PASS] control: an ascending-dimension ordering shows a much stronger order association (must fire) -- FIRED; contrived r_squared 0.685419 against the measured randomised order's 0.233128; this is what P093's ordering looked like
+
+CHECKS RUN: 24
+CONTROLS: 3 declared, 2 fired; must-fire 2/2, must-NOT-fire silent 1/1
+FALSIFIED CHECKS (1): order_index and W are uncorrelated, as SPEC §8's randomisation intended -- each published as falsified, with its measured value pinned as a literal so this script fails if the falsification ever changes
+FINDINGS (5):
+  - SPEC §8 and the dispatch brief both say TEN calibration blocks. The committed calibration.csv holds ELEVEN (floor_start, floor_00..floor_08, floor_end), 22000 rows at 2000 repetitions each. The specification's count is one low. Nothing in the analysis depends on the count, and the discrepancy is recorded rather than silently corrected.
+  - The drift is STEP-LIKE, not linear, and the linear fit is published with that stated. A straight line explains 0.7269 of the calibration reference's variation; only 4 of the 10 adjacent block-to-block steps are increases; and the largest single step, 1.0497, is 66% of the whole campaign's drift. Fitting a line is therefore a smoothing of a staircase and under-reads the bracket: 1.0682 fitted against 1.0752 measured end to start. Both are reported.
+  - HOW MUCH OF EACH R[s] COULD BE DRIFT: at most 0.0264 in relative terms, and that is an upper bound on the whole adjustment rather than on the uncertainty. The adjustment is a PER-CELL multiplicative factor, so it is stage-independent by construction: it can move the level of an R[s] and it cannot move the ratio between two stages of the same cell. Drift therefore cannot explain the measured spread of 1114.86, and the adjusted spread is 1134.17 -- slightly LARGER, because removing a per-cell factor re-weights which cells dominate the pooled medians.
+  - A DEFECT IN THIS PRODUCT, found by the coordinator's independent check and corrected. The published Spearman rho was 0.5333333333333333, computed with ordinal ranks from argsort(argsort(x)) on a series with five tied values. The correct tie-averaged-midrank value is 0.5809475019311126, which agrees with scipy.stats.spearmanr to 1e-12. The Pearson figure was unaffected. THE CONCLUSION IS UNCHANGED IN DIRECTION AND STRENGTHENED IN MAGNITUDE: the corrected rho is further from the < 0.2 that SPEC §8's decorrelation claim needs, not closer to it.
+  - A CHECK THAT FAILS, published as failing. SPEC §8 randomised the cell order so that elapsed time would not be confounded with frame dimension, and the brief states that drift is therefore NOT confounded with frame dimension. Measured, corr(order_index, W) is 0.5012 Pearson and 0.5809 Spearman on midranks. That is not near zero. With nine cells and one draw under seed 20261115, the randomisation removed P093's SYSTEMATIC ascending-dimension ordering but left a substantial positive association in this particular draw. The claim as stated is therefore only partly supported, and the honest version is: dimension dominates the between-cell variance (0.9824 against order's 0.2331), and the drift's total magnitude of 1.0752 is three orders of magnitude too small to produce the measured spread, so the headline does not rest on the decorrelation -- but the decorrelation itself was not achieved.
+FAILED CHECKS (0): none

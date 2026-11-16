@@ -1,0 +1,140 @@
+P094 HilTimingDiff -- the unpinned clock, measured, SPEC §6
+===========================================================
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  pandas           : 3.0.5
+  scipy            : 1.18.1  (cross-check only)
+  pytest           : 9.1.1
+  hypothesis       : 6.170.15
+  matplotlib       : 3.11.2
+  ruff             : 0.17.5
+  analysis machine : x86_64 Linux, 2 cores  (the HARDWARE traces are measured on aarch64 ON THE BOARD; simulation mode and all arithmetic run here)
+  repository root  : P094 (printed relatively; see validation/_bootstrap.py)
+  simulation passes: 12
+  bootstrap resamples: 4000
+
+MEASUREMENT MODEL
+-----------------
+  Hardware-mode figures come from the committed campaign in data/traces/, run on
+  a Jetson Orin Nano: nine grid cells, 60 passes of 1500 frames each, 90000 timed
+  frames per cell, 810000 frames in all, with the cell order randomised under seed
+  20261115. Each of the six stages is bracketed individually by
+  time.perf_counter_ns, whose resolution the campaign measured at 1.000 ns and
+  whose empty-bracket cost it measured per cell at 107.365 to 115.204 ns. A pass
+  summary is computed over EVERY timed frame of that pass; data/traces/stages.csv
+  is subsampled every third frame and any figure taken from it says so. EVERY
+  HARDWARE FIGURE HERE IS A FIGURE AT AN UNPINNED, SCHEDUTIL-GOVERNED CLOCK IN
+  MAXN_SUPER: passwordless sudo was unavailable on the board, so neither the
+  governor nor the power mode could be pinned, per-core frequency spanned 729600
+  to 1728000 kHz across the campaign, and the share of per-stage variance that
+  co-varies with core frequency is measured and reported rather than assumed away.
+  The board also drifted: a fixed 160x160 float64 matmul reference, sharing no code
+  with the pipeline, measured 141844.5 ns before the first cell and 152517.0 ns
+  after the last, a ratio of 1.0752408447278534, and every divergence ratio is
+  reported raw AND drift-adjusted with the raw figure as the headline.
+  Simulation-mode figures are measured in the analysis container, now, by the same
+  instrumented driver over the same committed pipeline file, and move between runs
+  because they are wall-clock readings.
+
+==============================================================================
+the operating condition, as the board recorded it
+==============================================================================
+  governor                 : schedutil
+  power mode               : NV Power Mode: MAXN_SUPER | 2
+  passwordless sudo        : False
+  per-core frequency       : 729600 to 1728000 kHz
+  mean over all samples    : 1247863.829787 kHz
+  relative spread          : 0.800087298
+  cores sampled            : 6
+
+[PASS] the governor was schedutil and was not pinned
+[PASS] passwordless sudo was unavailable, so the clock COULD NOT be pinned -- this is a restriction on the result, recorded with the headline and not in a limitations list
+[PASS] the power mode was MAXN_SUPER
+[FINDING] SPEC §6 recorded per-core scaling_cur_freq spanning 729600 to 1190400 kHz at idle BEFORE the campaign. During the campaign the clock reached 1728000 kHz, a wider span than the pre-campaign idle reading, so the specification's figure understates the range the measurements were taken over. The measured range is what is published.
+
+==============================================================================
+per-core frequency, by sample point
+==============================================================================
+  before   n= 20  min    729600  mean   1433600.0  max   1728000 kHz
+  pass0    n=  9  min    729600  mean   1099377.8  max   1728000 kHz
+  pass30   n=  9  min    729600  mean   1113600.0  max   1728000 kHz
+  after    n= 20  min    729600  mean   1428480.0  max   1728000 kHz
+
+  per core over every sample:
+    freq_cpu0  min    729600  mean   1022093.6  max   1728000 kHz
+    freq_cpu1  min    729600  mean   1022093.6  max   1728000 kHz
+    freq_cpu2  min    729600  mean   1022093.6  max   1728000 kHz
+    freq_cpu3  min    729600  mean   1022093.6  max   1728000 kHz
+    freq_cpu4  min    729600  mean   1699404.3  max   1728000 kHz
+    freq_cpu5  min    729600  mean   1699404.3  max   1728000 kHz
+
+==============================================================================
+the pairing: six within-cell env samples joined to the passes they precede
+==============================================================================
+  sample points used : pass0, pass10, pass20, pass30, pass40, pass50
+  paired points      : 54  (6 samples x 9 cells)
+
+[PASS] the pairing yields 54 points
+[PASS] every cell contributes six paired points
+
+==============================================================================
+MEASURED co-variation, pooled and within-cell
+==============================================================================
+  pooled is contaminated by frame dimension, which moves both the stage time and, through
+  the governor's load response, the frequency. within-cell subtracts each cell's own mean
+  from both variables, and frame dimension is constant within a cell.
+
+  stage        pooled r2     pooled r   within-cell r2   within-cell r   points
+  ingest      0.000505049   +0.022473      0.000192695       +0.013881       54
+  background  0.002018093   +0.044923      0.003862892       +0.062152       54
+  threshold   0.004286650   +0.065473      0.004570282       +0.067604       54
+  centroid    0.005091335   +0.071354      0.001027382       -0.032053       54
+  gate        0.005286480   +0.072708      0.000514372       -0.022680       54
+  track       0.008537090   -0.092396      0.001205482       +0.034720       54
+
+  largest pooled share      : 0.008537090
+  largest within-cell share : 0.004570282 (threshold)
+
+[PASS] pooled share for ingest matches the pinned value -- pinned 0.0005050494884748513, measured 0.0005050494884748513
+[PASS] within-cell share for ingest matches the pinned value -- pinned 0.00019269536848354196, measured 0.00019269536848354196
+[PASS] pooled share for background matches the pinned value -- pinned 0.002018092883406042, measured 0.002018092883406042
+[PASS] within-cell share for background matches the pinned value -- pinned 0.0038628918194912876, measured 0.0038628918194912876
+[PASS] pooled share for threshold matches the pinned value -- pinned 0.00428664980281479, measured 0.00428664980281479
+[PASS] within-cell share for threshold matches the pinned value -- pinned 0.004570282291641248, measured 0.004570282291641248
+[PASS] pooled share for centroid matches the pinned value -- pinned 0.005091334602689734, measured 0.005091334602689734
+[PASS] within-cell share for centroid matches the pinned value -- pinned 0.001027382118275355, measured 0.001027382118275355
+[PASS] pooled share for gate matches the pinned value -- pinned 0.005286479936121302, measured 0.005286479936121302
+[PASS] within-cell share for gate matches the pinned value -- pinned 0.0005143720856498613, measured 0.0005143720856498613
+[PASS] pooled share for track matches the pinned value -- pinned 0.008537090338330722, measured 0.008537090338330722
+[PASS] within-cell share for track matches the pinned value -- pinned 0.0012054823553220295, measured 0.0012054823553220295
+[PASS] every measured share is below one per cent of the per-stage variance -- largest pooled 0.008537, largest within-cell 0.004570
+[FINDING] A MEASURED NULL, with its limit stated. Less than one per cent of the per-stage variance that this sampling can see moves with mean core frequency: the largest pooled share is 0.008537 (track) and the largest within-cell share is 0.004570 (threshold). THIS IS NOT A CLAIM THAT THE UNPINNED CLOCK DID NOT MATTER. The clock is sampled six times per cell as a point-in-time read of scaling_cur_freq, not as a time-average over the 1500 frames of the pass it precedes, and each paired stage figure is a median over those 1500 frames. A per-frame association with the instantaneous clock is invisible to this cadence by construction. What is bounded is the association between a pass's median and a single frequency reading taken just before it.
+[FINDING] Two of the six within-cell associations are NEGATIVE in sign (centroid -0.032053, gate -0.022680), which is the wrong direction for a clock effect: a higher clock should make a stage faster, so a positive correlation between frequency and time is already surprising and a negative one is what a clock effect would look like. With r_squared below 0.006 on 54 points neither sign is distinguishable from noise, and no direction is claimed.
+
+==============================================================================
+thermal context, recorded because it is what drove the governor
+==============================================================================
+  temp_cpu_thermal     min  44.53  mean  46.87  max  49.06 degC
+  temp_gpu_thermal     min  45.16  mean  47.36  max  48.28 degC
+  temp_soc0_thermal    min  44.41  mean  46.45  max  47.19 degC
+  temp_tj_thermal      min  45.16  mean  47.49  max  49.06 degC
+  load1                min 0.63  mean 1.13  max 1.50
+
+==============================================================================
+negative controls
+==============================================================================
+[PASS] control: a stage time that IS a function of the frequency is detected (must fire) -- FIRED; r_squared 1.000000000: the regression can see a real association, so a small measured share is a measurement and not a blind spot in the estimator
+[PASS] control: pure noise shows a large association (must NOT fire) -- did not fire; r_squared 0.002056468 on 54 points, which is the scale of association this cadence cannot distinguish from zero
+
+  NOTE: the noise control's r_squared, 0.002056, is the same order as
+  the measured shares. On 54 points an r_squared of a few thousandths is indistinguishable
+  from zero, and that is the honest resolution of this measurement.
+
+CHECKS RUN: 20
+CONTROLS: 2 declared, 1 fired; must-fire 1/1, must-NOT-fire silent 1/1
+FINDINGS (3):
+  - SPEC §6 recorded per-core scaling_cur_freq spanning 729600 to 1190400 kHz at idle BEFORE the campaign. During the campaign the clock reached 1728000 kHz, a wider span than the pre-campaign idle reading, so the specification's figure understates the range the measurements were taken over. The measured range is what is published.
+  - A MEASURED NULL, with its limit stated. Less than one per cent of the per-stage variance that this sampling can see moves with mean core frequency: the largest pooled share is 0.008537 (track) and the largest within-cell share is 0.004570 (threshold). THIS IS NOT A CLAIM THAT THE UNPINNED CLOCK DID NOT MATTER. The clock is sampled six times per cell as a point-in-time read of scaling_cur_freq, not as a time-average over the 1500 frames of the pass it precedes, and each paired stage figure is a median over those 1500 frames. A per-frame association with the instantaneous clock is invisible to this cadence by construction. What is bounded is the association between a pass's median and a single frequency reading taken just before it.
+  - Two of the six within-cell associations are NEGATIVE in sign (centroid -0.032053, gate -0.022680), which is the wrong direction for a clock effect: a higher clock should make a stage faster, so a positive correlation between frequency and time is already surprising and a negative one is what a clock effect would look like. With r_squared below 0.006 on 54 points neither sign is distinguishable from noise, and no direction is claimed.
+FAILED CHECKS (0): none

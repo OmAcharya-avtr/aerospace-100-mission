@@ -1,0 +1,292 @@
+P094 HilTimingDiff -- command-line interface
+============================================
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  pandas           : 3.0.5
+  scipy            : 1.18.1  (cross-check only)
+  pytest           : 9.1.1
+  hypothesis       : 6.170.15
+  matplotlib       : 3.11.2
+  ruff             : 0.17.5
+  analysis machine : x86_64 Linux, 2 cores  (the HARDWARE traces are measured on aarch64 ON THE BOARD; simulation mode and all arithmetic run here)
+  repository root  : P094 (printed relatively; see validation/_bootstrap.py)
+  simulation passes: 12
+  bootstrap resamples: 4000
+
+MEASUREMENT MODEL
+-----------------
+  Hardware-mode figures come from the committed campaign in data/traces/, run on
+  a Jetson Orin Nano: nine grid cells, 60 passes of 1500 frames each, 90000 timed
+  frames per cell, 810000 frames in all, with the cell order randomised under seed
+  20261115. Each of the six stages is bracketed individually by
+  time.perf_counter_ns, whose resolution the campaign measured at 1.000 ns and
+  whose empty-bracket cost it measured per cell at 107.365 to 115.204 ns. A pass
+  summary is computed over EVERY timed frame of that pass; data/traces/stages.csv
+  is subsampled every third frame and any figure taken from it says so. EVERY
+  HARDWARE FIGURE HERE IS A FIGURE AT AN UNPINNED, SCHEDUTIL-GOVERNED CLOCK IN
+  MAXN_SUPER: passwordless sudo was unavailable on the board, so neither the
+  governor nor the power mode could be pinned, per-core frequency spanned 729600
+  to 1728000 kHz across the campaign, and the share of per-stage variance that
+  co-varies with core frequency is measured and reported rather than assumed away.
+  The board also drifted: a fixed 160x160 float64 matmul reference, sharing no code
+  with the pipeline, measured 141844.5 ns before the first cell and 152517.0 ns
+  after the last, a ratio of 1.0752408447278534, and every divergence ratio is
+  reported raw AND drift-adjusted with the raw figure as the headline.
+  Simulation-mode figures are measured in the analysis container, now, by the same
+  instrumented driver over the same committed pipeline file, and move between runs
+  because they are wall-clock readings.
+
+==============================================================================
+tree state at entry
+==============================================================================
+  cache and bytecode paths already present: 57
+  INHERITED, named and not failed on: a harness that ran ruff or pytest with its
+  working directory set to the product root leaves these before this script runs,
+  and what a harness leaves in the tree is not the product's doing.
+    .hypothesis
+    .hypothesis/.gitignore
+    .hypothesis/constants
+    .hypothesis/constants/0cc8d0dfc45c1c4a
+    .hypothesis/constants/1b4674b1c7721875
+    .hypothesis/constants/3419bd9af0f2cdef
+    .hypothesis/constants/5019eea8b5b70149
+    .hypothesis/constants/638fcafef95d3d70
+    .hypothesis/constants/6641eb43173464f1
+    .hypothesis/constants/69a99675348f9981
+    ... and 47 more
+
+==============================================================================
+python -m hiltimingdiff gate
+==============================================================================
+  GATE BRANCH REACHABILITY -- SPEC §9
+  Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin Nano; the board drifted 7.52 per cent over the campaign.
+  
+             cell  n_frames  accept  no_candidate  low_score  area_out  border
+        w48_dense     90000   18840          2640     240960     16920    8340
+  w64_sparse_rep1     90000    8100           420     462600      4020    1800
+       w48_sparse     90000    4260          4080     244680      1740    2280
+       w64_sparse     90000    7260           300     468840      5040     300
+  w64_sparse_rep3     90000    4680           300     492420      2280     180
+        w96_dense     90000   63180            60     719160     75960   10920
+       w96_sparse     90000   20100            60    1069020     12180    1260
+        w64_dense     90000   40920           300     420000     35400    6960
+  w64_sparse_rep2     90000    7080           300     450180      4980    1800
+            TOTAL    810000  174420          8460    4567860    158520   33840
+  
+    every branch fired at least once : True
+    silent branches                  : none
+    branches firing in EVERY cell    : accept, no_candidate, low_score, area_out, border
+    per-frame acceptance rate        : 0.215333 (174420 of 810000 frames)
+  
+  Candidate-level and frame-level counts are not a partition of the frames: low_score, area_out and border are counted per candidate, accept and no_candidate per frame.
+  
+  Research-grade. Not flight-qualified, not certified, and not approved for operational aerospace use.
+
+[PASS] gate exits 0
+[PASS] gate output contains 'every branch fired at least once : True'
+[PASS] gate output contains 'TOTAL'
+[PASS] gate output contains '810000'
+[PASS] gate output carries no exclamation mark
+[PASS] gate output carries no absolute home path
+[PASS] gate output states the research-grade limit
+[PASS] gate output states the unpinned clock with the figures
+
+==============================================================================
+python -m hiltimingdiff clock
+==============================================================================
+  UNPINNED CLOCK -- measured co-variation, SPEC §6
+  Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin Nano; the board drifted 7.52 per cent over the campaign.
+  
+    governor            : schedutil
+    power mode          : NV Power Mode: MAXN_SUPER | 2
+    passwordless sudo   : False
+    per-core frequency  : 729600 to 1728000 kHz, mean 1247863.8 kHz, relative spread 0.800087
+    paired points       : 54 (6 within-cell env samples x 9 cells)
+  
+       stage  pooled_r_squared  pooled_pearson  within_cell_r_squared  within_cell_pearson  n_points
+      ingest          0.000505        0.022473               0.000193             0.013881        54
+  background          0.002018        0.044923               0.003863             0.062152        54
+   threshold          0.004287        0.065473               0.004570             0.067604        54
+    centroid          0.005091        0.071354               0.001027            -0.032053        54
+        gate          0.005286        0.072708               0.000514            -0.022680        54
+       track          0.008537       -0.092396               0.001205             0.034720        54
+  
+    largest within-cell variance share : 0.004570 (threshold)
+    largest pooled variance share      : 0.008537
+  
+  Research-grade. Not flight-qualified, not certified, and not approved for operational aerospace use.
+
+[PASS] clock exits 0
+[PASS] clock output contains 'governor            : schedutil'
+[PASS] clock output contains 'MAXN_SUPER'
+[PASS] clock output contains 'paired points       : 54'
+[PASS] clock output carries no exclamation mark
+[PASS] clock output carries no absolute home path
+[PASS] clock output states the research-grade limit
+[PASS] clock output states the unpinned clock with the figures
+
+==============================================================================
+python -m hiltimingdiff headline --passes 1 --resamples 300 --quiet
+==============================================================================
+  HEADLINE -- P094 HilTimingDiff
+  Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin Nano; the board drifted 7.52 per cent over the campaign.
+  
+  1. Per-stage divergence ratio R[s], pass-unit 95% bootstrap interval, ns_per_op = 4.542674 ns/op:
+       ingest      R = 0.103188 [0.102355, 0.103188]   (0.468750 ns per declared op)
+       background  R = 0.268719 [0.268303, 0.268733]   (1.220703 ns per declared op)
+       threshold   R = 4.766301 [4.762293, 4.780041]   (21.651754 ns per declared op)
+       centroid    R = 115.040657 [114.927152, 115.300408]   (522.592200 ns per declared op)
+       gate        R = 20.954682 [20.901817, 21.063821]   (95.190288 ns per declared op)
+       track       R = 10.488194 [10.450282, 10.489417]   (47.644444 ns per declared op)
+  
+  2. Divergence spread max(R)/min(R) = 1114.8634 [1113.7634, 1124.8863]
+     SPEC §7 primary (divergence spread): CONFIRMED -- pre-registered > 3, measured 1114.86
+  
+  3. Rank disagreement: Kendall tau-b = 0.200000 [0.200000, 0.200000]
+     permutation (measured position -> declared position) = (3, 0, 1, 5, 4, 2)
+     declared order (cheapest first): gate < track < centroid < ingest < threshold < background
+     measured order (cheapest first): ingest < gate < track < background < threshold < centroid
+  
+  4. argmax(R) = centroid (R = 115.041, 0.5806 of measured frame time); argmin(R) = ingest (R = 0.103188, 0.0053 of measured frame time)
+  
+  5. Baseline 2 held-out transfer error = 0.152183 [0.150744, 0.152828] on held-out stages centroid, gate, track
+     SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.152183
+  
+  Research-grade. Not flight-qualified, not certified, and not approved for operational aerospace use.
+  
+  simulation mode measured here: x86_64, python 3.13.18, numpy 2.5.3, 1 passes x 1500 frames x 9 cells = 13500 timed frames in 4.2 s
+  hardware mode read from data/traces/: 810000 timed frames
+
+[PASS] headline exits 0
+[PASS] headline output contains 'Divergence spread max(R)/min(R)'
+[PASS] headline output contains 'SPEC §7 primary (divergence spread): CONFIRMED'
+[PASS] headline output contains 'SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED'
+[PASS] headline output contains 'argmax(R) = centroid'
+[PASS] headline output contains 'argmin(R) = ingest'
+[PASS] headline output contains '(3, 0, 1, 5, 4, 2)'
+[PASS] headline output carries no exclamation mark
+[PASS] headline output carries no absolute home path
+[PASS] headline output states the research-grade limit
+[PASS] headline output states the unpinned clock with the figures
+
+==============================================================================
+python -m hiltimingdiff baselines --passes 1 --resamples 300 --quiet
+==============================================================================
+  BASELINES -- in SPEC §4 order; the classical work is complete before any fitting
+  Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin Nano; the board drifted 7.52 per cent over the campaign.
+  
+  BASELINE 1 -- the declared timing model (ns_per_op = 4.954945 ns/op)
+       stage  declared_ns  hw_median_ns  signed_relative_error  relative_error
+      ingest 40590.908055       3840.00               9.570549        9.570549
+  background 81181.816110      20000.00               3.059091        3.059091
+   threshold 60886.362083     266056.75              -0.771153        0.771153
+    centroid  3997.674264     421630.00              -0.990519        0.990519
+        gate   319.813941       6144.00              -0.947947        0.947947
+       track   891.890070       8576.00              -0.896002        0.896002
+    mean relative error over stages : 2.705877
+    worst stage                     : ingest (9.570549)
+    whole-pipeline total error      : 0.741316
+  
+  BASELINE 2 -- one scalar fitted on training stages, scored on held-out stages
+    training stages : ingest, background, threshold
+    held-out stages : centroid, gate, track
+    k               : 3.525463
+    held-out mean relative error : 0.122872 [0.121430, 0.123513]
+    leave-one-stage-out mean     : 0.116885
+    all 20 three-and-three splits: min 0.070527, median 0.140920, max 0.294498; 0 of 20 above 0.5
+  
+  BASELINE 3 -- ground truth, pass-unit 95% interval, 540 units
+       stage  median_ns   low_ns      high_ns  relative_width
+      ingest    3840.00   3809.0   3840.00000        0.008073
+  background   20000.00  19969.0  20001.00000        0.001600
+   threshold  266056.75 265833.0 266823.66875        0.003724
+
+[PASS] baselines exits 0
+[PASS] baselines output contains 'BASELINE 1'
+[PASS] baselines output contains 'BASELINE 2'
+[PASS] baselines output contains 'BASELINE 3'
+[PASS] baselines output contains 'pass-unit 95% interval'
+[PASS] baselines output carries no exclamation mark
+[PASS] baselines output carries no absolute home path
+[PASS] baselines output states the research-grade limit
+[PASS] baselines output states the unpinned clock with the figures
+
+==============================================================================
+python -m hiltimingdiff drift --passes 1 --resamples 300 --quiet
+==============================================================================
+  BOARD DRIFT -- fitted over eleven calibration blocks, not bracketed
+  Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin Nano; the board drifted 7.52 per cent over the campaign.
+  
+        which  reps  median_ns        t_mono  elapsed_s
+  floor_start  2000   141844.5 307892.656180   0.005997
+     floor_00  2000   141669.0 307893.185572   0.535389
+     floor_01  2000   148709.0 307944.422398  51.772215
+     floor_02  2000   147860.5 308013.820975 121.170792
+     floor_03  2000   147621.0 308059.127827 166.477644
+     floor_04  2000   147269.0 308128.870456 236.220272
+     floor_05  2000   147493.0 308201.330881 308.680697
+     floor_06  2000   153669.0 308342.161489 449.511306
+     floor_07  2000   153669.0 308477.396994 584.746811
+     floor_08  2000   152325.0 308557.691380 665.041196
+    floor_end  2000   152517.0 308626.291691 733.641507
+  
+    bracket ratio end/start        : 1.0752408447278534
+    meta.json drift ratio          : 1.0752408447278534
+    fitted ratio over 734.0 s      : 1.0682256407994783
+    straight-line fit r_squared    : 0.726861
+    slope                          : 13.435553 ns per second
+    adjacent blocks increasing     : 4 of 10
+    largest single block step      : 1.049693
+  
+  RAW MEASURED (headline) beside the DRIFT-ADJUSTED variant
+       stage  R_raw_measured  R_drift_adjusted  relative_shift
+      ingest        0.092150          0.089714       -0.026430
+  background        0.239974          0.233693       -0.026174
+  ... 3 further lines
+
+[PASS] drift exits 0
+[PASS] drift output contains 'RAW MEASURED (headline)'
+[PASS] drift output contains '1.0752408447278534'
+[PASS] drift output contains 'CONFOUNDING CHECK'
+[PASS] drift output contains 'corr(order_index, W)'
+[PASS] drift output carries no exclamation mark
+[PASS] drift output carries no absolute home path
+[PASS] drift output states the research-grade limit
+[PASS] drift output states the unpinned clock with the figures
+
+==============================================================================
+the refusal path
+==============================================================================
+  exit status : 2
+  stderr      : REFUSED: MEASURED CAMPAIGN ABSENT. Expected a directory at nothing/ holding meta.json, stages_pass.csv, stages.csv, runs.csv, env.csv, calibration.csv, campaign.log and raw/<cell>.npy for each of w48_dense, w64_sparse_rep1, w48_sparse, w64_...
+
+[PASS] an absent trace directory exits 2
+[PASS] the refusal is printed to stderr
+[PASS] stdout is empty on a refusal
+
+==============================================================================
+running from a different working directory
+==============================================================================
+[PASS] gate exits 0 from 
+[PASS] gate exits 0 from tmp
+[PASS] gate exits 0 from .
+[PASS] gate exits 0 from validation
+
+==============================================================================
+what this script ADDS to the tree
+==============================================================================
+  cache and bytecode paths added by this script: 0
+
+[PASS] running this script adds no cache directory and no bytecode file -- 0 added
+
+==============================================================================
+negative controls
+==============================================================================
+[PASS] control: an unknown command is rejected (must fire) -- FIRED; exit 2
+[PASS] control: --help is rejected (must NOT fire) -- did not fire; exit 0
+[PASS] --help names every command
+
+CHECKS RUN: 56
+CONTROLS: 2 declared, 1 fired; must-fire 1/1, must-NOT-fire silent 1/1
+FAILED CHECKS (0): none

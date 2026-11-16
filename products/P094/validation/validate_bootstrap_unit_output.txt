@@ -1,0 +1,108 @@
+P094 HilTimingDiff -- the declared resampling unit, SPEC §4
+===========================================================
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  pandas           : 3.0.5
+  scipy            : 1.18.1  (cross-check only)
+  pytest           : 9.1.1
+  hypothesis       : 6.170.15
+  matplotlib       : 3.11.2
+  ruff             : 0.17.5
+  analysis machine : x86_64 Linux, 2 cores  (the HARDWARE traces are measured on aarch64 ON THE BOARD; simulation mode and all arithmetic run here)
+  repository root  : P094 (printed relatively; see validation/_bootstrap.py)
+  simulation passes: 12
+  bootstrap resamples: 4000
+
+MEASUREMENT MODEL
+-----------------
+  Hardware-mode figures come from the committed campaign in data/traces/, run on
+  a Jetson Orin Nano: nine grid cells, 60 passes of 1500 frames each, 90000 timed
+  frames per cell, 810000 frames in all, with the cell order randomised under seed
+  20261115. Each of the six stages is bracketed individually by
+  time.perf_counter_ns, whose resolution the campaign measured at 1.000 ns and
+  whose empty-bracket cost it measured per cell at 107.365 to 115.204 ns. A pass
+  summary is computed over EVERY timed frame of that pass; data/traces/stages.csv
+  is subsampled every third frame and any figure taken from it says so. EVERY
+  HARDWARE FIGURE HERE IS A FIGURE AT AN UNPINNED, SCHEDUTIL-GOVERNED CLOCK IN
+  MAXN_SUPER: passwordless sudo was unavailable on the board, so neither the
+  governor nor the power mode could be pinned, per-core frequency spanned 729600
+  to 1728000 kHz across the campaign, and the share of per-stage variance that
+  co-varies with core frequency is measured and reported rather than assumed away.
+  The board also drifted: a fixed 160x160 float64 matmul reference, sharing no code
+  with the pipeline, measured 141844.5 ns before the first cell and 152517.0 ns
+  after the last, a ratio of 1.0752408447278534, and every divergence ratio is
+  reported raw AND drift-adjusted with the raw figure as the headline.
+  Simulation-mode figures are measured in the analysis container, now, by the same
+  instrumented driver over the same committed pipeline file, and move between runs
+  because they are wall-clock readings.
+
+==============================================================================
+1. the declared unit, asserted on the returned objects
+==============================================================================
+  package constant RESAMPLING_UNIT : 'pass'
+  baseline 3 unit                  : 'pass'
+  units                            : 540
+
+[PASS] the package's declared unit is the pass
+[PASS] baseline 3 records the pass as its unit
+[PASS] every per-stage interval records the pass as its unit
+[PASS] the unit count is 540 passes, not 810000 frames
+
+==============================================================================
+2. is SPEC §4's premise true: are adjacent frames serially correlated
+==============================================================================
+  Measured on the committed per-frame table, which is SUBSAMPLED EVERY 3 FRAMES
+  (meta.json: raw_sample_every). A lag-1 autocorrelation on a 3-subsampled series is the
+  correlation at a true lag of 3 frames, so it UNDERSTATES the adjacent-frame correlation.
+
+  cell w64_sparse, 30000 subsampled rows over 60 passes
+
+  stage        lag-1 autocorrelation (within-pass, 3-subsampled)
+  ingest       +0.196087   over 60 passes
+  background   -0.011103   over 60 passes
+  threshold    +0.015991   over 60 passes
+  centroid     +0.013826   over 60 passes
+  gate         +0.152771   over 60 passes
+  track        +0.537079   over 60 passes
+
+[PASS] at least one stage shows a positive within-pass serial correlation -- positive for ingest, threshold, centroid, gate, track
+[FINDING] SPEC §4's premise is only PARTLY supported by this measurement, and the measurement is published as it is. Lag-1 autocorrelation within a pass, on the 3-subsampled series, is positive for 5 of 6 stages (ingest, threshold, centroid, gate, track) and the largest is +0.537079 (track). These are small numbers. Two reasons they understate the real serial dependence, both structural: the committed series is subsampled every third frame, so a lag-1 correlation here is a true lag of 3; and the quantity the bootstrap resamples is a PASS MEDIAN over 1500 frames, whose dependence on the governor and thermal state of that pass is not visible in within-pass frame-to-frame correlation at all. The pass unit is therefore defended by the between-pass structure measured in step 3 rather than by these autocorrelations.
+
+==============================================================================
+3. what the wrong unit costs, measured
+==============================================================================
+  The frame-unit interval below resamples the SUBSAMPLED per-frame rows of a cell as if
+  they were independent draws. The pass-unit interval resamples that cell's 60 pass
+  medians. Both estimate the same median; only the interval differs.
+
+  stage        pass-unit width    frame-unit width   ratio   pass n   frame n
+  ingest               16.500              31.000   1.879       60     30000
+  background           32.000               1.000   0.031       60     30000
+  threshold           319.750            2288.000   7.156       60     30000
+  centroid            520.500            7825.500  15.035       60     30000
+  gate                 32.000              33.000   1.031       60     30000
+  track                 1.000               0.000   0.000       60     30000
+
+  frame-unit width as a fraction of pass-unit width: min 0.0000, median 1.4550, max 15.0346
+
+  narrower under the frame unit : background, track
+  WIDER under the frame unit    : ingest, threshold, centroid, gate
+
+[FALSIFIED] SPEC §4's stated reason -- resampling frames would UNDERSTATE the interval -- measured on w64_sparse, the frame-unit interval is narrower on 2 of 6 stages (background, track) and WIDER on 4 (ingest, threshold, centroid, gate), by up to a factor of 15.03. The direction is stage-dependent, so the stated reason does not hold as a general claim about this campaign
+[PASS] the falsification of "SPEC §4's stated reason -- resampling frames would UNDERSTATE the interval" is exactly the pinned one -- pinned narrower ['background', 'track'], pinned wider ['centroid', 'gate', 'ingest', 'threshold']; this script exits 0 while the falsification is exactly this partition and non-zero the moment a stage moves between the two sets
+[FINDING] SPEC §4's REASON IS FALSIFIED WHILE ITS DECISION STANDS, and both halves are published. The specification says a frame-unit bootstrap would understate the interval. Measured on w64_sparse, the frame-unit width is 0.000 to 15.035 times the pass-unit width, median 1.455: narrower on background, track and WIDER on ingest, threshold, centroid, gate. The mechanism for the wider cases is that the per-frame distribution of threshold and centroid is heavily right-tailed, because both stages cost in proportion to a candidate count that varies frame to frame, so a median over 30000 raw frames is less stable than a median over 60 pass medians. THE DECISION TO USE THE PASS IS STILL RIGHT, for a reason the specification does not give: the pass is the unit over which the governor and thermal state are approximately constant, and the quantity a schedulability budget consumes is a typical PASS's per-stage time, not a typical frame's. A frame-unit interval answers a different question. The specification's justification is wrong about this campaign and its choice of unit is not.
+
+==============================================================================
+negative controls
+==============================================================================
+[PASS] control: a strongly block-correlated series gives a much narrower frame-unit interval (must fire) -- FIRED; frame-unit width 0.3735 against pass-unit 6.8977
+[PASS] control: an i.i.d. series gives a frame-unit interval WIDER than its 60-sample interval (must NOT fire) -- did not fire; frame-unit width 0.2569 against 60-sample 4.1320; more independent draws legitimately narrow an interval, which is exactly why claiming them when they are not independent is the defect
+
+CHECKS RUN: 9
+CONTROLS: 2 declared, 1 fired; must-fire 1/1, must-NOT-fire silent 1/1
+FALSIFIED CHECKS (1): SPEC §4's stated reason -- resampling frames would UNDERSTATE the interval -- each published as falsified, with its measured value pinned as a literal so this script fails if the falsification ever changes
+FINDINGS (2):
+  - SPEC §4's premise is only PARTLY supported by this measurement, and the measurement is published as it is. Lag-1 autocorrelation within a pass, on the 3-subsampled series, is positive for 5 of 6 stages (ingest, threshold, centroid, gate, track) and the largest is +0.537079 (track). These are small numbers. Two reasons they understate the real serial dependence, both structural: the committed series is subsampled every third frame, so a lag-1 correlation here is a true lag of 3; and the quantity the bootstrap resamples is a PASS MEDIAN over 1500 frames, whose dependence on the governor and thermal state of that pass is not visible in within-pass frame-to-frame correlation at all. The pass unit is therefore defended by the between-pass structure measured in step 3 rather than by these autocorrelations.
+  - SPEC §4's REASON IS FALSIFIED WHILE ITS DECISION STANDS, and both halves are published. The specification says a frame-unit bootstrap would understate the interval. Measured on w64_sparse, the frame-unit width is 0.000 to 15.035 times the pass-unit width, median 1.455: narrower on background, track and WIDER on ingest, threshold, centroid, gate. The mechanism for the wider cases is that the per-frame distribution of threshold and centroid is heavily right-tailed, because both stages cost in proportion to a candidate count that varies frame to frame, so a median over 30000 raw frames is less stable than a median over 60 pass medians. THE DECISION TO USE THE PASS IS STILL RIGHT, for a reason the specification does not give: the pass is the unit over which the governor and thermal state are approximately constant, and the quantity a schedulability budget consumes is a typical PASS's per-stage time, not a typical frame's. A frame-unit interval answers a different question. The specification's justification is wrong about this campaign and its choice of unit is not.
+FAILED CHECKS (0): none

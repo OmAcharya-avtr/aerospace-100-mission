@@ -1,0 +1,140 @@
+P094 HilTimingDiff -- tree hygiene, narrowed to what is owned
+=============================================================
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  pandas           : 3.0.5
+  scipy            : 1.18.1  (cross-check only)
+  pytest           : 9.1.1
+  hypothesis       : 6.170.15
+  matplotlib       : 3.11.2
+  ruff             : 0.17.5
+  analysis machine : x86_64 Linux, 2 cores  (the HARDWARE traces are measured on aarch64 ON THE BOARD; simulation mode and all arithmetic run here)
+  repository root  : P094 (printed relatively; see validation/_bootstrap.py)
+  simulation passes: 12
+  bootstrap resamples: 4000
+
+MEASUREMENT MODEL
+-----------------
+  Hardware-mode figures come from the committed campaign in data/traces/, run on
+  a Jetson Orin Nano: nine grid cells, 60 passes of 1500 frames each, 90000 timed
+  frames per cell, 810000 frames in all, with the cell order randomised under seed
+  20261115. Each of the six stages is bracketed individually by
+  time.perf_counter_ns, whose resolution the campaign measured at 1.000 ns and
+  whose empty-bracket cost it measured per cell at 107.365 to 115.204 ns. A pass
+  summary is computed over EVERY timed frame of that pass; data/traces/stages.csv
+  is subsampled every third frame and any figure taken from it says so. EVERY
+  HARDWARE FIGURE HERE IS A FIGURE AT AN UNPINNED, SCHEDUTIL-GOVERNED CLOCK IN
+  MAXN_SUPER: passwordless sudo was unavailable on the board, so neither the
+  governor nor the power mode could be pinned, per-core frequency spanned 729600
+  to 1728000 kHz across the campaign, and the share of per-stage variance that
+  co-varies with core frequency is measured and reported rather than assumed away.
+  The board also drifted: a fixed 160x160 float64 matmul reference, sharing no code
+  with the pipeline, measured 141844.5 ns before the first cell and 152517.0 ns
+  after the last, a ratio of 1.0752408447278534, and every divergence ratio is
+  reported raw AND drift-adjusted with the raw figure as the headline.
+  Simulation-mode figures are measured in the analysis container, now, by the same
+  instrumented driver over the same committed pipeline file, and move between runs
+  because they are wall-clock readings.
+
+==============================================================================
+1. inherited state, reported and NOT failed on
+==============================================================================
+  cache and bytecode paths present at entry: 57
+    .hypothesis
+    .hypothesis/.gitignore
+    .hypothesis/constants
+    .hypothesis/constants/0cc8d0dfc45c1c4a
+    .hypothesis/constants/1b4674b1c7721875
+    .hypothesis/constants/3419bd9af0f2cdef
+    .hypothesis/constants/5019eea8b5b70149
+    .hypothesis/constants/638fcafef95d3d70
+    .hypothesis/constants/6641eb43173464f1
+    .hypothesis/constants/69a99675348f9981
+    .hypothesis/constants/97e5b743756e8f3f
+    .hypothesis/constants/9f29eed0b5b51c8c
+    ... and 45 more
+
+  These are INHERITED. Release-gate check 2 runs ruff with its working directory set to
+  the product root and writes .ruff_cache one check before check 6 re-executes this
+  script, and check 1's pytest run can leave .hypothesis the same way. What a harness
+  leaves in the tree is not the product's doing, and failing on it is a check
+  no change to the product can satisfy.
+
+==============================================================================
+2. what git WOULD TRACK: every required deliverable must not be ignored
+==============================================================================
+  NO GIT COMMAND IS RUN. This build agent is forbidden to run one, so the check below is
+  an explicit matcher over the repository root .gitignore and this product's own. The
+  authority is `git check-ignore -v`, which belongs to the gate.
+
+[PASS] ships: pyproject.toml
+[PASS] ships: README.md
+[PASS] ships: LICENSE
+[PASS] ships: CHANGELOG.md
+[PASS] ships: CITATION.cff
+[PASS] ships: SPEC.md
+[PASS] ships: BUILD_NOTES.md
+[PASS] ships: .gitignore
+[PASS] ships: .github/workflows/tests.yml
+[PASS] ships: data/campaign.py
+[PASS] ships: data/staged_exec.py
+[PASS] ships: data/pat_pipeline.py
+[PASS] ships: data/verify_outputs.py
+[PASS] ships: data/traces/meta.json
+[PASS] ships: data/traces/stages_pass.csv
+[PASS] ships: data/traces/stages.csv
+[PASS] ships: data/traces/runs.csv
+[PASS] ships: data/traces/env.csv
+[PASS] ships: data/traces/calibration.csv
+[PASS] ships: data/traces/campaign.log
+[PASS] ships: data/traces/raw/w64_sparse.npy
+[PASS] ships: src/hiltimingdiff/__init__.py
+[PASS] ships: tests/conftest.py
+[PASS] ships: validation/VALIDATION.md
+[PASS] ships: validation/_bootstrap.py
+
+==============================================================================
+3. every per-run artifact must be ignored
+==============================================================================
+[PASS] ignored: junit.xml -- /junit.xml  (from P094/.gitignore)
+[PASS] ignored: __pycache__/x.pyc -- *.py[cod]  (from P094/.gitignore)
+[PASS] ignored: .ruff_cache/x -- /.ruff_cache/  (from P094/.gitignore)
+[PASS] ignored: .pytest_cache/x -- /.pytest_cache/  (from P094/.gitignore)
+[PASS] ignored: .hypothesis/x -- /.hypothesis/  (from P094/.gitignore)
+[PASS] ignored: src/hiltimingdiff/__pycache__/sources.cpython-313.pyc -- *.py[cod]  (from P094/.gitignore)
+
+==============================================================================
+4. no artifact is present in a form that would reach a clone
+==============================================================================
+  artifacts present that are NOT ignored: 0
+
+[PASS] no cache directory or bytecode file in the tree would reach a cold clone -- 0 would
+
+==============================================================================
+5. no tracked file carries an absolute path
+==============================================================================
+  files scanned : 83
+  offenders     : 0
+
+  This script's own output file is excluded from the scan and is deleted before the
+  scan begins, so the scanner cannot report itself.
+[PASS] no tracked file carries an absolute home path
+
+==============================================================================
+6. what this script ADDS
+==============================================================================
+  cache and bytecode paths added by this script: 0
+[PASS] running this script adds no artifact -- 0 added
+
+==============================================================================
+negative controls on the matcher and the scanner
+==============================================================================
+[PASS] control: a bare `junit.xml` pattern would be treated as anchored (must NOT fire) -- did not fire; an unanchored pattern matches at ANY depth, which is the P060 defect and is what this matcher must reproduce
+[PASS] control: an anchored `/junit.xml` pattern reaches into a subdirectory (must NOT fire) -- did not fire; an anchored pattern must not match at depth
+[PASS] control: the absolute-path scanner detects a planted absolute path (must fire) -- FIRED; the scanner's own predicate fires on a planted path, so a zero count above is a measurement
+[PASS] control: the campaign log, which the repository root ignores as `*.log`, is re-included (must NOT fire) -- did not fire; verdict from !/data/traces/campaign.log  (from P094/.gitignore)
+
+CHECKS RUN: 38
+CONTROLS: 4 declared, 1 fired; must-fire 1/1, must-NOT-fire silent 3/3
+FAILED CHECKS (0): none

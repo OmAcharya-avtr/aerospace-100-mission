@@ -1,0 +1,48 @@
+P094 HilTimingDiff -- example 2: the three baselines
+====================================================
+Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin Nano; the board drifted 7.52 per cent over the campaign.
+Research-grade. Not flight-qualified, not certified, and not approved for operational aerospace use.
+
+BASELINE 1 -- the declared timing model, the object being refuted
+  ns_per_op calibrated once on this host : 4.575993621 ns per declared op
+  stage         declared_ns      hw_median_ns   signed rel err
+  ingest            37486.54           3840.00        +8.762120
+  background        74973.08          20000.00        +2.748654
+  threshold         56229.81         266056.75        -0.788655
+  centroid           3691.93         421630.00        -0.991244
+  gate                295.35           6144.00        -0.951928
+  track               823.68           8576.00        -0.903955
+  mean relative error over stages : 2.524426
+
+BASELINE 2 -- one scalar fitted on training stages, scored on held-out stages
+  training : ingest, background, threshold
+  held out : centroid, gate, track
+  k        : 3.720227
+  held-out mean relative error : 0.167206 [0.165740, 0.167728]
+    centroid    predicted    336443.36 ns against measured    421630.00 ns, error 0.202041
+    gate        predicted      6523.42 ns against measured      6144.00 ns, error 0.061754
+    track       predicted      6536.44 ns against measured      8576.00 ns, error 0.237822
+  leave-one-stage-out mean : 0.136640
+  all 20 splits            : min 0.089145, median 0.171620, max 0.386383
+  splits above the pre-registered 0.5 : 0 of 20
+  SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.167206
+
+BASELINE 3 -- ground truth, pass-unit 95% interval
+  stage         median_ns            95% interval      relative width
+  ingest            3840.00  [     3809.00,      3840.00]       0.008073
+  background       20000.00  [    19969.00,     20001.00]       0.001600
+  threshold       266056.75  [   265832.00,    266633.39]       0.003012
+  centroid        421630.00  [   421214.00,    422534.00]       0.003131
+  gate              6144.00  [     6128.50,      6176.00]       0.007731
+  track             8576.00  [     8545.00,      8577.00]       0.003731
+
+The hardware-to-simulation ratio, which is why baseline 2 transfers:
+  ingest      3.739464
+  background  2.961403
+  threshold   3.802288
+  centroid    4.848417
+  gate        3.516782
+  track       4.863746
+  spread 1.642379, against a declared-model divergence spread of 1114.8634
+
+figure written: screenshots/baseline_transfer.png

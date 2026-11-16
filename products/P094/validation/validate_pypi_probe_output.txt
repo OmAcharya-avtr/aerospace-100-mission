@@ -1,0 +1,75 @@
+P094 HilTimingDiff -- PyPI name probe with live controls
+========================================================
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  pandas           : 3.0.5
+  scipy            : 1.18.1  (cross-check only)
+  pytest           : 9.1.1
+  hypothesis       : 6.170.15
+  matplotlib       : 3.11.2
+  ruff             : 0.17.5
+  analysis machine : x86_64 Linux, 2 cores  (the HARDWARE traces are measured on aarch64 ON THE BOARD; simulation mode and all arithmetic run here)
+  repository root  : P094 (printed relatively; see validation/_bootstrap.py)
+  simulation passes: 12
+  bootstrap resamples: 4000
+
+MEASUREMENT MODEL
+-----------------
+  Hardware-mode figures come from the committed campaign in data/traces/, run on
+  a Jetson Orin Nano: nine grid cells, 60 passes of 1500 frames each, 90000 timed
+  frames per cell, 810000 frames in all, with the cell order randomised under seed
+  20261115. Each of the six stages is bracketed individually by
+  time.perf_counter_ns, whose resolution the campaign measured at 1.000 ns and
+  whose empty-bracket cost it measured per cell at 107.365 to 115.204 ns. A pass
+  summary is computed over EVERY timed frame of that pass; data/traces/stages.csv
+  is subsampled every third frame and any figure taken from it says so. EVERY
+  HARDWARE FIGURE HERE IS A FIGURE AT AN UNPINNED, SCHEDUTIL-GOVERNED CLOCK IN
+  MAXN_SUPER: passwordless sudo was unavailable on the board, so neither the
+  governor nor the power mode could be pinned, per-core frequency spanned 729600
+  to 1728000 kHz across the campaign, and the share of per-stage variance that
+  co-varies with core frequency is measured and reported rather than assumed away.
+  The board also drifted: a fixed 160x160 float64 matmul reference, sharing no code
+  with the pipeline, measured 141844.5 ns before the first cell and 152517.0 ns
+  after the last, a ratio of 1.0752408447278534, and every divergence ratio is
+  reported raw AND drift-adjusted with the raw figure as the headline.
+  Simulation-mode figures are measured in the analysis container, now, by the same
+  instrumented driver over the same committed pipeline file, and move between runs
+  because they are wall-clock readings.
+
+==============================================================================
+the probe
+==============================================================================
+  endpoint template : https://pypi.org/pypi/{name}/json
+  candidate         : hiltimingdiff  (expected FREE, HTTP 404)
+  taken controls    : numpy, pandas  (expected TAKEN, HTTP 200)
+  no user, project or machine detail is sent; the client name is generic
+
+  hiltimingdiff  HTTP 404  Not Found
+  numpy          HTTP 200  latest version 2.5.5
+  pandas         HTTP 200  latest version 3.1.1
+
+[PASS] the probe reached PyPI for every name -- a probe that cannot reach PyPI returns -1 and no availability claim is made
+[PASS] control numpy comes back TAKEN with HTTP 200 -- HTTP 200 latest version 2.5.5
+[PASS] control pandas comes back TAKEN with HTTP 200 -- HTTP 200 latest version 3.1.1
+[PASS] hiltimingdiff comes back FREE with HTTP 404 -- HTTP 404 Not Found
+
+==============================================================================
+verdict
+==============================================================================
+  hiltimingdiff is FREE on PyPI, probed live against https://pypi.org/pypi/hiltimingdiff/json
+  with numpy HTTP 200 and pandas HTTP 200 as live TAKEN controls in the same run.
+
+  The registry recorded this name as free on 2026-11-10 against the same endpoint, with
+  numpy and sgp4 as taken controls. This run re-probes it rather than repeating that record.
+
+==============================================================================
+negative controls on the probe itself
+==============================================================================
+  hiltimingdiff-zzzzzzzzzzzzzzzzzzzzzzzz   HTTP 404  Not Found
+[PASS] control: a name that cannot exist comes back TAKEN (must NOT fire) -- did not fire; HTTP 404: a 404 here is what a free name looks like, which is why the 200 controls above are required
+[PASS] control: a name that cannot exist comes back FREE (must fire) -- FIRED; HTTP 404
+
+CHECKS RUN: 6
+CONTROLS: 2 declared, 1 fired; must-fire 1/1, must-NOT-fire silent 1/1
+FAILED CHECKS (0): none

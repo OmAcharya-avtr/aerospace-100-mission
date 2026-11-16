@@ -1,0 +1,132 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "seedaudit"
+version = "0.1.0"
+description = "Audits a repository's own reproducibility claims and states the detection power of its own sampling."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "reproducibility",
+    "determinism",
+    "detection-power",
+    "flaky-tests",
+    "intermittent-failure",
+    "random-seed",
+    "static-analysis",
+    "self-polluting-check",
+    "clopper-pearson",
+    "testing",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
+# Every range is bounded on BOTH sides, at the version every number in this
+# repository was measured against. A floor with no ceiling is not a dependency
+# specification: five of the first fifty products of this mission were found
+# broken or silently wrong for a new install because pip resolved a release
+# published after the product was measured, and one of the five passed its
+# whole suite while its validation numbers moved.
+#
+# WHAT EACH DEPENDENCY IS USED FOR, so a bound can be argued with rather than
+# taken on trust.
+#
+# numpy -- the indicator arrays, `numpy.random.default_rng` (PCG64) for the
+# Monte Carlo check of the closed forms and for every bootstrap resample, and
+# `numpy.quantile` for the percentile bootstrap interval. Bounded numerically
+# and not merely for the API: `tests/test_determinism.py` asserts that two
+# bootstrap runs at the declared seed are identical, which depends on PCG64's
+# draw order, and `tests/test_power.py` pins Monte Carlo agreement at four
+# standard errors.
+#
+# scipy -- `scipy.stats.beta.ppf` for the Clopper-Pearson exact interval used
+# in the corpus calibration and in the per-rate detection-power table. Those
+# values appear in published intervals, so the bound is numerical rather than
+# an API bound.
+#
+# NOTHING ELSE. The closed-form power model, the static screen, the seed
+# rewriter, the pristine-copy runner and the numeric comparator use only the
+# standard library: `ast`, `difflib`, `fnmatch`, `math`, `re`, `shutil`,
+# `subprocess` and `tempfile`. That is deliberate. A tool whose only value is
+# being trustworthy should be readable end to end, and the core of it -- the
+# derivation in `src/seedaudit/power.py` -- depends on `math` alone.
+#
+# There is no scikit-learn and no learned component of any kind: the registry
+# records `ai_enabled: false` and SPEC.md section 5 gives the reason.
+#
+# MEASURED AT: Python 3.13.18, numpy 2.5.3, scipy 1.18.1, pytest 9.1.1,
+# hypothesis 6.170.15, matplotlib 3.11.2, on x86_64 Linux with 2 cores.
+#
+# NOT YET RUN AT BOTH ENDS OF EVERY RANGE. The build guide asks for the suite
+# and the committed validation output to be compared at the floor and the
+# ceiling of each declared range, in an isolated environment. That was not done
+# for this product and the omission is recorded in README.md under Limitations
+# rather than papered over. The declared ranges are the minor series that was
+# measured, which is narrower than a floor with no ceiling and weaker than a
+# measured range.
+#
+# A pin below a future security release is a real cost, not a free safety
+# measure: this product cannot take such a release without a port. The tension
+# is recorded in README.md under Limitations rather than resolved by removing
+# the ceiling.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scipy>=1.18,<1.19",
+]
+
+[project.optional-dependencies]
+# The ruff range spans the two installations this product was measured against,
+# 0.16.9 on the path and 0.17.5 as a Python module. `ruff check src/ tests/
+# examples/ validation/` is clean under BOTH, because an earlier batch of this
+# mission lost two products at the release gate to a ruff version skew with no
+# source defect.
+test = ["pytest>=9.1,<9.2", "hypothesis>=6.170,<6.171", "ruff>=0.16,<0.18"]
+examples = ["matplotlib>=3.11,<3.12"]
+dev = [
+    "pytest>=9.1,<9.2",
+    "hypothesis>=6.170,<6.171",
+    "ruff>=0.16,<0.18",
+    "matplotlib>=3.11,<3.12",
+]
+
+[project.scripts]
+seedaudit = "seedaudit.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/seedaudit"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+# `-p no:cacheprovider` keeps pytest from writing .pytest_cache into the tree.
+# A product that audits reproducibility and leaves cache directories behind
+# would fail its own hygiene check.
+addopts = "-ra -p no:cacheprovider"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["seedaudit"]
+known-local-folder = ["_bootstrap"]

@@ -1,0 +1,264 @@
+Pinned repository findings -- P100 SeedAudit
+
+this script re-reads the evidence written by validate_repository_audit.py
+and fails if the finding set has changed. It runs no scripts and takes
+under a second, so it can be re-run as often as the build guide requires.
+
+
+==============================================================================
+1. THE HEADLINE, recomputed from the evidence
+==============================================================================
+seed-attributable moved numbers, counted from the itemised list: 5455
+headline recorded by the measurement: 5455
+declared-seed moved numbers, counted: 266
+declared-seed headline recorded: 266
+[PASS] the itemised list and the recorded headline agree, seed-attributable -- 5455 against 5455
+[PASS] the itemised list and the recorded headline agree, declared seed -- 266 against 266
+[FAIL] the seed-attributable headline is exactly the pinned literal -- 5455 against 5683
+[FAIL] the declared-seed headline is exactly the pinned literal -- 266 against 345
+
+==============================================================================
+2. THE FINDING SET, pinned two ways
+==============================================================================
+the per-script counts localise a change to a file; the digest covers
+every item including its before and after values, so a changed VALUE
+inside an unchanged script fails this check too. Pinning thousands of
+tuples as source literals would be a megabyte of unreadable file; a
+digest over a canonical serialisation is the same claim.
+
+seed-attributable: 5455 items across 98 scripts
+  pinned digest  : bf1709ade155744d6ffc45accb9ab05b9cc336d478be58cf424d5c16d07dd8f4
+  measured digest: 4f743700ee48165bef0443ae3e6e421a160c6f5e67232153047a528ac431f02b
+  MISSING (pinned but not measured): ('products/P035/validation/validate_cusum_delay.py', 21)
+  MISSING (pinned but not measured): ('products/P061/validation/validate_predictor.py', 5)
+  MISSING (pinned but not measured): ('products/P061/validation/validate_warmstart.py', 7)
+  MISSING (pinned but not measured): ('products/P071/validation/validate_screening.py', 261)
+  MISSING (pinned but not measured): ('products/P072/validation/validate_stability.py', 103)
+  MISSING (pinned but not measured): ('products/P072/validation/validate_valuemodel.py', 109)
+  MISSING (pinned but not measured): ('products/P080/validation/validate_learned.py', 18)
+  MISSING (pinned but not measured): ('products/P083/validation/validate_certificate.py', 3)
+  MISSING (pinned but not measured): ('products/P083/validation/validate_resimulation.py', 3)
+  EXTRA (measured but not pinned): ('products/P035/validation/validate_cusum_delay.py', 20)
+  EXTRA (measured but not pinned): ('products/P071/validation/validate_screening.py', 262)
+  EXTRA (measured but not pinned): ('products/P080/validation/validate_learned.py', 19)
+  EXTRA (measured but not pinned): ('products/P083/validation/validate_resimulation.py', 1)
+[FAIL] the seed-attributable per-script counts are exactly the pinned literals -- 9 missing, 4 extra
+[FAIL] the seed-attributable digest is exactly the pinned literal -- 4f743700ee48165b against bf1709ade155744d
+declared-seed: 266 items across 43 scripts
+  pinned digest  : 2b7dab6e955040206439eccd0fb8b3057eba227c10307c0eb89010196cf909a6
+  measured digest: 1ed4de164998eb5a173c4522e1a703a39f58b3a836a63e7b093affc83efa959b
+  MISSING (pinned but not measured): ('products/P061/validation/validate_gap.py', 62)
+  MISSING (pinned but not measured): ('products/P061/validation/validate_predictor.py', 11)
+  MISSING (pinned but not measured): ('products/P061/validation/validate_warmstart.py', 65)
+  MISSING (pinned but not measured): ('products/P071/validation/validate_screening.py', 8)
+  MISSING (pinned but not measured): ('products/P072/validation/validate_stability.py', 1)
+  MISSING (pinned but not measured): ('products/P072/validation/validate_valuemodel.py', 2)
+  MISSING (pinned but not measured): ('products/P080/validation/validate_learned.py', 2)
+  MISSING (pinned but not measured): ('products/P083/validation/validate_resimulation.py', 11)
+  EXTRA (measured but not pinned): ('products/P035/validation/validate_cusum_delay.py', 1)
+  EXTRA (measured but not pinned): ('products/P061/validation/validate_gap.py', 61)
+  EXTRA (measured but not pinned): ('products/P071/validation/validate_screening.py', 7)
+  EXTRA (measured but not pinned): ('products/P080/validation/validate_learned.py', 1)
+  EXTRA (measured but not pinned): ('products/P083/validation/validate_resimulation.py', 13)
+[FAIL] the declared-seed per-script counts are exactly the pinned literals -- 8 missing, 5 extra
+[FAIL] the declared-seed digest is exactly the pinned literal -- 1ed4de164998eb5a against 2b7dab6e95504020
+
+==============================================================================
+2b. THE INSTRUMENT'S OWN FOOTPRINT, pinned and excluded
+==============================================================================
+a script that prints its own seed reports a changed number because the
+audit changed the seed. Counting it as a finding would be the audit
+reporting its own perturbation back to itself.
+
+instrument-footprint numbers: 42
+scripts that print a seed the audit rewrote: 31
+  pinned digest  : 6df78cc0102c38a614785061e3c1f51b974344f5f4597f5e3a1ee28be2c8ad35
+  measured digest: c8657ecd53b737291fc05f2006bd9bb663019eae640cb346b37eae2dca4ea2ca
+[FAIL] the instrument-footprint count is exactly the pinned literal -- 42 against 45
+[FAIL] the instrument-footprint digest is exactly the pinned literal
+[FAIL] the count of scripts printing a rewritten seed is exactly the pinned literal -- 31 against 33
+
+of 266 numbers that move at the declared seed, 74 sit on a line carrying a
+wall-clock duration marker. The marker GROUPS findings and never removes
+one, and it is a line-local keyword test: a table row whose unit lives in
+a column header elsewhere carries no marker, so the unmarked count is an
+UPPER bound on the non-timing findings.
+[FAIL] the duration-marked count is exactly the pinned literal -- 74 against 88
+
+==============================================================================
+3. COVERAGE, pinned so a silently shrinking corpus is a failure
+==============================================================================
+candidates found: 229
+candidates attempted: 229
+status counts: {'compared': 106, 'no_output': 68, 'run_failed': 37, 'timeout': 18}
+deadline reached: False
+claim tokens across all candidates: 43321
+claim tokens the perturbed comparison evaluated: 20550
+repeats per claim: 1
+escaped-rate upper bound recorded: 0.95
+escaped-rate upper bound recomputed: 0.95
+[PASS] the candidate count is exactly the pinned literal -- 229 against 229
+[PASS] every candidate found was attempted -- 229 attempted, deadline reached False
+[FAIL] the evaluated and total claim-token counts are exactly the pinned literals -- 20550 of 43321
+[FAIL] the scripts contributing findings are exactly the pinned counts -- 98 and 43
+[FAIL] the status counts are exactly the pinned literals -- {'compared': 106, 'no_output': 68, 'run_failed': 37, 'timeout': 18} against {'compared': 110, 'no_output': 73, 'run_failed': 37, 'timeout': 9}
+[PASS] the recorded escaped-rate bound equals the one recomputed from the model
+
+==============================================================================
+4. CANDIDATES WHOSE CLAIM COULD NOT BE EVALUATED, pinned
+==============================================================================
+no_output: measured 68, pinned 73
+  products/P012/validation/v1_riccati_steady_state.py
+  products/P012/validation/v2_nees_nis_consistency.py
+  products/P012/validation/v3_ukf_vs_ekf.py
+  products/P012/validation/v4_mekf_quaternion.py
+  products/P012/validation/v5_sensor_and_truth_models.py
+  products/P012/validation/v6_adaptive_q_benchmark.py
+  products/P012/validation/v7_performance.py
+  products/P013/validation/round_trip_recovery.py
+  products/P013/validation/saturation_regime.py
+  products/P015/validation/horizon_sensitivity.py
+  products/P015/validation/policy_comparison_ci.py
+  products/P029/validation/learned_vs_fixed_ci.py
+  products/P029/validation/magnetic_controllability.py
+  products/P031/validation/deployment_checks.py
+  products/P031/validation/dryrun_nowrite.py
+  products/P031/validation/latency_percentiles.py
+  products/P031/validation/overrun_handcount.py
+  products/P031/validation/parity_simdev.py
+  products/P031/validation/performance_benchmark.py
+  products/P031/validation/predictor_benchmark.py
+  products/P031/validation/recovery_abort.py
+  products/P031/validation/timing_uncertainty.py
+  products/P032/validation/validate_benchmark.py
+  products/P032/validation/validate_ilp.py
+  products/P032/validation/validate_routing.py
+  products/P032/validation/validate_uncertainty.py
+  products/P037/validation/crosscheck_berbench.py
+  products/P037/validation/validate_conv_fer.py
+  products/P037/validation/validate_false_sync.py
+  products/P037/validation/validate_state_machine.py
+  products/P037/validation/validate_uncoded_fer.py
+  products/P043/validation/validate_afterpulse.py
+  products/P043/validation/validate_capacity.py
+  products/P043/validation/validate_correction.py
+  products/P043/validation/validate_hal_contract.py
+  products/P043/validation/validate_ppm.py
+  products/P043/validation/validate_simulator.py
+  products/P043/validation/validate_webb_limits.py
+  products/P043/validation/worked_example.py
+  products/P045/validation/export_policy_table.py
+  products/P045/validation/validate_burst_channel.py
+  products/P045/validation/validate_burst_goodput.py
+  products/P045/validation/validate_crc.py
+  products/P045/validation/validate_harq.py
+  products/P045/validation/validate_policy.py
+  products/P045/validation/validate_window.py
+  products/P045/validation/worked_example.py
+  products/P049/validation/regenerate_outage_model.py
+  products/P049/validation/worked_example.py
+  products/P051/validation/validate_accounting.py
+  products/P051/validation/validate_bound_violation.py
+  products/P051/validation/validate_guard_exactness.py
+  products/P051/validation/validate_invariant_set.py
+  products/P051/validation/validate_predictor.py
+  products/P051/validation/validate_support_function.py
+  products/P051/validation/worked_example.py
+  products/P053/validation/validate_ambiguity.py
+  products/P053/validation/validate_arl_curve.py
+  products/P053/validation/validate_twin.py
+  products/P053/validation/worked_example.py
+  products/P060/validation/validate_coverage.py
+  products/P067/validation/dependency_range_check.py
+  products/P067/validation/validate_spiral_coverage.py
+  products/P067/validation/worked_example.py
+  products/P069/validation/validate_dependency_ends.py
+  products/P069/validation/validate_occupancy.py
+  products/P069/validation/validate_uncertainty.py
+  products/P069/validation/worked_example.py
+[FAIL] the no_output set is exactly the pinned literal set -- measured 68, pinned 73
+run_failed: measured 37, pinned 37
+  products/P011/validation/validate_fitting_error.py
+  products/P011/validation/validate_predictor.py
+  products/P011/validation/validate_rejection_tf.py
+  products/P011/validation/validate_strehl_marechal.py
+  products/P017/validation/covariance_health.py
+  products/P017/validation/smoother_rms.py
+  products/P017/validation/ukf_vs_kf_linear.py
+  products/P029/validation/wheel_allocation.py
+  products/P033/validation/validate_backend_cost_model.py
+  products/P033/validation/validate_budget.py
+  products/P033/validation/validate_memory.py
+  products/P033/validation/validate_onnxruntime.py
+  products/P033/validation/validate_performance.py
+  products/P033/validation/validate_predictor.py
+  products/P033/validation/validate_uncertainty.py
+  products/P037/validation/validate_rs_coding_gain.py
+  products/P039/validation/crosscheck_edgeinfer.py
+  products/P039/validation/validate_analytic_exactness.py
+  products/P039/validation/validate_interval_coverage.py
+  products/P039/validation/validate_model_comparison.py
+  products/P039/validation/validate_tail_convergence.py
+  products/P040/validation/worked_example.py
+  products/P041/validation/validate_channel_statistics.py
+  products/P041/validation/validate_crossing_convergence.py
+  products/P041/validation/validate_depth_sweep.py
+  products/P041/validation/validate_rs_known_answers.py
+  products/P041/validation/worked_example.py
+  products/P048/validation/worked_example.py
+  products/P057/validation/validate_baseline_vs_learned.py
+  products/P057/validation/validate_breaking_point.py
+  products/P057/validation/validate_conditional_coverage.py
+  products/P057/validation/validate_coverage_audit.py
+  products/P057/validation/validate_known_answers.py
+  products/P057/validation/worked_example.py
+  products/P059/validation/validate_support_algebra.py
+  products/P063/validation/validate_calibration.py
+  products/P063/validation/validate_conservatism.py
+[PASS] the run_failed set is exactly the pinned literal set -- measured 37, pinned 37
+timeout: measured 18, pinned 9
+  products/P032/validation/validate_calibration.py
+  products/P045/validation/validate_closed_form.py
+  products/P053/validation/validate_classifier.py
+  products/P053/validation/validate_thresholds.py
+  products/P061/validation/validate_predictor.py
+  products/P061/validation/validate_warmstart.py
+  products/P067/validation/validate_policies.py
+  products/P070/validation/validate_latency_vs_simulation.py
+  products/P071/validation/validate_montecarlo.py
+  products/P072/validation/validate_stability.py
+  products/P072/validation/validate_valuemodel.py
+  products/P074/validation/validate_reproducibility.py
+  products/P078/validation/validate_determinism.py
+  products/P078/validation/validate_irreversible_gate.py
+  products/P078/validation/validate_lint_missrate.py
+  products/P078/validation/validate_negative_control.py
+  products/P089/validation/validate_recovery_grid.py
+  products/P089/validation/validate_recursive_agreement.py
+[FAIL] the timeout set is exactly the pinned literal set -- measured 18, pinned 9
+
+==============================================================================
+5. THE STATIC SCREEN, pinned
+==============================================================================
+python files parsed: 3564
+files with at least one finding: 53
+findings in total: 275
+by subkind: {'write_to_read_path': 246, 'write_under_glob': 16, 'write_under_read': 13}
+files that would not parse: 0
+[PASS] the static files-parsed and parse-failure counts are exactly the pinned literals -- 3564 parsed, 0 failures
+[PASS] the count of files with a static finding is exactly the pinned literal -- 53 against 53
+[PASS] the total static finding count is exactly the pinned literal -- 275 against 275
+[PASS] the static findings by subkind are exactly the pinned literals -- {'write_to_read_path': 246, 'write_under_glob': 16, 'write_under_read': 13} against {'write_to_read_path': 246, 'write_under_glob': 16, 'write_under_read': 13}
+
+==============================================================================
+6. THE EXCLUSIONS ARE PART OF THE RESULT
+==============================================================================
+  excluded: products/P094
+  excluded: products/P100
+[PASS] both declared exclusions are recorded in the evidence -- ['products/P094', 'products/P100']
+
+==============================================================================
+checks: 26
+failures: 15
+FAILED: the seed-attributable headline is exactly the pinned literal, the declared-seed headline is exactly the pinned literal, the seed-attributable per-script counts are exactly the pinned literals, the seed-attributable digest is exactly the pinned literal, the declared-seed per-script counts are exactly the pinned literals, the declared-seed digest is exactly the pinned literal, the instrument-footprint count is exactly the pinned literal, the instrument-footprint digest is exactly the pinned literal, the count of scripts printing a rewritten seed is exactly the pinned literal, the duration-marked count is exactly the pinned literal, the evaluated and total claim-token counts are exactly the pinned literals, the scripts contributing findings are exactly the pinned counts, the status counts are exactly the pinned literals, the no_output set is exactly the pinned literal set, the timeout set is exactly the pinned literal set
+==============================================================================

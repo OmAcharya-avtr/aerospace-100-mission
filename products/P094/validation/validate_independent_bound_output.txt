@@ -1,0 +1,128 @@
+P094 HilTimingDiff -- independent bounds and data paths
+=======================================================
+
+  python           : 3.13.18
+  numpy            : 2.5.3
+  pandas           : 3.0.5
+  scipy            : 1.18.1  (cross-check only)
+  pytest           : 9.1.1
+  hypothesis       : 6.170.15
+  matplotlib       : 3.11.2
+  ruff             : 0.17.5
+  analysis machine : x86_64 Linux, 2 cores  (the HARDWARE traces are measured on aarch64 ON THE BOARD; simulation mode and all arithmetic run here)
+  repository root  : P094 (printed relatively; see validation/_bootstrap.py)
+  simulation passes: 12
+  bootstrap resamples: 4000
+
+MEASUREMENT MODEL
+-----------------
+  Hardware-mode figures come from the committed campaign in data/traces/, run on
+  a Jetson Orin Nano: nine grid cells, 60 passes of 1500 frames each, 90000 timed
+  frames per cell, 810000 frames in all, with the cell order randomised under seed
+  20261115. Each of the six stages is bracketed individually by
+  time.perf_counter_ns, whose resolution the campaign measured at 1.000 ns and
+  whose empty-bracket cost it measured per cell at 107.365 to 115.204 ns. A pass
+  summary is computed over EVERY timed frame of that pass; data/traces/stages.csv
+  is subsampled every third frame and any figure taken from it says so. EVERY
+  HARDWARE FIGURE HERE IS A FIGURE AT AN UNPINNED, SCHEDUTIL-GOVERNED CLOCK IN
+  MAXN_SUPER: passwordless sudo was unavailable on the board, so neither the
+  governor nor the power mode could be pinned, per-core frequency spanned 729600
+  to 1728000 kHz across the campaign, and the share of per-stage variance that
+  co-varies with core frequency is measured and reported rather than assumed away.
+  The board also drifted: a fixed 160x160 float64 matmul reference, sharing no code
+  with the pipeline, measured 141844.5 ns before the first cell and 152517.0 ns
+  after the last, a ratio of 1.0752408447278534, and every divergence ratio is
+  reported raw AND drift-adjusted with the raw figure as the headline.
+  Simulation-mode figures are measured in the analysis container, now, by the same
+  instrumented driver over the same committed pipeline file, and move between runs
+  because they are wall-clock readings.
+
+==============================================================================
+1. quantile bound on the median total, against the log's own figure
+==============================================================================
+  max_s median(X_s) <= median(sum_s X_s) <= sum_s q_s(1 - 0.5/k),  k = 6 stages
+  lower: quantile monotonicity under pointwise domination. upper: a union bound on the
+  per-stage tails. Neither argument is used anywhere in this package, which never forms
+  a median of a sum.
+
+  cells parsed from campaign.log : 9
+
+[PASS] the log yields a median total for every one of the nine cells -- parsed w48_dense, w48_sparse, w64_dense, w64_sparse, w64_sparse_rep1, w64_sparse_rep2, w64_sparse_rep3, w96_dense, w96_sparse
+  cell                 lower bound    logged median      upper bound   sum of medians
+  w48_dense               259385.0         505000.0        1059622.9         504096.0   inside
+  w48_sparse              258952.2         503900.0         800112.8         503360.2   inside
+  w64_dense               497768.0         830700.0        1524438.5         823450.2   inside
+  w64_sparse              421301.5         730800.0        1125697.1         725614.5   inside
+  w64_sparse_rep1         420926.0         727800.0        1124345.4         724881.2   inside
+  w64_sparse_rep2         418677.8         722600.0        1125032.2         721840.2   inside
+  w64_sparse_rep3         436150.5         743800.0        1138549.8         751849.5   inside
+  w96_dense               962999.2        1458800.0        2522227.9        1459031.0   inside
+  w96_sparse              964327.0        1457100.0        2058453.1        1451294.5   inside
+
+[PASS] every cell's logged median total lies inside the independent bound -- violations: none
+[FINDING] The SUM OF PER-STAGE MEDIANS is not a bound on the median of the total, and this campaign shows it: on 2 of 9 cells (w64_sparse_rep3, w96_dense) the sum of the per-stage medians EXCEEDS the logged median total. That is not an inconsistency -- the median of a sum is not the sum of medians for dependent, right-tailed variables -- and it is the reason this check uses a bound derived from quantile monotonicity and a union bound rather than an additivity assumption.
+
+==============================================================================
+2. the same medians through a different data path: raw/<cell>.npy
+==============================================================================
+  raw/<cell>.npy is SUBSAMPLED EVERY 3 FRAMES (meta.json: raw_sample_every)
+  and is written by a separate code path from stages_pass.csv, which summarises EVERY frame.
+
+  cell                 stage        raw median   pass-table median   rel diff
+  w64_sparse         ingest            3872.0              3840.0   0.008333
+  w64_sparse         background       19969.0             19968.0   0.000050
+  w64_sparse         threshold       267784.5            265848.8   0.007281
+  w64_sparse         centroid        424222.0            421301.5   0.006932
+  w64_sparse         gate              6208.0              6112.2   0.015665
+  w64_sparse         track             8544.0              8544.0   0.000000
+
+  largest relative difference over all 54 cell-stage pairs: 0.041950
+[PASS] the two data paths agree on every per-stage median to within 10 per cent -- largest relative difference 0.041950; the two differ because one summarises every frame and the other every third
+
+==============================================================================
+3. the rank statistic against an independent implementation
+==============================================================================
+  hiltimingdiff.kendall_tau_b : 0.2
+  scipy.stats.kendalltau      : 0.2
+  absolute difference         : 0.000e+00
+
+[PASS] the two implementations agree to within rounding -- exact in exact arithmetic; agreeing to within rounding is what is guaranteed
+[PASS] the two implementations agree on 200 random tied rankings -- 0 disagreements; ties are where a tau-b implementation differs if it differs at all
+
+==============================================================================
+4. the instrument bound: a stage time must exceed the cost of seeing it
+==============================================================================
+  largest measured empty-bracket cost : 115.204 ns
+  clock resolution                    : 1.000 ns
+
+  stage        median_ns   median / bracket cost
+  ingest          3840.00                  33.33
+  background     20000.00                 173.61
+  threshold     266056.75                2309.44
+  centroid      421630.00                3659.86
+  gate            6144.00                  53.33
+  track           8576.00                  74.44
+
+[PASS] every per-stage median exceeds the measured empty-bracket cost -- smallest median 3840.00 ns against a bracket cost of 115.204 ns, a factor of 33.3
+[PASS] every per-stage median exceeds the clock resolution by three orders -- smallest median 3840.00 ns against a resolution of 1.000 ns
+[FINDING] The instrument is not negligible for the cheapest stage. ingest's median is 3840 ns against a measured empty-bracket cost of 115.2 ns, a factor of 33.3. So roughly 3.0% of the reported ingest time could be the bracket itself. ingest is argmin(R) and holds 0.53 per cent of frame time, so this does not move the headline, but a reader using the ingest figure on its own should subtract the bracket cost.
+
+==============================================================================
+negative controls on the bound itself
+==============================================================================
+[PASS] control: a total half the largest stage median falls below the bound (must fire) -- FIRED; 0.5 * 421301.5 = 210650.8 against lower bound 421301.5
+[PASS] control: a total twice the upper bound falls above it (must fire) -- FIRED; 2 * 1125697.1 = 2251394.2 against upper bound 1125697.1
+[PASS] control: the measured total falls outside the bound (must NOT fire) -- did not fire; measured 730800.0 inside [421301.5, 1125697.1]
+
+  bound slack on w64_sparse: the interval is [421301.5, 1125697.1] ns and the
+  measurement is 730800.0 ns, so the bound is 0.96 of the measurement wide. It is a loose
+  bound and it is a VALID one: the slack follows the conditioning of a union bound over
+  six right-tailed stages, not an absolute constant, and the controls above confirm it is
+  not vacuous.
+
+CHECKS RUN: 10
+CONTROLS: 3 declared, 2 fired; must-fire 2/2, must-NOT-fire silent 1/1
+FINDINGS (2):
+  - The SUM OF PER-STAGE MEDIANS is not a bound on the median of the total, and this campaign shows it: on 2 of 9 cells (w64_sparse_rep3, w96_dense) the sum of the per-stage medians EXCEEDS the logged median total. That is not an inconsistency -- the median of a sum is not the sum of medians for dependent, right-tailed variables -- and it is the reason this check uses a bound derived from quantile monotonicity and a union bound rather than an additivity assumption.
+  - The instrument is not negligible for the cheapest stage. ingest's median is 3840 ns against a measured empty-bracket cost of 115.2 ns, a factor of 33.3. So roughly 3.0% of the reported ingest time could be the bracket itself. ingest is argmin(R) and holds 0.53 per cent of frame time, so this does not move the headline, but a reader using the ingest figure on its own should subtract the bracket cost.
+FAILED CHECKS (0): none

@@ -1,0 +1,133 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hiltimingdiff"
+version = "0.1.0"
+description = "Per-stage timing divergence between the simulation-mode and hardware-mode execution of one PAT pipeline."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "hardware-in-the-loop",
+    "timing-conformance",
+    "schedulability",
+    "wcet",
+    "jetson-orin-nano",
+    "per-stage-timing",
+    "pointing-acquisition-tracking",
+    "edge-ai",
+    "differential-testing",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Testing",
+    "Topic :: System :: Benchmark",
+]
+
+# Every range is bounded on BOTH sides, at the versions every number in this
+# repository was measured against. A floor with no ceiling is not a dependency
+# specification: five of the first fifty products of this mission were found
+# broken or silently wrong for a new install because pip resolved a release
+# published after the product was measured, and one of the five passed its whole
+# suite while its validation numbers moved.
+#
+# WHAT EACH DEPENDENCY IS USED FOR, so a bound can be argued with rather than
+# taken on trust.
+#
+# numpy -- every array. Specifically: `numpy.median` and `numpy.percentile` for
+# every reported statistic, `numpy.polyfit` for the board-drift fit and both
+# confounding regressions, `numpy.corrcoef` for every reported correlation, and
+# `numpy.random.default_rng` (PCG64) for the pass-unit bootstrap's index draws.
+# The ceiling is numerical and not merely an API bound: the bootstrap's index
+# matrix comes from PCG64 at a fixed seed, so every published interval endpoint
+# depends on that generator's stream, which is not part of numpy's public API
+# contract across major versions. numpy is ALSO the dependency the measured
+# pipeline itself runs on: `data/pat_pipeline.py` is pure numpy by necessity,
+# because the board carries numpy 2.2.6 with a scipy that cannot import against
+# it.
+#
+# pandas -- the campaign tables. `read_csv` for all five committed CSVs,
+# `pivot_table` for the per-pass unit matrix the bootstrap resamples, and
+# `groupby` for every per-cell and per-stage aggregate. Bounded on both sides
+# because `pivot_table`'s column ordering and `groupby`'s observed-category
+# default have both changed across pandas majors, and the pass-unit matrix's
+# column order is what maps a bootstrap column to a stage name.
+#
+# scipy is NOT a dependency. It is used in exactly one place -- the independent
+# cross-check of this package's own Kendall tau-b against
+# `scipy.stats.kendalltau` in validation/validate_independent_bound.py -- and a
+# cross-check belongs to the test and validation extra, not to the runtime, or
+# the "independent" implementation would ship with the thing it checks.
+#
+# BOTH ENDS OF EVERY RANGE WERE RUN on 2026-11-16, in an isolated virtual
+# environment outside this product tree, and the committed validation outputs
+# were diffed, not just the test verdict. The result is recorded in
+# validation/VALIDATION.md under "Dependency range, both ends run".
+#
+# A pin below a future security release is a real cost, not a free safety
+# measure: this product cannot take such a release without a port. The tension
+# is recorded in README.md under Limitations rather than resolved by removing
+# the ceiling.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "pandas>=3.0,<3.1",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=9.1,<9.2",
+    "hypothesis>=6.170,<6.171",
+    "ruff>=0.16,<0.18",
+    "scipy>=1.18,<1.19",
+]
+examples = ["matplotlib>=3.11,<3.12"]
+dev = [
+    "pytest>=9.1,<9.2",
+    "hypothesis>=6.170,<6.171",
+    "ruff>=0.16,<0.18",
+    "scipy>=1.18,<1.19",
+    "matplotlib>=3.11,<3.12",
+]
+
+[project.scripts]
+hiltimingdiff = "hiltimingdiff.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/hiltimingdiff"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]
+addopts = "-ra -p no:cacheprovider"
+
+[tool.ruff]
+line-length = 100
+# data/ holds the four measurement programs AS THEY RAN ON THE BOARD, byte for
+# byte, with their md5 sums recorded in validation/VALIDATION.md and asserted by
+# tests/test_sources.py. They are excluded from linting rather than reformatted:
+# editing one would make the committed copy differ from the program that
+# produced every measured number here, and would break the one property SPEC §1
+# rests on. The ruff scope used everywhere in this product is
+# `src/ tests/ examples/ validation/`, and the exclusion is recorded in
+# README.md under Limitations.
+extend-exclude = ["data"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["hiltimingdiff"]
+known-local-folder = ["_bootstrap", "_common", "fixtures"]

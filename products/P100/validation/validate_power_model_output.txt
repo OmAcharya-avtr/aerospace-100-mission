@@ -1,0 +1,197 @@
+Closed-form detection power -- P100 SeedAudit
+
+P_ref(p, n)  = 1 - (1-p)^n        reference-comparison design
+P_pair(p, n) = 1 - p^n - (1-p)^n  pairwise-difference design
+p_min(n, a)  = 1 - a^(1/n)        smallest rate caught with prob 1-a
+p_max(n, a)  = 1 - a^(1/n)        upper bound on p after n agreeing runs
+
+fast path (SEEDAUDIT_FAST=1): False
+declared seed: 1000044
+Monte Carlo audits per grid cell: 200000
+alpha: 0.05
+
+==============================================================================
+1. THE HEADLINE CONSTANTS, by hand and by the implementation
+==============================================================================
+p = 1/44 = 0.022727272727272728
+(43/44)^2                  = 0.9550619834710744
+1 - (43/44)^2    by hand   = 0.044938016528925595
+P_ref(1/44, 2)   computed  = 0.04493801652892562
+1 - (1/44)^2 - (43/44)^2   = 0.044421487603305776
+P_pair(1/44, 2)  computed  = 0.04442148760330579
+[PASS] P_ref(1/44, 2) agrees with the hand arithmetic to 1e-15 relative
+[PASS] P_pair(1/44, 2) agrees with the hand arithmetic to 1e-13 relative
+
+THIS IS THE REFUTATION OF BASELINE 1, derived. Run-twice-and-diff has
+detection power 0.04442148760330579 at p = 1/44:
+it finds a 1-in-44 intermittent defect about one time in twenty-two.
+
+==============================================================================
+2. MONTE CARLO against the closed forms
+==============================================================================
+           p    n      MC P_ref    closed P_ref        z     MC P_pair   closed P_pair        z
+    0.001000    2      0.002010        0.001999    0.110      0.002010        0.001998    0.120
+    0.001000    3      0.003085        0.002997    0.710      0.003085        0.002997    0.710
+    0.001000    5      0.004705        0.004990    1.863      0.004705        0.004990    1.863
+    0.001000   10      0.009820        0.009955    0.613      0.009820        0.009955    0.613
+    0.010000    2      0.019805        0.019900    0.305      0.019720        0.019800    0.257
+    0.010000    3      0.029985        0.029701    0.745      0.029985        0.029700    0.747
+    0.010000    5      0.048395        0.049010    1.282      0.048395        0.049010    1.282
+    0.010000   10      0.096025        0.095618    0.618      0.096025        0.095618    0.618
+    0.022727    2      0.044365        0.044938    1.245      0.043830        0.044421    1.292
+    0.022727    3      0.066985        0.066644    0.610      0.066970        0.066632    0.604
+    0.022727    5      0.108295        0.108587    0.420      0.108295        0.108587    0.420
+    0.022727   10      0.204245        0.205383    1.263      0.204245        0.205383    1.263
+    0.100000    2      0.189295        0.190000    0.805      0.179485        0.180000    0.600
+    0.100000    3      0.270990        0.271000    0.010      0.270000        0.270000    0.000
+    0.100000    5      0.410225        0.409510    0.650      0.410215        0.409500    0.650
+    0.100000   10      0.650890        0.651322    0.405      0.650890        0.651322    0.405
+    0.500000    2      0.748495        0.750000    1.551      0.497705        0.500000    2.053
+    0.500000    3      0.874805        0.875000    0.264      0.750925        0.750000    0.957
+    0.500000    5      0.968895        0.968750    0.374      0.938005        0.937500    0.937
+    0.500000   10      0.999050        0.999023    0.386      0.997965        0.998047    0.813
+    0.900000    2      0.989485        0.990000    2.258      0.178640        0.180000    1.588
+    0.900000    3      0.999030        0.999000    0.431      0.268725        0.270000    1.286
+    0.900000    5      0.999995        0.999990    1.000      0.410440        0.409500    0.855
+    0.900000   10      1.000000        1.000000    0.000      0.647795        0.651322    3.302
+
+worst standardised deviation over the 24 cells: 3.3018
+[PASS] every Monte Carlo estimate lies within 4 standard errors of its closed form -- worst z = 3.3018
+
+==============================================================================
+3. INDEPENDENTLY DERIVED BRACKETS
+==============================================================================
+the inclusion-exclusion bracket is DEGENERATE at n = 2: with two events
+S1 - S2 = 2p - p^2 = 1 - (1-p)^2 exactly, so it carries no information
+there and the check below uses n >= 3.
+
+           p    n        IE lower           exact        IE upper   inside
+       1e-05    3     0.000030000     0.000030000     0.000030000     True
+       1e-05    4     0.000039999     0.000039999     0.000040000     True
+       1e-05    8     0.000079997     0.000079997     0.000080000     True
+       1e-05   20     0.000199981     0.000199981     0.000200000     True
+       0.001    3     0.002997000     0.002997001     0.003000000     True
+       0.001    4     0.003994000     0.003994004     0.004000000     True
+       0.001    8     0.007972000     0.007972056     0.008000000     True
+       0.001   20     0.019810000     0.019811135     0.020000000     True
+   0.0227273    3     0.066632231     0.066643971     0.068181818     True
+   0.0227273    4     0.087809917     0.087856608     0.090909091     True
+   0.0227273    8     0.167355372     0.167994432     0.181818182     True
+   0.0227273   20     0.356404959     0.368584001     0.454545455     True
+        0.05    3     0.142500000     0.142625000     0.150000000     True
+        0.05    4     0.185000000     0.185493750     0.200000000     True
+        0.05    8     0.330000000     0.336579569     0.400000000     True
+        0.05   20     0.525000000     0.641514078     1.000000000     True
+
+the bracket slack follows the CONDITIONING of the bracket expression --
+the third inclusion-exclusion term C(n,3) p^3 -- and not the operation
+count and not an absolute constant. An absolute floor made a bracket of
+width 4.5e-23 vacuous in an earlier product of this mission.
+[PASS] the closed form lies inside the inclusion-exclusion bracket on all 16 cells -- 16 of 16
+
+           p    n       exp lower           exact       exp upper   inside
+       0.001    1     0.000999500     0.001000000     0.001000500     True
+       0.001    2     0.001998001     0.001999000     0.001999999     True
+       0.001    5     0.004987521     0.004990010     0.004992501     True
+       0.001   30     0.029554466     0.029569033     0.029583609     True
+       0.001  200     0.181269247     0.181351171     0.181433141     True
+        0.01    1     0.009950166     0.010000000     0.010050166     True
+        0.01    2     0.019801327     0.019900000     0.019999327     True
+        0.01    5     0.048770575     0.049009950     0.049250873     True
+        0.01   30     0.259181779     0.260299627     0.261423285     True
+        0.01  200     0.864664717     0.866020325     0.867371331     True
+   0.0227273    1     0.022470954     0.022727273     0.022987482     True
+   0.0227273    2     0.044436964     0.044938017     0.045446539     True
+   0.0227273    5     0.107417528     0.108587139     0.109773247     True
+   0.0227273   30     0.494303293     0.498266184     0.502258503     True
+   0.0227273  200     0.989384654     0.989927070     0.990449510     True
+         0.1    1     0.095162582     0.100000000     0.105160683     True
+         0.1    2     0.181269247     0.190000000     0.199262597     True
+         0.1    5     0.393469340     0.409510000     0.426246579     True
+         0.1   30     0.950212932     0.957608842     0.964326007     True
+         0.1  200     0.999999998     0.999999999     1.000000000     True
+         0.5    1     0.393469340     0.500000000     0.632120559     True
+         0.5    2     0.632120559     0.750000000     0.864664717     True
+         0.5    5     0.917915001     0.968750000     0.993262053     True
+         0.5   30     0.999999694     0.999999999     1.000000000     True
+         0.5  200     1.000000000     1.000000000     1.000000000     True
+         0.9    1     0.593430340     0.900000000     0.999876590     True
+         0.9    2     0.834701112     0.990000000     0.999999985     True
+         0.9    5     0.988891003     0.999990000     1.000000000     True
+         0.9   30     1.000000000     1.000000000     1.000000000     True
+         0.9  200     1.000000000     1.000000000     1.000000000     True
+
+[PASS] the closed form lies inside the exponential bracket on all 30 cells -- 30 of 30
+[PASS] the first-order union bound sits above the closed form everywhere
+
+==============================================================================
+4. THE TWO INVERSIONS, checked against each other
+==============================================================================
+p_min and p_max are numerically one expression and are two claims: the
+smallest rate the design catches with probability 1-a is the largest
+rate consistent with having caught nothing.
+
+worst absolute disagreement over 11 budgets: 0.0
+[PASS] p_min and p_max agree to within rounding on every reported budget
+
+worst |P_ref(p_max(n), n) - 0.95| over the same budgets: 0.0
+[PASS] the escaped-rate bound recovers its own detection probability to 1e-12
+
+repeats needed for 95 per cent detection at p = 1/44: 131
+  P_ref(1/44, 131)     = 0.9507884480560611
+  P_ref(1/44, 130) = 0.9496439933596904
+[PASS] 131 repeats reach 0.95 at p = 1/44 and 130 do not
+repeats needed for an escaped-rate bound at or below 1/44: 131
+
+==============================================================================
+5. THE SEED AXIS IS A DIFFERENT AXIS
+==============================================================================
+a quantity that is a deterministic function of the seed yields the same
+value on every repeat at a fixed seed, so repeats carry ZERO information
+about seed-dependence and the Bernoulli formulae above do not apply.
+seeds drawn without replacement from a finite declared set give a
+HYPERGEOMETRIC count, not a binomial one.
+
+ population   sensitive   draws   hypergeometric   binomial (wrong)
+         10           5       2      0.777777778        0.750000000
+        100          50       3      0.878787879        0.875000000
+       1000         999       1      0.999000000        0.999000000
+         44           2       5      0.216701903        0.207529564
+[PASS] the hypergeometric and binomial answers differ, so the distinction is not cosmetic
+
+==============================================================================
+6. THE PUBLISHED DETECTION-POWER TABLE
+==============================================================================
+detection power at p = 0.022727272727272728, alpha = 0.05
+     n               P_ref              P_pair            p_min(n)      p_max(n) clean
+     2      0.044938016529      0.044421487603      0.776393202250      0.776393202250
+     3      0.066643970699      0.066632231405      0.631596850136      0.631596850136
+     5      0.108587139371      0.108587133307      0.450719728347      0.450719728347
+    10      0.205383111905      0.205383111905      0.258865550893      0.258865550893
+    20      0.368584001154      0.368584001154      0.139108340668      0.139108340668
+    44      0.636341050283      0.636341050283      0.065818771145      0.065818771145
+   100      0.899636012115      0.899636012115      0.029513049607      0.029513049607
+   131      0.950788448056      0.950788448056      0.022608690170      0.022608690170
+   200      0.989927069936      0.989927069936      0.014867039231      0.014867039231
+   500      0.999989816676      0.999989816676      0.005973551516      0.005973551516
+  1000      0.999999999896      0.999999999896      0.002991249545      0.002991249545
+
+read the last column as the answer to: after n agreeing runs, how high
+could the rate still be? At n = 2 it is 0.776. That is what a two-run
+reproducibility report has actually established.
+
+==============================================================================
+7. WHAT THE BOUND ASSUMES, and the direction the assumption fails in
+==============================================================================
+independence across repeats is the strong assumption. Repeats inside one
+process share RNG state, import caches, a fixed PYTHONHASHSEED and a warm
+filesystem cache, so they are POSITIVELY CORRELATED, the true detection
+power is LOWER than the formula, and p_max is OPTIMISTIC. The mitigation
+is a fresh subprocess in a fresh pristine copy with a fresh hash seed,
+which seedaudit.dynamic does. The residual correlation is not zero and
+this product does not estimate it.
+
+==============================================================================
+checks: 10
+failures: 0
+==============================================================================
