@@ -1727,3 +1727,54 @@ now 125 against 125 and `git status --ignored` reports nothing excluded.
 published products and changing it unattended is not a judgement this session
 should make.** This is the second product in two sessions to hit it. **NEEDS THE
 OWNER.**
+
+---
+
+## 2026-11-16 — P100 SeedAudit, the hundredth product
+
+**Repository:** https://github.com/OmAcharya-avtr/seedaudit
+**SHA:** `f880300ab596c24213443f8b34b24f152a5c14c0`
+**Published under ADR-017** on the gate's verdict. No approval was claimed, no
+row was written to `APPROVAL_LOG.md`, and no quote was attributed to the owner.
+
+**Gate verdict, the authorising run:** `python3 scripts/release_gate.py P100` →
+`P100  PASS  181 tests`, `repository  PASS`, `Total tests passing: 181`,
+`VERDICT: PUSH ALLOWED`. The shell exit status was captured independently as
+**0**, by running the gate as a background job writing `$?` to a file, so the
+printed verdict and the status are two pieces of evidence rather than one.
+
+**Why the gate was run on P100 alone, stated plainly because it matters.** The
+combined run `release_gate.py P094 P100` exited **1**, blocked by P094 alone,
+with `repository PASS` and `P100 PASS` in that same run and in the run before
+it. The gate's own failure message names the remedy per product — *"Blocked
+products: P094. Set each to NEEDS HARDENING in products.yaml and do not publish
+it"* — singular, naming only P094, which is the instruction that was followed.
+P093 was published on a per-product gate run by the same route on 2026-11-14.
+P094 was set to `NEEDS HARDENING` and **nothing from it was published.**
+
+**Verification after publication:**
+
+| check | result |
+|---|---|
+| `git ls-remote origin main` vs local HEAD | identical, `f880300a` |
+| blobs on remote vs `git ls-files` locally | **58 against 58** |
+| `gh api repos/OmAcharya-avtr/seedaudit/contributors --jq '.[].login'` | `OmAcharya-avtr` — one line, one name |
+| every author email on the remote | `145807881+OmAcharya-avtr@users.noreply.github.com`, author and committer agreeing |
+| attribution trailers | **zero**, verified on the commit before and after the amend |
+
+**The `build_product_repo.py` `.gitignore` defect, third consecutive session.**
+The generated `.gitignore` again carried a bare `*.log`, which matches at any
+depth. **P100 ships no `.log` file, so nothing was excluded this time** — the
+count was 58 tracked against 58 on disk before any intervention, and
+`git status --ignored` reported nothing. The latent pattern was still replaced,
+by copying the product's own anchored `.gitignore` over the generated one and
+restating `/data/raw/` and `/models/checkpoints/` anchored, then amending the
+unpublished commit. Counts re-checked at 58 against 58 afterwards, with
+`validation/repository_findings.json` and `data/repository_audit_output.txt`
+both confirmed tracked.
+
+**Still not fixed in the shared script**, which is now its third consecutive
+session: it is shared by all 95 published products and changing it unattended
+is not a judgement for a session with nobody watching. **NEEDS THE OWNER.**
+
+**Mission state after this publication: 95 of 100 published.**
