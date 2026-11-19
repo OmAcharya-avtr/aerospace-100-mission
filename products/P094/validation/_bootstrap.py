@@ -259,6 +259,21 @@ class Tee:
             self("FAILED CHECKS (0): none")
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self.path.write_text("\n".join(self.lines) + "\n")
+        if self.failures:
+            # The release gate reports a non-zero script as
+            # "<script> exit <code>: <last line of STDERR>", and prints
+            # "no output" when stderr is empty. Every line above went to
+            # stdout, which the gate discards, so a failing check used to
+            # reach the gate's log as "exit 1: no output" -- a true statement
+            # about stderr that named neither the check nor the measurement.
+            # That is what "validate_measured_baselines.py exit 1: no output"
+            # was on 2026-11-16. The failing checks are therefore repeated on
+            # stderr, last, so the gate's one-line message names them.
+            print(
+                f"FAILED CHECKS ({len(self.failures)}) in "
+                f"{self.path.name}: {'; '.join(self.failures)}",
+                file=sys.stderr,
+            )
         return relative(self.path)
 
 

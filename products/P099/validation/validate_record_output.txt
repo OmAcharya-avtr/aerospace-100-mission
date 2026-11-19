@@ -1,0 +1,125 @@
+Committed record validation -- P099 PassYield
+
+fast path (PASSYIELD_FAST=1): False
+
+==============================================================================
+1. IS THIS THE FILE THE GENERATOR WROTE?
+==============================================================================
+record                       : data/passes.csv
+manifest                     : data/manifest.json
+computed SHA-256             : f6b8e94b672484ddcbb14e92ea5db20807bc7bdd92635bcd50aba18684141154
+manifest SHA-256             : f6b8e94b672484ddcbb14e92ea5db20807bc7bdd92635bcd50aba18684141154
+computed size, bytes         : 754690
+manifest size, bytes         : 754690
+rows loaded                  : 1990
+manifest pass count          : 1990
+generator seed               : 990099
+campaign days                : 60.0
+element set line 1           : 1 06251U 62025E   06176.82412014  .00008885  00000-0  12808-3 0  3985
+element set line 2           : 2 06251  58.0579  54.0425 0030035 139.1568 221.1854 15.56387291  6774
+
+the record is under 1 MB, so it is committed. The mission's rule is that a
+data file over 1 MB is not committed and only the generator and the hash
+are; this one does not reach that.
+size as a fraction of 1 MB   : 0.7197
+
+[PASS] the record's SHA-256 matches the manifest
+[PASS] the record's size matches the manifest
+[PASS] the row count matches the manifest
+[PASS] the record is under 1 MB -- 754690 bytes
+[PASS] the schema header is the dataclass's own field order -- 27 columns
+[PASS] every station in the record is in the catalogue
+
+==============================================================================
+2. DOES THE COMMITTED DECOMPOSITION FOLLOW FROM THE COMMITTED EVENTS?
+==============================================================================
+every decomposition column is recomputed from the stored event timeline and
+compared against the stored column. The tolerances are derived in this
+script's own constants and are not chosen: the interval fields carry
+5e-10 s per endpoint, which times the 250 Mbit/s ceiling is 1.25e-7 Mbit,
+and the columns carry nine significant digits.
+
+passes recomputed                 : 1990
+
+the relative column is taken only over rows whose stored value is at
+least 1 Mbit in magnitude; see this script's source for why, and note
+that the pass/fail criterion uses both bounds and is unaffected.
+
+              column   worst |difference|, Mbit   worst relative
+    acquisition_mbit                  1.062e-04        8.838e-09
+       capacity_mbit                  8.854e-05        6.730e-09
+       geometry_mbit                  1.315e-04        1.835e-06
+           idle_mbit                  7.908e-05        7.697e-07
+        nominal_mbit                  1.825e-04        5.965e-09
+       realised_mbit                  9.736e-05        1.175e-07
+         resync_mbit                  4.862e-05        7.218e-07
+      shortfall_mbit                  1.685e-04        1.881e-05
+
+absolute tolerance, Mbit          : 0.001
+worst absolute difference, Mbit    : 1.825e-04
+margin against the bound           : 5.48x
+columns outside tolerance         : 0
+[PASS] every committed decomposition column follows from the committed events -- 0 outside tolerance
+
+the identity itself, over the recomputed passes, from the record's OWN
+columns: geometry + acquisition + resync + idle + residual = shortfall.
+worst |closure| over all 1990 rows, Mbit : 1.211e-04
+worst |closure| / |shortfall|              : 2.090e-06
+
+this closes to the PRINTED PRECISION of the record and not to the
+quadrature: the residual column is itself stored, so the identity is exact
+in exact arithmetic over these six numbers. The quadrature residual is the
+residual COLUMN, measured in validation/validate_decomposition.py.
+
+THE BOUND IS ABSOLUTE AND IT IS DERIVED. Each column is written at nine
+significant digits, so a column of magnitude M carries up to 0.5e-9 * M of
+printing error; six columns enter the identity, and the largest of them on
+this record is of order 1e5 Mbit, so the closure can reach
+6 * 0.5e-9 * 1e5 = 3e-4 Mbit. A RELATIVE bound would be the wrong shape
+here: the error scales with the largest column and the identity's left-hand
+side is the SHORTFALL, which on some passes is two orders of magnitude
+smaller, so the relative figure is large for a reason that is printing
+precision and not arithmetic.
+
+largest column magnitude in the identity, Mbit : 63817.9
+derived closure bound, Mbit                    : 1.915e-04
+[PASS] the stored columns close the identity within the derived printing bound -- worst 1.211e-04 against 1.915e-04 Mbit
+
+==============================================================================
+3. IS THE RECORD REACHABLE IN A COLD CLONE?
+==============================================================================
+ignore patterns : ['__pycache__/', '*.py[cod]', '*.egg-info/', '/build/', '/dist/', '/.venv/', '/venv/', '/.pytest_cache/', '/.hypothesis/', '/.ruff_cache/', '/.coverage', '/htmlcov/', '/junit.xml', '/.config/', '*.ckpt', '*.pt', '*.pth', '*.onnx', '*.joblib', '*.pkl']
+negation patterns: ['data/passes.csv', 'data/manifest.json', 'data/generate_passes.py', 'data/generate_passes_output.txt', 'validation/*_output.txt']
+
+a pattern with NO SLASH matches a basename at any depth. That is the trap:
+a bare junit.xml in another product of this mission silently excluded a
+required committed fixture, and a cold clone failed with 17 failures and 9
+errors while every local check passed. Every scratch pattern in this
+product's .gitignore is anchored with a leading slash.
+
+unanchored, non-glob ignore patterns: ['__pycache__/']
+[PASS] every non-glob ignore pattern is anchored or a directory name -- ['__pycache__/']
+
+                       required file   ignored                            reason
+                     data/passes.csv     False       negated by !data/passes.csv
+                  data/manifest.json     False    negated by !data/manifest.json
+             data/generate_passes.py     Falsenegated by !data/generate_passes.py
+     data/generate_passes_output.txt     Falsenegated by !data/generate_passes_output.txt
+
+[PASS] every required file exists -- missing []
+[PASS] no required file is excluded by the product's own .gitignore -- ignored: []
+
+and the control in the other direction: the patterns MUST ignore the
+scratch files they exist for, or they are decoration.
+[PASS] control fires: __pycache__/passyield.cpython-313.pyc is ignored -- by '*.py[cod]'
+[PASS] control fires: src/passyield/__pycache__/link.cpython-313.pyc is ignored -- by '*.py[cod]'
+[PASS] control fires: junit.xml is ignored -- by '/junit.xml'
+[PASS] control fires: .ruff_cache/0.16.9/abc is ignored -- by '/.ruff_cache/'
+[PASS] control fires: model.joblib is ignored -- by '*.joblib'
+[PASS] control fires: src/passyield/model.pkl is ignored -- by '*.pkl'
+
+==============================================================================
+checks: 17
+failures: 0
+controls that must fire: 6 of 6 fired
+==============================================================================

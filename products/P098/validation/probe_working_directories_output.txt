@@ -1,0 +1,71 @@
+Working-directory probe -- P098 EvidenceStale
+
+each script is run from four directories and the same exit status is
+required from all four. Every probe runs in a PRISTINE COPY of this
+product, so no committed output file and no committed figure is touched.
+
+excluded, with the reason in the module docstring: ['_approx_audit_plugin.py', '_bootstrap.py', 'probe_working_directories.py']
+per-script timeout, seconds: 420.0
+EVIDENCESTALE_FAST=1 is set for every probe: the question is whether a
+script RUNS from a directory, not what its numbers are.
+
+validation scripts probed: 7 -- ['validate_approx_audit.py', 'validate_baselines.py', 'validate_bound_bracket.py', 'validate_corpus_pin.py', 'validate_learned_model.py', 'validate_negative_controls.py', 'validate_tree_hygiene.py']
+validation support modules probed: 2 -- ['_approx_audit_plugin.py', '_bootstrap.py']
+examples probed: 4 -- ['bound_bracket.py', 'error_directions.py', 'learned_vs_closure.py', 'stale_fraction_report.py']
+
+==============================================================================
+1. EXIT STATUS FROM EACH DIRECTORY
+==============================================================================
+                                        script     root      tmp   product   own dir   same
+                     examples/bound_bracket.py        0        0         0         0   True
+                  examples/error_directions.py        0        0         0         0   True
+                examples/learned_vs_closure.py        0        0         0         0   True
+             examples/stale_fraction_report.py        0        0         0         0   True
+            validation/_approx_audit_plugin.py        0        0         0         0   True
+                      validation/_bootstrap.py        0        0         0         0   True
+           validation/validate_approx_audit.py        0        0         0         0   True
+              validation/validate_baselines.py        0        0         0         0   True
+          validation/validate_bound_bracket.py        0        0         0         0   True
+             validation/validate_corpus_pin.py        0        0         0         0   True
+          validation/validate_learned_model.py        0        0         0         0   True
+      validation/validate_negative_controls.py        0        0         0         0   True
+           validation/validate_tree_hygiene.py        0        0         0         0   True
+
+[PASS] every script returns the same exit status from all four directories -- 0 disagree: []
+[PASS] every script exits 0 from all four directories -- 0 did not: []
+
+==============================================================================
+2. THE COPY WAS NOT THE TREE -- checked, not asserted
+==============================================================================
+a probe that ran these scripts in place would overwrite every committed
+*_output.txt with fast-path numbers and redraw every committed figure.
+So the bytes of every committed output file and every committed figure are
+recorded before the probe and compared after it. This script's own output
+is excluded, because Tee writes it at exit and it is the one file this
+script is supposed to change.
+
+committed output files before the probe : 8
+committed output files after the probe  : 8
+committed figures before the probe      : 4
+committed figures after the probe       : 4
+output files changed, excluding its own  : 0
+figures changed                          : 0
+[PASS] the probe changed no committed output file other than its own -- 0 changed
+[PASS] the probe changed no committed figure -- 0 changed
+
+==============================================================================
+3. THE SUPPORT MODULES EXIT 0 WHEN EXECUTED DIRECTLY
+==============================================================================
+the release gate executes EVERY validation/*.py, including the two
+leading-underscore support modules, which are not scripts. They only
+define things, so they exit 0, and the table in section 1 is the evidence
+rather than an assumption about them.
+  validation/_approx_audit_plugin.py: [0, 0, 0, 0]
+[PASS] validation/_approx_audit_plugin.py exits 0 from all four directories -- [0, 0, 0, 0]
+  validation/_bootstrap.py: [0, 0, 0, 0]
+[PASS] validation/_bootstrap.py exits 0 from all four directories -- [0, 0, 0, 0]
+
+==============================================================================
+checks: 6
+failures: 0
+==============================================================================

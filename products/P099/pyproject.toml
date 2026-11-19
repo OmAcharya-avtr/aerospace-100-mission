@@ -1,0 +1,145 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "passyield"
+version = "0.1.0"
+description = "Nominal-versus-realised data-yield shortfall of a ground-station contact, as a distribution."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "ground-station",
+    "contact-scheduling",
+    "data-yield",
+    "sgp4",
+    "link-budget",
+    "pass-geometry",
+    "convolution",
+    "compound-poisson",
+    "bootstrap",
+    "crps",
+    "calibration",
+    "space-operations",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+# Every range is bounded on BOTH sides, at the version every number in this
+# repository was measured against. A floor with no ceiling is not a dependency
+# specification: five of the first fifty products of this mission were found
+# broken or silently wrong for a new install because pip resolved a release
+# published after the product was measured, and one of the five passed its
+# whole suite while its validation numbers moved.
+#
+# WHAT EACH DEPENDENCY IS USED FOR, so a bound can be argued with rather than
+# taken on trust.
+#
+# numpy -- the rate and elevation arrays, the Simpson weight vectors, the
+# `numpy.convolve` that IS baseline 2, `numpy.random.default_rng` (PCG64) for
+# the Monte Carlo cross-check and for every bootstrap resample, and
+# `numpy.quantile` for every percentile interval. The bound is numerical and
+# not merely an API bound: tests/test_determinism.py asserts that two
+# bootstrap runs at the declared seed are identical, which depends on PCG64's
+# draw order.
+#
+# scipy -- `scipy.stats.gamma.cdf` and `scipy.stats.poisson` for the
+# discretised source laws of the convolution, and
+# `scipy.integrate.cumulative_simpson` for the cumulative rate integral. Those
+# values appear in published quantiles, so the bound is numerical.
+#
+# scikit-learn -- `sklearn.ensemble.RandomForestRegressor` for the learned
+# per-pass predictor, with `oob_score=True` for the out-of-bag residuals that
+# are the product's declared uncertainty output. The ceiling is MANDATORY and
+# numerical: the published CRPS, calibration and coverage figures are a
+# property of this minor version's tree-building and bootstrap, and 1.9.1
+# cannot unpickle a model written by 1.8.0 -- measured elsewhere in this
+# mission. This product serialises no model at all, so the ceiling is about
+# the numbers and not about a file format.
+#
+# sgp4 -- the orbit propagator. The committed element set is read from this
+# package's own installed SGP4-VER.TLE by validation/validate_geometry.py,
+# and the geometry is checked against this package's own installed
+# tcppver.out, so the bound covers two data files as well as an API.
+#
+# NOTHING ELSE. The link budget, the decomposition, the interval algebra, the
+# brackets, the CSV schema and the CRPS all use only the standard library plus
+# numpy. pandas is installed in the build environment and is deliberately not
+# used: the record is read with `csv` so that a cold install pulls four
+# dependencies and not five.
+#
+# `pulp` is installed in the build environment at 4.2.0 and has NO SOLVER --
+# `listSolvers(onlyAvailable=True)` returns an empty list -- so it is not a
+# dependency here and would not be even if this product needed a linear
+# program, for which `scipy.optimize.milp` is the working choice.
+#
+# MEASURED AT: Python 3.13.18, numpy 2.5.3, scipy 1.18.1, scikit-learn 1.9.1,
+# sgp4 2.27, pytest 9.1.1, hypothesis 6.170.15, ruff 0.16.9, matplotlib
+# 3.11.2, on x86_64 Linux with 2 cores shared with four other concurrent
+# builds.
+#
+# NOT YET RUN AT BOTH ENDS OF EVERY RANGE. The build guide asks for the suite
+# and the committed validation output to be compared at the floor and the
+# ceiling of each declared range in an isolated environment. That was not done
+# for this product -- `pip` is forbidden to build agents in this batch after a
+# concurrent install mutated numpy mid-build -- and the omission is recorded
+# in README.md under Limitations rather than papered over. The declared ranges
+# are the minor series that was measured, which is narrower than a floor with
+# no ceiling and weaker than a measured range.
+#
+# A pin below a future security release is a real cost, not a free safety
+# measure: this product cannot take such a release without a port. The tension
+# is recorded in README.md under Limitations rather than resolved by removing
+# the ceiling.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scipy>=1.18,<1.19",
+    "scikit-learn>=1.9,<1.10",
+    "sgp4>=2.27,<2.28",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=9.1,<9.2", "hypothesis>=6.170,<6.171", "ruff>=0.16,<0.18"]
+examples = ["matplotlib>=3.11,<3.12"]
+dev = [
+    "pytest>=9.1,<9.2",
+    "hypothesis>=6.170,<6.171",
+    "ruff>=0.16,<0.18",
+    "matplotlib>=3.11,<3.12",
+]
+
+[project.scripts]
+passyield = "passyield.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/passyield"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+# `-p no:cacheprovider` keeps pytest from writing .pytest_cache into the tree.
+addopts = "-ra -p no:cacheprovider"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["passyield"]
+known-local-folder = ["_bootstrap"]

@@ -36,10 +36,16 @@ COMMANDS = {
 EXPECTED = {
     "gate": ("every branch fired at least once : True", "TOTAL", "810000"),
     "clock": ("governor            : schedutil", "MAXN_SUPER", "paired points       : 54"),
+    # "SPEC §7 secondary ...: REFUTED" is deliberately NOT a required fragment.
+    # The label on that line is a strict threshold comparison on a live
+    # wall-clock measurement taken by a one-pass simulation-mode run in this
+    # subprocess, so the line is located by its name below, its measured value
+    # is parsed out, the BOUND is asserted on that value and the label is
+    # asserted to be the one the value implies.
     "headline": (
         "Divergence spread max(R)/min(R)",
         "SPEC §7 primary (divergence spread): CONFIRMED",
-        "SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED",
+        "SPEC §7 secondary (baseline 2 held-out transfer error):",
         "argmax(R) = centroid",
         "argmin(R) = ingest",
         "(3, 0, 1, 5, 4, 2)",
@@ -136,6 +142,48 @@ def main() -> int:
         tee.check(
             f"{name} output states the unpinned clock with the figures",
             "unpinned schedutil-governed clock" in result.stdout,
+        )
+
+    tee.rule("the secondary verdict on the headline line, as a BOUND and not a label")
+    tee(
+        "  The label on the secondary verdict line is a strict threshold comparison on "
+        "a live"
+    )
+    tee(
+        "  wall-clock measurement, so the line is located by its name, the measured "
+        "value is"
+    )
+    tee(
+        "  parsed out of it, the bound against the pre-registered 0.5 is asserted on "
+        "that value,"
+    )
+    tee("  and the label is asserted to be the one the value implies.")
+    tee("")
+    verdict_prefix = "SPEC §7 secondary (baseline 2 held-out transfer error):"
+    verdict_lines = [
+        line
+        for line in results["headline"].stdout.splitlines()
+        if verdict_prefix in line
+    ]
+    tee.check(
+        "the headline output carries exactly one secondary-verdict line",
+        len(verdict_lines) == 1,
+        f"{len(verdict_lines)} matching lines",
+    )
+    if len(verdict_lines) == 1:
+        verdict_line = verdict_lines[0]
+        tee(f"  {verdict_line.strip()}")
+        measured_transfer = float(verdict_line.rsplit("measured", 1)[1].strip())
+        tee.check(
+            "the measured held-out error on that line is below the pre-registered 0.5",
+            measured_transfer < 0.5,
+            f"measured {measured_transfer:.6g}; a BOUND on one live measurement, band "
+            "published in VALIDATION.md",
+        )
+        tee.check(
+            "the label on that line is the one its own measured value implies",
+            ("REFUTED" in verdict_line) == (measured_transfer <= 0.5),
+            "the verdict is reported as it lands, not asserted as a literal",
         )
 
     tee.rule("the refusal path")

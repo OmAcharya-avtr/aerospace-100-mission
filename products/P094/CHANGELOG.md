@@ -3,6 +3,48 @@
 All notable changes to this product are recorded here. The format follows
 Keep a Changelog, and versions follow semantic versioning.
 
+## Unreleased - 2026-11-19
+
+Hardening pass over the LOAD-SENSITIVE ASSERTION CLASS. No feature change, no
+published number softened, no threshold moved, no check skipped.
+
+### Changed
+
+- Every assertion, control, threshold and early exit whose outcome can depend
+  on a live wall-clock reading in this container was inventoried with its file,
+  line and verdict in `validation/load_sensitive_inventory.md`: 868 assertion
+  sites examined, 61 grouped rows that can see the clock, 27 SAFE and 30
+  LOAD-SENSITIVE. Each LOAD-SENSITIVE row was reduced to a DIRECTION, to a
+  BOUND against a pre-registered or committed-trace value with its measured
+  band published in `validation/VALIDATION.md`, or moved onto the committed
+  campaign. **Seven rows compared two separately-measured live wall-clock
+  readings; none do now.**
+- The frame-stack sensitivity is asserted on the gate branch census and the
+  per-cell candidate counts -- integer quantities over deterministically seeded
+  frames -- instead of on a comparison between two simulation-mode runs. The
+  timing bands are published with their spread.
+- `validation/_bootstrap.py` `Tee.save` repeats the failing check names on
+  stderr. The release gate reports only the last line of stderr, so a failing
+  check used to reach it as `exit 1: no output`, which is what blocked this
+  product on 2026-11-16 without naming the cause.
+- `validation/validate_pypi_probe.py` reports an unreachable network as a
+  FINDING and exits 0, making no availability claim from that run. Network
+  reachability is a property of the container, not of the product.
+
+### Fixed
+
+- `validation/validate_tree_hygiene.py` deleted the hard-coded committed path
+  of its own output before scanning, rather than the path the run actually
+  writes. Under `HILTIMINGDIFF_OUTPUT_DIR` -- which
+  `probe_working_directories.py` sets on every script -- that **destroyed a
+  committed validation output**. Found by a one-test discrepancy: the suite
+  collected 1252 tests at the start of a full pass and 1251 when the
+  `pytest.approx` audit ran the same suite later in it. Pinned as
+  `tests/test_regressions.py::test_regression_a_redirected_tree_hygiene_run_keeps_the_committed_output`,
+  with the negative control measured to fire.
+- `tests/` is 1253 tests, counted from the junit XML and cross-checked against
+  a count of `testcase` elements.
+
 ## 0.1.0 - 2026-11-16
 
 First release. Status: TESTING.

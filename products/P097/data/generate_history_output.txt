@@ -1,0 +1,36 @@
+flakerank recorded run history -- generator transcript
+
+seed: 97044
+tests: 72
+sessions: 330 at 3 per calendar day
+retry budget (maximum attempts per invocation): 3
+skip probability per (session, test): 0.05
+regime change takes effect at session: 230
+duration median band, seconds: [0.05, 900.0]
+pinned case: soak/test_validation_probe_1_in_44 at p = 1/44 = 0.022727272727272728, median 600.0 s
+
+tier sizes, and the duration band is sampled INDEPENDENTLY of p:
+     stable:  38 tests, p in [0.0, 0.0]
+       rare:  13 tests, p in [0.002, 0.03]
+   moderate:  13 tests, p in [0.03, 0.12]
+   frequent:   8 tests, p in [0.12, 0.45]
+
+tests with a fail-duration factor != 1 (runtime depends on outcome): 14
+tests with a regime change at session 230: 10
+
+attempts recorded: 23836
+failed attempts  : 1417
+pooled per-attempt failure rate: 0.059447893941936565
+total recorded attempt time, seconds: 2953413.293
+wasted (failed-attempt) time, seconds: 253493.035
+wasted fraction of total: 0.08583053228642727
+
+written: data/run_history.json
+bytes: 402100
+sha256: aa12f8cc861ba66008a0d3762cd68fa24a24b013f897da67c8151996c531b18a
+
+the mission forbids committing data over 1 MB. This file is under it;
+the columnar integer layout is what makes that possible, and the
+durations are exact integer milliseconds so that a sum of them carries
+no representation error from the input.
+within the 1 MB limit: True

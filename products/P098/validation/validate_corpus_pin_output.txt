@@ -1,0 +1,128 @@
+Corpus pin -- P098 EvidenceStale
+
+this script reads and hashes. It never writes to data/. The corpora are
+generated once by data/generate_corpus.py, which is not under validation/
+because the gate runs sorted(glob('validation/*.py')) and adjacent scripts
+run back to back.
+
+fast path (EVIDENCESTALE_FAST=1): False
+manifest: data/corpus_manifest.json
+generator seed recorded in the manifest: 980098
+
+==============================================================================
+1. COMMITTED DIGESTS
+==============================================================================
+
+data/corpus_cyclic.json
+  committed sha256 : 7334afe10a4362c85b6c617e1c8c23e0766a42fe8b93121211a463fc83730bfc
+  recomputed sha256: 7334afe10a4362c85b6c617e1c8c23e0766a42fe8b93121211a463fc83730bfc
+  committed bytes  : 4987
+  recomputed bytes : 4987
+[PASS] data/corpus_cyclic.json digest matches the manifest
+[PASS] data/corpus_cyclic.json byte length matches the manifest
+
+data/corpus_layered.json
+  committed sha256 : 19309221e6161e425870fcd3df2e4725c1554b80e4a5670873734f7c43f04ac2
+  recomputed sha256: 19309221e6161e425870fcd3df2e4725c1554b80e4a5670873734f7c43f04ac2
+  committed bytes  : 167319
+  recomputed bytes : 167319
+[PASS] data/corpus_layered.json digest matches the manifest
+[PASS] data/corpus_layered.json byte length matches the manifest
+
+==============================================================================
+2. DECLARED STRUCTURE AGAINST THE GENERATED GRAPH
+==============================================================================
+the independent bound consumes two structural constants. They are only
+valid inputs if they are true of the graph, so they are measured here
+rather than trusted.
+
+data/corpus_layered.json  (corpus 'layered')
+  artifacts                      : 240
+  true edges                     : 249
+  declared edges                 : 174
+  hidden edges                   : 75
+  change events                  : 250
+  evidence items                 : 480
+  evaluation revision            : 2000
+  declared max dependents (d)    : 2
+  measured max dependents        : 2
+  declared max impact depth (L)  : 2
+  measured max closure depth     : 2
+  max closure size               : 7
+  mean closure size              : 2.833333
+  acyclic                        : True
+  cycles reported                : ()
+[PASS] data/corpus_layered.json: measured max dependents does not exceed the declared d -- 2 <= 2
+[PASS] data/corpus_layered.json: measured max closure depth does not exceed the declared L -- 2 <= 2
+[PASS] data/corpus_layered.json: the closure depth limit never bound -- deepest closure 2 against the default limit 64
+
+data/corpus_cyclic.json  (corpus 'cyclic')
+  artifacts                      : 12
+  true edges                     : 12
+  declared edges                 : 12
+  hidden edges                   : 0
+  change events                  : 6
+  evidence items                 : 12
+  evaluation revision            : 20
+  declared max dependents (d)    : 2
+  measured max dependents        : 2
+  declared max impact depth (L)  : 6
+  measured max closure depth     : 5
+  max closure size               : 6
+  mean closure size              : 4.500000
+  acyclic                        : False
+  cycles reported                : (('c00', 'c01', 'c02'),)
+[PASS] data/corpus_cyclic.json: measured max dependents does not exceed the declared d -- 2 <= 2
+[PASS] data/corpus_cyclic.json: measured max closure depth does not exceed the declared L -- 5 <= 6
+[PASS] data/corpus_cyclic.json: the closure depth limit never bound -- deepest closure 5 against the default limit 64
+
+==============================================================================
+3. COMMITTED LABELS AGAINST THE REPLAYED GROUND TRUTH
+==============================================================================
+the generator wrote true_stale while it built the history. The replay
+recomputes it from the committed event log. Two computations over two
+representations of one definition; disagreement would mean the committed
+corpus does not describe the history it ships.
+
+data/corpus_layered.json
+  committed stale items : 194 of 480
+  replayed stale items  : 194 of 480
+  committed fraction    : 0.404167
+  replayed fraction     : 0.404167
+  items disagreeing     : 0
+[PASS] data/corpus_layered.json: committed labels agree with the replayed ground truth item by item -- 0 disagree
+
+data/corpus_cyclic.json
+  committed stale items : 7 of 12
+  replayed stale items  : 7 of 12
+  committed fraction    : 0.583333
+  replayed fraction     : 0.583333
+  items disagreeing     : 0
+[PASS] data/corpus_cyclic.json: committed labels agree with the replayed ground truth item by item -- 0 disagree
+
+==============================================================================
+4. DIGEST COLLISION BOUND FOR THE CORPUS ACTUALLY USED
+==============================================================================
+one of the three conditions the closure comparison's exactness rests on.
+
+data/corpus_layered.json
+  distinct contents over the whole history : 273
+  pairs                                    : 37128
+  union bound on any pair colliding        : 3.206437e-73
+  log10 of that bound                      : -72.493977
+[PASS] data/corpus_layered.json: the pairwise collision bound is below 1e-60 -- 3.206e-73
+
+data/corpus_cyclic.json
+  distinct contents over the whole history : 15
+  pairs                                    : 105
+  union bound on any pair colliding        : 9.067977e-76
+  log10 of that bound                      : -75.042490
+[PASS] data/corpus_cyclic.json: the pairwise collision bound is below 1e-60 -- 9.068e-76
+
+this is a bound on an idealised model of SHA-256 (FIPS 180-4), not a proof
+about SHA-256, and it says nothing about an adversary choosing contents.
+
+==============================================================================
+checks: 14
+failures: 0
+==============================================================================

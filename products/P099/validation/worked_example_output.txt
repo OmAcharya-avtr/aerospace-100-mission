@@ -1,0 +1,96 @@
+Worked example -- P099 PassYield
+
+this is the API block quoted in README.md, executed. The README quotes
+THIS FILE, so the two cannot drift.
+
+fast path (PASSYIELD_FAST=1): False
+
+==============================================================================
+THE CODE
+==============================================================================
+from passyield.baselines import analytic_shortfall_distribution, fit_event_model
+from passyield.bounds import inside, shortfall_bracket
+from passyield.dataset import events_of, load_passes, station_by_name, window_of
+from passyield.decompose import decompose_pass
+from passyield.geometry import satellite
+from passyield.link import DEFAULT_BUDGET
+
+record = load_passes()                       # the committed per-pass record
+row = next(r for r in record if r.pass_id == 5)
+satrec = satellite()                         # SGP4 on a published element set
+station = station_by_name(row.station)
+window = window_of(row)
+
+# Baseline 3: what the record accounts for, decomposed.
+item = decompose_pass(satrec, station, window, events_of(row))
+
+# Baseline 2: the analytic law of the shortfall, as a DISTRIBUTION.
+model = fit_event_model(...)                 # measured laws, see below
+law = analytic_shortfall_distribution(
+    satrec, station, window, model, item.nominal_bits, item.capacity_bits
+)
+
+# An independent bracket, from the pass duration and the rate ceiling alone.
+bracket = shortfall_bracket(
+    item.nominal_bits, item.window_duration_s, DEFAULT_BUDGET.max_rate_mbit_s
+)
+
+==============================================================================
+THE OUTPUT
+==============================================================================
+passes in the committed record        : 1990
+pass_id                               : 5
+station                               : GS-05
+window duration, s                    : 376.969
+peak elevation, deg                   : 78.600
+
+booked volume (baseline 1), Mbit      : 50361.605
+window capacity, Mbit                 : 48640.227
+accounted realised volume, Mbit       : 44683.787
+accounted shortfall, Mbit             : 5677.817
+
+baseline 1's predicted shortfall, Mbit: 0.0
+
+the decomposition, Mbit:
+  geometry                            : 1721.377
+  acquisition                         : 804.983
+  re-sync                             : 1337.233
+  idle                                : 1814.222
+  residual (REPORTED, not assumed)    : 2.634433e-03
+  sum of the four terms               : 5677.815
+
+the analytic law of the shortfall -- the headline output is this, not a
+point number:
+  method                              : numerical-convolution
+  grid step, Mbit                     : 47.5002
+  quantile discretisation, Mbit       : 23.7501
+  truncated mass                      : 1.622829e-02
+  mean, Mbit                          : 17905.871
+
+  quantile 0.05, Mbit                  : 6590.887
+  quantile 0.25, Mbit                  : 11285.299
+  quantile 0.50, Mbit                  : 16193.871
+  quantile 0.75, Mbit                  : 23083.108
+  quantile 0.95, Mbit                  : 39167.273
+
+independent bracket, Mbit             : [-43880.693, 50361.605]
+the accounted shortfall is inside it  : True
+the median of the law is inside it    : True
+
+what a scheduler would do with this: book the 0.25 quantile of the
+shortfall against this station rather than the booked volume, which is
+11285 Mbit of expected loss rather than the 0 Mbit baseline 1 asserts.
+
+==============================================================================
+CHECKS
+==============================================================================
+[PASS] the four terms total the shortfall within the reported residual -- residual 2.634e-03 Mbit
+[PASS] the accounted shortfall lies inside the independent bracket
+[PASS] the analytic law's median lies inside the independent bracket
+[PASS] the realised yield is non-negative and at most the capacity -- 44683.787 of 48640.227 Mbit
+[PASS] the law reports its own truncated mass -- 1.622829e-02
+
+==============================================================================
+checks: 5
+failures: 0
+==============================================================================

@@ -1,0 +1,194 @@
+The learned component against the three baselines -- P097 flakerank
+
+The baselines were implemented and validated FIRST, in
+validate_baselines.py. A baseline win is research evidence and is never
+removed, softened or retuned away.
+
+fast path (FLAKERANK_FAST=1): False
+declared seed: 97044
+history: data/run_history.json sha256 aa12f8cc861ba66008a0d3762cd68fa24a24b013f897da67c8151996c531b18a
+
+lookback window, sessions : 120
+horizon window, sessions  : 30
+training origins          : [120, 150, 180, 210]
+held-out TIME origins     : [240, 270]
+minimum attempts per row  : 8
+features                  : 17
+trees                     : 300
+
+==============================================================================
+1. THE ROWS AND THE SPLITS
+==============================================================================
+
+rows built                 : 432
+                     train:  200 rows,  50 tests, origins [120, 150, 180, 210]
+            held-out TESTS:   88 rows,  22 tests, origins [120, 150, 180, 210]
+             held-out TIME:  100 rows,  50 tests, origins [240, 270]
+
+[PASS] the held-out TESTS split shares no test with training -- 0 shared
+[PASS] the held-out TIME split shares no origin with training
+[PASS] the held-out TIME split uses the training tests, so the two splits ask different questions -- 50 of 50 shared
+
+Zero-inflation, reported because it dominates every rank metric below:
+                     train:   63 of  200 rows have a non-zero target (0.3150)
+            held-out TESTS:   25 of   88 rows have a non-zero target (0.2841)
+             held-out TIME:   34 of  100 rows have a non-zero target (0.3400)
+
+Over a 30-session horizon most tests waste nothing at all, so a score
+that separates zero from non-zero does well on Spearman without saying
+anything about HOW MUCH. That is exactly why the cost-weighted capture
+is reported beside it.
+
+==============================================================================
+2. THE FIT
+==============================================================================
+
+sklearn.ensemble.RandomForestRegressor on log1p(wasted seconds)
+  n_estimators     : 300
+  max_depth        : 5
+  min_samples_leaf : 5
+  random_state     : 97044
+  n_jobs           : 1, deliberately: parallel tree fitting on a
+                     contended two-core box is slower than serial, and
+                     this product measures no fit time at all.
+
+NO MODEL IS SERIALISED anywhere in this repository. A scikit-learn
+pickle is not portable across minor versions -- 1.9.1 cannot unpickle a
+1.8.0 model, measured in this mission -- so the model is refitted from
+the committed history whenever it is needed, and the
+scikit-learn>=1.9,<1.10 ceiling is declared anyway so the numbers below
+belong to the version that produced them.
+
+Impurity-based feature importances, largest first. These describe the
+fitted forest; they are biased towards high-cardinality features and are
+not a causal claim.
+
+     analytic_cost_per_session: 0.3399693389703807
+                wasted_seconds: 0.32644603859189514
+          log1p_wasted_seconds: 0.2818601186220956
+                      attempts: 0.01609153276368615
+                      sessions: 0.00879203593537771
+            sd_attempt_seconds: 0.0055959063543997295
+  mean_failing_seconds_or_mean: 0.0042439265456548116
+           max_attempt_seconds: 0.0032597927519791518
+
+[PASS] the importances form a normalised decomposition -- sum 1.0
+
+==============================================================================
+3. THE BENCHMARK, SCORED ON THE TWO SPLITS SEPARATELY
+==============================================================================
+
+rho and tau-b are against the realised horizon wasted time. 'capture' is
+the fraction of that realised wasted time held by the predictor's top k.
+'mae' is the mean absolute error in log1p seconds, n/a for a score with
+no seconds interpretation. 'cover' is the fraction of realised targets
+inside the predictor's nominal 90 per cent interval, n/a for a predictor
+without one.
+
+--- held-out TESTS (88 rows) ---
+                 predictor   rows         rho       tau-b    top-k     capture         mae      cover
+            learned forest     88    0.620623    0.551083    3/10     0.979481    0.412463   0.909091
+                flake rate     88    0.724223    0.622988    2/10     0.269353         n/a        n/a
+    analytic expected cost     88    0.702733    0.653691    2/10     0.961962    0.389501        n/a
+   accumulated persistence     88    0.702707    0.653290    2/10     0.961962    0.389462        n/a
+ oracle (knows the answer)     88    1.000000    1.000000    4/10     0.988555    0.000000        n/a
+
+  best on           spearman: flake rate (0.7242225692546863)
+  best on      kendall_tau_b: analytic expected cost (0.6536912560503069)
+  best on  captured_fraction: learned forest (0.979480592395563)
+  best on          mae_log1p: accumulated persistence (0.3894620095553918)
+
+  interval coverage of the learned model: 0.9090909090909091 against a nominal 0.9
+  mean interval width, log1p seconds   : 0.9608410060412717
+  rows where the ensemble MEAN lies outside the tree-quantile
+    interval: 47 of 88; the widest such
+    interval is 0.0
+
+  That last line is a property of the ensemble and not a defect. For a
+  test that almost never fails, nearly every tree predicts log1p(0) = 0
+  and a handful predict a positive value, so the distribution across
+  trees is a point mass with a thin right tail and its central
+  quantile interval does not contain its own mean. The consequence for
+  a reader is that the interval is an interval on the TREES' answers,
+  not a predictive interval for the next window's cost.
+
+--- held-out TIME (100 rows) ---
+                 predictor   rows         rho       tau-b    top-k     capture         mae      cover
+            learned forest    100    0.793740    0.710695    5/10     0.947649    0.442334   0.830000
+                flake rate    100    0.881740    0.773324    5/10     0.652750         n/a        n/a
+    analytic expected cost    100    0.878895    0.828984    5/10     0.947649    0.406620        n/a
+   accumulated persistence    100    0.878895    0.828984    5/10     0.947649    0.407591        n/a
+ oracle (knows the answer)    100    1.000000    1.000000    6/10     0.959580    0.000000        n/a
+
+  best on           spearman: flake rate (0.8817404173119596)
+  best on      kendall_tau_b: TIE: accumulated persistence, analytic expected cost (0.8289843764987377)
+  best on  captured_fraction: TIE: accumulated persistence, analytic expected cost, learned forest (0.9476486020098286)
+  best on          mae_log1p: analytic expected cost (0.40661998638656255)
+
+  interval coverage of the learned model: 0.83 against a nominal 0.9
+  mean interval width, log1p seconds   : 0.8442475051938403
+  rows where the ensemble MEAN lies outside the tree-quantile
+    interval: 55 of 100; the widest such
+    interval is 0.00075841280849251
+
+  That last line is a property of the ensemble and not a defect. For a
+  test that almost never fails, nearly every tree predicts log1p(0) = 0
+  and a handful predict a positive value, so the distribution across
+  trees is a point mass with a thin right tail and its central
+  quantile interval does not contain its own mean. The consequence for
+  a reader is that the interval is an interval on the TREES' answers,
+  not a predictive interval for the next window's cost.
+
+
+==============================================================================
+4. THE FINDING
+==============================================================================
+
+Counted over the two splits and the four metrics that both a baseline
+and the learned model can be scored on:
+
+   heldout_tests /           spearman: flake rate
+   heldout_tests /      kendall_tau_b: analytic expected cost
+   heldout_tests /  captured_fraction: learned forest
+   heldout_tests /          mae_log1p: accumulated persistence
+    heldout_time /           spearman: flake rate
+    heldout_time /      kendall_tau_b: TIE: accumulated persistence, analytic expected cost
+    heldout_time /  captured_fraction: TIE: accumulated persistence, analytic expected cost, learned forest
+    heldout_time /          mae_log1p: analytic expected cost
+
+A cell with an exact draw is counted as a shared cell, not a win for
+whichever name happened to be checked first.
+
+      analytic expected cost: 2.83 of 8 cells (2 outright)
+                  flake rate: 2.00 of 8 cells (2 outright)
+     accumulated persistence: 1.83 of 8 cells (1 outright)
+              learned forest: 1.33 of 8 cells (1 outright)
+
+the learned forest wins 1 of 8 cells outright and holds a 1.33-cell share
+
+THE FINDING, stated plainly. The specification for this product
+predicted that the analytic expected-cost model would be strong and
+might well win. On this history it does: a classical baseline matches or
+beats the learned forest on the majority of the reported metric-split
+cells, and the forest's own largest feature importances are the analytic
+cost and the accumulated wasted time -- that is, the baselines' own
+outputs. A forest whose signal is a closed form it was given is not
+adding a model; it is adding variance to one.
+
+WHAT THE LEARNED COMPONENT DOES CONTRIBUTE, measured rather than
+asserted: a calibratable interval. The analytic model emits a point
+estimate and nothing else, and the forest's tree spread gives a
+coverage figure a reader can check -- reported above whatever it is.
+That is a real difference and it is not a win on the ranking metrics,
+and the product does not claim otherwise.
+
+This result is published as the finding. It is not retuned away, and the
+model is not given features the baselines are denied in order to lose.
+
+[PASS] the benchmark produced a score for every predictor on both splits
+[PASS] a classical baseline wins at least half the metric-split cells, which is the published finding -- the learned forest holds 1.33 of 8 cells
+
+==============================================================================
+checks: 6
+failures: 0
+==============================================================================

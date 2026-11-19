@@ -1,0 +1,117 @@
+Tree hygiene -- P099 PassYield
+
+fast path (PASSYIELD_FAST=1): False
+
+==============================================================================
+0. WHAT WAS ALREADY HERE -- inherited, reported, not failed on
+==============================================================================
+cache directories and bytecode files present at entry: 29
+  INHERITED: .hypothesis
+  INHERITED: .ruff_cache
+  INHERITED: src/passyield/__pycache__
+  INHERITED: src/passyield/__pycache__/__init__.cpython-313.pyc
+  INHERITED: src/passyield/__pycache__/__main__.cpython-313.pyc
+  INHERITED: src/passyield/__pycache__/baselines.cpython-313.pyc
+  INHERITED: src/passyield/__pycache__/bounds.cpython-313.pyc
+  INHERITED: src/passyield/__pycache__/dataset.cpython-313.pyc
+  INHERITED: src/passyield/__pycache__/decompose.cpython-313.pyc
+  INHERITED: src/passyield/__pycache__/distribution.cpython-313.pyc
+  INHERITED: src/passyield/__pycache__/geometry.cpython-313.pyc
+  INHERITED: src/passyield/__pycache__/link.cpython-313.pyc
+  INHERITED: src/passyield/__pycache__/predictor.cpython-313.pyc
+  INHERITED: src/passyield/__pycache__/report.cpython-313.pyc
+  INHERITED: src/passyield/__pycache__/scoring.cpython-313.pyc
+  INHERITED: tests/__pycache__
+  INHERITED: tests/__pycache__/conftest.cpython-313-pytest-9.1.1.pyc
+  INHERITED: tests/__pycache__/test_baselines.cpython-313-pytest-9.1.1.pyc
+  INHERITED: tests/__pycache__/test_bounds.cpython-313-pytest-9.1.1.pyc
+  INHERITED: tests/__pycache__/test_cli.cpython-313-pytest-9.1.1.pyc
+  ... and 9 more
+
+these are NOT a defect of this product. The release gate's own ruff run
+writes .ruff_cache into the tree one check before the validation scripts
+are executed, and its pytest run can leave .hypothesis the same way. What
+a harness leaves behind before calling a script is not the script's doing.
+
+==============================================================================
+1. DOES RUNNING A SCRIPT ADD ANYTHING?
+==============================================================================
+each script below is run in a subprocess with HOME and MPLCONFIGDIR
+pointed outside the product and PYTHONDONTWRITEBYTECODE set, and the tree
+is snapshotted around each run. A previous product of this mission set
+HOME to the product root and matplotlib wrote .config/matplotlib INTO the
+repository, which the release gate fails twice over.
+
+THE RUNS HAPPEN IN A PRISTINE COPY, not in this tree. Running
+validate_record.py here would overwrite validation/validate_record_output.txt
+with fast-path numbers, and the release gate runs the validation scripts in
+alphabetical order, so a script that regenerated another one's committed
+evidence would collide with it on the gate's own ordering. The copy is a
+faithful product tree, so the measurement is the same and the hazard is
+gone. The bytes of every committed output file here are compared before and
+after to show that the copy was not the tree.
+
+validation/validate_record.py: exit 0, added 0
+[PASS] validation/validate_record.py exits 0 from validation/ in a pristine copy -- exit 0
+examples/pass_geometry.py: exit 0, added 0
+[PASS] examples/pass_geometry.py exits 0 from validation/ in a pristine copy -- exit 0
+
+[PASS] running these scripts added no cache directory and no bytecode file -- 0 added: []
+
+committed output files changed by this script, excluding its own: 0
+[PASS] this script regenerated no other script's committed evidence -- 0 changed: []
+
+==============================================================================
+2. THIS SCRIPT'S OWN INTERPRETER
+==============================================================================
+a validation script in another product of this mission imported its own
+package to call it, which wrote 11 .pyc files into the tree, and then
+scanned the tree for exactly those files and failed itself. Setting
+PYTHONDONTWRITEBYTECODE for SPAWNED subprocesses does nothing about that:
+the polluting interpreter is the script's own. Hence
+sys.dont_write_bytecode = True as the first statement after the __future__
+import in every runnable script here, which cannot be delegated to
+_bootstrap because CPython writes a module's bytecode cache BEFORE
+executing that module.
+
+sys.dont_write_bytecode in this process: True
+[PASS] this script disabled bytecode writing
+runnable scripts checked: 16
+[PASS] every runnable script sets the flag -- missing in []
+
+==============================================================================
+3. WOULD ANY ARTIFACT REACH A COLD CLONE?
+==============================================================================
+the .gitignore semantics are re-implemented here rather than delegated to a
+git command, because build agents in this batch are forbidden from running
+git. The question is not whether an artifact exists but whether a cold
+clone would carry it.
+
+ignore patterns  : ['__pycache__/', '*.py[cod]', '*.egg-info/', '/build/', '/dist/', '/.venv/', '/venv/', '/.pytest_cache/', '/.hypothesis/', '/.ruff_cache/', '/.coverage', '/htmlcov/', '/junit.xml', '/.config/', '*.ckpt', '*.pt', '*.pth', '*.onnx', '*.joblib', '*.pkl']
+negation patterns: ['data/passes.csv', 'data/manifest.json', 'data/generate_passes.py', 'data/generate_passes_output.txt', 'validation/*_output.txt']
+
+artifacts present in the tree          : 29
+artifacts a cold clone would carry     : 0
+[PASS] no cache directory or bytecode file would reach a cold clone -- 0 would
+
+==============================================================================
+4. THE SCANNER RUN TWICE, FROM THE SAME TREE
+==============================================================================
+a check whose own execution can create the condition it tests is not a
+check. This is the fifth occurrence of that class in this mission, so the
+scanner is run twice and the two runs must agree.
+
+first run  : 29 artifacts
+second run : 29 artifacts
+difference : []
+[PASS] the scanner agrees with itself on a second run
+
+artifacts at entry : 29
+artifacts at exit  : 29
+added by this whole script: []
+[PASS] this script added nothing to the tree -- added []
+
+==============================================================================
+checks: 9
+failures: 0
+==============================================================================

@@ -1,0 +1,158 @@
+Learned model against the validated baselines -- P098 EvidenceStale
+
+run AFTER validate_baselines.py, which validates the baselines against the
+by-construction ground truth. Every method is scored on the same held-out
+test items of the same splits.
+
+fast path (EVIDENCESTALE_FAST=1): False
+grouped folds: 5
+forest: RandomForestClassifier, n_estimators=200, max_depth=6, random_state=980098, n_jobs=1
+decision threshold: 0.5
+features (12): age, closure_size, closure_depth, direct_dependencies, direct_dependents, closure_leaf_count, subject_writes_before, subject_events_before, closure_writes_before, closure_max_writes_before, closure_write_rate_before, subject_touch_share_before
+
+NO FEATURE READS ANY CONTENT, ANY DIGEST, OR ANY EVENT AFTER THE EVIDENCE
+WAS PRODUCED. An indicator 'some artifact in the declared closure has an
+event after production' would reproduce baseline 2's information and make
+the model a reimplementation of the exact method. It is measured anyway, as
+learned_leak_ablation, so that the claim is a measurement and not an
+assertion.
+
+==============================================================================
+1. COMPLETE DEPENDENCY DECLARATIONS
+==============================================================================
+evidence items               : 480
+truly stale items            : 194
+degenerate folds             : 0
+total fit seconds, all folds : 1.181
+wall seconds for this section: 2.928
+
+held-out ARTIFACTS (GroupKFold on the subject artifact)
+
+method                         folds       auc     brier     agree    missed     alarm
+baseline1_timestamp                5    0.4510    0.5375    0.4625    0.5962    0.5017
+baseline1b_timestamp_depth1        5    0.5372    0.5250    0.4750    0.1337    0.7919
+baseline2_closure_hash             5    1.0000    0.0000    1.0000    0.0000    0.0000
+learned_forest                     5    0.7152    0.2130    0.7021    0.3925    0.2358
+learned_leak_ablation              5    0.7390    0.2052    0.7021    0.3932    0.2357
+
+held-out TIME (forward chaining on the production revision)
+
+method                         folds       auc     brier     agree    missed     alarm
+baseline1_timestamp                3    0.4460    0.5385    0.4615    0.6356    0.4723
+baseline1b_timestamp_depth1        3    0.5460    0.5165    0.4835    0.1310    0.7771
+baseline2_closure_hash             3    1.0000    0.0000    1.0000    0.0000    0.0000
+learned_forest                     3    0.6977    0.2154    0.6546    0.6733    0.1246
+learned_leak_ablation              3    0.7368    0.2069    0.6635    0.6018    0.1575
+
+[PASS] the closure comparison is exact on held-out artifacts -- auc 1.000000, agreement 1.000000
+[PASS] the closure comparison is exact on held-out time -- auc 1.000000, agreement 1.000000
+[PASS] the learned model does NOT beat the closure comparison on held-out artifacts -- learned 0.715175 against exact 1.000000
+[PASS] the learned model does NOT beat the closure comparison on held-out time -- learned 0.697687 against exact 1.000000
+[PASS] the learned model DOES beat the timestamp baseline on held-out artifacts -- learned 0.715175 against timestamp 0.451017
+[PASS] the learned model DOES beat the timestamp baseline on held-out time -- learned 0.697687 against timestamp 0.446036
+[PASS] all fits in this section finished inside the declared 60 s CPU budget -- 1.181 s
+
+==============================================================================
+2. THE FEATURE IMPORTANCES, averaged over the grouped folds
+==============================================================================
+  age                            0.303296
+  closure_size                   0.172075
+  closure_leaf_count             0.121114
+  direct_dependents              0.085619
+  direct_dependencies            0.072273
+  closure_depth                  0.070160
+  closure_write_rate_before      0.057155
+  subject_events_before          0.034753
+  subject_touch_share_before     0.032322
+  closure_max_writes_before      0.022769
+  closure_writes_before          0.022242
+  subject_writes_before          0.006221
+  sum                            1.000000
+[PASS] the impurity importances sum to 1 -- 1.000000000000
+
+==============================================================================
+3. INCOMPLETE DEPENDENCY DECLARATIONS -- the only case for a model
+==============================================================================
+30 per cent of the true dependency edges are withheld. The ground truth is
+still computed over the TRUE graph, so this measures what each method does
+when the declarations it reads are wrong.
+
+hidden edges                 : 75 of 249
+total fit seconds, all folds : 1.200
+
+held-out ARTIFACTS
+
+method                         folds       auc     brier     agree    missed     alarm
+baseline1_timestamp                5    0.4510    0.5375    0.4625    0.5962    0.5017
+baseline1b_timestamp_depth1        5    0.5171    0.5333    0.4667    0.2189    0.7469
+baseline2_closure_hash             5    0.8495    0.1229    0.8771    0.3010    0.0000
+learned_forest                     5    0.5745    0.2561    0.5688    0.6815    0.2628
+learned_leak_ablation              5    0.6132    0.2456    0.5729    0.6519    0.2769
+
+held-out TIME
+
+method                         folds       auc     brier     agree    missed     alarm
+baseline1_timestamp                3    0.4460    0.5385    0.4615    0.6356    0.4723
+baseline1b_timestamp_depth1        3    0.5443    0.5096    0.4904    0.1757    0.7357
+baseline2_closure_hash             3    0.8578    0.1146    0.8854    0.2843    0.0000
+learned_forest                     3    0.5211    0.2504    0.6059    0.8192    0.1084
+learned_leak_ablation              3    0.6151    0.2353    0.6077    0.7822    0.1305
+
+[PASS] an incomplete declaration degrades the closure comparison below exact -- artifact 0.849489, time 0.857835
+[PASS] the degraded closure comparison still makes no false alarm
+[PASS] the learned model does NOT beat the degraded closure comparison on held-out artifacts -- learned 0.574547 against degraded 0.849489
+[PASS] the learned model does NOT beat the degraded closure comparison on held-out time -- learned 0.521082 against degraded 0.857835
+
+THE FINDING, STATED PLAINLY. The pre-registered expectation was that the
+closure comparison is exact and the learned model cannot beat it. That is
+what was measured, on both splits. The model's only possible value was the
+incomplete-declaration case, and it does not beat the degraded closure
+comparison there either: an undeclared edge hides staleness from BOTH
+methods, and the graph features the model has left are the features of a
+graph that is itself missing those edges. The product publishes a baseline
+win and does not retune it away.
+
+==============================================================================
+4. THE CONFIDENCE OUTPUT -- does agreement rise with it
+==============================================================================
+one grouped-fold pass, so every item is predicted by a model that never saw
+its subject artifact. The confidence is max(p, 1-p), the margin of the
+thresholded decision.
+
+        band   items  agreement
+   [0.5,0.6)     114   0.631579
+   [0.6,0.7)      81   0.666667
+   [0.7,0.8)     104   0.721154
+   [0.8,0.9)     164   0.762195
+   [0.9,1.0)      17   0.647059
+       total     480
+
+bands with at least 20 items, lowest to highest confidence:
+  [0.5,0.6)   114 items  agreement 0.631579
+  [0.6,0.7)    81 items  agreement 0.666667
+  [0.7,0.8)   104 items  agreement 0.721154
+  [0.8,0.9)   164 items  agreement 0.762195
+
+agreement is monotone non-decreasing across those bands: True
+agreement is monotone non-decreasing across ALL occupied bands: False
+
+the 20-item floor above is a reporting threshold, not a filter on the
+finding: the sparse bands are listed in the full table and the monotonicity
+over ALL occupied bands is reported on its own line. On this corpus the
+highest band is the sparse one and it breaks the monotonicity, which is
+exactly the failure mode a forest vote margin has and is why this product
+does not call the margin a calibrated probability.
+  SPARSE BAND [0.9,1.0): 17 items, agreement 0.647059
+[PASS] every item falls in exactly one confidence band -- 480 of 480
+[PASS] the lowest-confidence band has lower agreement than the highest populated one -- 0.631579 against 0.762195
+
+THE MONOTONICITY IS NOT CLEAN, and it is reported rather than smoothed.
+A forest's vote margin is not a calibrated probability: trees that all
+agree on a wrong answer report a high confidence. The non-monotonicity
+is recorded in README.md under Limitations and in MODEL_CARD.md under
+failure cases.
+
+==============================================================================
+checks: 14
+failures: 0
+==============================================================================

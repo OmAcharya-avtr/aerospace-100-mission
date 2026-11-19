@@ -1,0 +1,140 @@
+No live timing anywhere -- P097 flakerank
+
+THE DEFECT CLASS THIS CHECKS FOR COST THIS MISSION A WHOLE PRODUCT.
+Five intermittent failures and a sixth caught in flight all traced to
+checks that compared two wall-clock readings on a shared two-core
+runner. This product is ABOUT intermittency, so the rule is applied in
+its strongest checkable form: no file here reads a clock at all.
+
+Parsed with ast, not grepped, so a mention in a comment or a docstring
+cannot trip the check and a clock behind a line continuation cannot hide
+from it.
+
+fast path (FLAKERANK_FAST=1): False
+directories scanned: ['src', 'tests', 'examples', 'validation', 'data']
+forbidden modules  : ['datetime', 'resource', 'sched', 'time', 'timeit']
+forbidden names    : ['clock', 'clock_gettime', 'getrusage', 'monotonic', 'monotonic_ns', 'perf_counter', 'perf_counter_ns', 'process_time', 'process_time_ns', 'thread_time', 'time_ns', 'times']
+forbidden strings  : ['/usr/bin/time', '/proc/uptime', '/proc/stat', 'clock_gettime']
+
+declared exemptions from the string screen, with the reason:
+  validation/validate_no_live_timing.py: this script's own declared tables
+  tests/test_determinism.py: the same screen, performed inside the test suite
+
+==============================================================================
+1. FILES SCANNED
+==============================================================================
+
+Python files found: 41
+  src/flakerank/__init__.py
+  src/flakerank/__main__.py
+  src/flakerank/baselines.py
+  src/flakerank/bounds.py
+  src/flakerank/disagreement.py
+  src/flakerank/geometric.py
+  src/flakerank/history.py
+  src/flakerank/predictor.py
+  src/flakerank/ranking.py
+  src/flakerank/report.py
+  src/flakerank/resample.py
+  tests/_support.py
+  tests/conftest.py
+  tests/test_baselines.py
+  tests/test_bounds.py
+  tests/test_cli.py
+  tests/test_determinism.py
+  tests/test_disagreement.py
+  tests/test_geometric.py
+  tests/test_history.py
+  tests/test_predictor.py
+  tests/test_ranking.py
+  tests/test_regressions.py
+  tests/test_resample.py
+  examples/_bootstrap.py
+  examples/cost_versus_rate.py
+  examples/geometric_rerun_cost.py
+  examples/model_against_baselines.py
+  validation/_approx_audit_plugin.py
+  validation/_bootstrap.py
+  validation/probe_working_directories.py
+  validation/validate_approx_audit.py
+  validation/validate_baselines.py
+  validation/validate_bounds.py
+  validation/validate_disagreement.py
+  validation/validate_geometric.py
+  validation/validate_history.py
+  validation/validate_learned_model.py
+  validation/validate_no_live_timing.py
+  validation/validate_tree_hygiene.py
+  data/generate_history.py
+
+[PASS] there are files to scan, so the check is not vacuous -- 41 files
+
+==============================================================================
+2. IMPORT SCREEN
+==============================================================================
+
+forbidden imports found: 0
+[PASS] no file in this product imports a clock module -- 0 offenders
+
+==============================================================================
+3. NAME AND ATTRIBUTE SCREEN
+==============================================================================
+
+forbidden names found: 0
+[PASS] no file in this product reads a clock through a name or an attribute -- 0 offenders
+
+==============================================================================
+4. SUBPROCESS AND FILESYSTEM CLOCK SCREEN
+==============================================================================
+
+forbidden strings found outside the declared exemptions: 0
+[PASS] no file reaches a clock through the filesystem or a shell -- 0 offenders
+
+==============================================================================
+5. THE SCREENS CAN FIRE -- controls on synthetic sources
+==============================================================================
+
+A screen that cannot fire is not a screen. Each control below is a
+source fragment parsed in memory, so nothing is written into the tree.
+
+[PASS] control fires: the import screen catches an import of time -- import time
+[PASS] control fires: the import screen catches a from-import of time -- from time import perf_counter
+[PASS] control fires: the import screen catches an import of datetime -- import datetime
+[PASS] control fires: the name screen catches an attribute clock read -- x = somemodule.monotonic()
+[PASS] control fires: the name screen catches a bare clock name -- from m import monotonic
+
+CONTROLS that must STAY SILENT: a source that reads no clock, and a
+source that only MENTIONS one in a comment or a string, must both pass.
+[PASS] control stays silent: a screen fires on a clean source -- import math
+[PASS] control stays silent: a screen fires on a comment mentioning perf_counter -- # this product never calls perf_counter
+[PASS] control stays silent: a screen fires on a docstring mentioning time.monotonic -- """No time.monotonic is read here."""
+
+==============================================================================
+6. RUN TWICE FROM A CLEAN TREE -- the self-report screen
+==============================================================================
+
+A check whose own execution can create the condition it tests is not a
+check, and this is the fifth occurrence of that class in this mission.
+This script reads files and writes one output file. Its own output file
+is a .txt and is therefore not in the .py scan at all, and its own
+SOURCE is scanned like everything else, with its declared tables
+exempted from the string screen only -- the import and name screens
+apply to it with no exemption. So a second run sees exactly what the
+first saw.
+
+this script's own source is among the scanned files: True
+its output file is a .txt and is not scanned: True
+[PASS] this script scans its own source
+[PASS] the scan covers only .py files, so no output file can be scanned
+
+probe_working_directories.py runs this script four times, from four
+different working directories, and requires the same exit status from
+all four. That is the second run, performed by the product's own
+machinery rather than claimed here.
+
+==============================================================================
+checks: 14
+failures: 0
+controls that must fire: 5 of 5 fired
+controls that must stay silent: 3 of 3 silent
+==============================================================================

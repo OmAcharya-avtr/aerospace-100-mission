@@ -1,0 +1,274 @@
+Learned predictor against the baselines -- P099 PassYield
+
+fast path (PASSYIELD_FAST=1): False
+seed                        : 99099
+ensemble members            : 256
+nominal interval coverage   : 0.8
+
+EVERYTHING IS SCORED ON THE SHORTFALL OF A PASS IN Mbit, which is this
+product's headline quantity. The primary score is the CRPS, which is
+strictly proper over a whole predictive distribution; a point forecast is
+the one-member ensemble, for which the CRPS is the absolute error exactly
+(Gneiting & Raftery 2007, JASA 102(477), section 4.2).
+
+CALIBRATION IS REPORTED BESIDE THE ERROR and is the figure that decides
+whether a forecast is usable, because the product's value is a
+distribution a scheduler books against. PIT cal err is the Kolmogorov
+distance of the empirical probability integral transform from the uniform
+(Dawid 1984; Gneiting, Balabdaoui & Raftery 2007). cov80 is the coverage
+of the nominal 80 per cent interval: the target is 0.800 and EITHER
+direction away from it is a defect.
+
+forest: 300 trees, max_depth 10, min_samples_leaf 4, random_state 99099, n_jobs 1
+
+==============================================================================
+BASELINE 3 -- GROUND TRUTH OVER THE WHOLE CAMPAIGN
+==============================================================================
+directly accounted from the per-pass record, no model of anything. The
+resampling unit is the PASS, carried on the returned object and asserted
+by tests/test_baselines.py.
+
+accounted yield (baseline 3, ground truth)
+  resampling unit             'pass'
+  passes                              1990
+  bootstrap resamples                 2000
+  interval coverage                  0.950
+
+  campaign nominal, Mbit            74152404.0
+  campaign capacity, Mbit           63654338.3
+  campaign realised, Mbit           45322772.6
+  campaign shortfall, Mbit          28829631.5
+
+  mean shortfall per pass            14487.252 Mbit
+    95% bootstrap interval     [14122.511, 14888.071]
+  realised / capacity                 0.712014
+    95% bootstrap interval     [0.702095, 0.721268]
+
+  share of total shortfall, per cent
+    geometry                     36.4142
+    acquisition                  23.2756
+    resync                       18.1909
+    idle                         22.1193
+    residual (reported)        1.369e-05
+
+[PASS] baseline 3 declares the pass as its resampling unit -- 'pass'
+[PASS] the bootstrap interval brackets the point estimate
+
+==============================================================================
+BASELINE 1 -- THE BOOKED FIGURE, AT FULL STRENGTH
+==============================================================================
+nominal window duration times nominal rate. The duration is the true
+geometric mask-to-mask window from the committed SGP4 element set, not a
+padded or rounded block; the rate is the link budget's own rate at a
+declared 30 degree reference elevation with the station's own figure of
+merit, which is exactly what a scheduler with an ephemeris and a station
+catalogue can compute before the pass. Weakening either would inflate
+every comparison below.
+
+campaign booked volume, Mbit    : 74152404.0
+campaign realised volume, Mbit  : 45322772.6
+realised / booked               : 0.611211
+baseline 1's predicted shortfall: 0.0 Mbit
+the campaign's actual shortfall : 28829631.5 Mbit
+
+THE HEADLINE REFUTATION: a schedule built on baseline 1 books 1.64 times
+the volume the record accounts for.
+
+==============================================================================
+SPLIT: HELD-OUT STATIONS
+==============================================================================
+whole stations held out: GS-03, GS-08. The model must transfer to a figure of merit, an elevation mask and a latitude it never trained on.
+
+training passes : 1443
+held-out passes : 547
+training stations: ['GS-01', 'GS-02', 'GS-04', 'GS-05', 'GS-06', 'GS-07']
+held-out stations: ['GS-03', 'GS-08']
+
+event laws fitted on the TRAINING side only:
+  acquisition Gamma shape, scale : 2.596973, 20.985937 s
+  outage intensity, 1/s          : 0.01162425
+  mean outage duration, s        : 11.964378
+  idle Gamma shape, scale        : 0.488705, 57.195945 s
+
+out-of-bag residuals of the realised fraction: 1443
+  mean    : -0.000151
+  sd      : 0.121049
+
+scored on the shortfall in Mbit -- held-out stations
+  predictor                      CRPS, Mbit    MAE, Mbit  PIT cal err    cov80
+  baseline 1 booked                17732.36     17732.36       1.0000   0.0000
+  null constant fraction            4891.64      6859.17       0.1961   0.7185
+  baseline 2 convolution            7014.63      7831.87       0.6709   0.2194
+  baseline 2b backlog-aware         4184.76      5271.86       0.3601   0.3455
+  learned tree-spread               3203.30      4110.59       0.2455   0.5558
+  learned residual (declared)       3086.86      4140.69       0.2410   0.6344
+
+predictor                      RMSE, Mbit   ensemble members
+  baseline 1 booked              21771.88                  1
+  null constant fraction         10076.52                256
+  baseline 2 convolution         12337.34                 87
+  baseline 2b backlog-aware       6559.85                186
+  learned tree-spread             5850.07                300
+  learned residual (declared)      5857.18                256
+
+lowest CRPS on this split          : learned residual (declared) (3086.86 Mbit)
+best calibrated on this split      : null constant fraction (PIT cal err 0.1961)
+
+[PASS] baseline 1 is refuted: every other predictor has a lower CRPS -- baseline 1 CRPS 17732.36 Mbit
+[PASS] baseline 1's 80 per cent interval covers nothing, as a point must -- coverage 0.0000
+
+==============================================================================
+SPLIT: HELD-OUT TIME
+==============================================================================
+the last 25% of the campaign held out in chronological order, from campaign hour 1082.172 onward. Not a random subset: a schedule cannot interpolate between passes that straddle the one it is forecasting.
+
+training passes : 1492
+held-out passes : 498
+training stations: ['GS-01', 'GS-02', 'GS-03', 'GS-04', 'GS-05', 'GS-06', 'GS-07', 'GS-08']
+held-out stations: ['GS-01', 'GS-02', 'GS-03', 'GS-04', 'GS-05', 'GS-06', 'GS-07', 'GS-08']
+
+event laws fitted on the TRAINING side only:
+  acquisition Gamma shape, scale : 2.607927, 21.266322 s
+  outage intensity, 1/s          : 0.01177193
+  mean outage duration, s        : 12.876699
+  idle Gamma shape, scale        : 0.406537, 80.194243 s
+
+out-of-bag residuals of the realised fraction: 1492
+  mean    : +0.000136
+  sd      : 0.127913
+
+scored on the shortfall in Mbit -- held-out time
+  predictor                      CRPS, Mbit    MAE, Mbit  PIT cal err    cov80
+  baseline 1 booked                14380.29     14380.29       1.0000   0.0000
+  null constant fraction            3685.53      5839.60       0.0483   0.7932
+  baseline 2 convolution            4102.21      4808.50       0.5341   0.3534
+  baseline 2b backlog-aware         3892.15      4908.58       0.2590   0.4237
+  learned tree-spread               1682.22      2284.37       0.1300   0.6165
+  learned residual (declared)       1701.40      2326.78       0.0345   0.8052
+
+predictor                      RMSE, Mbit   ensemble members
+  baseline 1 booked              16878.78                  1
+  null constant fraction          7841.91                256
+  baseline 2 convolution          7846.37                 83
+  baseline 2b backlog-aware       6538.28                182
+  learned tree-spread             3094.69                300
+  learned residual (declared)      3110.45                256
+
+lowest CRPS on this split          : learned tree-spread (1682.22 Mbit)
+best calibrated on this split      : learned residual (declared) (PIT cal err 0.0345)
+
+[PASS] baseline 1 is refuted: every other predictor has a lower CRPS -- baseline 1 CRPS 14380.29 Mbit
+[PASS] baseline 1's 80 per cent interval covers nothing, as a point must -- coverage 0.0000
+
+==============================================================================
+THE GAP BETWEEN THE TWO SPLITS
+==============================================================================
+the station split is the harder one, and the gap is itself a reported
+quantity: it is the measure of how much of the learned model's advantage
+depends on having trained on the station it is forecasting.
+
+predictor                     CRPS stations   CRPS time   ratio  PIT stations  PIT time
+  baseline 1 booked                17732.36    14380.29    1.23        1.0000    1.0000
+  null constant fraction            4891.64     3685.53    1.33        0.1961    0.0483
+  baseline 2 convolution            7014.63     4102.21    1.71        0.6709    0.5341
+  baseline 2b backlog-aware         4184.76     3892.15    1.08        0.3601    0.2590
+  learned tree-spread               3203.30     1682.22    1.90        0.2455    0.1300
+  learned residual (declared)        3086.86     1701.40    1.81        0.2410    0.0345
+
+the declared learned configuration is 'learned residual (declared)'.
+  CRPS on held-out stations : 3086.86 Mbit
+  CRPS on held-out time     : 1701.40 Mbit
+  station/time CRPS ratio   : 1.81
+  PIT cal err, stations     : 0.2410
+  PIT cal err, time         : 0.0345
+  cov80, stations           : 0.6344
+  cov80, time               : 0.8052
+
+[PASS] the station split is harder than the time split for the learned model -- 3086.86 against 1701.40 Mbit
+
+==============================================================================
+WHICH PREDICTOR WON, AND WHAT THAT MEANS
+==============================================================================
+held-out stations, by CRPS (lower is better):
+  1. learned residual (declared)      3086.86 Mbit
+  2. learned tree-spread              3203.30 Mbit
+  3. baseline 2b backlog-aware        4184.76 Mbit
+  4. null constant fraction           4891.64 Mbit
+  5. baseline 2 convolution           7014.63 Mbit
+  6. baseline 1 booked               17732.36 Mbit
+held-out stations, by PIT calibration error (lower is better):
+  1. null constant fraction            0.1961
+  2. learned residual (declared)       0.2410
+  3. learned tree-spread               0.2455
+  4. baseline 2b backlog-aware         0.3601
+  5. baseline 2 convolution            0.6709
+  6. baseline 1 booked                 1.0000
+
+held-out time, by CRPS (lower is better):
+  1. learned tree-spread              1682.22 Mbit
+  2. learned residual (declared)      1701.40 Mbit
+  3. null constant fraction           3685.53 Mbit
+  4. baseline 2b backlog-aware        3892.15 Mbit
+  5. baseline 2 convolution           4102.21 Mbit
+  6. baseline 1 booked               14380.29 Mbit
+held-out time, by PIT calibration error (lower is better):
+  1. learned residual (declared)       0.0345
+  2. null constant fraction            0.0483
+  3. learned tree-spread               0.1300
+  4. baseline 2b backlog-aware         0.2590
+  5. baseline 2 convolution            0.5341
+  6. baseline 1 booked                 1.0000
+
+THE FINDINGS, AS MEASURED, WITH NOTHING RETUNED AWAY:
+
+1. Baseline 1 is refuted on both splits. Its CRPS is 5.7 times the
+   learned model's on held-out stations and 8.5 times on held-out
+   time, and its 80 per cent interval covers nothing, because it is a
+   point. That is the product's purpose and it is the expected result.
+
+2. On held-out stations, the constant-fraction null beats 1 of the 2 analytic
+   baselines on CRPS: ['baseline 2 convolution'].
+2. On held-out time, the constant-fraction null beats 2 of the 2 analytic
+   baselines on CRPS: ['baseline 2 convolution', 'baseline 2b backlog-aware'].
+   The specification names baseline 2 as the analytic model, and in its
+   specified form it is beaten by the null on BOTH splits. That is
+   reported here rather than removed, and the reason is diagnosable:
+   baseline 2's idle law is UNCONDITIONAL, while the idle time in the
+   record is driven by the onboard backlog, which is a pre-pass
+   quantity. Baseline 2b uses it and is the better analytic form on
+   both splits, so it is reported BESIDE the specified one; it does not
+   replace it, because the specification names the unconditional form
+   and the measurement of that form is the finding.
+
+3. Lowest CRPS on held-out stations: learned residual (declared).
+   Lowest CRPS on held-out time    : learned tree-spread.
+
+4. Best CALIBRATED on held-out stations: null constant fraction.
+   Best CALIBRATED on held-out time    : learned residual (declared).
+   Calibration is what a scheduler needs in order to book a quantile, so
+   where a baseline wins on it that is a baseline result on the
+   dimension that matters most, and it is published as one.
+
+the measured form of finding 4 on the harder split:
+  learned PIT cal err, stations : 0.2410
+  null    PIT cal err, stations : 0.1961
+  learned cov80, stations       : 0.6344
+  null    cov80, stations       : 0.7185
+
+and on held-out time, where the learned model's own uncertainty output is
+close to calibrated:
+  learned PIT cal err, time     : 0.0345
+  null    PIT cal err, time     : 0.0483
+  learned cov80, time           : 0.8052 against a nominal 0.8
+
+[PASS] a baseline result is recorded where one exists: on the station split the null is better calibrated than the learned model -- null 0.1961 against learned 0.2410
+[PASS] the learned model's declared uncertainty output is better calibrated than its tree spread on both splits -- stations 0.2410 against 0.2455, time 0.0345 against 0.1300
+
+held-out stations were ['GS-03', 'GS-08'], declared in
+passyield.dataset before any measurement and not changed afterwards.
+the time holdout fraction was 0.25, likewise.
+
+==============================================================================
+checks: 9
+failures: 0
+==============================================================================

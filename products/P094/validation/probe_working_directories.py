@@ -15,6 +15,14 @@ what its numbers are, and the committed outputs are the ones from the full runs.
 
 This probe is excluded from its own sweep, because a script that runs itself
 from four directories recurses.
+
+**This probe AMPLIFIES any load-sensitive check by four.** It executes every
+script here four times and requires the same exit status from all four, so a
+check whose outcome depends on the machine's load fails this probe rather than
+the script that owns it, and the failure is reported against the wrong file.
+That is one reason the load-sensitive assertion class was removed at its design
+rather than patched instance by instance; see
+validation/load_sensitive_inventory.md.
 """
 
 from __future__ import annotations

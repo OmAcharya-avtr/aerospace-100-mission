@@ -1,0 +1,36 @@
+name: tests
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src/ tests/
+      - name: Test
+        run: python -m pytest tests/ -q -p no:cacheprovider --junit-xml=junit.xml
+      - name: Validation scripts
+        run: |
+          for script in validation/validate_*.py; do
+            python "$script"
+          done
+      - name: Examples
+        env:
+          MPLBACKEND: Agg
+        run: |
+          for script in examples/*.py; do
+            case "$script" in examples/_*) continue;; esac
+            python "$script"
+          done

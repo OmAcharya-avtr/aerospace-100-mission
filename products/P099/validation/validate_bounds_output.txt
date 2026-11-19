@@ -1,0 +1,111 @@
+Independent bracket validation -- P099 PassYield
+
+fast path (PASSYIELD_FAST=1): False
+
+machine epsilon                  : 2.220446049250313e-16
+slack operation count            : 8.0
+R_max = B * eta_max, Mbit/s      : 250.0
+
+'two implementations agree' and 'the answer lies inside a bound derived
+from different mathematics' are different checks, and only the second
+catches an error the two implementations share. A sign error in the
+cumulative rate integral, a Mbit-versus-bit slip, a missing grid-step
+factor or a mis-stated geometric term would move the convolution and its
+Monte Carlo cross-check TOGETHER.
+
+==============================================================================
+1. THE SHORTFALL BRACKET OVER THE WHOLE CAMPAIGN
+==============================================================================
+passes bracketed                        : 1990
+accounted shortfalls outside the bracket: 0
+median bracket width, Mbit              : 85441.9
+median slack, Mbit                      : 1.518e-10
+median slack / median width             : 1.776e-15
+
+the slack is twelve orders of magnitude below the bracket width, so the
+bracket is not vacuous: the slack exists to absorb the rounding of the
+bound expression itself and nothing more.
+
+where the true shortfall sits inside the bracket, as a fraction of its
+width. 0 is the lower end (Y_nom - R_max*T), 1 is the upper end (Y_nom).
+  minimum  : 0.3649
+  median   : 0.7390
+  maximum  : 1.0000
+
+the bracket is LOOSE, and looseness is the price of independence. It is
+still tight enough to catch a unit slip, a sign error or an unnormalised
+mass, which is what it is for; the controls below show that.
+[PASS] every accounted shortfall lies inside the independent bracket -- 0 of 1990 outside
+
+==============================================================================
+2. THE CAPACITY BRACKET -- the mean-value inequality for integrals
+==============================================================================
+R_min*T <= Y_cap <= R_max*T with the extreme rates attained on the window.
+Only the minimum and maximum of the sampled profile are used, so this is a
+SEARCH and not an integral: it does not use Simpson's rule, which is what
+it is checking.
+
+profile samples used to find the extremes: 257
+capacities outside the bracket           : 0
+median bracket width, Mbit               : 30466.8
+median slack, Mbit                       : 8.307e-11
+[PASS] every Simpson capacity lies inside the mean-value bracket -- 0 of 1990 outside
+
+==============================================================================
+3. SIX NEGATIVE CONTROLS, EACH ANCHORED ON THE TRUE VALUE
+==============================================================================
+reference pass           : pass_id 0, GS-04
+true shortfall, Mbit     : 11546.200
+true capacity, Mbit      : 58001.660
+shortfall bracket, Mbit  : [-33913.335, 62049.951]
+capacity bracket, Mbit   : [24772.271, 93460.669]
+
+each injected value below is constructed to be outside the bracket by the
+bracket's OWN algebra, not by offsetting an output that already sits
+inside the band. An offset smaller than twice the bracket's half-width
+does not guarantee a violation, and that is how a previous product of this
+mission shipped two of eleven controls silently too weak.
+
+[PASS] control fires: Mbit reported as bit: factor 1e6 on the shortfall -- injected 1.15462e+10 Mbit
+[PASS] control fires: shortfall exceeding the booked volume: Y_nom + R_max*T -- injected 158013 Mbit
+[PASS] control fires: realised yield negative: shortfall above Y_nom -- injected 62051 Mbit
+[PASS] control fires: sign flip on the capacity -- injected -58001.7 Mbit
+[PASS] control fires: capacity above the rate ceiling times the duration -- injected 96060.2 Mbit
+[PASS] control fires: capacity below the minimum rate times the duration -- injected 24746.5 Mbit
+
+and the two that must STAY SILENT, because the true values are inside:
+[PASS] control stays silent: the true shortfall -- 11546.200 Mbit
+[PASS] control stays silent: the true capacity -- 58001.660 Mbit
+
+==============================================================================
+4. THE SLACK FOLLOWS THE CONDITIONING, DEMONSTRATED
+==============================================================================
+a slack that is an absolute constant makes a tight bracket vacuous. The
+slack here is 8 * eps * max(|operands|) of the bound expression, so it
+scales with the operands whatever their difference comes to.
+
+the ratio column divides by the LARGEST operand, which is what the slack
+is defined against. Dividing by the smaller one would make the first row
+look different for a reason that is arithmetic and not conditioning: at
+magnitude 1 the operands are 1 and 2, so the largest is twice the first.
+
+                  operands     slack, Mbit   slack / largest
+                (1.0, 2.0)       3.553e-15         1.776e-15
+          (1000.0, 1001.0)       1.778e-12         1.776e-15
+    (1000000.0, 1000001.0)       1.776e-09         1.776e-15
+(1000000000.0, 1000000001.0)       1.776e-06         1.776e-15
+(1000000000000.0, 1000000000001.0)       1.776e-03         1.776e-15
+
+the ratio is constant, which is the definition of following the
+conditioning: the slack is a fixed number of unit roundoffs of the
+operands and not a fixed number of Mbit.
+expected ratio, 8 * eps: 1.776357e-15
+[PASS] the slack is exactly 8 * eps of the largest operand at every magnitude -- ratio spread 0.000e+00
+[PASS] control fires: an absolute constant slack would be vacuous at magnitude 1e12 -- 1.8e-15 against the conditioning-following 1.776e-03
+
+==============================================================================
+checks: 12
+failures: 0
+controls that must fire: 7 of 7 fired
+controls that must stay silent: 2 of 2 silent
+==============================================================================

@@ -1,0 +1,64 @@
+
+==============================================================================
+TREE HYGIENE -- what this product owns
+==============================================================================
+INPUT ORIGIN: this repository's own tree and git index.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+machine          : x86_64 Linux, 2 cores available to this process
+repository root  : P096 (printed relatively; see validation/_bootstrap.py)
+resamples        : 4000
+trace events     : 512
+
+==============================================================================
+1  inherited artifacts, reported and NOT failed
+==============================================================================
+  none present at entry
+
+==============================================================================
+2  git tracks no artifact
+==============================================================================
+  git tracks 0 file(s) under this product tree
+  NOTE: nothing under this product tree is tracked yet. This build does not commit, by instruction; the coordinator commits. The check below is therefore vacuous at the moment it runs, and the .gitignore coverage check in section 3 is the one that has content. The NOTE is printed only when the list is genuinely empty, so it cannot mask a populated tree.
+[PASS] no artifact-shaped file is tracked under this product tree -- 0 offending path(s)
+
+==============================================================================
+3  .gitignore coverage, in both directions
+==============================================================================
+[PASS] every file this product must ship exists on disk -- 16 checked
+[PASS] no file this product must ship is excluded by .gitignore -- 16 checked, none ignored
+[PASS] every cache and build path is excluded by .gitignore -- 8 checked, all ignored
+[PASS] every scratch pattern in this product's own .gitignore is anchored or a suffix -- 37 lines checked
+[PASS] this product's .gitignore anchors junit.xml as /junit.xml -- a bare junit.xml would match at any depth
+  INHERITED FINDING, reported and not failed: tests/fixtures/junit.xml IS excluded, by .gitignore:58:**/junit.xml at the REPOSITORY root, not by this product's .gitignore. That pattern would swallow a nested junit.xml fixture in any product that shipped one. P096 ships none, so nothing of this product's is lost; the finding belongs to whoever owns the repository-level file.
+
+==============================================================================
+3b  the committed corpus must reach a cold clone
+==============================================================================
+  data/corpus/handovers.csv: present on disk = True
+  data/corpus/manifest.json: present on disk = True
+[PASS] neither corpus file is excluded by .gitignore -- 2 checked, none ignored
+  data/corpus/handovers.csv size              : 768905 bytes
+[PASS] the committed corpus is under the mission's 1 MB data limit -- 768905 bytes; the generator is committed either way
+
+==============================================================================
+4  no absolute path in any file this product ships
+==============================================================================
+[PASS] no absolute path in any text file of this product -- 66 file(s) scanned
+
+==============================================================================
+5  this script added nothing
+==============================================================================
+[PASS] running this script added no cache directory and no bytecode file -- nothing added
+  Run this script twice in a row from a clean tree and the second run must agree with the first; a check whose own execution can create the condition it tests is not a check. probe_working_directories.py runs it four times over.
+
+
+CHECKS RUN: 10
+FAILED CHECKS (0): none

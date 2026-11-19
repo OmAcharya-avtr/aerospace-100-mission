@@ -1624,7 +1624,7 @@ products:
     summary: "End-to-end data loss across a ground-station handover in an optical network, attributed separately to acquisition time, buffer drain and protocol restart, with the headline output being WHICH of the three dominates rather than the total. Baseline 1 the assumption that acquisition time is the whole story, implemented deliberately as the thing being refuted because it is what a link budget implies; baseline 2 an analytic fluid buffer-drain and restart model giving the loss in closed form from the declared handover sequence; baseline 3 ground truth direct accounting over a simulated handover trace with bootstrap confidence intervals. Learned predictor of handover loss from pre-handover state, with an uncertainty output, scored on held-out STATION PAIRS and held-out TIME separately. WHAT IT DOES THAT EXISTING TOOLS DO NOT: network simulators measure total loss across a handover; none of them decomposes it into the three mechanisms with an interval on each, which is what tells an operator whether to buy faster acquisition or more buffer."
     ai_enabled: true
     validation_level: 2
-    status: NOT STARTED
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P096
@@ -1640,7 +1640,7 @@ products:
     summary: "Ranks intermittently failing tests by the COST of their intermittency, expected wasted re-run time, rather than by flake rate, with the headline output being how far the two rankings disagree. Baseline 1 ranking by flake rate, implemented deliberately as the thing being refuted because it is what every CI dashboard does and it systematically underweights a rare failure in a slow test; baseline 2 an analytic expected-rerun-cost model from the measured per-test failure probability and runtime, with the geometric re-run count in closed form; baseline 3 ground truth directly accumulated wasted time over a long recorded run history with bootstrap confidence intervals. Learned intermittency predictor over test features, with a confidence output, scored on held-out TESTS and held-out TIME separately. Motivated by a failure this mission actually shipped: a 1-in-44 intermittent self-inflicted failure in a validation probe that any number of agreeing serial verifications was blind to. WHAT IT DOES THAT EXISTING TOOLS DO NOT: flaky-test detectors report a rate and a first-seen date; none of them puts a cost interval on the rate, so none of them can say which flake is worth fixing first."
     ai_enabled: true
     validation_level: 2
-    status: NOT STARTED
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P097
@@ -1656,7 +1656,7 @@ products:
     summary: "Measures how much of an assurance case rests on evidence whose SUBJECT has changed since the evidence was produced, with the stale fraction as the headline output. Baseline 1 comparing evidence and artifact timestamps directly, implemented deliberately as the thing being refuted because it misses a change that reaches the artifact through a dependency and false-positives on a touched but unchanged file; baseline 2 content-hash comparison over the DEPENDENCY CLOSURE of each artifact, giving staleness exactly; baseline 3 ground truth a replayed change history in which each item's true staleness is known by construction, with bootstrap intervals on the aggregate fraction. Learned staleness-risk model over graph features, with a confidence output, scored on held-out ARTIFACTS and held-out TIME separately; the expected result is that the closure comparison is exact and the learned model cannot beat it, which is reported as the finding. WHAT IT DOES THAT EXISTING TOOLS DO NOT: traceability tools check that a link EXISTS between a claim and its evidence; this checks whether the link is still TRUE, which is the question an audit actually asks."
     ai_enabled: true
     validation_level: 2
-    status: NOT STARTED
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P098
@@ -1672,7 +1672,7 @@ products:
     summary: "Realised data yield of a scheduled ground-station contact against the nominal duration the scheduler assumed, decomposed into acquisition, re-sync and idle time, with the nominal-versus-realised shortfall as the headline output. Baseline 1 nominal duration times nominal rate, implemented deliberately as the thing being refuted because it is what a contact schedule books; baseline 2 an analytic yield model with measured acquisition and re-sync distributions convolved over the pass geometry; baseline 3 ground truth directly accounted yield from a per-pass record with bootstrap confidence intervals. Learned per-pass yield predictor from pre-pass state and geometry, with an uncertainty output, scored on held-out STATIONS and held-out TIME separately. WHAT IT DOES THAT EXISTING TOOLS DO NOT: schedulers optimise against nominal contact windows and operations tools report delivered volume after the fact; neither feeds the measured shortfall back as a distribution the scheduler could book against."
     ai_enabled: true
     validation_level: 2
-    status: NOT STARTED
+    status: TESTING
     license: Apache-2.0
     repository: null
     local_path: products/P099

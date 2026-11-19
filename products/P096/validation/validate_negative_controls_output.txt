@@ -1,0 +1,90 @@
+
+==============================================================================
+NEGATIVE CONTROLS -- anchored on the true value, each asserted to fire
+==============================================================================
+INPUT ORIGIN: SYNTHETIC. No measured handover, no measured acquisition time and no measured link appears anywhere in this repository. Validation level 2: the evidence is agreement between a closed form, an independently derived bound and a simulated trace.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+machine          : x86_64 Linux, 2 cores available to this process
+repository root  : P096 (printed relatively; see validation/_bootstrap.py)
+resamples        : 4000
+trace events     : 512
+
+corpus sha256    : 3a0343a6c2c51a91eba0679856700f5495d8814c3bcdc94e6b710ba300c59706
+trace events     : 512
+clean residual   : 0.000000e+00 bits, tolerance 5.768312e-01 bits
+
+==============================================================================
+1  the decomposition residual guard
+==============================================================================
+  The residual compares the phase buckets against mass conservation. Breaking
+  one accounting and leaving the other must move it. Each injected error is a
+  FRACTION OF THE TRUE BUCKET VALUE, so the violation's size is known before
+  the check runs and the printed ratio shows how far past the tolerance it is.
+[PASS] control: acquisition bucket inflated by 1 per cent (must fire) -- FIRED; injected 2.084770e+08 bits = 3.613e+08 x the tolerance
+[PASS] control: acquisition bucket zeroed (must fire) -- FIRED; injected 2.084770e+10 bits = 3.784e+10 x the tolerance
+[PASS] control: restart bucket inflated by 1 per cent (must fire) -- FIRED; injected 8.575911e+07 bits = 1.486e+08 x the tolerance
+[PASS] control: restart bucket zeroed (must fire) -- FIRED; injected 8.575911e+09 bits = 1.515e+10 x the tolerance
+[PASS] control: drain bucket inflated by 1 per cent (must fire) -- FIRED; injected 5.110302e+07 bits = 8.858e+07 x the tolerance
+[PASS] control: drain bucket zeroed (must fire) -- FIRED; injected 5.110302e+09 bits = 8.958e+09 x the tolerance
+[PASS] control: the unperturbed trace (must NOT fire) -- did not fire; residual 0.000000e+00 bits inside 5.768312e-01 bits; a guard that fired here would reject every correct accounting
+
+==============================================================================
+2  the conditioning-scaled tolerance cannot be made vacuous
+==============================================================================
+  A tolerance floored at an absolute constant would admit the very error the
+  check exists to catch. This one collapses with the magnitudes, so a violation
+  against a small-magnitude window is still detected.
+  tolerance at zero magnitude             : 0.000000e+00 bits
+[PASS] control: a one-bit error against a zero-magnitude window (must fire) -- FIRED; an absolute floor would have swallowed this
+  tolerance at 1e6-bit magnitude, 100 slots: 8.886225e-08 bits
+[PASS] control: a 1 per cent error against a 1e3-bit loss (must fire) -- FIRED; 10 bits against a tolerance of 8.886225e-08 bits
+
+==============================================================================
+3  the resampling unit
+==============================================================================
+  The reason the unit is declared AND asserted. Resampling below the unit of
+  independence narrows the interval, so a report carrying any other unit is
+  refused at construction rather than trusted.
+  per-event interval width                : 1.058864e+10 bits over 512 units
+  pseudo-independent interval width       : 3.334889e+09 bits over 5120 units
+  ratio (pseudo / per-event)              : 0.314950
+  Both widths are statistics of the same committed data, not wall-clock
+  readings, so a ratio between them is a legitimate assertion. Splitting each
+  event into ten equal pieces multiplies the apparent sample size by ten, so
+  the standard error falls by about sqrt(10) = 3.162 and the interval narrows
+  by roughly that factor. The criterion below is the derived 1/sqrt(10) with a
+  generous margin, not a tuned number.
+[PASS] control: a bootstrap resampled below the unit of independence (must fire) -- FIRED; ratio 0.314950; derived expectation 0.316228
+[PASS] control: a report claiming the accounting slot as its resampling unit (must fire) -- FIRED; refused at construction, not merely documented
+
+==============================================================================
+4  the learned component's own guards
+==============================================================================
+  A predictor that could predict outside its training target range, or that
+  silently accepted a post-handover feature, would be a measurement dressed as
+  a prediction. Both are controlled.
+  training target ceiling                 : 1.241443e+12 bits
+  largest prediction                      : 1.643374e+10 bits
+[PASS] control: a prediction above the training target range (must NOT fire) -- did not fire; a forest average lies inside the training range by construction; a prediction outside it would mean the estimator is not what this product claims
+[PASS] control: a prediction call with the wrong feature width (must fire) -- FIRED; 18 features are declared and the width is checked
+
+==============================================================================
+5  an uncertainty output that is not a point estimate
+==============================================================================
+  A band of zero width would be a point estimate wearing an interval's clothes.
+  The control asserts the band has width on a non-trivial fraction of events.
+  fraction of (event, mechanism) cells with a non-zero band: 1.000000
+[PASS] control: a degenerate zero-width uncertainty band (must NOT fire) -- did not fire; 1.000000 of cells carry a band; a value below 0.5 would mean the across-tree spread collapsed and the output is a point estimate
+
+
+CHECKS RUN: 14
+CONTROLS: 14 declared, 11 fired; must-fire 11/11, must-NOT-fire silent 3/3
+FAILED CHECKS (0): none

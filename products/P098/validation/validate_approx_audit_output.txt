@@ -1,0 +1,56 @@
+pytest.approx hidden-default audit -- P098 EvidenceStale
+
+the hidden absolute default is 1e-12. approx passes if
+EITHER bound is met, so a relative bound tighter than about 2e-8 on a
+quantity of order 1e-5 is silently replaced by it.
+
+fast path (EVIDENCESTALE_FAST=1): False
+
+==============================================================================
+1. STATIC -- every approx call in tests/, from the syntax tree
+==============================================================================
+test files parsed: 18
+approx calls found: 41
+  rel= and abs= both given: 41
+  abs= only: 0
+  rel= only (DEPENDS ON THE DEFAULT): 0
+  neither given (DEPENDS ON THE DEFAULT): 0
+[PASS] no approx call in tests/ relies on the hidden absolute default -- 0 offenders of 41 calls
+
+==============================================================================
+2. DYNAMIC -- the suite re-run with a bare rel= made an error
+==============================================================================
+a static scan cannot see a call built indirectly, so the suite is re-run
+in a subprocess with pytest.approx replaced by a wrapper that raises when
+rel is given and abs is not.
+
+command: python -m pytest tests/ -q -p no:cacheprovider -p _approx_audit_plugin
+exit status: 0
+  ........................................................................ [ 33%]
+  ........................................................................ [ 67%]
+  .....................................................................    [100%]
+  213 passed in 12.13s
+[PASS] the whole suite passes with the hidden absolute default forbidden -- exit 0
+
+==============================================================================
+3. THE CONTROL -- it must pass WITHOUT the plugin and fail WITH it
+==============================================================================
+a check that cannot fail is not a check, and a control that fails for the
+ordinary reason proves nothing about the plugin. So the offending
+assertion is chosen to PASS on its own: 1e-15 against 2e-15 differ by
+1e-15, which is inside the hidden absolute default of 1e-12, so the
+relative bound of 1e-30 is silently replaced and the assertion passes.
+It is then run again WITH the plugin and must fail, carrying the plugin's
+own refusal message so an ordinary failure cannot be mistaken for it.
+
+without the plugin, exit status: 0
+with the plugin, exit status   : 1
+with the plugin, output carries the refusal message: True
+[PASS] control fires: the offending assertion passes without the plugin, which is the defect -- exit 0
+[PASS] control fires: the hidden-default plugin refuses the same assertion -- exit 1
+
+==============================================================================
+checks: 4
+failures: 0
+controls that must fire: 2 of 2 fired
+==============================================================================

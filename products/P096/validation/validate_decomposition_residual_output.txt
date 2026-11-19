@@ -1,0 +1,232 @@
+
+==============================================================================
+ATTRIBUTION -- the three mechanisms, an interval on each, and the residual
+==============================================================================
+INPUT ORIGIN: SYNTHETIC. No measured handover, no measured acquisition time and no measured link appears anywhere in this repository. Validation level 2: the evidence is agreement between a closed form, an independently derived bound and a simulated trace.
+
+ACCOUNTING MODEL. A handover is a four-phase timeline from the break of the outgoing optical link: ACQUISITION [0, T_acq) with zero egress; RESTART [T_acq, T_o) with zero egress, T_o = T_acq + T_rst; then DRAIN [T_o, H), in which the egress ramps linearly 0 -> R_d over T_ramp and holds at R_d. A source of mean rate R_s feeds a tail-drop buffer of capacity B holding q0 at the break. Every dropped bit is attributed to the phase of the slot in which it was dropped, so the three mechanisms partition the window exactly. The TOTAL is computed a second way, from mass conservation alone (produced - delivered - (q_end - q0)), and the difference between the two is the DECOMPOSITION RESIDUAL, which is a reported number and not an assumption.
+
+RESAMPLING UNIT: handover event. Declared on every returned object and
+asserted at construction; see validation/VALIDATION.md under 'Resampling unit'.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+machine          : x86_64 Linux, 2 cores available to this process
+repository root  : P096 (printed relatively; see validation/_bootstrap.py)
+resamples        : 4000
+trace events     : 512
+
+corpus sha256    : 3a0343a6c2c51a91eba0679856700f5495d8814c3bcdc94e6b710ba300c59706
+events           : 1536
+
+==============================================================================
+1  the corpus-wide attribution
+==============================================================================
+  Read the per-mechanism intervals, not the total. The total says a handover is
+  expensive; the decomposition says whether to buy faster acquisition, a
+  different protocol or more buffer.
+
+  events                 : 512
+  resampling unit        : handover event
+  resamples / confidence : 4000 / 0.95
+  total loss             : 34.533918 Gbit
+  
+  mechanism      loss [Gbit]    interval [Gbit]                share
+  acquisition       20.847705   [  16.005656,   26.229194]    0.6037
+  restart            8.575911   [   7.631991,    9.518379]    0.2483
+  drain              5.110302   [   3.772034,    6.552979]    0.1480
+  
+  dominant               : acquisition
+  dominance margin       : 0.355355 of the total
+  dominance decided      : True (the leading interval IS disjoint from the runner-up's)
+  conservation total     : 34.533918 Gbit
+  decomposition residual : 0.000000e+00 bits (0.000e+00 relative)
+  residual tolerance     : 5.768312e-01 bits -> within tolerance: True
+
+[PASS] the attribution report carries the handover event as its resampling unit -- handover event
+[PASS] the decomposition residual is inside its conditioning-scaled tolerance -- residual 0.000000e+00 bits, relative 0.000000e+00, tolerance 5.768312e-01 bits
+[PASS] every mechanism's interval contains its own point estimate -- a percentile interval that excluded its own point estimate would mean the statistic and the resampling disagree
+  NOTE on 'dominance decided'. The report distinguishes the mechanism with the
+  largest point estimate from an ordering the data actually decide. A dominance
+  that is not decided is a reason to measure more handovers, not a reason to buy
+  hardware, and the package never collapses the two.
+
+==============================================================================
+2  the residual over every event individually, not only in aggregate
+==============================================================================
+  An aggregate residual can hide a per-event cancellation. Each event's own
+  residual is checked against its own tolerance.
+  events                                  : 512
+  slot count per event                    : 2800
+  worst absolute residual                 : 1.983643e-03 bits
+  worst |residual| / its own tolerance    : 3.120787e-03
+  median |residual| / its own tolerance   : 3.722104e-04
+[PASS] every single event's residual is inside its own tolerance -- worst ratio 3.120787e-03; 0 event(s) outside
+
+==============================================================================
+3  which mechanism dominates, by operating regime
+==============================================================================
+  This is the product's substantive claim: the answer changes with the regime,
+  so a single corpus-wide figure would be misleading. The regimes below are cut
+  on quantities an operator knows before the handover -- the utilisation
+  rho = R_s / R_d and the buffer headroom in seconds -- and not on any outcome.
+
+  utilisation range in the corpus          : [0.0392, 0.9700]
+  headroom_s range                         : [0.12, 804.69] s
+  declared restart range                   : [2.07, 83.28] s
+
+  A STRUCTURAL CORRELATION IN THE CORPUS, STATED BEFORE THE REGIMES. The
+  generator draws the buffer capacity independently of the source rate, and
+  headroom_s = (B - q0) / R_s, so a high utilisation implies a high source rate
+  and therefore a SHORT headroom in seconds. The cell 'high utilisation AND
+  ample buffer' is consequently empty in this corpus and is reported below as
+  structurally unmeasurable rather than quietly dropped. A reader wanting that
+  cell must regenerate the corpus with the buffer capacity scaled to the source
+  rate; nothing in this repository measures it.
+
+  REGIME: low utilisation (rho < 0.25)  (n = 576)
+    events                 : 576
+    resampling unit        : handover event
+    resamples / confidence : 4000 / 0.95
+    total loss             : 12.658822 Gbit
+    
+    mechanism      loss [Gbit]    interval [Gbit]                share
+    acquisition        9.707758   [   7.866170,   11.657937]    0.7669
+    restart            2.448444   [   2.183926,    2.715752]    0.1934
+    drain              0.502621   [   0.452141,    0.554797]    0.0397
+    
+    dominant               : acquisition
+    dominance margin       : 0.573459 of the total
+    dominance decided      : True (the leading interval IS disjoint from the runner-up's)
+    conservation total     : 12.658822 Gbit
+    decomposition residual : -1.907349e-06 bits (-1.507e-16 relative)
+    residual tolerance     : 3.345152e-01 bits -> within tolerance: True
+    per-event dominance mix: {'acquisition': 384, 'restart': 161, 'drain': 31}  (fractions {acquisition: 0.6667, restart: 0.2795, drain: 0.0538})
+    mean-weighted dominant : acquisition;  per-event modal dominant: acquisition
+[PASS] [low utilisation (rho < 0.25)] the decomposition residual is inside its conditioning-scaled tolerance -- residual -1.907349e-06 bits against a tolerance of 3.345152e-01 bits
+
+  REGIME: high utilisation (rho > 0.75)  (n = 384)
+    events                 : 384
+    resampling unit        : handover event
+    resamples / confidence : 4000 / 0.95
+    total loss             : 163.232782 Gbit
+    
+    mechanism      loss [Gbit]    interval [Gbit]                share
+    acquisition       85.033445   [  70.610119,  101.134699]    0.5209
+    restart           51.360550   [  44.081126,   59.098262]    0.3146
+    drain             26.838787   [  24.250859,   29.541342]    0.1644
+    
+    dominant               : acquisition
+    dominance margin       : 0.206288 of the total
+    dominance decided      : True (the leading interval IS disjoint from the runner-up's)
+    conservation total     : 163.232782 Gbit
+    decomposition residual : 1.220703e-04 bits (7.478e-16 relative)
+    residual tolerance     : 2.022643e+00 bits -> within tolerance: True
+    per-event dominance mix: {'acquisition': 141, 'restart': 123, 'drain': 120}  (fractions {acquisition: 0.3672, restart: 0.3203, drain: 0.3125})
+    mean-weighted dominant : acquisition;  per-event modal dominant: acquisition
+[PASS] [high utilisation (rho > 0.75)] the decomposition residual is inside its conditioning-scaled tolerance -- residual 1.220703e-04 bits against a tolerance of 2.022643e+00 bits
+
+  REGIME: tight buffer (headroom < 10 s)  (n = 559)
+    events                 : 559
+    resampling unit        : handover event
+    resamples / confidence : 4000 / 0.95
+    total loss             : 150.053881 Gbit
+    
+    mechanism      loss [Gbit]    interval [Gbit]                share
+    acquisition       87.575214   [  75.978796,   99.763553]    0.5836
+    restart           40.910180   [  36.327293,   45.763637]    0.2726
+    drain             21.568487   [  19.862430,   23.392888]    0.1437
+    
+    dominant               : acquisition
+    dominance margin       : 0.310989 of the total
+    dominance decided      : True (the leading interval IS disjoint from the runner-up's)
+    conservation total     : 150.053881 Gbit
+    decomposition residual : 1.220703e-04 bits (8.135e-16 relative)
+    residual tolerance     : 1.813878e+00 bits -> within tolerance: True
+    per-event dominance mix: {'acquisition': 275, 'restart': 180, 'drain': 104}  (fractions {acquisition: 0.4919, restart: 0.3220, drain: 0.1860})
+    mean-weighted dominant : acquisition;  per-event modal dominant: acquisition
+[PASS] [tight buffer (headroom < 10 s)] the decomposition residual is inside its conditioning-scaled tolerance -- residual 1.220703e-04 bits against a tolerance of 1.813878e+00 bits
+
+  REGIME: ample buffer (headroom > 120 s)  (n = 150)
+    events                 : 150
+    resampling unit        : handover event
+    resamples / confidence : 4000 / 0.95
+    total loss             : 2.637338 Gbit
+    
+    mechanism      loss [Gbit]    interval [Gbit]                share
+    acquisition        1.679108   [   0.816513,    2.757700]    0.6367
+    restart            0.822620   [   0.434180,    1.285900]    0.3119
+    drain              0.135609   [   0.076091,    0.205316]    0.0514
+    
+    dominant               : acquisition
+    dominance margin       : 0.324755 of the total
+    dominance decided      : False (the leading interval OVERLAPS the runner-up's, so these events rank the mechanisms but do not decide the ordering)
+    conservation total     : 2.637338 Gbit
+    decomposition residual : 4.768372e-07 bits (1.808e-16 relative)
+    residual tolerance     : 1.821039e-01 bits -> within tolerance: True
+    per-event dominance mix: {'acquisition': 137, 'restart': 12, 'drain': 1}  (fractions {acquisition: 0.9133, restart: 0.0800, drain: 0.0067})
+    mean-weighted dominant : acquisition;  per-event modal dominant: acquisition
+[PASS] [ample buffer (headroom > 120 s)] the decomposition residual is inside its conditioning-scaled tolerance -- residual 4.768372e-07 bits against a tolerance of 1.821039e-01 bits
+
+  REGIME: slow protocol restart (declared > 30 s)  (n = 672)
+    events                 : 672
+    resampling unit        : handover event
+    resamples / confidence : 4000 / 0.95
+    total loss             : 104.101934 Gbit
+    
+    mechanism      loss [Gbit]    interval [Gbit]                share
+    acquisition       54.857978   [  46.236744,   64.668734]    0.5270
+    restart           42.616683   [  38.254705,   47.058256]    0.4094
+    drain              6.627273   [   5.886350,    7.373667]    0.0637
+    
+    dominant               : acquisition
+    dominance margin       : 0.117590 of the total
+    dominance decided      : False (the leading interval OVERLAPS the runner-up's, so these events rank the mechanisms but do not decide the ordering)
+    conservation total     : 104.101934 Gbit
+    decomposition residual : 1.525879e-05 bits (1.466e-16 relative)
+    residual tolerance     : 1.235926e+00 bits -> within tolerance: True
+    per-event dominance mix: {'acquisition': 251, 'restart': 416, 'drain': 5}  (fractions {acquisition: 0.3735, restart: 0.6190, drain: 0.0074})
+    mean-weighted dominant : acquisition;  per-event modal dominant: restart
+[PASS] [slow protocol restart (declared > 30 s)] the decomposition residual is inside its conditioning-scaled tolerance -- residual 1.525879e-05 bits against a tolerance of 1.235926e+00 bits
+
+  REGIME: fast protocol restart (declared < 8 s)  (n = 480)
+    events                 : 480
+    resampling unit        : handover event
+    resamples / confidence : 4000 / 0.95
+    total loss             : 59.058741 Gbit
+    
+    mechanism      loss [Gbit]    interval [Gbit]                share
+    acquisition       37.650020   [  28.702884,   47.945622]    0.6375
+    restart            3.621103   [   3.191324,    4.077605]    0.0613
+    drain             17.787618   [  15.516925,   20.163728]    0.3012
+    
+    dominant               : acquisition
+    dominance margin       : 0.336316 of the total
+    dominance decided      : True (the leading interval IS disjoint from the runner-up's)
+    conservation total     : 59.058741 Gbit
+    decomposition residual : 7.629395e-06 bits (1.292e-16 relative)
+    residual tolerance     : 1.321464e+00 bits -> within tolerance: True
+    per-event dominance mix: {'acquisition': 336, 'restart': 7, 'drain': 137}  (fractions {acquisition: 0.7000, restart: 0.0146, drain: 0.2854})
+    mean-weighted dominant : acquisition;  per-event modal dominant: acquisition
+[PASS] [fast protocol restart (declared < 8 s)] the decomposition residual is inside its conditioning-scaled tolerance -- residual 7.629395e-06 bits against a tolerance of 1.321464e+00 bits
+[STRUCTURALLY UNMEASURABLE] regime high utilisation AND ample buffer -- the empty cell named above
+           reason: only 0 event(s) fall in this regime, and the package declines to present a percentile interval over fewer than five handover events
+
+==============================================================================
+4  the dominance mix the ground truth actually has
+==============================================================================
+  acquisition    dominates   762 of 1536 events (0.496094)
+  restart        dominates   516 of 1536 events (0.335938)
+  drain          dominates   258 of 1536 events (0.167969)
+[PASS] every mechanism dominates at least a tenth of the corpus -- a corpus in which one answer is nearly always right cannot distinguish a predictor from a constant; the generator's stratification grids exist for this reason and are declared in data/generate_corpus.py
+
+
+CHECKS RUN: 11
+STRUCTURALLY UNMEASURABLE (1): regime high utilisation AND ample buffer -- the empty cell named above
+FAILED CHECKS (0): none

@@ -1,0 +1,71 @@
+Working-directory probe -- P097 flakerank
+
+Each script is run from four directories and the same exit status is
+required from all four. Every probe runs in a PRISTINE COPY of this
+product, so no committed output file is touched.
+
+excluded, with the reason in the module source: ['_approx_audit_plugin.py', '_bootstrap.py', 'probe_working_directories.py', 'validate_approx_audit.py']
+per-script timeout, seconds: 600.0 -- a guard against a hang,
+  never a measurement; a timeout fails the check rather than being
+  compared with anything
+FLAKERANK_FAST=1 is set for every probe: the question is whether a script
+RUNS from a directory, not what its numbers are.
+
+validation scripts probed: 8
+  validation/validate_baselines.py
+  validation/validate_bounds.py
+  validation/validate_disagreement.py
+  validation/validate_geometric.py
+  validation/validate_history.py
+  validation/validate_learned_model.py
+  validation/validate_no_live_timing.py
+  validation/validate_tree_hygiene.py
+examples probed: 3
+  examples/cost_versus_rate.py
+  examples/geometric_rerun_cost.py
+  examples/model_against_baselines.py
+
+==============================================================================
+EXIT STATUS FROM EACH DIRECTORY
+==============================================================================
+
+                                      script     root      tmp   product   own dir   same
+                examples/cost_versus_rate.py        0        0         0         0   True
+            examples/geometric_rerun_cost.py        0        0         0         0   True
+         examples/model_against_baselines.py        0        0         0         0   True
+            validation/validate_baselines.py        0        0         0         0   True
+               validation/validate_bounds.py        0        0         0         0   True
+         validation/validate_disagreement.py        0        0         0         0   True
+            validation/validate_geometric.py        0        0         0         0   True
+              validation/validate_history.py        0        0         0         0   True
+        validation/validate_learned_model.py        0        0         0         0   True
+       validation/validate_no_live_timing.py        0        0         0         0   True
+         validation/validate_tree_hygiene.py        0        0         0         0   True
+
+[PASS] every script returns the same exit status from all four directories -- 0 disagree: []
+[PASS] every script exits 0 from all four directories -- 0 did not: []
+
+==============================================================================
+THE COPY WAS NOT THE TREE -- checked, not asserted
+==============================================================================
+
+A probe that ran these scripts in place would overwrite every committed
+*_output.txt with fast-path numbers and every committed screenshot,
+which is the self-polluting-check class exactly. So the bytes of every
+committed output file and every committed PNG are recorded before the
+probe and compared after it. This script's own output is excluded,
+because the Tee writes it at exit and it is the one file this script is
+supposed to change.
+
+committed output files before the probe: 10
+committed output files after the probe : 10
+committed screenshots before / after   : 3 / 3
+output files changed by the probe, excluding its own: 0
+screenshots changed by the probe: 0
+[PASS] the probe changed no committed output file other than its own -- 0 changed
+[PASS] the probe changed no committed screenshot -- 0 changed
+
+==============================================================================
+checks: 4
+failures: 0
+==============================================================================

@@ -1,0 +1,107 @@
+Tree hygiene -- P098 EvidenceStale
+
+this check asserts what the product OWNS: that running it ADDS no cache
+directory or bytecode file, and that nothing a cold clone carries is one.
+It does NOT assert that none EXISTS, because what the release-gate harness
+leaves in the tree before calling this script is not this product's doing.
+
+NO git COMMAND IS RUN HERE. The build agent for this product is forbidden
+from running git; the coordinator commits, gates and publishes. The
+.gitignore semantics the check needs are re-implemented instead, and the
+subset is declared below.
+
+fast path (EVIDENCESTALE_FAST=1): False
+product root directory name: P098
+
+==============================================================================
+1. INHERITED ARTIFACTS -- reported, named as inherited, not failed
+==============================================================================
+artifacts present at entry: 0
+  none
+
+==============================================================================
+2. WHAT A COLD CLONE WOULD CARRY, by the re-implemented ignore rules
+==============================================================================
+ignore rules collected: 64
+
+covered: comments and blank lines; a leading '!' negation; a trailing '/' making a pattern directory-only; a leading '/' anchoring a pattern to the file's own directory; a pattern with no slash matching a BASENAME at any depth; a pattern with a slash matched against the relative path; '**' segments; last match wins. NOT covered: core.excludesFile, .git/info/exclude, per-directory .gitignore files below this product, and the index itself. The authoritative check is release-gate check 9.
+
+files a cold clone would carry: 77
+of those, cache or build artifacts: 0
+[PASS] nothing a cold clone would carry is a cache directory, bytecode file or build artifact -- 0 offenders
+
+[PASS] pyproject.toml exists and is NOT ignored -- exists=True, ignored=False
+[PASS] README.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] LICENSE exists and is NOT ignored -- exists=True, ignored=False
+[PASS] CHANGELOG.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] CITATION.cff exists and is NOT ignored -- exists=True, ignored=False
+[PASS] SPEC.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] MODEL_CARD.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] DATASET_CARD.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] src/evidencestale/__init__.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] src/evidencestale/__main__.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] src/evidencestale/graph.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] src/evidencestale/bounds.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] src/evidencestale/learned.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] tests/test_baselines.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] tests/test_regressions.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] examples/stale_fraction_report.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] screenshots/stale_fraction.png exists and is NOT ignored -- exists=True, ignored=False
+[PASS] validation/VALIDATION.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] validation/_bootstrap.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] validation/validate_baselines_output.txt exists and is NOT ignored -- exists=True, ignored=False
+[PASS] validation/validate_bound_bracket_output.txt exists and is NOT ignored -- exists=True, ignored=False
+[PASS] data/generate_corpus.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] data/generate_corpus_output.txt exists and is NOT ignored -- exists=True, ignored=False
+[PASS] data/corpus_layered.json exists and is NOT ignored -- exists=True, ignored=False
+[PASS] data/corpus_cyclic.json exists and is NOT ignored -- exists=True, ignored=False
+[PASS] data/corpus_manifest.json exists and is NOT ignored -- exists=True, ignored=False
+
+[PASS] junit.xml IS ignored
+[PASS] __pycache__/x.pyc IS ignored
+[PASS] src/evidencestale/__pycache__/graph.pyc IS ignored
+[PASS] .ruff_cache/CACHEDIR.TAG IS ignored
+[PASS] .pytest_cache/CACHEDIR.TAG IS ignored
+[PASS] .hypothesis/unicode_data/x IS ignored
+[PASS] model.joblib IS ignored
+[PASS] forest.pkl IS ignored
+
+==============================================================================
+3. ABSOLUTE PATHS IN TRACKED TEXT
+==============================================================================
+this scan deletes its own previous output before scanning and assembles
+its patterns from os.sep, because three consecutive sessions of this
+mission introduced a self-reporting scanner in the act of writing about
+one. Its own output file is additionally excluded by name.
+
+patterns, assembled from os.sep = '/': ('/home/', '/Users/', '/root/', '/tmp/')
+files scanned: 70
+lines carrying an absolute path pattern: 0
+[PASS] no tracked text file carries an absolute home or temp path -- 0 occurrences
+
+==============================================================================
+4. NO SERIALISED MODEL IS SHIPPED
+==============================================================================
+this product writes no joblib or pickle artifact. The .gitignore carries
+patterns for them so a future change cannot add one silently, and the scan
+below confirms none is present.
+serialised model files found: 0
+[PASS] no serialised model file is present in the tree
+
+==============================================================================
+5. WHAT THIS RUN ADDED
+==============================================================================
+artifacts present at exit: 0
+artifacts ADDED by this run: 0
+  none
+[PASS] running this script adds no cache directory and no bytecode file -- 0 added
+
+run this script twice in a row from a clean tree and the second run must
+agree with the first. That is this mission's criterion for a scanner and
+this script is not exempt from it: probe_working_directories.py runs it
+four times.
+
+==============================================================================
+checks: 38
+failures: 0
+==============================================================================

@@ -1,0 +1,132 @@
+
+==============================================================================
+BASELINE VALIDATION -- both analytic baselines against the ground truth
+==============================================================================
+INPUT ORIGIN: SYNTHETIC. No measured handover, no measured acquisition time and no measured link appears anywhere in this repository. Validation level 2: the evidence is agreement between a closed form, an independently derived bound and a simulated trace.
+
+ACCOUNTING MODEL. A handover is a four-phase timeline from the break of the outgoing optical link: ACQUISITION [0, T_acq) with zero egress; RESTART [T_acq, T_o) with zero egress, T_o = T_acq + T_rst; then DRAIN [T_o, H), in which the egress ramps linearly 0 -> R_d over T_ramp and holds at R_d. A source of mean rate R_s feeds a tail-drop buffer of capacity B holding q0 at the break. Every dropped bit is attributed to the phase of the slot in which it was dropped, so the three mechanisms partition the window exactly. The TOTAL is computed a second way, from mass conservation alone (produced - delivered - (q_end - q0)), and the difference between the two is the DECOMPOSITION RESIDUAL, which is a reported number and not an assumption.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+machine          : x86_64 Linux, 2 cores available to this process
+repository root  : P096 (printed relatively; see validation/_bootstrap.py)
+resamples        : 4000
+trace events     : 512
+
+corpus           : data/corpus/handovers.csv
+corpus sha256    : 3a0343a6c2c51a91eba0679856700f5495d8814c3bcdc94e6b710ba300c59706
+events           : 1536
+
+==============================================================================
+1  baseline 1 is the exact restriction of baseline 2 to its first phase
+==============================================================================
+  If this fails, baseline 1 has been weakened and every margin reported over
+  it is inflated by the weakening. Checked on 400 handovers spanning the
+  declared parameter envelope, including the nearly-full-buffer case where the
+  occupancy-space form of baseline 2 suffered a cancellation that Hypothesis
+  found; see step 5 of the handoverloss.baselines module docstring.
+  handovers compared                      : 400
+  bit-identical                           : 400
+  worst relative discrepancy              : 0.000000e+00
+[PASS] baseline 1 equals baseline 2's acquisition term to within double rounding -- worst 0.000000e+00 against a bound of 8.881784e-16
+
+==============================================================================
+2  baseline 2 against the trace, given the REALISED durations
+==============================================================================
+  This is the CLOSED FORM's own accuracy, with the acquisition time and the
+  restart latency taken from the trace rather than predicted. It separates
+  the model error from the forecasting error, which the next script measures.
+  events with non-zero ground-truth loss  : 1320 of 1536
+  dominance agreement                     : 0.983724
+  median total ratio (fluid / truth)      : 0.994247
+  5th / 95th percentile of that ratio     : 0.900798 / 1.072828
+  log10 MAE on the total                  : 0.033592
+  log10 MAE, acquisition                  : 0.067127
+  log10 MAE, restart                      : 0.067798
+  log10 MAE, drain                        : 0.076714
+[PASS] baseline 2 agrees with the ground truth's dominant mechanism on most events -- 0.983724; a baseline below this would be too weak to benchmark against
+[PASS] baseline 2's median total is within 20 per cent of the ground truth's -- median ratio 0.994247
+
+==============================================================================
+3  the decomposition residual over the whole corpus
+==============================================================================
+  Phase buckets against mass conservation. The two paths share the per-slot
+  arrival and service arrays and nothing else: one accumulates overflow, the
+  other accumulates arrivals, departures and the endpoint occupancies. The
+  residual is a REPORTED NUMBER, not an assumption.
+  slots per event used for the tolerance  : 2800
+  worst absolute residual                 : 8.544922e-03 bits
+  median absolute residual                : 2.574921e-04 bits
+  smallest per-event tolerance            : 4.494728e-02 bits
+  worst |residual| / tolerance            : 3.534252e-03
+[PASS] every event's absolute residual is inside its conditioning-scaled tolerance -- worst ratio 3.534252e-03 of the tolerance; the tolerance is 4 * slots * eps * (produced + delivered + dropped), which scales with the slot count and the volume magnitudes rather than being a constant
+  WHY THE RELATIVE RESIDUAL IS REPORTED CONDITIONALLY. An absolute residual of
+  order 1e-3 bits is negligible against a loss of gigabits and meaningless
+  against a loss of zero. Dividing by the total over ALL events, including the
+  216 with no loss at all, gives a worst relative residual of
+  1.632690e-03, which is an
+  artefact of the denominator and not a measurement of the accounting. An
+  earlier version of this script asserted on that unconditional figure and
+  FAILED, correctly: the check was wrong, not the product. The figure below is
+  restricted to events whose ground-truth loss exceeds 1e6 bits, where the
+  ratio means something.
+  events with loss above 1e6 bits         : 1320 of 1536
+  worst relative residual on those        : 1.161965e-12
+  median relative residual on those       : 7.901440e-15
+  derived bound on that ratio, worst case : 4.165621e-09
+  The criterion below is the DERIVED bound tolerance/loss, not a round number.
+  An earlier version of this check used a literal 1e-12 and FAILED at
+  1.161965e-12 -- a constant that happened to sit just under the measured
+  value, which is the kind of bound this mission's build guide forbids: the
+  slack must follow the conditioning of the expression, not an absolute
+  constant. The measured worst case is reported above and in VALIDATION.md.
+[PASS] every event's relative residual is inside the derived bound tolerance/loss -- worst measured 1.161965e-12 against a worst derived bound of 4.165621e-09
+
+==============================================================================
+4  the discretisation and burstiness terms, separated
+==============================================================================
+  Re-running the simulator with the burst and jitter shapes set to zero makes
+  it a pure discretisation of the fluid model. The difference between that run
+  and the closed form is the SLOT-WIDTH term; the difference between the
+  committed corpus and that run is the BURSTINESS term. Both are reported, so a
+  reader can decide whether the closed form is adequate for their own source.
+  events compared                         : 512
+  slot width                              : 0.25 s (2800 slots per event)
+  SLOT-WIDTH term, median relative        : +8.514534e-04
+  SLOT-WIDTH term, worst absolute relative: 2.065002e-01
+  BURSTINESS term, median relative        : +0.000000e+00
+  BURSTINESS term, worst absolute relative: 3.697603e+00
+  events where burstiness changed nothing : 164 of 512
+[PASS] the slot-width term is small enough that the closed form is the right reference -- median |relative| 8.514534e-04 at dt=0.25 s
+  NOTE on the sign of the burstiness term. The fluid model cannot produce loss
+  from a burst arriving at a non-full buffer, so where the term is positive the
+  closed form UNDERSTATES. Where it is negative, the burst arrived while the
+  buffer was already full and the same volume was lost either way, while the
+  service jitter delivered slightly more. Both signs occur and neither is a
+  defect; the numbers above are the magnitude a reader should plan around.
+
+==============================================================================
+5  baseline 1 at its conservative setting, not only at the mean
+==============================================================================
+  The refuted assumption, evaluated at the 95th percentile of the acquisition
+  distribution as well as at its mean, so nobody can say it was tested only in
+  its weakest form. Both are reported; the next script scores both on held-out
+  data.
+  events                                  : 256
+  baseline 1 at the MEAN, log10 MAE       : 2.104258
+  baseline 1 at the 95th pct, log10 MAE   : 3.316295
+[PASS] baseline 1's conservative setting is strictly larger than its mean setting -- a conservative variant that was not larger would not be conservative
+  Baseline 1 attributes every bit of loss to acquisition by construction, so
+  its dominance prediction is always 'acquisition' and its accuracy equals the
+  rate at which acquisition genuinely dominates. That rate, on this corpus, is
+  0.496094.
+
+
+CHECKS RUN: 7
+FAILED CHECKS (0): none

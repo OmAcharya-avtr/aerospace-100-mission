@@ -1,0 +1,111 @@
+Tree hygiene -- P097 flakerank
+
+This check asserts what the product OWNS: that running it ADDS no cache
+directory or bytecode file, and that nothing a cold clone carries is
+one. It does NOT assert that none EXISTS, because what the release-gate
+harness leaves in the tree before calling this script is not this
+product's doing.
+
+NO git COMMAND IS RUN HERE. The build agent for this product is
+forbidden from running git; the coordinator commits, gates and
+publishes. The .gitignore semantics the check needs are re-implemented
+instead, and the subset is declared below.
+
+fast path (FLAKERANK_FAST=1): False
+product root directory name: P097
+
+==============================================================================
+1. INHERITED ARTIFACTS -- reported, named as inherited, not failed
+==============================================================================
+
+artifacts present at entry: 0
+  none
+
+==============================================================================
+2. WHAT A COLD CLONE WOULD CARRY
+==============================================================================
+
+mission repository found above this product: aerospace-100-mission/.gitignore is consulted as well
+ignore rules collected: 62
+
+covered: comments and blank lines; a leading '!' negation; a trailing '/' making a pattern directory-only; a leading '/' anchoring a pattern to the file's own directory; a pattern with no slash matching a BASENAME at any depth; a pattern with a slash matched against the relative path; '**' segments; last match wins. NOT covered: core.excludesFile, .git/info/exclude, per-directory .gitignore files below this product, and the index itself. The authoritative check is release-gate check 9.
+
+files a cold clone would carry: 65
+of those, cache or build artifacts: 0
+[PASS] nothing a cold clone would carry is a cache directory, bytecode file or build artifact -- 0 offenders
+
+[PASS] pyproject.toml exists and is NOT ignored -- exists=True, ignored=False
+[PASS] README.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] LICENSE exists and is NOT ignored -- exists=True, ignored=False
+[PASS] CHANGELOG.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] CITATION.cff exists and is NOT ignored -- exists=True, ignored=False
+[PASS] MODEL_CARD.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] DATASET_CARD.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] src/flakerank/__init__.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] src/flakerank/geometric.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] src/flakerank/disagreement.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] src/flakerank/bounds.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] tests/test_geometric.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] tests/test_disagreement.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] tests/_support.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] examples/cost_versus_rate.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] screenshots/cost_versus_rate.png exists and is NOT ignored -- exists=True, ignored=False
+[PASS] validation/VALIDATION.md exists and is NOT ignored -- exists=True, ignored=False
+[PASS] validation/_bootstrap.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] validation/validate_geometric_output.txt exists and is NOT ignored -- exists=True, ignored=False
+[PASS] data/run_history.json exists and is NOT ignored -- exists=True, ignored=False
+[PASS] data/generate_history.py exists and is NOT ignored -- exists=True, ignored=False
+[PASS] data/generate_history_output.txt exists and is NOT ignored -- exists=True, ignored=False
+
+[PASS] junit.xml IS ignored
+[PASS] __pycache__/x.pyc IS ignored
+[PASS] src/flakerank/__pycache__/geometric.pyc IS ignored
+[PASS] .ruff_cache/CACHEDIR.TAG IS ignored
+[PASS] .pytest_cache/CACHEDIR.TAG IS ignored
+[PASS] .hypothesis/unicode_data/x IS ignored
+[PASS] model.joblib IS ignored
+[PASS] src/flakerank/forest.pkl IS ignored
+
+==============================================================================
+3. NO SERIALISED MODEL ANYWHERE
+==============================================================================
+
+This product fits its forest from the committed history whenever it is
+needed and serialises nothing, because a scikit-learn pickle is not
+portable across minor versions. The check is on the tree, not on the
+intention.
+
+serialised model files found: 0
+[PASS] this product ships no serialised model
+
+==============================================================================
+4. ABSOLUTE PATHS IN TRACKED TEXT
+==============================================================================
+
+This scan deletes its own previous output before scanning and assembles
+its patterns from os.sep, because three consecutive sessions of this
+mission introduced a self-reporting scanner in the act of writing about
+one. Its own output file is additionally excluded by name.
+
+patterns, assembled from os.sep = '/': ('/home/', '/Users/', '/root/', '/tmp/')
+files scanned: 59
+lines carrying an absolute path pattern: 0
+[PASS] no tracked text file carries an absolute home or temp path -- 0 occurrences
+
+==============================================================================
+5. WHAT THIS RUN ADDED
+==============================================================================
+
+artifacts present at exit: 0
+artifacts ADDED by this run: 0
+  none
+[PASS] running this script adds no cache directory and no bytecode file -- 0 added
+
+Run this script twice in a row from a clean tree and the second run must
+agree with the first. That is the criterion, and this script is not
+exempt from it: probe_working_directories.py runs it four times.
+
+==============================================================================
+checks: 34
+failures: 0
+==============================================================================

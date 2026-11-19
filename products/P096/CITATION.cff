@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "handoverloss: three-way attribution of data loss across an optical ground-station handover"
+version: 0.1.0
+date-released: "2026-11-19"
+license: Apache-2.0
+repository-code: "https://github.com/OmAcharya-avtr/handoverloss"
+authors:
+  - name: "OPTIMA Organisation"
+abstract: >-
+  Attributes end-to-end data loss across a ground-station handover on an optical
+  downlink separately to acquisition time, protocol restart and buffer drain,
+  with an event-level bootstrap interval on each mechanism and a reported
+  decomposition residual between two independent accountings of the total. The
+  headline output is which of the three mechanisms dominates, which is what tells
+  an operator whether to buy faster acquisition, a different protocol or more
+  buffer. Includes the acquisition-only assumption implemented at full strength as
+  the thing being refuted, an analytic fluid buffer-drain and restart model in
+  closed form, direct accounting over a simulated handover trace as ground truth,
+  an independently derived bracket on the total from conservation and capacity
+  counting alone, and a learned predictor with an uncertainty output scored on
+  held-out station pairs and held-out time separately. On the committed synthetic
+  corpus the analytic model beats the learned predictor on both held-out splits
+  and that result is published rather than retuned. Research-grade; not
+  flight-qualified, not certified, and not approved for operational aerospace use.
+keywords:
+  - optical-communications
+  - ground-station-handover
+  - acquisition-pointing-tracking
+  - fluid-queue
+  - loss-attribution
+  - bootstrap-confidence-interval
+  - network-calculus

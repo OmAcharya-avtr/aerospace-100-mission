@@ -1,0 +1,203 @@
+Closed-form geometric re-run count -- P097 flakerank
+
+Three independent checks of the mathematical core: hand arithmetic, a
+recursion sharing no expression with the closed form, and a Monte Carlo
+simulation of the retry process that references no closed form at all.
+
+fast path (FLAKERANK_FAST=1): False
+declared seed: 97044
+Monte Carlo invocations per cell: 20000
+agreement criterion, standard errors: 4.0
+
+Sources. Feller, W. (1968), An Introduction to Probability Theory and Its
+Applications, Volume I, 3rd edition, Wiley -- the geometric distribution
+and its mean. Johnson, N. L., Kemp, A. W. & Kotz, S. (2005), Univariate
+Discrete Distributions, 3rd edition, Wiley, chapter 5 -- the same result
+with the shifted-support convention used here.
+
+==============================================================================
+1. HAND ARITHMETIC -- values a reader can check with a calculator
+==============================================================================
+
+p = 1/4, unbounded:
+  1 - 0.25 = 0.75;  E[N] = 1/0.75 = 4/3
+  E[N] computed: 1.3333333333333333
+  E[F] = 0.25/0.75 = 1/3
+  E[F] computed: 0.3333333333333333
+[PASS] E[N] at p = 1/4 equals 4/3 -- 1.3333333333333333
+[PASS] E[F] at p = 1/4 equals 1/3 -- 0.3333333333333333
+
+p = 1/4, retry budget 3, equation (5): (p - p^3)/(1 - p) + p^3
+  p^3 = 0.015625;  p - p^3 = 0.234375;  0.234375/0.75 = 0.3125
+  0.3125 + 0.015625 = 0.328125
+  computed: 0.328125
+[PASS] E[F_3] at p = 1/4 equals 0.328125 -- 0.328125
+
+THE MISSION'S OWN CASE. A validation probe of this mission failed 1 time
+in 44, and no number of agreeing serial verifications saw it.
+  p = 1/44;  1 - p = 43/44;  E[F] = (1/44)/(43/44) = 1/43
+  E[F] computed: 0.023255813953488372
+  1/43 exactly  : 0.023255813953488372
+  in a 600 s test: 600/43 s of wasted time per invocation
+  computed: 13.953488372093023 s
+  over the 330 recorded sessions: 4604.6511627906975 s
+[PASS] E[F] at p = 1/44 equals 1/43 -- 0.023255813953488372
+
+THE DASHBOARD INVERSION, which is this product's whole argument:
+  a 1-in-44 failure in a 600 s test  : 13.953488372093023 s wasted per invocation
+  a 1-in-2 failure in a 0.1 s test   : 0.1 s wasted per invocation
+  cost ratio, slow over fast         : 139.53488372093022
+  flake-rate ratio, fast over slow   : 22.0
+  the two rankings disagree on this ONE pair by a factor of 3069.7674418604647
+[PASS] the cost ranking and the rate ranking order this pair oppositely -- cost ratio 139.534884, rate ratio 22.000000
+
+==============================================================================
+2. THE RECURSION -- no division, so no shared cancellation
+==============================================================================
+
+E[F_m] = p (1 + E[F_{m-1}]) with E[F_0] = 0, against equation (5).
+
+           p    m            closed form              recursion     rel diff
+  0.00000000    1  0.000000000000000e+00  0.000000000000000e+00    0.000e+00
+  0.00000000    2  0.000000000000000e+00  0.000000000000000e+00    0.000e+00
+  0.00000000    3  0.000000000000000e+00  0.000000000000000e+00    0.000e+00
+  0.00000000    5  0.000000000000000e+00  0.000000000000000e+00    0.000e+00
+  0.00000000   10  0.000000000000000e+00  0.000000000000000e+00    0.000e+00
+  0.02272727    1  2.272727272727273e-02  2.272727272727273e-02    0.000e+00
+  0.02272727    2  2.324380165289256e-02  2.324380165289256e-02    1.493e-16
+  0.02272727    3  2.325554094665665e-02  2.325554094665665e-02    0.000e+00
+  0.02272727    5  2.325581381247244e-02  2.325581381247245e-02    1.492e-16
+  0.02272727   10  2.325581395348837e-02  2.325581395348838e-02    1.492e-16
+  0.05000000    1  5.000000000000000e-02  5.000000000000000e-02    0.000e+00
+  0.05000000    2  5.250000000000000e-02  5.250000000000000e-02    0.000e+00
+  0.05000000    3  5.262500000000001e-02  5.262500000000001e-02    0.000e+00
+  0.05000000    5  5.263156250000001e-02  5.263156250000000e-02    1.318e-16
+  0.05000000   10  5.263157894736328e-02  5.263157894736328e-02    0.000e+00
+  0.25000000    1  2.500000000000000e-01  2.500000000000000e-01    0.000e+00
+  0.25000000    2  3.125000000000000e-01  3.125000000000000e-01    0.000e+00
+  0.25000000    3  3.281250000000000e-01  3.281250000000000e-01    0.000e+00
+  0.25000000    5  3.330078125000000e-01  3.330078125000000e-01    0.000e+00
+  0.25000000   10  3.333330154418945e-01  3.333330154418945e-01    0.000e+00
+  0.50000000    1  5.000000000000000e-01  5.000000000000000e-01    0.000e+00
+  0.50000000    2  7.500000000000000e-01  7.500000000000000e-01    0.000e+00
+  0.50000000    3  8.750000000000000e-01  8.750000000000000e-01    0.000e+00
+  0.50000000    5  9.687500000000000e-01  9.687500000000000e-01    0.000e+00
+  0.50000000   10  9.990234375000000e-01  9.990234375000000e-01    0.000e+00
+  0.75000000    1  7.500000000000000e-01  7.500000000000000e-01    0.000e+00
+  0.75000000    2  1.312500000000000e+00  1.312500000000000e+00    0.000e+00
+  0.75000000    3  1.734375000000000e+00  1.734375000000000e+00    0.000e+00
+  0.75000000    5  2.288085937500000e+00  2.288085937500000e+00    0.000e+00
+  0.75000000   10  2.831059455871582e+00  2.831059455871582e+00    0.000e+00
+
+[PASS] equation (5) and its division-free recursion agree to 1e-12 relative -- worst relative difference 1.493e-16
+
+E[N] = 1 + p E[N], as a fixed-point iteration, against 1/(1 - p):
+           p            closed form            fixed point     rel diff
+  0.00000000  1.000000000000000e+00  1.000000000000000e+00    0.000e+00
+  0.02272727  1.023255813953488e+00  1.023255813953488e+00    0.000e+00
+  0.05000000  1.052631578947368e+00  1.052631578947368e+00    0.000e+00
+  0.25000000  1.333333333333333e+00  1.333333333333333e+00    0.000e+00
+  0.50000000  2.000000000000000e+00  2.000000000000000e+00    0.000e+00
+  0.75000000  4.000000000000000e+00  3.999999999999999e+00    2.220e-16
+
+[PASS] the fixed-point iteration agrees with 1/(1 - p) to 1e-12 relative -- worst relative difference 2.220e-16
+
+==============================================================================
+3. MONTE CARLO -- the retry process itself, referencing no closed form
+==============================================================================
+
+Bernoulli attempts are drawn and failures counted. This is the only
+check here that could catch a wrong MODEL rather than a wrong
+evaluation of the right one. The criterion is four standard errors of
+the simulation mean, declared in advance.
+
+           p          m       analytic      simulated        s.e.   sigmas
+  0.00000000          1       0.000000       0.000000   0.000e+00     0.00
+  0.00000000          2       0.000000       0.000000   0.000e+00     0.00
+  0.00000000          3       0.000000       0.000000   0.000e+00     0.00
+  0.00000000          5       0.000000       0.000000   0.000e+00     0.00
+  0.00000000         10       0.000000       0.000000   0.000e+00     0.00
+  0.00000000  unbounded       0.000000       0.000000   0.000e+00     0.00
+  0.02272727          1       0.022727       0.023900   1.080e-03     1.09
+  0.02272727          2       0.023244       0.021400   1.038e-03     1.78
+  0.02272727          3       0.023256       0.023650   1.122e-03     0.35
+  0.02272727          5       0.023256       0.023000   1.083e-03     0.24
+  0.02272727         10       0.023256       0.022700   1.077e-03     0.52
+  0.02272727  unbounded       0.023256       0.024300   1.123e-03     0.93
+  0.05000000          1       0.050000       0.050400   1.547e-03     0.26
+  0.05000000          2       0.052500       0.051900   1.640e-03     0.37
+  0.05000000          3       0.052625       0.052250   1.663e-03     0.23
+  0.05000000          5       0.052632       0.055300   1.695e-03     1.57
+  0.05000000         10       0.052632       0.051650   1.657e-03     0.59
+  0.05000000  unbounded       0.052632       0.051150   1.635e-03     0.91
+  0.25000000          1       0.250000       0.249350   3.059e-03     0.21
+  0.25000000          2       0.312500       0.312600   4.141e-03     0.02
+  0.25000000          3       0.328125       0.328850   4.528e-03     0.16
+  0.25000000          5       0.333008       0.333400   4.714e-03     0.08
+  0.25000000         10       0.333333       0.326350   4.602e-03     1.52
+  0.25000000  unbounded       0.333333       0.332150   4.697e-03     0.25
+  0.50000000          1       0.500000       0.502050   3.536e-03     0.58
+  0.50000000          2       0.750000       0.749450   5.876e-03     0.09
+  0.50000000          3       0.875000       0.877450   7.442e-03     0.33
+  0.50000000          5       0.968750       0.975000   9.188e-03     0.68
+  0.50000000         10       0.999023       0.993050   1.000e-02     0.60
+  0.50000000  unbounded       1.000000       0.998100   9.773e-03     0.19
+  0.75000000          1       0.750000       0.745950   3.078e-03     1.32
+  0.75000000          2       1.312500       1.312300   5.985e-03     0.03
+  0.75000000          3       1.734375       1.736000   8.796e-03     0.18
+  0.75000000          5       2.288086       2.286750   1.352e-02     0.10
+  0.75000000         10       2.831059       2.780600   2.031e-02     2.48
+  0.75000000  unbounded       3.000000       3.003000   2.475e-02     0.12
+
+cells compared: 36
+cells outside 4.0 standard errors: 0
+worst deviation, standard errors: 2.484
+[PASS] every analytic value lies within 4.0 standard errors of the simulation -- 0 of 36 outside, worst 2.484 sigma
+
+A note on the unbounded cells. The simulation caps attempts at 200,
+which is not the analytic unbounded process. At p = 0.75 the
+probability of 200 consecutive failures is 0.75**200 = 1.029e-25, so the truncation bias is below the simulation's own
+standard error by many orders of magnitude and is not what the
+agreement is testing. At p = 0.95 it would not be, which is why the
+sweep stops at 0.75.
+
+==============================================================================
+4. THE DIVERGENCE AT p -> 1 -- raised, never returned as inf
+==============================================================================
+
+  expected_failed_attempts(1.0) raised ValueError
+    message begins: expected failed attempts diverges at failure_probability = 1 with an unb...
+[PASS] control fires: expected_failed_attempts(1.0) raises rather than returning inf -- ValueError
+  expected_attempts_to_first_pass(1.0) raised ValueError
+    message begins: expected attempts to first pass diverges at failure_probability = 1: a t...
+[PASS] control fires: expected_attempts_to_first_pass(1.0) raises rather than returning inf -- ValueError
+  expected_wasted_seconds(1.0, 10.0) raised ValueError
+    message begins: expected failed attempts diverges at failure_probability = 1 with an unb...
+[PASS] control fires: expected_wasted_seconds(1.0, 10.0) raises rather than returning inf -- ValueError
+
+With a retry budget the same quantity is FINITE and equals the budget,
+because all m attempts fail and all m are wasted. That is the analytic
+limit of equation (5) at p = 1, taken by L'Hopital and returned.
+  E[F_1] at p = 1 = 1.0
+[PASS] E[F_1] at p = 1 equals 1 -- 1.0
+  E[F_2] at p = 1 = 2.0
+[PASS] E[F_2] at p = 1 equals 2 -- 2.0
+  E[F_3] at p = 1 = 3.0
+[PASS] E[F_3] at p = 1 equals 3 -- 3.0
+  E[F_7] at p = 1 = 7.0
+[PASS] E[F_7] at p = 1 equals 7 -- 7.0
+  E[F_100] at p = 1 = 100.0
+[PASS] E[F_100] at p = 1 equals 100 -- 100.0
+
+CONTROL that must STAY SILENT: just below 1 the unbounded form returns a
+large finite number rather than raising, so the error above is a
+statement about p = 1 and not a refusal to work near it.
+  E[F] at p = 1 - 1e-12 = 1000022122208.5028
+[PASS] control stays silent: the unbounded form raises just below p = 1 -- 1000022122208.5028
+
+==============================================================================
+checks: 17
+failures: 0
+controls that must fire: 3 of 3 fired
+controls that must stay silent: 1 of 1 silent
+==============================================================================

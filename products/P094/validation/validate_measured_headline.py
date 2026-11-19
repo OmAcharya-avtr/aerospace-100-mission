@@ -278,7 +278,8 @@ def main() -> int:
         "the whole 95 per cent interval on the held-out error lies BELOW the threshold",
         baseline2.declared_interval.high < SPEC_TRANSFER_THRESHOLD,
         f"interval high {baseline2.declared_interval.high:.6f} against "
-        f"{SPEC_TRANSFER_THRESHOLD:g}",
+        f"{SPEC_TRANSFER_THRESHOLD:g}: a BOUND on one live measurement against a "
+        "pre-registered literal, measured band published in VALIDATION.md",
     )
     tee.finding(
         "SPEC §7 SECONDARY IS REFUTED. The pre-registration predicted a held-out "
@@ -315,7 +316,13 @@ def main() -> int:
         "the platform ratio spread is below the pre-registered spread threshold",
         max(ratios) / min(ratios) < SPEC_SPREAD_THRESHOLD,
         "the PLATFORM is close to uniformly slower; the DECLARED MODEL is not "
-        "close to uniformly wrong",
+        "close to uniformly wrong. This is the ONE statistic in this product that "
+        "still reads two live stage timings against each other, and it is bounded "
+        "against SPEC §7's pre-registered 3 rather than against another measurement. "
+        "It is invariant to first order under load: a common multiplicative slowdown "
+        "of every simulation-mode stage cancels in max/min exactly, so only the "
+        "stage-DIFFERENTIAL part of a load effect can move it. Measured band "
+        "published in VALIDATION.md",
     )
 
     tee.rule("negative controls")

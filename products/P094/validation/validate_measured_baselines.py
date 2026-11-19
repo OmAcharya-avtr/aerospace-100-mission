@@ -15,6 +15,19 @@ asserted on the returned object here and in the test suite.
 
 The frame-stack sensitivity is reported in full, because baseline 2's verdict
 against SPEC §7's 0.5 threshold depends on it.
+
+Load-sensitive assertions in this script
+----------------------------------------
+Simulation mode is a live wall-clock measurement taken in a shared two-core
+container, so every figure derived from it moves between runs. **No check here
+compares two live wall-clock measurements.** The quantities that carry a live
+reading are asserted only as a BOUND against a fixed value -- a pre-registered
+literal from SPEC §7, or a committed-trace figure -- and their measured bands
+are published in validation/VALIDATION.md. The frame-stack sensitivity, which
+used to be asserted as ``short >= 2 x full`` on two separate simulation-mode
+runs, is asserted on the gate branch census instead: integer counts over
+deterministically seeded frames, exactly reproducible under any load. The full
+inventory is in validation/load_sensitive_inventory.md.
 """
 
 from __future__ import annotations
@@ -60,6 +73,36 @@ SENSITIVITY_PASSES = (1,) if _bootstrap.FAST else (1, 2, 4)
 #: ``probe_working_directories.py``, whose question is whether a script RUNS
 #: from a given directory and not what its numbers are.
 SENSITIVITY_REPEATS = 1 if _bootstrap.FAST else 3
+
+#: Cells the MECHANISM check measures, at both stack lengths. Three cells rather
+#: than nine keeps the check inside the compute budget; the quantity it reports
+#: is an integer count over deterministically seeded frames, so it is exactly
+#: reproducible and nine cells would add nothing.
+MECHANISM_CELLS = ("w48_sparse", "w64_sparse", "w96_sparse")
+
+#: The gate branch census over MECHANISM_CELLS at one pass, pinned as literals.
+#: Measured 2026-11-19; a repeat of each call returned the identical dictionary,
+#: and a 2-pass call returned exactly twice each count. THIS IS THE MECHANISM
+#: behind the frame-stack sensitivity, in a form that carries no wall-clock
+#: reading: over a 150-frame stack the exponential running background has not
+#: converged, so the candidate population and therefore the gate's branch mix
+#: are a DIFFERENT population and not a noisier sample of the same one.
+PINNED_MECHANISM_CENSUS = {
+    150: {
+        "accept": 371,
+        "no_candidate": 8,
+        "low_score": 1166,
+        "area_out": 222,
+        "border": 86,
+    },
+    1500: {
+        "accept": 527,
+        "no_candidate": 74,
+        "low_score": 29709,
+        "area_out": 316,
+        "border": 64,
+    },
+}
 
 
 def main() -> int:
@@ -201,7 +244,9 @@ def main() -> int:
         "baseline 2's held-out error is below the pre-registered threshold",
         second.declared.mean_relative_error < PREREGISTERED_TRANSFER_ERROR,
         f"{second.declared.mean_relative_error:.6f} against "
-        f"{PREREGISTERED_TRANSFER_ERROR:g}: SPEC §7's secondary expectation is REFUTED",
+        f"{PREREGISTERED_TRANSFER_ERROR:g}: SPEC §7's secondary expectation is "
+        "REFUTED. A BOUND on one live measurement against a pre-registered literal; "
+        "measured band published in VALIDATION.md",
     )
     tee.finding(
         "SPEC §7 SECONDARY REFUTED: measured held-out transfer error "
@@ -304,17 +349,60 @@ def main() -> int:
     short_errors = observed[150]
     full_errors = observed[1500]
     tee("")
-    tee.check(
-        "the short-stack held-out error is at least twice the full-stack error",
-        min(short_errors) > 2.0 * max(full_errors),
-        f"150 frames {min(short_errors):.6f}..{max(short_errors):.6f} against 1500 "
-        f"frames {min(full_errors):.6f}..{max(full_errors):.6f}",
+    tee(
+        "  THE MECHANISM, asserted on INTEGER COUNTS rather than on timings. The two "
+        "stack lengths"
     )
+    tee(
+        "  do not exercise the same candidate population, and that is a property of "
+        "the seeded"
+    )
+    tee(
+        "  frames and not of this machine: make_frames takes the campaign's own "
+        "synth_seed, so the"
+    )
+    tee(
+        "  gate branch census below is exactly reproducible on any host under any "
+        "load. A check"
+    )
+    tee(
+        "  comparing the two held-out ERRORS would be a check on two live wall-clock "
+        "measurements."
+    )
+    tee("")
+    census_frames: dict[int, tuple[dict[str, int], int]] = {}
+    for stack in (150, 1500):
+        probe = measure_simulation(
+            campaign, passes=1, frames=stack, cells=MECHANISM_CELLS
+        )
+        census_frames[stack] = (dict(probe.census), probe.n_timed_frames)
+        tee(
+            f"  {stack:>6d} frames over {len(MECHANISM_CELLS)} cells, "
+            f"{probe.n_timed_frames:>5d} timed frames: "
+            + ", ".join(f"{name}={count}" for name, count in sorted(probe.census.items()))
+        )
+    tee("")
+    for stack, pinned in PINNED_MECHANISM_CENSUS.items():
+        tee.check(
+            f"the {stack}-frame gate branch census matches its pinned integer counts",
+            census_frames[stack][0] == pinned,
+            f"measured {census_frames[stack][0]}",
+        )
+    short_accept = census_frames[150][0]["accept"] / census_frames[150][1]
+    full_accept = census_frames[1500][0]["accept"] / census_frames[1500][1]
+    tee.check(
+        "the short stack accepts at least seven times as many frames per frame",
+        short_accept > 7.0 * full_accept,
+        f"per-frame acceptance {short_accept:.12f} at 150 frames against "
+        f"{full_accept:.12f} at 1500: integer counts over seeded frames, no timing",
+    )
+    tee("")
     tee.check(
         "the full-stack error is below the pre-registered threshold in every repeat",
         max(full_errors) < PREREGISTERED_TRANSFER_ERROR,
         f"worst of {SENSITIVITY_REPEATS} repeats {max(full_errors):.6f} against "
-        f"{PREREGISTERED_TRANSFER_ERROR:g}",
+        f"{PREREGISTERED_TRANSFER_ERROR:g}; a BOUND on a live measurement against a "
+        "pre-registered literal, band published in VALIDATION.md",
     )
     tee.finding(
         "A WEAK RESULT, published: SPEC §7's secondary verdict is "
@@ -323,13 +411,17 @@ def main() -> int:
         f"{SENSITIVITY_REPEATS} repeats and the expectation is REFUTED in every one. "
         f"At a 150-frame stack it measured {min(short_errors):.6f} to "
         f"{max(short_errors):.6f}, which SITS ON the 0.5 threshold rather than "
-        "clearly above it: a separate 2-pass run of the same configuration earlier in "
-        "this session returned 0.472583, below the threshold, under heavier "
+        "clearly above it: a separate 2-pass run of the same configuration on "
+        "2026-11-16 returned 0.472583, below the threshold, under heavier "
         "concurrent load on the two shared cores. So the short-stack figure does not "
-        "reliably confirm the expectation either; what it reliably does is sit about "
-        f"{min(short_errors) / max(full_errors):.1f} times higher than the "
-        "full-stack figure. The declared configuration is the board's stack length, "
-        "because the comparison is only paired if both modes time the same stack."
+        "reliably confirm the expectation either, and the ratio between the two "
+        f"figures -- {min(short_errors) / max(full_errors):.1f} in this run -- is NOT "
+        "asserted: it is a ratio between two live wall-clock measurements on a shared "
+        "two-core host, which is an assertion about the machine's load. The ratio is "
+        "reported here with its band in VALIDATION.md, and what is ASSERTED is the "
+        "mechanism, on the integer gate branch census above. The declared "
+        "configuration is the board's stack length, because the comparison is only "
+        "paired if both modes time the same stack."
     )
     tee.finding(
         "The pass count, by contrast, is measured stable: at 1, 2 and 4 passes over "
@@ -342,14 +434,35 @@ def main() -> int:
     result = divergence(units, ns_per_op, resamples=_bootstrap.RESAMPLES_USED)
     tee(f"  spread = {result.spread_interval.format(6)}")
     tee(f"  tau-b  = {result.tau_b_interval.format(6)}")
+    # TWO BOUNDS, not an ordering between two live-derived quantities. Both
+    # errors move with the host's wall clock, and `A > B` on two such numbers is
+    # an assertion about the machine. Each is bounded separately against a fixed
+    # value instead: baseline 1's mean relative error against 1.0, which is the
+    # point at which the declared model is wrong by a factor of two on the
+    # average stage, and baseline 2's held-out error against SPEC §7's
+    # pre-registered 0.5. Both bands are published in VALIDATION.md. The
+    # conclusion -- baseline 1 refuted, baseline 2 not -- follows from the two
+    # bounds and is stated in the finding below.
     tee.check(
-        "baseline 1 is refuted and baseline 2 is not",
-        first.mean_relative_error > second.declared.mean_relative_error,
-        f"baseline 1 mean relative error {first.mean_relative_error:.6f} against "
-        f"baseline 2's held-out {second.declared.mean_relative_error:.6f}: the "
-        "declared operation count is "
-        f"{first.mean_relative_error / second.declared.mean_relative_error:.1f}x worse "
-        "than a single measured scaling factor extrapolated to stages it never saw",
+        "baseline 1's mean relative error exceeds 1.0, so the declared model is "
+        "wrong by more than a factor of two on the average stage",
+        first.mean_relative_error > 1.0,
+        f"{first.mean_relative_error:.6f}; a bound on a live-calibrated quantity "
+        "against a fixed value, band published in VALIDATION.md",
+    )
+    tee.check(
+        "baseline 2's held-out error stays below the pre-registered 0.5",
+        second.declared.mean_relative_error < PREREGISTERED_TRANSFER_ERROR,
+        f"{second.declared.mean_relative_error:.6f} against "
+        f"{PREREGISTERED_TRANSFER_ERROR:g}",
+    )
+    tee.finding(
+        "The two bounds above place baseline 1 above 1.0 and baseline 2 below 0.5, so "
+        "on this campaign the declared operation count is a worse timing proxy than a "
+        "single measured scaling factor extrapolated to stages it never saw. The "
+        f"ratio measured {first.mean_relative_error / second.declared.mean_relative_error:.1f}"
+        " in this run and is reported rather than asserted, because both terms are "
+        "wall-clock readings on a shared two-core host."
     )
 
     tee.rule("negative controls")
@@ -397,6 +510,94 @@ def main() -> int:
     # A frame-content control: the random generator is unused except to show the
     # control is not seeded into passing.
     del rng
+
+    tee.rule("negative controls on the checks that REPLACED the load-sensitive ones")
+    tee(
+        "  Each is anchored on the TRUE value -- the measured census, the committed "
+        "per-op costs,"
+    )
+    tee(
+        "  the measured errors -- and never on an output of the check it guards. Each "
+        "is asserted"
+    )
+    tee("  to FIRE, and the unperturbed form is asserted NOT to fire.")
+    tee("")
+
+    # 1. The census mechanism check. Anchored on the TRUE census: changing ONE
+    #    count of 1166 must be detected, and the true census must not be.
+    true_census = dict(census_frames[150][0])
+    off_by_one = dict(true_census)
+    off_by_one["low_score"] += 1
+    tee.control(
+        "a census with ONE of 1166 low_score counts changed is detected",
+        off_by_one != PINNED_MECHANISM_CENSUS[150],
+        must_fire=True,
+        detail="the pinned-census check reads integer counts over seeded frames, so a "
+        "single count is a detectable change and no tolerance hides it",
+    )
+    tee.control(
+        "the TRUE measured census is detected as not matching the pinned counts",
+        true_census != PINNED_MECHANISM_CENSUS[150],
+        must_fire=False,
+        detail=f"{true_census}",
+    )
+
+    # 2. The bound that fixes baseline 1's sign pattern. Anchored on the TRUE
+    #    committed per-op costs: a scalar just above the upper bracketing cost
+    #    must flip the sign on `threshold`, and the measured scalar must not.
+    ordered_costs = sorted(result.ns_per_declared_op.values())
+    tee(
+        f"  the two committed costs that bracket the scalar: {ordered_costs[1]!r} and "
+        f"{ordered_costs[2]!r}"
+    )
+    tee(f"  the live scalar measured in this run                : {ns_per_op!r}")
+    outside = ordered_costs[2] * 1.000001
+    flipped = baseline_1(units, outside)
+    tee.control(
+        "a scalar just above the upper bracketing committed cost flips a stage's sign",
+        flipped.signed_relative_error["threshold"] > 0.0,
+        must_fire=True,
+        detail=f"at ns_per_op = {outside:.9f} the sign on threshold is "
+        f"{flipped.signed_relative_error['threshold']:+.6f}, against "
+        f"{first.signed_relative_error['threshold']:+.6f} at the measured "
+        f"{ns_per_op:.9f}: the bound is the decision boundary and not a tuned constant",
+    )
+    tee.control(
+        "the live scalar measured in this run lies outside the bracketing costs",
+        not (ordered_costs[1] < ns_per_op < ordered_costs[2]),
+        must_fire=False,
+        detail=f"{ordered_costs[1]:.6f} < {ns_per_op:.9f} < {ordered_costs[2]:.6f}",
+    )
+
+    # 3. The two bounds that replaced `baseline1.mean > baseline2.mean`.
+    #    Anchored on the TRUE committed hardware medians: dividing them by the
+    #    declared cost makes baseline 1 exact, so its mean error must fall below
+    #    1.0 and the bound must fire.
+    exact_ops = units.hw / ns_per_op
+    exact = baseline_1(
+        PassUnits(
+            stages=units.stages,
+            cells=units.cells,
+            pass_index=units.pass_index,
+            hw=units.hw,
+            ops=exact_ops,
+        ),
+        ns_per_op,
+    )
+    tee.control(
+        "a declared model that is exact by construction drops baseline 1 below 1.0",
+        exact.mean_relative_error < 1.0,
+        must_fire=True,
+        detail=f"mean relative error {exact.mean_relative_error:.3e} against the "
+        f"measured {first.mean_relative_error:.6f}: the 1.0 bound can see a declared "
+        "model that is right",
+    )
+    tee.control(
+        "the measured declared model drops below the 1.0 bound",
+        first.mean_relative_error < 1.0,
+        must_fire=False,
+        detail=f"{first.mean_relative_error:.6f}",
+    )
 
     path = tee.save()
     print(f"\nwritten: {path}")

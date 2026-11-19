@@ -1,0 +1,110 @@
+Independent bracket on the stale fraction -- P098 EvidenceStale
+
+the bound uses the Moore bound and a union bound over the changed
+artifacts. It reads no content, computes no digest and performs no
+transitive search, so it cannot share a defect with the measurement.
+
+fast path (EVIDENCESTALE_FAST=1): False
+
+==============================================================================
+1. THE BOUND'S INPUTS, ALL OF THEM COUNTS
+==============================================================================
+artifacts N                             : 240
+max direct dependents d (declared)      : 2
+declared impact depth L                 : 2
+M(d, L) = 1 + d + ... + d^L             : 7
+M(d, L) capped at N                     : 7
+evidence items E                        : 480
+max evidence items per subject m        : 2
+distinct production revisions           : 340
+production revision range               : 2..600
+
+informativeness condition, from the derivation: the upper bound is below 1
+when k * M(d, L) < E / m, that is when k < 34.2857
+
+==============================================================================
+2. THE BRACKET AT EVERY EVALUATION REVISION IN THE GRID
+==============================================================================
+grid: (600, 700, 800, 900, 1000, 1200, 1400, 1600, 1800, 2000)
+
+ revision  items    k    depth0    depth1  measured     upper  inform  holds
+      600    480   10  0.016667  0.043750  0.077083  0.291667    True   True
+      700    480   10  0.020833  0.054167  0.091667  0.291667    True   True
+      800    480   12  0.029167  0.072917  0.102083  0.350000    True   True
+      900    480   12  0.029167  0.072917  0.102083  0.350000    True   True
+     1000    480   16  0.045833  0.110417  0.160417  0.466667    True   True
+     1200    480   18  0.054167  0.122917  0.181250  0.525000    True   True
+     1400    480   20  0.062500  0.147917  0.222917  0.583333    True   True
+     1600    480   26  0.087500  0.206250  0.302083  0.758333    True   True
+     1800    480   28  0.095833  0.229167  0.333333  0.816667    True   True
+     2000    480   31  0.110417  0.268750  0.404167  0.904167    True   True
+
+slack per endpoint, from the conditioning of one division: 8.881784e-16
+[PASS] the bracket holds at every evaluation revision in the grid -- 10 of 10
+[PASS] the upper bound is informative at every evaluation revision in the grid -- 10 of 10
+
+==============================================================================
+3. THE HEADLINE BRACKET, at the corpus evaluation revision
+==============================================================================
+changed artifacts k            : 31
+lower bound, depth 0           : 0.110417
+lower bound, depth 1           : 0.268750
+MEASURED stale fraction        : 0.404167
+upper bound, Moore plus union  : 0.904167
+slack per endpoint             : 8.881784e-16
+bracket width                  : 0.635417
+[PASS] the measured fraction is above the lower bound
+[PASS] the measured fraction is below the upper bound
+[PASS] the headline upper bound is informative
+
+==============================================================================
+4. CONTROLS ON THE BRACKET ITSELF -- a check that cannot fail is not a check
+==============================================================================
+each control is anchored on the TRUE value, not on an output, and each is
+asserted to behave as declared.
+
+a measurement 0.05 ABOVE the upper bound  -> holds = False
+[PASS] control fires: the bracket rejects a measurement above its upper bound -- measured 0.954167 against upper 0.904167
+a measurement 0.05 BELOW the lower bound  -> holds = False
+[PASS] control fires: the bracket rejects a measurement below its lower bound -- measured 0.218750 against lower 0.268750
+a measurement at the bracket midpoint     -> holds = True
+[PASS] control stays silent: the bracket accepts a measurement at its midpoint -- measured 0.586458
+
+THE UNION-CHANGE-SET DEFECT, kept as an executable control. Replacing the
+per-item change sets by their union is correct for the upper bound and
+invalid for the lower bounds. On this corpus the production revisions
+overlap heavily, so the substitution over-counts without crossing the
+measurement; the literal case where it DOES cross is pinned in
+tests/test_regressions.py. Both numbers are reported.
+  per-item depth-1 lower bound : 0.268750
+  union    depth-1 lower bound : 0.304167
+  over-count                   : +0.035417
+  union form still holds here   : True
+[PASS] control fires: the union substitution raises the depth-1 lower bound, which is the defect -- 0.304167 > 0.268750
+
+==============================================================================
+5. THE MOORE BOUND, SPOT-CHECKED BY HAND
+==============================================================================
+  M(2, 0) =   1   expected   1
+[PASS] M(2, 0) equals the hand value
+  M(2, 1) =   3   expected   3
+[PASS] M(2, 1) equals the hand value
+  M(2, 2) =   7   expected   7
+[PASS] M(2, 2) equals the hand value
+  M(2, 3) =  15   expected  15
+[PASS] M(2, 3) equals the hand value
+  M(3, 2) =  13   expected  13
+[PASS] M(3, 2) equals the hand value
+  M(4, 3) =  85   expected  85
+[PASS] M(4, 3) equals the hand value
+  M(0, 5) =   1   expected   1
+[PASS] M(0, 5) equals the hand value
+  M(1, 5) =   6   expected   6
+[PASS] M(1, 5) equals the hand value
+
+==============================================================================
+checks: 17
+failures: 0
+controls that must fire: 3 of 3 fired
+controls that must stay silent: 1 of 1 silent
+==============================================================================

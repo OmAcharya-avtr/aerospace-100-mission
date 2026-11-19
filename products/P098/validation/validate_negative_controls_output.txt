@@ -1,0 +1,128 @@
+Negative controls -- P098 EvidenceStale
+
+each control is anchored on the TRUE value: the injection is applied to the
+change history and the ground truth is RECOMPUTED over the true dependency
+graph. Each control's criterion is an exact integer count, so no control
+can be satisfied by a lucky seed.
+
+fast path (EVIDENCESTALE_FAST=1): False
+seed: 980098
+audit revision: 2200
+first injection revision: 2001
+
+==============================================================================
+0. THE UNMODIFIED BASELINE AT REVISION 2200
+==============================================================================
+no committed event lies after revision 2000, so auditing at 2200 must give
+the published figures. Checked rather than assumed, because every control
+below is a difference against this row.
+truly stale at revision 2000 : 194
+truly stale at revision 2200 : 194
+stale fraction at 2200       : 0.404167
+closure comparison at 2200   : 194
+timestamp baseline at 2200   : 222
+[PASS] the ground truth at revision 2200 equals the ground truth at revision 2000
+[PASS] the closure comparison is exact on the unmodified corpus at revision 2200
+
+==============================================================================
+1. CONTROL -- an injected change at DEPTH 2, at a declared rate
+==============================================================================
+24 leaf artifacts (no dependencies of their own) are
+written with new content at revisions 2001 and above. A leaf is reached
+from an evidence subject only through the dependency graph, so this is
+staleness that arrives through a dependency and never touches the subject.
+
+artifacts written          : 24 of 240 (0.100000)
+TRUE newly stale items     : 105
+  of those, subject written directly        : 37
+  of those, stale ONLY through a dependency : 68
+closure comparison increase: 105
+timestamp baseline increase: 3
+newly stale items the timestamp baseline newly flags: 3
+  of the depth-2-only group, newly flagged: 0
+true stale fraction before : 0.404167
+true stale fraction after  : 0.622917
+[PASS] control fires: an injected depth-2 change makes a positive known number of items stale -- 105 items
+[PASS] control fires: the closure comparison recovers the injected staleness exactly -- recovered 105 of 105
+[PASS] control fires: the injection makes a positive number of items stale ONLY through a dependency -- 68 items
+[PASS] control fires: the timestamp baseline newly flags NONE of the items made stale only through a dependency -- 0 of 68 newly flagged
+
+==============================================================================
+2. CONTROL -- injected TOUCH-ONLY events, at a declared rate
+==============================================================================
+30 artifacts that are evidence subjects are TOUCHED at
+revisions 2001 and above. A touch bumps the modification revision and
+leaves the content identical, so by construction the true staleness of
+every item is unchanged. The closure comparison must stay silent and the
+timestamp baseline must raise new false alarms.
+
+artifacts touched            : 30
+TRUE stale count before      : 194
+TRUE stale count after       : 194
+closure comparison before    : 194
+closure comparison after     : 194
+timestamp false alarms before: 143
+timestamp false alarms after : 161
+[PASS] control stays silent: a touch-only injection changes no item's true staleness -- 194 against 194
+[PASS] control stays silent: the closure comparison is unmoved by a touch-only injection -- 194 against 194
+[PASS] control fires: a touch-only injection raises the timestamp baseline's false alarms -- 143 -> 161
+
+==============================================================================
+3. CONTROL -- an injected WRITE AND REVERT, at a declared rate
+==============================================================================
+12 leaf artifacts are written to a new content and then
+written back to the content they held, both at revisions 2001 and above.
+The value at the audit revision equals the value at every item's
+production revision, so by construction nothing is stale that was not
+already. A method that counted EVENTS rather than comparing VALUES would
+flag all of them.
+
+artifacts written and reverted     : 12
+events injected                    : 24
+TRUE stale count before            : 194
+TRUE stale count after             : 194
+closure comparison after           : 194
+items an EVENT-counting method would flag: 114
+timestamp false alarms after       : 143
+[PASS] control stays silent: a write-and-revert injection changes no item's true staleness -- 194 against 194
+[PASS] control stays silent: the closure comparison is unmoved by a write-and-revert injection
+[PASS] control fires: an event-counting method would have flagged a positive number of items that are not stale -- 114 items
+
+==============================================================================
+4. CONTROL -- a declared number of edges HIDDEN from the declaration
+==============================================================================
+40 true dependency edges are withheld from the graph the
+closure comparison reads, on top of the corpus's own declared subset being
+complete here. The ground truth is unchanged because it uses the true
+graph, so the closure comparison must start missing staleness.
+
+true edges                 : 249
+edges hidden               : 40
+TRUE stale count           : 194
+closure comparison reports : 166
+MISSED STALENESS           : 28
+FALSE ALARMS               : 0
+[PASS] control fires: hiding declared edges makes the closure comparison miss staleness -- 28 missed
+[PASS] control stays silent: hiding declared edges never makes the closure comparison raise a false alarm -- 0 false alarms
+
+==============================================================================
+5. CONTROL -- the recovered RATE against the injected rate
+==============================================================================
+the deep-change injection of section 1 is re-applied and the increase in
+the measured stale FRACTION is compared against the increase in the TRUE
+stale fraction. Both are one division of exact integers, so the comparison
+carries a slack of four units in the last place and nothing more.
+
+TRUE increase in the stale fraction     : 0.21875
+MEASURED increase in the stale fraction : 0.21875
+absolute difference                     : 0.000000e+00
+slack                                   : 8.881784e-16
+[PASS] control fires: the injected rate is a positive change in the true stale fraction -- +0.218750
+[PASS] control stays silent: the recovered rate differs from the injected rate by more than the slack -- 0.000e+00 against 8.882e-16
+
+==============================================================================
+checks: 16
+failures: 0
+controls that must fire: 8 of 8 fired
+controls that must stay silent: 6 of 6 silent
+==============================================================================

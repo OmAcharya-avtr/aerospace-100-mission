@@ -352,3 +352,64 @@ def test_acceptance_rate_is_pinned(census):
     assert census.acceptance_rate == pytest.approx(
         174420.0 / 810000.0, rel=1e-15, abs=0.0
     )
+
+
+def test_regression_a_redirected_tree_hygiene_run_keeps_the_committed_output():
+    """A redirected run must not delete the COMMITTED validation output.
+
+    Counterexample pinned with its literal inputs, found 2026-11-19.
+    ``validation/validate_tree_hygiene.py`` deleted its own previous output
+    before scanning -- correct, because a scanner that reports itself is not a
+    check -- but it deleted the hard-coded committed path rather than the path
+    this run writes. Those differ exactly when
+    ``HILTIMINGDIFF_OUTPUT_DIR`` redirects the output, which is what
+    ``validation/probe_working_directories.py`` does to every script in that
+    directory. So a probe run destroyed
+    ``validation/validate_tree_hygiene_output.txt`` and wrote its replacement
+    into the temporary sink instead.
+
+    The measured symptom: the suite collected 1252 tests before a redirected
+    run of that script and 1251 after it, because
+    ``tests/test_honesty.py`` parametrises over the tracked text files in the
+    tree. The release gate hid it, because `sorted(glob('validation/*.py'))`
+    runs `probe_working_directories.py` before `validate_tree_hygiene.py` and
+    the file was recreated before anything looked at it.
+    """
+    import os
+    import subprocess
+    import sys
+    import tempfile
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parent.parent
+    committed = root / "validation" / "validate_tree_hygiene_output.txt"
+    before = committed.read_bytes()
+    scratch = Path(tempfile.mkdtemp(prefix="hiltimingdiff-regression-"))
+    environment = dict(os.environ)
+    environment.update(
+        {
+            "HOME": str(scratch),
+            "MPLCONFIGDIR": str(scratch / "mpl"),
+            "MPLBACKEND": "Agg",
+            "PYTHONDONTWRITEBYTECODE": "1",
+            "PYTHONPATH": str(root / "src"),
+            "HILTIMINGDIFF_FAST": "1",
+            "HILTIMINGDIFF_OUTPUT_DIR": str(scratch / "sink"),
+        }
+    )
+    result = subprocess.run(
+        [sys.executable, "validate_tree_hygiene.py"],
+        cwd=str(root / "validation"),
+        env=environment,
+        capture_output=True,
+        text=True,
+        timeout=600,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr[-400:]
+    assert committed.exists(), (
+        "a redirected run deleted the committed output; it must delete only the "
+        "file it writes"
+    )
+    assert committed.read_bytes() == before
+    assert (scratch / "sink" / "validate_tree_hygiene_output.txt").exists()

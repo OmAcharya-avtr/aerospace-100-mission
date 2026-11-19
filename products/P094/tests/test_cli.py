@@ -142,10 +142,23 @@ def test_headline_command_confirms_the_primary_preregistration(headline_output):
 
 
 def test_headline_command_refutes_the_secondary_preregistration(headline_output):
-    assert (
-        "SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED"
-        in headline_output.stdout
-    )
+    # The line is located by its NAME, its measured value is parsed out, the
+    # BOUND against the pre-registered 0.5 is asserted on that value, and the
+    # label is asserted to be the one the value implies. Asserting the literal
+    # substring "... : REFUTED" made this an assertion about a strict threshold
+    # comparison on a live wall-clock measurement taken by a one-pass
+    # simulation-mode run in a subprocess. Measured band published in
+    # validation/VALIDATION.md.
+    prefix = "SPEC §7 secondary (baseline 2 held-out transfer error):"
+    matches = [
+        line for line in headline_output.stdout.splitlines() if prefix in line
+    ]
+    assert len(matches) == 1, headline_output.stdout
+    line = matches[0]
+    measured = float(line.rsplit("measured", 1)[1].strip())
+    assert measured < 0.5
+    assert ("REFUTED" in line) == (measured <= 0.5)
+    assert "CONFIRMED" not in line
 
 
 def test_headline_command_names_the_least_trustworthy_stage(headline_output):

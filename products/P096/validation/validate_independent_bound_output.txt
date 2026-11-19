@@ -1,0 +1,94 @@
+
+==============================================================================
+INDEPENDENT BOUND -- a bracket from counting, not from either model
+==============================================================================
+INPUT ORIGIN: SYNTHETIC. No measured handover, no measured acquisition time and no measured link appears anywhere in this repository. Validation level 2: the evidence is agreement between a closed form, an independently derived bound and a simulated trace.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+machine          : x86_64 Linux, 2 cores available to this process
+repository root  : P096 (printed relatively; see validation/_bootstrap.py)
+resamples        : 4000
+trace events     : 512
+
+==============================================================================
+1  the bound's independence, asserted structurally and not only argued
+==============================================================================
+  src/handoverloss/bounds.py imports      : ['__future__', 'dataclasses', 'numpy']
+[PASS] the bounds module imports no model module of this package -- conservation and capacity counting only
+  The egress integral is the ONE piece of arithmetic shared with the models,
+  and it is shared with the DECLARATION rather than with any solver: it is the
+  area of the trapezium under the declared rate curve. Checked against a
+  hand-computed value below.
+  egress integral, hand value 6.18e11     : 6.180000e+11 bits
+[PASS] the egress integral matches its hand-computed value -- 6.180000000000e+11 against 6.18e11
+
+==============================================================================
+2  the bracket contains baseline 2's closed form, over the whole corpus
+==============================================================================
+  corpus sha256                           : 3a0343a6c2c51a91eba0679856700f5495d8814c3bcdc94e6b710ba300c59706
+  handovers checked                       : 1536
+  closed-form total below the lower bound : 0
+  closed-form total above the upper bound : 0
+[PASS] the bracket contains baseline 2's total on every corpus handover -- 0 below, 0 above, allowing the conditioning-scaled slack
+
+==============================================================================
+3  how TIGHT the bracket is -- a bracket nobody can fail is not evidence
+==============================================================================
+  Reported as the fraction of the bracket's width that separates the closed
+  form from each bound. A value near 0 means the bound binds; near 1 means it
+  is loose. Both are honest and the number tells a reader which.
+  random handovers swept                  : 2000
+  cases where the lower bound is non-zero : 1448 (0.724000)
+  median position in the bracket          : 0.084174
+  5th / 95th percentile of that position  : -0.000000 / 0.498654
+  tightest case (closest to a bound)      : -2.010989e-15
+[PASS] the lower bound binds on a non-trivial fraction of the swept envelope -- 1448 of 2000; a bound that was never non-zero would be vacuous
+
+==============================================================================
+4  the bracket applied to baseline 3's TRACE total, with measured arrivals
+==============================================================================
+  The offered volume handed to the bound here is the trace's OWN arrival total,
+  not R_s * H, so the bound is applied to the same window the accounting covers
+  and the burstiness is inside the bound's input rather than outside it.
+  trace events checked                    : 512
+  trace totals outside the bracket        : 0
+[PASS] the bracket contains baseline 3's trace total on every event -- 0 of 512 outside
+
+==============================================================================
+5  negative controls on the bound itself, anchored on the TRUE bound
+==============================================================================
+  Each control injects a value derived from the TRUE bound, not from a model
+  output. Offsetting an output that already sits inside the bracket does not
+  guarantee leaving it; only an offset past the bound by more than the slack
+  does. Both directions are asserted and the must-NOT-fire control is counted
+  separately.
+  control bracket: [8.500000e+10, 1.000000e+11] bits, slack 1.021405e-04 bits
+[PASS] control: a total above the offered volume (must fire) -- FIRED; anchored on the TRUE offered volume
+[PASS] control: a total below the pigeonhole lower bound (must fire) -- FIRED; anchored on the TRUE lower bound
+[PASS] control: an honest value in the middle of the bracket (must NOT fire) -- did not fire; a bracket that rejected this would reject every correct answer
+
+==============================================================================
+6  the slack follows the conditioning, measured over six decades
+==============================================================================
+  Two brackets whose term magnitudes differ by a factor of 1e6 must have slacks
+  differing by the same factor. A constant slack would be vacuous for the large
+  one and falsely tight for the small one.
+  term scale 1e+06  slack 3.996803e-09 bits  slack/scale 3.996803e-15
+  term scale 1e+08  slack 3.996803e-07 bits  slack/scale 3.996803e-15
+[PASS] slack scales linearly between 1e+06 and 1e+08 -- ratio 100.000000000000, expected 100
+  term scale 1e+10  slack 3.996803e-05 bits  slack/scale 3.996803e-15
+[PASS] slack scales linearly between 1e+08 and 1e+10 -- ratio 100.000000000000, expected 100
+  term scale 1e+12  slack 3.996803e-03 bits  slack/scale 3.996803e-15
+[PASS] slack scales linearly between 1e+10 and 1e+12 -- ratio 100.000000000000, expected 100
+
+
+CHECKS RUN: 11
+CONTROLS: 3 declared, 2 fired; must-fire 2/2, must-NOT-fire silent 1/1
+FAILED CHECKS (0): none

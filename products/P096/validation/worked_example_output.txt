@@ -1,0 +1,113 @@
+
+==============================================================================
+WORKED EXAMPLE -- the README's example, executed
+==============================================================================
+INPUT ORIGIN: SYNTHETIC. No measured handover, no measured acquisition time and no measured link appears anywhere in this repository. Validation level 2: the evidence is agreement between a closed form, an independently derived bound and a simulated trace.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+machine          : x86_64 Linux, 2 cores available to this process
+repository root  : P096 (printed relatively; see validation/_bootstrap.py)
+resamples        : 4000
+trace events     : 512
+
+==============================================================================
+the declared handover
+==============================================================================
+  source rate            2.000000e+08 bit/s
+  downlink rate          1.000000e+09 bit/s
+  buffer capacity        3.200000e+10 bits
+  occupancy at the break 2.900000e+10 bits
+  acquisition            40.0 s
+  protocol restart       12.0 s
+  egress ramp            60.0 s
+  accounting window      700.0 s
+
+  derived: outage        52.0 s
+  derived: headroom      3.000000e+09 bits = 15.0 s of source output
+  derived: utilisation   0.2000
+
+==============================================================================
+baseline 1 -- the assumption that acquisition time is the whole story
+==============================================================================
+  loss                   5.000000e+09 bits = 5.000000 Gbit
+  hand check: max(0, 2.0e8 * 40 - 3.0e9) = 5.0e9 bits
+
+==============================================================================
+baseline 2 -- the analytic fluid decomposition, closed form
+==============================================================================
+  acquisition            5.000000e+09 bits = 5.000000 Gbit
+  restart                2.400000e+09 bits = 2.400000 Gbit
+  drain                  1.200000e+09 bits = 1.200000 Gbit
+  total                  8.600000e+09 bits = 8.600000 Gbit
+  dominant               acquisition
+  ramp drive             1.200000e+09 bits
+  backlog drains         True
+  sum residual           0.000000e+00 bits
+
+  BASELINE 1 UNDERSTATES BASELINE 2 BY A FACTOR OF 1.720000 on this handover, and the entire
+  difference is the two mechanisms a link budget does not contain: the protocol
+  restart (2.400000 Gbit) and the buffer drain (1.200000 Gbit).
+
+==============================================================================
+the independently derived bracket on the total
+==============================================================================
+  From conservation and capacity counting alone. Neither baseline is used.
+  offered volume A       1.400000e+11 bits
+  egress integral S      6.180000e+11 bits
+  lower bound            0.000000e+00 bits
+  upper bound (tail drop) 1.400000e+11 bits
+  slack                  7.274181e-04 bits
+  brackets the closed-form total: True
+
+==============================================================================
+baseline 3 -- ground truth over simulated realisations, with intervals
+==============================================================================
+  512 realisations of the SAME declared handover. The spread comes
+  from the per-slot source burstiness and service jitter, which the closed form
+  does not contain.
+
+  events                 : 512
+  resampling unit        : handover event
+  resamples / confidence : 4000 / 0.95
+  total loss             : 8.670474 Gbit
+  
+  mechanism      loss [Gbit]    interval [Gbit]                share
+  acquisition        4.997641   [   4.972957,    5.022090]    0.5764
+  restart            2.396580   [   2.382145,    2.410315]    0.2764
+  drain              1.276253   [   1.262782,    1.290297]    0.1472
+  
+  dominant               : acquisition
+  dominance margin       : 0.299991 of the total
+  dominance decided      : True (the leading interval IS disjoint from the runner-up's)
+  conservation total     : 8.670474 Gbit
+  decomposition residual : -1.907349e-06 bits (-2.200e-16 relative)
+  residual tolerance     : 3.844316e-01 bits -> within tolerance: True
+
+  ground truth / closed form: 1.008195
+[PASS] the closed form is within 10 per cent of the ground truth on this handover -- ratio 1.008195
+[PASS] the independently derived bracket contains the ground-truth total -- 8.670474e+09 bits in [0.000000e+00, 1.400000e+11]
+[PASS] the decomposition residual is inside its conditioning-scaled tolerance -- -1.907349e-06 bits against 3.844316e-01
+
+==============================================================================
+what an operator does with this
+==============================================================================
+  The dominant mechanism is acquisition, at 0.5764 of the total,
+  ahead of restart at 0.2764. The ordering is DECIDED by these events:
+  the leading interval is [4.972957, 5.022090] Gbit and the
+  runner-up's is [2.382145, 2.410315] Gbit.
+
+  On this handover the money goes on faster acquisition, not more buffer. The
+  drain mechanism accounts for 0.1472 of the loss, so
+  doubling the buffer would recover a small fraction of what halving the
+  acquisition time would. A total-loss figure alone would not have said which.
+
+
+CHECKS RUN: 3
+FAILED CHECKS (0): none

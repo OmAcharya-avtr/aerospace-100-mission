@@ -1,0 +1,243 @@
+The headline disagreement measure -- P097 flakerank
+
+The product's headline output is not a ranking. It is how far the cost
+ranking and the flake-rate ranking disagree, with an interval on that
+disagreement and the identity of the tests that move most.
+
+fast path (FLAKERANK_FAST=1): False
+declared seed: 97044
+bootstrap resamples: 2000
+confidence: 0.95
+top-k for every capture figure: 10
+history: data/run_history.json sha256 aa12f8cc861ba66008a0d3762cd68fa24a24b013f897da67c8151996c531b18a
+
+==============================================================================
+1. HAND-CALCULATED KNOWN ANSWERS
+==============================================================================
+
+Kendall tau-b, equation (1) of src/flakerank/disagreement.py:
+  tau_b = (C - D) / sqrt((n0 - n1)(n0 - n2))
+with n0 = n(n-1)/2 pairs, n1 and n2 the tied-pair counts of each vector.
+Spearman rho is the Pearson correlation of midranks; with no ties that
+reduces to 1 - 6 sum(d^2)/(n^3 - n), and with ties the shortcut is wrong
+and the midrank form is the standard correction.
+
+midranks([1, 1, 2, 3]): the two 1s span ranks 1 and 2, so both get 1.5
+  computed: [1.5, 1.5, 3.0, 4.0]
+
+no ties, one inversion: C = 5, D = 1, tau = 4/6
+  x = [1.0, 2.0, 3.0, 4.0]
+  y = [1.0, 2.0, 4.0, 3.0]
+  tau-b expected 0.6666666666666666, computed 0.6666666666666666
+  rho   expected 0.8, computed 0.8
+[PASS] tau-b known answer: no ties, one inversion: C = 5, D = 1, ta -- 0.6666666666666666
+[PASS] rho known answer: no ties, one inversion: C = 5, D = 1, ta -- 0.8
+
+one tie group each side: C = 4, D = 0, n1 = n2 = 1, tau = 4/sqrt(5*5)
+  x = [1.0, 1.0, 2.0, 3.0]
+  y = [1.0, 2.0, 2.0, 3.0]
+  tau-b expected 0.8, computed 0.8
+  rho   expected 0.8333333333333334, computed 0.8333333333333334
+[PASS] tau-b known answer: one tie group each side: C = 4, D = 0, n -- 0.8
+[PASS] rho known answer: one tie group each side: C = 4, D = 0, n -- 0.8333333333333334
+
+perfect agreement: C = n0, D = 0
+  x = [3.0, 1.0, 4.0, 1.5, 9.0]
+  y = [3.0, 1.0, 4.0, 1.5, 9.0]
+  tau-b expected 1.0, computed 1.0
+  rho   expected 1.0, computed 1.0
+[PASS] tau-b known answer: perfect agreement: C = n0, D = 0 -- 1.0
+[PASS] rho known answer: perfect agreement: C = n0, D = 0 -- 1.0
+
+exact reversal: D = n0
+  x = [1.0, 2.0, 3.0, 4.0, 5.0]
+  y = [-1.0, -2.0, -3.0, -4.0, -5.0]
+  tau-b expected -1.0, computed -1.0
+  rho   expected -1.0, computed -1.0
+[PASS] tau-b known answer: exact reversal: D = n0 -- -1.0
+[PASS] rho known answer: exact reversal: D = n0 -- -1.0
+
+
+==============================================================================
+2. CROSS-CHECK AGAINST SCIPY, AN INDEPENDENT IMPLEMENTATION
+==============================================================================
+
+scipy.stats.kendalltau(variant='b') and scipy.stats.spearmanr are a
+separately written implementation of both statistics. This is a
+cross-check against another implementation; it is NOT the
+independently-derived-bound check, which is in validate_bounds.py and
+which catches what an implementation comparison cannot.
+
+                              pair     ours tau-b    scipy tau-b    rel diff
+        ground truth vs flake rate  0.81912442396  0.81912442396   1.355e-16
+     ground truth vs analytic cost  0.99884792627  0.99884792627   1.112e-16
+       analytic cost vs flake rate  0.82027649770  0.82027649770   0.000e+00
+
+                              pair       ours rho      scipy rho    rel diff
+        ground truth vs flake rate  0.94766937456  0.94766937456   1.172e-16
+     ground truth vs analytic cost  0.99996056471  0.99996056471   0.000e+00
+       analytic cost vs flake rate  0.94814259800  0.94814259800   1.171e-16
+
+[PASS] our tau-b agrees with scipy's to 1e-12 relative on every pair -- worst 1.355e-16
+[PASS] our rho agrees with scipy's to 1e-12 relative on every pair -- worst 1.172e-16
+
+The ONE declared difference: with either vector entirely tied, the
+denominator of equation (1) is zero. This implementation returns 0.0 and
+scipy returns NaN. The difference is declared in the module docstring
+and is the only place the two are allowed to disagree.
+  ours : 0.0
+  scipy: nan
+[PASS] a fully tied vector gives 0.0 here and NaN in scipy, as declared
+
+==============================================================================
+3. THE MEASURED DISAGREEMENT ON THE COMMITTED HISTORY
+==============================================================================
+
+tests ranked: 72
+sessions    : 330
+attempts    : 23836
+
+accumulated wasted time (ground truth)
+  versus flake rate
+  Kendall tau-b : 0.8191244239631337
+    interval    : [0.7375535244988303, 0.8992828376783003]
+    resampling  : 2000 resamples of 72 tests at 0.95
+  Spearman rho  : 0.947669374556353
+    interval    : [0.8935350644037947, 0.9799402588395258]
+  pairs n0      : 2556
+  tied in x n1  : 820
+  tied in y n2  : 820
+  concordant C  : 1579
+  discordant D  : 157
+  tie groups in x: [41]
+  tie groups in y: [41]
+  max rank displacement      : 21
+  mean absolute displacement : 3.25
+  top-10 overlap: 5 of 10
+
+[PASS] the interval on tau-b contains the point estimate (flake rate) -- 0.819124424 in [0.737553524, 0.899282838]
+[PASS] both intervals declare the 'test' resampling unit (flake rate)
+
+accumulated wasted time (ground truth)
+  versus analytic expected re-run cost
+  Kendall tau-b : 0.9988479262672811
+    interval    : [0.993177650637593, 1.0]
+    resampling  : 2000 resamples of 72 tests at 0.95
+  Spearman rho  : 0.9999605647133054
+    interval    : [0.9994263640226937, 1.0]
+  pairs n0      : 2556
+  tied in x n1  : 820
+  tied in y n2  : 820
+  concordant C  : 1735
+  discordant D  : 1
+  tie groups in x: [41]
+  tie groups in y: [41]
+  max rank displacement      : 1
+  mean absolute displacement : 0.027777777777777776
+  top-10 overlap: 10 of 10
+
+[PASS] the interval on tau-b contains the point estimate (analytic expected re-run cost) -- 0.998847926 in [0.993177651, 1.000000000]
+[PASS] both intervals declare the 'test' resampling unit (analytic expected re-run cost)
+
+analytic expected re-run cost
+  versus flake rate
+  Kendall tau-b : 0.8202764976958525
+    interval    : [0.73197735429303, 0.8980427807486631]
+    resampling  : 2000 resamples of 72 tests at 0.95
+  Spearman rho  : 0.9481425979966874
+    interval    : [0.8890121715888955, 0.9796990445093756]
+  pairs n0      : 2556
+  tied in x n1  : 820
+  tied in y n2  : 820
+  concordant C  : 1580
+  discordant D  : 156
+  tie groups in x: [41]
+  tie groups in y: [41]
+  max rank displacement      : 21
+  mean absolute displacement : 3.25
+  top-10 overlap: 5 of 10
+
+[PASS] the interval on tau-b contains the point estimate (flake rate) -- 0.820276498 in [0.731977354, 0.898042781]
+[PASS] both intervals declare the 'test' resampling unit (flake rate)
+
+TIE HANDLING, stated because it is where two implementations of tau-b
+can differ. A pair tied in either vector counts as neither concordant
+nor discordant AND is removed from the denominator for that vector
+separately, which is what makes this tau-b rather than tau-a. The
+flake-rate vector here is heavily tied -- every test with no observed
+failure has rate exactly 0, and there are 820 such pairs of 2556 -- so the correction is not
+cosmetic on this data.
+
+==============================================================================
+4. THE TESTS THAT MOVE MOST
+==============================================================================
+
+Ground truth against flake rate. Negative displacement means the cost
+ranking puts the test HIGHER, nearer position 1, than the rate does.
+
+                                        test  cost rank  rate rank   move     wasted s       rate
+                          unit/test_case_066         25          4    +21        9.987   0.308756
+          soak/test_validation_probe_1_in_44          8         27    -19     2223.918   0.012698
+                    regression/test_case_069         17          1    +16       72.380   0.413386
+                    regression/test_case_039         13         28    -15      221.595   0.009646
+                    end_to_end/test_case_070         16          3    +13      102.166   0.321016
+                          soak/test_case_071         22         10    +12       28.011   0.152174
+                    regression/test_case_045         20         30    -10       47.858   0.003247
+                          soak/test_case_065         12          2    +10      244.650   0.350763
+                    end_to_end/test_case_052          5         14     -9    25450.985   0.079412
+                          soak/test_case_047         31         22     +9        0.758   0.036474
+
+THE MOTIVATING CASE. This mission's own validation probe failed 1 time
+in 44 and no number of agreeing serial verifications saw it. In the
+committed history the test with that rate is:
+  soak/test_validation_probe_1_in_44
+  cost rank 8 of 72, rate rank 27 of 72
+  displacement -19 positions
+  accumulated wasted time 2223.9179999999997 s
+  measured flake rate 0.012698412698412698
+[PASS] the cost ranking puts the motivating case higher than the rate ranking -- -19 positions
+
+==============================================================================
+5. WHAT THE DISAGREEMENT IS WORTH: COST-WEIGHTED CAPTURE
+==============================================================================
+
+A rank correlation weights every test equally. The operational question
+weights by cost: if a team fixes the top ten this ranking names, how
+much of the measured waste goes away?
+
+wasted time actually recorded, s     : 253493.03500000003
+  interval, s                        : [221006.75767500003, 285213.18475]
+  resampling unit                    : session, 330 of them
+
+fraction held by the flake-rate top 10  : 0.7916781500525251
+fraction held by the analytic top 10    : 0.9936751713908036
+fraction held by the best possible top 10: 0.9936751713908036
+shortfall of the flake-rate ranking    : 0.20199702133827857
+
+[PASS] the analytic top-k holds more of the measured waste than the flake-rate top-k -- 0.993675171 against 0.791678150
+[PASS] no ranking beats the oracle
+
+==============================================================================
+6. NEGATIVE CONTROLS
+==============================================================================
+
+Each control is anchored on a construction whose answer is known
+exactly, not on an output.
+
+[PASS] control stays silent: tau-b of the ground truth against itself is not 1 -- 1.0
+[PASS] control stays silent: tau-b of the ground truth against its exact reversal is not -1 -- -1.0
+  a permutation of the ground truth gives tau-b -0.03110599078341014
+[PASS] control fires: a permuted ranking is detected as disagreeing with the ground truth -- tau-b -0.031106, well below the measured 0.819124
+
+The permutation control is the one that matters: it shows the measured
+disagreement of 0.8191244239631337 is a MEASUREMENT of
+partial agreement and not an artifact of the statistic, because the
+statistic goes to roughly zero on a ranking with no relationship at
+all.
+
+==============================================================================
+checks: 23
+failures: 0
+controls that must fire: 1 of 1 fired
+controls that must stay silent: 2 of 2 silent
+==============================================================================

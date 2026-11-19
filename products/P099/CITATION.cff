@@ -1,0 +1,74 @@
+cff-version: 1.2.0
+title: "passyield: the nominal-versus-realised data-yield shortfall of a ground-station contact, as a distribution"
+message: "If you use this software, please cite it as below."
+type: software
+version: 0.1.0
+date-released: "2026-11-19"
+license: Apache-2.0
+repository-code: "https://github.com/OmAcharya-avtr/passyield"
+abstract: >-
+  passyield measures the data-yield shortfall of a scheduled ground-station
+  contact against the nominal duration and rate the scheduler booked, and
+  decomposes it into geometry, acquisition, re-synchronisation and idle time
+  with the closing residual of the identity reported as a number. The headline
+  output is a distribution with its quantiles, not a point shortfall, because
+  a contact schedule can only be written against a random variable by booking
+  a quantile of it. Pass geometry comes from an SGP4 propagation of a published
+  verification element set; the analytic baseline is a mass-preserving
+  pushforward and a compound-Poisson convolution over the pass geometry,
+  cross-checked against a direct Monte Carlo of the same laws and bracketed by
+  a bound derived from the pass duration and the rate ceiling alone. A learned
+  per-pass predictor with an uncertainty output is scored on held-out stations
+  and held-out time separately. Research-grade; not flight-qualified, not
+  certified and not approved for operational aerospace use.
+keywords:
+  - ground station
+  - contact scheduling
+  - data yield
+  - SGP4
+  - link budget
+  - compound Poisson
+  - convolution
+  - bootstrap
+  - CRPS
+  - calibration
+authors:
+  - name: "OPTIMA Organisation"
+references:
+  - type: conference-paper
+    title: "Revisiting Spacetrack Report #3"
+    authors:
+      - family-names: Vallado
+        given-names: David A.
+      - family-names: Crawford
+        given-names: Paul
+      - family-names: Hujsak
+        given-names: Richard
+      - family-names: Kelso
+        given-names: T. S.
+    year: 2006
+    collection-title: "AIAA/AAS Astrodynamics Specialist Conference"
+    number: "AIAA 2006-6753"
+  - type: article
+    title: "A Mathematical Theory of Communication"
+    authors:
+      - family-names: Shannon
+        given-names: Claude E.
+    year: 1948
+    journal: "Bell System Technical Journal"
+    volume: 27
+    start: 379
+    end: 423
+  - type: article
+    title: "Strictly Proper Scoring Rules, Prediction, and Estimation"
+    authors:
+      - family-names: Gneiting
+        given-names: Tilmann
+      - family-names: Raftery
+        given-names: Adrian E.
+    year: 2007
+    journal: "Journal of the American Statistical Association"
+    volume: 102
+    issue: 477
+    start: 359
+    end: 378

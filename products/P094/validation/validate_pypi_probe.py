@@ -8,6 +8,15 @@ in the same run: ``hiltimingdiff``, which is expected to be FREE (HTTP 404), and
 ``numpy``, which is expected to be TAKEN (HTTP 200). The check passes only if
 both land as expected.
 
+**An unreachable network is reported, not failed.** Whether this container can
+reach the public internet is a property of the container and not of this
+product, so a run that cannot reach PyPI records a FINDING, makes NO
+AVAILABILITY CLAIM, and exits 0. The release gate executes every script in this
+directory, and a check whose outcome is a property of the harness blocks the
+gate for a reason no change to the product can fix -- which is the same defect
+class as a check on the machine's load. See
+validation/load_sensitive_inventory.md.
+
 No user, project or machine detail is sent. The request carries a generic
 client name and nothing else.
 """
@@ -81,22 +90,36 @@ def main() -> int:
     reachable = candidate_status >= 0 and all(
         status >= 0 for status, _ in control_results.values()
     )
-    tee.check(
-        "the probe reached PyPI for every name",
-        reachable,
-        "a probe that cannot reach PyPI returns -1 and no availability claim is made",
-    )
-    for name, (status, detail) in control_results.items():
-        tee.check(
-            f"control {name} comes back TAKEN with HTTP 200",
-            status == 200,
-            f"HTTP {status} {detail}",
+    if not reachable:
+        # Whether this container can reach the public internet is a property of
+        # the container, not of this product, and a check whose outcome is a
+        # property of the harness is the same defect class as a check on the
+        # machine's load: it blocks a release gate for a reason no change to the
+        # product can fix. The unreachable case is therefore a FINDING, and NO
+        # AVAILABILITY CLAIM IS MADE from a run that could not reach PyPI.
+        tee.finding(
+            "NO AVAILABILITY CLAIM FROM THIS RUN: the probe could not reach PyPI "
+            f"({CANDIDATE} returned {candidate_status}, "
+            + ", ".join(
+                f"{name} returned {status}" for name, (status, _) in control_results.items()
+            )
+            + "). Network reachability is a property of this container and not of "
+            "this product, so it is reported rather than failed. The registry "
+            "recorded the name as free on 2026-11-10 and the coordinator re-probed "
+            "it on 2026-11-16; neither record is re-asserted by this run."
         )
-    tee.check(
-        f"{CANDIDATE} comes back FREE with HTTP 404",
-        candidate_status == 404,
-        f"HTTP {candidate_status} {candidate_detail}",
-    )
+    else:
+        for name, (status, detail) in control_results.items():
+            tee.check(
+                f"control {name} comes back TAKEN with HTTP 200",
+                status == 200,
+                f"HTTP {status} {detail}",
+            )
+        tee.check(
+            f"{CANDIDATE} comes back FREE with HTTP 404",
+            candidate_status == 404,
+            f"HTTP {candidate_status} {candidate_detail}",
+        )
 
     tee.rule("verdict")
     if reachable and candidate_status == 404 and all(
@@ -111,6 +134,9 @@ def main() -> int:
             + " and ".join(f"{name} HTTP 200" for name in CONTROLS_TAKEN)
             + " as live TAKEN controls in the same run."
         )
+    elif not reachable:
+        tee("  NO AVAILABILITY CLAIM IS MADE from this run; the probe could not reach")
+        tee("  PyPI. See the finding above.")
     else:
         tee("  NO AVAILABILITY CLAIM IS MADE from this run; see the failures above.")
     tee("")
@@ -127,19 +153,28 @@ def main() -> int:
     nonsense = "hiltimingdiff-" + "z" * 24
     nonsense_status, nonsense_detail = probe(nonsense)
     tee(f"  {nonsense:<40s} HTTP {nonsense_status}  {nonsense_detail}")
-    tee.control(
-        "a name that cannot exist comes back TAKEN",
-        nonsense_status == 200,
-        must_fire=False,
-        detail=f"HTTP {nonsense_status}: a 404 here is what a free name looks like, "
-        "which is why the 200 controls above are required",
-    )
-    tee.control(
-        "a name that cannot exist comes back FREE",
-        nonsense_status == 404,
-        must_fire=True,
-        detail=f"HTTP {nonsense_status}",
-    )
+    if nonsense_status < 0:
+        tee.finding(
+            "THE CONTROLS ON THE PROBE ARE NOT EXERCISED BY THIS RUN: the control "
+            f"request also failed to reach PyPI ({nonsense_detail}). A control that "
+            "could not be sent is reported as not run rather than counted as passed, "
+            "and it is not failed either, because network reachability is a property "
+            "of this container and not of this product."
+        )
+    else:
+        tee.control(
+            "a name that cannot exist comes back TAKEN",
+            nonsense_status == 200,
+            must_fire=False,
+            detail=f"HTTP {nonsense_status}: a 404 here is what a free name looks "
+            "like, which is why the 200 controls above are required",
+        )
+        tee.control(
+            "a name that cannot exist comes back FREE",
+            nonsense_status == 404,
+            must_fire=True,
+            detail=f"HTTP {nonsense_status}",
+        )
 
     path = tee.save()
     print(f"\nwritten: {path}")

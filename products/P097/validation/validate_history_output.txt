@@ -1,0 +1,110 @@
+The committed recorded run history -- P097 flakerank
+
+Every number in README.md, validation/VALIDATION.md and MODEL_CARD.md is
+a function of this one file. Its SHA-256 is pinned below, so a silent
+edit makes the whole validation set fail here first.
+
+fast path (FLAKERANK_FAST=1): False
+
+==============================================================================
+1. THE FILE
+==============================================================================
+
+path   : data/run_history.json
+bytes  : 402100
+sha256 : aa12f8cc861ba66008a0d3762cd68fa24a24b013f897da67c8151996c531b18a
+pinned : aa12f8cc861ba66008a0d3762cd68fa24a24b013f897da67c8151996c531b18a
+[PASS] the committed history has the pinned SHA-256 -- measured aa12f8cc861ba66008a0d3762cd68fa24a24b013f897da67c8151996c531b18a
+[PASS] the committed history is under the mission's 1 MB limit for data -- 402100 bytes
+
+==============================================================================
+2. WHAT IS IN IT
+==============================================================================
+
+schema                    : flakerank.history/1
+generator                 : data/generate_history.py
+declared generator seed   : 97044
+retry budget              : 3 attempts per invocation
+duration unit             : millisecond
+regime change at session  : 230
+tests                     : 72
+sessions                  : 330
+attempts                  : 23836
+failed attempts           : 1417
+pooled per-attempt rate   : 0.059447893941936565
+total attempt time, ms    : 2953413293
+wasted (failed) time, ms  : 253493035
+wasted fraction of total  : 0.08583053228642727
+shortest attempt, ms      : 11
+longest attempt, ms       : 1848115
+
+Durations are exact integer milliseconds. The largest total is
+2953413293 ms, far below 2**53 = 9007199254740992, so every partial sum of these
+integers is exactly representable in double precision and the input
+contributes no representation error to any accumulation.
+[PASS] every duration is a non-negative integer number of milliseconds -- dtype int64, minimum 11
+[PASS] the duration total is exactly representable in double precision -- 2953413293 < 9007199254740992
+[PASS] the schema string is the one the loader declares
+
+==============================================================================
+3. THE TIER STRUCTURE AND THE MOTIVATING CASE
+==============================================================================
+
+The generator's ground-truth parameters are recorded in the file for
+negative controls only. No baseline and no model reads them.
+
+   frequent:   8 tests
+   moderate:  13 tests
+       rare:  13 tests
+     stable:  38 tests
+
+the pinned case, named for the failure this mission actually shipped:
+  name              : soak/test_validation_probe_1_in_44
+  true p            : 0.022727272727272728
+  1/44 exactly      : 0.022727272727272728
+  measured p        : 0.012698412698412698
+  attempts          : 315
+  failed attempts   : 4
+  mean attempt, s   : 604.5333650793651
+  wasted seconds    : 2223.9179999999997
+[PASS] the pinned case's true p is 1/44 -- 0.022727272727272728
+
+The duration band was sampled INDEPENDENTLY of p by the generator, which
+is what produces slow rare flakes and fast frequent ones and therefore
+what makes the two rankings disagree. Measured correlation between the
+generator's true p and its true mean duration, over the 72 tests:
+  Pearson correlation of true p against log true mean duration: -0.08985773213530207
+
+This is a SAMPLE correlation over 72 independent draws, so it is not
+zero; its standard error under independence is about 1/sqrt(72) =
+0.11785113019775793, and the measured value is 0.762 standard errors from zero.
+[PASS] the generator's p and duration are uncorrelated to within 3 standard errors -- 0.762 standard errors
+
+==============================================================================
+4. WHAT THE LOADER REJECTS -- every case applied to the real data
+==============================================================================
+
+Each case edits a parsed copy of the committed history and must raise.
+A loader that accepts malformed evidence silently is worse than none.
+
+[PASS] control fires: the loader rejects an unknown schema string -- unsupported history schema 'other/9'; this loader reads 'flakerank
+[PASS] control fires: the loader rejects a duration unit other than millisecond -- duration_unit must be 'millisecond', got 'second'. Durations are s
+[PASS] control fires: the loader rejects a retry budget below 1 -- retry_budget must be an integer >= 1, got 0; it is the maximum num
+[PASS] control fires: the loader rejects a negative duration -- attempts.duration_ms must be >= 0, got a minimum of -1; a duration
+[PASS] control fires: the loader rejects a fractional duration -- attempts.duration_ms must contain integers only; durations are sto
+[PASS] control fires: the loader rejects a failed flag that is not 0 or 1 -- attempts.failed must contain only 0 (passed) and 1 (failed)
+[PASS] control fires: the loader rejects a session index outside the session table -- attempts.session must index the 330 sessions, got range [0, 10000]
+[PASS] control fires: the loader rejects a test index outside the test table -- attempts.test must index the 72 tests, got range [0, 10000]
+[PASS] control fires: the loader rejects an attempt number that is not 1-based -- attempts.attempt must be 1-based, so >= 1
+[PASS] control fires: the loader rejects attempt arrays of unequal length -- attempt arrays have unequal lengths: {'session': 23836, 'test': 23
+[PASS] control fires: the loader rejects a duplicate test name -- test names must be unique
+
+CONTROL that must STAY SILENT: the unmodified committed history loads.
+[PASS] control stays silent: the loader rejects the unmodified committed history -- loaded
+
+==============================================================================
+checks: 19
+failures: 0
+controls that must fire: 11 of 11 fired
+controls that must stay silent: 1 of 1 silent
+==============================================================================

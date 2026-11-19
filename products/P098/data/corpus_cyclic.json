@@ -1,0 +1,387 @@
+{
+ "artifacts": [
+  "c00",
+  "c01",
+  "c02",
+  "c03",
+  "c04",
+  "c05",
+  "c06",
+  "c07",
+  "c08",
+  "c09",
+  "c10",
+  "c11"
+ ],
+ "assurance_case": {
+  "links": [
+   [
+    "InContextOf",
+    "G000",
+    "C000"
+   ],
+   [
+    "InContextOf",
+    "G000",
+    "A000"
+   ],
+   [
+    "SupportedBy",
+    "G1000",
+    "Sc00"
+   ],
+   [
+    "SupportedBy",
+    "G1000",
+    "Sc01"
+   ],
+   [
+    "SupportedBy",
+    "G1000",
+    "Sc02"
+   ],
+   [
+    "SupportedBy",
+    "G1000",
+    "Sc03"
+   ],
+   [
+    "SupportedBy",
+    "G1001",
+    "Sc04"
+   ],
+   [
+    "SupportedBy",
+    "G1001",
+    "Sc05"
+   ],
+   [
+    "SupportedBy",
+    "G1001",
+    "Sc06"
+   ],
+   [
+    "SupportedBy",
+    "G1001",
+    "Sc07"
+   ],
+   [
+    "SupportedBy",
+    "G1002",
+    "Sc08"
+   ],
+   [
+    "SupportedBy",
+    "G1002",
+    "Sc09"
+   ],
+   [
+    "SupportedBy",
+    "G1002",
+    "Sc10"
+   ],
+   [
+    "SupportedBy",
+    "G1002",
+    "Sc11"
+   ],
+   [
+    "SupportedBy",
+    "G000",
+    "S000"
+   ],
+   [
+    "SupportedBy",
+    "S000",
+    "G1000"
+   ],
+   [
+    "SupportedBy",
+    "S000",
+    "G1001"
+   ],
+   [
+    "SupportedBy",
+    "S000",
+    "G1002"
+   ]
+  ],
+  "nodes": {
+   "A000": "Assumption",
+   "C000": "Context",
+   "G000": "Goal",
+   "G1000": "Goal",
+   "G1001": "Goal",
+   "G1002": "Goal",
+   "S000": "Strategy",
+   "Sc00": "Solution",
+   "Sc01": "Solution",
+   "Sc02": "Solution",
+   "Sc03": "Solution",
+   "Sc04": "Solution",
+   "Sc05": "Solution",
+   "Sc06": "Solution",
+   "Sc07": "Solution",
+   "Sc08": "Solution",
+   "Sc09": "Solution",
+   "Sc10": "Solution",
+   "Sc11": "Solution"
+  }
+ },
+ "declared_edges": [
+  [
+   "c00",
+   "c01"
+  ],
+  [
+   "c01",
+   "c02"
+  ],
+  [
+   "c02",
+   "c00"
+  ],
+  [
+   "c03",
+   "c00"
+  ],
+  [
+   "c04",
+   "c01"
+  ],
+  [
+   "c05",
+   "c02"
+  ],
+  [
+   "c06",
+   "c03"
+  ],
+  [
+   "c07",
+   "c04"
+  ],
+  [
+   "c08",
+   "c05"
+  ],
+  [
+   "c09",
+   "c06"
+  ],
+  [
+   "c10",
+   "c07"
+  ],
+  [
+   "c11",
+   "c08"
+  ]
+ ],
+ "declared_max_dependents": 2,
+ "declared_max_impact_depth": 6,
+ "evaluation_time": 20,
+ "events": [
+  {
+   "artifact": "c01",
+   "content": "c01:v001",
+   "kind": "write",
+   "time": 5
+  },
+  {
+   "artifact": "c09",
+   "content": null,
+   "kind": "touch",
+   "time": 7
+  },
+  {
+   "artifact": "c02",
+   "content": "c02:v001",
+   "kind": "write",
+   "time": 9
+  },
+  {
+   "artifact": "c02",
+   "content": "c02:v000",
+   "kind": "write",
+   "time": 11
+  },
+  {
+   "artifact": "c05",
+   "content": null,
+   "kind": "touch",
+   "time": 13
+  },
+  {
+   "artifact": "c08",
+   "content": "c08:v001",
+   "kind": "write",
+   "time": 15
+  }
+ ],
+ "evidence": [
+  {
+   "goal": "G1000",
+   "identifier": "y00",
+   "produced_at": 1,
+   "solution": "Sc00",
+   "subject": "c00",
+   "true_stale": true
+  },
+  {
+   "goal": "G1000",
+   "identifier": "y01",
+   "produced_at": 3,
+   "solution": "Sc01",
+   "subject": "c01",
+   "true_stale": true
+  },
+  {
+   "goal": "G1000",
+   "identifier": "y02",
+   "produced_at": 5,
+   "solution": "Sc02",
+   "subject": "c02",
+   "true_stale": false
+  },
+  {
+   "goal": "G1000",
+   "identifier": "y03",
+   "produced_at": 7,
+   "solution": "Sc03",
+   "subject": "c03",
+   "true_stale": false
+  },
+  {
+   "goal": "G1001",
+   "identifier": "y04",
+   "produced_at": 1,
+   "solution": "Sc04",
+   "subject": "c04",
+   "true_stale": true
+  },
+  {
+   "goal": "G1001",
+   "identifier": "y05",
+   "produced_at": 3,
+   "solution": "Sc05",
+   "subject": "c05",
+   "true_stale": true
+  },
+  {
+   "goal": "G1001",
+   "identifier": "y06",
+   "produced_at": 5,
+   "solution": "Sc06",
+   "subject": "c06",
+   "true_stale": false
+  },
+  {
+   "goal": "G1001",
+   "identifier": "y07",
+   "produced_at": 7,
+   "solution": "Sc07",
+   "subject": "c07",
+   "true_stale": false
+  },
+  {
+   "goal": "G1002",
+   "identifier": "y08",
+   "produced_at": 1,
+   "solution": "Sc08",
+   "subject": "c08",
+   "true_stale": true
+  },
+  {
+   "goal": "G1002",
+   "identifier": "y09",
+   "produced_at": 3,
+   "solution": "Sc09",
+   "subject": "c09",
+   "true_stale": true
+  },
+  {
+   "goal": "G1002",
+   "identifier": "y10",
+   "produced_at": 5,
+   "solution": "Sc10",
+   "subject": "c10",
+   "true_stale": false
+  },
+  {
+   "goal": "G1002",
+   "identifier": "y11",
+   "produced_at": 7,
+   "solution": "Sc11",
+   "subject": "c11",
+   "true_stale": true
+  }
+ ],
+ "initial_contents": {
+  "c00": "c00:v000",
+  "c01": "c01:v000",
+  "c02": "c02:v000",
+  "c03": "c03:v000",
+  "c04": "c04:v000",
+  "c05": "c05:v000",
+  "c06": "c06:v000",
+  "c07": "c07:v000",
+  "c08": "c08:v000",
+  "c09": "c09:v000",
+  "c10": "c10:v000",
+  "c11": "c11:v000"
+ },
+ "name": "cyclic",
+ "schema": "evidencestale/corpus/1",
+ "seed": 980098,
+ "true_edges": [
+  [
+   "c00",
+   "c01"
+  ],
+  [
+   "c01",
+   "c02"
+  ],
+  [
+   "c02",
+   "c00"
+  ],
+  [
+   "c03",
+   "c00"
+  ],
+  [
+   "c04",
+   "c01"
+  ],
+  [
+   "c05",
+   "c02"
+  ],
+  [
+   "c06",
+   "c03"
+  ],
+  [
+   "c07",
+   "c04"
+  ],
+  [
+   "c08",
+   "c05"
+  ],
+  [
+   "c09",
+   "c06"
+  ],
+  [
+   "c10",
+   "c07"
+  ],
+  [
+   "c11",
+   "c08"
+  ]
+ ]
+}

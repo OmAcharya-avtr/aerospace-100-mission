@@ -154,11 +154,15 @@ def test_transfer_verdict_is_refuted_on_this_campaign(baseline2):
     # SPEC §7's SECONDARY pre-registration predicted a held-out transfer error
     # above 0.5. The measured error is far below it, so the expectation is
     # REFUTED and published as refuted. Pinned here so it cannot be softened.
+    # The boolean is a strict threshold comparison on a live wall-clock
+    # measurement, so the BOUND is asserted first and the boolean is asserted
+    # as the consistent function of it rather than as a literal of its own.
+    # Measured band published in validation/VALIDATION.md.
     verdict = transfer_verdict(baseline2)
-    assert verdict.held is False
-    assert verdict.label == "REFUTED"
     assert verdict.threshold == 0.5
-    assert verdict.measured < 0.5
+    assert verdict.measured < verdict.threshold
+    assert verdict.held == (verdict.measured > verdict.threshold)
+    assert verdict.label == "REFUTED"
 
 
 def test_transfer_verdict_measures_the_declared_split_error(baseline2):
@@ -238,10 +242,16 @@ def test_headline_names_the_resampling_unit(lines):
     assert any("pass-unit" in line for line in lines)
 
 
-def test_headline_reports_both_verdicts(lines):
+def test_headline_reports_both_verdicts(lines, divergence_result, baseline2):
+    # Both pre-registrations are NAMED, and each label is asserted to be the one
+    # its own measurement implies. "REFUTED" was previously asserted as a bare
+    # substring, which made it an assertion about a strict threshold comparison
+    # on a live wall-clock measurement.
     text = "\n".join(lines)
-    assert "CONFIRMED" in text
-    assert "REFUTED" in text
+    assert "SPEC §7 primary (divergence spread)" in text
+    assert "SPEC §7 secondary (baseline 2 held-out transfer error)" in text
+    assert spread_verdict(divergence_result).label in text
+    assert transfer_verdict(baseline2).label in text
 
 
 def test_headline_carries_no_exclamation_mark(lines):

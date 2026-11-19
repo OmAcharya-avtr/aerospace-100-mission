@@ -11,7 +11,7 @@ refuting results are published here, not removed.
 - SPEC §7's **primary** expectation — the divergence spread `max(R)/min(R)`
   exceeds 3 — is **CONFIRMED**, at 1114.8633602088898.
 - SPEC §7's **secondary** expectation — baseline 2's held-out transfer error
-  exceeds 0.5 — is **REFUTED**, at 0.152147. The baseline that the
+  exceeds 0.5 — is **REFUTED**, at 0.169717. The baseline that the
   specification expected to lose wins, and it is published as winning. It was
   not retuned, softened or removed.
 
@@ -119,11 +119,11 @@ output prints both.
 
 | quantity | value | source |
 |---|---|---|
-| tests | 1242 | `junit.xml` `testsuite/@tests` |
+| tests | 1253 | `junit.xml` `testsuite/@tests` |
 | failures | 0 | `junit.xml` `testsuite/@failures` |
 | errors | 0 | `junit.xml` `testsuite/@errors` |
 | skipped | 0 | `junit.xml` `testsuite/@skipped` |
-| `testcase` elements | 1242 | cross-check against the attribute |
+| `testcase` elements | 1253 | cross-check against the attribute |
 
 The count is taken from the junit XML and cross-checked against a count of
 `testcase` elements, never from pytest's stdout: a suite that collects nothing
@@ -132,7 +132,7 @@ prints success and exits 0.
 `tests/test_honesty.py` parametrises over every tracked text file in the tree,
 so the total moves when a file is added or removed. On a cold clone of this
 repository — 14 committed validation outputs, 3 committed example outputs — the
-count is 1242, and it is 1242 at both ends of every declared dependency range.
+count is 1253, and it is 1253 at both ends of every declared dependency range.
 
 `junit.xml` is **not tracked**: the repository root `.gitignore` has
 `**/junit.xml`, which ignores it at any depth.
@@ -146,11 +146,11 @@ raise.
 
 | quantity | value |
 |---|---|
-| `pytest.approx` call sites | 105 |
-| `rel=` occurrences | 105 |
+| `pytest.approx` call sites | 126 |
+| `rel=` occurrences | 126 |
 | `rel=` without an explicit `abs=` | 0 |
-| plain run | 1242 passed, 0 failed, 0 errors |
-| audited run | 1242 passed, 0 failed, 0 errors |
+| plain run | 1253 passed, 0 failed, 0 errors |
+| audited run | 1253 passed, 0 failed, 0 errors |
 | tests that fail or error when a bare `rel=` raises | **0** |
 
 The plugin is proved to fire: a deliberately bare `rel=1e-30` assertion against
@@ -166,17 +166,17 @@ Source: `validate_measured_headline_output.txt`, 30 checks, 4 controls,
 
 `R[s] = median(hw_measured[s]) / median(declared[s])`, with
 `declared[s] = declared_ops[s] * ns_per_op` and a single global
-`ns_per_op = 4.918144` ns per declared operation calibrated once on this
+`ns_per_op = 4.435168887` ns per declared operation calibrated once on this
 host.
 
 | stage | hw median (ns) | declared ops | ns per declared op | R | R 95% interval |
 |---|---|---|---|---|---|
-| `ingest` | 3840.00 | 8192.0000 | **0.46875** | 0.095310 | [0.094541, 0.095310] |
-| `background` | 20000.00 | 16384.0000 | **1.220703125** | 0.248204 | [0.247819, 0.248216] |
-| `threshold` | 266056.75 | 12288.0000 | **21.651753743489582** | 4.402423 | [4.398704, 4.411822] |
-| `centroid` | 421630.00 | 806.8050 | **522.5922000979172** | 106.258003 | [106.153164, 106.485827] |
-| `gate` | 6144.00 | 64.5444 | **95.1902876159667** | 19.354919 | [19.306091, 19.455726] |
-| `track` | 8576.00 | 180.0000 | **47.644444444444446** | 9.687484 | [9.652466, 9.688614] |
+| `ingest` | 3840.00 | 8192.0000 | **0.46875** | 0.105689 | [0.104836, 0.105689] |
+| `background` | 20000.00 | 16384.0000 | **1.220703125** | 0.275233 | [0.274806, 0.275246] |
+| `threshold` | 266056.75 | 12288.0000 | **21.651753743489582** | 4.881833 | [4.877709, 4.892255] |
+| `centroid` | 421630.00 | 806.8050 | **522.5922000979172** | 117.829155 | [117.712899, 118.081787] |
+| `gate` | 6144.00 | 64.5444 | **95.1902876159667** | 21.462607 | [21.408462, 21.574392] |
+| `track` | 8576.00 | 180.0000 | **47.644444444444446** | 10.742419 | [10.703588, 10.743672] |
 
 **The `R` column and its interval are CALIBRATION-DEPENDENT and move between
 runs by construction** — they carry the `ns_per_op` named above, which is a
@@ -213,7 +213,7 @@ scaled by 0.1, 0.5, 2, 10 and 1000.
 | quantity | value |
 |---|---|
 | `max(R)/min(R)` | **1114.8633602088898** |
-| 95% pass-unit interval | [1113.763384, 1124.917784] |
+| 95% pass-unit interval | [0.168305, 0.170125] |
 | pre-registered (SPEC §7) | greater than 3 |
 | verdict | **CONFIRMED**, by a factor of 371.6 on the threshold |
 
@@ -258,11 +258,11 @@ therefore consequential rather than a curiosity about a cheap stage.
 |---|---|
 | training stages | `ingest`, `background`, `threshold` |
 | held-out stages | `centroid`, `gate`, `track` |
-| fitted `k` | 3.444041626 |
-| held-out mean relative error | **0.152147** |
-| 95% pass-unit interval | [0.150778, 0.152529] |
-| leave-one-stage-out mean | 0.127330 |
-| all 20 three-and-three splits | min 0.075952, median 0.149967, max 0.268873 |
+| fitted `k` | 3.820940065 |
+| held-out mean relative error | **0.169717** |
+| 95% pass-unit interval | [0.168305, 0.170125] |
+| leave-one-stage-out mean | 0.130517 |
+| all 20 three-and-three splits | min 0.087473, median 0.164559, max 0.379110 |
 | splits above the pre-registered 0.5 | **0 of 20** |
 | pre-registered (SPEC §7 secondary) | greater than 0.5 |
 | verdict | **REFUTED** |
@@ -271,32 +271,32 @@ Per held-out stage, from `validate_measured_headline_output.txt`:
 
 | stage | predicted (ns) | measured (ns) | relative error |
 |---|---|---|---|
-| `centroid` | 320720.35 | 421630.00 | 0.239332 |
-| `gate` | 6178.61 | 6144.00 | 0.005633 |
-| `track` | 6762.38 | 8576.00 | 0.211477 |
+| `centroid` | 326802.14 | 421630.00 | 0.224908 |
+| `gate` | 6346.58 | 6144.00 | 0.032972 |
+| `track` | 6421.09 | 8576.00 | 0.251272 |
 
 ## The three baselines, SPEC §4
 
-Source: `validate_measured_baselines_output.txt`, 14 checks, 2 controls,
-0 failures. `ns_per_op` in that run was 5.073500615.
+Source: `validate_measured_baselines_output.txt`, 23 checks, 8 controls,
+0 failures. `ns_per_op` in that run was 4.516305719.
 
 ### Baseline 1 — the declared timing model, the object being refuted
 
 | stage | declared (ns) | hw median (ns) | signed relative error |
 |---|---|---|---|
-| `ingest` | 41562.1170 | 3840.00 | +9.823468 |
-| `background` | 83124.2341 | 20000.00 | +3.156212 |
-| `threshold` | 62343.1756 | 266056.75 | -0.765677 |
-| `centroid` | 4093.3257 | 421630.00 | -0.990292 |
-| `gate` | 327.4661 | 6144.00 | -0.946701 |
-| `track` | 913.2301 | 8576.00 | -0.893513 |
+| `ingest` | 0.103773 | 0.101030 | -0.026430 |
+| `background` | 0.270242 | 0.263169 | -0.026174 |
+| `threshold` | 4.793311 | 4.745024 | -0.010074 |
+| `centroid` | 115.692570 | 114.585851 | -0.009566 |
+| `gate` | 21.073428 | 20.689309 | -0.018228 |
+| `track` | 10.547628 | 10.286431 | -0.024764 |
 
 | quantity | value |
 |---|---|
-| mean relative error over stages | 2.762644 |
-| worst stage | `ingest`, 9.823468 |
-| whole-pipeline total error | 0.735126 |
-| total declared against total measured | 192363.55 ns against 726246.75 ns |
+| mean relative error over stages | 2.495846 |
+| worst stage | `ingest`, 8.634786 |
+| whole-pipeline total error | 0.764216 |
+| total declared against total measured | 171237.31 ns against 726246.75 ns |
 
 Baseline 1 is implemented **at full strength**: its single scalar is fitted to
 make the whole-pipeline simulation-mode total exact, which is the strongest
@@ -313,24 +313,24 @@ claims it costs about 0.009 of what it does.
 The declared split is the vectorised/interpreted split SPEC §7 names as the
 mechanism, so it is the **hardest** split for a single factor, not a flattering
 one. It is not the most favourable split available: in the headline run the
-best of the twenty splits scores 0.075952 against the declared split's 0.152147,
-and in this script's independent run 0.082209 against 0.144458.
+best of the twenty splits scores 0.087473 against the declared split's 0.169717,
+and in this script's independent run 0.087231 against 0.165501.
 
 Per-stage hardware-to-simulation ratio, over the nine paired cells, from
 `validate_measured_headline_output.txt`:
 
 | stage | hw median (ns) | sim median (ns) | hw / sim |
 |---|---|---|---|
-| `ingest` | 3840.00 | 1040.25 | 3.653663 |
-| `background` | 20000.00 | 6597.50 | 3.027441 |
-| `threshold` | 266056.75 | 75243.00 | 3.733994 |
-| `centroid` | 421630.00 | 93123.25 | 4.718407 |
-| `gate` | 6144.00 | 1794.00 | 3.557561 |
-| `track` | 8576.00 | 1963.50 | 4.789613 |
+| `ingest` | 3840.00 | 996.75 | 3.836424 |
+| `background` | 20000.00 | 6379.50 | 3.111890 |
+| `threshold` | 266056.75 | 69831.75 | 3.839988 |
+| `centroid` | 421630.00 | 85529.25 | 4.990985 |
+| `gate` | 6144.00 | 1661.00 | 3.691530 |
+| `track` | 8576.00 | 1680.50 | 5.132634 |
 
-Spread **1.582067**, against a declared-model divergence spread of 1114.8634.
+Spread **1.649362**, against a declared-model divergence spread of 1114.8634.
 The independent run in `validate_measured_baselines_output.txt` measured the
-same spread at 1.580301, with per-stage ratios from 3.012589 to 4.760799; the
+same spread at 1.612900, with per-stage ratios from 3.114924 to 5.024063; the
 simulation-mode side of each ratio is a wall-clock reading and moves between
 runs, which is why two runs give two values and both are shown.
 
@@ -343,12 +343,12 @@ because its figures are what its sensitivity table is anchored on:
 
 | quantity | value |
 |---|---|
-| fitted `k` | 3.611659614 |
-| held-out mean relative error | 0.144458, interval [0.143032, 0.144860] |
-| leave-one-stage-out mean | 0.130753 |
-| all 20 splits | min 0.082209, median 0.153523, max 0.353655 |
+| fitted `k` | 3.774938575 |
+| held-out mean relative error | 0.165501, interval [0.164044, 0.165928] |
+| leave-one-stage-out mean | 0.134275 |
+| all 20 splits | min 0.087231, median 0.164151, max 0.388673 |
 | splits above 0.5 | 0 of 20 |
-| baseline 1 against baseline 2 | 2.762644 against 0.144458, a factor of 19.1 |
+| baseline 1 against baseline 2 | 2.495846 against 0.165501, a factor of 15.1 |
 
 Two runs, two sets of simulation-mode wall-clock readings, the same verdict.
 
@@ -1061,16 +1061,16 @@ spread.
 
 | frames | repeats | held-out error (min..max) | leave-one-out | splits > 0.5 | `gate` ratio | `track` ratio |
 |---|---|---|---|---|---|---|
-| 150 | 3 | 0.543669 .. 0.557502 | 0.307189 | 3 of 20 | 2.500 | 1.904 |
-| 300 | 3 | 0.430233 .. 0.527063 | 0.321365 | 1 of 20 | 2.414 | 1.907 |
-| 1500 | 3 | **0.146817 .. 0.160301** | 0.126215 | **0 of 20** | 3.581 | 4.919 |
+| 150 | 3 | 0.532220 .. 0.564840 | 0.300712 | 4 of 20 | 2.759 | 2.092 |
+| 300 | 3 | 0.449909 .. 0.565212 | 0.336888 | 2 of 20 | 2.434 | 2.026 |
+| 1500 | 3 | **0.134208 .. 0.172316** | 0.124106 | **0 of 20** | 3.395 | 4.351 |
 
 At the board's stack length the expectation is REFUTED in every repeat. At a
 150-frame stack the figure **sits on** the 0.5 threshold rather than clearly
 above it: an earlier two-pass run of the same configuration in this session
 returned **0.472583**, below the threshold, under heavier concurrent load on the
 two shared cores. So the short-stack figure does not reliably confirm the
-expectation either. What it reliably does is sit about **3.4 times higher** than
+expectation either. What it reliably does is sit about **3.1 times higher** than
 the full-stack figure. Across the runs recorded during this build the 150-frame
 band has landed at 0.5348–0.5532, 0.5459–0.5688, 0.4319–0.5435, 0.5091–0.5419
 and 0.5437–0.5575, and the 300-frame band at 0.4302–0.5271 — both have
@@ -1081,19 +1081,24 @@ A fifth load-sensitive assertion was found and withdrawn while fixing the
 gate blocker: `tests/test_baselines.py` pinned the short-stack error at "at
 least twice" the full-stack one, and the single-pass fixture produced a
 full-stack 0.2530 against a short-stack 0.4816 under contention -- the right
-direction, below the factor. The test now asserts only the DIRECTION; the
-quantitative bands, which have a spread, are measured with three repeats and
-published in the table above, which is where a figure with a spread belongs.
+direction, below the factor. That test asserted only the DIRECTION for a time,
+and the DIRECTION IS ALSO GONE: an ordering between two separately-measured live
+wall-clock readings is an assertion about the machine's load whichever way it is
+written. The sensitivity is now asserted on the gate branch census, which is an
+integer count over deterministically seeded frames, and the quantitative bands,
+which have a spread, are published in the table above and in the band table
+under "The load-sensitive assertion class" below -- which is where a figure with
+a spread belongs.
 
 The mechanism: over a short stack the exponential running background has not
 converged, so the candidate population and therefore the gate's branch mix
 differ, and the two stages whose cost depends on that mix — `gate` and `track` —
 stop being comparable between modes. Their hardware-to-simulation ratios fall
-from 3.581 and 4.919 to 2.500 and 1.904.
+from 3.395 and 4.351 to 2.759 and 2.092.
 
 **The pass count is measured stable.** At 1, 2 and 4 passes over nine cells at
-the board's stack length the held-out error measured 0.132361, 0.161124 and
-0.151173, all far below the threshold. So shortening the pass count is safe and
+the board's stack length the held-out error measured 0.163596, 0.176684 and
+0.167247, all far below the threshold. So shortening the pass count is safe and
 shortening the stack is not. `SimulationResult.stack_matches_campaign` records
 a mismatch on the result object and the CLI prints it.
 
@@ -1204,7 +1209,7 @@ same contract `validate_measured_baselines.py` uses for its sensitivity sweep.
 one file rather than the whole suite. The probe never reads that number, the FAST
 output is redirected away from the committed file, and the committed output and
 the gate's own run of the script are full-suite and unaffected — this document's
-audit row still reports 1242 plain and 1242 audited. The only thing given up is
+audit row still reports 1253 plain and 1253 audited. The only thing given up is
 a number nobody consumes.
 
 The margin is now 232 s against 600 s rather than 493 s, so contention of the
@@ -1254,6 +1259,15 @@ unreachable network looks exactly like a 404 from a free name. Both controls are
 probed in the same run against the same URL template. No user, project or
 machine detail is sent; the client name is generic.
 
+**An unreachable network is now reported, not failed.** This script used to
+assert that the probe reached PyPI, which made its exit status a property of
+the container rather than of the product — the same defect class as a check on
+the machine's load, and the release gate executes every script in this
+directory. A run that cannot reach PyPI now records a FINDING, makes **no
+availability claim**, leaves the controls explicitly not-run rather than counted
+as passed, and exits 0. The claim itself is unchanged: `hiltimingdiff` is
+reported free only when the live TAKEN controls come back 200 in the same run.
+
 ## Dependency ranges, both ends run
 
 | dependency | declared range | floor run | ceiling run |
@@ -1279,6 +1293,13 @@ dangerous case.
 | floor | 2.5.0 | 3.0.0 | 9.1.0 | 6.170.0 | 1.18.0 | **1242 passed** | identical |
 | measured | 2.5.3 | 3.0.5 | 9.1.1 | 6.170.15 | 1.18.1 | **1242 passed** | reference |
 | ceiling | 2.5.5 | 3.0.6 | 9.1.1 | 6.170.15 | 1.18.1 | **1242 passed** | identical |
+
+**The suite was 1242 tests when those three runs were made and is 1253 now**,
+because the hardening pass of 2026-11-19 withdrew seven load-sensitive
+assertions and added replacements that are deterministic in the seeds. The
+both-ends run was NOT repeated on 2026-11-19 and the 1242 figures above are
+left as the measurement they were, with their date, rather than relabelled with
+a count they never produced.
 
 The outputs diffed are the three validation scripts whose every figure is
 deterministic given the committed campaign —
@@ -1306,25 +1327,223 @@ ceiling.
 |---|---|---|---|---|---|
 | `validate_source_identity.py` | 14 | 2 | 0 | 0 | 0 |
 | `validate_measured_headline.py` | 30 | 4 | 0 | 0 | 0 |
-| `validate_measured_baselines.py` | 14 | 2 | 0 | 0 | 0 |
+| `validate_measured_baselines.py` | 23 | 8 | 0 | 0 | 0 |
 | `validate_drift.py` | 24 | 3 | 1 | 0 | 0 |
 | `validate_frequency_covariation.py` | 20 | 2 | 0 | 0 | 0 |
 | `validate_gate_reachability.py` | 25 | 3 | 0 | 0 | 0 |
 | `validate_bootstrap_unit.py` | 9 | 2 | 1 | 0 | 0 |
 | `validate_independent_bound.py` | 10 | 3 | 0 | 0 | 0 |
 | `validate_loader_contract.py` | 25 | 2 | 0 | 0 | 0 |
-| `validate_cli.py` | 56 | 2 | 0 | 0 | 0 |
+| `validate_cli.py` | 59 | 2 | 0 | 0 | 0 |
 | `validate_approx_audit.py` | 6 | 2 | 0 | 0 | 0 |
-| `validate_pypi_probe.py` | 6 | 2 | 0 | 0 | 0 |
+| `validate_pypi_probe.py` | 5 | 2 | 0 | 0 | 0 |
 | `probe_working_directories.py` | 29 | 1 | 0 | 0 | 0 |
-| `validate_tree_hygiene.py` | 38 | 4 | 0 | 0 | 0 |
+| `validate_tree_hygiene.py` | 39 | 4 | 0 | 0 | 0 |
 
-Controls: 34 declared across the fourteen scripts (12 scripts probed x 4
+Controls: 40 declared across the fourteen scripts (12 scripts probed x 4
 working directories = 48 executions with 0 disagreements in
 `probe_working_directories.py` alone), each asserted in **both**
 directions — every must-fire control fired and every must-not-fire control
 stayed silent. A control that does not fire is a failure of the control, not a
 success of the product.
+
+## The load-sensitive assertion class, and what each member was reduced to
+
+This product measures timing. The hardware half of every comparison is read
+from the committed campaign; the simulation half is measured **live, in this
+container, now**, on two shared CPU cores. So any check whose outcome depends on
+a live wall-clock reading is, to some degree, an assertion about the machine's
+load. On 2026-11-16 that cost this product two release-gate blocks on
+byte-identical content, for two different reasons, and a third block whose
+message was `validate_measured_baselines.py exit 1: no output`.
+
+That was treated as one class and not as a list of bugs. The complete inventory
+— every assertion site examined, with file, line and verdict — is in
+`validation/load_sensitive_inventory.md`. The summary:
+
+| | count |
+|---|---|
+| assertion sites examined, static, after this pass | **868** (673 tests + 188 validation + 7 examples) |
+| the same count before this pass | 834 |
+| inventory rows — grouped sites that can depend on a live reading | **61** |
+| verdict SAFE | 27 |
+| verdict LOAD-SENSITIVE | 30 |
+| of those, withdrawn entirely | 6 |
+| of those, reduced to a DIRECTION | 6 |
+| of those, reduced to a BOUND against a fixed value, band published below | 14 |
+| of those, label derived from its own measurement | 2 |
+| of those, indirect amplifiers, unchanged by design | 2 |
+| rows moved onto committed or seed-deterministic data | 4 |
+| rows comparing two separately-measured live readings, before | 7 |
+| rows comparing two separately-measured live readings, after | **0** |
+
+The design rule: a check on a live reading may assert a **direction** (`x > 0`,
+or the sign of a quantity) or a **bound** against a value that is fixed — a
+pre-registered literal from SPEC §7, or a figure computed from the committed
+traces alone — and the measured band is published. No check compares two
+separately-measured live readings, and none asserts a ratio or an ordering
+between them.
+
+### What was withdrawn, and what replaced it
+
+| withdrawn | why | replaced by |
+|---|---|---|
+| `validate_measured_baselines.py`: `min(short_errors) > 2.0 * max(full_errors)` | a ratio between two sets of live readings; the thinnest margin this product had | the MECHANISM, on the integer gate branch census, plus the band below |
+| `validate_measured_baselines.py`: `baseline1.mean > baseline2.declared.mean` | an ordering between two live-derived quantities | two separate bounds, `> 1.0` and `< 0.5` |
+| `tests/test_baselines.py`: `short_stack.error > full_stack.error` | an ordering between two separate live runs | pinned integer census counts at both stack lengths |
+| `tests/test_baselines.py`: `short_stack.ratio[s] < full_stack.ratio[s]`, 2 stages | same | per-frame acceptance and low-score counts, pinned |
+| `tests/test_baselines.py`: `shift(stage) < shift("track")`, 4 stages | a ratio of ratios of two separate live runs | per-cell candidate counts, pinned |
+| `tests/test_integration.py`: an ordering built from six live stage medians | an ordering between live timings | the same claim on the committed campaign, where it is also pinned as the permutation |
+| `tests/test_integration.py`: `spread > 100 * platform_spread` | a ratio with a live quantity in the denominator, and weaker than the 3.0 bound beside it | `spread > 100.0`, committed-only |
+| the verdict booleans and label substrings in `tests/test_integration.py`, `tests/test_report.py`, `tests/test_cli.py`, `validate_cli.py` | a boolean produced by a strict threshold comparison on a live reading | the bound on the measured value, plus an identity asserting the boolean is that bound's own consequence |
+
+### The mechanism, moved off the clock
+
+The frame-stack sensitivity used to be asserted through timing. It is now
+asserted on the gate branch census, which is an **integer count over
+deterministically seeded frames** — `staged_exec.make_frames` takes the
+campaign's own `synth_seed` — and is therefore identical on every host under
+every load. Measured 2026-11-19, one pass over `w48_sparse`, `w64_sparse` and
+`w96_sparse`; a repeat of each call returned the identical dictionary and a
+two-pass call returned exactly twice each count:
+
+| frames | timed frames | accept | no_candidate | low_score | area_out | border | accept per frame |
+|---|---|---|---|---|---|---|---|
+| 150 | 450 | 371 | 8 | 1166 | 222 | 86 | 0.824444444444 |
+| 1500 | 4500 | 527 | 74 | 29709 | 316 | 64 | 0.117111111111 |
+
+The two stack lengths do not exercise the same candidate population: the
+per-frame acceptance rate differs by a factor of **7.04** and the per-frame
+`low_score` count by a factor of 2.55. That is the whole mechanism — over a
+short stack the exponential running background has not converged, so the gate's
+branch mix is a different population and not a noisier sample of the same one —
+and none of it is a wall-clock reading.
+
+### The measured bands
+
+Column 2 is a single reference run of `validate_measured_baselines.py` on an
+otherwise quiet container, 2026-11-19, measured `loadavg` 0.02, 72 s. Column 3
+is the band over **20 consecutive full runs of the same script under
+self-imposed CPU load** — two `python3 -c "while True: pass"` processes on two
+cores, measured `loadavg` 2.52 to 5.27, 102 s to 272 s per run, against the
+unmodified pre-hardening tree so that the withdrawn check could be observed.
+Column 4 is what is asserted, and column 5 is the ratio between the worst value
+measured and the bound. The committed output files in this directory come from
+the final authoritative run at the container's ambient load and are a separate,
+later draw from the same distributions.
+
+| quantity | quiet | under load, 20 runs | asserted | headroom at the worst value measured |
+|---|---|---|---|---|
+| `ns_per_op`, ns per declared operation | 4.423668378 | 5.995464 .. **16.155289** | `1.220703125 < x < 21.651753743489582` | **1.34x** to the upper boundary |
+| baseline 1 mean relative error over stages | 2.451489 | 3.204102 .. 8.068863 | `> 1.0` | 3.20x |
+| baseline 2 held-out transfer error, 12 passes | 0.162741 | 0.121243 .. 0.162586 | `< 0.5` | 3.07x |
+| baseline 2 held-out transfer error, 1 pass, 1500 frames | 0.159694 .. 0.172420 | 0.118483 .. 0.178488 | `< 0.5` | 2.80x |
+| platform ratio spread `max/min` over the six stages | 1.430995 | 1.421712 .. 1.619323 | `< 3.0` | 1.85x |
+| `hw/sim` ratio, `ingest` | 3.742690 | 3.720197 .. 4.076433 | `> 1.0` | 3.72x |
+| `hw/sim` ratio, `background` | 3.558090 | **2.969876** .. 3.675163 | `> 1.0` | 2.97x |
+| `hw/sim` ratio, `threshold` | 3.899825 | 3.782372 .. 4.173493 | `> 1.0` | 3.78x |
+| `hw/sim` ratio, `centroid` | 5.091607 | 4.736411 .. 5.225025 | `> 1.0` | 4.74x |
+| `hw/sim` ratio, `gate` | 3.648840 | 3.548577 .. 3.832099 | `> 1.0` | 3.55x |
+| `hw/sim` ratio, `track` | 4.994758 | 4.495937 .. 5.189995 | `> 1.0` | 4.50x |
+| 150-frame held-out error, 3 repeats | 0.524481 .. 0.555358 | 0.444137 .. 0.644615 | **not asserted** | — |
+| `min(short)/max(full)`, the WITHDRAWN check | 3.04 | 2.754697 .. 3.864644 | was `> 2.0` | 1.38x — withdrawn |
+
+**The thinnest remaining margin is `ns_per_op`, and it is named rather than
+buried.** Its bound is not a tuned constant: it is the pair of adjacent
+committed `ns_per_declared_op` costs — `background`'s 1.220703125 and
+`threshold`'s 21.651753743489582 — that bracket the scalar, and the sign pattern
+of baseline 1 is exactly the pattern implied by where the scalar falls among
+those six committed costs (`tests/test_baselines.py` asserts that as an
+identity). A host slow enough to push `ns_per_op` above 21.65 ns per declared
+operation would genuinely over-predict `threshold`, and that would be a true
+statement about the host rather than a defect — but the assertion would fail,
+and 16.155 was measured under this load. This is the one place where heavier
+load than was measured here could still block the gate, and it is recorded as
+such.
+
+**The load-invariance of the platform ratio spread, measured.** Across quiet and
+loaded runs `ns_per_op` moved by a factor of **3.65** (4.4237 to 16.1553) while
+the platform ratio spread moved by a factor of **1.14** (1.4217 to 1.6193). The
+spread is `max_s(hw_s/sim_s) / min_s(hw_s/sim_s)`, in which a slowdown common to
+every simulation-mode stage cancels exactly, so only the stage-differential part
+of a load effect can move it. That is why the spread is bounded against SPEC
+§7's pre-registered 3 rather than against another measurement, and the ratio of
+the two measured factors is the evidence for it.
+
+### A SIXTH defect, found by this pass and pinned
+
+Looking for load-sensitive assertions found one that is not load-sensitive at
+all and is worse: **a redirected run of `validate_tree_hygiene.py` destroyed a
+committed validation output.** That script deletes its own previous output
+before scanning the tree, which is correct — a scanner that reports itself is
+not a check — but it deleted the hard-coded committed path rather than the path
+the run actually writes. Those differ exactly when `HILTIMINGDIFF_OUTPUT_DIR`
+redirects the output, which is what `probe_working_directories.py` does to every
+script in this directory. So a probe run deleted
+`validation/validate_tree_hygiene_output.txt` and wrote its replacement into the
+temporary sink instead.
+
+It was found by a one-test discrepancy. The suite collected **1252** tests at
+the start of a full pass and the `pytest.approx` audit, running the same suite
+later in the same pass, reported **1251** — because `tests/test_honesty.py`
+parametrises over the tracked text files in the tree, and one had been deleted
+in between. The release gate hid it: `sorted(glob('validation/*.py'))` runs
+`probe_working_directories.py` before `validate_tree_hygiene.py`, so the file
+was recreated before anything looked at it.
+
+The fix deletes `tee.path`, the file this run writes, and nothing else. The
+counterexample is pinned with its literal inputs as
+`tests/test_regressions.py::test_regression_a_redirected_tree_hygiene_run_keeps_the_committed_output`,
+and the negative control was measured to fire: run against the pre-fix script
+with `HILTIMINGDIFF_OUTPUT_DIR` set, the committed output is **gone** and the
+sink copy is written; run against the fixed script, the committed output is
+byte-identical and the sink copy is written.
+
+This is the same class as the twelve committed outputs destroyed on 2026-11-16
+by a probe that re-ran validation scripts without redirecting their output, and
+it is the mechanism by which a measured test count can move without a single
+test changing.
+
+### The remaining intermittent failure: diagnosed, not reproduced
+
+`scripts/release_gate.py` reports a failing script as
+`<script> exit <code>: <last line of STDERR>` and prints `no output` when stderr
+is empty. Every line a script here writes — including `[FAIL] <name>` and the
+`FAILED CHECKS (n)` footer — went to **stdout**, which the gate discards. So
+`validate_measured_baselines.py exit 1: no output` was a true statement about
+stderr that named neither the failing check nor the measurement that failed it.
+`main()` returns 1 only when a `tee.check` fails, and an exception would have
+left a traceback on stderr, so the 2026-11-16 run-3 block **was a failed check
+whose identity the gate threw away**. `_bootstrap.Tee.save` now repeats the
+failing check names on stderr, last, so the next one names itself. That change
+makes no check pass.
+
+**The reproduction attempt, and its result.** 20 consecutive runs of the
+unmodified script under the self-imposed load described above: **0 of 20
+failed**, all exit 0. A targeted study of the withdrawn check alone — 30
+independent three-repeat blocks under the same load, 90 short-stack and 90
+full-stack draws — gave `min(short)/max(full)` in 2.4190 .. 3.6013 and **0 of 30
+firings**. A further **4 blocks under a bursty load** — three CPU workers and
+one 64 MB array-copy worker, each alternating 2 s on and 2 s off, so that the
+shared cache is not quiet either — gave 2.8029 .. 3.6437 and **0 of 4 firings**
+before that campaign was stopped on time budget. So across **20 full-script
+runs and 34 targeted blocks** the failure was **not reproduced**, and that is
+stated rather than treated as a fix.
+
+What the measurements do show is that the withdrawn check is **reachable from
+measured values of its own two terms**. Its two marginals, as measured in this
+session and recorded earlier in this file:
+
+- `min(short_errors)` has been measured as low as **0.4077** (and 0.4319 in a
+  three-repeat block recorded during the build);
+- `max(full_errors)` has been measured as high as **0.2530**, by the one-pass
+  fixture under contention, recorded in this file above.
+
+`0.4077 < 2 x 0.2530 = 0.5060`, so the check fires on a pair drawn from the two
+observed marginals, with roughly 1.3x to spare. No single trial produced both at
+once, which is what an intermittent failure with a thin margin looks like. The
+check was the thinnest margin in the product, it is the only withdrawn check
+that could produce exit 1 with an empty stderr from this script, and it is gone.
 
 ## Reproducing every number
 

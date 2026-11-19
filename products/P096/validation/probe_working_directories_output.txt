@@ -1,0 +1,57 @@
+
+==============================================================================
+WORKING-DIRECTORY PROBE -- same exit status from four directories
+==============================================================================
+INPUT ORIGIN: this repository's own scripts.
+INPUT ORIGIN: SYNTHETIC. No measured handover, no measured acquisition time and no measured link appears anywhere in this repository. Validation level 2: the evidence is agreement between a closed form, an independently derived bound and a simulated trace.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+machine          : x86_64 Linux, 2 cores available to this process
+repository root  : P096 (printed relatively; see validation/_bootstrap.py)
+resamples        : 4000
+trace events     : 512
+
+directories probed: filesystem root, system temporary directory, product root, validation/
+HANDOVERLOSS_FAST=1 is set, so resample counts are reduced; the question is
+whether each script RUNS from each directory.
+
+validation scripts probed: 9
+example scripts probed   : 4
+
+==============================================================================
+validation/
+==============================================================================
+[PASS] validation/validate_acquisition_model.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_approx_audit.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_baselines_against_truth.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_decomposition_residual.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_independent_bound.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_learned_vs_baselines.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_negative_controls.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/validate_tree_hygiene.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] validation/worked_example.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+
+==============================================================================
+examples/
+==============================================================================
+[PASS] examples/acquisition_only_refuted.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] examples/attribution_with_intervals.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] examples/dominance_map.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+[PASS] examples/learned_vs_baselines.py gives the same exit status from all four -- filesystem root=0, system temporary directory=0, product root=0, validation/=0
+
+==============================================================================
+summary
+==============================================================================
+  every probed script agreed with itself across all four directories
+  A disagreement here means a bare relative path reached a loader, which is the defect class that blocked three products of this mission in one batch.
+
+
+CHECKS RUN: 13
+FAILED CHECKS (0): none

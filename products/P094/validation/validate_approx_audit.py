@@ -6,6 +6,13 @@ testing what it says. This script runs the WHOLE suite twice: once normally and
 once with ``_approx_audit_plugin``, which makes a bare ``rel=`` raise. The
 measurement is the count of assertions that depend on the default, and it is a
 count from an execution rather than from a grep.
+
+**This script AMPLIFIES any load-sensitive test by two.** It runs the whole
+suite twice and asserts that the plain run passes, so a test whose outcome
+depends on the machine's load fails this script rather than the test file that
+owns it, and twice as often. That is one reason the load-sensitive assertion
+class was removed at its design rather than patched instance by instance; see
+validation/load_sensitive_inventory.md.
 """
 
 from __future__ import annotations

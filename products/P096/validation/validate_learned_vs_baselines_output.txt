@@ -1,0 +1,196 @@
+
+==============================================================================
+BENCHMARK -- both baselines and the learned component, both splits
+==============================================================================
+INPUT ORIGIN: SYNTHETIC. No measured handover, no measured acquisition time and no measured link appears anywhere in this repository. Validation level 2: the evidence is agreement between a closed form, an independently derived bound and a simulated trace.
+
+ORDER OF WORK. The baselines were implemented and validated against the ground
+truth BEFORE the learned component was written, and
+validation/validate_baselines_against_truth_output.txt is that evidence. An
+under-strength baseline inflates an apparent learned win, which is a defect
+class this mission has shipped.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+machine          : x86_64 Linux, 2 cores available to this process
+repository root  : P096 (printed relatively; see validation/_bootstrap.py)
+resamples        : 4000
+trace events     : 512
+
+corpus sha256    : 3a0343a6c2c51a91eba0679856700f5495d8814c3bcdc94e6b710ba300c59706
+events           : 1536
+dominance counts : {'acquisition': 762, 'restart': 516, 'drain': 258}
+  Baseline 1 predicts 'acquisition' for every handover by construction, so its
+  dominance accuracy on any split equals the rate at which acquisition truly
+  dominates that split. That is the floor any predictor must beat.
+
+==============================================================================
+1  hyperparameter selection -- grouped CV on the TRAINING side only
+==============================================================================
+  Three-fold cross-validation over STATION PAIRS within the station-pair
+  split's training set. The test side was never consulted. Re-rolling a split
+  or peeking at the test side until a model wins is how a held-out score stops
+  meaning anything, so neither was done.
+  training pairs                          : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+  folds                                   : [[0, 3, 6, 9], [1, 4, 7, 10], [2, 5, 8, 11]]
+
+  max_depth  min_leaf  trees   grouped-CV dominance accuracy (mean, per fold)
+  14         3         200     0.352431   [0.317708, 0.335938, 0.403646]
+  None       1         200     0.350694   [0.346354, 0.348958, 0.356771]
+  8          5         200     0.342882   [0.34375, 0.296875, 0.388021]
+  20         2         300     0.360243   [0.34375, 0.359375, 0.377604]
+  None       3         400     0.349826   [0.325521, 0.335938, 0.388021]
+  6          8         200     0.352431   [0.359375, 0.268229, 0.429688]
+
+  selected                                : (20, 2, 300) at 0.360243
+  spread across all six candidates        : 0.017361
+[PASS] the package's declared defaults are the grouped-CV selection -- declared (20, 2, 300), selected (20, 2, 300)
+  The spread above is what matters more than the winner. Every candidate lands
+  in a narrow band, so the learned component's weakness on held-out station
+  pairs is STRUCTURAL and not a matter of tuning: the features that identify a
+  pair's configuration are constant within that pair, so a tree-based learner
+  has sixteen distinct configurations to learn from and cannot interpolate to a
+  seventeenth. That is stated in MODEL_CARD.md under Failure cases.
+
+==============================================================================
+2  scores, both splits, baselines first
+==============================================================================
+
+  SPLIT: station_pairs
+  4 of 16 station pairs held out entirely; every test event comes from a pair absent from training. Answers: can this be deployed at a station pair with no history.
+  held out: (12, 13, 14, 15);  train 1152, test 384
+
+  predictor                          accuracy   95% interval          log10MAE   band cov
+  baseline1_acquisition_only          0.536458 [0.486979, 0.585938]  1.632816        n/a
+  baseline2_analytic_fluid            0.653646 [0.606771, 0.700521]  0.932722        n/a
+  baseline1_acquisition_only@q0.95    0.536458 [0.486979, 0.585938]  1.294335        n/a
+  baseline2_analytic_fluid@q0.95      0.520833 [0.473958, 0.570312]  1.506500        n/a
+  learned_random_forest               0.390625 [0.343750, 0.440104]  1.707133   0.895833
+
+  per-mechanism log10 MAE:
+    baseline1_acquisition_only         acquisition=2.317170  restart=8.511023  drain=7.874164
+    baseline2_analytic_fluid           acquisition=2.317170  restart=0.704118  drain=0.665102
+    baseline1_acquisition_only@q0.95   acquisition=3.847644  restart=8.511023  drain=7.874164
+    baseline2_analytic_fluid@q0.95     acquisition=3.847644  restart=1.109451  drain=0.867945
+    learned_random_forest              acquisition=3.289666  restart=1.783919  drain=1.330406
+
+  HIGHEST DOMINANCE ACCURACY ON THIS SPLIT: baseline2_analytic_fluid at 0.653646
+  learned interval (0.34375, 0.4401041666666667), winner interval (0.6067708333333334, 0.7005208333333334)
+[PASS] [station_pairs] the winner is identified and its interval reported -- baseline2_analytic_fluid; intervals disjoint from the learned component's
+  fit and score wall time for the learned component: 0.812 s (reported, not asserted; this mission does not assert relationships between wall-clock readings on a shared runner)
+
+  uncertainty output -- achieved coverage of the 90 per cent band:
+    acquisition    0.875000
+    restart        0.835938
+    drain          0.976562
+    all mechanisms 0.895833  (nominal 0.900000)
+    The band is the across-tree spread, which captures MODEL uncertainty
+    and not the irreducible noise of the handover itself, so it is expected
+    to undercover. The measured figures above are what a caller should use,
+    not the nominal level.
+
+  dominance confidence -- the ensemble vote share, binned against accuracy:
+    [0.00, 0.40)  n=154   accuracy=0.214286
+    [0.40, 0.50)  n=86    accuracy=0.465116
+    [0.50, 0.60)  n=75    accuracy=0.493333
+    [0.60, 0.70)  n=53    accuracy=0.490566
+    [0.70, 0.80)  n=16    accuracy=0.875000
+    [0.80, 0.90)  n=0
+    [0.90, 1.00)  n=0
+    A vote share, not a calibrated probability. It is reported because an
+    operator needs to know when the model is unsure, and the table above is
+    the measured relationship rather than a claim about one.
+  mean dominance confidence: 0.429991
+  model feature importances (top 6, impurity-based, biased towards high-cardinality features):
+    headroom_s                       0.670922
+    occupancy_fraction               0.056509
+    initial_occupancy_bits           0.055359
+    acquisition_abort_probability    0.046406
+    declared_restart_s               0.035417
+    acquisition_median_s             0.025565
+
+  SPLIT: time
+  the last 3 of 8 epochs held out; every test event is later than every training event. Answers: will this still be right next month.
+  held out: (5, 6, 7);  train 960, test 576
+
+  predictor                          accuracy   95% interval          log10MAE   band cov
+  baseline1_acquisition_only          0.506944 [0.465278, 0.546875]  1.795279        n/a
+  baseline2_analytic_fluid            0.682292 [0.644097, 0.718750]  0.863551        n/a
+  baseline1_acquisition_only@q0.95    0.506944 [0.465278, 0.546875]  1.433896        n/a
+  baseline2_analytic_fluid@q0.95      0.550347 [0.508681, 0.590278]  1.389319        n/a
+  learned_random_forest               0.600694 [0.560764, 0.640625]  1.128893   0.846065
+
+  per-mechanism log10 MAE:
+    baseline1_acquisition_only         acquisition=2.091804  restart=8.353092  drain=8.229537
+    baseline2_analytic_fluid           acquisition=2.091804  restart=0.794232  drain=0.605632
+    baseline1_acquisition_only@q0.95   acquisition=3.196064  restart=8.353092  drain=8.229537
+    baseline2_analytic_fluid@q0.95     acquisition=3.196064  restart=1.176127  drain=0.869371
+    learned_random_forest              acquisition=2.266773  restart=1.074787  drain=0.817029
+
+  HIGHEST DOMINANCE ACCURACY ON THIS SPLIT: baseline2_analytic_fluid at 0.682292
+  learned interval (0.5607638888888888, 0.640625), winner interval (0.6440972222222222, 0.71875)
+[PASS] [time] the winner is identified and its interval reported -- baseline2_analytic_fluid; intervals disjoint from the learned component's
+  fit and score wall time for the learned component: 0.758 s (reported, not asserted; this mission does not assert relationships between wall-clock readings on a shared runner)
+
+  uncertainty output -- achieved coverage of the 90 per cent band:
+    acquisition    0.802083
+    restart        0.862847
+    drain          0.873264
+    all mechanisms 0.846065  (nominal 0.900000)
+    The band is the across-tree spread, which captures MODEL uncertainty
+    and not the irreducible noise of the handover itself, so it is expected
+    to undercover. The measured figures above are what a caller should use,
+    not the nominal level.
+
+  dominance confidence -- the ensemble vote share, binned against accuracy:
+    [0.00, 0.40)  n=91    accuracy=0.131868
+    [0.40, 0.50)  n=36    accuracy=0.555556
+    [0.50, 0.60)  n=55    accuracy=0.400000
+    [0.60, 0.70)  n=81    accuracy=0.592593
+    [0.70, 0.80)  n=65    accuracy=0.692308
+    [0.80, 0.90)  n=106   accuracy=0.735849
+    [0.90, 1.00)  n=142   accuracy=0.852113
+    A vote share, not a calibrated probability. It is reported because an
+    operator needs to know when the model is unsure, and the table above is
+    the measured relationship rather than a claim about one.
+  mean dominance confidence: 0.678524
+  model feature importances (top 6, impurity-based, biased towards high-cardinality features):
+    headroom_s                       0.603676
+    initial_occupancy_bits           0.074339
+    occupancy_fraction               0.067594
+    acquisition_median_s             0.054467
+    acquisition_abort_probability    0.048641
+    declared_restart_s               0.042283
+
+==============================================================================
+3  the finding
+==============================================================================
+  station_pairs  winner baseline2_analytic_fluid at 0.653646; learned at 0.390625
+  time           winner baseline2_analytic_fluid at 0.682292; learned at 0.600694
+
+  BASELINE 2, THE ANALYTIC FLUID MODEL, WINS ON BOTH SPLITS. That is the
+  finding and it is published as such. It is not retuned away and the learned
+  component is not removed: a reader needs both numbers to know what the
+  learned component bought, which here is nothing on the station-pair split and
+  less than the closed form on the time split.
+
+  WHAT THE FINDING DOES AND DOES NOT SUPPORT. This corpus is GENERATED by a
+  mechanism that baseline 2 nearly reproduces in closed form, so a closed-form
+  win here is close to the best case for the closed form and says nothing about
+  what would happen on measured handover data, where the generating mechanism is
+  unknown and the declared sequence is an approximation to it. The honest
+  statement is the narrow one: WHEN the handover sequence is known and the
+  source is close to constant-rate, the closed form is the better predictor and
+  a forest fitted on a few dozen station configurations does not beat it. That
+  is in README.md under Limitations and in MODEL_CARD.md.
+[PASS] the winner on each split is identified and recorded as the finding -- an analytic baseline won both splits; recorded rather than retuned away
+
+
+CHECKS RUN: 4
+FAILED CHECKS (0): none

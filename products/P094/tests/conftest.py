@@ -16,8 +16,19 @@ pass, which takes about four seconds. The pass count is the one dimension that
 was measured to be safe to shorten -- at 1, 2, 4 and 12 passes the held-out
 transfer error measured 0.1601, 0.1554, 0.1622 and 0.1599 -- while the frame
 stack is NOT: at 150 or 300 frames the figure crosses SPEC §7's 0.5 threshold.
-``short_stack_simulation`` deliberately uses a 150-frame stack so that the
-sensitivity is asserted rather than described.
+``short_stack_simulation`` deliberately uses a 150-frame stack, and
+``long_stack_simulation`` the board's own 1500-frame stack over the same three
+cells and the same pass count, so that the sensitivity is asserted rather than
+described.
+
+**No test in this suite asserts a relationship between two live wall-clock
+measurements.** The frame-stack sensitivity is asserted on the gate branch
+census and the per-cell candidate counts, which are integer quantities over
+deterministically seeded frames and are therefore exactly reproducible under
+any load; the quantities that are wall-clock readings are asserted only as a
+direction or as a bound whose measured band is published in
+validation/VALIDATION.md. The inventory of every such assertion is in
+validation/load_sensitive_inventory.md.
 """
 
 from __future__ import annotations
@@ -65,6 +76,10 @@ SHORT_STACK_CELLS = ("w48_sparse", "w64_sparse", "w96_sparse")
 SHORT_STACK_PASSES = 2
 SHORT_STACK_FRAMES = 150
 
+#: The board's own stack length, over the SAME three cells and the same pass
+#: count, so that the two fixtures differ in exactly one dimension.
+SHORT_STACK_LONG_FRAMES = 1500
+
 #: Bootstrap resamples in the suite. Lower than the package default so the
 #: suite stays fast; every test that asserts an interval asserts a property of
 #: the interval (ordering, containment, recorded unit), never a pinned endpoint,
@@ -109,9 +124,21 @@ def short_stack_simulation(campaign):
 
 
 @pytest.fixture(scope="session")
-def short_stack_baseline2(units, short_stack_simulation):
-    """Baseline 2 fitted on the short-stack measurement."""
-    return baseline_2(units, short_stack_simulation, resamples=FIXTURE_RESAMPLES)
+def long_stack_simulation(campaign):
+    """The same three cells and passes at the BOARD'S stack length.
+
+    It exists so the frame-stack sensitivity can be asserted on the gate branch
+    census and the candidate counts -- integer quantities over deterministically
+    seeded frames -- rather than on a comparison between two live wall-clock
+    measurements. The timing consequence of the stack length is a wall-clock
+    reading and is published as a measured band in validation/VALIDATION.md.
+    """
+    return measure_simulation(
+        campaign,
+        passes=SHORT_STACK_PASSES,
+        frames=SHORT_STACK_LONG_FRAMES,
+        cells=SHORT_STACK_CELLS,
+    )
 
 
 @pytest.fixture(scope="session")

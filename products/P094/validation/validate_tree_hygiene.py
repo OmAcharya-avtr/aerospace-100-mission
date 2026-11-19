@@ -87,6 +87,7 @@ MUST_SHIP = (
     "src/hiltimingdiff/__init__.py",
     "tests/conftest.py",
     "validation/VALIDATION.md",
+    "validation/load_sensitive_inventory.md",
     "validation/_bootstrap.py",
 )
 
@@ -185,14 +186,24 @@ def snapshot() -> set[str]:
 
 
 def main() -> int:
-    output_path = ROOT / "validation" / "validate_tree_hygiene_output.txt"
+    tee = _bootstrap.Tee("validate_tree_hygiene_output.txt")
     # Delete this script's own previous output BEFORE scanning, or the scanner
     # reports itself. Three consecutive sessions of this mission introduced
     # exactly this defect while writing about it.
+    #
+    # The file deleted is the one this run will WRITE, taken from the Tee, and
+    # not the committed path. Those differ when HILTIMINGDIFF_OUTPUT_DIR
+    # redirects the output, which is what probe_working_directories.py does to
+    # every script here. Deleting the committed path in that case destroyed a
+    # committed validation output and did not replace it: measured 2026-11-19,
+    # the suite collected 1252 tests before a redirected run of this script and
+    # 1251 after it, because tests/test_honesty.py parametrises over the tracked
+    # text files in the tree. The release gate happened to hide it, because it
+    # runs probe_working_directories.py first and this script afterwards, in
+    # alphabetical order, so the file was recreated before anything looked.
+    output_path = tee.path
     if output_path.exists():
         output_path.unlink()
-
-    tee = _bootstrap.Tee("validate_tree_hygiene_output.txt")
     _bootstrap.header(tee, "P094 HilTimingDiff -- tree hygiene, narrowed to what is owned")
 
     inherited = snapshot()

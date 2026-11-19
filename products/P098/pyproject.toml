@@ -1,0 +1,137 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evidencestale"
+version = "0.1.0"
+description = "Measures how much of an assurance case rests on evidence whose subject has changed since the evidence was produced."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "OPTIMA Organisation" }]
+keywords = [
+    "assurance-case",
+    "safety-case",
+    "goal-structuring-notation",
+    "gsn",
+    "traceability",
+    "evidence-staleness",
+    "dependency-closure",
+    "content-hash",
+    "graph-reachability",
+    "bootstrap-interval",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development :: Quality Assurance",
+]
+
+# Every range is bounded on BOTH sides, at the version every number in this
+# repository was measured against. A floor with no ceiling is not a dependency
+# specification: five of the first fifty products of this mission were found
+# broken or silently wrong for a new install because pip resolved a release
+# published after the product was measured, and one of the five passed its
+# whole suite while its validation numbers moved.
+#
+# WHAT EACH DEPENDENCY IS USED FOR, so a bound can be argued with rather than
+# taken on trust.
+#
+# numpy -- the feature matrix, the indicator arrays, and
+# `numpy.random.default_rng` (PCG64) for every bootstrap resample and for the
+# corpus generator in data/. The bound is numerical and not merely an API
+# bound: validation/validate_baselines.py publishes bootstrap interval
+# endpoints that depend on PCG64's draw order, and tests/test_bootstrap.py
+# asserts two runs at one seed are identical.
+#
+# scipy -- NOT a direct dependency of the library. It is declared because
+# scikit-learn requires it and because a change in its linear-algebra
+# behaviour would move the forest's tie-breaking, and therefore the published
+# metrics, without any change here. Declaring the measured range is the honest
+# way to record that coupling.
+#
+# scikit-learn -- `sklearn.ensemble.RandomForestClassifier` for the learned
+# staleness-risk model and `sklearn.model_selection.GroupKFold` for the
+# held-out-artifact split. The published AUC, Brier and agreement figures are
+# functions of this estimator's defaults, its bootstrap sampling order and its
+# tie-breaking, none of which is part of its public API contract, so the
+# ceiling is numerical. NOTHING IS SERIALISED: this product writes no joblib or
+# pickle artifact, so there is no stored-format compatibility surface, and the
+# ceiling is for the metrics rather than for an unpickling hazard.
+#
+# NOTHING ELSE. The closure search, the hashing, the replay, both timestamp
+# baselines, the closure-hash baseline, the independent bound and every error
+# metric use only the standard library: `argparse`, `dataclasses`, `fnmatch`,
+# `hashlib`, `json`, `math`, `pathlib` and `sys`. That is deliberate. The part
+# of this product that an auditor would have to trust -- the closure
+# computation and the digest comparison -- depends on `hashlib` alone.
+#
+# MEASURED AT: Python 3.13.18, numpy 2.5.3, scipy 1.18.1, scikit-learn 1.9.1,
+# pytest 9.1.1, hypothesis 6.170.15, matplotlib 3.11.2, on x86_64 Linux with
+# 2 cores shared by five concurrent builds.
+#
+# NOT YET RUN AT BOTH ENDS OF EVERY RANGE. The build guide asks for the suite
+# and the committed validation output to be compared at the floor and the
+# ceiling of each declared range in an isolated environment. That was not done
+# for this product -- the build agent is forbidden from running `pip` at all,
+# for a reason recorded in the batch brief -- and the omission is in README.md
+# under Limitations rather than papered over. The declared ranges are the minor
+# series that was measured, which is narrower than a floor with no ceiling and
+# weaker than a measured range.
+#
+# A pin below a future security release is a real cost, not a free safety
+# measure: this product cannot take such a release without a port. The tension
+# is recorded in README.md under Limitations rather than resolved by removing
+# the ceiling.
+dependencies = [
+    "numpy>=2.5,<2.6",
+    "scipy>=1.18,<1.19",
+    "scikit-learn>=1.9,<1.10",
+]
+
+[project.optional-dependencies]
+# The ruff range spans the two installations this product was measured against,
+# 0.16.9 on the path and 0.17.5 as a Python module. `ruff check src/ tests/` is
+# clean under BOTH, because an earlier batch of this mission lost two products
+# at the release gate to a ruff version skew with no source defect.
+test = ["pytest>=9.1,<9.2", "hypothesis>=6.170,<6.171", "ruff>=0.16,<0.18"]
+examples = ["matplotlib>=3.11,<3.12"]
+dev = [
+    "pytest>=9.1,<9.2",
+    "hypothesis>=6.170,<6.171",
+    "ruff>=0.16,<0.18",
+    "matplotlib>=3.11,<3.12",
+]
+
+[project.scripts]
+evidencestale = "evidencestale.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/OmAcharya-avtr/evidencestale"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+# `-p no:cacheprovider` keeps pytest from writing .pytest_cache into the tree.
+addopts = "-ra -p no:cacheprovider"
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["evidencestale"]
+known-local-folder = ["_bootstrap"]

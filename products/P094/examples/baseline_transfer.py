@@ -190,8 +190,17 @@ def main() -> int:
     )
     right.set_xlabel("mean relative error on the held-out stages")
     right.set_ylabel("splits")
+    # The word on the figure is the verdict the measurement in THIS run lands
+    # on, not a literal. The held-out error is a wall-clock reading on a shared
+    # two-core host, and a hard-coded "REFUTES" would be a caption that stopped
+    # describing its own figure the moment the measurement crossed 0.5.
+    verdict_word = (
+        "REFUTES"
+        if second.declared.mean_relative_error <= PREREGISTERED_TRANSFER_ERROR
+        else "CONFIRMS"
+    )
     right.set_title(
-        "Baseline 2 transfer, and the pre-registration it REFUTES\n"
+        f"Baseline 2 transfer, and the pre-registration it {verdict_word}\n"
         f"{second.splits_above_preregistration} of {len(second.split_errors)} splits "
         f"exceed the pre-registered threshold"
     )

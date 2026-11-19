@@ -1,0 +1,135 @@
+The three baselines against the generator's own expectation -- P097 flakerank
+
+Validated BEFORE the learned component is benchmarked, because an
+under-strength baseline inflates an apparent learned win.
+
+fast path (FLAKERANK_FAST=1): False
+declared seed: 97044
+bootstrap resamples: 2000
+confidence: 0.95
+history: data/run_history.json sha256 aa12f8cc861ba66008a0d3762cd68fa24a24b013f897da67c8151996c531b18a
+
+==============================================================================
+1. BASELINE 2 AGAINST THE GENERATOR'S EXPECTATION
+==============================================================================
+
+Baseline 2 estimates p and t_fail from the recorded attempts; the
+generator's expectation uses the parameters those attempts were drawn
+from. Agreement is therefore a statement about the MODEL plus the
+estimation error, and the estimation error dominates for a rare flake.
+
+aggregate analytic cost, s          : 254695.0609070536
+aggregate generator expectation, s  : 225460.93388879017
+aggregate relative difference       : 0.1296638247435066
+[PASS] the aggregate analytic cost is within 25 per cent of the generator's expectation -- +0.129664 relative
+
+The 25 per cent criterion is declared rather than tuned. It is set by the
+estimation error, not by the model: the aggregate is dominated by a
+handful of slow tests whose failure counts are in the tens, so the
+relative standard error of the aggregate is of order 1/sqrt(F) for the
+F = 1417 recorded failures, concentrated in far fewer tests.
+
+Rank agreement with the generator's expectation, which is the question
+the product actually asks:
+
+                                     ranking   Kendall tau-b   Spearman rho
+                      baseline 1, flake rate     0.729281462    0.860134282
+          baseline 2, analytic expected cost     0.896547852    0.920010948
+         baseline 3, accumulated wasted time     0.895432743    0.919895282
+
+[PASS] baseline 2 ranks the generator's expectation better than baseline 1 does -- tau-b 0.896547852 against 0.729281462
+
+==============================================================================
+2. BASELINE 3's INTERVAL AGAINST THE GENERATOR'S EXPECTATION
+==============================================================================
+
+Resampling unit, declared on every interval and asserted before use:
+  'session', 330 of them
+
+Coverage is reported SEPARATELY for tests with at least one observed
+failure and for tests with none, because the two groups behave
+differently and an average over them would hide the second.
+
+tests with at least one observed failure: 31
+  the 95 per cent interval covers the generator's expectation: 30 of 31 = 0.967742
+tests with no observed failure          : 41
+  the interval covers the generator's expectation: 38 of 41 = 0.926829
+
+THE SECOND GROUP IS THE PRODUCT'S OWN SUBJECT. For a test that never
+failed in the window, every resample of the recorded sessions gives
+zero, so the interval is [0, 0]. That is a correct statement about the
+resampling distribution and a misleading statement about the test,
+whose true rate is only bounded above. It is the reason baseline 2
+exists: an analytic model extrapolates where an accumulation cannot.
+Those tests with a true expectation above zero are counted here and
+the under-coverage is published rather than averaged away.
+
+  of the 41 never-failing tests, 3 have a true expected wasted time above zero
+[PASS] coverage among tests with an observed failure is at least 0.70 -- 30/31 = 0.967742
+
+The 0.70 floor is deliberately below the nominal 0.95 and is declared
+here with its reason, not tuned to the measurement. Three effects pull
+the realised coverage down and all three are properties of the problem:
+the percentile bootstrap is uncorrected for the strong right skew of a
+wasted-time total; the generator's expectation includes the runtime
+distribution's mean while the accumulation saw a finite sample of it;
+and a test with two or three recorded failures has a resampling
+distribution with a handful of atoms, for which no percentile interval
+can have calibrated coverage.
+
+aggregate accumulated wasted time, s: 253493.03500000003
+  interval, s                       : [221006.75767500003, 285213.18475]
+  generator expectation, s          : 225460.93388879017
+  interval covers it                : True
+[PASS] the aggregate interval covers the generator's aggregate expectation -- [221006.758, 285213.185] against 225460.934
+
+==============================================================================
+3. BASELINE 1's BLINDNESS TO RUNTIME, AS A MEASUREMENT
+==============================================================================
+
+The flake rate is a ratio of integer counts, so it does not move when
+every duration in the history is scaled. The ground truth scales
+exactly with it. That is the defect, stated as a number.
+
+every duration multiplied by 7:
+  largest change in any flake-rate score : 0.0
+  ratio of accumulated wasted time       : 6.999999999999999
+[PASS] the flake-rate ranking does not move when every duration is scaled -- largest change 0.000e+00
+[PASS] the ground truth scales by the same factor -- 6.999999999999999
+
+==============================================================================
+4. NEGATIVE CONTROLS, ANCHORED ON THE GENERATOR'S EXPECTATION
+==============================================================================
+
+Each control perturbs the TRUE value, not an output, by a factor chosen
+so that leaving the interval is guaranteed rather than likely. The
+controls are restricted to tests whose interval is non-degenerate,
+because a [0, 0] interval is left by any positive perturbation and a
+control that cannot fail proves nothing.
+
+tests with at least 5 observed failures and a non-degenerate interval: 26
+  a true value 100x too large: the interval excludes it for 26 of 26 tests
+[PASS] control fires: the per-test interval rejects a true value 100x too large -- 26 of 26
+  a true value 100x too small: the interval excludes it for 26 of 26 tests
+[PASS] control fires: the per-test interval rejects a true value 100x too small -- 26 of 26
+
+CONTROL that must STAY SILENT: the unperturbed generator expectation is
+NOT rejected for a clear majority of those same tests. If it were, the
+controls above would be measuring a broken interval rather than a
+broken value.
+  the interval covers the unperturbed true value for 25 of 26 tests
+[PASS] control stays silent: the per-test interval rejects the unperturbed true value for most tests -- 25 of 26 covered
+
+CONTROL that must FIRE: the aggregate interval rejects an aggregate
+expectation scaled by 2, anchored on the true aggregate and checked to
+lie outside the interval before the control is evaluated.
+  2x the true aggregate: 450921.86777758034 s
+  the interval is [221006.75767500003, 285213.18475] s
+[PASS] control fires: the aggregate interval rejects twice the true aggregate -- 450921.868 against upper 285213.185
+
+==============================================================================
+checks: 10
+failures: 0
+controls that must fire: 3 of 3 fired
+controls that must stay silent: 1 of 1 silent
+==============================================================================

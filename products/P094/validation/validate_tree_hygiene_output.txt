@@ -40,7 +40,7 @@ MEASUREMENT MODEL
 ==============================================================================
 1. inherited state, reported and NOT failed on
 ==============================================================================
-  cache and bytecode paths present at entry: 55
+  cache and bytecode paths present at entry: 54
     .hypothesis
     .hypothesis/.gitignore
     .hypothesis/constants
@@ -53,7 +53,7 @@ MEASUREMENT MODEL
     .hypothesis/constants/69a99675348f9981
     .hypothesis/constants/9f29eed0b5b51c8c
     .hypothesis/constants/bc5e6ba04e3dea16
-    ... and 43 more
+    ... and 42 more
 
   These are INHERITED. Release-gate check 2 runs ruff with its working directory set to
   the product root and writes .ruff_cache one check before check 6 re-executes this
@@ -92,6 +92,7 @@ MEASUREMENT MODEL
 [PASS] ships: src/hiltimingdiff/__init__.py
 [PASS] ships: tests/conftest.py
 [PASS] ships: validation/VALIDATION.md
+[PASS] ships: validation/load_sensitive_inventory.md
 [PASS] ships: validation/_bootstrap.py
 
 ==============================================================================
@@ -114,7 +115,7 @@ MEASUREMENT MODEL
 ==============================================================================
 5. no tracked file carries an absolute path
 ==============================================================================
-  files scanned : 83
+  files scanned : 84
   offenders     : 0
 
   This script's own output file is excluded from the scan and is deleted before the
@@ -135,6 +136,6 @@ negative controls on the matcher and the scanner
 [PASS] control: the absolute-path scanner detects a planted absolute path (must fire) -- FIRED; the scanner's own predicate fires on a planted path, so a zero count above is a measurement
 [PASS] control: the campaign log, which the repository root ignores as `*.log`, is re-included (must NOT fire) -- did not fire; verdict from !/data/traces/campaign.log  (from P094/.gitignore)
 
-CHECKS RUN: 38
+CHECKS RUN: 39
 CONTROLS: 4 declared, 1 fired; must-fire 1/1, must-NOT-fire silent 3/3
 FAILED CHECKS (0): none

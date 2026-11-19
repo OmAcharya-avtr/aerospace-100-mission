@@ -1,0 +1,115 @@
+
+==============================================================================
+ACQUISITION-TIME DISTRIBUTION -- three independent moment paths
+==============================================================================
+INPUT ORIGIN: SYNTHETIC. No measured handover, no measured acquisition time and no measured link appears anywhere in this repository. Validation level 2: the evidence is agreement between a closed form, an independently derived bound and a simulated trace.
+
+The sources named in handoverloss/acquisition.py establish the FORM of this
+distribution -- a lognormal body from a product of positive search factors, and
+a geometric retry tail from aborted attempts. The parameter VALUES below are
+declared and span the envelope data/generate_corpus.py uses. None is a
+measurement reported by any cited source.
+
+python           : 3.13.18
+numpy            : 2.5.3
+scipy            : 1.18.1
+scikit-learn     : 1.9.1
+pytest           : 9.1.1
+hypothesis       : 6.170.15
+matplotlib       : 3.11.2
+ruff             : 0.17.5
+machine          : x86_64 Linux, 2 cores available to this process
+repository root  : P096 (printed relatively; see validation/_bootstrap.py)
+resamples        : 4000
+trace events     : 512
+
+==============================================================================
+1  closed form against Gauss-Legendre quadrature
+==============================================================================
+  cases differ only in the declared parameters; the arithmetic paths differ in
+  touching the distribution function versus the density.
+
+  median  sigma  abort  window      mean_closed    mean_quad     rel.diff
+     6.0   0.25   0.01    70.0       6.897531      6.897531  6.696e-15
+    20.0   0.50   0.20   100.0      47.603288     47.603288  1.493e-15
+    35.0   0.65   0.35   120.0     104.399790    104.399790  9.528e-16
+    58.0   0.80   0.55   150.0     242.242549    242.242549  4.693e-16
+    12.0   0.40   0.45    80.0      78.453913     78.453913  7.245e-16
+
+  worst relative difference, mean         : 6.695914e-15
+  worst relative difference, std dev      : 2.820248e-15
+[PASS] the closed form and the quadrature agree to 1e-9 relative on every case -- mean 6.696e-15, sd 2.820e-15; 512 Gauss-Legendre nodes
+
+==============================================================================
+2  both against Monte Carlo, with the tolerance set to the sampling error
+==============================================================================
+  200 000 draws per case. The criterion is 4 standard errors of the mean, which
+  is a derived bound and not a constant: a 4-sigma miss is a 1-in-15787 event
+  and would be evidence of a defect rather than of sampling.
+
+  median  sigma  abort     mean_closed      mean_mc    (mc-closed)/SE   sd_mc/sd
+     6.0   0.25   0.01       6.897531     6.888382         -0.5649   0.994674
+    20.0   0.50   0.20      47.603288    47.782803         +1.4049   1.003257
+    35.0   0.65   0.35     104.399790   104.665110         +1.0624   1.002051
+    58.0   0.80   0.55     242.242549   242.842523         +1.0750   1.002612
+    12.0   0.40   0.45      78.453913    78.685407         +1.0594   1.002921
+[PASS] every case's Monte Carlo mean is within 4 standard errors of the closed form -- 0 case(s) outside 4 sigma of 5
+
+==============================================================================
+3  the quantile approximation this measurement CAUSED TO BE REPLACED
+==============================================================================
+  Baseline 1's conservative setting is evaluated at an upper quantile of the
+  acquisition distribution. The first implementation obtained that quantile from
+  the exact moments through a normal approximation, mean + z * sd, to avoid a
+  Monte Carlo quantile inside a per-event loop. THIS CHECK FOUND THAT
+  APPROXIMATION TO BE WRONG BY A FACTOR OF 2.03 and it was replaced, rather than
+  the check being loosened to accommodate it. The replacement memoises the exact
+  quantile over the 128 DISTINCT acquisition parameter tuples a corpus of 1536
+  events carries, which costs about half a second for the whole scoring pass.
+
+  The failure is structural and not a tuning matter. A geometric retry tail
+  inflates the variance through a rare long attempt while leaving the 95th
+  percentile inside the lognormal body, so a symmetric two-parameter
+  approximation cannot track both ends. At a low abort probability it
+  OVERSTATES; at a high one it understates. Both directions are below.
+
+  median  sigma  abort   q95_exact(MC)  q95_normal_approx  approx/exact
+     6.0   0.25   0.01       9.255746          18.811818       2.032448
+    20.0   0.50   0.20     143.079652         141.594292       0.989619
+    35.0   0.65   0.35     316.689282         288.104098       0.909737
+    58.0   0.80   0.55     760.691858         652.807622       0.858176
+    12.0   0.40   0.45     257.420814         239.195555       0.929201
+
+  worst overstatement by the approximation: 2.032448x
+  worst understatement                    : 0.858176x
+  Those two numbers are the finding. They are quoted verbatim in the comment
+  above handoverloss.predictor.baseline_predictions and in README.md under
+  Limitations.
+
+  The check below is on the REPLACEMENT: that the exact quantile path
+  baseline_predictions now uses agrees with a direct 200 000-draw quantile to
+  within the sampling error of the smaller draw count it uses. The criterion is
+  derived from that draw count, not chosen.
+  draws used by baseline_predictions      : 60000
+     6.0   0.25   0.01  reference     9.255746 used     9.284722  rel 3.130620e-03
+    20.0   0.50   0.20  reference   143.079652 used   141.094564  rel 1.387401e-02
+    35.0   0.65   0.35  reference   316.689282 used   312.892893  rel 1.198774e-02
+    58.0   0.80   0.55  reference   760.691858 used   735.771409  rel 3.276024e-02
+    12.0   0.40   0.45  reference   257.420814 used   256.782843  rel 2.478320e-03
+
+  worst relative difference               : 3.276024e-02
+  derived sampling bound                  : 1.067708e-01
+[PASS] the memoised exact quantile agrees with a 200 000-draw quantile -- worst 3.276024e-02 against a derived bound of 1.067708e-01
+
+==============================================================================
+4  declared validity range is enforced, not merely documented
+==============================================================================
+  refused a non-positive median: median_s must be strictly positive, got 0.0
+  refused a non-positive log-scale shape: log_sigma must be strictly positive, got 0.0
+  refused an abort probability of 1, where nothing locks: abort_probability must lie in [0, 1); at 1 no attempt ever locks. Got 1.0
+  refused a window at or below the median: attempt_window_s (10.0) must exceed median_s (20.0). At or below the median almost every a
+[PASS] every out-of-range parameter combination is refused at construction -- 4 of 4 refused
+
+
+CHECKS RUN: 4
+FAILED CHECKS (0): none

@@ -1,0 +1,118 @@
+Link budget and rate-versus-elevation validation -- P099 PassYield
+
+fast path (PASSYIELD_FAST=1): False
+
+the vehicle is SYNTHETIC. EIRP, bandwidth, implementation margin and the
+spectral-efficiency ceiling are declared design values, not measurements of
+any flown spacecraft. The MODEL FORMS are cited; the PARAMETERS are declared.
+
+EIRP, dBW                        : 6.0
+frequency, Hz                    : 8200000000.0
+wavelength, m                    : 0.036560055853658534
+bandwidth, MHz                   : 50.0
+implementation margin, dB        : 3.0
+eta_max, bit/s/Hz                : 5.0
+R_max = B * eta_max, Mbit/s       : 250.0
+-10*log10(k), dB                 : 228.59916717321767
+
+==============================================================================
+1. HAND ARITHMETIC AT POINTS WHERE THE ARITHMETIC IS EXACT
+==============================================================================
+Boltzmann term: k = 1.380649e-23 J/K is an EXACT SI defining constant since
+2019, so -10*log10(k) carries no uncertainty.
+  computed: 228.59916717321767
+  recomputed here: 228.59916717321767
+[PASS] the Boltzmann term is 228.5991671732 dB -- 228.5991671732
+
+Friis (1946) free-space loss: doubling the range adds 20*log10(2) dB.
+  L(500 km)  = 164.703460 dB
+  L(1000 km) = 170.724060 dB
+  difference = 6.020599913 dB, expected 6.020599913 dB
+[PASS] doubling the range costs 6.020600 dB -- 6.020599913 dB
+
+ITU-R P.618 secant slant path: sin(30) = 0.5 exactly, so the slant
+attenuation at 30 degrees is twice the zenith value; at 90 degrees it is
+the zenith value.
+  A(30 deg, A_z = 0.4 dB) = 0.800000000 dB
+  A(90 deg, A_z = 0.4 dB) = 0.400000000 dB
+[PASS] A(30) is twice A_z -- 0.800000000000
+[PASS] A(90) equals A_z -- 0.400000000000
+
+==============================================================================
+2. SPREAD AND SATURATION OVER THE CATALOGUE
+==============================================================================
+a rate-versus-elevation relationship that saturated at the mask would make
+the geometric term of the decomposition identically zero. This is the
+measurement that shows it does not.
+
+sweep altitude, km: 400.0 (inside the measured 373-423 km range)
+
+  station    G/T   A_z   R(mask)     R(90)   spread  saturated
+    GS-01   22.0  0.50     48.68    224.91     4.62     0.0000
+    GS-02   20.5  0.55     35.62    200.52     5.63     0.0000
+    GS-03   19.5  0.60     35.70    184.29     5.16     0.0000
+    GS-04   23.0  0.35     65.53    243.26     3.71     0.0000
+    GS-05   21.5  0.45     46.97    217.78     4.64     0.0000
+    GS-06   20.0  0.70     48.17    190.44     3.95     0.0000
+    GS-07   22.5  0.40     58.00    234.46     4.04     0.0000
+    GS-08   24.0  0.30     79.04    250.00     3.16     0.2743
+
+smallest rate spread across a pass, R(90)/R(mask): 3.163
+largest  rate spread across a pass               : 5.629
+largest saturated fraction of the sweep          : 0.2743
+[PASS] every station's rate varies by at least a factor of two across the pass -- smallest spread 3.163
+[PASS] no station saturates over more than half the elevation range -- largest saturated fraction 0.2743
+
+the saturated fraction is NOT zero, and that matters: min(eta_max, ...)
+makes the rate profile only C0 at the saturation boundary, so the C4
+composite-Simpson error bound does not hold there. That is the mechanism
+behind the decomposition residual, measured in
+validation/validate_decomposition.py.
+
+==============================================================================
+3. MONOTONICITY OVER A DENSE GRID
+==============================================================================
+slant range falls and slant attenuation falls as elevation rises, so C/N0
+rises and eta is NON-DECREASING. Non-decreasing and not strictly
+increasing, because the saturated region is flat.
+
+grid points per station                   : 2001
+most negative step in the rate, Mbit/s    : 0.000e+00
+flat steps (the saturated region)         : 546 of 16000
+[PASS] the rate is non-decreasing in elevation everywhere -- most negative step 0.000e+00
+[PASS] control fires: the flat region exists, so monotonicity is non-strict and said so -- 546 flat steps
+
+==============================================================================
+4. THE DECLARED VALIDITY RANGE, EXERCISED IN BOTH DIRECTIONS
+==============================================================================
+MINIMUM_VALID_ELEVATION_DEG = 10.0
+ITU-R P.618 states the 1/sin scaling for elevations above about 10 degrees;
+below that the Earth's curvature makes the plane-parallel assumption fail
+and the recommendation switches to an effective-path-length formulation.
+This model REFUSES below 10 degrees rather than extrapolating.
+
+[PASS] control fires: the model refuses elevation -1.0 degrees
+[PASS] control fires: the model refuses elevation 0.0 degrees
+[PASS] control fires: the model refuses elevation 5.0 degrees
+[PASS] control fires: the model refuses elevation 9.999 degrees
+[PASS] control fires: the model refuses elevation 90.001 degrees
+[PASS] control fires: the model refuses elevation 180.0 degrees
+  A(10 deg, A_z = 0.4) = 2.303508 dB
+[PASS] control stays silent: the model accepts exactly 10 degrees, the stated boundary
+
+C/N0 is linear in G/T in dB by construction of the link equation, so a 6 dB
+better station is 6 dB better on the link. Checked as a known answer.
+  C/N0 at G/T = 18 dB/K: 83.697813 dB-Hz
+  C/N0 at G/T = 24 dB/K: 89.697813 dB-Hz
+[PASS] 6 dB more figure of merit is 6 dB more C/N0 -- 6.000000000 dB
+
+eta at 30 deg, G/T = 21 dB/K, A_z = 0.45 dB: 2.480117 bit/s/Hz
+R = B * eta                                : 124.005868 Mbit/s
+[PASS] R equals B times eta exactly, so the units compose -- 124.005868316 against 124.005868316
+
+==============================================================================
+checks: 17
+failures: 0
+controls that must fire: 7 of 7 fired
+controls that must stay silent: 1 of 1 silent
+==============================================================================

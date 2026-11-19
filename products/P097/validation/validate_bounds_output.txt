@@ -1,0 +1,140 @@
+The independently derived bracket on total wasted time -- P097 flakerank
+
+The accumulator masks, groups and sums. The bounds here use a failure
+COUNT plus statistics over the whole duration sample: two extreme order
+statistics, and the second moment. Neither groups anything, and min and
+max are selections rather than additions, so they cannot share an
+accumulation error with the thing they bracket.
+
+Equation (1): F * t_min <= W <= F * t_max, counting plus order statistics.
+Equation (2): W <= sqrt(F * sum t^2), Cauchy-Schwarz against the all-ones
+  vector; source Hardy, G. H., Littlewood, J. E. & Polya, G. (1952),
+  Inequalities, 2nd edition, Cambridge University Press.
+Equation (3): slack = SAFETY * F * eps * sum|t|, the standard forward
+  error bound for floating-point summation; see Higham, N. J. (2002),
+  Accuracy and Stability of Numerical Algorithms, 2nd edition, SIAM,
+  chapter 4.
+
+unit roundoff eps = 2**-53 = 1.1102230246251565e-16
+SAFETY = 4.0, covering the grouped rather than strictly recursive
+  accumulation order of numpy.add.at
+
+fast path (FLAKERANK_FAST=1): False
+history: data/run_history.json sha256 aa12f8cc861ba66008a0d3762cd68fa24a24b013f897da67c8151996c531b18a
+
+==============================================================================
+1. THE BRACKET OVER SIX SESSION WINDOWS
+==============================================================================
+
+      window      F   accumulated s        low s    order high s     C-S high s     slack s    in
+     [0,330)   1417      253493.035       15.587     2618778.955    1575872.940   1.859e-06  True
+      [0,30)    120       21677.570        2.040      169312.080     135313.432   1.396e-08  True
+     [0,110)    399       59118.799        5.187      737397.885     476173.684   1.706e-07  True
+   [110,220)    369       76843.540        5.535      639092.502     465354.947   1.607e-07  True
+   [220,330)    649      117530.696        7.139     1066917.709     622672.980   2.910e-07  True
+   [300,330)    177       27357.105        2.478      283274.694     166631.562   2.131e-08  True
+
+[PASS] the bracket contains the accumulated total in every window -- 6 windows
+
+slack divided by bracket width, worst of the windows: 1.179e-12
+[PASS] the slack is below 1e-6 of the bracket width, so it is not what makes the check pass -- worst ratio 1.179e-12
+
+==============================================================================
+2. THE WHOLE HISTORY, IN FULL
+==============================================================================
+
+failed attempts F                  : 1417
+shortest attempt t_min, s          : 0.011
+longest attempt t_max, s           : 1848.115
+sum of squared durations, s^2      : 1752558590.374539
+sum of absolute durations, s       : 2953413.2929999996
+
+accumulated wasted time, s         : 253493.03500000003
+equation (1) lower, F * t_min, s   : 15.587
+equation (1) upper, F * t_max, s   : 2618778.955
+equation (2) upper, Cauchy-Schwarz : 1575872.9398529318
+tightest upper bound, s            : 1575872.9398529318
+equation (3) slack, s              : 1.8585074084946914e-06
+margin to the lower bound, s       : 253477.44800185855
+margin to the upper bound, s       : 1322379.9048547903
+bracket width over accumulated     : 6.216570616438955
+
+[PASS] the bracket contains the accumulated total
+[PASS] Cauchy-Schwarz is the tighter of the two upper bounds on this history -- 1575872.940 against 2618778.955
+
+WHAT THIS BOUND IS WORTH, stated rather than implied. The bracket's
+width is set by the spread of the duration sample, and this history
+spans 0.011 s to 1848.115 s. So:
+  a DOUBLED accumulator total still fits inside it: True
+  a TENFOLD total does not                        : False
+
+The bound therefore catches structural errors -- the wrong mask, a
+missing group, a sign, a double count -- and not every multiplicative
+one. That is a property of the bound and not a defect in it, and the
+control below uses a history where the bracket IS tight.
+
+==============================================================================
+3. A HISTORY WHERE THE BRACKET IS EXACT
+==============================================================================
+
+40 attempts of 1000 ms each, 20 of them failing. t_min = t_max, so
+equation (1) gives [20.0, 20.0] s exactly and any multiplicative error
+at all leaves it.
+
+accumulated, s        : 20.0
+equation (1) bracket  : [20.0, 20.0]
+equation (2) upper, s : 28.284271247461902
+slack, s              : 3.552713678800501e-13
+[PASS] the exact bracket contains the accumulated total
+[PASS] the exact bracket has zero width before the slack -- [20.0, 20.0]
+
+==============================================================================
+4. NEGATIVE CONTROLS, ANCHORED ON THE BOUND ITSELF
+==============================================================================
+
+Each injected value is derived from the BOUND, not from the
+accumulator's output, and is checked to lie beyond the bound plus the
+slack BEFORE the control is evaluated. An offset applied to a value
+already inside a band need not leave it, which is how an earlier
+product of this mission shipped two of eleven controls silently too
+weak.
+
+1.5x the tightest upper bound: 2363809.409779398 s
+  beyond upper + slack: True
+[PASS] control fires: the bracket rejects a total 1.5x above its upper bound
+0.5x the lower bound: 7.7935 s
+  below lower - slack: True
+[PASS] control fires: the bracket rejects a total half its lower bound
+
+On the exact-bracket history, where the bound can see a multiplicative
+error:
+[PASS] control fires: the exact bracket rejects a total 2.0x the truth -- 40.0 s
+[PASS] control fires: the exact bracket rejects a total 1.1x the truth -- 22.0 s
+[PASS] control fires: the exact bracket rejects a total 1.001x the truth -- 20.019999999999996 s
+
+CONTROLS that must STAY SILENT. A check that cannot pass is as useless
+as one that cannot fail.
+[PASS] control stays silent: the bracket rejects the accumulated total
+[PASS] control stays silent: the bracket rejects a total sitting exactly on its upper bound -- the bracket is a closed interval and both ends are attainable
+[PASS] control stays silent: the exact bracket rejects its own accumulated total
+
+==============================================================================
+5. THE BRACKET ON RANDOM SYNTHETIC HISTORIES
+==============================================================================
+
+The bracket is a mathematical consequence of counting and order
+statistics, so it must hold on every history the loader accepts and not
+only on the committed one. 200 synthetic histories are generated at the
+declared seed, with integer millisecond durations spanning four orders
+of magnitude and random outcomes.
+
+synthetic histories generated: 200
+the bracket held on             : 200
+[PASS] the bracket holds on every synthetic history -- 200 of 200
+
+==============================================================================
+checks: 15
+failures: 0
+controls that must fire: 5 of 5 fired
+controls that must stay silent: 3 of 3 silent
+==============================================================================

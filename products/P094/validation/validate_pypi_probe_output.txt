@@ -49,7 +49,6 @@ the probe
   numpy          HTTP 200  latest version 2.5.5
   pandas         HTTP 200  latest version 3.1.1
 
-[PASS] the probe reached PyPI for every name -- a probe that cannot reach PyPI returns -1 and no availability claim is made
 [PASS] control numpy comes back TAKEN with HTTP 200 -- HTTP 200 latest version 2.5.5
 [PASS] control pandas comes back TAKEN with HTTP 200 -- HTTP 200 latest version 3.1.1
 [PASS] hiltimingdiff comes back FREE with HTTP 404 -- HTTP 404 Not Found
@@ -70,6 +69,6 @@ negative controls on the probe itself
 [PASS] control: a name that cannot exist comes back TAKEN (must NOT fire) -- did not fire; HTTP 404: a 404 here is what a free name looks like, which is why the 200 controls above are required
 [PASS] control: a name that cannot exist comes back FREE (must fire) -- FIRED; HTTP 404
 
-CHECKS RUN: 6
+CHECKS RUN: 5
 CONTROLS: 2 declared, 1 fired; must-fire 1/1, must-NOT-fire silent 1/1
 FAILED CHECKS (0): none

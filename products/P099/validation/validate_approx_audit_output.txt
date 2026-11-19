@@ -1,0 +1,47 @@
+pytest.approx hidden-default audit -- P099 PassYield
+
+the hidden absolute default is 1e-12. approx passes if
+EITHER bound is met, so a relative bound tighter than about 2e-8 on a
+quantity of order 1e-5 is silently replaced by it. This product has
+quantities exactly there: the decomposition residual is of order 1e-3 Mbit
+on a shortfall of order 1e4 Mbit.
+
+fast path (PASSYIELD_FAST=1): False
+
+==============================================================================
+1. STATIC -- every approx call under tests/, from the syntax tree
+==============================================================================
+test files scanned          : 13
+approx calls found          : 80
+  rel= and abs= both given  : 80
+  abs= only                 : 0
+  rel= only (the defect)    : 0
+  neither (approx defaults) : 0
+
+[PASS] no approx call passes rel= without abs= -- 0 do
+
+==============================================================================
+2. DYNAMIC -- the whole suite re-run with the default forbidden
+==============================================================================
+the plugin in validation/_approx_audit_plugin.py replaces pytest.approx
+with a wrapper that RAISES when rel is given and abs is not. A suite that
+passes under it has no assertion resting on the default at run time.
+
+  pytest: ........................................................................ [ 76%]
+  pytest: ....................................................................     [100%]
+  pytest: 284 passed in 6.33s
+  exit status: 0
+
+the test count in that transcript is pytest stdout and is NOT the number
+this product reports. Test counts come from the junit XML only: a suite
+that collects zero tests prints success and exits 0, which is how a
+product of this mission shipped with a recorded 251 tests and a config
+that collected none.
+
+[PASS] the suite passes with the hidden absolute default forbidden -- exit status 0
+[PASS] assertions depending on the hidden default: 0 -- static count 0, dynamic exit 0
+
+==============================================================================
+checks: 3
+failures: 0
+==============================================================================

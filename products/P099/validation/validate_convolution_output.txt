@@ -1,0 +1,130 @@
+Baseline 2 convolution validation -- P099 PassYield
+
+fast path (PASSYIELD_FAST=1): False
+Monte Carlo draws           : 200000
+passes compared             : 24
+seed                        : 99099
+
+THE CONVOLUTION IS NUMERICAL, NOT CLOSED FORM. The cumulative volume
+Lambda(t) is an SGP4-driven integral with no elementary inverse, so neither
+pushforward has an elementary density and the compound Poisson sum has no
+elementary transform. The work is done on a uniform grid of data volume in
+Mbit with numpy.convolve.
+
+Poisson truncation tolerance: 1e-09
+
+the laws BOTH methods use, fitted from the committed record by the method
+of moments:
+  acquisition Gamma shape, scale : 2.602004, 21.350746 s
+  outage intensity, 1/s          : 0.01180478
+  mean outage duration, s        : 12.829746
+  idle Gamma shape, scale        : 0.405905, 81.189079 s
+  passes the moments came from   : 1990
+
+==============================================================================
+1. DISCRETISATION -- the measured convergence of the median quantile
+==============================================================================
+the volume grid spans [0, Y_cap] in `bins` uniform bins, so the step is
+Y_cap/bins and a quantile carries at least half a bin of discretisation by
+construction. The pushforward is mass-preserving, so the error in the
+cumulative distribution function is FIRST order in the step.
+
+reference pass: pass_id 0, GS-04, peak elevation 85.97 deg
+window capacity, Mbit: 58001.660
+
+   bins   step, Mbit   median, Mbit       change    ratio
+    256     226.5690     21213.6896          nan      nan
+    512     113.2845     21516.3137     302.6241      nan
+   1024      56.6422     21660.5563     144.2426     2.10
+   2048      28.3211     21748.2484      87.6921     1.64
+
+successive changes, Mbit: [302.6241, 144.2426, 87.6921]
+implied convergence order in the step: 0.894
+first order is what a mass-preserving binned pushforward gives. A higher
+apparent order on a single pass is the kink and the source grids
+interacting, not a property to rely on.
+[PASS] the median quantile converges as the grid is refined -- change fell from 302.6241 to 87.6921 Mbit
+
+==============================================================================
+2. TWO METHODS -- the convolution against a direct Monte Carlo
+==============================================================================
+the tolerance for each quantile is DERIVED per pass, not tuned, from two
+terms.
+
+DISCRETISATION. A discrete convolution adds BIN INDICES, not values, so
+each convolution stage can displace the result by up to one grid step. The
+number of stages on a pass is one for the acquisition law, one for the idle
+law, and one per outage in the compound Poisson sum, which is truncated at
+the Poisson 1-in-1e9 quantile. The discretisation term is therefore
+(1 + stages) grid steps, and `stages` is printed per pass so the term can
+be checked rather than taken on trust.
+
+SAMPLING. The Monte Carlo quantile's standard error is
+4*sigma*sqrt(p(1-p)/n), using 1/(4 sigma) as a crude lower bound on the
+density of a unimodal law. Three of those.
+
+  pass  station  stages  level   convolution   monte carlo     |diff|   steps  tolerance   ok
+     0    GS-04      25   0.05     10235.122      9943.659    291.463    5.15   1534.844 True
+     0    GS-04      25   0.10     12033.680     11755.944    277.736    4.90   1558.242 True
+     0    GS-04      25   0.25     15879.157     15611.947    267.210    4.72   1596.170 True
+     0    GS-04      25   0.50     21660.556     21380.458    280.099    4.95   1615.271 True
+     0    GS-04      25   0.75     29651.848     29409.746    242.101    4.27   1596.170 True
+     0    GS-04      25   0.90     39868.689     39529.314    339.375    5.99   1558.242 True
+     0    GS-04      25   0.95     47978.595     47578.435    400.160    7.06   1534.844 True
+
+quantile comparisons made           : 161
+comparisons outside tolerance       : 0
+worst |difference| / tolerance      : 0.2607
+worst |difference| in grid steps    : 7.06
+[PASS] every quantile of the two methods agrees within the stated tolerance -- 0 of 161 outside
+
+THE STRUCTURAL APPROXIMATION, MEASURED. The convolution treats the three
+losses as independent and additive. They are not: inside one window the
+intervals must be disjoint, so any probability either method puts above the
+window capacity is probability the independence assumption invented. Both
+methods report it, and the two must agree, because they share the
+assumption.
+
+convolution truncated mass, median  : 2.072740e-02
+convolution truncated mass, worst   : 6.260082e-01
+monte carlo truncated mass, median  : 2.065000e-02
+monte carlo truncated mass, worst   : 6.234050e-01
+worst disagreement between the two  : 2.603172e-03
+[PASS] the two methods agree on the invented probability to within 0.01 -- worst gap 2.603172e-03
+
+that number is a LIMITATION of baseline 2 and is published as one: it is
+the fraction of baseline 2's own law that is physically impossible. It is
+also why baseline 2 is not ground truth, which is baseline 3's job.
+
+==============================================================================
+3. ONE INDEPENDENT BOUND -- mathematics neither method uses
+==============================================================================
+0 <= Y_real <= R_max * T, path by path, from the pass duration and the
+waveform's rate ceiling R_max = 250.0 Mbit/s alone.
+No quadrature of the rate profile, no pushforward, no convolution, no
+random numbers. 'Two implementations agree' cannot catch an error the two
+share; this can.
+
+quantiles and accounted values bracketed : 394
+outside the bracket                      : 0
+[PASS] every quantile of both methods lies inside the independent bracket -- 0 of 394 outside
+
+THREE NEGATIVE CONTROLS, each anchored on the TRUE value and each verified
+to FIRE. A control that cannot fire reads as evidence and is the worse of
+the two failures.
+
+reference pass: pass_id 0, GS-04
+bracket, Mbit : [-33913.335, 62049.951]
+true shortfall: 11546.200 Mbit
+
+[PASS] control fires: a Mbit-reported-as-bit unit slip (factor 1e6) leaves the bracket -- injected 1.155e+10 Mbit
+[PASS] control fires: a sign flip on the shortfall leaves the bracket -- injected Y_nom + R_max*T, which exceeds the bracket's own upper end
+[PASS] control fires: a shortfall larger than the booked volume leaves the bracket -- injected 62057.156 Mbit
+[PASS] control stays silent: the true shortfall stays inside the bracket -- 11546.200 Mbit
+
+==============================================================================
+checks: 8
+failures: 0
+controls that must fire: 3 of 3 fired
+controls that must stay silent: 1 of 1 silent
+==============================================================================

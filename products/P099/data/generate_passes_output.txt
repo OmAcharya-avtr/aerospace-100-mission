@@ -1,0 +1,66 @@
+P099 PassYield -- per-pass campaign generator
+
+seed: 990099
+campaign days from the element-set epoch: 60.0
+coarse scan step, s: 5.0
+minimum bookable pass duration, s: 60.0
+onboard generation rate, Mbit/s: 8.5
+rate ceiling R_max = B * eta_max, Mbit/s: 250.0
+
+element set, verbatim from the sgp4 package's SGP4-VER.TLE:
+  1 06251U 62025E   06176.82412014  .00008885  00000-0  12808-3 0  3985
+  2 06251  58.0579  54.0425 0030035 139.1568 221.1854 15.56387291  6774
+
+stations: eight SYNTHETIC sites. Declared placements and declared design
+figures, not measurements of any real ground station.
+
+--- pass search -------------------------------------------------------
+GS-01: 301 windows above the 10.0 degree mask, 299 at or above the bookable threshold
+GS-02: 363 windows above the 10.0 degree mask, 363 at or above the bookable threshold
+GS-03: 320 windows above the 12.0 degree mask, 319 at or above the bookable threshold
+GS-04: 168 windows above the 10.0 degree mask, 168 at or above the bookable threshold
+GS-05: 309 windows above the 10.0 degree mask, 309 at or above the bookable threshold
+GS-06: 113 windows above the 15.0 degree mask, 113 at or above the bookable threshold
+GS-07: 194 windows above the 10.0 degree mask, 191 at or above the bookable threshold
+GS-08: 232 windows above the 10.0 degree mask, 228 at or above the bookable threshold
+
+bookable passes in the campaign: 1990
+shortest retained pass, s: 60.342
+longest retained pass, s : 409.648
+
+--- event draws and decomposition -------------------------------------
+  decomposed 250 of 1990 passes
+  decomposed 500 of 1990 passes
+  decomposed 750 of 1990 passes
+  decomposed 1000 of 1990 passes
+  decomposed 1250 of 1990 passes
+  decomposed 1500 of 1990 passes
+  decomposed 1750 of 1990 passes
+
+--- record ------------------------------------------------------------
+passes written            : 1990
+record, bytes             : 754690
+record, SHA-256           : f6b8e94b672484ddcbb14e92ea5db20807bc7bdd92635bcd50aba18684141154
+stations                  : ['GS-01', 'GS-02', 'GS-03', 'GS-04', 'GS-05', 'GS-06', 'GS-07', 'GS-08']
+campaign nominal, Mbit    : 7.41524e+07
+campaign capacity, Mbit   : 6.36543e+07
+campaign realised, Mbit   : 4.53228e+07
+campaign shortfall, Mbit  : 2.88296e+07
+realised / capacity       : 0.712014
+realised / nominal        : 0.611211
+max |residual|, Mbit      : 5.065014e+00
+max |residual| / shortfall: 8.705712e-04
+passes with acquisition longer than the pass: 44
+
+--- event model fitted from the record (method of moments) ------------
+acquisition Gamma shape        : 2.602004
+acquisition Gamma scale, s     : 21.350746
+outage intensity, 1/s          : 0.01180478
+mean outage duration, s        : 12.829746
+idle Gamma shape               : 0.405905
+idle Gamma scale, s            : 81.189079
+passes the moments came from   : 1990
+
+wrote data/passes.csv and data/manifest.json in 12.9 s
+this elapsed time is a build note, not an asserted quantity: no test and no
+validation script in this product compares two wall-clock measurements.
