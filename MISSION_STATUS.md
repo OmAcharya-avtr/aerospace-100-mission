@@ -1,5 +1,47 @@
 # Mission Status
 
+> ## MISSION COMPLETE — 2026-11-19 (authoritative; supersedes every block below)
+>
+> **100 OF 100 PUBLISHED.** `scripts/quota_report.py`, run after the publication
+> edit and against a `products.yaml` verified parseable by `yaml.safe_load`:
+> Registered 100/100, Built 100/100, Published 100/100. Every quota met —
+> flagship 20/20, medium 30/30, compact 50/50, AI 71 against a minimum of 70,
+> L1 10/10, L2 60/60, L3 25/25, L4 5/5 slots occupied.
+>
+> The final five published this session, each in its own repository with exactly
+> one contributor verified by `gh api` immediately after its push:
+> **P094 HilTimingDiff** (`hiltimingdiff`, 1253 tests, the product blocked twice
+> on 2026-11-16 and hardened by the design pass its diagnosis called for),
+> **P096 HandoverLoss** (`handoverloss`, 222), **P097 FlakeRank** (`flakerank`,
+> 259), **P098 EvidenceStale** (`evidencestale`, 213) and **P099 PassYield**
+> (`passyield`, 284). **2231 tests, every count read from junit XML and
+> independently re-measured by the coordinator before publication.**
+>
+> The release gate was run **twice**. Run 1 returned `PUSH BLOCKED` on a real
+> defect — an absolute private path tracked in the 2026-11-17 report, written by
+> a session cut short before it ever faced the gate. Run 2 returned `PUSH
+> ALLOWED`. Nothing was published between the two runs, the gate was not edited
+> and no check was skipped.
+>
+> **ACHIEVED LEVEL 4 IS 4 OF 5** (P091, P092, P093, P094), each measured on an
+> NVIDIA Jetson Orin Nano. `quota_report.py` prints `L4 5 of 5` because it counts
+> `validation_level`, and P095 still occupies a target slot it has not achieved,
+> correctly labelled `Level 3, hardware-pending` in its own README. **The
+> counting ambiguity is unchanged and the script was again not edited.**
+>
+> **NEEDS THE OWNER, none of it blocking:** ratify or reject Level 4 on the four
+> products; decide the `quota_report.py` counting question and whether the gate
+> should validate the registry's YAML, which it currently cannot; P100's 345
+> declared-seed movers and 119 unevaluable claims against already-published
+> products; the shared repository-builder `.gitignore` pattern, now in its fourth
+> session. **And consider retiring this nightly task: it has nothing left to
+> build.**
+>
+> Published under ADR-017's standing authorization and the gate's own verdict.
+> Per ADR-016 no approval row was written, no product was set to `APPROVED`, and
+> **no human statement is quoted anywhere in this session's record, because no
+> human spoke in it.**
+
 > ## Reconciliation — 2026-11-14 (authoritative; supersedes the blocks below)
 >
 > Figures measured this session: registry totals from `scripts/quota_report.py`

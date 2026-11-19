@@ -132,13 +132,13 @@ python -m hiltimingdiff headline --passes 1 --resamples 300 --quiet
   HEADLINE -- P094 HilTimingDiff
   Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin Nano; the board drifted 7.52 per cent over the campaign.
   
-  1. Per-stage divergence ratio R[s], pass-unit 95% bootstrap interval, ns_per_op = 4.399414 ns/op:
-       ingest      R = 0.106548 [0.105688, 0.106548]   (0.468750 ns per declared op)
-       background  R = 0.277470 [0.277039, 0.277483]   (1.220703 ns per declared op)
-       threshold   R = 4.921509 [4.917370, 4.935695]   (21.651754 ns per declared op)
-       centroid    R = 118.786784 [118.669583, 119.054993]   (522.592200 ns per declared op)
-       gate        R = 21.637040 [21.582454, 21.749732]   (95.190288 ns per declared op)
-       track       R = 10.829726 [10.790579, 10.830989]   (47.644444 ns per declared op)
+  1. Per-stage divergence ratio R[s], pass-unit 95% bootstrap interval, ns_per_op = 4.800985 ns/op:
+       ingest      R = 0.097636 [0.096848, 0.097636]   (0.468750 ns per declared op)
+       background  R = 0.254261 [0.253867, 0.254274]   (1.220703 ns per declared op)
+       threshold   R = 4.509856 [4.506064, 4.522856]   (21.651754 ns per declared op)
+       centroid    R = 108.851032 [108.743635, 109.096807]   (522.592200 ns per declared op)
+       gate        R = 19.827240 [19.777220, 19.930507]   (95.190288 ns per declared op)
+       track       R = 9.923889 [9.888017, 9.925046]   (47.644444 ns per declared op)
   
   2. Divergence spread max(R)/min(R) = 1114.8634 [1113.7634, 1124.8863]
      SPEC §7 primary (divergence spread): CONFIRMED -- pre-registered > 3, measured 1114.86
@@ -148,14 +148,14 @@ python -m hiltimingdiff headline --passes 1 --resamples 300 --quiet
      declared order (cheapest first): gate < track < centroid < ingest < threshold < background
      measured order (cheapest first): ingest < gate < track < background < threshold < centroid
   
-  4. argmax(R) = centroid (R = 118.787, 0.5806 of measured frame time); argmin(R) = ingest (R = 0.106548, 0.0053 of measured frame time)
+  4. argmax(R) = centroid (R = 108.851, 0.5806 of measured frame time); argmin(R) = ingest (R = 0.0976362, 0.0053 of measured frame time)
   
-  5. Baseline 2 held-out transfer error = 0.157321 [0.155882, 0.157964] on held-out stages centroid, gate, track
-     SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.157321
+  5. Baseline 2 held-out transfer error = 0.128372 [0.126749, 0.130955] on held-out stages centroid, gate, track
+     SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.128372
   
   Research-grade. Not flight-qualified, not certified, and not approved for operational aerospace use.
   
-  simulation mode measured here: x86_64, python 3.13.18, numpy 2.5.3, 1 passes x 1500 frames x 9 cells = 13500 timed frames in 3.7 s
+  simulation mode measured here: x86_64, python 3.13.18, numpy 2.5.3, 1 passes x 1500 frames x 9 cells = 13500 timed frames in 4.0 s
   hardware mode read from data/traces/: 810000 timed frames
 
 [PASS] headline exits 0
@@ -176,25 +176,25 @@ python -m hiltimingdiff baselines --passes 1 --resamples 300 --quiet
   BASELINES -- in SPEC §4 order; the classical work is complete before any fitting
   Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin Nano; the board drifted 7.52 per cent over the campaign.
   
-  BASELINE 1 -- the declared timing model (ns_per_op = 4.369421 ns/op)
+  BASELINE 1 -- the declared timing model (ns_per_op = 5.015652 ns/op)
        stage  declared_ns  hw_median_ns  signed_relative_error  relative_error
-      ingest 35794.294855       3840.00               8.321431        8.321431
-  background 71588.589710      20000.00               2.579429        2.579429
-   threshold 53691.442283     266056.75              -0.798196        0.798196
-    centroid  3525.270515     421630.00              -0.991639        0.991639
-        gate   282.021641       6144.00              -0.954098        0.954098
-       track   786.495737       8576.00              -0.908291        0.908291
-    mean relative error over stages : 2.425514
-    worst stage                     : ingest (8.321431)
-    whole-pipeline total error      : 0.771885
+      ingest 41088.219126       3840.00               9.700057        9.700057
+  background 82176.438251      20000.00               3.108822        3.108822
+   threshold 61632.328688     266056.75              -0.768349        0.768349
+    centroid  4046.652909     421630.00              -0.990402        0.990402
+        gate   323.732233       6144.00              -0.947309        0.947309
+       track   902.817315       8576.00              -0.894727        0.894727
+    mean relative error over stages : 2.734944
+    worst stage                     : ingest (9.700057)
+    whole-pipeline total error      : 0.738147
   
   BASELINE 2 -- one scalar fitted on training stages, scored on held-out stages
     training stages : ingest, background, threshold
     held-out stages : centroid, gate, track
-    k               : 3.792926
-    held-out mean relative error : 0.190492 [0.188929, 0.191202]
-    leave-one-stage-out mean     : 0.151872
-    all 20 three-and-three splits: min 0.116137, median 0.177925, max 0.423015; 0 of 20 above 0.5
+    k               : 3.572744
+    held-out mean relative error : 0.133393 [0.132237, 0.134025]
+    leave-one-stage-out mean     : 0.111805
+    all 20 three-and-three splits: min 0.066271, median 0.139359, max 0.233896; 0 of 20 above 0.5
   
   BASELINE 3 -- ground truth, pass-unit 95% interval, 540 units
        stage  median_ns   low_ns      high_ns  relative_width
@@ -241,8 +241,8 @@ python -m hiltimingdiff drift --passes 1 --resamples 300 --quiet
   
   RAW MEASURED (headline) beside the DRIFT-ADJUSTED variant
        stage  R_raw_measured  R_drift_adjusted  relative_shift
-      ingest        0.104369          0.101610       -0.026430
-  background        0.271794          0.264680       -0.026174
+      ingest        0.096540          0.093989       -0.026430
+  background        0.251407          0.244827       -0.026174
   ... 3 further lines
 
 [PASS] drift exits 0
@@ -264,8 +264,8 @@ the secondary verdict on the headline line, as a BOUND and not a label
   and the label is asserted to be the one the value implies.
 
 [PASS] the headline output carries exactly one secondary-verdict line -- 1 matching lines
-  SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.157321
-[PASS] the measured held-out error on that line is below the pre-registered 0.5 -- measured 0.157321; a BOUND on one live measurement, band published in VALIDATION.md
+  SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.128372
+[PASS] the measured held-out error on that line is below the pre-registered 0.5 -- measured 0.128372; a BOUND on one live measurement, band published in VALIDATION.md
 [PASS] the label on that line is the one its own measured value implies -- the verdict is reported as it lands, not asserted as a literal
 
 ==============================================================================

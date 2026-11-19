@@ -1587,13 +1587,13 @@ products:
     validation_level: 4
     validation_level_achieved: 4
     validation_level_note: "ACHIEVED LEVEL 4, the fourth in this mission after P091, P092 and P093. The criterion is the mission's own: the hardware-mode per-stage timing comes from an NVIDIA Jetson Orin Nano, not from a simulation. 9 of 9 planned cells, 810,000 timed frames, 734.03 s of measured board time on 2026-11-15, eleven drift-calibration blocks. THE SCOPE IS PART OF THE RESULT AND IT IS NARROW: one board, one ambient, one power mode (MAXN_SUPER, because sudo -n true fails on this board), an UNPINNED schedutil clock, a pure-numpy CPU pipeline, and a shared board. TWO SCOPE LIMITS ARE SHARPER THAN P093'S: the clock could not be pinned, so every figure is a figure at an unpinned clock - measured rather than asserted, by sampling per-core frequency and four thermal zones before, six times within and after every cell - and the board's own fixed reference workload drifted 7.52 per cent slower over the campaign, which is reported with the headline and fitted rather than only bracketed. NEEDS THE OWNER to ratify or reject Level 4 on this product as on P091, P092 and P093; VALIDATION.md is written so either reading is correct."
-    status: NEEDS HARDENING
-    gate_block: "BLOCKED by scripts/release_gate.py on 2026-11-16, twice, for TWO DIFFERENT INTERMITTENT reasons, with the product tree byte-identical between the first two runs. Run 1: 'P094 PASS 1242 tests' was NOT the run - run 1 read 'P094 PASS 1209 tests' while the repository check was blocked by an unrelated private path; run 2, after that path was redacted and nothing in P094 changed, read 'P094 BLOCKED 1209 tests ! examples/headline_divergence.py exit 1: ValueError: xerr must not contain negative values'; run 3, after that defect was found and fixed, read 'P094 BLOCKED 1242 tests ! validation/validate_measured_baselines.py exit 1: no output'. FIVE intermittent failures were found in this product in one session - two by the coordinator's independent re-runs, two by the gate, one by the agent - and three were fixed with their counterexamples pinned. The remaining one did not reproduce in three consecutive direct re-runs. THE DIAGNOSIS IS SYSTEMIC, NOT A LIST OF BUGS: this is a product that MEASURES TIMING, its validation asserts relationships between wall-clock measurements, and it is being gated on a shared 2-core container, so a subset of its checks are assertions about the machine's load rather than about the product. Fixing that is a design pass over the load-sensitive assertion class, not another patch, and it is deliberately NOT attempted by an unattended session at nine and a half hours. NOTHING WAS LOST: the measured campaign, every finding, every correction and all 1242 tests are committed and pushed. The gate was not edited, no threshold was moved, no check was skipped, and nothing from this product was published."
+    status: PUBLISHED
+    gate_block: "RESOLVED 2026-11-19. The 2026-11-16 diagnosis was correct and the fix was the design pass it called for, not a patch: the load-sensitive assertion class was enumerated (61 grouped rows over 868 assertion sites, 30 LOAD-SENSITIVE), SIX live-versus-live comparisons were WITHDRAWN so the product now contains zero assertions comparing two separately-measured wall-clock readings, four rows were moved onto committed or seed-deterministic data, six were reduced to a DIRECTION and fourteen to a BOUND against a fixed value with the measured bands published in VALIDATION.md. The gate then PASSED this product on TWO independent runs on 2026-11-19, 1253 tests both times, and the coordinator re-measured 1253 independently from junit XML. A SIXTH defect of the self-polluting-check class was found and fixed in the same pass: validate_tree_hygiene.py deleted the hard-coded committed output path rather than the path the run writes, so a redirected probe run destroyed a committed validation output, the same class as the twelve destroyed on 2026-11-16. THE 2026-11-16 INTERMITTENT FAILURE ITSELF WAS NOT REPRODUCED: 20 full runs and 34 targeted blocks under two self-imposed load regimes produced 0 firings, so the diagnosis is a strong inference and is written that way. It rests on the gate reporting only stderr (every tee failure line goes to stdout, which the gate discards, making a failed check indistinguishable from 'no output'), on the withdrawn min(short)/max(full) ratio being the only thin-margin check in that script, and on its reachability from the two observed marginals (min(short) measured 0.4077, max(full) measured 0.2530, and 0.4077 is below 2x0.2530). ONE BOUND STILL HAS THIN HEADROOM, named in README Limitations: ns_per_op must stay inside (1.220703125, 21.651753743489582) and was measured at 16.155289 under self-imposed load, 1.34x from the upper boundary; it is a decision boundary derived from committed data, not a tunable constant, so it was not widened. ONE RESIDUAL JUDGEMENT, FLAGGED NOT HIDDEN: the platform ratio spread at three sites still reads two live stage timings against each other because it requires simulation mode by definition; it is bounded against SPEC section 7's pre-registered 3.0 and its first-order load dependence was measured to cancel, ns_per_op moving 3.65x while the spread moved 1.14x. SECURITY: bandit HIGH B324 fixed at its cause on 2026-11-19 with hashlib.md5(usedforsecurity=False), the accurate call for a file-identity check and not a suppression; it was the only HIGH finding in the whole repository and the digests are unchanged by construction. PRIOR STATE, RETAINED VERBATIM: BLOCKED by scripts/release_gate.py on 2026-11-16, twice, for TWO DIFFERENT INTERMITTENT reasons, with the product tree byte-identical between the first two runs. Run 1: 'P094 PASS 1242 tests' was NOT the run - run 1 read 'P094 PASS 1209 tests' while the repository check was blocked by an unrelated private path; run 2, after that path was redacted and nothing in P094 changed, read 'P094 BLOCKED 1209 tests ! examples/headline_divergence.py exit 1: ValueError: xerr must not contain negative values'; run 3, after that defect was found and fixed, read 'P094 BLOCKED 1242 tests ! validation/validate_measured_baselines.py exit 1: no output'. FIVE intermittent failures were found in this product in one session - two by the coordinator's independent re-runs, two by the gate, one by the agent - and three were fixed with their counterexamples pinned. The remaining one did not reproduce in three consecutive direct re-runs. THE DIAGNOSIS IS SYSTEMIC, NOT A LIST OF BUGS: this is a product that MEASURES TIMING, its validation asserts relationships between wall-clock measurements, and it is being gated on a shared 2-core container, so a subset of its checks are assertions about the machine's load rather than about the product. Fixing that is a design pass over the load-sensitive assertion class, not another patch, and it is deliberately NOT attempted by an unattended session at nine and a half hours. NOTHING WAS LOST: the measured campaign, every finding, every correction and all 1242 tests are committed and pushed. The gate was not edited, no threshold was moved, no check was skipped, and nothing from this product was published."
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/hiltimingdiff
     local_path: products/P094
     approved_for_publish: false
-    published: false
+    published: true
     package: hiltimingdiff
     pypi_name_check: "hiltimingdiff FREE, probed against https://pypi.org/pypi/hiltimingdiff/json on 2026-11-10 (HTTP 404). RE-PROBED 2026-11-16 by the coordinator: HTTP 404, still free, with numpy, sgp4, pytest-benchmark, reprotest and diffoscope all returning HTTP 200 as live controls that the probe works, and a nonsense name returning 404 as the control that 404 is not the probe's only answer."
     hardware_note: "HARDWARE-MEASURED 2026-11-15; this entry previously read HARDWARE-BLOCKED. The campaign was launched detached on the board by the 2026-11-15 session, which ended before collecting it; the 2026-11-16 session recovered it intact from /tmp, md5 8789ad30f4d31a3c93bc249cfd272681 verified identical on board, Mac and container, and verified all four board-side programs byte-identical to the copies committed before the data existed. THE HEADLINE: the declared operation-count timing model is stage-DEPENDENTLY wrong, with a divergence spread max(R)/min(R) of 1114.8633602088898 [1113.763384, 1124.917784] - 371.6x the threshold SPEC section 7 pre-registered - so a schedulability ordering built on the declared model does not survive: 5 of 6 stages change rank, Kendall tau-b 0.2, permutation (3,0,1,5,4,2), least trustworthy stage centroid, most trustworthy ingest. THE SECONDARY PRE-REGISTRATION WAS REFUTED: baseline 2's held-out transfer error is 0.127391 against a predicted >0.5, 0 of 20 splits above the threshold, because the PLATFORM ratio is near-uniform across stages (spread 1.53) even though the DECLARED model is not. A classical baseline the specification expected to lose won, and is published as winning."
@@ -1624,12 +1624,12 @@ products:
     summary: "End-to-end data loss across a ground-station handover in an optical network, attributed separately to acquisition time, buffer drain and protocol restart, with the headline output being WHICH of the three dominates rather than the total. Baseline 1 the assumption that acquisition time is the whole story, implemented deliberately as the thing being refuted because it is what a link budget implies; baseline 2 an analytic fluid buffer-drain and restart model giving the loss in closed form from the declared handover sequence; baseline 3 ground truth direct accounting over a simulated handover trace with bootstrap confidence intervals. Learned predictor of handover loss from pre-handover state, with an uncertainty output, scored on held-out STATION PAIRS and held-out TIME separately. WHAT IT DOES THAT EXISTING TOOLS DO NOT: network simulators measure total loss across a handover; none of them decomposes it into the three mechanisms with an interval on each, which is what tells an operator whether to buy faster acquisition or more buffer."
     ai_enabled: true
     validation_level: 2
-    status: TESTING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/handoverloss
     local_path: products/P096
     approved_for_publish: false
-    published: false
+    published: true
     package: handoverloss
     pypi_name_check: "handoverloss FREE, probed against https://pypi.org/pypi/handoverloss/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"
   - id: P097
@@ -1640,12 +1640,12 @@ products:
     summary: "Ranks intermittently failing tests by the COST of their intermittency, expected wasted re-run time, rather than by flake rate, with the headline output being how far the two rankings disagree. Baseline 1 ranking by flake rate, implemented deliberately as the thing being refuted because it is what every CI dashboard does and it systematically underweights a rare failure in a slow test; baseline 2 an analytic expected-rerun-cost model from the measured per-test failure probability and runtime, with the geometric re-run count in closed form; baseline 3 ground truth directly accumulated wasted time over a long recorded run history with bootstrap confidence intervals. Learned intermittency predictor over test features, with a confidence output, scored on held-out TESTS and held-out TIME separately. Motivated by a failure this mission actually shipped: a 1-in-44 intermittent self-inflicted failure in a validation probe that any number of agreeing serial verifications was blind to. WHAT IT DOES THAT EXISTING TOOLS DO NOT: flaky-test detectors report a rate and a first-seen date; none of them puts a cost interval on the rate, so none of them can say which flake is worth fixing first."
     ai_enabled: true
     validation_level: 2
-    status: TESTING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/flakerank
     local_path: products/P097
     approved_for_publish: false
-    published: false
+    published: true
     package: flakerank
     pypi_name_check: "flakerank FREE, probed against https://pypi.org/pypi/flakerank/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"
   - id: P098
@@ -1656,12 +1656,12 @@ products:
     summary: "Measures how much of an assurance case rests on evidence whose SUBJECT has changed since the evidence was produced, with the stale fraction as the headline output. Baseline 1 comparing evidence and artifact timestamps directly, implemented deliberately as the thing being refuted because it misses a change that reaches the artifact through a dependency and false-positives on a touched but unchanged file; baseline 2 content-hash comparison over the DEPENDENCY CLOSURE of each artifact, giving staleness exactly; baseline 3 ground truth a replayed change history in which each item's true staleness is known by construction, with bootstrap intervals on the aggregate fraction. Learned staleness-risk model over graph features, with a confidence output, scored on held-out ARTIFACTS and held-out TIME separately; the expected result is that the closure comparison is exact and the learned model cannot beat it, which is reported as the finding. WHAT IT DOES THAT EXISTING TOOLS DO NOT: traceability tools check that a link EXISTS between a claim and its evidence; this checks whether the link is still TRUE, which is the question an audit actually asks."
     ai_enabled: true
     validation_level: 2
-    status: TESTING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/evidencestale
     local_path: products/P098
     approved_for_publish: false
-    published: false
+    published: true
     package: evidencestale
     pypi_name_check: "evidencestale FREE, probed against https://pypi.org/pypi/evidencestale/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"
   - id: P099
@@ -1672,12 +1672,12 @@ products:
     summary: "Realised data yield of a scheduled ground-station contact against the nominal duration the scheduler assumed, decomposed into acquisition, re-sync and idle time, with the nominal-versus-realised shortfall as the headline output. Baseline 1 nominal duration times nominal rate, implemented deliberately as the thing being refuted because it is what a contact schedule books; baseline 2 an analytic yield model with measured acquisition and re-sync distributions convolved over the pass geometry; baseline 3 ground truth directly accounted yield from a per-pass record with bootstrap confidence intervals. Learned per-pass yield predictor from pre-pass state and geometry, with an uncertainty output, scored on held-out STATIONS and held-out TIME separately. WHAT IT DOES THAT EXISTING TOOLS DO NOT: schedulers optimise against nominal contact windows and operations tools report delivered volume after the fact; neither feeds the measured shortfall back as a distribution the scheduler could book against."
     ai_enabled: true
     validation_level: 2
-    status: TESTING
+    status: PUBLISHED
     license: Apache-2.0
-    repository: null
+    repository: https://github.com/OmAcharya-avtr/passyield
     local_path: products/P099
     approved_for_publish: false
-    published: false
+    published: true
     package: passyield
     pypi_name_check: "passyield FREE, probed against https://pypi.org/pypi/passyield/json on 2026-11-10 (HTTP 404); probe validated the same day against numpy and sgp4 as TAKEN controls (both HTTP 200)"
   - id: P100

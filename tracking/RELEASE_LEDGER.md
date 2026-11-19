@@ -1778,3 +1778,73 @@ session: it is shared by all 95 published products and changing it unattended
 is not a judgement for a session with nobody watching. **NEEDS THE OWNER.**
 
 **Mission state after this publication: 95 of 100 published.**
+
+---
+
+## 2026-11-19 — the final five. 100 of 100 published.
+
+Published under ADR-017's standing authorization and the release gate's own
+verdict. **No approval row was written, no product was set to `APPROVED`, and
+no human statement is quoted anywhere in this session's record, because no
+human spoke in it** (ADR-016).
+
+| product | repository | class | level | tests | contributors |
+|---|---|---|---|---:|---|
+| P094 HilTimingDiff | `OmAcharya-avtr/hiltimingdiff` | medium | 4 achieved | 1253 | `OmAcharya-avtr` |
+| P096 HandoverLoss | `OmAcharya-avtr/handoverloss` | medium | 2 | 222 | `OmAcharya-avtr` |
+| P097 FlakeRank | `OmAcharya-avtr/flakerank` | compact | 2 | 259 | `OmAcharya-avtr` |
+| P098 EvidenceStale | `OmAcharya-avtr/evidencestale` | compact | 2 | 213 | `OmAcharya-avtr` |
+| P099 PassYield | `OmAcharya-avtr/passyield` | compact | 2 | 284 | `OmAcharya-avtr` |
+
+**2231 tests, every count read from junit XML and independently re-measured by
+the coordinator before publication, never from pytest stdout.** The contributor
+check was run per repository immediately after its push: `gh api
+repos/OmAcharya-avtr/<name>/contributors --jq '.[].login'` returned exactly one
+line, `OmAcharya-avtr`, for all five.
+
+### The gate was run TWICE, and the two runs did not agree
+
+This is the carry-over lesson from 2026-11-16 applied, and it earned its keep.
+
+- **Run 1: VERDICT PUSH BLOCKED.** All five products PASS; the repository-wide
+  check blocked on an absolute private path tracked in
+  `nightly_reports/2026-11-17.md`. That report was written by a session cut
+  short after Phase −1, so it reached `main` without ever facing the gate.
+  Redacted to the `/Users/<name>/` form that commit `daf252a` established for
+  the same defect in the 2026-11-15 report.
+- **Run 2: VERDICT PUSH ALLOWED.** All five products PASS, repository PASS.
+
+The two runs agreed on all five product verdicts and on all five test counts.
+They disagreed on the batch verdict, and the disagreement was a real defect in
+tracked content, not noise. **Nothing was published between the two runs.** The
+gate was not edited, no threshold was moved and no check was skipped.
+
+### P094 is the one that had already failed twice
+
+It was `NEEDS HARDENING`, blocked on 2026-11-16 twice on byte-identical content
+for two different intermittent reasons. The fix was the design pass the
+diagnosis called for: the load-sensitive assertion class enumerated at 61
+grouped rows over 868 assertion sites, **six live-versus-live comparisons
+withdrawn**, and the product now contains no assertion comparing two
+separately-measured wall-clock readings. Its measured results are unchanged —
+divergence spread 1114.8633602088898, Kendall tau-b 0.2, permutation
+(3, 0, 1, 5, 4, 2), and the secondary pre-registration still **REFUTED** with
+the classical baseline published as winning.
+
+**The 2026-11-16 failure was not reproduced** — 20 full runs and 34 targeted
+blocks under self-imposed load, 0 firings — so its diagnosis is recorded as a
+strong inference, not as a reproduction.
+
+### Mission state after this publication: 100 of 100 published.
+
+`scripts/quota_report.py`: Registered 100/100, Built 100/100, Published 100/100.
+Every class and validation-level quota is met: flagship 20/20, medium 30/30,
+compact 50/50, AI 71 against a minimum of 70, L1 10/10, L2 60/60, L3 25/25,
+L4 5/5 slots occupied with **4 of 5 achieved** — P095 holds an L4 slot it has
+not achieved and is labelled `Level 3, hardware-pending` in its own README,
+exactly as the standing instruction requires.
+
+**Four products now carry an achieved Level 4** (P091, P092, P093, P094), each
+measured on an NVIDIA Jetson Orin Nano. **All four still need the owner to
+ratify or reject that label**, and each one's VALIDATION.md is written so either
+reading is correct.

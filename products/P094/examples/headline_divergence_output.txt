@@ -6,13 +6,13 @@ Research-grade. Not flight-qualified, not certified, and not approved for operat
 HEADLINE -- P094 HilTimingDiff
 Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin Nano; the board drifted 7.52 per cent over the campaign.
 
-1. Per-stage divergence ratio R[s], pass-unit 95% bootstrap interval, ns_per_op = 4.570369 ns/op:
-     ingest      R = 0.102563 [0.101735, 0.102563]   (0.468750 ns per declared op)
-     background  R = 0.267091 [0.266677, 0.267104]   (1.220703 ns per declared op)
-     threshold   R = 4.737419 [4.733417, 4.747687]   (21.651754 ns per declared op)
-     centroid    R = 114.343551 [114.230734, 114.588710]   (522.592200 ns per declared op)
-     gate        R = 20.827704 [20.775160, 20.936181]   (95.190288 ns per declared op)
-     track       R = 10.424639 [10.386957, 10.425854]   (47.644444 ns per declared op)
+1. Per-stage divergence ratio R[s], pass-unit 95% bootstrap interval, ns_per_op = 4.554758 ns/op:
+     ingest      R = 0.102914 [0.102084, 0.102914]   (0.468750 ns per declared op)
+     background  R = 0.268006 [0.267591, 0.268020]   (1.220703 ns per declared op)
+     threshold   R = 4.753656 [4.749640, 4.763959]   (21.651754 ns per declared op)
+     centroid    R = 114.735438 [114.622235, 114.981438]   (522.592200 ns per declared op)
+     gate        R = 20.899086 [20.846362, 21.007935]   (95.190288 ns per declared op)
+     track       R = 10.460367 [10.422556, 10.461587]   (47.644444 ns per declared op)
 
 2. Divergence spread max(R)/min(R) = 1114.8634 [1113.7634, 1124.8970]
    SPEC §7 primary (divergence spread): CONFIRMED -- pre-registered > 3, measured 1114.86
@@ -22,14 +22,14 @@ Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin 
    declared order (cheapest first): gate < track < centroid < ingest < threshold < background
    measured order (cheapest first): ingest < gate < track < background < threshold < centroid
 
-4. argmax(R) = centroid (R = 114.344, 0.5806 of measured frame time); argmin(R) = ingest (R = 0.102563, 0.0053 of measured frame time)
+4. argmax(R) = centroid (R = 114.735, 0.5806 of measured frame time); argmin(R) = ingest (R = 0.102914, 0.0053 of measured frame time)
 
-5. Baseline 2 held-out transfer error = 0.162694 [0.161228, 0.163229] on held-out stages centroid, gate, track
-   SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.162694
+5. Baseline 2 held-out transfer error = 0.136597 [0.135458, 0.138114] on held-out stages centroid, gate, track
+   SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.136597
 
 Research-grade. Not flight-qualified, not certified, and not approved for operational aerospace use.
 
-simulation mode measured here: x86_64, 4 passes x 1500 frames x 9 cells = 54000 timed frames in 12.3 s
+simulation mode measured here: x86_64, 4 passes x 1500 frames x 9 cells = 54000 timed frames in 12.2 s
 hardware mode read from data/traces/: 810000 timed frames on the board
 
 The calibration-free form, which depends on nothing but the committed traces:
