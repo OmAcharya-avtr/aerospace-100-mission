@@ -2,12 +2,12 @@
  "batch": 10,
  "phase": "mission_state_recovered",
  "phase_index": 1,
- "updated": "2026-11-17T04:40:00Z",
- "session_date": "2026-11-17",
- "session_type": "Rule Zero stub. Phase -1 all three PASS. Final batch: P096-P099 unbuilt, P094 NEEDS HARDENING. No build work started at the time of this commit.",
- "FIRED_ON_TIME": "Scheduled 04:07Z, fired 04:08Z. Second consecutive on-time fire.",
- "phase_minus_1": "ALL THREE PASS. osascript alive; gh logged in as OmAcharya-avtr (keyring). mission-repo clean, 0 dirty, HEAD 5a1e0ed, rev-list --left-right 0 0. Write probed on the live remote: probe-1794888499 pushed, confirmed by ls-remote at 5a1e0ed783..., then deleted. All push output redacted. No container push attempted.",
- "folder_grant": "ABSENT at fire time for the NINETEENTH consecutive run; one device_request_folder_access call recovered it.",
+ "updated": "2026-11-19T04:20:00Z",
+ "session_date": "2026-11-19",
+ "session_type": "Rule Zero stub. Phase -1 all three PASS. Final batch: P094 harden, P096-P099 build. No build work started at the time of this commit.",
+ "FIRED_ON_TIME": "Scheduled 04:07Z, fired 04:07Z. Third consecutive on-time fire.",
+ "MISSED_NIGHT": "NO SESSION RAN 2026-11-18. No report, no commit. One night lost; recorded rather than left as a silent gap.",
+ "phase_minus_1": "ALL THREE PASS. osascript alive; gh logged in as OmAcharya-avtr (keyring). mission-repo clean, 0 dirty, HEAD 943f7a1 after fetch. Write probed on the live remote: probe-1795061294 pushed as a new branch then deleted. All push output redacted. No container push attempted.",
  "quota_at_fire_time": "Registered 100/100, Built 96/100, Published 95/100. Remaining gap: medium 1, compact 3, AI 3, L2 4 - matching P096-P099 exactly. L4 built 5 of 5, achieved 4 of 5.",
  "products_this_session": [
   "P094 harden",
@@ -16,9 +16,8 @@
   "P098",
   "P099"
  ],
- "environment_measured": "python 3.13.18, numpy 2.5.3, scipy 1.18.1, sklearn 1.9.1, pandas 3.0.5, pytest 9.1.1, hypothesis 6.170.15, ruff 0.16.9, bandit 1.9.4, detect-secrets 1.5.0, matplotlib 3.11.2, sgp4 2.27, joblib 1.6.0. Single system interpreter, no venv. pulp NOT installed.",
- "prior_session_carry_over": "(1) A GREEN RELEASE GATE IS ONE SAMPLE. Two runs disagreed on byte-identical content. Any future session that publishes on a single gate run is publishing on a sample of one, and P100 now gives the bound: a clean two-run check is consistent with a defect rate as high as 0.776. Run the gate twice before publishing, or state that you did not. (2) A TIMING PRODUCT'S VALIDATION MUST NOT ASSERT TIMING RELATIONSHIPS ON A SHARED RUNNER. Five intermittent failures and a sixth caught in flight all trace to checks comparing wall-clock measurements. Reduce every such check to a direction or a bound with measured bands published. (3) A VALIDATION SCRIPT MUST NEVER REGENERATE EVIDENCE ANOTHER ONE PINS. The gate runs sorted(glob('*.py')), so adjacent scripts run back to back; P100's audit overwrote the file its sibling pinned and the gate's own ordering guaranteed the collision. Campaigns belong in data/, with their output committed and hashed. (4) A PROBE THAT RE-RUNS VALIDATION SCRIPTS MUST REDIRECT THEIR OUTPUT. P094's working-directory probe silently replaced all twelve committed outputs with reduced runs, so the committed evidence was no longer what the document quoted. (5) CHECK WHETHER A COUNTEREXAMPLE IS REACHABLE BEFORE CALLING IT THE CAUSE. Mine was real and unreachable from the declared strategies; the agent found the reachable one.",
- "prior_next_action": "P094's load-sensitive assertion class: enumerate every check comparing two wall-clock measurements and reduce each to a direction or a bound with measured bands published, then ONE gate run - do not patch instance by instance, five were found that way and a sixth was waiting. Then P096-P099, all Level 2, no hardware needed. The board is reachable and no longer required for P094.",
- "blocked": false,
- "next_action": "Dispatch five build agents in one block: P094 load-sensitive assertion design pass, P096, P097, P098, P099."
+ "environment_measured": "python 3.13.18, numpy 2.5.3, scipy 1.18.1, sklearn 1.9.1, pandas 3.0.5, pytest 9.1.1, hypothesis 6.170.15, ruff 0.16.9, bandit 1.9.4, detect-secrets 1.5.0, matplotlib 3.11.2, sgp4 2.27, joblib 1.6.0, pulp 4.2.0 with listSolvers(onlyAvailable=True) == []. Single system interpreter, no venv.",
+ "prior_session_carry_over": "(1) A GREEN RELEASE GATE IS ONE SAMPLE. Two runs disagreed on byte-identical content; P100 bounds a clean two-run check at a defect rate as high as 0.776. Run the gate twice before publishing, or state that you did not. (2) A TIMING PRODUCT'S VALIDATION MUST NOT ASSERT TIMING RELATIONSHIPS ON A SHARED RUNNER. Reduce every such check to a direction or a bound with measured bands published. (3) A VALIDATION SCRIPT MUST NEVER REGENERATE EVIDENCE ANOTHER ONE PINS - the gate runs sorted(glob('*.py')), so adjacent scripts run back to back. (4) A PROBE THAT RE-RUNS VALIDATION SCRIPTS MUST REDIRECT THEIR OUTPUT. (5) CHECK WHETHER A COUNTEREXAMPLE IS REACHABLE BEFORE CALLING IT THE CAUSE.",
+ "next_action": "Dispatch five build agents in one block: P094 load-sensitive assertion design pass, P096, P097, P098, P099.",
+ "blocked": false
 }
