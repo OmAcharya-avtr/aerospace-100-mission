@@ -87,7 +87,7 @@ def md5_of_file(path: Path | str) -> str:
     # md5 is used here as a file-identity check against sums recorded by the
     # coordinator, not as a security primitive. The sums are published in
     # validation/VALIDATION.md and the comparison is for byte-identity only.
-    digest = hashlib.md5()
+    digest = hashlib.md5(usedforsecurity=False)
     with open(path, "rb") as handle:
         while True:
             chunk = handle.read(1024 * 1024)

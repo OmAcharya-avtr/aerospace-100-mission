@@ -4,28 +4,28 @@ Measured at an unpinned schedutil-governed clock in MAXN_SUPER on a Jetson Orin 
 Research-grade. Not flight-qualified, not certified, and not approved for operational aerospace use.
 
 BASELINE 1 -- the declared timing model, the object being refuted
-  ns_per_op calibrated once on this host : 4.455364904 ns per declared op
+  ns_per_op calibrated once on this host : 4.696738488 ns per declared op
   stage         declared_ns      hw_median_ns   signed rel err
-  ingest            36498.35           3840.00        +8.504778
-  background        72996.70          20000.00        +2.649835
-  threshold         54747.52         266056.75        -0.794226
-  centroid           3594.61         421630.00        -0.991474
-  gate                287.57           6144.00        -0.953195
-  track               801.97           8576.00        -0.906487
-  mean relative error over stages : 2.466666
+  ingest            38475.68           3840.00        +9.019709
+  background        76951.36          20000.00        +2.847568
+  threshold         57713.52         266056.75        -0.783078
+  centroid           3789.35         421630.00        -0.991013
+  gate                303.15           6144.00        -0.950659
+  track               845.41           8576.00        -0.901421
+  mean relative error over stages : 2.582241
 
 BASELINE 2 -- one scalar fitted on training stages, scored on held-out stages
   training : ingest, background, threshold
   held out : centroid, gate, track
-  k        : 3.883721
-  held-out mean relative error : 0.190183 [0.188596, 0.190783]
-    centroid    predicted    337874.98 ns against measured    421630.00 ns, error 0.198646
-    gate        predicted      6958.66 ns against measured      6144.00 ns, error 0.132594
-    track       predicted      6523.68 ns against measured      8576.00 ns, error 0.239310
-  leave-one-stage-out mean : 0.144938
-  all 20 splits            : min 0.113448, median 0.180673, max 0.395036
+  k        : 3.703428
+  held-out mean relative error : 0.156577 [0.155168, 0.157087]
+    centroid    predicted    338417.43 ns against measured    421630.00 ns, error 0.197359
+    gate        predicted      6329.16 ns against measured      6144.00 ns, error 0.030137
+    track       predicted      6498.59 ns against measured      8576.00 ns, error 0.242235
+  leave-one-stage-out mean : 0.121705
+  all 20 splits            : min 0.077709, median 0.150656, max 0.350831
   splits above the pre-registered 0.5 : 0 of 20
-  SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.190183
+  SPEC §7 secondary (baseline 2 held-out transfer error): REFUTED -- pre-registered > 0.5, measured 0.156577
 
 BASELINE 3 -- ground truth, pass-unit 95% interval
   stage         median_ns            95% interval      relative width
@@ -37,12 +37,12 @@ BASELINE 3 -- ground truth, pass-unit 95% interval
   track             8576.00  [     8545.00,      8577.00]       0.003731
 
 The hardware-to-simulation ratio, which is why baseline 2 transfers:
-  ingest      3.906103
-  background  3.166667
-  threshold   3.974022
-  centroid    5.069295
-  gate        3.469069
-  track       5.080113
-  spread 1.604246, against a declared-model divergence spread of 1114.8634
+  ingest      3.717397
+  background  3.195775
+  threshold   3.865727
+  centroid    4.931179
+  gate        3.630409
+  track       4.927187
+  spread 1.543031, against a declared-model divergence spread of 1114.8634
 
 figure written: screenshots/baseline_transfer.png

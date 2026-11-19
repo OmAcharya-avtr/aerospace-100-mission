@@ -52,8 +52,15 @@ TIMEOUT = 30
 
 def probe(name: str) -> tuple[int, str]:
     """Return ``(status, detail)`` for one name. 404 means the name is free."""
-    request = urllib.request.Request(  # noqa: S310 - fixed https endpoint
-        ENDPOINT.format(name=name), headers={"User-Agent": USER_AGENT}
+    url = ENDPOINT.format(name=name)
+    # The scheme is checked rather than assumed: bandit B310 flags urlopen
+    # because a file: or custom scheme would read the local filesystem. The
+    # endpoint is a module constant, so this can only fail if that constant
+    # is edited, which is exactly when the check should fire.
+    if not url.startswith("https://"):
+        raise ValueError(f"refusing a non-https probe endpoint: {url!r}")
+    request = urllib.request.Request(  # noqa: S310 - scheme checked above
+        url, headers={"User-Agent": USER_AGENT}
     )
     try:
         with urllib.request.urlopen(request, timeout=TIMEOUT) as response:  # noqa: S310
